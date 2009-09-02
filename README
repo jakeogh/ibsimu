@@ -1,0 +1,141 @@
+		IBSimu - Ion Beam Simulator
+		===========================
+
+
+Ion Beam Simulator (IBSimu) library is made by Taneli Kalvas
+<tvkalvas@cc.jyu.fi>. All source code copyright (c) 2004-2009 Taneli
+Kalvas and The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any
+required approvals from the U.S. Dept. of Energy). All rights
+reserved.
+
+You can redistribute this software and/or modify it under the terms
+of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option)
+any later version.
+
+This library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this library (file "COPYING" included in the package);
+if not, write to the Free Software Foundation, Inc., 51 Franklin
+Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+If you have questions about your rights to use or distribute this
+software, please contact Berkeley Lab's Technology Transfer
+Department at TTD@lbl.gov. Other questions, comments and bug
+reports should be sent directly to the author via email at
+tvkalvas@cc.jyu.fi.
+
+NOTICE. This software was developed under partial funding from the
+U.S.  Department of Energy.  As such, the U.S. Government has been
+granted for itself and others acting on its behalf a paid-up,
+nonexclusive, irrevocable, worldwide license in the Software to
+reproduce, prepare derivative works, and perform publicly and
+display publicly.  Beginning five (5) years after the date
+permission to assert copyright is obtained from the U.S. Department
+of Energy, and subject to any subsequent five (5) year renewals,
+the U.S. Government is granted for itself and others acting on its
+behalf a paid-up, nonexclusive, irrevocable, worldwide license in
+the Software to reproduce, prepare derivative works, distribute
+copies to the public, perform publicly and display publicly, and to
+permit others to do so.
+
+
+
+Introduction
+------------
+
+IBSimu is an ion optics simulation library with several capabilities
+for solving electric fields in a geometry and tracing particles in the
+
+electric fields. The code currently has following features:
+
+1. Finite Difference Method (FDM) for solving Poisson's equation 1D, 2D 
+   and 3D spaces and in the special case of cylindrical symmetry (3D 
+   problem reduced to 2D).
+2. Particle trajectory calculation in the solved potential.
+3. Space charge density calculation from the trajectories .
+4. Vlasov iteration using features 1 to 3.
+
+
+
+Installing
+----------
+
+Ion Beam Simulator is a library written in C++ and is compilable by
+modern gcc compilers in linux/unix environments. So far I haven't
+tried to try to port the library into Microsoft Windows environment,
+but I believe it shouldn't be a problem. You will need a valid C++
+compiler to install and run the simulator. If the dependencies are
+available and correctly installed, it should be pretty straightforward
+to compile the library using GNU autotools build system:
+
+1. First, run './configure' with necessary options.
+   * One possible option is the --prefix, which can be used to set the 
+     installation directory. For example --prefix=/home/homedir/ to 
+     install under you home directory.
+
+2. Do 'make' to compile the library.
+
+3. Do 'make check' to run tests distributed with the library.
+
+4. Do 'make install' (as root if necessary).
+
+If you install libraries in home directory, note that environment
+variables need to be set. For example:
+
+export PKG_CONFIG_PATH="/home/homedir/lib/pkgconfig"
+export LD_LIBRARY_PATH="/home/homedir/lib"
+export CXXFLAGS="-I/home/homedir/include"
+export LDFLAGS="-L/home/homedir/lib"
+
+
+
+Dependencies
+------------
+
+Ion Beam Simulator depends on other software to perform its functions.
+IBSimu needs at least the following libraries:
+
+- GSL -- GNU scientific library (http://www.gnu.org/software/gsl/).
+- GTK+ -- GNOME Toolkit, library for graphical user interfaces 
+  (http://www.gtk.org/).
+
+These libraries are needed for optional features:
+
+- SuiteSparse -- Sparse matrix package by Tim Davis (a modified copy 
+  available at http://users.jyu.fi/~tvkalvas/code/suitesparse).
+- BLAS -- Basic linear algebra subprograms package (several versions
+  available, for example the reference blas at 
+  http://www.netlib.org/blas/ (this is slow), GOTO BLAS at 
+  http://www.tacc.utexas.edu/resources/software/ or ATLAS at 
+  http://math-atlas.sourceforge.net/).
+
+
+
+Documentation
+-------------
+
+IBSimu is using Doxygen documentation system for building the
+documentation from source code metadata. See directories doc/html and
+doc/latex for built documentation or do 'make doc' for generating the
+docs.
+
+
+
+Acknowledgements
+----------------
+
+I would like to thank fellow workers at LBNL including S. K. Hahto,
+J. H.  Vainionpää and J. Reijonen for fruitful discussions on
+simulation codes and for giving me time and the possibility to develop
+the code. Also I would like to thank J.~H.~Sarén for brainstorming the
+C++ version of the code with me.
+
+
+
+-- Taneli Kalvas <taneli.kalvas@jyu.fi>, 02 Sep 2009

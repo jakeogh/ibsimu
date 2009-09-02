@@ -1,0 +1,307 @@
+#include <cstring>
+#include <cmath>
+#include <limits>
+#include <iostream>
+#include "histogram.hpp"
+#include "error.hpp"
+
+
+Histogram::Histogram( size_t n, const double range[2] )
+    : _n(n), _data(n,0.0)
+{
+    if( _n < 4 )
+	throw( Error( ERROR_LOCATION, "too small histogram size" ) );
+
+    _range[0] = range[0];
+    _range[1] = range[1];
+
+    _step = (_range[1]-_range[0]) / (_n-1.0);
+}
+
+
+Histogram::Histogram( size_t n, const std::vector<double> &xdata )
+    : _n(n), _data(n,0.0)
+{
+    if( _n < 4 )
+	throw( Error( ERROR_LOCATION, "too small histogram size" ) );
+
+    size_t N = xdata.size();
+
+    // Find range limits so that the furthest points will receive no
+    // contribution from data.
+    double bbox[2];
+    bbox[0] = std::numeric_limits<double>::infinity();
+    bbox[1] = -std::numeric_limits<double>::infinity();
+    for( size_t a = 0; a < N; a++ ) {
+	if( xdata[a] < bbox[0] )
+	    bbox[0] = xdata[a];
+	if( xdata[a] >bbox[1] )
+	    bbox[1] = xdata[a];
+    }
+
+    // Increase ranges by one
+    _range[0] = bbox[0] - (bbox[1]-bbox[0])/(_n-3.0);
+    _range[1] = bbox[1] + (bbox[1]-bbox[0])/(_n-3.0);
+
+    // Calculate step size
+    _step = (_range[1]-_range[0]) / (_n-1.0);
+
+    // Add data
+    for( size_t a = 0; a < N; a++ )
+	accumulate_linear( xdata[a], 1.0 );
+}
+
+
+Histogram::Histogram( size_t n, const std::vector<double> &xdata, const std::vector<double> &wdata )
+    : _n(n), _data(n,0.0)
+{
+    if( _n < 4 )
+	throw( Error( ERROR_LOCATION, "too small histogram size" ) );
+
+    size_t N = xdata.size() < wdata.size() ? xdata.size() : wdata.size();
+
+    // Find range limits so that the furthest points will receive no
+    // contribution from data.
+    double bbox[2];
+    bbox[0] = std::numeric_limits<double>::infinity();
+    bbox[1] = -std::numeric_limits<double>::infinity();
+    for( size_t a = 0; a < N; a++ ) {
+	if( xdata[a] < bbox[0] )
+	    bbox[0] = xdata[a];
+	if( xdata[a] >bbox[1] )
+	    bbox[1] = xdata[a];
+    }
+
+    // Increase ranges by one
+    _range[0] = bbox[0] - (bbox[1]-bbox[0])/(_n-3.0);
+    _range[1] = bbox[1] + (bbox[1]-bbox[0])/(_n-3.0);
+
+    // Calculate step size
+    _step = (_range[1]-_range[0]) / (_n-1.0);
+
+    // Add data
+    for( size_t a = 0; a < N; a++ )
+	accumulate_linear( xdata[a], wdata[a] );
+}
+
+
+Histogram::~Histogram()
+{
+
+}
+
+
+void Histogram::get_bin_range( double &min, double &max )
+{
+    min = std::numeric_limits<double>::infinity();
+    max = -std::numeric_limits<double>::infinity();
+
+    for( int a = 0; a < _n; a++ ) {
+	if( _data[a] < min ) 
+	    min = _data[a];
+	if( _data[a] > max ) 
+	    max = _data[a];
+    }
+}
+    
+
+void Histogram::accumulate_linear( double x, double weight )
+{
+    //std::cout << "(x,y) = (" << x << "," << y << ")\n";
+    int i = (int)floor( (x-_range[0]) / _step );
+    //std::cout << "(i,j) = (" << i << "," << j << ")\n";
+    double t = (x - _range[0])/_step - i;
+    //std::cout << "(t,u) = (" << t << "," << u << ")\n";
+
+    if( i < _n-1 && i >= 0 ) {
+	// No checks necessary 
+	_data[i  ] += weight*(1.0-t);
+	_data[i+1] += weight*t;
+	return;
+    }
+	
+    // Thorough checks needed
+    if( i >= 0 && i < _n )
+	_data[i]   += weight*(1.0-t);
+    if( i+1 >= 0 && i+1 < _n )
+	_data[i+1] += weight*t;
+}
+
+
+
+/* ****************************************************************************
+ *
+ */
+
+Histogram2D::Histogram2D( size_t n, size_t m, const double range[4] )
+    : _n(n), _m(m), _data(n*m,0.0)
+{
+    if( _n < 4 || _m < 4 )
+	throw( Error( ERROR_LOCATION, "too small histogram size" ) );
+
+    _range[0] = range[0];
+    _range[1] = range[1];
+    _range[2] = range[2];
+    _range[3] = range[3];
+
+    _nstep = (_range[2]-_range[0]) / (_n-1.0);
+    _mstep = (_range[3]-_range[1]) / (_m-1.0);
+}
+
+
+Histogram2D::Histogram2D( size_t n, size_t m, 
+			  const std::vector<double> &xdata,
+			  const std::vector<double> &ydata )
+    : _n(n), _m(m), _data(n*m,0.0)
+{
+    if( _n < 4 || _m < 4 )
+	throw( Error( ERROR_LOCATION, "too small histogram size" ) );
+
+    size_t N = xdata.size() < ydata.size() ? xdata.size() : ydata.size();
+
+    // Find range limits so that the furthest points will receive no
+    // contribution from data.
+    double bbox[4];
+    bbox[0] = std::numeric_limits<double>::infinity();
+    bbox[1] = std::numeric_limits<double>::infinity();
+    bbox[2] = -std::numeric_limits<double>::infinity();
+    bbox[3] = -std::numeric_limits<double>::infinity();
+    for( size_t a = 0; a < N; a++ ) {
+	if( xdata[a] < bbox[0] )
+	    bbox[0] = xdata[a];
+	if( xdata[a] >bbox[2] )
+	    bbox[2] = xdata[a];
+
+	if( ydata[a] < bbox[1] )
+	    bbox[1] = ydata[a];
+	if( ydata[a] >bbox[3] )
+	    bbox[3] = ydata[a];
+    }
+
+    // Increase ranges by one
+    _range[0] = bbox[0] - (bbox[2]-bbox[0])/(_n-3.0);
+    _range[1] = bbox[1] - (bbox[3]-bbox[1])/(_n-3.0);
+    _range[2] = bbox[2] + (bbox[2]-bbox[0])/(_n-3.0);
+    _range[3] = bbox[3] + (bbox[3]-bbox[1])/(_n-3.0);
+
+    // Calculate step size
+    _nstep = (_range[2]-_range[0]) / (_n-1.0);
+    _mstep = (_range[3]-_range[1]) / (_m-1.0);
+
+    // Add data
+    for( size_t a = 0; a < N; a++ )
+	accumulate_linear( xdata[a], ydata[a], 1.0 );
+}
+
+
+Histogram2D::Histogram2D( size_t n, size_t m, 
+			  const std::vector<double> &xdata,
+			  const std::vector<double> &ydata,
+			  const std::vector<double> &wdata )
+    : _n(n), _m(m), _data(n*m,0.0)
+{
+    if( _n < 4 || _m < 4 )
+	throw( Error( ERROR_LOCATION, "too small histogram size" ) );
+
+    size_t N = xdata.size() < ydata.size() ? 
+	(xdata.size() < wdata.size() ? xdata.size() : wdata.size()) :
+	(ydata.size() < wdata.size() ? ydata.size() : wdata.size());
+
+    // Find range limits so that the furthest points will receive no
+    // contribution from data.
+    double bbox[4];
+    bbox[0] = std::numeric_limits<double>::infinity();
+    bbox[1] = std::numeric_limits<double>::infinity();
+    bbox[2] = -std::numeric_limits<double>::infinity();
+    bbox[3] = -std::numeric_limits<double>::infinity();
+    for( size_t a = 0; a < N; a++ ) {
+	if( xdata[a] < bbox[0] )
+	    bbox[0] = xdata[a];
+	if( xdata[a] >bbox[2] )
+	    bbox[2] = xdata[a];
+
+	if( ydata[a] < bbox[1] )
+	    bbox[1] = ydata[a];
+	if( ydata[a] >bbox[3] )
+	    bbox[3] = ydata[a];
+    }
+
+    // Increase ranges by one
+    _range[0] = bbox[0] - (bbox[2]-bbox[0])/(_n-3.0);
+    _range[1] = bbox[1] - (bbox[3]-bbox[1])/(_n-3.0);
+    _range[2] = bbox[2] + (bbox[2]-bbox[0])/(_n-3.0);
+    _range[3] = bbox[3] + (bbox[3]-bbox[1])/(_n-3.0);
+
+    // Calculate step size
+    _nstep = (_range[2]-_range[0]) / (_n-1.0);
+    _mstep = (_range[3]-_range[1]) / (_m-1.0);
+
+    // Add data
+    for( size_t a = 0; a < N; a++ )
+	accumulate_linear( xdata[a], ydata[a], wdata[a] );
+}
+
+
+Histogram2D::~Histogram2D()
+{
+
+}
+
+
+void Histogram2D::get_bin_range( double &min, double &max )
+{
+    min = std::numeric_limits<double>::infinity();
+    max = -std::numeric_limits<double>::infinity();
+
+    int size = _n*_m;
+    for( int a = 0; a < size; a++ ) {
+	if( _data[a] < min )
+	    min = _data[a];
+	if( _data[a] > max )
+	    max = _data[a];
+    }
+}    
+
+
+void Histogram2D::accumulate_linear( double x, double y, double weight )
+{
+    //std::cout << "(x,y) = (" << x << "," << y << ")\n";
+    int i = (int)floor( (x-_range[0]) / _nstep );
+    int j = (int)floor( (y-_range[1]) / _mstep );
+    //std::cout << "(i,j) = (" << i << "," << j << ")\n";
+    double t = (x - _range[0])/_nstep - i;
+    double u = (y - _range[1])/_mstep - j;
+    //std::cout << "(t,u) = (" << t << "," << u << ")\n";
+
+    if( i < _n-1 && j < _m-1 && i >= 0 && j >= 0 ) {
+	// No checks necessary 
+	_data[i  +    j*_n] += weight*(1.0-t)*(1.0-u);
+	_data[i+1+    j*_n] += weight*t*(1.0-u);
+	_data[i  +(j+1)*_n] += weight*(1.0-t)*u;
+	_data[i+1+(j+1)*_n] += weight*t*u;
+	return;
+    }
+	
+    // Thorough checks needed
+    if( i >= 0 && j >= 0 && i < _n && j < _m )
+	_data[i  +    j*_n] += weight*(1.0-t)*(1.0-u);
+    if( i+1 >= 0 && j >= 0 && i+1 < _n && j < _m )
+	_data[i+1+    j*_n] += weight*t*(1.0-u);
+    if( i >= 0 && j+1 >= 0 && i < _n && j+1 < _m )
+	_data[i  +(j+1)*_n] += weight*(1.0-t)*u;
+    if( i+1 >= 0 && j+1 >= 0 && i+1 < _n && j+1 < _m )
+	_data[i+1+(j+1)*_n] += weight*t*u;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

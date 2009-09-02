@@ -1,0 +1,32 @@
+/*! \mainpage Ion Beam Simulation Package
+
+IBSimu is a simulation package for ion beam optics with space charge
+and plasma modelling capabilities.
+
+The manual consists of the reference manual and an \subpage p_intro
+"introduction", which describes the different concepts in the
+simulations in couple of pages.  The reference manual describes the
+classes, functions and variables of the IBSimu package in detail, but
+first time users should first read the introduction to get a grasp of
+the parts of the package and how they relate to each other.
+
+ 
+ */
+
+
+
+
+
+/*! \page p_intro Introduction
+
+Introductory text. Introductory text. Introductory text.
+
+- \subpage p_geometry
+- \subpage p_epot
+- \subpage p_pdb
+- \subpage p_scharge
+- \subpage p_bfield
+
+
+ */
+

@@ -1,0 +1,544 @@
+#include "gtkfielddiagdialog.hpp"
+
+
+GTKFieldDiagDialog::GTKFieldDiagDialog( GtkWidget *window, GTKPlotter *plotter, double x1[3], double x2[3] )
+    : _window(window), _plotter(plotter)
+{
+    _x1[0] = x1[0];
+    _x1[1] = x1[1];
+    _x1[2] = x1[2];
+    _x2[0] = x2[0];
+    _x2[1] = x2[1];
+    _x2[2] = x2[2];
+
+    _geom = _plotter->get_geometry();
+}
+
+
+GTKFieldDiagDialog::~GTKFieldDiagDialog()
+{
+
+}
+
+
+void GTKFieldDiagDialog::run( void )
+{
+    GtkWidget *dialog = gtk_dialog_new_with_buttons( "Make field diagnostics",
+                                                     GTK_WINDOW(_window),
+                                                     (GtkDialogFlags)(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT), 
+                                                     GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
+                                                     GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
+                                                     NULL );
+    GtkWidget *vbox = GTK_DIALOG(dialog)->vbox;
+
+    // ****************************************************************************
+
+    GtkWidget *hbox = gtk_hbox_new( TRUE, 30 );
+
+    // Labels
+    GtkWidget *label = gtk_label_new( "" );
+    gtk_label_set_markup( GTK_LABEL(label), "<span weight=\"bold\">Start</span>" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    label = gtk_label_new( "" );
+    gtk_label_set_markup( GTK_LABEL(label), "<span weight=\"bold\">End</span>" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // x1
+    hbox = gtk_hbox_new( TRUE, 30 );
+    GtkWidget *hbox2 = gtk_hbox_new( FALSE, 0 );
+    label = gtk_label_new( "x1" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
+    GtkWidget *entry_x1 = gtk_entry_new_with_max_length( 30 );
+    std::string s = to_string(_x1[0]);
+    gtk_entry_set_text( GTK_ENTRY(entry_x1), s.c_str() );
+    gtk_box_pack_start( GTK_BOX(hbox2), entry_x1, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
+
+    // x2
+    hbox2 = gtk_hbox_new( FALSE, 0 );
+    label = gtk_label_new( "x2" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
+    GtkWidget *entry_x2 = gtk_entry_new_with_max_length( 30 );
+    s = to_string(_x2[0]);
+    gtk_entry_set_text( GTK_ENTRY(entry_x2), s.c_str() );
+    gtk_box_pack_start( GTK_BOX(hbox2), entry_x2, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
+
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // y1
+    hbox = gtk_hbox_new( TRUE, 30 );
+    hbox2 = gtk_hbox_new( FALSE, 0 );
+    if( _geom->geom_mode() == MODE_CYL )
+	label = gtk_label_new( "r1" );
+    else
+	label = gtk_label_new( "y1" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
+    GtkWidget *entry_y1 = gtk_entry_new_with_max_length( 30 );
+    s = to_string(_x1[1]);
+    gtk_entry_set_text( GTK_ENTRY(entry_y1), s.c_str() );
+    gtk_box_pack_start( GTK_BOX(hbox2), entry_y1, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
+
+    // y2
+    hbox2 = gtk_hbox_new( FALSE, 0 );
+    if( _geom->geom_mode() == MODE_CYL )
+	label = gtk_label_new( "r2" );
+    else
+	label = gtk_label_new( "y2" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
+    GtkWidget *entry_y2 = gtk_entry_new_with_max_length( 30 );
+    s = to_string(_x2[1]);
+    gtk_entry_set_text( GTK_ENTRY(entry_y2), s.c_str() );
+    gtk_box_pack_start( GTK_BOX(hbox2), entry_y2, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
+
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // z1
+    hbox = gtk_hbox_new( TRUE, 30 );
+    hbox2 = gtk_hbox_new( FALSE, 0 );
+    label = gtk_label_new( "z1" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
+    GtkWidget *entry_z1 = gtk_entry_new_with_max_length( 30 );
+    if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
+	gtk_widget_set_sensitive( entry_z1, FALSE );
+    s = to_string(_x1[2]);
+    gtk_entry_set_text( GTK_ENTRY(entry_z1), s.c_str() );
+    gtk_box_pack_start( GTK_BOX(hbox2), entry_z1, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
+
+    // z2
+    hbox2 = gtk_hbox_new( FALSE, 0 );
+    label = gtk_label_new( "z2" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
+    GtkWidget *entry_z2 = gtk_entry_new_with_max_length( 30 );
+    if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
+	gtk_widget_set_sensitive( entry_z2, FALSE );
+    s = to_string(_x2[2]);
+    gtk_entry_set_text( GTK_ENTRY(entry_z2), s.c_str() );
+    gtk_box_pack_start( GTK_BOX(hbox2), entry_z2, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
+
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // N
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Samples" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkObject *n_adj = gtk_adjustment_new( 100, 0, 10000, 10, 100, 100 );
+    GtkWidget *n_spin = gtk_spin_button_new( GTK_ADJUSTMENT(n_adj), 10, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), n_spin, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // ****************************************************************************
+
+    // Separator
+    GtkWidget *separator = gtk_hseparator_new();
+    GtkWidget *alignment = gtk_alignment_new( 0.5, 0.5, 1.0, 1.0 );
+    gtk_alignment_set_padding( GTK_ALIGNMENT(alignment), 5, 5, 0, 0 );
+    gtk_container_add( GTK_CONTAINER(alignment), separator );
+    gtk_box_pack_start( GTK_BOX(vbox), alignment, FALSE, TRUE, 0 );
+
+    // ****************************************************************************
+
+    // Axis selection titles
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "" );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    label = gtk_label_new( "Axis x1" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    label = gtk_label_new( "Axis x2" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    
+    // Distance
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Distance" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_axis1_dist = gtk_radio_button_new_from_widget( NULL );
+    GtkWidget *radio_axis2_dist = gtk_radio_button_new_from_widget( NULL );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_axis1_dist, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_axis2_dist, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // X
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "X" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_axis1_x = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis1_dist) );
+    GtkWidget *radio_axis2_x = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis2_dist) );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_axis1_x, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_axis2_x, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Y
+    hbox = gtk_hbox_new( TRUE, 30 );
+    if(_geom->geom_mode() == MODE_CYL )
+	label = gtk_label_new( "R" );
+    else
+	label = gtk_label_new( "Y" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_axis1_y = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis1_dist) );
+    GtkWidget *radio_axis2_y = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis2_dist) );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_axis1_y, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_axis2_y, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Z
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Z" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_axis1_z = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis1_dist) );
+    GtkWidget *radio_axis2_z = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis2_dist) );
+    if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL ) {
+	gtk_widget_set_sensitive( radio_axis1_z, FALSE );
+	gtk_widget_set_sensitive( radio_axis2_z, FALSE );
+    }
+    gtk_box_pack_start( GTK_BOX(hbox), radio_axis1_z, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_axis2_z, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );    
+
+    // None
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "None" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_axis1_none = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis1_dist) );
+    GtkWidget *radio_axis2_none = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis2_dist) );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_axis1_none, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_axis2_none, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );    
+
+    // ****************************************************************************
+
+    // Separator
+    separator = gtk_hseparator_new();
+    alignment = gtk_alignment_new( 0.5, 0.5, 1.0, 1.0 );
+    gtk_alignment_set_padding( GTK_ALIGNMENT(alignment), 5, 5, 0, 0 );
+    gtk_container_add( GTK_CONTAINER(alignment), separator );
+    gtk_box_pack_start( GTK_BOX(vbox), alignment, FALSE, TRUE, 0 );
+
+    // ****************************************************************************
+
+    // Field selection titles
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "" );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    label = gtk_label_new( "Graph 1" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    label = gtk_label_new( "Graph 2" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    
+    // Epot
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Electric potential" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_g1_epot = gtk_radio_button_new_from_widget( NULL );
+    GtkWidget *radio_g2_epot = gtk_radio_button_new_from_widget( NULL );
+    if( !_plotter->get_epot() ) {
+	gtk_widget_set_sensitive( radio_g1_epot, FALSE );
+	gtk_widget_set_sensitive( radio_g2_epot, FALSE );
+    }
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_epot, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_epot, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // E
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "|E|" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_g1_e = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
+    GtkWidget *radio_g2_e = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
+    if( !_plotter->get_epot() ) {
+	gtk_widget_set_sensitive( radio_g1_e, FALSE );
+	gtk_widget_set_sensitive( radio_g2_e, FALSE );
+    }
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_e, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_e, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Ex
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Ex" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_g1_ex = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
+    GtkWidget *radio_g2_ex = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
+    if( !_plotter->get_epot() ) {
+	gtk_widget_set_sensitive( radio_g1_ex, FALSE );
+	gtk_widget_set_sensitive( radio_g2_ex, FALSE );
+    }
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_ex, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_ex, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Ey
+    hbox = gtk_hbox_new( TRUE, 30 );
+    if( _geom->geom_mode() == MODE_CYL )
+	label = gtk_label_new( "Er" );
+    else
+	label = gtk_label_new( "Ey" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_g1_ey = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
+    GtkWidget *radio_g2_ey = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
+    if( !_plotter->get_epot() ) {
+	gtk_widget_set_sensitive( radio_g1_ey, FALSE );
+	gtk_widget_set_sensitive( radio_g2_ey, FALSE );
+    }
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_ey, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_ey, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Ez
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Ez" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_g1_ez = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
+    GtkWidget *radio_g2_ez = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
+    if( !_plotter->get_epot() || _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL ) {
+	gtk_widget_set_sensitive( radio_g1_ez, FALSE );
+	gtk_widget_set_sensitive( radio_g2_ez, FALSE );
+    }
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_ez, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_ez, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Space charge
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Space charge" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_g1_scharge = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
+    GtkWidget *radio_g2_scharge = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
+    if( !_plotter->get_scharge() ) {
+	gtk_widget_set_sensitive( radio_g1_scharge, FALSE );
+	gtk_widget_set_sensitive( radio_g2_scharge, FALSE );
+    }
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_scharge, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_scharge, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Bfield components
+    bool bfield_fout[3] = {false, false, false};
+    if( _plotter->get_bfield() )
+	_plotter->get_bfield()->get_defined_components( bfield_fout );
+
+    // B
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "|B|" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_g1_b = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
+    if( !_plotter->get_bfield() )
+	gtk_widget_set_sensitive( radio_g1_b, FALSE );
+    GtkWidget *radio_g2_b = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
+    if( !_plotter->get_bfield() )
+	gtk_widget_set_sensitive( radio_g2_b, FALSE );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_b, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_b, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Bx
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Bx" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_g1_bx = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
+    if( !bfield_fout[0] )
+	gtk_widget_set_sensitive( radio_g1_bx, FALSE );
+    GtkWidget *radio_g2_bx = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
+    if( !bfield_fout[0] )
+	gtk_widget_set_sensitive( radio_g2_bx, FALSE );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_bx, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_bx, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // By
+    hbox = gtk_hbox_new( TRUE, 30 );
+    if( _geom->geom_mode() == MODE_CYL )
+	label = gtk_label_new( "Br" );
+    else
+	label = gtk_label_new( "By" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_g1_by = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
+    if( !bfield_fout[1] )
+	gtk_widget_set_sensitive( radio_g1_by, FALSE );
+    GtkWidget *radio_g2_by = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
+    if( !bfield_fout[1] )
+	gtk_widget_set_sensitive( radio_g2_by, FALSE );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_by, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_by, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Bz
+    hbox = gtk_hbox_new( TRUE, 30 );
+    if( _geom->geom_mode() == MODE_CYL )
+	label = gtk_label_new( "Btheta" );
+    else
+	label = gtk_label_new( "Bz" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_g1_bz = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
+    if( !bfield_fout[2] )
+	gtk_widget_set_sensitive( radio_g1_bz, FALSE );
+    GtkWidget *radio_g2_bz = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
+    if( !bfield_fout[2] )
+	gtk_widget_set_sensitive( radio_g2_bz, FALSE );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_bz, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_bz, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // None
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "None" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    GtkWidget *radio_g1_none = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
+    GtkWidget *radio_g2_none = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_none, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_none, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // ****************************************************************************
+
+    gtk_widget_show_all( dialog );
+
+    if( gtk_dialog_run( GTK_DIALOG(dialog) ) == GTK_RESPONSE_ACCEPT ) {
+
+	// Read in options and start particle diagnostics plot
+
+	// Read coordinates
+	Vec3D x1;
+	Vec3D x2;
+	const char *entry_text = gtk_entry_get_text( GTK_ENTRY(entry_x1) );
+	x1[0] = atof(entry_text);
+	entry_text = gtk_entry_get_text( GTK_ENTRY(entry_y1) );
+	x1[1] = atof(entry_text);
+	entry_text = gtk_entry_get_text( GTK_ENTRY(entry_x2) );
+	x2[0] = atof(entry_text);
+	entry_text = gtk_entry_get_text( GTK_ENTRY(entry_y2) );
+	x2[1] = atof(entry_text);
+
+	// Read N
+	size_t N = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(n_spin) );
+	
+	// Read distance axis selection
+	field_loc_type_e loc[2];
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_axis1_dist) ) )
+	    loc[0] = FIELDD_LOC_DIST;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_axis1_x) ) )
+	    loc[0] = FIELDD_LOC_X;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_axis1_y) ) )
+	    loc[0] = FIELDD_LOC_Y;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_axis1_z) ) )
+	    loc[0] = FIELDD_LOC_Z;
+
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_axis2_dist) ) )
+	    loc[1] = FIELDD_LOC_DIST;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_axis2_x) ) )
+	    loc[1] = FIELDD_LOC_X;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_axis2_y) ) )
+	    loc[1] = FIELDD_LOC_Y;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_axis2_z) ) )
+	    loc[1] = FIELDD_LOC_Z;
+
+	// Read plots to be made
+	field_diag_type_e diag[2];
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_epot) ) )
+	    diag[0] = FIELDD_DIAG_EPOT;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_e) ) )
+	    diag[0] = FIELDD_DIAG_EFIELD;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_ex) ) )
+	    diag[0] = FIELDD_DIAG_EFIELD_X;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_ey) ) )
+	    diag[0] = FIELDD_DIAG_EFIELD_Y;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_ez) ) )
+	    diag[0] = FIELDD_DIAG_EFIELD_Z;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_scharge) ) )
+	    diag[0] = FIELDD_DIAG_SCHARGE;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_b) ) )
+	    diag[0] = FIELDD_DIAG_BFIELD;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_bx) ) )
+	    diag[0] = FIELDD_DIAG_BFIELD_X;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_by) ) )
+	    diag[0] = FIELDD_DIAG_BFIELD_Y;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_bz) ) )
+	    diag[0] = FIELDD_DIAG_BFIELD_Z;
+
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_epot) ) )
+	    diag[1] = FIELDD_DIAG_EPOT;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_e) ) )
+	    diag[1] = FIELDD_DIAG_EFIELD;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_ex) ) )
+	    diag[1] = FIELDD_DIAG_EFIELD_X;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_ey) ) )
+	    diag[1] = FIELDD_DIAG_EFIELD_Y;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_ez) ) )
+	    diag[1] = FIELDD_DIAG_EFIELD_Z;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_scharge) ) )
+	    diag[1] = FIELDD_DIAG_SCHARGE;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_b) ) )
+	    diag[1] = FIELDD_DIAG_BFIELD;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_bx) ) )
+	    diag[1] = FIELDD_DIAG_BFIELD_X;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_by) ) )
+	    diag[1] = FIELDD_DIAG_BFIELD_Y;
+	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_bz) ) )
+	    diag[1] = FIELDD_DIAG_BFIELD_Z;
+
+	std::cout << "x1 = " << x1[0] << "\n";
+	std::cout << "y1 = " << x1[1] << "\n";
+	std::cout << "z1 = " << x1[2] << "\n";
+	std::cout << "x2 = " << x2[0] << "\n";
+	std::cout << "y2 = " << x2[1] << "\n";
+	std::cout << "z2 = " << x2[2] << "\n";
+	std::cout << "N  = " << N << "\n";
+	std::cout << "g1 = " << diag[0] << "\n";
+	std::cout << "g2 = " << diag[1] << "\n";
+	std::cout << "d1 = " << loc[0] << "\n";
+	std::cout << "d2 = " << loc[1] << "\n";
+
+	_plotter->new_field_plot_window( N, x1, x2, diag, loc );
+    }
+
+    gtk_widget_destroy( dialog );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,29 @@
+		TODO list
+		=========
+
+Solver speed test for 2D (for talks)
+
+Particle plot mirroring auto/off
+
+Data export from geomplot, fieldplot windows
+
+Integrate UMFPACK solver
+
+Integrate Gauss-Seidel / SOR solver
+
+Integrate DXF-file
+
+Colormap plots on eps/pdf canvas.
+
+Optimize solver (time using gperf)
+
+Documentation: fill introductory parts
+
+Negative plasma solver
+
+Change debug printing to stream.
+
+Improve CSG usability through input geometry definition script
+
+
+

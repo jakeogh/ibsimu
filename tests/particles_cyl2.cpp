@@ -1,0 +1,141 @@
+/*! \file particles_cyl.cpp 
+ *  \brief Test particle iterator in zero field in cylindrical coordinates.
+ *
+ *  \test Test particle iterator in zero field in cylindrical coordinates.
+ *  The trajectory is linear in (x,y) coordinates and is compared to cylindrical
+ *  coordinates, which are
+ *  \f[ r = \sqrt{ x^2 + y^2 }, \f]
+ *  and
+ *  \f[ \frac{\partial r}{\partial t} = \frac{2x \frac{\partial x}{\partial t} + 
+    2y \frac{\partial y}{\partial t}}{2 \sqrt{ x^2 + y^2 }}. \f]
+ *  Key points and energy conservation are checked.
+ *
+ */
+
+
+#include <fstream>
+#include <iomanip>
+#include "fileplot.hpp"
+#include "geometry.hpp"
+#include "bicgstab_solver.hpp"
+#include "epot_problem.hpp"
+#include "epot_efield.hpp"
+#include "particles.hpp"
+#include "error.hpp"
+#include "verbose.hpp"
+
+
+using namespace std;
+
+
+double vrfunc( double y, double vy, double z, double vz )
+{
+    return( (y*vy+z*vz)/sqrt(y*y+z*z) );
+}
+
+double wfunc( double y, double vy, double z, double vz )
+{
+    return( (z*vy-y*vz)/(y*y+z*z) );
+}
+
+
+void test( void )
+{
+    verbose_output = 1;
+
+    Geometry g( MODE_CYL, Int3D(11,11,1), Vec3D(-0.05,0.0,0.0), 0.01 );
+    g.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
+    g.set_boundary( 2, Bound(BOUND_DIRICHLET,    0.0) );
+    g.set_boundary( 3, Bound(BOUND_NEUMANN,      0.0) );
+    g.set_boundary( 4, Bound(BOUND_DIRICHLET,    0.0) );
+    g.build_mesh();
+    //g.debug_print();
+
+    EpotProblem p;
+    p.construct( g );
+
+    ScalarField epot( g );
+    ScalarField scharge( g );
+
+    BiCGSTABSolver solver;
+    p.set_solver( solver );
+    p.solve( epot, scharge );
+
+    EpotEfield efield( g, epot );
+    VectorField bfield;
+
+    ParticleDataBaseCyl pdb;
+    pdb.set_accuracy( 1.0e-6, 1.0e-6 ); // Extremely sensitive on error requirement
+    pdb.set_thread_count( 1 );
+    pdb.set_max_steps( 200 );
+    double y0 = 0.003;
+    double vy = -1.5e5;
+    double z0 = 0.0;
+    double vz = 0.0;
+    double r0 = sqrt(y0*y0 + z0*z0);
+    double vr = vrfunc( y0, vy, z0, vz );
+    double w = wfunc( y0, vy, z0, vz );
+    pdb.add_particle( 0.0, 1.0, 1.0, ParticlePCyl( 0, 0.0, 1000.0, r0, vr, w ) );
+    pdb.iterate_trajectories( scharge, efield, bfield, g );
+    //pdb.debug_print();
+
+    ParticleCyl &part = pdb.particle(0);
+    ofstream ostr( "particles_cyl2.dat" );
+    //ostream &ostr = cout;
+    ostr << "# "
+	 << setw(62) << "Analytic" << " " 
+	 << setw(38) << "Simulated" << "\n"; 
+    ostr << "# "
+	 << setw(10) << "y (m)" << " " 
+	 << setw(12) << "z (m)" << " " 
+	 << setw(12) << "r (m)" << " "
+	 << setw(12) << "vr (m/s)" << " "
+	 << setw(12) << "w (rad/s)" << " "
+
+	 << setw(12) << "r (m)" << " "
+	 << setw(12) << "vr (m/s)" << " "
+	 << setw(12) << "w (rad/s)" << "\n";
+    bool err = false;
+    for( uint32_t b = 0; b < part.traj_size(); b++ ) {
+	double t = part.traj(b)(0);
+	double y = y0 + vy * t;
+	double z = z0 + vz * t;
+	ostr << setw(12) << y << " " 
+	     << setw(12) << z << " " 
+	     << setw(12) << sqrt(y*y+z*z) << " " 
+	     << setw(12) << vrfunc(y,vy,z,vz) << " "
+	     << setw(12) << wfunc(y,vy,z,vz) << " ";
+
+	double r = part.traj(b)(3);
+	double vr2 = part.traj(b)(4);
+	double w2 = part.traj(b)(5);
+	ostr << setw(12) << r << " "
+	     << setw(12) << vr2 << " "
+	     << setw(12) << w2 << "\n";
+	
+	if( fabs( sqrt(y*y+z*z) - r ) > 1e-6 ) {
+	    err = true;
+	}
+    }
+
+    ostr.close();
+    if( err ) {
+	std::cout << "Error: trajectory differs from theory\n";
+	exit( 1 );
+    }
+}
+
+
+int main( void )
+{
+    try {
+	test();
+    } catch ( Error e ) {
+	cout << "Error in " << e._loc._file << ":" << e._loc._line 
+	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
+	exit( 1 );
+    }
+
+    return( 0 );
+}
+

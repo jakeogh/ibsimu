@@ -1,0 +1,18 @@
+			RELEASING
+			=========
+
+
+This is a list of procedures to follow when making a release of ibsimu.
+
+ - Check version number in configure.in.
+ - Check api version number in src/Makefile.am.
+ - Run 'make check' to test library and visually inspect test images.
+ - Commit all changes to cvs with 'cvs commit'.
+ - Run 'make clean' and './reconf' to update ChangeLog.
+ - Run 'make distcheck' to check for packaging errors and to produce
+   the release tarball.
+ - Tag all files in cvs with version string with 'cvs tag release-0-1-0 .', 
+   where the release version number is the current version.
+
+
+-- Taneli Kalvas <taneli.kalvas@jyu.fi>, 02 Sep 2009

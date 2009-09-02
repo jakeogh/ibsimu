@@ -1,0 +1,13 @@
+set sample 1000
+set encoding iso_8859_1
+set term post port enh solid color "Times-Roman" 12
+set nokey
+set size 0.8,0.4
+
+set out "solver1d_neumann.ps"
+set xlabel "x (m)"
+set ylabel "Potential (V)"
+f(x) = -10.0*x
+plot [0:0.1] f(x), "solver1d_neumann.dat" w p 3
+
+

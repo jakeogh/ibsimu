@@ -1,0 +1,15 @@
+set sample 1000
+set encoding iso_8859_1
+set term post port enh solid color "Times-Roman" 12
+unset key
+#set key top center samplen 0.65
+set size 0.8,0.4
+
+set ytics nomirror
+set y2tics nomirror
+
+set out "particles_cyl.ps"
+set xlabel "r analytic (m)"
+set ylabel "r simulation (m)"
+plot "particles_cyl.dat" u 3:6 w lp
+

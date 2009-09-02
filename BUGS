@@ -1,0 +1,10 @@
+		BUGS
+		====
+
+Cylindrical symmetry particle iterator hangs in some loop with large
+number of particles. Fills all of memory. Probably particle close to
+the axis causes problems. Even no fields \phi=const. causes the problem.
+
+End of electrode at the end of electrode causes solver not to converge.
+Example: /home/tvkalvas/Work/Benchmark_Hanke/3D/Simulation_of_LEBT
+

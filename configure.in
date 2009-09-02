@@ -1,0 +1,125 @@
+AC_INIT([libibsimu], [0.0.1], [tvkalvas@jyu.fi])
+AM_CONFIG_HEADER(src/config.h)
+AM_INIT_AUTOMAKE([0.0.1])
+
+dnl ---------------------------------
+dnl Check for programs
+dnl ---------------------------------
+
+m4_pattern_allow([AC_PROG_LIBTOOL])
+AC_PROG_LIBTOOL
+AC_PROG_CXX
+AC_PROG_RANLIB
+
+dnl ---------------------------------
+dnl pkgconfig
+dnl ---------------------------------
+
+PKG_PROG_PKG_CONFIG()
+if test "x$PKG_CONFIG" = x; then
+   AC_MSG_ERROR([pkg-config >= $PKGCONFIG_REQUIRED required but not
+found (http://pkgconfig.freedesktop.org/)])
+fi
+
+dnl ---------------------------------
+dnl Check for selectable compilation
+dnl ---------------------------------
+
+AC_ARG_WITH([umfpack],
+  [AS_HELP_STRING([--with-umfpack],
+                  [enable optional support for umfpack solver])],
+                  [],
+                  [with_umfpack=no])
+LIBUMFPACK=
+  AS_IF([test "x$with_umfpack" != xno],
+        [AC_CHECK_LIB([umfpack], 
+                      [main],
+                      [AC_SUBST([LIBUMFPACK], ["-lumfpack -lamd -lgslcblas"])
+                       AC_DEFINE([HAVE_LIBUMFPACK], [1],
+                                 [Define if you have libumfpack])
+                      ],
+        [AC_MSG_FAILURE([--with-umfpack was given, but test for umfpack failed])],
+        [-lamd -lgslcblas])
+        ])
+AM_CONDITIONAL([UMFPACK], [test x$with_umfpack != xno])
+
+dnl ---------------------------------
+dnl Check for libraries
+dnl ---------------------------------
+
+AC_CHECK_LIBM
+CPPFLAGS="$CFLAGS $CPPFLAGS"
+LIBS="$LIBS $LIBM"
+
+dnl -------------
+dnl gtk+-2.0
+
+if $PKG_CONFIG --exists gtk+-2.0 ; then
+  PKG_CHECK_MODULES(gtk, gtk+-2.0 >= 0.0.1 )
+else
+  AC_MSG_ERROR([required library gtk+-2.0 not found])
+fi
+LIBS="$LIBS $gtk_LIBS"
+CPPFLAGS="$CPPFLAGS $gtk_CFLAGS"
+
+
+dnl -------------
+dnl Freetype2
+
+if $PKG_CONFIG --exists freetype2 ; then
+  PKG_CHECK_MODULES(freetype, freetype2)
+else
+  AC_MSG_ERROR([required library freetype2 not found])
+fi
+LIBS="$LIBS $freetype_LIBS"
+CPPFLAGS="$CPPFLAGS $freetype_CFLAGS"
+
+
+dnl -------------
+dnl Cairo
+
+if $PKG_CONFIG --exists cairo ; then
+  PKG_CHECK_MODULES(cairo, cairo >= 1.4.0 )
+else
+  AC_MSG_ERROR([required library cairo not found])
+fi
+LIBS="$LIBS $cairo_LIBS"
+CPPFLAGS="$CPPFLAGS $cairo_CFLAGS"
+
+dnl -------------
+dnl csg
+
+if $PKG_CONFIG --exists csg ; then
+  PKG_CHECK_MODULES(csg, csg >= 0.0.1 )
+else
+  AC_MSG_ERROR([required library csg not found])
+fi
+LIBS="$LIBS $csg_LIBS"
+CPPFLAGS="$CPPFLAGS $csg_CFLAGS"
+
+dnl -------------
+dnl POSIX threads
+
+AC_CHECK_HEADERS([pthread.h])
+if $HAVE_PTHREAD_H ; then
+  LIBS="$LIBS -lpthread"
+else
+  AC_MSG_ERROR([required library pthread not found])
+fi
+
+dnl -------------
+dnl GSL
+
+AC_CHECK_LIB(gslcblas,main)
+AC_CHECK_LIB(gsl,main)
+dnl LIBS_GSL=`gsl-config --libs`
+dnl CFLAGS_GSL=`gsl-config --cflags`
+
+dnl ---------------------------------
+dnl Output
+dnl ---------------------------------
+
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile doc/Doxyfile ibsimu.pc])
+AC_OUTPUT
+
+	

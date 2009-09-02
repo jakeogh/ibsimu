@@ -1,0 +1,123 @@
+/*! \file vlasov2d.cpp 
+ *  \brief Test with vlasov iteration in 2d electrode configuration.
+ *
+ *  \test Test with vlasov iteration in 2d electrode configuration.
+ *
+ */
+
+
+#include <iostream>
+#include <iomanip>
+#include "fileplot.hpp"
+#include "bicgstab_solver.hpp"
+#include "epot_problem.hpp"
+#include "geometry.hpp"
+#include "func_solid.hpp"
+#include "epot_efield.hpp"
+#include "verbose.hpp"
+#include "error.hpp"
+
+
+using namespace std;
+
+
+bool solid1( double x, double y, double z )
+{
+    return( x <= 0.02 && y >= 0.018 );
+}
+
+
+bool solid2( double x, double y, double z )
+{
+    return( x >= 0.03 && x <= 0.04 && y >= 0.02 );
+}
+
+
+bool solid3( double x, double y, double z )
+{
+    return( x >= 0.06 && y >= 0.03 && y >= 0.07 - 0.5*x );
+}
+
+
+void test( void )
+{
+    verbose_output = 1;
+    
+    // 12x5 cm geometry with 0.05 cm mesh size
+    Geometry g( MODE_2D, Int3D(241,101,1), Vec3D(0,0,0), 0.0005 );
+    Solid *s1 = new FuncSolid( solid1 );
+    g.set_solid( 7, s1 );
+    Solid *s2 = new FuncSolid( solid2 );
+    g.set_solid( 8, s2 );
+    Solid *s3 = new FuncSolid( solid3 );
+    g.set_solid( 9, s3 );
+    g.set_boundary( 1, Bound(BOUND_NEUMANN,    -3.0e3) );
+    g.set_boundary( 2, Bound(BOUND_DIRICHLET,  -1.0e3) );
+    g.set_boundary( 3, Bound(BOUND_NEUMANN,     0.0  ) );
+    g.set_boundary( 4, Bound(BOUND_NEUMANN,     0.0  ) );
+    g.set_boundary( 7, Bound(BOUND_DIRICHLET,  -3.0e3) );
+    g.set_boundary( 8, Bound(BOUND_DIRICHLET, -14.0e3) );
+    g.set_boundary( 9, Bound(BOUND_DIRICHLET,  -1.0e3) );
+    g.build_mesh();
+
+    EpotProblem p;
+    p.construct( g );
+
+    ScalarField epot( g );
+    ScalarField scharge( g );
+
+    BiCGSTABSolver solver;
+    p.set_solver( solver );
+
+    VectorField bfield;
+    EpotEfield efield( g, epot );
+    efield_extrpl_e efldextrpl[6] = {EFIELD_EXTRAPOLATE, EFIELD_EXTRAPOLATE, 
+				     EFIELD_MIRROR,EFIELD_EXTRAPOLATE,
+				     EFIELD_EXTRAPOLATE, EFIELD_EXTRAPOLATE };
+    efield.set_extrapolation( efldextrpl );
+
+    ParticleDataBase2D pdb;
+    pdb.set_thread_count( 1 );
+    bool pmirror[6] = { false, false, true, false, false, false };
+    pdb.set_mirror( pmirror );
+    pdb.set_polyint( true );
+
+    for( size_t i = 0; i < 10; i++ ) {
+	p.solve( epot, scharge );
+	pdb.clear();
+	pdb.add_2d_beam_with_energy( 1000, 50.0, 1.0, 1.0, 
+				     3.0e3, 0.0, 0.0, 
+				     0.0, 0.0, 
+				     0.0, 0.012 );
+	pdb.iterate_trajectories( scharge, efield, bfield, g );
+    }
+
+    GeomPlotter geomplotter;
+    geomplotter.set_size( 1024, 768 );
+    //geomplotter.set_range( 0.09, 0.12000001, 0.02, 0.04 );
+    //geomplotter.set_meshlines( true );
+    geomplotter.set_geometry( g );
+    geomplotter.set_epot( epot );
+    std::vector<double> eqlines;
+    eqlines.push_back( -5.0 );
+    eqlines.push_back( 0.0 );
+    eqlines.push_back( +5.0 );
+    geomplotter.set_manual_eqlines( eqlines );
+    geomplotter.set_particledatabase( pdb );
+    pngplot( &geomplotter, "vlasov2d.png" );
+}
+
+
+int main( void )
+{
+    try {
+	test();
+    } catch ( Error e ) {
+	cout << "Error in " << e._loc._file << ":" << e._loc._line 
+	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
+	exit( 1 );
+    }
+
+    return( 0 );
+}
+

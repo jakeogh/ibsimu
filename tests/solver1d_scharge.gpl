@@ -1,0 +1,13 @@
+set sample 1000
+set encoding iso_8859_1
+set term post port enh solid color "Times-Roman" 12
+set nokey
+set size 0.8,0.4
+
+eps0 = 8.85418781762e-12
+f(x) = -1.0e-4*x*x/(2.0*eps0) + 1.0e-4/(2.0*eps0)*0.1*x + 0
+set xlabel "x (m)"
+set ylabel "Potential (V)"
+
+set out "solver1d_scharge.ps"
+plot [0:0.1] f(x), "solver1d_scharge.dat" w p 3
