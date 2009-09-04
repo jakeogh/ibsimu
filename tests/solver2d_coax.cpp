@@ -29,7 +29,6 @@
 
 #include <fstream>
 #include <iomanip>
-#include "fileplot.hpp"
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "geometry.hpp"
