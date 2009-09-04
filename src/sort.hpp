@@ -4,9 +4,9 @@
  *  small arrays, which should be the case with most sparse matrix
  *  applications.
  */
-inline void sort_iv( uint32_t *ind, double *val, uint32_t start, uint32_t end )
+inline void sort_iv( int *ind, double *val, int start, int end )
 {
-    uint32_t keyind, k, l;
+    int keyind, k, l;
     double keyval;
     
     for( k = start+1; k < end; k++ ) {

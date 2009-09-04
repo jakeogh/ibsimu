@@ -13,8 +13,8 @@ MatrixMulVec Matrix::operator*( const class Vector &vec ) const
 
 std::ostream &operator<<( std::ostream &os, const Matrix &mat )
 {
-    for( uint32_t i = 0; i < mat.rows(); i++ ) {
-	for( uint32_t j = 0; j < mat.columns(); j++ ) {
+    for( int i = 0; i < mat.rows(); i++ ) {
+	for( int j = 0; j < mat.columns(); j++ ) {
 	    os << std::setw(6) << to_string(mat.get(i,j)).substr(0,6) << " ";
 	}
 	if( i != mat.rows()-1 )

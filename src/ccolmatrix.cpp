@@ -12,7 +12,7 @@
 
 inline void CColMatrix::allocate( void )
 {
-    if( !(_ptr = (uint32_t *)malloc( (_m+1)*sizeof(uint32_t) )) ) {
+    if( !(_ptr = (int *)malloc( (_m+1)*sizeof(int) )) ) {
 	_ptr = _row = NULL;
 	_val = NULL;
 	_n = _m = _nz = _asize = 0;	
@@ -23,7 +23,7 @@ inline void CColMatrix::allocate( void )
 	_row = NULL;
 	_val = NULL;
     } else {
-	if( !(_row = (uint32_t *)malloc( _asize*sizeof(uint32_t) )) ) {
+	if( !(_row = (int *)malloc( _asize*sizeof(int) )) ) {
 	    free( _ptr );
 	    _ptr = _row = NULL;
 	    _val = NULL;
@@ -45,10 +45,10 @@ inline void CColMatrix::allocate( void )
 
 inline void CColMatrix::reallocate( void )
 {
-    uint32_t *tmp;
+    int *tmp;
     double *tmp2;
 
-    if( !(tmp = (uint32_t *)realloc( _ptr, (_m+1)*sizeof(uint32_t) )) ) {
+    if( !(tmp = (int *)realloc( _ptr, (_m+1)*sizeof(int) )) ) {
 	free( _ptr );
 	free( _row );
 	free( _val );
@@ -63,7 +63,7 @@ inline void CColMatrix::reallocate( void )
 	_row = NULL;
 	_val = NULL;
     } else {
-	if( !(tmp = (uint32_t *)realloc( _row, _asize*sizeof(uint32_t) )) ) {
+	if( !(tmp = (int *)realloc( _row, _asize*sizeof(int) )) ) {
 	    free( _ptr );
 	    free( _row );
 	    free( _val );
@@ -94,19 +94,19 @@ CColMatrix::CColMatrix()
 }
 
 
-CColMatrix::CColMatrix( uint32_t n, uint32_t m )
+CColMatrix::CColMatrix( int n, int m )
 {
     _n     = n;
     _m     = m;
     _nz    = 0;
     _asize = 0;
     allocate();
-    memset( _ptr, 0, (_m+1)*sizeof(uint32_t) );
+    memset( _ptr, 0, (_m+1)*sizeof(int) );
 }
 
 
-CColMatrix::CColMatrix( uint32_t n, uint32_t m, uint32_t nz, 
-			uint32_t *ptr, uint32_t *row, double *val )
+CColMatrix::CColMatrix( int n, int m, int nz, 
+			int *ptr, int *row, double *val )
 {
     _n     = n;
     _m     = m;
@@ -118,7 +118,7 @@ CColMatrix::CColMatrix( uint32_t n, uint32_t m, uint32_t nz,
 }
 
 
-CColMatrix::CColMatrix( const CColMatrix &mat )
+void CColMatrix::build( const class CColMatrix &mat )
 {
     _n     = mat._n;
     _m     = mat._m;
@@ -126,30 +126,26 @@ CColMatrix::CColMatrix( const CColMatrix &mat )
     _asize = mat._nz;
     allocate();
 
-    memcpy( _ptr, mat._ptr, (_m+1)*sizeof(uint32_t) );
-    memcpy( _row, mat._row, _nz*sizeof(uint32_t) );
+    memcpy( _ptr, mat._ptr, (_m+1)*sizeof(int) );
+    memcpy( _row, mat._row, _nz*sizeof(int) );
     memcpy( _val, mat._val, _nz*sizeof(double) );
+}
+
+
+CColMatrix::CColMatrix( const CColMatrix &mat )
+{
+    build( mat );
 }
 
 
 CColMatrix &CColMatrix::operator=( const CColMatrix &mat )
 {
-    _n     = mat._n;
-    _m     = mat._m;
-    _nz    = mat._nz;
-    _asize = mat._nz;
-    reallocate();
-
-    memcpy( _ptr, mat._ptr, (_m+1)*sizeof(uint32_t) );
-    memcpy( _row, mat._row, _nz*sizeof(uint32_t) );
-    memcpy( _val, mat._val, _nz*sizeof(double) );
-
+    build( mat );
     return( *this );
 }
 
 
-
-CColMatrix::CColMatrix( const class CRowMatrix &mat )
+void CColMatrix::build( const class CRowMatrix &mat )
 {
     _n     = mat._n;
     _m     = mat._m;
@@ -157,11 +153,11 @@ CColMatrix::CColMatrix( const class CRowMatrix &mat )
     _asize = mat._nz;
     allocate();
 
-    uint32_t *c = new uint32_t[_m];
-    uint32_t i, j, start, cl;
+    int *c = new int[_m];
+    int i, j, start, cl;
 
     /* Count number of entries in each column to c. */
-    memset( c, 0, _m*sizeof(uint32_t) );
+    memset( c, 0, _m*sizeof(int) );
     for( i = 0; i < _nz; i++ )
 	c[mat._col[i]]++;
 
@@ -182,48 +178,23 @@ CColMatrix::CColMatrix( const class CRowMatrix &mat )
     }
 
     delete [] c;
+}
+
+
+CColMatrix::CColMatrix( const class CRowMatrix &mat )
+{
+    build( mat );
 }
 
 
 CColMatrix &CColMatrix::operator=( const class CRowMatrix &mat )
 {
-    _n     = mat._n;
-    _m     = mat._m;
-    _nz    = mat._nz;
-    _asize = mat._nz;
-    reallocate();
-
-    uint32_t *c = new uint32_t[_m];
-    uint32_t i, j, start, cl;
-
-    /* Count number of entries in each column to c. */
-    memset( c, 0, _m*sizeof(uint32_t) );
-    for( i = 0; i < _nz; i++ )
-	c[mat._col[i]]++;
-
-    /* Set up ptr. */
-    _ptr[0] = 0;
-    for( i = 1; i <= _m; i++ )
-	_ptr[i] = _ptr[i-1] + c[i-1];
-
-    /* Copy input to output using c as a row pointer. */
-    for( i = 0, j = 0; i < _n; i++ ) {
-	for( ; j < mat._ptr[i+1]; j++ ) {
-	    cl = mat._col[j];
-	    start = _ptr[cl];
-	    c[cl]--;
-	    _row[start+c[cl]] = i;
-	    _val[start+c[cl]] = mat._val[j];
-	}
-    }
-
-    delete [] c;
-
+    build( mat );
     return( *this );
 }
 
 
-CColMatrix::CColMatrix( const class CoordMatrix &mat )
+void CColMatrix::build( const class CoordMatrix &mat )
 {
     _n     = mat._n;
     _m     = mat._m;
@@ -231,11 +202,11 @@ CColMatrix::CColMatrix( const class CoordMatrix &mat )
     _asize = mat._nz;
     allocate();
 
-    uint32_t *c = new uint32_t[_m];
-    uint32_t i, start, cl;
+    int *c = new int[_m];
+    int i, start, cl;
 
     /* Count number of entries in each column to c. */
-    memset( c, 0, _m*sizeof(uint32_t) );
+    memset( c, 0, _m*sizeof(int) );
     for( i = 0; i < _nz; i++ )
 	c[mat._col[i]]++;
 
@@ -257,37 +228,50 @@ CColMatrix::CColMatrix( const class CoordMatrix &mat )
 }
 
 
+CColMatrix::CColMatrix( const class CoordMatrix &mat )
+{
+    build( mat );
+}
+
+
 CColMatrix &CColMatrix::operator=( const class CoordMatrix &mat )
 {
-    _n     = mat._n;
-    _m     = mat._m;
-    _nz    = mat._nz;
-    _asize = mat._nz;
-    reallocate();
+    build( mat );
+    return( *this );
+}
 
-    uint32_t *c = new uint32_t[_m];
-    uint32_t i, start, cl;
 
-    /* Count number of entries in each column to c. */
-    memset( c, 0, _m*sizeof(uint32_t) );
-    for( i = 0; i < _nz; i++ )
-	c[mat._col[i]]++;
+CColMatrix::CColMatrix( const class Matrix &mat )
+{
+    const CRowMatrix  *crmat;
+    const CColMatrix  *ccmat;
+    const CoordMatrix *comat;
 
-    /* Set up ptr. */
-    _ptr[0] = 0;
-    for( i = 1; i <= _m; i++ )
-	_ptr[i] = _ptr[i-1] + c[i-1];
+    if( (crmat = dynamic_cast<const CRowMatrix *>(&mat)) != 0 )
+	build( *crmat );
+    else if( (ccmat = dynamic_cast<const CColMatrix *>(&mat)) != 0 )
+	build( *ccmat );
+    else if( (comat = dynamic_cast<const CoordMatrix *>(&mat)) != 0 )
+	build( *ccmat );
+    else
+        throw( ErrorUnimplemented( ERROR_LOCATION, "Couldn't convert unknown matrix type" ) );
+}
 
-    /* Copy input to output using c as a row pointer. */
-    for( i = 0; i < _nz; i++ ) {
-	cl = mat._col[i];
-	start = _ptr[cl];
-	c[cl]--;
-	_row[start+c[cl]] = mat._row[i];
-	_val[start+c[cl]] = mat._val[i];
-    }
 
-    delete [] c;
+CColMatrix &CColMatrix::operator=( const class Matrix &mat )
+{
+    const CRowMatrix  *crmat;
+    const CColMatrix  *ccmat;
+    const CoordMatrix *comat;
+
+    if( (crmat = dynamic_cast<const CRowMatrix *>(&mat)) != 0 )
+	build( *crmat );
+    else if( (ccmat = dynamic_cast<const CColMatrix *>(&mat)) != 0 )
+	build( *ccmat );
+    else if( (comat = dynamic_cast<const CoordMatrix *>(&mat)) != 0 )
+	build( *ccmat );
+    else
+        throw( ErrorUnimplemented( ERROR_LOCATION, "Couldn't convert unknown matrix type" ) );
 
     return( *this );
 }
@@ -301,7 +285,7 @@ CColMatrix::~CColMatrix()
 }
 
 
-void CColMatrix::resize( uint32_t n, uint32_t m )
+void CColMatrix::resize( int n, int m )
 {
     free( _row );
     free( _val );
@@ -309,8 +293,8 @@ void CColMatrix::resize( uint32_t n, uint32_t m )
     _val = NULL;
 
     if( _m != m ) {
-	uint32_t *tmp;
-	if( !(tmp = (uint32_t *)realloc( _ptr, (m+1)*sizeof(uint32_t) )) ) {
+	int *tmp;
+	if( !(tmp = (int *)realloc( _ptr, (m+1)*sizeof(int) )) ) {
 	    free( _ptr );
 	    _ptr = NULL;
 	    _n = _m = _nz = _asize = 0;
@@ -323,7 +307,7 @@ void CColMatrix::resize( uint32_t n, uint32_t m )
     _m     = m;
     _nz    = 0;
     _asize = 0;
-    memset( _ptr, 0, (_m+1)*sizeof(uint32_t) );
+    memset( _ptr, 0, (_m+1)*sizeof(int) );
 }
 
 
@@ -331,7 +315,7 @@ void CColMatrix::clear( void )
 {
     _nz    = 0;
     _asize = 0;
-    memset( _ptr, 0, (_m+1)*sizeof(uint32_t) );
+    memset( _ptr, 0, (_m+1)*sizeof(int) );
 
     free( _row );
     free( _val );
@@ -340,9 +324,9 @@ void CColMatrix::clear( void )
 }
 
 
-inline void CColMatrix::clear_no_check( uint32_t i, uint32_t j )
+inline void CColMatrix::clear_no_check( int i, int j )
 {
-    uint32_t a;
+    int a;
     /* Search for the element */
     for( a = _ptr[i]; a < _ptr[i+1]; a++ )
 	if( _row[a] == j )
@@ -354,17 +338,17 @@ inline void CColMatrix::clear_no_check( uint32_t i, uint32_t j )
     /* Move data */
     int movesize = _nz-a-1;
     memmove( &_val[a], &_val[a+1], movesize*sizeof(double) );
-    memmove( &_row[a], &_row[a+1], movesize*sizeof(uint32_t) );
+    memmove( &_row[a], &_row[a+1], movesize*sizeof(int) );
 
     /* Update pointers */
     _nz--;
-    for( uint32_t a = i+1; a < _m+1; a++ )
+    for( int a = i+1; a < _m+1; a++ )
 	_ptr[a]--;
 
 }
 
 
-void CColMatrix::clear_check( uint32_t i, uint32_t j )
+void CColMatrix::clear_check( int i, int j )
 {
     if( i >= _n || j >= _m )
 	throw( ErrorRange( ERROR_LOCATION, i, _n, j, _m ) );
@@ -373,7 +357,7 @@ void CColMatrix::clear_check( uint32_t i, uint32_t j )
 }
 
 
-void CColMatrix::reserve( uint32_t size )
+void CColMatrix::reserve( int size )
 {
     if( size > _asize ) {
 	_asize = size;
@@ -382,7 +366,7 @@ void CColMatrix::reserve( uint32_t size )
 }
 
 
-void CColMatrix::set_nz( uint32_t nz )
+void CColMatrix::set_nz( int nz )
 {
     if( nz > _asize ) {
 	_asize = nz;
@@ -413,24 +397,24 @@ void CColMatrix::merge( CColMatrix &mat )
 void CColMatrix::order_ascending( void )
 {
     /* Sort each column. */
-    for( uint32_t i = 0; i < _m; i++ )
+    for( int i = 0; i < _m; i++ )
 	sort_iv( _row, _val, _ptr[i], _ptr[i+1] );
 }
 
 
-inline double CColMatrix::get_no_check( uint32_t i, uint32_t j ) const
+inline double CColMatrix::get_no_check( int i, int j ) const
 {
-    for( uint32_t a = _ptr[j]; a < _ptr[j+1]; a++ )
+    for( int a = _ptr[j]; a < _ptr[j+1]; a++ )
 	if( _row[a] == i )
 	    return( _val[a] );
     return( 0.0 );
 }
 
 
-inline double &CColMatrix::set_no_check( uint32_t i, uint32_t j )
+inline double &CColMatrix::set_no_check( int i, int j )
 {
     /* Use existing element if it exists */
-    for( uint32_t a = _ptr[j]; a < _ptr[j+1]; a++ )
+    for( int a = _ptr[j]; a < _ptr[j+1]; a++ )
 	if( _row[a] == i )
 	    return( _val[a] );
 
@@ -441,7 +425,7 @@ inline double &CColMatrix::set_no_check( uint32_t i, uint32_t j )
     /* Move existing data */
     int movesize = _nz-_ptr[j+1];
     memmove( &_val[_ptr[j+1]+1], &_val[_ptr[j+1]], movesize*sizeof(double) );
-    memmove( &_row[_ptr[j+1]+1], &_row[_ptr[j+1]], movesize*sizeof(uint32_t) );
+    memmove( &_row[_ptr[j+1]+1], &_row[_ptr[j+1]], movesize*sizeof(int) );
 
     /* Set new data */
     _val[_ptr[j+1]] = 0.0;
@@ -449,14 +433,14 @@ inline double &CColMatrix::set_no_check( uint32_t i, uint32_t j )
 
     /* Update pointers */
     _nz++;
-    for( uint32_t a = j+1; a < _m+1; a++ )
+    for( int a = j+1; a < _m+1; a++ )
 	_ptr[a]++;
 
     return( _val[_ptr[j+1]-1] );
 }
 
 
-double CColMatrix::get_check( uint32_t i, uint32_t j ) const
+double CColMatrix::get_check( int i, int j ) const
 {
     if( i >= _n || j >= _m )
 	throw( ErrorRange( ERROR_LOCATION, i, _n, j, _m ) );
@@ -465,7 +449,7 @@ double CColMatrix::get_check( uint32_t i, uint32_t j ) const
 }
 
 
-double &CColMatrix::set_check( uint32_t i, uint32_t j )
+double &CColMatrix::set_check( int i, int j )
 {
     if( i >= _n || j >= _m )
 	throw( ErrorRange( ERROR_LOCATION, i, _n, j, _m ) );
@@ -474,7 +458,7 @@ double &CColMatrix::set_check( uint32_t i, uint32_t j )
 }
 
 
-void CColMatrix::set_column( uint32_t j, uint32_t N, const uint32_t *row, const double *val )
+void CColMatrix::set_column( int j, int N, const int *row, const double *val )
 {
     if( j >= _m )
 	throw( ErrorRange( ERROR_LOCATION, j, _m ) );
@@ -482,7 +466,7 @@ void CColMatrix::set_column( uint32_t j, uint32_t N, const uint32_t *row, const 
 	throw( Error( ERROR_LOCATION, "too many elements" ) );
 
     /* Reserve new space if necessary */
-    uint32_t oldsize = _ptr[j+1] - _ptr[j];
+    int oldsize = _ptr[j+1] - _ptr[j];
     if( _nz+N-oldsize > _asize )
 	reserve( _asize+_n );
 
@@ -490,12 +474,12 @@ void CColMatrix::set_column( uint32_t j, uint32_t N, const uint32_t *row, const 
     int offset = N-oldsize;
     int movesize = _nz-_ptr[j+1];
     memmove( &_val[_ptr[j+1]+offset], &_val[_ptr[j+1]], movesize*sizeof(double) );
-    memmove( &_row[_ptr[j+1]+offset], &_row[_ptr[j+1]], movesize*sizeof(uint32_t) );
+    memmove( &_row[_ptr[j+1]+offset], &_row[_ptr[j+1]], movesize*sizeof(int) );
 
     /* Set new data */
     int err = 0;
-    for( uint32_t a = 0; a < N; a++ ) {
-	for( uint32_t b = a+1; b < N; b++ ) {
+    for( int a = 0; a < N; a++ ) {
+	for( int b = a+1; b < N; b++ ) {
 	    if( row[a] == row[b] )
 		err = 2;
 	}
@@ -506,7 +490,7 @@ void CColMatrix::set_column( uint32_t j, uint32_t N, const uint32_t *row, const 
 
     /* Update pointers */
     _nz += offset;
-    for( uint32_t a = j+1; a < _m+1; a++ )
+    for( int a = j+1; a < _m+1; a++ )
 	_ptr[a] += offset;
 
     if( err == 1 )
@@ -516,7 +500,7 @@ void CColMatrix::set_column( uint32_t j, uint32_t N, const uint32_t *row, const 
 }
 
 
-void CColMatrix::construct_add( uint32_t i, uint32_t j, double val )
+void CColMatrix::construct_add( int i, int j, double val )
 {
     /* Reserve new space if necessary */
     if( _nz+1 > _asize )
@@ -543,7 +527,7 @@ void CColMatrix::debug_print( void ) const
     std::cout << "asize = " << _asize << "\n";
 
     std::cout << "ptr[] = {";
-    for( uint32_t i = 0; i < _m; i++ )
+    for( int i = 0; i < _m; i++ )
 	std::cout << _ptr[i] << ", ";
     std::cout << _ptr[_m] << "}\n";
 
@@ -551,7 +535,7 @@ void CColMatrix::debug_print( void ) const
     if( _nz <= 0 ) {
 	std::cout << "}\n";
     } else {
-	for( uint32_t i = 0; i < _nz-1; i++ )
+	for( int i = 0; i < _nz-1; i++ )
 	    std::cout << _row[i] << ", ";
 	std::cout << _row[_nz-1] << "}\n";
     }
@@ -560,7 +544,7 @@ void CColMatrix::debug_print( void ) const
     if( _nz <= 0 ) {
 	std::cout << "}\n";
     } else {
-	for( uint32_t i = 0; i < _nz-1; i++ )
+	for( int i = 0; i < _nz-1; i++ )
 	    std::cout << _val[i] << ", ";
 	std::cout << _val[_nz-1] << "}\n";
     }
@@ -582,9 +566,9 @@ void CColMatrix::multiply_by_vector( Vector &x, const Vector &b ) const
     x.clear();
 
     double mult;
-    for( uint32_t i = 0; i < _n; i++ ) {
+    for( int i = 0; i < _n; i++ ) {
 	mult = b._val[i];
-	for( uint32_t a = _ptr[i]; a < _ptr[i+1]; a++ )
+	for( int a = _ptr[i]; a < _ptr[i+1]; a++ )
 	    x._val[_row[a]] += _val[a] * mult;
     }
 }
@@ -601,9 +585,9 @@ void CColMatrix::lower_unit_solve( Vector &x, const Vector &b ) const
     x = b;
 
     double mult;
-    for( uint32_t i = 0; i < _m; i++ ) {
+    for( int i = 0; i < _m; i++ ) {
 	mult = x[i];
-	for( uint32_t j = _ptr[i]; j < _ptr[i+1]; j++ )
+	for( int j = _ptr[i]; j < _ptr[i+1]; j++ )
 	    x[_row[j]] -= _val[j] * mult;
     }
 }

@@ -6,8 +6,8 @@
 #include "error.hpp"
 
 
-BiCGSTABSolver::BiCGSTABSolver( double eps, uint32_t imax,
-				double newton_Reps, double newton_dXeps, uint32_t newton_imax )
+BiCGSTABSolver::BiCGSTABSolver( double eps, int imax,
+				double newton_Reps, double newton_dXeps, int newton_imax )
     : _eps(eps), _imax(imax), _newton_Reps(newton_Reps), _newton_dXeps(newton_dXeps), _newton_imax(newton_imax)
 {
     if( _imax <= 0 || _newton_imax <= 0 )
@@ -19,7 +19,7 @@ BiCGSTABSolver::BiCGSTABSolver( double eps, uint32_t imax,
 
 void BiCGSTABSolver::solve( const Problem &p, Vector &X ) const
 {
-    uint32_t imax;
+    int imax;
     double eps;
     Timer t;
     if( p.linear() ) {
@@ -48,7 +48,7 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X ) const
 	    std::cout << "  Using Newton-Raphson ILU0-BiCGSTAB solver\n";
 
 	int32_t a;
-	uint32_t imax_sum = 0;
+	int imax_sum = 0;
 	const Matrix *J;
 	const Vector *R;
 	double accR = 0.0, accX = 0.0;

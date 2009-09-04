@@ -29,7 +29,7 @@
  *  excess copying and use of temporary variables during calculation.
  */
 class Vector {
-    uint32_t  _n;    //!< Number of elements.
+    int       _n;    //!< Number of elements.
     double   *_val;  //!< Element values.
 
     void allocate( void );
@@ -97,7 +97,7 @@ public:
 	 *  one coordinate of vectors without any excess
 	 *  calculation. \code double x = (A-1.3*B)[2] \endcode
 	 */
-	double operator[]( uint32_t i ) const;
+	double operator[]( int i ) const;
 
 	/*! \brief Operator for pointing to elements of linear algebra operations.
 	 *
@@ -105,7 +105,7 @@ public:
 	 *  defined. Throws MErrorRange exception on range checking
 	 *  errors.
 	 */
-	double operator()( uint32_t i ) const;
+	double operator()( int i ) const;
 
 	/*! \brief Operator for adding vectors.
 	 */
@@ -143,7 +143,7 @@ public:
      *  Returns a zero vector with nn dimensions.
      *  \param n Number of dimensions.
      */
-    Vector( uint32_t n );
+    Vector( int n );
 
     /*! \brief Constructor with preset dimensionality and coordinate values.
      *
@@ -152,7 +152,7 @@ public:
      *  \param n Number of dimensions.
      *  \param val Array of coordinate values.
      */
-    Vector( uint32_t n, const double *val );
+    Vector( int n, const double *val );
 
     /*! \brief Constructor with preset dimensionality and a value for all coordinates.
      *
@@ -161,7 +161,7 @@ public:
      *  \param n Number of dimensions.
      *  \param val Number for coordinate values.
      */
-    Vector( uint32_t n, double val );
+    Vector( int n, double val );
 
     /*! \brief Copy constructor.
      *
@@ -184,7 +184,7 @@ public:
 
     /*! \brief Returns the size of vector.
      */
-    uint32_t size( void ) const { return( _n ); }
+    int size( void ) const { return( _n ); }
 
     /*! \brief Resizes a vector.
      *
@@ -193,7 +193,7 @@ public:
      *  areas have uninitialized content. \param n Number of
      *  dimensions for resized vector.
      */
-    void resize( uint32_t n );
+    void resize( int n );
 
     /*! \brief Clears the vector.
      *
@@ -217,6 +217,11 @@ public:
      *  pointer to the first element of the array is returned. 
      */
     double *get_data( void ) { return( _val ); }
+
+    /*! \brief Returns a const pointer to the coordinate value data of
+     *  the vector.
+     */
+    const double *get_data( void ) const { return( _val ); }
 
     /*! \brief Operator for adding vectors.
      */
@@ -288,7 +293,7 @@ public:
      *  defined. Throws ErrorRange exception on range checking
      *  errors.
      */
-    double &operator[]( uint32_t i );
+    double &operator[]( int i );
 
     /*! \brief Operator for pointing to vector elements.
      *
@@ -296,7 +301,7 @@ public:
      *  defined. Throws ErrorRange exception on range checking
      *  errors.
      */
-    double &operator()( uint32_t i );
+    double &operator()( int i );
 
     /*! \brief Operator for pointing to vector elements.
      *
@@ -304,7 +309,7 @@ public:
      *  defined. Throws ErrorRange exception on range checking
      *  errors.
      */
-    double operator[]( uint32_t i ) const;
+    double operator[]( int i ) const;
 
     /*! \brief Operator for pointing to vector elements.
      *
@@ -312,7 +317,7 @@ public:
      *  defined. Throws ErrorRange exception on range checking
      *  errors.
      */
-    double operator()( uint32_t i ) const;
+    double operator()( int i ) const;
 
     friend class HBIO;
     friend class Matrix;
@@ -372,7 +377,7 @@ public:
 };
 
 
-inline double Vector::VectorLA::operator[]( uint32_t i ) const {
+inline double Vector::VectorLA::operator[]( int i ) const {
 #ifdef SPM_RANGE_CHECK
     if( i >= _refs[0]._vec->_n )
 	throw( ErrorRange( ERROR_LOCATION, i, _refs[0]._vec->_n ) );
@@ -385,7 +390,7 @@ inline double Vector::VectorLA::operator[]( uint32_t i ) const {
 }
 
 
-inline double Vector::VectorLA::operator()( uint32_t i ) const {
+inline double Vector::VectorLA::operator()( int i ) const {
 #ifdef SPM_RANGE_CHECK
     if( i >= _refs[0]._vec->_n )
 	throw( ErrorRange( ERROR_LOCATION, i, _refs[0]._vec->_n ) );
@@ -398,7 +403,7 @@ inline double Vector::VectorLA::operator()( uint32_t i ) const {
 }
 
 
-inline double &Vector::operator[]( uint32_t i ) {
+inline double &Vector::operator[]( int i ) {
 #ifdef SPM_RANGE_CHECK
     if( i >= _n )
 	throw( ErrorRange( ERROR_LOCATION, i, _n ) );
@@ -407,7 +412,7 @@ inline double &Vector::operator[]( uint32_t i ) {
 }
 
 
-inline double &Vector::operator()( uint32_t i ) {
+inline double &Vector::operator()( int i ) {
 #ifdef SPM_RANGE_CHECK
     if( i >= _n )
 	throw( ErrorRange( ERROR_LOCATION, i, _n ) );
@@ -416,7 +421,7 @@ inline double &Vector::operator()( uint32_t i ) {
 }
 
 
-inline double Vector::operator[]( uint32_t i ) const {
+inline double Vector::operator[]( int i ) const {
 #ifdef SPM_RANGE_CHECK
     if( i >= _n )
 	throw( ErrorRange( ERROR_LOCATION, i, _n ) );
@@ -425,7 +430,7 @@ inline double Vector::operator[]( uint32_t i ) const {
 }
 
 
-inline double Vector::operator()( uint32_t i ) const {
+inline double Vector::operator()( int i ) const {
 #ifdef SPM_RANGE_CHECK
     if( i >= _n )
 	throw( ErrorRange( ERROR_LOCATION, i, _n ) );

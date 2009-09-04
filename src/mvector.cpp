@@ -106,14 +106,14 @@ inline void Vector::reallocate( void )
 }
 
 
-Vector::Vector( uint32_t n ) 
+Vector::Vector( int n ) 
 {
     _n = n;
     callocate();
 }
 
 
-Vector::Vector( uint32_t n, const double *val ) 
+Vector::Vector( int n, const double *val ) 
 {
     _n = n;
     allocate();
@@ -121,11 +121,11 @@ Vector::Vector( uint32_t n, const double *val )
 }
 
 
-Vector::Vector( uint32_t n, double val )
+Vector::Vector( int n, double val )
 {
     _n = n;
     allocate();
-    for( uint32_t i = 0; i < _n; i++ )
+    for( int i = 0; i < _n; i++ )
 	_val[i] = val;
 }
 
@@ -140,16 +140,16 @@ Vector::Vector( const Vector &vec )
 
 Vector::Vector( const Vector::VectorLA &vecla ) 
 {
-    uint32_t refsize = vecla._refs.size();
+    int refsize = vecla._refs.size();
     _n = vecla._refs[0]._vec->_n;
     callocate();
 #ifdef USE_BLAS
-    for( uint32_t a = 0; a < refsize; a++ )
+    for( int a = 0; a < refsize; a++ )
 	BLAS(daxpy)( n, vecla._refs[a]._coef, vecla._refs[a]._vec->_val, 1, _val, 1 );
 #else
-    for( uint32_t i = 0; i < _n; i++ ) {
+    for( int i = 0; i < _n; i++ ) {
 	_val[i] = vecla._refs[0]._coef * vecla._refs[0]._vec->_val[i];
-	for( uint32_t a = 1; a < refsize; a++ )
+	for( int a = 1; a < refsize; a++ )
 	    _val[i] += vecla._refs[a]._coef * vecla._refs[a]._vec->_val[i];
     }
 #endif
@@ -170,7 +170,7 @@ Vector::~Vector()
 }
 
 
-void Vector::resize( uint32_t n )
+void Vector::resize( int n )
 {
     if( _n != n ) {
 	_n = n;
@@ -238,12 +238,12 @@ Vector &Vector::operator+=( const VectorLA &vecla )
     if( _n != vecla._refs[0]._vec->_n )
 	throw( ErrorDim( ERROR_LOCATION ) );
 #ifdef USE_BLAS
-    for( uint32_t a = 0; a < vecla._refs.size(); a++ )
+    for( int a = 0; a < vecla._refs.size(); a++ )
 	BLAS(daxpy)( _n, vecla._refs[a]._coef, vecla._refs[a]._vec->_val, 1, val, 1 );
 #else
-    uint32_t refsize = vecla._refs.size();
-    for( uint32_t i = 0; i < _n; i++ ) {
-	for( uint32_t a = 0; a < refsize; a++ )
+    int refsize = vecla._refs.size();
+    for( int i = 0; i < _n; i++ ) {
+	for( int a = 0; a < refsize; a++ )
 	    _val[i] += vecla._refs[a]._coef * vecla._refs[a]._vec->_val[i];
     }
 #endif
@@ -256,12 +256,12 @@ Vector &Vector::operator-=( const VectorLA &vecla )
     if( _n != vecla._refs[0]._vec->_n )
 	throw( ErrorDim( ERROR_LOCATION ) );
 #ifdef USE_BLAS
-    for( uint32_t a = 0; a < vecla._refs.size(); a++ )
+    for( int a = 0; a < vecla._refs.size(); a++ )
 	BLAS(daxpy)( _n, -vecla._refs[a]._coef, vecla._refs[a]._vec->_val, 1, _val, 1 );
 #else
-    uint32_t refsize = vecla._refs.size();
-    for( uint32_t i = 0; i < _n; i++ ) {
-	for( uint32_t a = 0; a < refsize; a++ )
+    int refsize = vecla._refs.size();
+    for( int i = 0; i < _n; i++ ) {
+	for( int a = 0; a < refsize; a++ )
 	    _val[i] -= vecla._refs[a]._coef * vecla._refs[a]._vec->_val[i];
     }
 #endif
@@ -274,7 +274,7 @@ Vector &Vector::operator*=( double x )
 #ifdef USE_BLAS
     BLAS(dscal)( _n, x, _val, 1 );
 #else
-    for( uint32_t i = 0; i < _n; i++ )
+    for( int i = 0; i < _n; i++ )
 	_val[i] *= x;
 #endif
     return( *this );
@@ -283,7 +283,7 @@ Vector &Vector::operator*=( double x )
 
 Vector::Vector &Vector::operator=( double x )
 {
-    for( uint32_t i = 0; i < _n; i++ )
+    for( int i = 0; i < _n; i++ )
 	_val[i] = x;
     return( *this );
 }
@@ -302,8 +302,8 @@ Vector &Vector::operator=( const Vector &vec )
 
 Vector &Vector::operator=( const Vector::VectorLA &vecla ) 
 {
-    uint32_t refsize = vecla._refs.size();
-    uint32_t a;
+    int refsize = vecla._refs.size();
+    int a;
     bool tmp = 0;
     double *res;
     
@@ -330,7 +330,7 @@ Vector &Vector::operator=( const Vector::VectorLA &vecla )
     for( a = 0; a < vecla._refs.size(); a++ )
 	BLAS(daxpy)( _n, vecla._refs[a]._coef, vecla._refs[a]._vec->_val, 1, _res, 1 );
 #else
-    for( uint32_t i = 0; i < _n; i++ ) {
+    for( int i = 0; i < _n; i++ ) {
 	res[i] = vecla._refs[0]._coef * vecla._refs[0]._vec->_val[i];
 	for( a = 1; a < refsize; a++ )
 	    res[i] += vecla._refs[a]._coef * vecla._refs[a]._vec->_val[i];
@@ -357,7 +357,7 @@ bool Vector::operator==( const Vector &vec ) const
 {
     if( _n != vec._n )
 	return( false );
-    for( uint32_t i = 0; i < _n; i++ ) {
+    for( int i = 0; i < _n; i++ ) {
 	if( _val[i] != vec._val[i] )
 	    return( false );
     }
@@ -369,7 +369,7 @@ bool Vector::operator!=( const Vector &vec ) const
 {
     if( _n != vec._n )
 	return( true );
-    for( uint32_t i = 0; i < _n; i++ ) {
+    for( int i = 0; i < _n; i++ ) {
 	if( _val[i] != vec._val[i] )
 	    return( true );
     }
@@ -386,7 +386,7 @@ Vector::VectorLA operator*( double x, Vector &vec )
 
 std::ostream &operator<<( std::ostream &os, const Vector &vec ) 
 {
-    for( uint32_t i = 0; i < vec._n; i++ )
+    for( int i = 0; i < vec._n; i++ )
 	os << std::setw(6) << to_string(vec(i)).substr(0,6) << " ";
     return( os );
 }
@@ -417,7 +417,7 @@ double norm1( const Vector &vec )
     return( BLAS(dasum)( vec._n, vec._val, 1 ) );
 #else
     double res = 0.0;
-    for( uint32_t i = 0; i < vec._n; i++ )
+    for( int i = 0; i < vec._n; i++ )
 	res += fabs( vec._val[i] );
     return( res );
 #endif
@@ -430,7 +430,7 @@ double norm2( const Vector &vec )
     return( BLAS(dnrm2)( vec._n, vec._val, 1 ) );
 #else
     double res = 0.0;
-    for( uint32_t i = 0; i < vec._n; i++ )
+    for( int i = 0; i < vec._n; i++ )
 	res += vec._val[i]*vec._val[i];
     return( sqrt( res ) );
 #endif
@@ -440,7 +440,7 @@ double norm2( const Vector &vec )
 double ssqr( const Vector &vec )
 {
     double res = 0.0;
-    for( uint32_t i = 0; i < vec._n; i++ )
+    for( int i = 0; i < vec._n; i++ )
 	res += vec._val[i]*vec._val[i];
     return( res );
 }
@@ -449,7 +449,7 @@ double ssqr( const Vector &vec )
 double min( const Vector &vec )
 {
     double res = std::numeric_limits<double>::infinity();
-    for( uint32_t i = 0; i < vec._n; i++ ) {
+    for( int i = 0; i < vec._n; i++ ) {
 	if( vec._val[i] < res )
 	    res = vec._val[i];
     }
@@ -461,7 +461,7 @@ double min_abs( const Vector &vec )
 {
     double res = std::numeric_limits<double>::infinity();
     double x;
-    for( uint32_t i = 0; i < vec._n; i++ ) {
+    for( int i = 0; i < vec._n; i++ ) {
 	x = fabs( vec._val[i] );
 	if( x < res )
 	    res = x;
@@ -473,7 +473,7 @@ double min_abs( const Vector &vec )
 double max( const Vector &vec )
 {
     double res = -std::numeric_limits<double>::infinity();
-    for( uint32_t i = 0; i < vec._n; i++ ) {
+    for( int i = 0; i < vec._n; i++ ) {
 	if( vec._val[i] > res )
 	    res = vec._val[i];
     }
@@ -485,7 +485,7 @@ double max_abs( const Vector &vec )
 {
     double res = -std::numeric_limits<double>::infinity();
     double x;
-    for( uint32_t i = 0; i < vec._n; i++ ) {
+    for( int i = 0; i < vec._n; i++ ) {
 	x = fabs( vec._val[i] );
 	if( x > res )
 	    res = x;

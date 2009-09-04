@@ -32,16 +32,9 @@ AC_ARG_WITH([umfpack],
                   [with_umfpack=no])
 LIBUMFPACK=
   AS_IF([test "x$with_umfpack" != xno],
-        [AC_CHECK_LIB([umfpack], 
-                      [main],
-                      [AC_SUBST([LIBUMFPACK], ["-lumfpack -lamd -lgslcblas"])
-                       AC_DEFINE([HAVE_LIBUMFPACK], [1],
-                                 [Define if you have libumfpack])
-                      ],
-        [AC_MSG_FAILURE([--with-umfpack was given, but test for umfpack failed])],
-        [-lamd -lgslcblas])
-        ])
+        [PKG_CHECK_MODULES(umfpack, umfpack)])
 AM_CONDITIONAL([UMFPACK], [test x$with_umfpack != xno])
+
 
 dnl ---------------------------------
 dnl Check for libraries

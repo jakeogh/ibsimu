@@ -12,6 +12,7 @@
 #include "geometry.hpp"
 #include "problem.hpp"
 #include "matrix.hpp"
+#include "ccolmatrix.hpp"
 #include "mvector.hpp"
 
 
@@ -27,13 +28,12 @@ class UMFPACKSolver : public Solver {
     double   _newton_dXeps; /*!< \brief Accuracy request for Newton-Raphson step. */
     double   _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
 
-    static void umfpack_solve( const Matrix &mat, const Vector &rhs, Vector &sol );
-
 public:
 
     /*! \brief Constructor.
      */
-    UMFPACKSolver( double newton_Reps = 1.0e-5, double newton_dXeps = 1.0e-6, uint32_t newton_imax = 10 );
+    UMFPACKSolver( double newton_Reps = 1.0e-5, double newton_dXeps = 1.0e-6, 
+		   uint32_t newton_imax = 10 );
 
     /*! \brief Destructor.
      */
@@ -62,6 +62,13 @@ public:
 	_newton_dXeps = newton_dXeps;
     }
 
+    /*! \brief Direct interface to umfpack matrix solver.
+     *
+     *  Solves matrix problem \a mat * \a sol = \a rhs. The matrix is
+     *  sorted to be on the ascending order as required by the UMFPACK
+     *  library.
+     */
+    static void umfpack_solve( CColMatrix &mat, const Vector &rhs, Vector &sol );
 };
 
 

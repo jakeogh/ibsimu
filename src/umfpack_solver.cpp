@@ -15,11 +15,14 @@ UMFPACKSolver::UMFPACKSolver( double newton_Reps, double newton_dXeps, uint32_t 
 }
 
 
-void UMFPACKSolver::umfpack_solve( const CColMatrix &mat, const Vector &rhs, Vector &sol )
+void UMFPACKSolver::umfpack_solve( CColMatrix &mat, const Vector &rhs, Vector &sol )
 {
     int     status;
     void   *Symbolic;
     void   *Numeric;
+
+    // Sort
+    mat.order_ascending();
 
     // Make decomposition
     status = umfpack_di_symbolic( mat.columns(), mat.rows(), 
@@ -36,9 +39,9 @@ void UMFPACKSolver::umfpack_solve( const CColMatrix &mat, const Vector &rhs, Vec
 	throw( Error( ERROR_LOCATION, "error in umfpack_di_numeric" ) );
 
     // Solve using decomposition
-    status = umfpack_di_solve( UMFPACK_A, data->Ap, data->Ai, data->Ax, 
-			       C->data, B->data, data->Numeric, (double *)NULL, 
-			       (double *)NULL );
+    status = umfpack_di_solve( UMFPACK_A, &mat.ptr(0), &mat.row(0), &mat.val(0), 
+			       sol.get_data(), rhs.get_data(), Numeric, 
+			       (double *)NULL, (double *)NULL );
     if( status == UMFPACK_ERROR_out_of_memory )
 	throw( Error( ERROR_LOCATION, "memory allocation error" ) );
     else if( status == UMFPACK_WARNING_singular_matrix )
@@ -64,7 +67,11 @@ void UMFPACKSolver::solve( const Problem &p, Vector &X ) const
         const Vector *B;
         p.get_vecmat( &A, &B );
 
-	umfpack_solve( const Matrix &mat, const Vector &rhs, Vector &sol );
+	CColMatrix colmatrix( *A );
+	umfpack_solve( colmatrix, *B, X );
+
+        if( verbose_output )
+            std::cout << "  Done\n";
 
     } else {
 

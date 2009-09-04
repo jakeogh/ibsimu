@@ -26,7 +26,7 @@
  *   estimated error achieved on output
  */
 bool bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
-	       const Precond &pc, uint32_t &imax, double &eps );
+	       const Precond &pc, int &imax, double &eps );
 
 
 

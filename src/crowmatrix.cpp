@@ -12,7 +12,7 @@
 
 inline void CRowMatrix::allocate( void )
 {
-    if( !(_ptr = (uint32_t *)malloc( (_n+1)*sizeof(uint32_t) )) ) {
+    if( !(_ptr = (int *)malloc( (_n+1)*sizeof(int) )) ) {
 	_ptr = _col = NULL;
 	_val = NULL;
 	_n = _m = _nz = _asize = 0;	
@@ -23,7 +23,7 @@ inline void CRowMatrix::allocate( void )
 	_col = NULL;
 	_val = NULL;
     } else {
-	if( !(_col = (uint32_t *)malloc( _asize*sizeof(uint32_t) )) ) {
+	if( !(_col = (int *)malloc( _asize*sizeof(int) )) ) {
 	    free( _ptr );
 	    _ptr = _col = NULL;
 	    _val = NULL;
@@ -45,10 +45,10 @@ inline void CRowMatrix::allocate( void )
 
 inline void CRowMatrix::reallocate( void )
 {
-    uint32_t *tmp;
+    int *tmp;
     double *tmp2;
 
-    if( !(tmp = (uint32_t *)realloc( _ptr, (_n+1)*sizeof(uint32_t) )) ) {
+    if( !(tmp = (int *)realloc( _ptr, (_n+1)*sizeof(int) )) ) {
 	free( _ptr );
 	free( _col );
 	free( _val );
@@ -63,7 +63,7 @@ inline void CRowMatrix::reallocate( void )
 	_col = NULL;
 	_val = NULL;
     } else {
-	if( !(tmp = (uint32_t *)realloc( _col, _asize*sizeof(uint32_t) )) ) {
+	if( !(tmp = (int *)realloc( _col, _asize*sizeof(int) )) ) {
 	    free( _ptr );
 	    free( _col );
 	    free( _val );
@@ -94,19 +94,19 @@ CRowMatrix::CRowMatrix()
 }
 
 
-CRowMatrix::CRowMatrix( uint32_t n, uint32_t m )
+CRowMatrix::CRowMatrix( int n, int m )
 {
     _n     = n;
     _m     = m;
     _nz    = 0;
     _asize = 0;
     allocate();
-    memset( _ptr, 0, (_n+1)*sizeof(uint32_t) );
+    memset( _ptr, 0, (_n+1)*sizeof(int) );
 }
 
 
-CRowMatrix::CRowMatrix( uint32_t n, uint32_t m, uint32_t nz, 
-			uint32_t *ptr, uint32_t *col, double *val )
+CRowMatrix::CRowMatrix( int n, int m, int nz, 
+			int *ptr, int *col, double *val )
 {
     _n     = n;
     _m     = m;
@@ -126,8 +126,8 @@ CRowMatrix::CRowMatrix( const CRowMatrix &mat )
     _asize = mat._nz;
     allocate();
 
-    memcpy( _ptr, mat._ptr, (_n+1)*sizeof(uint32_t) );
-    memcpy( _col, mat._col, _nz*sizeof(uint32_t) );
+    memcpy( _ptr, mat._ptr, (_n+1)*sizeof(int) );
+    memcpy( _col, mat._col, _nz*sizeof(int) );
     memcpy( _val, mat._val, _nz*sizeof(double) );
 }
 
@@ -140,8 +140,8 @@ CRowMatrix &CRowMatrix::operator=( const CRowMatrix &mat )
     _asize = mat._nz;
     reallocate();
 
-    memcpy( _ptr, mat._ptr, (_n+1)*sizeof(uint32_t) );
-    memcpy( _col, mat._col, _nz*sizeof(uint32_t) );
+    memcpy( _ptr, mat._ptr, (_n+1)*sizeof(int) );
+    memcpy( _col, mat._col, _nz*sizeof(int) );
     memcpy( _val, mat._val, _nz*sizeof(double) );
 
     return( *this );
@@ -156,11 +156,11 @@ CRowMatrix::CRowMatrix( const class CColMatrix &mat )
     _asize = mat._nz;
     allocate();
     
-    uint32_t *c = new uint32_t[_n];
-    uint32_t i, j, start, r;
+    int *c = new int[_n];
+    int i, j, start, r;
 
     /* Count number of entries in each row to c. */
-    memset( c, 0, _n*sizeof(uint32_t) );
+    memset( c, 0, _n*sizeof(int) );
     for( i = 0; i < _nz; i++ )
 	c[mat._row[i]]++;
 
@@ -192,11 +192,11 @@ CRowMatrix &CRowMatrix::operator=( const class CColMatrix &mat )
     _asize = mat._nz;
     reallocate();
 
-    uint32_t *c = new uint32_t[_n];
-    uint32_t i, j, start, r;
+    int *c = new int[_n];
+    int i, j, start, r;
 
     /* Count number of entries in each row to c. */
-    memset( c, 0, _n*sizeof(uint32_t) );
+    memset( c, 0, _n*sizeof(int) );
     for( i = 0; i < _nz; i++ )
 	c[mat._row[i]]++;
 
@@ -230,11 +230,11 @@ CRowMatrix::CRowMatrix( const class CoordMatrix &mat )
     _asize = mat._nz;
     allocate();
 
-    uint32_t *c = new uint32_t[_n];
-    uint32_t i, start, r;
+    int *c = new int[_n];
+    int i, start, r;
 
     /* Count number of entries in each row to c. */
-    memset( c, 0, _n*sizeof(uint32_t) );
+    memset( c, 0, _n*sizeof(int) );
     for( i = 0; i < _nz; i++ )
 	c[mat._row[i]]++;
 
@@ -264,11 +264,11 @@ CRowMatrix &CRowMatrix::operator=( const class CoordMatrix &mat )
     _asize = mat._nz;
     reallocate();
 
-    uint32_t *c = new uint32_t[_n];
-    uint32_t i, start, r;
+    int *c = new int[_n];
+    int i, start, r;
 
     /* Count number of entries in each row to c. */
-    memset( c, 0, _n*sizeof(uint32_t) );
+    memset( c, 0, _n*sizeof(int) );
     for( i = 0; i < _nz; i++ )
 	c[mat._row[i]]++;
 
@@ -301,7 +301,7 @@ CRowMatrix::~CRowMatrix()
 }
 
 
-void CRowMatrix::resize( uint32_t n, uint32_t m )
+void CRowMatrix::resize( int n, int m )
 {
     free( _col );
     free( _val );
@@ -309,8 +309,8 @@ void CRowMatrix::resize( uint32_t n, uint32_t m )
     _val = NULL;
 
     if( _n != n ) {
-	uint32_t *tmp;
-	if( !(tmp = (uint32_t *)realloc( _ptr, (n+1)*sizeof(uint32_t) )) ) {
+	int *tmp;
+	if( !(tmp = (int *)realloc( _ptr, (n+1)*sizeof(int) )) ) {
 	    free( _ptr );
 	    _ptr = NULL;
 	    _n = _m = _nz = _asize = 0;
@@ -323,7 +323,7 @@ void CRowMatrix::resize( uint32_t n, uint32_t m )
     _m     = m;
     _nz    = 0;
     _asize = 0;
-    memset( _ptr, 0, (_n+1)*sizeof(uint32_t) );
+    memset( _ptr, 0, (_n+1)*sizeof(int) );
 }
 
 
@@ -331,7 +331,7 @@ void CRowMatrix::clear( void )
 {
     _nz    = 0;
     _asize = 0;
-    memset( _ptr, 0, (_n+1)*sizeof(uint32_t) );
+    memset( _ptr, 0, (_n+1)*sizeof(int) );
 
     free( _col );
     free( _val );
@@ -340,9 +340,9 @@ void CRowMatrix::clear( void )
 }
 
 
-inline void CRowMatrix::clear_no_check( uint32_t i, uint32_t j )
+inline void CRowMatrix::clear_no_check( int i, int j )
 {
-    uint32_t a;
+    int a;
 
     /* Search for the element */
     for( a = _ptr[i]; a < _ptr[i+1]; a++ )
@@ -355,7 +355,7 @@ inline void CRowMatrix::clear_no_check( uint32_t i, uint32_t j )
     /* Move data */
     int movesize = _nz-a-1;
     memmove( &_val[a], &_val[a+1], movesize*sizeof(double) );
-    memmove( &_col[a], &_col[a+1], movesize*sizeof(uint32_t) );
+    memmove( &_col[a], &_col[a+1], movesize*sizeof(int) );
 
     /* Update pointers */
     _nz--;
@@ -364,7 +364,7 @@ inline void CRowMatrix::clear_no_check( uint32_t i, uint32_t j )
 }
 
 
-void CRowMatrix::clear_check( uint32_t i, uint32_t j )
+void CRowMatrix::clear_check( int i, int j )
 {
     if( i >= _n || j >= _m )
 	throw( ErrorRange( ERROR_LOCATION, i, _n, j, _m ) );
@@ -373,7 +373,7 @@ void CRowMatrix::clear_check( uint32_t i, uint32_t j )
 }
 
 
-void CRowMatrix::reserve( uint32_t size )
+void CRowMatrix::reserve( int size )
 {
     if( size > _asize ) {
 	_asize = size;
@@ -382,7 +382,7 @@ void CRowMatrix::reserve( uint32_t size )
 }
 
 
-void CRowMatrix::set_nz( uint32_t nz )
+void CRowMatrix::set_nz( int nz )
 {
     if( nz > _asize ) {
 	_asize = nz;
@@ -413,24 +413,24 @@ void CRowMatrix::merge( CRowMatrix &mat )
 void CRowMatrix::order_ascending( void )
 {
     /* Sort each row. */
-    for( uint32_t i = 0; i < _n; i++ )
+    for( int i = 0; i < _n; i++ )
 	sort_iv( _col, _val, _ptr[i], _ptr[i+1] );
 }
 
 
-inline double CRowMatrix::get_no_check( uint32_t i, uint32_t j ) const
+inline double CRowMatrix::get_no_check( int i, int j ) const
 {
-    for( uint32_t a = _ptr[i]; a < _ptr[i+1]; a++ )
+    for( int a = _ptr[i]; a < _ptr[i+1]; a++ )
 	if( _col[a] == j )
 	    return( _val[a] );
     return( 0.0 );
 }
 
 
-inline double &CRowMatrix::set_no_check( uint32_t i, uint32_t j )
+inline double &CRowMatrix::set_no_check( int i, int j )
 {
     /* Use existing element if it exists */
-    for( uint32_t a = _ptr[i]; a < _ptr[i+1]; a++ )
+    for( int a = _ptr[i]; a < _ptr[i+1]; a++ )
     if( _col[a] == j )
         return( _val[a] );
 
@@ -441,7 +441,7 @@ inline double &CRowMatrix::set_no_check( uint32_t i, uint32_t j )
     /* Move existing data */
     int movesize = _nz-_ptr[i+1];
     memmove( &_val[_ptr[i+1]+1], &_val[_ptr[i+1]], movesize*sizeof(double) );
-    memmove( &_col[_ptr[i+1]+1], &_col[_ptr[i+1]], movesize*sizeof(uint32_t) );
+    memmove( &_col[_ptr[i+1]+1], &_col[_ptr[i+1]], movesize*sizeof(int) );
 
     /* Set new data */
     _val[_ptr[i+1]] = 0.0;
@@ -449,14 +449,14 @@ inline double &CRowMatrix::set_no_check( uint32_t i, uint32_t j )
 
     /* Update pointers */
     _nz++;
-    for( uint32_t a = i+1; a < _n+1; a++ )
+    for( int a = i+1; a < _n+1; a++ )
 	_ptr[a]++;
 
     return( _val[_ptr[i+1]-1] );
 }
 
 
-double CRowMatrix::get_check( uint32_t i, uint32_t j ) const
+double CRowMatrix::get_check( int i, int j ) const
 {
     if( i >= _n || j >= _m )
 	throw( ErrorRange( ERROR_LOCATION, i, _n, j, _m ) );
@@ -465,7 +465,7 @@ double CRowMatrix::get_check( uint32_t i, uint32_t j ) const
 }
 
 
-double &CRowMatrix::set_check( uint32_t i, uint32_t j )
+double &CRowMatrix::set_check( int i, int j )
 {
     if( i >= _n || j >= _m )
 	throw( ErrorRange( ERROR_LOCATION, i, _n, j, _m ) );
@@ -474,7 +474,7 @@ double &CRowMatrix::set_check( uint32_t i, uint32_t j )
 }
 
 
-void CRowMatrix::set_row( uint32_t i, uint32_t N, const uint32_t *col, const double *val )
+void CRowMatrix::set_row( int i, int N, const int *col, const double *val )
 {
     if( i >= _n )
 	throw( ErrorRange( ERROR_LOCATION, i, _n ) );
@@ -482,7 +482,7 @@ void CRowMatrix::set_row( uint32_t i, uint32_t N, const uint32_t *col, const dou
 	throw( Error( ERROR_LOCATION, "too many elements" ) );
 
     /* Reserve new space if necessary */
-    uint32_t oldsize = _ptr[i+1] - _ptr[i];
+    int oldsize = _ptr[i+1] - _ptr[i];
     if( _nz+N-oldsize > _asize )
 	reserve( _asize+_m );
 
@@ -490,12 +490,12 @@ void CRowMatrix::set_row( uint32_t i, uint32_t N, const uint32_t *col, const dou
     int offset = N-oldsize;
     int movesize = _nz-_ptr[i+1];
     memmove( &_val[_ptr[i+1]+offset], &_val[_ptr[i+1]], movesize*sizeof(double) );
-    memmove( &_col[_ptr[i+1]+offset], &_col[_ptr[i+1]], movesize*sizeof(uint32_t) );
+    memmove( &_col[_ptr[i+1]+offset], &_col[_ptr[i+1]], movesize*sizeof(int) );
 
     /* Set new data */
     int err = 0;
-    for( uint32_t a = 0; a < N; a++ ) {
-	for( uint32_t b = a+1; b < N; b++ ) {
+    for( int a = 0; a < N; a++ ) {
+	for( int b = a+1; b < N; b++ ) {
 	    if( col[a] == col[b] )
 		err = 2;
 	}
@@ -506,7 +506,7 @@ void CRowMatrix::set_row( uint32_t i, uint32_t N, const uint32_t *col, const dou
 
     /* Update pointers */
     _nz += offset;
-    for( uint32_t a = i+1; a < _n+1; a++ )
+    for( int a = i+1; a < _n+1; a++ )
 	_ptr[a] += offset;
 
     if( err == 1 )
@@ -516,7 +516,7 @@ void CRowMatrix::set_row( uint32_t i, uint32_t N, const uint32_t *col, const dou
 }
 
 
-void CRowMatrix::construct_add( uint32_t i, uint32_t j, double val )
+void CRowMatrix::construct_add( int i, int j, double val )
 {
     /* Reserve new space if necessary */
     if( _nz+1 > _asize )
@@ -542,7 +542,7 @@ void CRowMatrix::debug_print( void ) const
     std::cout << "asize = " << _asize << "\n";
 
     std::cout << "ptr[] = {";
-    for( uint32_t i = 0; i < _n; i++ )
+    for( int i = 0; i < _n; i++ )
 	std::cout << _ptr[i] << ", ";
     std::cout << _ptr[_n] << "}\n";
 
@@ -550,7 +550,7 @@ void CRowMatrix::debug_print( void ) const
     if( _nz <= 0 ) {
 	std::cout << "}\n";
     } else {
-	for( uint32_t i = 0; i < _nz-1; i++ )
+	for( int i = 0; i < _nz-1; i++ )
 	    std::cout << _col[i] << ", ";
 	std::cout << _col[_nz-1] << "}\n";
     }
@@ -559,7 +559,7 @@ void CRowMatrix::debug_print( void ) const
     if( _nz <= 0 ) {
 	std::cout << "}\n";
     } else {
-	for( uint32_t i = 0; i < _nz-1; i++ )
+	for( int i = 0; i < _nz-1; i++ )
 	    std::cout << _val[i] << ", ";
 	std::cout << _val[_nz-1] << "}\n";
     }
@@ -581,9 +581,9 @@ void CRowMatrix::multiply_by_vector( Vector &x, const Vector &b ) const
     x.clear();
 
     double sum;
-    for( uint32_t i = 0; i < _n; i++ ) {
+    for( int i = 0; i < _n; i++ ) {
 	sum = 0;
-	for( uint32_t a = _ptr[i]; a < _ptr[i+1]; a++ ) {
+	for( int a = _ptr[i]; a < _ptr[i+1]; a++ ) {
 	    sum += _val[a] * b._val[_col[a]];
 	    //std::cout << ""
 	}
@@ -602,8 +602,8 @@ void CRowMatrix::lower_unit_solve( Vector &x, const Vector &b ) const
 
     x = b;
 
-    for( uint32_t i = 0; i < _n; i++ ) {
-	for( uint32_t j = _ptr[i]; j < _ptr[i+1]; j++ )
+    for( int i = 0; i < _n; i++ ) {
+	for( int j = _ptr[i]; j < _ptr[i+1]; j++ )
 	    x[i] -= _val[j]*x[_col[j]];
     }
 }

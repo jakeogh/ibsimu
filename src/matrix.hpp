@@ -37,10 +37,10 @@ struct MatrixMulVec {
  *  base class for different matrix implementations.
  */
 class Matrix {
-    virtual double get_check( uint32_t i, uint32_t j ) const = 0;
-    virtual double &set_check( uint32_t i, uint32_t j ) = 0;
-    virtual double get_no_check( uint32_t i, uint32_t j ) const = 0;
-    virtual double &set_no_check( uint32_t i, uint32_t j ) = 0;
+    virtual double get_check( int i, int j ) const = 0;
+    virtual double &set_check( int i, int j ) = 0;
+    virtual double get_no_check( int i, int j ) const = 0;
+    virtual double &set_no_check( int i, int j ) = 0;
 
 public:
 
@@ -58,16 +58,16 @@ public:
 
     /*! \brief Returns the number of columns of the matrix.
      */
-    virtual uint32_t columns( void ) const = 0;
+    virtual int columns( void ) const = 0;
 
     /*! \brief Returns the number of rows of the matrix.
      */
-    virtual uint32_t rows( void ) const = 0;
+    virtual int rows( void ) const = 0;
 
     /*! \brief Returns the number of rows \a n and the number of
      *  columns \a m of the matrix.
      */
-    virtual void size( uint32_t &n, uint32_t &m ) const = 0;
+    virtual void size( int &n, int &m ) const = 0;
 
 /* ************************************** *
  * User level control                     *
@@ -75,7 +75,7 @@ public:
 
     /*! \brief Resizes the matrix to \a nn x \a mm.
      */
-    virtual void resize( uint32_t n, uint32_t m ) = 0;
+    virtual void resize( int n, int m ) = 0;
 
     //virtual void merge( Matrix &mat ) = 0;
 
@@ -89,12 +89,12 @@ public:
 
     /*! \brief Function to get a matrix element value at (i,j).
      */
-    inline double get( uint32_t i, uint32_t j ) const;
+    inline double get( int i, int j ) const;
 
     /*! \brief Function to get a reference to matrix element value at
      *  (i,j).
      */
-    inline double &set( uint32_t i, uint32_t j );
+    inline double &set( int i, int j );
 
 /* ************************************** *
  * Matrix-Vector operations               *
@@ -112,7 +112,7 @@ public:
 };
 
 
-inline double Matrix::get( uint32_t i, uint32_t j ) const
+inline double Matrix::get( int i, int j ) const
 {
 #ifdef SPM_RANGE_CHECK
     return( get_check( i, j ) );
@@ -122,7 +122,7 @@ inline double Matrix::get( uint32_t i, uint32_t j ) const
 }    
 
 
-inline double &Matrix::set( uint32_t i, uint32_t j )
+inline double &Matrix::set( int i, int j )
 {
 #ifdef SPM_RANGE_CHECK
     return( set_check( i, j ) );

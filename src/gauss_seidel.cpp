@@ -4,10 +4,10 @@
 
 
 bool gauss_seidel( const CRowMatrix &mat, const Vector &rhs, Vector &sol,
-		   uint32_t &imax, double &eps, double w )
+		   int &imax, double &eps, double w )
 {
-    uint32_t i;       /* Number of iterations */
-    uint32_t j, k, l; /* Row, data and column pointers */
+    int i;       /* Number of iterations */
+    int j, k, l; /* Row, data and column pointers */
     double dia = 0; /* Diagonal element */
     double x;       /* Temporary variable */
     double d;       /* Change */

@@ -2,6 +2,7 @@
 #include "verbose.hpp"
 
 
+
 Plotter::Plotter()
     : _width(640), _height(480)
 {
@@ -185,7 +186,9 @@ void Plotter::plot_eps( const std::string &filename )
     cairo_surface_t *surface = cairo_ps_surface_create( filename.c_str(), _width, _height );
     if( cairo_surface_status( surface ) )
         throw( Error( ERROR_LOCATION, "error creating cairo surface" ) );
+#if CAIRO_VERSION >= CAIRO_VERSION_ENCODE(1, 6, 0)
     cairo_ps_surface_set_eps( surface, true );
+#endif
     cairo_t *cairo = cairo_create( surface );
     cairo_status_t status = cairo_status( cairo );
     if( status )

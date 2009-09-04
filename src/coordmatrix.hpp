@@ -33,24 +33,24 @@
  *  \endcode
  */
 class CoordMatrix : public Matrix {
-    uint32_t  _n;      //!< Number of rows.
-    uint32_t  _m;      //!< Number of columnss.
-    uint32_t  _nz;     //!< Number of nonzero elements.
-    uint32_t  _asize;  //!< Allocation size of \a _col and \a _val.
-    uint32_t *_row;    //!< Row indices(i), \a _nz elements in use, \a _asize elements allocated.
-    uint32_t *_col;    //!< Column indices(j), \a _nz elements in use, \a _asize elements allocated.
+    int  _n;      //!< Number of rows.
+    int  _m;      //!< Number of columnss.
+    int  _nz;     //!< Number of nonzero elements.
+    int  _asize;  //!< Allocation size of \a _col and \a _val.
+    int *_row;    //!< Row indices(i), \a _nz elements in use, \a _asize elements allocated.
+    int *_col;    //!< Column indices(j), \a _nz elements in use, \a _asize elements allocated.
     double   *_val;    //!< Element values, \a _nz elements in use, \a _asize elements allocated.
 
     void allocate( void );
     void reallocate( void );
 
-    double get_check( uint32_t i, uint32_t j ) const;
-    double &set_check( uint32_t i, uint32_t j );
-    double get_no_check( uint32_t i, uint32_t j ) const;
-    double &set_no_check( uint32_t i, uint32_t j );
+    double get_check( int i, int j ) const;
+    double &set_check( int i, int j );
+    double get_no_check( int i, int j ) const;
+    double &set_no_check( int i, int j );
 
-    void clear_check( uint32_t i, uint32_t j );
-    void clear_no_check( uint32_t i, uint32_t j );
+    void clear_check( int i, int j );
+    void clear_no_check( int i, int j );
 
 public:
 
@@ -59,9 +59,9 @@ public:
  * ************************************** */
 
     CoordMatrix() : _n(0), _m(0), _nz(0), _asize(0), _row(NULL), _col(NULL), _val(NULL) { }
-    CoordMatrix( uint32_t n, uint32_t m );
-    CoordMatrix( uint32_t n, uint32_t m, uint32_t nz, 
-		 const uint32_t *row, const uint32_t *col, const uint32_t *val );
+    CoordMatrix( int n, int m );
+    CoordMatrix( int n, int m, int nz, 
+		 const int *row, const int *col, const int *val );
     CoordMatrix( const CoordMatrix &mat );
     CoordMatrix( const class CRowMatrix &mat );
     CoordMatrix( const class CColMatrix &mat );
@@ -73,23 +73,23 @@ public:
 
     /*! \brief Returns the number of columns in the matrix.
      */
-    uint32_t columns( void ) const { return( _m ); }
+    int columns( void ) const { return( _m ); }
 
     /*! \brief Returns the number of rows in the matrix.
      */
-    uint32_t rows( void ) const { return( _n ); }
+    int rows( void ) const { return( _n ); }
 
     /*! \brief Returns the number of columns and number of columns in \a nn and \a mm.
      */
-    void size( uint32_t &n, uint32_t &m ) const { n = _n; m = _m; }
+    void size( int &n, int &m ) const { n = _n; m = _m; }
 
     /*! \brief Returns the number of non-zero elements in the matrix.
      */
-    uint32_t nz_elements( void ) const { return( _nz ); }
+    int nz_elements( void ) const { return( _nz ); }
 
     /*! \brief Returns the number of elements allocated for matrix.
      */
-    uint32_t capacity( void ) const { return( _asize ); }
+    int capacity( void ) const { return( _asize ); }
 
 /* ************************************** *
  * User level control                     *
@@ -99,7 +99,7 @@ public:
      *
      *  All existing non-zero elements are cleared.
      */
-    void resize( uint32_t n, uint32_t m );
+    void resize( int n, int m );
 
     /*! \brief Merges matrix \a mat into the matrix leaving \a mat empty.
      *
@@ -117,11 +117,11 @@ public:
      *
      *  Removes element (i,j) from the list of non-zero matrix elements.
      */
-    void clear( uint32_t i, uint32_t j );
+    void clear( int i, int j );
 
     /*! \brief Reserve memory for \a size matrix elements.
      */
-    void reserve( uint32_t size );
+    void reserve( int size );
 
     /*! \brief Order (sort) matrix data in ascending (row,column)
      *  index order.
@@ -146,7 +146,7 @@ public:
      *  Range checking is done for \a i and \a j if \c SPM_RANGE_CHECK
      *  is defined. Throws ErrorRange exception on range checking errors.
      */
-    double get( uint32_t i, uint32_t j ) const;
+    double get( int i, int j ) const;
 
     /*! \brief Function to get a reference to matrix element value at (i,j).
      *
@@ -166,7 +166,7 @@ public:
      *  Range checking is done for \a i and \a j if \c SPM_RANGE_CHECK
      *  is defined. Throws ErrorRange exception on range checking errors.
      */
-    double &set( uint32_t i, uint32_t j );
+    double &set( int i, int j );
 
     /*! \brief Set element with no checks.
      *
@@ -174,7 +174,7 @@ public:
      * performed. User must be certain that duplicate entries are not
      * made.
      */
-    void set_no_duplicate_check( uint32_t i, uint32_t j, double vval );
+    void set_no_duplicate_check( int i, int j, double vval );
 
 /* ************************************** *
  * Low level access                       *
@@ -183,32 +183,32 @@ public:
     /*! \brief Returns a reference to the to the internal row data
      *  of the matrix.
      */
-    uint32_t &row( uint32_t i ) { return( _row[i] ); }
+    int &row( int i ) { return( _row[i] ); }
 
     /*! \brief Returns a reference to the to the internal column data
      *  \a ptr of the matrix.
      */
-    uint32_t &col( uint32_t i ) { return( _col[i] ); }
+    int &col( int i ) { return( _col[i] ); }
 
     /*! \brief Returns a reference to the to the internal value data
      *  of the matrix.
      */
-    double &val( uint32_t i ) { return( _val[i] ); }
+    double &val( int i ) { return( _val[i] ); }
 
     /*! \brief Returns a const reference to the to the internal row
      *  data of the matrix.
      */
-    const uint32_t &row( uint32_t i ) const { return( _row[i] ); }
+    const int &row( int i ) const { return( _row[i] ); }
 
     /*! \brief Returns a const reference to the to the internal column
      *  data \a ptr of the matrix.
      */
-    const uint32_t &col( uint32_t i ) const { return( _col[i] ); }
+    const int &col( int i ) const { return( _col[i] ); }
 
     /*! \brief Returns a const reference to the to the internal value
      *  data of the matrix.
      */
-    const double &val( uint32_t i ) const { return( _val[i] ); }
+    const double &val( int i ) const { return( _val[i] ); }
 
     /*! \brief Set number of non-zero elements in the matrix.
      *
@@ -216,7 +216,7 @@ public:
      *  functions. Internal arrays are resized if \a nz is larger than
      *  the allocated size.
      */
-    void set_nz( uint32_t nz );
+    void set_nz( int nz );
 
 /* ************************************** *
  * Assignent operators                    *
@@ -242,7 +242,7 @@ public:
 };
 
 
-inline double CoordMatrix::get( uint32_t i, uint32_t j ) const
+inline double CoordMatrix::get( int i, int j ) const
 {
 #ifdef SPM_RANGE_CHECK
     return( get_check( i, j ) );
@@ -252,7 +252,7 @@ inline double CoordMatrix::get( uint32_t i, uint32_t j ) const
 }    
 
 
-inline double &CoordMatrix::set( uint32_t i, uint32_t j )
+inline double &CoordMatrix::set( int i, int j )
 {
 #ifdef SPM_RANGE_CHECK
     return( set_check( i, j ) );
@@ -262,7 +262,7 @@ inline double &CoordMatrix::set( uint32_t i, uint32_t j )
 }    
 
 
-inline void CoordMatrix::clear( uint32_t i, uint32_t j )
+inline void CoordMatrix::clear( int i, int j )
 {
 #ifdef SPM_RANGE_CHECK
     clear_check( i, j );

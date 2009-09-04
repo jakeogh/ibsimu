@@ -1,6 +1,8 @@
 		TODO list
 		=========
 
+Suitesparse package to include umfpack.pc and amd.pc
+
 Solver speed test for 2D (for talks)
 
 Particle plot mirroring auto/off

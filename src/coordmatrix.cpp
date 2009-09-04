@@ -15,13 +15,13 @@ inline void CoordMatrix::allocate( void )
 	_row = _col = NULL;
 	_val = NULL;
     } else {
-	if( !(_row = (uint32_t *)malloc( _asize*sizeof(uint32_t) )) ) {
+	if( !(_row = (int *)malloc( _asize*sizeof(int) )) ) {
 	    _row = _col = NULL;
 	    _val = NULL;
 	    _n = _m = _nz = _asize = 0;
 	    throw( ErrorNoMem( ERROR_LOCATION ) );
 	}
-	if( !(_col = (uint32_t *)malloc( _asize*sizeof(uint32_t) )) ) {
+	if( !(_col = (int *)malloc( _asize*sizeof(int) )) ) {
 	    free( _row );
 	    _row = _col = NULL;
 	    _val = NULL;
@@ -49,8 +49,8 @@ inline void CoordMatrix::reallocate( void )
 	_row = _col = NULL;
 	_val = NULL;
     } else {
-	uint32_t *tmp;
-	if( !(tmp = (uint32_t *)realloc( _row, _asize*sizeof(uint32_t) )) ) {
+	int *tmp;
+	if( !(tmp = (int *)realloc( _row, _asize*sizeof(int) )) ) {
 	    free( _row );
 	    free( _col );
 	    free( _val );
@@ -60,7 +60,7 @@ inline void CoordMatrix::reallocate( void )
 	    throw( ErrorNoMem( ERROR_LOCATION ) );
 	}
 	_row = tmp;
-	if( !(tmp = (uint32_t *)realloc( _col, _asize*sizeof(uint32_t) )) ) {
+	if( !(tmp = (int *)realloc( _col, _asize*sizeof(int) )) ) {
 	    free( _row );
 	    free( _col );
 	    free( _val );
@@ -85,7 +85,7 @@ inline void CoordMatrix::reallocate( void )
 }
 
 
-CoordMatrix::CoordMatrix( uint32_t n, uint32_t m )
+CoordMatrix::CoordMatrix( int n, int m )
 {
     _n     = n;
     _m     = m;
@@ -97,8 +97,8 @@ CoordMatrix::CoordMatrix( uint32_t n, uint32_t m )
 }
 
 
-CoordMatrix::CoordMatrix( uint32_t n, uint32_t m, uint32_t nz, 
-			  const uint32_t *row, const uint32_t *col, const uint32_t *val )
+CoordMatrix::CoordMatrix( int n, int m, int nz, 
+			  const int *row, const int *col, const int *val )
 {
     _n     = n;
     _m     = m;
@@ -106,8 +106,8 @@ CoordMatrix::CoordMatrix( uint32_t n, uint32_t m, uint32_t nz,
     _asize = nz;
     allocate();
 
-    memcpy( _row, row, _nz*sizeof(uint32_t) );
-    memcpy( _col, col, _nz*sizeof(uint32_t) );
+    memcpy( _row, row, _nz*sizeof(int) );
+    memcpy( _col, col, _nz*sizeof(int) );
     memcpy( _val, val, _nz*sizeof(double) );
 }
 
@@ -120,8 +120,8 @@ CoordMatrix::CoordMatrix( const CoordMatrix &mat )
     _asize = mat._nz;
     allocate();
 
-    memcpy( _row, mat._row, _nz*sizeof(uint32_t) );
-    memcpy( _col, mat._col, _nz*sizeof(uint32_t) );
+    memcpy( _row, mat._row, _nz*sizeof(int) );
+    memcpy( _col, mat._col, _nz*sizeof(int) );
     memcpy( _val, mat._val, _nz*sizeof(double) );
 }
 
@@ -134,8 +134,8 @@ CoordMatrix &CoordMatrix::operator=( const CoordMatrix &mat )
     _asize = mat._nz;
     reallocate();
 
-    memcpy( _row, mat._row, _nz*sizeof(uint32_t) );
-    memcpy( _col, mat._col, _nz*sizeof(uint32_t) );
+    memcpy( _row, mat._row, _nz*sizeof(int) );
+    memcpy( _col, mat._col, _nz*sizeof(int) );
     memcpy( _val, mat._val, _nz*sizeof(double) );
 
     return( *this );
@@ -150,9 +150,9 @@ CoordMatrix::CoordMatrix( const class CRowMatrix &mat )
     _asize = mat._nz;
     allocate();
 
-    uint32_t i, j;
+    int i, j;
     for( i = j = 0; i < _n; i++ ) {
-	uint32_t e = mat._ptr[i+1];
+	int e = mat._ptr[i+1];
 	for( ; j < e; j++ ) {
 	    _row[j] = i;
 	    _col[j] = mat._col[j];
@@ -170,9 +170,9 @@ CoordMatrix &CoordMatrix::operator=( const CRowMatrix &mat )
     _asize = mat._nz;
     reallocate();
 
-    uint32_t i, j;
+    int i, j;
     for( i = j = 0; i < _n; i++ ) {
-	uint32_t e = mat._ptr[i+1];
+	int e = mat._ptr[i+1];
 	for( ; j < e; j++ ) {
 	    _row[j] = i;
 	    _col[j] = mat._col[j];
@@ -192,9 +192,9 @@ CoordMatrix::CoordMatrix( const class CColMatrix &mat )
     _asize = mat._nz;
     allocate();
 
-    uint32_t i, j;
+    int i, j;
     for( i = j = 0; j < _m; j++ ) {
-	uint32_t e = mat._ptr[j+1];
+	int e = mat._ptr[j+1];
 	for( ; i < e; i++ ) {
 	    _row[i] = mat._row[i];
 	    _col[i] = j;
@@ -212,9 +212,9 @@ CoordMatrix &CoordMatrix::operator=( const CColMatrix &mat )
     _asize = mat._nz;
     reallocate();
 
-    uint32_t i, j;
+    int i, j;
     for( i = j = 0; j < _m; j++ ) {
-	uint32_t e = mat._ptr[j+1];
+	int e = mat._ptr[j+1];
 	for( ; i < e; i++ ) {
 	    _row[i] = mat._row[i];
 	    _col[i] = j;
@@ -234,7 +234,7 @@ CoordMatrix::~CoordMatrix()
 }
 
 
-void CoordMatrix::resize( uint32_t n, uint32_t m )
+void CoordMatrix::resize( int n, int m )
 {
     _n     = n;
     _m     = m;
@@ -285,13 +285,13 @@ void CoordMatrix::clear( void )
 }
 
 
-inline void CoordMatrix::clear_no_check( uint32_t i, uint32_t j )
+inline void CoordMatrix::clear_no_check( int i, int j )
 {
 
 }
 
 
-void CoordMatrix::clear_check( uint32_t i, uint32_t j )
+void CoordMatrix::clear_check( int i, int j )
 {
     if( i >= _n || j >= _m )
 	throw( ErrorRange( ERROR_LOCATION, i, _n, j, _m ) );
@@ -300,7 +300,7 @@ void CoordMatrix::clear_check( uint32_t i, uint32_t j )
 }
 
 
-void CoordMatrix::reserve( uint32_t size )
+void CoordMatrix::reserve( int size )
 {
     if( size > _asize ) {
 	_asize = size;
@@ -309,7 +309,7 @@ void CoordMatrix::reserve( uint32_t size )
 }
 
 
-void CoordMatrix::set_nz( uint32_t nz )
+void CoordMatrix::set_nz( int nz )
 {
     if( nz > _asize ) {
 	_asize = nz;
@@ -342,7 +342,7 @@ void CoordMatrix::debug_print( void ) const
     if( _nz <= 0 ) {
 	std::cout << "}\n";
     } else {
-	for( uint32_t i = 0; i < _nz-1; i++ )
+	for( int i = 0; i < _nz-1; i++ )
 	    std::cout << _row[i] << ", ";
 	std::cout << _row[_nz-1] << "}\n";
     }
@@ -351,7 +351,7 @@ void CoordMatrix::debug_print( void ) const
     if( _nz <= 0 ) {
 	std::cout << "}\n";
     } else {
-	for( uint32_t i = 0; i < _nz-1; i++ )
+	for( int i = 0; i < _nz-1; i++ )
 	    std::cout << _col[i] << ", ";
 	std::cout << _col[_nz-1] << "}\n";
     }
@@ -360,26 +360,26 @@ void CoordMatrix::debug_print( void ) const
     if( _nz <= 0 ) {
 	std::cout << "}\n";
     } else {
-	for( uint32_t i = 0; i < _nz-1; i++ )
+	for( int i = 0; i < _nz-1; i++ )
 	    std::cout << _val[i] << ", ";
 	std::cout << _val[_nz-1] << "}\n";
     }
 }
 
 
-inline double CoordMatrix::get_no_check( uint32_t i, uint32_t j ) const
+inline double CoordMatrix::get_no_check( int i, int j ) const
 {
-    for( uint32_t a = 0; a < _nz; a++ )
+    for( int a = 0; a < _nz; a++ )
 	if( _row[a] == i && _col[a] == j  )
 	    return( _val[a] );
     return( 0.0 );
 }
 
 
-inline double &CoordMatrix::set_no_check( uint32_t i, uint32_t j )
+inline double &CoordMatrix::set_no_check( int i, int j )
 {
     /* Use existing element if it exists */
-    for( uint32_t a = 0; a < _nz; a++ )
+    for( int a = 0; a < _nz; a++ )
 	if( _row[a] == i && _col[a] == j  )
 	    return( _val[a] );
 
@@ -397,7 +397,7 @@ inline double &CoordMatrix::set_no_check( uint32_t i, uint32_t j )
 }
 
 
-double CoordMatrix::get_check( uint32_t i, uint32_t j ) const
+double CoordMatrix::get_check( int i, int j ) const
 {
     if( i >= _n || j >= _m )
 	throw( ErrorRange( ERROR_LOCATION, i, _n, j, _m ) );
@@ -406,7 +406,7 @@ double CoordMatrix::get_check( uint32_t i, uint32_t j ) const
 }
 
 
-double &CoordMatrix::set_check( uint32_t i, uint32_t j )
+double &CoordMatrix::set_check( int i, int j )
 {
     if( i >= _n || j >= _m )
 	throw( ErrorRange( ERROR_LOCATION, i, _n, j, _m ) );
@@ -415,7 +415,7 @@ double &CoordMatrix::set_check( uint32_t i, uint32_t j )
 }
 
 
-void CoordMatrix::set_no_duplicate_check( uint32_t i, uint32_t j, double val )
+void CoordMatrix::set_no_duplicate_check( int i, int j, double val )
 {
     /* Reserve new space if necessary */
     if( _nz >= _asize )
@@ -443,7 +443,7 @@ void CoordMatrix::multiply_by_vector( Vector &x, const Vector &b ) const
     x.resize( _n );
     x.clear();
 
-    for( uint32_t i = 0; i < _nz; i++ )
+    for( int i = 0; i < _nz; i++ )
 	x._val[_row[i]] += _val[i] * b._val[_col[i]];
 }
 

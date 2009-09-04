@@ -59,6 +59,10 @@ vecfield_rotate_SOURCES = vecfield_rotate.cpp
 vecfield_filedef_SOURCES = vecfield_filedef.cpp
 vlasov2d_SOURCES = vlasov2d.cpp
 
+if UMFPACK
+umfpack_solver_SOURCES = umfpack_solver.cpp
+endif
+
 check_PROGRAMS = \
 particles_edip \
 solver1d_neumann_order \
@@ -121,11 +125,19 @@ vecfield_rotate \
 vecfield_filedef \
 vlasov2d
 
+if UMFPACK
+check_PROGRAMS += umfpack_solver
+endif
+
 TESTS = $(check_PROGRAMS)
 
 AM_CPPFLAGS = $(CPPFLAGS) -Wall -g -I$(top_srcdir)/src
 AM_LDFLAGS = $(LIBS) -I$(top_srcdir)/src `gsl-config --libs`
-LDADD = $(top_builddir)/src/libibsimu2.la -lm
+LDADD = $(top_builddir)/src/libibsimu.la -lm
+if UMFPACK
+AM_CPPFLAGS += `pkg-config --cflags umfpack`
+AM_LDFLAGS += `pkg-config --libs umfpack`
+endif
 
 EXTRA_DIST = \
 beam2d.gpl \

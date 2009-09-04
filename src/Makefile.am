@@ -149,7 +149,7 @@ gtkparticlediagwindow.hpp \
 xygraph.cpp \
 xygraph.hpp
 
-libibsimu_la_includedir=$(includedir)/ibsimu2
+libibsimu_la_includedir=$(includedir)/ibsimu
 libibsimu_la_include_HEADERS = \
 fielddiagplot.hpp \
 fielddiagplotter.hpp \

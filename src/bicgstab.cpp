@@ -8,7 +8,7 @@
 
 
 bool bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
-	       const Precond &pc, uint32_t &imax, double &eps )
+	       const Precond &pc, int &imax, double &eps )
 {
     // Checks
     if( mat.columns() != mat.rows() )
@@ -44,7 +44,7 @@ bool bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
 	sp.print( ss.str() );
     }
 
-    uint32_t i;
+    int i;
     bool retval = false;
     for( i = 1; i <= imax; i++ ) {
 	rho_1 = dot_prod( rtilde, r );

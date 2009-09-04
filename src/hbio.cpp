@@ -387,8 +387,8 @@ void HBIO::read( const std::string filename )
 
     // Initialize 
     mat.clear();
-    uint32_t *m_ptr = new uint32_t[m+1];
-    uint32_t *m_row = new uint32_t[nz];
+    int *m_ptr = new int[m+1];
+    int *m_row = new int[nz];
     double *m_val = new double[nz];
     rhs.resize( 0 );
     sol.resize( 0 );

@@ -1,4 +1,4 @@
-SUBDIRS = src tests doc benchmark stuff
+SUBDIRS = src tests doc
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = ibsimu.pc
 

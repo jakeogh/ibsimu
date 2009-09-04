@@ -6,10 +6,10 @@
 
 void ILU0_Precond_constructor( Matrix **_L, Matrix **_U, const CRowMatrix &A )
 {
-    uint32_t i, j, k, pn, qn, rn;
+    int i, j, k, pn, qn, rn;
     double mult;
-    uint32_t l_nz = 0;
-    uint32_t u_nz = 0;
+    int l_nz = 0;
+    int u_nz = 0;
 
     // Make checks
     if( A.columns() != A.rows() )
@@ -17,7 +17,7 @@ void ILU0_Precond_constructor( Matrix **_L, Matrix **_U, const CRowMatrix &A )
 
     // Calculate number of non-zeros in each matrix and check
     // existance of diagonal.
-    uint32_t d;
+    int d;
     for( i = 0; i < A.rows(); i++ ) {
 	d = 0;
 	for( j = A.ptr(i); j < A.ptr(i+1); j++ ) {
@@ -100,10 +100,10 @@ void ILU0_Precond_constructor( Matrix **_L, Matrix **_U, const CRowMatrix &A )
 
 void ILU0_Precond_constructor( Matrix **_L, Matrix **_U, const CColMatrix &A )
 {
-    uint32_t i, j, k, pn, qn, rn;
+    int i, j, k, pn, qn, rn;
     double mult;
-    uint32_t l_nz = 0;
-    uint32_t u_nz = 0;
+    int l_nz = 0;
+    int u_nz = 0;
 
     // Make checks
     if( A.columns() != A.rows() )
@@ -111,7 +111,7 @@ void ILU0_Precond_constructor( Matrix **_L, Matrix **_U, const CColMatrix &A )
 
     // Calculate number of non-zeros in each matrix and check
     // existance of diagonal.
-    uint32_t d;
+    int d;
     for( i = 0; i < A.rows(); i++ ) {
 	d = 0;
 	for( j = A.ptr(i); j < A.ptr(i+1); j++ ) {

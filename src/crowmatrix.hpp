@@ -37,24 +37,24 @@
  *  \endcode
  */
 class CRowMatrix : public Matrix {
-    uint32_t  _n;      //!< Number of rows.
-    uint32_t  _m;      //!< Number of columns.
-    uint32_t  _nz;     //!< Number of nonzero elements.
-    uint32_t  _asize;  //!< Allocation size of \a _col and \a _val.
-    uint32_t *_ptr;    //!< Row pointers, size \a _n+1.
-    uint32_t *_col;    //!< Column indices(j), \a _nz elements in use, \a _asize elements allocated.
+    int  _n;      //!< Number of rows.
+    int  _m;      //!< Number of columns.
+    int  _nz;     //!< Number of nonzero elements.
+    int  _asize;  //!< Allocation size of \a _col and \a _val.
+    int *_ptr;    //!< Row pointers, size \a _n+1.
+    int *_col;    //!< Column indices(j), \a _nz elements in use, \a _asize elements allocated.
     double   *_val;    //!< Element values, \a _nz elements in use, \a _asize elements allocated.
 
     void reallocate( void );
     void allocate( void );
 
-    double get_check( uint32_t i, uint32_t j ) const;
-    double &set_check( uint32_t i, uint32_t j );
-    double get_no_check( uint32_t i, uint32_t j ) const;
-    double &set_no_check( uint32_t i, uint32_t j );
+    double get_check( int i, int j ) const;
+    double &set_check( int i, int j );
+    double get_no_check( int i, int j ) const;
+    double &set_no_check( int i, int j );
 
-    void clear_check( uint32_t i, uint32_t j );
-    void clear_no_check( uint32_t i, uint32_t j );
+    void clear_check( int i, int j );
+    void clear_no_check( int i, int j );
 
 public:
 
@@ -68,7 +68,7 @@ public:
 
     /*! \brief Constructor to make empty \a n x \a m matrix.
      */
-    CRowMatrix( uint32_t n, uint32_t m );
+    CRowMatrix( int n, int m );
 
     /*! \brief Constructor to make \a n x \a m matrix from compressed
      *  row matrix data.
@@ -78,8 +78,8 @@ public:
      *  allocation compatibility reasons, arrays \a ptr, \a col and \a
      *  val should be allocated using \a malloc and/or \a realloc.
      */
-    CRowMatrix( uint32_t n, uint32_t m, uint32_t nz, 
-		uint32_t *ptr, uint32_t *col, double *val );
+    CRowMatrix( int n, int m, int nz, 
+		int *ptr, int *col, double *val );
 
     /*! \brief Copy constructor.
      */
@@ -103,24 +103,24 @@ public:
 
     /*! \brief Returns the number of columns in the matrix.
      */
-    uint32_t columns( void ) const { return( _m ); }
+    int columns( void ) const { return( _m ); }
 
     /*! \brief Returns the number of rows in the matrix.
      */
-    uint32_t rows( void ) const { return( _n ); }
+    int rows( void ) const { return( _n ); }
 
     /*! \brief Returns the number of columns and number of columns in
      *  \a nn and \a mm.
      */
-    void size( uint32_t &n, uint32_t &m ) const { n = _n; m = _m; }
+    void size( int &n, int &m ) const { n = _n; m = _m; }
 
     /*! \brief Returns the number of non-zero elements in the matrix.
      */
-    uint32_t nz_elements( void ) const { return( _nz ); }
+    int nz_elements( void ) const { return( _nz ); }
 
     /*! \brief Returns the number of elements allocated for matrix.
      */
-    uint32_t capacity( void ) const { return( _asize ); }
+    int capacity( void ) const { return( _asize ); }
 
 /* ************************************** *
  * User level control                     *
@@ -130,7 +130,7 @@ public:
      *
      *  All existing non-zero elements are cleared.
      */
-    void resize( uint32_t n, uint32_t m );
+    void resize( int n, int m );
 
     /*! \brief Merges matrix \a mat into the matrix leaving \a mat empty.
      *
@@ -148,11 +148,11 @@ public:
      *
      *  Removes element (i,j) from the list of non-zero matrix elements.
      */
-    void clear( uint32_t i, uint32_t j );
+    void clear( int i, int j );
 
     /*! \brief Reserve memory for \a size matrix elements.
      */
-    void reserve( uint32_t size );
+    void reserve( int size );
 
     /*! \brief Order (sort) matrix data in ascending column index
      *  order within each row.
@@ -172,7 +172,7 @@ public:
      *  Range checking is done for \a i and \a j if \c SPM_RANGE_CHECK
      *  is defined. Throws ErrorRange exception on range checking errors.
      */
-    double get( uint32_t i, uint32_t j ) const;
+    double get( int i, int j ) const;
 
     /*! \brief Function to get a reference to matrix element value at (i,j).
      *
@@ -192,7 +192,7 @@ public:
      *  Range checking is done for \a i and \a j if \c SPM_RANGE_CHECK
      *  is defined. Throws ErrorRange exception on range checking errors.
      */
-    double &set( uint32_t i, uint32_t j );
+    double &set( int i, int j );
 
     /*! \brief Function to set matrix row elements.
      *
@@ -202,7 +202,7 @@ public:
      *  done for indexes \a i and \a j. Throws ErrorRange exception on
      *  range checking errors.
      */
-    void set_row( uint32_t i, uint32_t N, const uint32_t *col, const double *val );
+    void set_row( int i, int N, const int *col, const double *val );
 
     /*! \brief Adds an element to matrix while constructing the whole
         matrix.
@@ -219,7 +219,7 @@ public:
      *  should not be accessed with other functions before all rows
      *  have been defined.
      */
-    void construct_add( uint32_t i, uint32_t j, double val );
+    void construct_add( int i, int j, double val );
 
 /* ************************************** *
  * Low level access                       *
@@ -228,32 +228,32 @@ public:
     /*! \brief Returns a reference to the to the internal pointer index
      *  data \a ptr of the matrix.
      */
-    uint32_t &ptr( uint32_t i ) { return( _ptr[i] ); }
+    int &ptr( int i ) { return( _ptr[i] ); }
 
     /*! \brief Returns a reference to the to the internal column data
      *  of the matrix.
      */
-    uint32_t &col( uint32_t i ) { return( _col[i] ); }
+    int &col( int i ) { return( _col[i] ); }
 
     /*! \brief Returns a reference to the to the internal value data
      *  of the matrix.
      */
-    double &val( uint32_t i ) { return( _val[i] ); }
+    double &val( int i ) { return( _val[i] ); }
 
     /*! \brief Returns a const reference to the to the internal
      *  pointer index data \a ptr of the matrix.
      */
-    const uint32_t &ptr( uint32_t i ) const { return( _ptr[i] ); }
+    const int &ptr( int i ) const { return( _ptr[i] ); }
 
     /*! \brief Returns a const reference to the to the internal column
      *  data of the matrix.
      */
-    const uint32_t &col( uint32_t i ) const { return( _col[i] ); }
+    const int &col( int i ) const { return( _col[i] ); }
 
     /*! \brief Returns a const reference to the to the internal value
      *  data of the matrix.
      */
-    const double &val( uint32_t i ) const { return( _val[i] ); }
+    const double &val( int i ) const { return( _val[i] ); }
 
     /*! \brief Set number of non-zero elements in the matrix.
      *
@@ -262,7 +262,7 @@ public:
      *  the same value as \a ptr[n]. Internal arrays are resized if \a
      *  nz is larger than the allocated size.
      */
-    void set_nz( uint32_t nz );
+    void set_nz( int nz );
 
 /* ************************************** *
  * Assignent operators                    *
@@ -302,7 +302,7 @@ public:
 };
 
 
-inline double CRowMatrix::get( uint32_t i, uint32_t j ) const
+inline double CRowMatrix::get( int i, int j ) const
 {
 #ifdef SPM_RANGE_CHECK
     return( get_check( i, j ) );
@@ -312,7 +312,7 @@ inline double CRowMatrix::get( uint32_t i, uint32_t j ) const
 }    
 
 
-inline double &CRowMatrix::set( uint32_t i, uint32_t j )
+inline double &CRowMatrix::set( int i, int j )
 {
 #ifdef SPM_RANGE_CHECK
     return( set_check( i, j ) );
@@ -322,7 +322,7 @@ inline double &CRowMatrix::set( uint32_t i, uint32_t j )
 }    
 
 
-inline void CRowMatrix::clear( uint32_t i, uint32_t j )
+inline void CRowMatrix::clear( int i, int j )
 {
 #ifdef SPM_RANGE_CHECK
     clear_check( i, j );

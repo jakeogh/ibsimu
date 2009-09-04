@@ -24,7 +24,7 @@
  */
 class BiCGSTABSolver : public Solver {
     double   _eps;          /*!< \brief Accuracy request. */
-    uint32_t _imax;         /*!< \brief Maximum iteration count. */
+    int _imax;         /*!< \brief Maximum iteration count. */
 
     double   _newton_Reps;  /*!< \brief Accuracy request for Newton-Raphson residual. */
     double   _newton_dXeps; /*!< \brief Accuracy request for Newton-Raphson step. */
@@ -34,8 +34,8 @@ public:
 
     /*! \brief Constructor.
      */
-    BiCGSTABSolver( double eps = 1.0e-6, uint32_t imax = 10000,
-		    double newton_Reps = 1.0e-5, double newton_dXeps = 1.0e-6, uint32_t newton_imax = 10 );
+    BiCGSTABSolver( double eps = 1.0e-6, int imax = 10000,
+		    double newton_Reps = 1.0e-5, double newton_dXeps = 1.0e-6, int newton_imax = 10 );
 
     /*! \brief Destructor.
      */
@@ -54,25 +54,25 @@ public:
 
     /*! \brief Sets maximum iteration count for BiCGSTAB solver.
      */
-    void set_imax( uint32_t imax ) {
+    void set_imax( int imax ) {
 	_imax = imax;
     }
 
     /*! \brief Sets maximum iteration count for Newton-Raphson steps.
      */
-    void set_newton_imax( uint32_t newton_imax ) {
+    void set_newton_imax( int newton_imax ) {
 	_newton_imax = newton_imax;
     }
 
     /*! \brief Sets the accuracy request for Newton-Raphson residual.
      */
-    void set_newton_residual_eps( uint32_t newton_Reps ) {
+    void set_newton_residual_eps( int newton_Reps ) {
 	_newton_Reps = newton_Reps;
     }
 
     /*! \brief Sets the accuracy request for Newton-Raphson step size.
      */
-    void set_newton_step_eps( uint32_t newton_dXeps ) {
+    void set_newton_step_eps( int newton_dXeps ) {
 	_newton_dXeps = newton_dXeps;
     }
 
