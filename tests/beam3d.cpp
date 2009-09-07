@@ -95,7 +95,6 @@ void test( int *argc, char ***argv )
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
     }
 
-    /*
     GTKPlotter plotter( argc, argv );
     plotter.set_geometry( &geom );
     plotter.set_epot( &epot );
@@ -103,8 +102,8 @@ void test( int *argc, char ***argv )
     plotter.set_particledatabase( &pdb );
     plotter.new_geometry_plot_window();
     plotter.run();
-    */
 
+    /*
     GeomPlotter gplotter( &geom );
     gplotter.set_scharge( &scharge );
     gplotter.set_scharge_field( true );
@@ -122,6 +121,7 @@ void test( int *argc, char ***argv )
     gplotter.plot_png( "beam3d_xy.png" );
     gplotter.set_view( VIEW_YZ, 0 );
     gplotter.plot_png( "beam3d_yz.png" );
+    */
 }
 
 
