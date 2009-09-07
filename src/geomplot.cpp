@@ -188,6 +188,8 @@ void GeomPlot::set_mesh( bool enable )
 
 void GeomPlot::set_view( view_e view, int level ) 
 {
+    std::cout << "set_view( " << view << ", " << level << " )\n";
+
     if( view == VIEW_XY ) {
 	_vb[0] = 0;
 	_vb[1] = 1;

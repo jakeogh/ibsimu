@@ -72,6 +72,7 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       *plotter,
 	gtk_combo_box_set_active( GTK_COMBO_BOX(_combobox), 0 );
 	_spinbutton = gtk_spin_button_new_with_range( 0, geom->size(2)-1, 1 );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON(_spinbutton), geom->size(2)/2 );
+	_geomplot.set_view( VIEW_XY, geom->size(2)/2 );
     } else {
         gtk_combo_box_set_active( GTK_COMBO_BOX(_combobox), 0 );
         _spinbutton = gtk_spin_button_new_with_range( 0, 0, 1 );
@@ -90,7 +91,12 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       *plotter,
     g_signal_connect( G_OBJECT(_combobox), "changed",
                       G_CALLBACK(combobox_signal),
                       (gpointer)this );
+    /*
     g_signal_connect( G_OBJECT(_spinbutton), "value-changed",
+                      G_CALLBACK(spinbutton_signal),
+                      (gpointer)this );
+    */
+    g_signal_connect( G_OBJECT(_spinbutton), "change-value",
                       G_CALLBACK(spinbutton_signal),
                       (gpointer)this );
 
@@ -473,7 +479,7 @@ void GTKGeomWindow::read_preferences( GtkWidget *notebook, void *_pdata )
 
 void GTKGeomWindow::combobox( GtkComboBox *combobox )
 {
-    //std::cout << "Combobox\n";
+    std::cout << "Combobox\n";
 
     int level;
     int levelmax;
@@ -495,6 +501,9 @@ void GTKGeomWindow::combobox( GtkComboBox *combobox )
 	levelmax = _geom->size(0);
 	level = levelmax/2;
         break;
+    default:
+	throw( Error( ERROR_LOCATION, "illegal combo box tag" ) );
+	break;
     }
 
     // Set ranges to defaults on view change
@@ -506,8 +515,26 @@ void GTKGeomWindow::combobox( GtkComboBox *combobox )
     _frame.ruler_autorange_enable( PLOT_AXIS_Y1, false, false );
 
     // Update spinbutton
+    /*
+    g_signal_handlers_block_by_func( G_OBJECT(_spinbutton),
+				     (void *)spinbutton_signal,
+				     (gpointer)this );
+    */
+    g_signal_handlers_disconnect_by_func( G_OBJECT(_spinbutton),
+					  (void *)spinbutton_signal,
+					  (gpointer)this );
     gtk_spin_button_set_range( GTK_SPIN_BUTTON(_spinbutton), 0, levelmax-1 );
     gtk_spin_button_set_value( GTK_SPIN_BUTTON(_spinbutton), level );
+    /*
+    g_signal_handlers_unblock_by_func( G_OBJECT(_spinbutton),
+				       (void *)spinbutton_signal,
+				       (gpointer)this );
+    */
+    //g_signal_stop_emission_by_name( G_OBJECT(_spinbutton), "value-changed" );
+    g_signal_connect( G_OBJECT(_spinbutton), "value-changed",
+                      G_CALLBACK(spinbutton_signal),
+                      (gpointer)this );
+
 
     // Update view
     _geomplot.set_view( view, level );
@@ -518,7 +545,7 @@ void GTKGeomWindow::combobox( GtkComboBox *combobox )
 
 void GTKGeomWindow::spinbutton( GtkSpinButton *spinbutton )
 {
-    //std::cout << "Spinbutton\n";
+    std::cout << "Spinbutton\n";
 
     int level = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(_spinbutton) );
 

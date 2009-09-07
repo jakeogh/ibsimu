@@ -1,5 +1,6 @@
 AC_INIT([libibsimu], [0.0.1], [tvkalvas@jyu.fi])
 AM_CONFIG_HEADER(src/config.h)
+AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([0.0.1])
 
 dnl ---------------------------------
@@ -34,7 +35,11 @@ LIBUMFPACK=
   AS_IF([test "x$with_umfpack" != xno],
         [PKG_CHECK_MODULES(umfpack, umfpack)])
 AM_CONDITIONAL([UMFPACK], [test x$with_umfpack != xno])
-
+if test x$with_umfpack != xno ; then
+  AC_SUBST(UMFPACK_COND,umfpack)
+else
+  AC_SUBST(UMFPACK_COND,"")
+fi
 
 dnl ---------------------------------
 dnl Check for libraries

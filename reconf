@@ -1,7 +1,10 @@
 #!/bin/sh
 
-rm -f config.cache
-rm -f acconfig.h
+rm -Rf autom4te.cache
+rm -f config.cache config.log config.status config.guess config.sub
+rm -f ltconfig.h ltmain.sh libtool
+rm -f aclocal.m4
+rm -f missing install-sh INSTALL
 libtoolize
 aclocal
 autoconf
