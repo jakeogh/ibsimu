@@ -9,7 +9,7 @@ dnl ---------------------------------
 m4_pattern_allow([AC_PROG_LIBTOOL])
 AC_PROG_LIBTOOL
 AC_PROG_CXX
-AC_PROG_RANLIB
+dnl AC_PROG_RANLIB
 
 dnl ---------------------------------
 dnl pkgconfig
