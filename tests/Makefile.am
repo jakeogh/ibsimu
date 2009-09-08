@@ -1,3 +1,4 @@
+solver1d_solid_neumann_conflict_SOURCES = solver1d_solid_neumann_conflict.cpp
 fileplot_SOURCES = fileplot.cpp
 particles_edip_SOURCES = particles_edip.cpp
 solver1d_neumann_order_SOURCES = solver1d_neumann_order.cpp
@@ -64,6 +65,7 @@ umfpack_solver_SOURCES = umfpack_solver.cpp
 endif
 
 check_PROGRAMS = \
+solver1d_solid_neumann_conflict \
 particles_edip \
 solver1d_neumann_order \
 gtkplotter \
@@ -145,6 +147,7 @@ beamcyl.gpl \
 efield_extrpl.gpl \
 efield.gpl \
 particles_cyl.gpl \
+solver1d_solid_neumann_conflict.gpl \
 solver1d_edge.gpl \
 solver1d_hard_edge.gpl \
 solver1d_neumann.gpl \

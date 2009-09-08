@@ -2,7 +2,7 @@
  *  \brief Test solver with a 1d problem with Neumann and Dirichlet boundaries.
  *
  *  \test The simple 1d problems with constant space charge are easily
- *  solved analyticalle. The Poisson equation 
+ *  solved analytically. The Poisson equation 
  *  \f[ \nabla^2 \phi = -\frac{\rho}{\epsilon} \f]
  *  can be integrated twice to get
  *  \f[ \phi = -\frac{\rho}{2 \epsilon} x^2 + Ax + B, \f]
