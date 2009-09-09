@@ -44,9 +44,8 @@ bool solid2( double x, double y, double z )
 void test( int *argc, char ***argv )
 {
     verbose_output = 1;
-    
-    // 12x7 mm geometry with 0.05 mm mesh size
-    Geometry geom( MODE_2D, Int3D(241,141,1), Vec3D(0,0,0), 0.00005 );
+    //Geometry geom( MODE_2D, Int3D(241,141,1), Vec3D(0,0,0), 0.00005 );
+    Geometry geom( MODE_2D, Int3D(481,281,1), Vec3D(0,0,0), 0.000025 );
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
@@ -82,7 +81,7 @@ void test( int *argc, char ***argv )
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
 
-    for( size_t i = 0; i < 2; i++ ) {
+    for( size_t i = 0; i < 8; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();

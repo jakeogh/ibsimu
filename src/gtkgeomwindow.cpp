@@ -91,12 +91,7 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       *plotter,
     g_signal_connect( G_OBJECT(_combobox), "changed",
                       G_CALLBACK(combobox_signal),
                       (gpointer)this );
-    /*
     g_signal_connect( G_OBJECT(_spinbutton), "value-changed",
-                      G_CALLBACK(spinbutton_signal),
-                      (gpointer)this );
-    */
-    g_signal_connect( G_OBJECT(_spinbutton), "change-value",
                       G_CALLBACK(spinbutton_signal),
                       (gpointer)this );
 
@@ -546,6 +541,7 @@ void GTKGeomWindow::combobox( GtkComboBox *combobox )
 void GTKGeomWindow::spinbutton( GtkSpinButton *spinbutton )
 {
     std::cout << "Spinbutton\n";
+    //g_signal_stop_emission_by_name( G_OBJECT(_spinbutton), "value-changed" );
 
     int level = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(_spinbutton) );
 

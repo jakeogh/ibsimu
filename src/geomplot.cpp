@@ -84,6 +84,7 @@ void GeomPlot::set_epot( const ScalarField *epot )
 	_eqpotgraph = new EqPotGraph( *_epot, *_geom );
 	if( !_cache )
 	    _eqpotgraph->disable_cache();
+	_eqpotgraph->set_view( _view, _level );
 	_eqpotgraph->set_eqlines_auto( _eqlines_auto );
 	_eqpotgraph->set_eqlines_manual( _eqlines_manual );
     }
@@ -126,6 +127,7 @@ void GeomPlot::set_scharge_field( bool enable )
 
     if( _scharge && _scharge_field ) {
 	_fieldgraph = new FieldGraph( _scharge );
+	_fieldgraph->set_view( _view, _level );
     }
 
     reset_graphs();
@@ -144,6 +146,7 @@ void GeomPlot::set_particle_database( const ParticleDataBase *pdb )
 
     if( _pdb ) {
 	_particlegraph = new ParticleGraph( *_geom, *_pdb );
+	_particlegraph->set_view( _view, _level );
 	_particlegraph->set_particle_div( _particle_div );
 	_particlegraph->set_qm_discretation( _qm_discretation );
     }
@@ -180,6 +183,7 @@ void GeomPlot::set_mesh( bool enable )
 
     if( _mesh ) {
 	_meshgraph = new MeshGraph( *_geom );
+	_meshgraph->set_view( _view, _level );
     }
 
     reset_graphs();

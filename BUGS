@@ -1,6 +1,11 @@
 		BUGS
 		====
 
+Level changing spinbutton takes two steps after change of view
+direction and at first step. This only happens on golgata, not at work
+(pkg-config --modversion gtk+-2.0 2.12.8)
+ - 8 Sep 2009
+
 3D GeomPlotWindow crashes at the change of view (grid extraction simulation)
  - 7 Sep 2009
 
