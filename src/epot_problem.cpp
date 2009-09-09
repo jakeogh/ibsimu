@@ -164,27 +164,27 @@ void EpotProblem::add_vacuum_node( int32_t i, int32_t j, int32_t k,
 	set_link( A, B, n2d(i,j,k), n2d(i,j,k), -2.0 );
 	break;
     case MODE_2D:
-	set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), 1.0 );
-	set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), 1.0 );
 	set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), 1.0 );
-	set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), 1.0 );
+	set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), 1.0 );
 	set_link( A, B, n2d(i,j,k), n2d(i,j,k), -4.0 );
+	set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), 1.0 );
+	set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), 1.0 );
 	break;
     case MODE_CYL:
-	set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), 1.0 );
-	set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), 1.0 );
 	set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), 1.0-0.5/j );
-	set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), 1.0+0.5/j );
+	set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), 1.0 );
 	set_link( A, B, n2d(i,j,k), n2d(i,j,k), -4.0 );
+	set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), 1.0 );
+	set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), 1.0+0.5/j );
 	break;
     default:
-	set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), 1.0 );
-	set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), 1.0 );
-	set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), 1.0 );
-	set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), 1.0 );
 	set_link( A, B, n2d(i,j,k), n2d(i,j,k-1), 1.0 );
-	set_link( A, B, n2d(i,j,k), n2d(i,j,k+1), 1.0 );
+	set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), 1.0 );
+	set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), 1.0 );
 	set_link( A, B, n2d(i,j,k), n2d(i,j,k), -6.0 );
+	set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), 1.0 );
+	set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), 1.0 );
+	set_link( A, B, n2d(i,j,k), n2d(i,j,k+1), 1.0 );
 	break;
     }
 
@@ -214,21 +214,21 @@ void EpotProblem::add_neumann_node( signed char a, int32_t i, int32_t j, int32_t
 	if( _neumann_order == 2 &&
  	    _g->mesh_check(i-1,j,k) > 0 &&
 	    _g->mesh_check(i-2,j,k) > 0 ) {
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
-	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), -4.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i-2,j,k), 1.0 );
+	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), -4.0 );
+	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
 	} else {
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), -1.0 );
+	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
 	}
 	break;
     case -3:
 	if( _g->geom_mode() == MODE_CYL ) {
 	    // Axis boundary, exception, not really neumann
-	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), 1.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), 1.0 );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), 4.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), -6.0 );
+	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), 1.0 );
+	    set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), 4.0 );
 	    // Space charge is added when problem is being solved
 	    return;
 	} else {
@@ -248,12 +248,12 @@ void EpotProblem::add_neumann_node( signed char a, int32_t i, int32_t j, int32_t
 	if( _neumann_order == 2 &&
 	    _g->mesh_check(i,j-1,k) > 0 &&
 	    _g->mesh_check(i,j-2,k) > 0 ) {
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), -4.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j-2,k), 1.0 );
+	    set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), -4.0 );
+	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
 	} else {
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), -1.0 );
+	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
 	}
 	break;
     case -5:
@@ -272,12 +272,12 @@ void EpotProblem::add_neumann_node( signed char a, int32_t i, int32_t j, int32_t
 	if( _neumann_order == 2 &&
 	    _g->mesh_check(i,j,k-1) > 0 &&
 	    _g->mesh_check(i,j,k-2) > 0 ) {
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k-1), -4.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k-2), 1.0 );
+	    set_link( A, B, n2d(i,j,k), n2d(i,j,k-1), -4.0 );
+	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
 	} else {
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k-1), -1.0 );
+	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
 	}
 	break;
     }
@@ -352,8 +352,8 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 SOL_OR_DIR(i,  j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j,k), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 	
@@ -376,8 +376,8 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i,  j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j-1,k), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -404,10 +404,10 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i+1,j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j-1,k), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j-1,k), x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
+	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k), (1.0-x)*x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	} 
 
@@ -419,10 +419,10 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i-1,j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j-1,k), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k), (1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j-1,k), x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k), (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k), (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	} 
 
@@ -434,10 +434,10 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i-1,j+1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j+1,k), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k), (1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k), (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j+1,k), x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k), (1.0-x)*x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -460,7 +460,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 	    SOL_OR_DIR(i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j,k), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
@@ -474,8 +474,8 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 SOL_OR_DIR(i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j,k), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,k), 1.0-x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -488,7 +488,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 SOL_OR_DIR(i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j+1,k), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,j,  k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
@@ -502,7 +502,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 SOL_OR_DIR(i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j-1,k), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,j,  k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
@@ -530,8 +530,8 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j,k-1), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k-1), x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -545,9 +545,9 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i+1,j+1,k  ) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j+1,k), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k),     (1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,k),   (1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j+1,k),   (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
+	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k), (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j+1,k), x*x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
@@ -562,10 +562,10 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i-1,j+1,k  ) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j+1,k), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k),     (1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k),   (1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j+1,k),   (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k), (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j+1,k), x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k), (1.0-x)*x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -579,10 +579,10 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i+1,j-1,k  ) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j-1,k), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k),     (1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,k),   (1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j-1,k),   (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j-1,k), x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
+	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k), (1.0-x)*x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -596,10 +596,10 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i-1,j-1,k  ) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j-1,k), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k),     (1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k),   (1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j-1,k),   (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j-1,k), x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k), (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k), (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -630,10 +630,10 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i-1,j,  k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j,k+1), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k+1), x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -647,10 +647,10 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i+1,j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j,k-1), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k  ), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k-1), x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
+	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k  ), (1.0-x)*x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -664,10 +664,10 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i-1,j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j,k-1), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k-1), x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -698,10 +698,10 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i,  j-1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j-1,k+1), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k+1), x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -715,10 +715,10 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i,  j+1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j+1,k-1), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k  ), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k-1), x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k  ), (1.0-x)*x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -732,10 +732,10 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i,  j-1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j-1,k-1), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k-1), x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -770,14 +770,14 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i-1,j+1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j+1,k+1), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*(1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k  ), (1.0-x)*(1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j+1,k  ), (1.0-x)*x*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*(1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k  ), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k+1), (1.0-x)*x*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k+1), (1.0-x)*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j+1,k+1), x*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k+1), (1.0-x)*x*x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -791,14 +791,14 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i+1,j-1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j-1,k+1), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k  ), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j-1,k  ), (1.0-x)*x*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*(1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k+1), (1.0-x)*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
+	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k  ), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k+1), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j-1,k+1), x*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*(1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k+1), (1.0-x)*x*x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -812,14 +812,14 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i-1,j-1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j-1,k+1), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*(1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j-1,k  ), (1.0-x)*x*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*(1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k+1), (1.0-x)*x*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k+1), (1.0-x)*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*(1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*(1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j-1,k+1), x*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k+1), (1.0-x)*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k+1), (1.0-x)*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*(1.0-x)*x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -833,14 +833,14 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i+1,j+1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j+1,k-1), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k  ), (1.0-x)*(1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k  ), (1.0-x)*(1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i+1,j+1,k  ), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k-1), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k-1), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j+1,k-1), x*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
+	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k  ), (1.0-x)*(1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k  ), (1.0-x)*(1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i+1,j+1,k  ), (1.0-x)*x*x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -854,14 +854,14 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i-1,j+1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j+1,k-1), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*(1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k  ), (1.0-x)*(1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i-1,j+1,k  ), (1.0-x)*x*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k-1), (1.0-x)*x*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k-1), (1.0-x)*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j+1,k-1), x*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k-1), (1.0-x)*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*(1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
+	    set_link( A, B, n2d(i,j,k), n2d(i-1,j+1,k  ), (1.0-x)*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k  ), (1.0-x)*(1.0-x)*x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -875,14 +875,14 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i+1,j-1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j-1,k-1), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k  ), (1.0-x)*(1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*(1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i+1,j-1,k  ), (1.0-x)*x*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*(1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k-1), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k-1), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j-1,k-1), x*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*(1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k-1), (1.0-x)*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*(1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i+1,j-1,k  ), (1.0-x)*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
+	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k  ), (1.0-x)*(1.0-x)*x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 
@@ -896,14 +896,14 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 VAC_OR_NEU(i-1,j-1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j-1,k-1), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
-	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*(1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*(1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i-1,j-1,k  ), (1.0-x)*x*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*(1.0-x)*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k-1), (1.0-x)*x*x );
-	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k-1), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j-1,k-1), x*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k-1), (1.0-x)*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k-1), (1.0-x)*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*(1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i-1,j-1,k  ), (1.0-x)*x*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*(1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*(1.0-x)*x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 

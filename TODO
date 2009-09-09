@@ -1,6 +1,8 @@
 		TODO list
 		=========
 
+Problem build check sorted for CRowMatrix.
+
 Make test for neumann vs. solid problem
 
 Add PIC style particle stepper
