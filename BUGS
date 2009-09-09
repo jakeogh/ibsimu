@@ -2,12 +2,9 @@
 		====
 
 Level changing spinbutton takes two steps after change of view
-direction and at first step. This only happens on golgata, not at work
-(pkg-config --modversion gtk+-2.0 2.12.8)
+direction and at first step. This is a bug in gtk+-2.0 and has been
+now reported.
  - 8 Sep 2009
-
-3D GeomPlotWindow crashes at the change of view (grid extraction simulation)
- - 7 Sep 2009
 
 Cylindrical symmetry particle iterator hangs in some loop with large
 number of particles. Fills all of memory. Probably particle close to

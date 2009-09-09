@@ -5,7 +5,7 @@ set nokey
 set size 0.8,0.4
 
 set out "solver1d_edge.ps"
-f(x) = (x < 0.088) ? 10.0*x/0.088 : 10.0
+f(x) = (x < 0.013) ? (0.0) : ((x > 0.087) ? (10.0) : (10*(x-0.013)/0.074))
 set xlabel "x (m)"
 set ylabel "Potential (V)"
-plot f(x), "solver1d_edge.dat" ind 1 w p 3
+plot f(x), "solver1d_edge.dat" w p 3

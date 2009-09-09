@@ -24,13 +24,11 @@ using namespace std;
 
 bool solid1( double x, double y, double z )
 {
-    /*
     // Leave nodes at 0.09 and 0.1 free = OK
-    return( x >= 0.06 && x <= 0.081 );
-    */
+    //return( x >= 0.055 && x <= 0.085 );
 
     // Leave only node at 0.1 free
-    return( x >= 0.06 && x <= 0.091 );
+    return( x >= 0.055 && x <= 0.095 );
 }
 
 

@@ -199,7 +199,9 @@ void EpotProblem::add_neumann_node( signed char a, int32_t i, int32_t j, int32_t
 {
     switch( a ) {
     case -1:
-	if( _neumann_order == 2 ) {
+	if( _neumann_order == 2 && 
+	    _g->mesh_check(i+1,j,k) > 0 &&
+	    _g->mesh_check(i+2,j,k) > 0 ) {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), -4.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i+2,j,k), 1.0 );
@@ -209,7 +211,9 @@ void EpotProblem::add_neumann_node( signed char a, int32_t i, int32_t j, int32_t
 	}
 	break;
     case -2:
-	if( _neumann_order == 2 ) {
+	if( _neumann_order == 2 &&
+ 	    _g->mesh_check(i-1,j,k) > 0 &&
+	    _g->mesh_check(i-2,j,k) > 0 ) {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), -4.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i-2,j,k), 1.0 );
@@ -228,7 +232,9 @@ void EpotProblem::add_neumann_node( signed char a, int32_t i, int32_t j, int32_t
 	    // Space charge is added when problem is being solved
 	    return;
 	} else {
-	    if( _neumann_order == 2 ) {
+	    if( _neumann_order == 2 &&
+		_g->mesh_check(i,j+1,k) > 0 &&
+		_g->mesh_check(i,j+2,k) > 0 ) {
 		set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
 		set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), -4.0 );
 		set_link( A, B, n2d(i,j,k), n2d(i,j+2,k), 1.0 );
@@ -239,7 +245,9 @@ void EpotProblem::add_neumann_node( signed char a, int32_t i, int32_t j, int32_t
 	}
 	break;
     case -4:
-	if( _neumann_order == 2 ) {
+	if( _neumann_order == 2 &&
+	    _g->mesh_check(i,j-1,k) > 0 &&
+	    _g->mesh_check(i,j-2,k) > 0 ) {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), -4.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j-2,k), 1.0 );
@@ -249,7 +257,9 @@ void EpotProblem::add_neumann_node( signed char a, int32_t i, int32_t j, int32_t
 	}
 	break;
     case -5:
-	if( _neumann_order == 2 ) {
+	if( _neumann_order == 2 &&
+	    _g->mesh_check(i,j,k+1) > 0 &&
+	    _g->mesh_check(i,j,k+2) > 0 ) {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k+1), -4.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k+2), 1.0 );
@@ -259,7 +269,9 @@ void EpotProblem::add_neumann_node( signed char a, int32_t i, int32_t j, int32_t
 	}
 	break;
     default:
-	if( _neumann_order == 2 ) {
+	if( _neumann_order == 2 &&
+	    _g->mesh_check(i,j,k-1) > 0 &&
+	    _g->mesh_check(i,j,k-2) > 0 ) {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k-1), -4.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k-2), 1.0 );
@@ -291,17 +303,29 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
     switch( _g->geom_mode() ) {
     case MODE_1D:
 
-	if( _g->mesh_check(i+1,j,k) == 0 ) {
+	// Edge (i+1)
+	if( VAC_OR_NEU(i+1,j,k) &&
+	    SOL_OR_DIR(i-1,j,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k), 
-					  _g->origo()+_g->h()*Vec3D(i+1,j,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i+1,j,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), x );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
-	} else {
+	}
+
+	// Edge (i-1)
+	else if( VAC_OR_NEU(i-1,j,k) &&
+		 SOL_OR_DIR(i+1,j,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k), 
-					  _g->origo()+_g->h()*Vec3D(i-1,j,k), xsurf );
-	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
+					    _g->origo()+_g->h()*Vec3D(i-1,j,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), x );
+	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
+	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	}
+
+	// Otherwise like normal solid node
+	else {
+	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
 	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
 	}
 	break;

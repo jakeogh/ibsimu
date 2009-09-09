@@ -28,18 +28,29 @@
 using namespace std;
 
 
-double x1 = 0.09;
+double x1 = 0.013;
+double x2 = 0.087;
 
 
 bool s1( double x, double y, double z )
 {
-    return( x > x1 );
+    return( x < x1 );
+}
+
+
+bool s2( double x, double y, double z )
+{
+    return( x > x2 );
 }
 
 
 double phi( double x )
 {
-    return( 10.0*x/x1 );
+    if( x < x1 )
+	return( 0.0 );
+    else if( x > x2 )
+	return( 10.0 );
+    return( 10.0*(x-x1)/(x2-x1) );
 }
 
 
@@ -47,15 +58,19 @@ void test( void )
 {
     bool err = false;
     Geometry g( MODE_1D, Int3D(11,1,1), Vec3D(0,0,0), 0.01 );
-    Solid *s = new FuncSolid( s1 );
-    g.set_solid( 7, s );
+    Solid *solid1 = new FuncSolid( s1 );
+    g.set_solid( 7, solid1 );
+    Solid *solid2 = new FuncSolid( s2 );
+    g.set_solid( 8, solid2 );
     g.set_boundary( 1, Bound(BOUND_DIRICHLET,  0.0) );
     g.set_boundary( 2, Bound(BOUND_DIRICHLET, 10.0) );
-    g.set_boundary( 7, Bound(BOUND_DIRICHLET, 10.0) );
+    g.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
+    g.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
     g.build_mesh();
 
     EpotProblem p;
     p.construct( g );
+    p.debug_print();
 
     ScalarField epot( g );
     ScalarField scharge( g );
@@ -69,20 +84,15 @@ void test( void )
 	 << setw(12) << "x (m)" << " " 
 	 << setw(14) << "potential (V)" << " "
 	 << setw(14) << "theory (V)" << "\n";
-    for( x1 = 0.09; x1 > 0.08; x1 -= 0.002 ) {
-	g.build_mesh();
-	p.construct( g );
-	p.solve( epot, scharge );
-	for( int a = 0; a < g.size(0); a++ ) {
-	    if( a*g.h() < x1 && fabs( epot(a) - phi(a*g.h()) ) > 0.05  )
-		err = true;
-	    ostr << setw(14) << a*g.h() << " " 
-		 << setw(14) << epot(a) << " "
-		 << setw(14) << phi(a*g.h()) << "\n";
-	}
-	ostr << "\n\n";
+    for( int a = 0; a < g.size(0); a++ ) {
+	double x = a*g.h();
+	if( x > x1 && x < x2 && fabs( epot(a) - phi(x) ) > 0.05  )
+	    err = true;
+	ostr << setw(14) << x << " " 
+	     << setw(14) << epot(a) << " "
+	     << setw(14) << phi(x) << "\n";
     }
-
+    ostr << "\n\n";
     ostr.close();
 
     if( err ) {
