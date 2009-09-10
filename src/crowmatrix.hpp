@@ -37,12 +37,12 @@
  *  \endcode
  */
 class CRowMatrix : public Matrix {
-    int  _n;      //!< Number of rows.
-    int  _m;      //!< Number of columns.
-    int  _nz;     //!< Number of nonzero elements.
-    int  _asize;  //!< Allocation size of \a _col and \a _val.
-    int *_ptr;    //!< Row pointers, size \a _n+1.
-    int *_col;    //!< Column indices(j), \a _nz elements in use, \a _asize elements allocated.
+    int       _n;      //!< Number of rows.
+    int       _m;      //!< Number of columns.
+    int       _nz;     //!< Number of nonzero elements.
+    int       _asize;  //!< Allocation size of \a _col and \a _val.
+    int      *_ptr;    //!< Row pointers, size \a _n+1.
+    int      *_col;    //!< Column indices(j), \a _nz elements in use, \a _asize elements allocated.
     double   *_val;    //!< Element values, \a _nz elements in use, \a _asize elements allocated.
 
     void reallocate( void );
@@ -55,6 +55,10 @@ class CRowMatrix : public Matrix {
 
     void clear_check( int i, int j );
     void clear_no_check( int i, int j );
+
+    void build( const class CColMatrix &mat );
+    void build( const class CRowMatrix &mat );
+    void build( const class CoordMatrix &mat );
 
 public:
 
@@ -92,6 +96,10 @@ public:
     /*! \brief Constructor for conversion from coordinate matrix.
      */
     CRowMatrix( const class CoordMatrix &mat );
+
+    /*! \brief Constructor for conversion from unknown matrix type.
+     */
+    CRowMatrix( const class Matrix &mat );
 
     /*! \brief Destructor.
      */
@@ -271,6 +279,7 @@ public:
     CRowMatrix &operator=( const CRowMatrix &mat );
     CRowMatrix &operator=( const class CColMatrix &mat );
     CRowMatrix &operator=( const class CoordMatrix &mat );
+    CRowMatrix &operator=( const class Matrix &mat );
 
 /* ************************************** *
  * Matrix-Vector operations               *

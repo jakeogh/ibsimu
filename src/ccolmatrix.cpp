@@ -568,7 +568,8 @@ void CColMatrix::multiply_by_vector( Vector &x, const Vector &b ) const
     double mult;
     for( int i = 0; i < _n; i++ ) {
 	mult = b._val[i];
-	for( int a = _ptr[i]; a < _ptr[i+1]; a++ )
+	int end =  _ptr[i+1];
+	for( int a = _ptr[i]; a < end; a++ )
 	    x._val[_row[a]] += _val[a] * mult;
     }
 }
@@ -614,20 +615,5 @@ void CColMatrix::upper_diag_solve( Vector &x, const Vector &b ) const
 	
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

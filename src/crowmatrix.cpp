@@ -118,7 +118,7 @@ CRowMatrix::CRowMatrix( int n, int m, int nz,
 }
 
 
-CRowMatrix::CRowMatrix( const CRowMatrix &mat )
+void CRowMatrix::build( const CRowMatrix &mat )
 {
     _n     = mat._n;
     _m     = mat._m;
@@ -132,23 +132,20 @@ CRowMatrix::CRowMatrix( const CRowMatrix &mat )
 }
 
 
+CRowMatrix::CRowMatrix( const CRowMatrix &mat )
+{
+    build( mat );
+}
+
+
 CRowMatrix &CRowMatrix::operator=( const CRowMatrix &mat )
 {
-    _n     = mat._n;
-    _m     = mat._m;
-    _nz    = mat._nz;
-    _asize = mat._nz;
-    reallocate();
-
-    memcpy( _ptr, mat._ptr, (_n+1)*sizeof(int) );
-    memcpy( _col, mat._col, _nz*sizeof(int) );
-    memcpy( _val, mat._val, _nz*sizeof(double) );
-
+    build( mat );
     return( *this );
 }
 
 
-CRowMatrix::CRowMatrix( const class CColMatrix &mat )
+void CRowMatrix::build( const class CColMatrix &mat )
 {
     _n     = mat._n;
     _m     = mat._m;
@@ -184,45 +181,20 @@ CRowMatrix::CRowMatrix( const class CColMatrix &mat )
 }
 
 
+CRowMatrix::CRowMatrix( const class CColMatrix &mat )
+{
+    build( mat );
+}
+
+
 CRowMatrix &CRowMatrix::operator=( const class CColMatrix &mat )
 {
-    _n     = mat._n;
-    _m     = mat._m;
-    _nz    = mat._nz;
-    _asize = mat._nz;
-    reallocate();
-
-    int *c = new int[_n];
-    int i, j, start, r;
-
-    /* Count number of entries in each row to c. */
-    memset( c, 0, _n*sizeof(int) );
-    for( i = 0; i < _nz; i++ )
-	c[mat._row[i]]++;
-
-    /* Set up ptr. */
-    _ptr[0] = 0;
-    for( i = 1; i <= _n; i++ )
-	_ptr[i] = _ptr[i-1] + c[i-1];
-
-    /* Copy input to output using c as a column pointer. */
-    for( i = 0, j = 0; i < _m; i++ ) {
-	for( ; j < mat._ptr[i+1]; j++ ) {
-	    r = mat._row[j];
-	    start = _ptr[r];
-	    c[r]--;
-	    _col[start+c[r]] = i;
-	    _val[start+c[r]] = mat._val[j];
-	}
-    }
-
-    delete [] c;
-
+    build( mat );
     return( *this );
 }
 
 
-CRowMatrix::CRowMatrix( const class CoordMatrix &mat )
+void CRowMatrix::build( const class CoordMatrix &mat )
 {
     _n     = mat._n;
     _m     = mat._m;
@@ -256,41 +228,53 @@ CRowMatrix::CRowMatrix( const class CoordMatrix &mat )
 }
 
 
+CRowMatrix::CRowMatrix( const class CoordMatrix &mat )
+{
+    build( mat );
+}
+
+
 CRowMatrix &CRowMatrix::operator=( const class CoordMatrix &mat )
 {
-    _n     = mat._n;
-    _m     = mat._m;
-    _nz    = mat._nz;
-    _asize = mat._nz;
-    reallocate();
-
-    int *c = new int[_n];
-    int i, start, r;
-
-    /* Count number of entries in each row to c. */
-    memset( c, 0, _n*sizeof(int) );
-    for( i = 0; i < _nz; i++ )
-	c[mat._row[i]]++;
-
-    /* Set up ptr. */
-    _ptr[0] = 0;
-    for( i = 1; i <= _n; i++ )
-	_ptr[i] = _ptr[i-1] + c[i-1];
-
-    /* Copy input to output using c as a column pointer. */
-    for( i = 0; i < _nz; i++ ) {
-	r = mat._row[i];
-	start = _ptr[r];
-	c[r]--;
-	_col[start+c[r]] = mat._col[i];
-	_val[start+c[r]] = mat._val[i];
-    }
-
-    delete [] c;
-
+    build( mat );
     return( *this );
 }
 
+
+CRowMatrix::CRowMatrix( const class Matrix &mat )
+{
+    const CRowMatrix  *crmat;
+    const CColMatrix  *ccmat;
+    const CoordMatrix *comat;
+
+    if( (crmat = dynamic_cast<const CRowMatrix *>(&mat)) != 0 )
+	build( *crmat );
+    else if( (ccmat = dynamic_cast<const CColMatrix *>(&mat)) != 0 )
+	build( *ccmat );
+    else if( (comat = dynamic_cast<const CoordMatrix *>(&mat)) != 0 )
+	build( *ccmat );
+    else
+        throw( ErrorUnimplemented( ERROR_LOCATION, "Couldn't convert unknown matrix type" ) );
+}
+
+
+CRowMatrix &CRowMatrix::operator=( const class Matrix &mat )
+{
+    const CRowMatrix  *crmat;
+    const CColMatrix  *ccmat;
+    const CoordMatrix *comat;
+
+    if( (crmat = dynamic_cast<const CRowMatrix *>(&mat)) != 0 )
+	build( *crmat );
+    else if( (ccmat = dynamic_cast<const CColMatrix *>(&mat)) != 0 )
+	build( *ccmat );
+    else if( (comat = dynamic_cast<const CoordMatrix *>(&mat)) != 0 )
+	build( *ccmat );
+    else
+        throw( ErrorUnimplemented( ERROR_LOCATION, "Couldn't convert unknown matrix type" ) );
+
+    return( *this );
+}
 
 
 CRowMatrix::~CRowMatrix()
@@ -583,10 +567,9 @@ void CRowMatrix::multiply_by_vector( Vector &x, const Vector &b ) const
     double sum;
     for( int i = 0; i < _n; i++ ) {
 	sum = 0;
-	for( int a = _ptr[i]; a < _ptr[i+1]; a++ ) {
+	int end = _ptr[i+1];
+	for( int a = _ptr[i]; a < end; a++ )
 	    sum += _val[a] * b._val[_col[a]];
-	    //std::cout << ""
-	}
 	x._val[i] = sum;
     }
 }
@@ -627,20 +610,5 @@ void CRowMatrix::upper_diag_solve( Vector &x, const Vector &b ) const
 	x[i] /= _val[j];
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

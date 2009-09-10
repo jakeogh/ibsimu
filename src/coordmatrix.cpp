@@ -112,7 +112,7 @@ CoordMatrix::CoordMatrix( int n, int m, int nz,
 }
 
 
-CoordMatrix::CoordMatrix( const CoordMatrix &mat )
+void CoordMatrix::build( const CoordMatrix &mat )
 {
     _n     = mat._n;
     _m     = mat._m;
@@ -126,24 +126,52 @@ CoordMatrix::CoordMatrix( const CoordMatrix &mat )
 }
 
 
+CoordMatrix::CoordMatrix( const CoordMatrix &mat )
+{
+    build( mat );
+}
+
 CoordMatrix &CoordMatrix::operator=( const CoordMatrix &mat )
+{
+    build( mat );
+    return( *this );
+}
+
+
+void CoordMatrix::build( const class CRowMatrix &mat )
 {
     _n     = mat._n;
     _m     = mat._m;
     _nz    = mat._nz;
     _asize = mat._nz;
-    reallocate();
+    allocate();
 
-    memcpy( _row, mat._row, _nz*sizeof(int) );
-    memcpy( _col, mat._col, _nz*sizeof(int) );
-    memcpy( _val, mat._val, _nz*sizeof(double) );
-
-    return( *this );
+    int i, j;
+    for( i = j = 0; i < _n; i++ ) {
+	int e = mat._ptr[i+1];
+	for( ; j < e; j++ ) {
+	    _row[j] = i;
+	    _col[j] = mat._col[j];
+	    _val[j] = mat._val[j];
+	}
+    }
 }
 
 
 CoordMatrix::CoordMatrix( const class CRowMatrix &mat )
 {
+    build( mat );
+}
+
+CoordMatrix &CoordMatrix::operator=( const CRowMatrix &mat )
+{
+    build( mat );
+    return( *this );
+}
+
+
+void CoordMatrix::build( const class CColMatrix &mat )
+{
     _n     = mat._n;
     _m     = mat._m;
     _nz    = mat._nz;
@@ -151,76 +179,61 @@ CoordMatrix::CoordMatrix( const class CRowMatrix &mat )
     allocate();
 
     int i, j;
-    for( i = j = 0; i < _n; i++ ) {
-	int e = mat._ptr[i+1];
-	for( ; j < e; j++ ) {
-	    _row[j] = i;
-	    _col[j] = mat._col[j];
-	    _val[j] = mat._val[j];
+    for( i = j = 0; j < _m; j++ ) {
+	int e = mat._ptr[j+1];
+	for( ; i < e; i++ ) {
+	    _row[i] = mat._row[i];
+	    _col[i] = j;
+	    _val[i] = mat._val[i];
 	}
     }
-}
-
-
-CoordMatrix &CoordMatrix::operator=( const CRowMatrix &mat )
-{
-    _n     = mat._n;
-    _m     = mat._m;
-    _nz    = mat._nz;
-    _asize = mat._nz;
-    reallocate();
-
-    int i, j;
-    for( i = j = 0; i < _n; i++ ) {
-	int e = mat._ptr[i+1];
-	for( ; j < e; j++ ) {
-	    _row[j] = i;
-	    _col[j] = mat._col[j];
-	    _val[j] = mat._val[j];
-	}
-    }
-
-    return( *this );
 }
 
 
 CoordMatrix::CoordMatrix( const class CColMatrix &mat )
 {
-    _n     = mat._n;
-    _m     = mat._m;
-    _nz    = mat._nz;
-    _asize = mat._nz;
-    allocate();
-
-    int i, j;
-    for( i = j = 0; j < _m; j++ ) {
-	int e = mat._ptr[j+1];
-	for( ; i < e; i++ ) {
-	    _row[i] = mat._row[i];
-	    _col[i] = j;
-	    _val[i] = mat._val[i];
-	}
-    }
+    build( mat );
 }
 
 
 CoordMatrix &CoordMatrix::operator=( const CColMatrix &mat )
 {
-    _n     = mat._n;
-    _m     = mat._m;
-    _nz    = mat._nz;
-    _asize = mat._nz;
-    reallocate();
+    build( mat );
+    return( *this );
+}
 
-    int i, j;
-    for( i = j = 0; j < _m; j++ ) {
-	int e = mat._ptr[j+1];
-	for( ; i < e; i++ ) {
-	    _row[i] = mat._row[i];
-	    _col[i] = j;
-	    _val[i] = mat._val[i];
-	}
-    }
+
+CoordMatrix::CoordMatrix( const class Matrix &mat )
+{
+    const CRowMatrix  *crmat;
+    const CColMatrix  *ccmat;
+    const CoordMatrix *comat;
+
+    if( (crmat = dynamic_cast<const CRowMatrix *>(&mat)) != 0 )
+	build( *crmat );
+    else if( (ccmat = dynamic_cast<const CColMatrix *>(&mat)) != 0 )
+	build( *ccmat );
+    else if( (comat = dynamic_cast<const CoordMatrix *>(&mat)) != 0 )
+	build( *ccmat );
+    else
+        throw( ErrorUnimplemented( ERROR_LOCATION, "Couldn't convert unknown matrix type" ) );
+}
+
+
+CoordMatrix &CoordMatrix::operator=( const class Matrix &mat )
+{
+    const CRowMatrix  *crmat;
+    const CColMatrix  *ccmat;
+    const CoordMatrix *comat;
+
+    if( (crmat = dynamic_cast<const CRowMatrix *>(&mat)) != 0 )
+	build( *crmat );
+    else if( (ccmat = dynamic_cast<const CColMatrix *>(&mat)) != 0 )
+	build( *ccmat );
+    else if( (comat = dynamic_cast<const CoordMatrix *>(&mat)) != 0 )
+	build( *ccmat );
+    else
+        throw( ErrorUnimplemented( ERROR_LOCATION, "Couldn't convert unknown matrix type" ) );
 
     return( *this );
 }
@@ -458,20 +471,5 @@ void CoordMatrix::upper_diag_solve( Vector &x, const Vector &b ) const
 {
     throw( ErrorUnimplemented( ERROR_LOCATION ) );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

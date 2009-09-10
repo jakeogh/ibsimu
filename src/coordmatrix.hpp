@@ -33,12 +33,12 @@
  *  \endcode
  */
 class CoordMatrix : public Matrix {
-    int  _n;      //!< Number of rows.
-    int  _m;      //!< Number of columnss.
-    int  _nz;     //!< Number of nonzero elements.
-    int  _asize;  //!< Allocation size of \a _col and \a _val.
-    int *_row;    //!< Row indices(i), \a _nz elements in use, \a _asize elements allocated.
-    int *_col;    //!< Column indices(j), \a _nz elements in use, \a _asize elements allocated.
+    int       _n;      //!< Number of rows.
+    int       _m;      //!< Number of columnss.
+    int       _nz;     //!< Number of nonzero elements.
+    int       _asize;  //!< Allocation size of \a _col and \a _val.
+    int      *_row;    //!< Row indices(i), \a _nz elements in use, \a _asize elements allocated.
+    int      *_col;    //!< Column indices(j), \a _nz elements in use, \a _asize elements allocated.
     double   *_val;    //!< Element values, \a _nz elements in use, \a _asize elements allocated.
 
     void allocate( void );
@@ -52,19 +52,53 @@ class CoordMatrix : public Matrix {
     void clear_check( int i, int j );
     void clear_no_check( int i, int j );
 
+    void build( const class CColMatrix &mat );
+    void build( const class CRowMatrix &mat );
+    void build( const class CoordMatrix &mat );
+
 public:
 
 /* ************************************** *
  * Constructors and destructor            *
  * ************************************** */
 
+    /*! \brief Default constructor.
+     */
     CoordMatrix() : _n(0), _m(0), _nz(0), _asize(0), _row(NULL), _col(NULL), _val(NULL) { }
+
+    /*! \brief Constructor to make empty \a n x \a m matrix.
+     */
     CoordMatrix( int n, int m );
+
+    /*! \brief Constructor to make \a n x \a m matrix from row, column
+     *  and data triplets.
+     *
+     *  The constructed matrix uses \a row, \a col and \a val as its
+     *  internal data. The arrays are not copied! For memory
+     *  allocation compatibility reasons, arrays \a row, \a col and \a
+     *  val should be allocated using \a malloc and/or \a realloc.
+     */
     CoordMatrix( int n, int m, int nz, 
 		 const int *row, const int *col, const int *val );
+
+    /*! \brief Copy constructor.
+     */
     CoordMatrix( const CoordMatrix &mat );
+
+    /*! \brief Constructor for conversion from compressed row matrix.
+     */
     CoordMatrix( const class CRowMatrix &mat );
+
+    /*! \brief Constructor for conversion from compressed column matrix.
+     */
     CoordMatrix( const class CColMatrix &mat );
+
+    /*! \brief Constructor for conversion from unknown matrix type.
+     */
+    CoordMatrix( const class Matrix &mat );
+
+    /*! \brief Destructor.
+     */
     ~CoordMatrix();
 
 /* ************************************** *
@@ -225,6 +259,7 @@ public:
     CoordMatrix &operator=( const CoordMatrix &mat );
     CoordMatrix &operator=( const CColMatrix &mat );
     CoordMatrix &operator=( const CRowMatrix &mat );
+    CoordMatrix &operator=( const Matrix &mat );
 
 /* ************************************** *
  * Matrix-Vector operations               *

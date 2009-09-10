@@ -36,12 +36,12 @@
  *  \endcode
  */
 class CColMatrix : public Matrix {
-    int  _n;      //!< Number of rows.
-    int  _m;      //!< Number of columns.
-    int  _nz;     //!< Number of nonzero elements.
-    int  _asize;  //!< Allocation size of col and val.
-    int *_ptr;    //!< Column pointers, size m+1.
-    int *_row;    //!< Row indices(i), nz elements in use, asize elements allocated.
+    int       _n;      //!< Number of rows.
+    int       _m;      //!< Number of columns.
+    int       _nz;     //!< Number of nonzero elements.
+    int       _asize;  //!< Allocation size of col and val.
+    int      *_ptr;    //!< Column pointers, size m+1.
+    int      *_row;    //!< Row indices(i), nz elements in use, asize elements allocated.
     double   *_val;    //!< Element values, nz elements in use, asize elements allocated.
     
     void reallocate( void );
