@@ -212,7 +212,7 @@ double Geometry::bracket_surface( int32_t n, const Vec3D &xin, const Vec3D &xout
     Vec3D xh = xout;
 
     // Do iteration
-    for( a = 0; a < 8; a++ ) {
+    for( a = 0; a < 12; a++ ) {
 	xsurf = 0.5*(xl+xh);
 	if( inside( n, xsurf ) )
 	    xl = xsurf;

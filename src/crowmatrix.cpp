@@ -154,7 +154,7 @@ void CRowMatrix::build( const class CColMatrix &mat )
     allocate();
     
     int *c = new int[_n];
-    int i, j, start, r;
+    int i, j, ind, rr;
 
     /* Count number of entries in each row to c. */
     memset( c, 0, _n*sizeof(int) );
@@ -169,11 +169,11 @@ void CRowMatrix::build( const class CColMatrix &mat )
     /* Copy input to output using c as a column pointer. */
     for( i = 0, j = 0; i < _m; i++ ) {
 	for( ; j < mat._ptr[i+1]; j++ ) {
-	    r = mat._row[j];
-	    start = _ptr[r];
-	    c[r]--;
-	    _col[start+c[r]] = i;
-	    _val[start+c[r]] = mat._val[j];
+	    rr = mat._row[j];
+	    ind = _ptr[rr+1] - c[rr];
+	    c[rr]--;
+	    _col[ind] = i;
+	    _val[ind] = mat._val[j];
 	}
     }
 
@@ -399,6 +399,22 @@ void CRowMatrix::order_ascending( void )
     /* Sort each row. */
     for( int i = 0; i < _n; i++ )
 	sort_iv( _col, _val, _ptr[i], _ptr[i+1] );
+}
+
+
+bool CRowMatrix::check_ascending( void )
+{
+    /* Check each row. */
+    for( int i = 0; i < _n; i++ ) {
+	int prev;
+	for( int j = _ptr[i]; j < _ptr[i+1]; j++ ) {
+	    if( j > _ptr[i] && prev > _col[j] )
+		return( false );
+	    prev = _col[j];
+	}
+    }
+
+    return( true );
 }
 
 

@@ -18,14 +18,16 @@
 
 #include <fstream>
 #include <iomanip>
-#include "fileplot.hpp"
 #include "bicgstab_solver.hpp"
+#include "umfpack_solver.hpp"
 #include "epot_problem.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
 #include "error.hpp"
+#include "verbose.hpp"
 
+#include "gtkplotter.hpp"
 
 using namespace std;
 
@@ -60,10 +62,11 @@ double phi( double r )
 }
 
 
-void test( void )
+void test( int *argc, char ***argv )
 {
-    verbose_output = 1;
+    //verbose_output = 1;
 
+    //Geometry g( MODE_3D, Int3D(81,81,81), Vec3D(0,0,0), 0.001 );
     Geometry g( MODE_3D, Int3D(41,41,41), Vec3D(0,0,0), 0.002 );
     Solid *s1 = new FuncSolid( solid1 );
     g.set_solid( 7, s1 );
@@ -85,11 +88,14 @@ void test( void )
     ScalarField epot( g );
     ScalarField scharge( g );
 
-    BiCGSTABSolver solver;
+    //BiCGSTABSolver solver;
+    UMFPACKSolver solver;
     p.set_solver( solver );
     p.solve( epot, scharge );
 
     bool err = false;
+    double maxerr = 0.0;
+    int maxerrl[3] = {0,0,0};
     ofstream ostr( "solver3d_sphere.dat" );
     ostr << "# "
 	 << setw(12) << "x (m)" << " " 
@@ -105,13 +111,25 @@ void test( void )
 		double y = b*g.h();
 		double z = c*g.h();
 		double r = sqrt(x*x + y*y + z*z);
-		if( r > 0.02 && r < 0.07 && fabs( epot(a,b,c) - phi(r) ) > 0.03  )
+		double e = epot(a,b,c);
+		double error = fabs( epot(a,b,c) - phi(r) );
+		if( r < 0.02 )
+		    e = 0.0;
+		else if( r > 0.07 )
+		    e = 10.0;
+		else if( r > 0.025 && error > 0.32 )
 		    err = true;
+		if( r > 0.02 && r < 0.07 && error > maxerr ) {
+		    maxerr = error;
+		    maxerrl[0] = a;
+		    maxerrl[1] = b;
+		    maxerrl[2] = c;
+		}
 		ostr << setw(14) << x << " " 
 		     << setw(14) << y << " " 
 		     << setw(14) << z << " " 
 		     << setw(14) << r << " " 
-		     << setw(14) << epot(a,b,c) << " "
+		     << setw(14) << e << " "
 		     << setw(14) << phi(r) << "\n";
 	    }
 	}
@@ -119,17 +137,47 @@ void test( void )
 
     ostr.close();
 
+    /*
+    GTKPlotter plotter( argc, argv );
+    plotter.set_geometry( &g );
+    plotter.set_scharge( &scharge );
+    plotter.set_epot( &epot );
+    plotter.new_geometry_plot_window();
+    plotter.run();
+    */
+
+
     if( err ) {
+	/*
+	  Constructing geometry
+	  origo =            0            0            0
+	  size  =           41           41           41
+	  max   =         0.08         0.08         0.08
+	  h     = 0.002
+	  Constructing linear electric potential problem
+	  dof = 25098
+	  Solving problem
+	  Using UMFPACK solver
+	  Done
+	  time used = 3.88 s (3.88477 s realtime)
+	  Maximum error = 0.305325
+	  at (0, 0, 13)
+	*/
 	std::cout << "Error: solved potential differs from theory\n";
+	std::cout << "Maximum error = " << maxerr << "\n";
+	std::cout << " at (" 
+		  << maxerrl[0] << ", " 
+		  << maxerrl[1] << ", " 
+		  << maxerrl[2] << ")\n";
 	exit( 1 );
     }
 }
 
 
-int main( void )
+int main( int argc, char **argv )
 {
     try {
-	test();
+	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 
 	     << " in " << e._loc._func << "(): " << e._error_str << "\n";

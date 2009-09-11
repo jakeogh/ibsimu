@@ -28,6 +28,8 @@ class UMFPACKSolver : public Solver {
     double   _newton_dXeps; /*!< \brief Accuracy request for Newton-Raphson step. */
     double   _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
 
+    static void umfpack_error( const std::string func, int status );
+
 public:
 
     /*! \brief Constructor.

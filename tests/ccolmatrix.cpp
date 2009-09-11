@@ -19,11 +19,11 @@ using namespace std;
 #define ERROR()							    \
     {								    \
 	cout << "Error at " << __FILE__ << ":" << __LINE__ << "\n"; \
-	return( 1 );						    \
+	exit( 1 );						    \
     }
 
 
-int main( void )
+void test( void )
 {
     /* Constructors */
     CColMatrix A;
@@ -46,7 +46,7 @@ int main( void )
 	ERROR();
 
     /* Resize */
-    uint32_t rows, cols;
+    int rows, cols;
     D.size( rows, cols );
     if( cols != 6 || rows != 5 )
 	ERROR();
@@ -64,7 +64,7 @@ int main( void )
 
     /* Set column */
     A.clear();
-    uint32_t row[3] = {   0,   1,   3};
+    int row[3] = {   0,   1,   3};
     double val[3] = {0.25, 0.5, 1.5};
     try {
 	A.set_column( 0, 3, row, val );
@@ -121,7 +121,6 @@ int main( void )
 	ERROR();
     }
 
-
     /* Merge, reserve, capacity */
     if( A.nz_elements() != 14 )
 	ERROR();
@@ -134,12 +133,45 @@ int main( void )
 
 
     /* Clear element */
-    uint32_t x = B.nz_elements();
+    int x = B.nz_elements();
     B.clear( 2, 2 );
     if( x - B.nz_elements() != 1 || B.get(2,2) != 0.0 )
 	ERROR();
 
+    /* Matrix order check */
+    A.resize(3,3);
+    A.set(0,0) = 1;
+    A.set(1,0) = 2;
+    A.set(0,1) = 3;
+    A.set(1,1) = 4;
+    A.set(2,1) = 5;
+    A.set(0,2) = 6;
+    A.set(2,2) = 7;
+    if( !A.check_ascending() )
+	ERROR();
+
+    A.clear();
+    A.set(0,0) = 1;
+    A.set(1,0) = 2;
+    A.set(2,1) = 5;
+    A.set(1,1) = 4;
+    A.set(0,1) = 3;
+    A.set(0,2) = 6;
+    A.set(2,2) = 7;
+    if( A.check_ascending() )
+	ERROR();
+}
+
+
+int main( void )
+{
+    try {
+	test();
+    } catch ( Error e ) {
+	cout << "Error in " << e._loc._file << ":" << e._loc._line 
+	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
+	exit( 1 );
+    }
 
     return( 0 );
 }
-

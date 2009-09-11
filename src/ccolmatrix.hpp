@@ -89,6 +89,9 @@ public:
     CColMatrix( const CColMatrix &mat );
 
     /*! \brief Constructor for conversion from compressed row matrix.
+     *
+     *  The compressed column matrix will be built in ascending row
+     *  index order.
      */
     CColMatrix( const class CRowMatrix &mat );
 
@@ -160,10 +163,15 @@ public:
      */
     void reserve( int size );
 
-    /*! \brief Order (sort) matrix data in ascending column index
-     *  order within each row.
+    /*! \brief Order (sort) matrix data in ascending row index
+     *  order within each column.
      */
     void order_ascending( void );
+
+    /*! \brief Check if matrix data is in ascending row index
+     *  order within each column.
+     */
+    bool check_ascending( void );
 
     /*! \brief Prints the values of all internal data to std::cout.
      */
@@ -274,9 +282,26 @@ public:
  * Assignent operators                    *
  * ************************************** */
 
+    /*! \brief Assignment operator.
+     */
     CColMatrix &operator=( const CColMatrix &mat );
+
+    /*! \brief Assignment operator for conversion from compressed row
+     *  matrix.
+     *
+     *  The compressed column matrix will be built in ascending row
+     *  index order.
+     */
     CColMatrix &operator=( const class CRowMatrix &mat );
+
+    /*! \brief Assignment operator for conversion from coordinate
+     *  matrix.
+     */
     CColMatrix &operator=( const class CoordMatrix &mat );
+
+    /*! \brief Assignment operator for conversion from unknown matrix
+     *  type.
+     */
     CColMatrix &operator=( const Matrix &mat );
 
 /* ************************************** *
