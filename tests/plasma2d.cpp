@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iomanip>
 #include "bicgstab_solver.hpp"
+#include "umfpack_solver.hpp"
 #include "epot_problem.hpp"
 #include "particledatabase.hpp"
 #include "geometry.hpp"
@@ -65,7 +66,8 @@ void test( int *argc, char ***argv )
     ScalarField epot( geom );
     ScalarField scharge( geom );
 
-    BiCGSTABSolver solver;
+    //BiCGSTABSolver solver;
+    UMFPACKSolver solver;
     p.set_solver( solver );
 
     VectorField bfield;
@@ -81,7 +83,7 @@ void test( int *argc, char ***argv )
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
 
-    for( size_t i = 0; i < 8; i++ ) {
+    for( size_t i = 0; i < 2; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();

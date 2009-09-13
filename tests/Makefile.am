@@ -59,12 +59,14 @@ vecfield_SOURCES = vecfield.cpp
 vecfield_rotate_SOURCES = vecfield_rotate.cpp
 vecfield_filedef_SOURCES = vecfield_filedef.cpp
 vlasov2d_SOURCES = vlasov2d.cpp
+gs_solver_SOURCES = gs_solver.cpp
 
 if UMFPACK
 umfpack_solver_SOURCES = umfpack_solver.cpp
 endif
 
 check_PROGRAMS = \
+gs_solver \
 solver1d_solid_neumann_conflict \
 particles_edip \
 solver1d_neumann_order \

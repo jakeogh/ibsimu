@@ -1,10 +1,10 @@
-/*! \file bicgstab_solver.hpp
- *  \brief Header file defining class BiCGSTABSolver.
+/*! \file gs_solver.hpp
+ *  \brief Header file defining class GSSolver.
  */
 
 
-#ifndef BICGSTAB_SOLVER_HPP
-#define BICGSTAB_SOLVER_HPP 1
+#ifndef GS_SOLVER_HPP
+#define GS_SOLVER_HPP 1
 
 
 #include <iostream>
@@ -12,51 +12,48 @@
 #include "geometry.hpp"
 #include "problem.hpp"
 #include "matrix.hpp"
+#include "crowmatrix.hpp"
 #include "mvector.hpp"
 
 
-/*! \brief BiCGSTAB based solver implementation.
+/*! \brief Gauss-Seidel based solver implementation.
  *
- *  An implementation of virtual class Solver using ILU0
- *  preconditioner and bicgstab() solver function. Linear and
- *  nonlinear solvers.
+ *  An implementation of virtual class Solver using
+ *  Gauss-Seidel/Successive over relaxation method for solving matrix
+ *  equation. Linear and nonlinear solvers. Nonlinear solver based on
+ *  Newton-Raphson iteration.
  *
  */
-class BiCGSTABSolver : public Solver {
-    double   _eps;          /*!< \brief Accuracy request. */
-    int      _imax;         /*!< \brief Maximum iteration count. */
+class GSSolver : public Solver {
+    double   _eps;
+    int      _imax;
+    double   _w;
 
     double   _newton_Reps;  /*!< \brief Accuracy request for Newton-Raphson residual. */
     double   _newton_dXeps; /*!< \brief Accuracy request for Newton-Raphson step. */
     double   _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
 
+    static void gauss_seidel_error( const std::string func, int status );
+
 public:
 
     /*! \brief Constructor.
      */
-    BiCGSTABSolver( double eps = 1.0e-6, int imax = 10000,
-		    double newton_Reps = 1.0e-5, double newton_dXeps = 1.0e-6, int newton_imax = 10 );
+    GSSolver( double w = 1.66,
+	      double eps = 1.0e-6, 
+	      int imax = 10000, 
+	      double newton_Reps = 1.0e-5, 
+	      double newton_dXeps = 1.0e-6, 
+	      int newton_imax = 10 );
 
     /*! \brief Destructor.
      */
-    ~BiCGSTABSolver() {}
+    ~GSSolver() {}
 
     /*! \brief Solve problem \a p defined in geometry \a g.  Initial
      *  guess and solution are in vector \a X.
      */
     void solve( const Problem &p, Vector &X ) const;
-
-    /*! \brief Sets the accuracy request for BiCGSTAB solver.
-     */
-    void set_eps( double eps ) {
-	_eps = eps;
-    }
-
-    /*! \brief Sets maximum iteration count for BiCGSTAB solver.
-     */
-    void set_imax( int imax ) {
-	_imax = imax;
-    }
 
     /*! \brief Sets maximum iteration count for Newton-Raphson steps.
      */
@@ -76,22 +73,15 @@ public:
 	_newton_dXeps = newton_dXeps;
     }
 
+    /*! \brief Direct interface to gauss_seidel matrix solver.
+     *
+     *  Solves matrix problem \a mat * \a sol = \a rhs. The matrix is
+     *  sorted to be on the ascending order as required by the GAUSS_SEIDEL
+     *  library.
+     */
+    static bool gauss_seidel( const CRowMatrix &mat, const Vector &rhs, Vector &sol,
+			      int &imax, double &eps, double w );
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

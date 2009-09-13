@@ -42,16 +42,18 @@ void UMFPACKSolver::umfpack_error( const std::string func, int status )
 }
 
 
-void UMFPACKSolver::umfpack_solve( CColMatrix &mat, const Vector &rhs, Vector &sol )
+void UMFPACKSolver::umfpack_solve( const CColMatrix &mat, const Vector &rhs, Vector &sol )
 {
     int     status;
     void   *Symbolic;
     void   *Numeric;
 
+    sol.resize( rhs.size() );
+
     // Sort
     //mat.order_ascending();
-    if( !mat.check_ascending() )
-	throw( Error( ERROR_LOCATION, "matrix not in ascending order" ) );
+    //if( !mat.check_ascending() )
+    //	throw( Error( ERROR_LOCATION, "matrix not in ascending order" ) );
 
     // Make decomposition
     status = umfpack_di_symbolic( mat.columns(), mat.rows(), 
@@ -91,8 +93,8 @@ void UMFPACKSolver::solve( const Problem &p, Vector &X ) const
         const Vector *B;
         p.get_vecmat( &A, &B );
 
-	CColMatrix colmatrix( *A );
-	umfpack_solve( colmatrix, *B, X );
+	CColMatrix Acol( *A );
+	umfpack_solve( Acol, *B, X );
 
         if( verbose_output )
             std::cout << "  Done\n";
@@ -103,9 +105,48 @@ void UMFPACKSolver::solve( const Problem &p, Vector &X ) const
         if( verbose_output )
             std::cout << "  Using Newton-Raphson UMFPACK solver\n";
 
-	std::cout << "Not implemented yet\n";
-	exit( 1 );
-	
+	int32_t a;
+	const Matrix *J;
+	const Vector *R;
+	double accR = 0.0, accX = 0.0;
+	Vector dX;
+
+	if( verbose_output )
+	    std::cout << "    " 
+		      << std::setw(5) << "Iter" << " " 
+		      << std::setw(14) << "Step size" << " " 
+		      << std::setw(14) << "Residual" << "\n";
+
+	for( a = 0; a < _newton_imax; a++ ) {
+	    // Calculate dX = J^{-1}*R	    
+	    p.get_resjac( &J, &R, X );
+	    CColMatrix Jcol( *J );
+	    dX.clear();
+	    umfpack_solve( Jcol, *R, dX );
+
+	    // Take step
+	    X -= dX;
+
+	    // Check for convergence
+	    accR = max_abs( *R );
+	    accX = max_abs( dX );
+
+	    if( verbose_output )
+		std::cout << "    " 
+			  << std::setw(5) << a << " " 
+			  << std::setw(14) << accX << " " 
+			  << std::setw(14) << accR << "\n";
+
+	    if( accR < _newton_Reps || accX < _newton_dXeps )
+		break;
+	}
+
+	if( verbose_output ) {
+	    if( accR < _newton_Reps || accX < _newton_dXeps )
+		std::cout << "  Newton-Raphson converged\n";
+	    else
+		std::cout << "  Maximum number of Newton-Raphson iterations\n";
+	}
     }
 
     t.stop();

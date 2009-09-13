@@ -1,10 +1,6 @@
 		TODO list
 		=========
 
-Problem build check sorted for CRowMatrix.
-
-Make test for neumann vs. solid problem
-
 Add PIC style particle stepper
 
 Suitesparse package to include umfpack.pc and amd.pc and newest
@@ -16,17 +12,19 @@ Particle plot mirroring auto/off
 
 Data export from geomplot, fieldplot windows
 
-Integrate Gauss-Seidel / SOR solver
+Smooth edges for Gauss-Seidel solver
 
 Integrate DXF-file
 
 Colormap plots on eps/pdf canvas.
 
-Optimize solver (time using gperf)
+Optimize solvers (time using gperf)
+
+Parallelize solvers
 
 Documentation: fill introductory parts
 
-Negative plasma solver
+Negative ion plasma solver
 
 Change debug printing to stream.
 

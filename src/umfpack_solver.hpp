@@ -70,7 +70,7 @@ public:
      *  sorted to be on the ascending order as required by the UMFPACK
      *  library.
      */
-    static void umfpack_solve( CColMatrix &mat, const Vector &rhs, Vector &sol );
+    static void umfpack_solve( const CColMatrix &mat, const Vector &rhs, Vector &sol );
 };
 
 

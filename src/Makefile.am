@@ -90,8 +90,8 @@ graph3d.hpp \
 coordmapper.hpp \
 func_solid.cpp \
 func_solid.hpp \
-gauss_seidel.cpp \
-gauss_seidel.hpp \
+gs_solver.cpp \
+gs_solver.hpp \
 geometry.cpp \
 geometry.hpp \
 hbio.cpp \
@@ -191,7 +191,7 @@ graph.hpp \
 graph3d.hpp \
 coordmapper.hpp \
 func_solid.hpp \
-gauss_seidel.hpp \
+gs_solver.hpp \
 geometry.hpp \
 hbio.hpp \
 ilu0_precond.hpp \
