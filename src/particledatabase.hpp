@@ -25,12 +25,37 @@
  *  settings for particle calculation. The particle database calls
  *  other objects for doing the calculation itself but as far as the
  *  user is conserned the particle database is the front end to all
- *  particle related issues.
- *
- *  Individual particles in simulations are represented by the
- *  Particle classes. The particle coordinate sets ((t,x,vx,y,vy) in
- *  2D simulations for example) are represented by the particle point
+ *  particle related issues. Individual particles in simulations are
+ *  represented by the Particle classes Particle2D, ParticleCyl and
+ *  Particle3D. The particle coordinate sets ((t,x,vx,y,vy) in 2D
+ *  simulations for example) are represented by the particle point
  *  classes ParticleP2D, ParticlePCyl and ParticleP3D.
+ *
+ *  The following partial example code shown the use of particle
+ *  database for definining and calculating a particle beam.
+ *
+\code
+#include "particledatabase.hpp"
+
+int main( void )
+{
+    ...
+
+    ParticleDataBase2D pdb;
+    pdb.set_thread_count( 4 );
+    bool pmirror[6] = { false, false, true, false, false, false };
+    pdb.set_mirror( pmirror );
+    pdb.set_polyint( true );
+    pdb.add_2d_beam_with_energy( 30000, 600.0, 1.0, 1.0, 
+                                 5.0, 0.0, 0.5, 
+				 0.0, 0.0, 
+				 0.0, 0.0015 );
+    pdb.iterate_trajectories( scharge, efield, bfield, geom );
+
+    ...
+}
+\endcode
+ *
  *
  */ 
 

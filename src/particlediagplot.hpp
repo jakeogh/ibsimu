@@ -19,7 +19,7 @@ enum particle_diag_plot_type_e {
 };
 
 
-/*! \brief Particle diagnostic plot.
+/*! \brief %Particle diagnostic plot.
  *
  */
 class ParticleDiagPlot {

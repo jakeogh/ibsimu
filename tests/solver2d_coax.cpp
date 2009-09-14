@@ -34,6 +34,7 @@
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
+#include "gtkplotter.hpp"
 #include "error.hpp"
 
 
@@ -58,9 +59,10 @@ double phi( double r )
 }
 
 
-void test( void )
+void test( int *argc, char ***argv )
 {
-    Geometry g( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.002 );
+    //Geometry g( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.002 );
+    Geometry g( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.002 );
     Solid *s1 = new FuncSolid( solid1 );
     g.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
@@ -75,8 +77,8 @@ void test( void )
 
     EpotProblem p;
     p.construct( g );
-    //g.debug_print();
-    //p.debug_print();
+    g.debug_print();
+    p.debug_print();
 
     ScalarField epot( g );
     ScalarField scharge( g );
@@ -110,6 +112,12 @@ void test( void )
 
     ostr.close();
 
+    GTKPlotter plotter( argc, argv );
+    plotter.set_geometry( &g );
+    plotter.set_epot( &epot );
+    plotter.new_geometry_plot_window();
+    plotter.run();
+
     if( err ) {
 	std::cout << "Error: solved potential differs from theory\n";
 	exit( 1 );
@@ -117,10 +125,10 @@ void test( void )
 }
 
 
-int main( void )
+int main( int argc, char **argv )
 {
     try {
-	test();
+	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 
 	     << " in " << e._loc._func << "(): " << e._error_str << "\n";

@@ -34,8 +34,9 @@ bool EqPotGraph::eqline_exists( double pot1, signed char sol1,
 				double pot2, signed char sol2, 
 				double pot ) const 
 {
-    if( // Basic rule: at least one point in vacuum and potential pot is between pot1 and pot2.
-	( ((sol1 <= 0 && sol1 >= -6) || (sol2 <= 0 && sol2 >= -6)) &&
+    if( // Basic rule: at least one point in vacuum/neumann/dirichlet 
+	// and potential pot is between pot1 and pot2.
+	( ((sol1 <= 6 && sol1 >= -6) || (sol2 <= 6 && sol2 >= -6)) &&
 	  pot1 != pot2 &&
 	  ((pot1 >= pot && pot2 <= pot) ||
 	   (pot1 <= pot && pot2 >= pot)) )

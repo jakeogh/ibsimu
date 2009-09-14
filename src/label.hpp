@@ -13,7 +13,7 @@
 #include "color.hpp"
 
 
-/*! \brief Label class
+/*! \brief Class for labels in plots.
  *
  *  Label can be used to draw text labels with latex formatting.
  */

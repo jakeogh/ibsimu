@@ -56,7 +56,7 @@ void FieldDiagPlot::build_plot( void )
 	_frame->force_enable_ruler( PLOT_AXIS_Y2, true );
 
     // X data
-    PlotAxis xaxis_use;
+    PlotAxis xaxis_use = PLOT_AXIS_X1;
     std::vector<double> *datax = NULL;
     for( size_t b = 0; b < 2; b++ ) {
 

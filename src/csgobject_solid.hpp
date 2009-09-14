@@ -23,7 +23,12 @@ class CSGObjectSolid : public Solid {
 
 public:
 
-    /*! \brief Constructor.
+    /*! \brief Constructor for Solid using %CSGObject \a object for
+     *  defining the geometry.
+     *
+     *  A pointer to the %CSGObject is saved in the
+     *  %CSGObjectSolid. The user must take care of calling the
+     *  destructor of the %CSGObject after use.
      */
     CSGObjectSolid( CSGObject *object ) : _object(object) {}
 

@@ -118,7 +118,7 @@ CRowMatrix::CRowMatrix( int n, int m, int nz,
 }
 
 
-void CRowMatrix::build( const CRowMatrix &mat )
+void CRowMatrix::build( const class CRowMatrix &mat )
 {
     _n     = mat._n;
     _m     = mat._m;

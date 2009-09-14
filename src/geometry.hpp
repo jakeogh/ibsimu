@@ -18,23 +18,82 @@
 
 /*! \page p_geometry %Geometry
  *
- *  The simulation geometry is defined as a Geometry class
- *  object. Geometry is the most fundamental piece of every
+ *  The simulation geometry is defined as a %Geometry class
+ *  object. %Geometry is the most fundamental piece of every
  *  simulation. There cannot be a simulation without a geometry to
  *  define the volume of space used for the simulation. The geometry
  *  class defines the geometry type (either 1D, 2D, cylindrical
- *  symmetry or 3D), a rectangular box and an even rectangular mesh of
- *  points inside it for discretizing the solids (or electrodes) and
- *  for calculating electric field in the simulation.
+ *  symmetry or 3D), a rectangular box in space and an even
+ *  rectangular mesh of points inside it for discretizing the
+ *  space. This same discretation defined by the %Geometry is used for
+ *  electric potential field and space charge field.
  *
- *  The geometry class also defines the boundary conditions for the
+ *  The %Geometry class defines the solids or electrodes used in the
+ *  simulation. The solids are numbered with running numbers starting
+ *  from 7. The %Geometry also defines the boundary conditions for the
  *  electric field calculation. The boundaries that have to be defined
- *  include the six (in 3D) sides of the simulation box and the
- *  boundaries of any defined solids in the geometry.
+ *  include the six (in 3D) sides of the simulation box. The edges of
+ *  the solids are also special kind of boundaries. The boundary
+ *  conditions available currently in IBSimu are Dirichlet and Neumann
+ *  conditions. Dirichlet boundary condition means that the potential
+ *  on the boundary is set to a fixed, known value. Neumann boundary
+ *  means that the first derivative of the potential with respect to
+ *  the unit outward normal (out of boundary into the simulation
+ *  volume) of the surface is set to a preset value. 
  *
- *  The solids in the geometry can be defined using C++ functions (see
- *  FuncSolid) or using Constructive Solid Geometry library (see
- *  CSGObjectSolid).
+ *  The %Geometry class also contains a data mesh, known as the *solid
+ *  mesh*, for classifying the nodes into specified types. The solid
+ *  mesh, which is internally an array of signed chars, can have
+ *  following values and meanings:
+ *  
+\code
+0       = Vacuum
++1...+6 = Dirichlet boundaries at (xmin, xmax, ymin, ymax, zmin, zmax)
+-1...-6 = Neumann boundaries at (xmin, xmax, ymin, ymax, zmin, zmax)
++7...   = Solids
+-7...   = %Solid edges
+\endcode
+ *
+ *  The solids in the geometry can be defined in several different
+ *  ways. The most primitive method of definition is using C++
+ *  functions. This kind of solids are known as %FuncSolid. Another
+ *  way of definition is through the Constructive %Solid %Geometry
+ *  library using the %CSGObjectSolid.
+ *
+ *  In the following example, a simple 3D geometry is defined with two
+ *  solids, the other being a %FuncSolid and the other one a
+ *  %CSGObjectSolid, just to demonstrate both. All necessary boundary
+ *  conditions and the solid mesh is built: 
+\code
+#include "geometry.hpp"
+#include "func_solid.hpp"
+#include "csgobject_solid.hpp"
+
+bool solid7( double x, double y, double z )
+{
+    return( x*x + y*y + z*z < 0.1*0.1 );
+}
+
+CSGObject *solid8( void )
+{
+    CSGSphere *sphere = new CSGSphere();
+    sphere->scale( 0.1, 0.1, 0.1 );
+    return( sphere );
+}
+
+int main( void )
+{
+    Geometry geom( MODE_3D, Int3D( 11, 11, 11 ), Vec3D( 0.0, 0.0, 0.0 ), 0.01 );
+    Solid *s7 = new FuncSolid( solid7 );
+    geom.set_solid( 7, s7 );
+    Solid *s8 = new CSGObjectSolid( solid8() );
+    geom.set_solid( 7, s8 );
+    geom.build_mesh();
+    return( 0 );
+}
+\endcode
+ *
+ *  See class Geometry for more information in the reference manual.
  */
 
 
@@ -169,7 +228,8 @@ public:
      *  n should be >= 7. This function can also be used to overwrite
      *  a previous solid definition. Pointer to solid \a s is saved to
      *  geometry structure. %Solid will be deleted when geometry is
-     *  deleted.
+     *  deleted. The newly defined defined solids default to Dirichlet
+     *  boundary with potential zero.
      */
     void set_solid( int32_t n, const Solid *s );
 
@@ -183,7 +243,10 @@ public:
      *
      *  %Solid number \a n should be > 0 here. Boundary numbers from 1
      *  to 6 are the boundary conditions for the bounding box. Numbers
-     *  starting from 7 are the user defined solids. 
+     *  starting from 7 are the user defined solids. All boundaries of
+     *  the simulation box (n <= 6) default to Neumann boundary
+     *  condition with derivative value zero. All defined solids (n >=
+     *  7) default to Dirichlet boundary with potential zero.
      *
      *  In cylindrical geometry case the \a rmin boundary can be set
      *  to Dirichlet, which means that there is an infinitely thin

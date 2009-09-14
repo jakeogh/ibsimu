@@ -1,17 +1,27 @@
 /*! \mainpage Ion Beam Simulation Package
 
-IBSimu is a simulation package for ion beam optics with space charge
-and plasma modelling capabilities.
+IBSimu is a simulation package for ion beam optics capable of solving
+electric fields in 1D, 2D (planar or cylindrical symmetry) or full 3D
+simulation geometries. The code features a non-relativistic particle
+ray tracing with space charge deposition to a mesh for reaching
+self-consistent solutions of high space charge particle beams using
+Vlasov iteration. The code also features a model for positive ion
+plasma extraction.
 
-The manual consists of the reference manual and an \subpage p_intro
-"introduction", which describes the different concepts in the
-simulations in couple of pages.  The reference manual describes the
+The code is used via C++ programming language for, which enables
+powerful use of automation and makes the code versatile. The code is
+still easy to use because of logical division of features into modules
+(C++ classes).  The code also features an interactive easy-to-use
+post-processing tool for diagnosing fields and particle trajectories.
+
+The code's manual consists of the reference manual and an 
+\subpage p_intro "introduction", which describes the different concepts
+in the simulations in couple of pages.  The reference manual describes the
 classes, functions and variables of the IBSimu package in detail, but
 first time users should first read the introduction to get a grasp of
-the parts of the package and how they relate to each other.
-
+the parts of the package and how they use each other.
  
- */
+*/
 
 
 
@@ -19,14 +29,19 @@ the parts of the package and how they relate to each other.
 
 /*! \page p_intro Introduction
 
-Introductory text. Introductory text. Introductory text.
+The main features used in a typical Vlasov iteration problem are
 
 - \subpage p_geometry
+- \subpage p_epot_problem
 - \subpage p_epot
 - \subpage p_pdb
 - \subpage p_scharge
 - \subpage p_bfield
 
+And after building a solution the user is likely to do some
+diagnostics on the solution. For that see
 
- */
+- \subpage p_gtk_plotter
+
+*/
 

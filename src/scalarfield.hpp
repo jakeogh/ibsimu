@@ -20,48 +20,44 @@
  *  values in a rectangular mesh. In a regular simulation the mesh is
  *  defined by the Geometry class. The electric potential field can be
  *  calculated in IBSimu using the mesh, solid and boundary condition
- *  information from a Geometry object by defining a electric
+ *  information from a %Geometry object by defining a electric
  *  potential problem EpotProblem. This problem can the be solved with
- *  suitable solvers in the IBSimu Package.
+ *  suitable solvers in the Ion Beam Simulation Package.
  *
  *  The electric potential field can be used to define an electric
  *  field using EpotEfield class, which provides electric field values
  *  by differentiating and interpolating the potential field
  *  on-line. The whole chain from the geometry to a solved electric
- *  field is shown by the following code example:
- *  \code
+ *  field is shown by the following (partial) code example:
+ *
+\code
 #include <geometry.hpp>
 #include <func_solid.hpp>
 #include <scalarfield.hpp>
 #include <epot_problem.hpp>
 #include <epot_efield.hpp>
-#include <bicgstab_solver.hpp>
+#include <umfpack_solver.hpp>
 
-Geometry g( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.002 );
-Solid *s1 = new FuncSolid( solid1 );
-g.set_solid( 7, s1 );
-Solid *s2 = new FuncSolid( solid2 );
-g.set_solid( 8, s2 );
-g.set_boundary( 1, Bound(BOUND_NEUMANN,    0.0) );
-g.set_boundary( 2, Bound(BOUND_DIRICHLET, 10.0) );
-g.set_boundary( 3, Bound(BOUND_NEUMANN,    0.0) );
-g.set_boundary( 4, Bound(BOUND_DIRICHLET, 10.0) );
-g.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
-g.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
-g.build_mesh();
+int main( void )
+{
+    ...
 
-EpotProblem p;
-p.construct( g );
+    EpotProblem problem;
+    problem.construct( geom );
 
-ScalarField epot( g );
-ScalarField scharge( g );
+    ScalarField epot( geom );
+    ScalarField scharge( geom );
 
-BiCGSTABSolver solver;
-p.set_solver( solver );
-p.solve( epot, scharge );
+    UMFPACKSolver solver;
+    problem.set_solver( solver );
+    problem.solve( epot, scharge );
 
-EpotEfield ef( g, epot );
- *  \endcode
+    EpotEfield ef( geom, epot );
+
+    return( 0 );
+}
+\endcode
+ *
  */
 
 

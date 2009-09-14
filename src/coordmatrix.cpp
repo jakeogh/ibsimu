@@ -112,7 +112,7 @@ CoordMatrix::CoordMatrix( int n, int m, int nz,
 }
 
 
-void CoordMatrix::build( const CoordMatrix &mat )
+void CoordMatrix::build( const class CoordMatrix &mat )
 {
     _n     = mat._n;
     _m     = mat._m;
@@ -220,7 +220,7 @@ CoordMatrix::CoordMatrix( const class Matrix &mat )
 }
 
 
-CoordMatrix &CoordMatrix::operator=( const class Matrix &mat )
+CoordMatrix &CoordMatrix::operator=( const Matrix &mat )
 {
     const CRowMatrix  *crmat;
     const CColMatrix  *ccmat;

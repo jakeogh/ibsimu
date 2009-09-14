@@ -258,7 +258,7 @@ CColMatrix::CColMatrix( const class Matrix &mat )
 }
 
 
-CColMatrix &CColMatrix::operator=( const class Matrix &mat )
+CColMatrix &CColMatrix::operator=( const Matrix &mat )
 {
     const CRowMatrix  *crmat;
     const CColMatrix  *ccmat;

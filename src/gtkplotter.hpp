@@ -21,6 +21,19 @@
 #include "fielddiagplot.hpp"
 
 
+/*! \page p_gtk_plotter GTK %Plotter
+ *
+ *
+ *  See class GTKPlotter for more information.
+ */
+
+
+/*! \brief GTK %Plotter class
+ *
+ *  The %GTKPlotter is the main simulation plotter class for
+ *  interactive diagnostics.
+ *
+ */
 class GTKPlotter {
 
     static bool             _gtk_initialized;

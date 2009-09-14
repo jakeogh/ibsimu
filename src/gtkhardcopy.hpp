@@ -1,4 +1,4 @@
-/*! \file hardcopy.hpp
+/*! \file gtkhardcopy.hpp
  *  \brief Header file for simulation hardcopy.
  */
 

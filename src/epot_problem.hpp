@@ -16,6 +16,52 @@
 #include "vec3d.hpp"
 
 
+/*! \page p_epot_problem Electric potential field problem
+ *
+ *  The electric potential field problem, or EpotProblem to be short,
+ *  is a class takes in settings from user and the geometry from class
+ *  Geometry and builds a matrix representation of the problem and
+ *  solves it together with a Solver.
+ *
+ *  In the following example a simple geometry is made and the elecric 
+ *  potential is solved in the defined geometry using default settings
+ *  for the problem:
+ *
+\code
+#include "geometry.hpp"
+#include "func_solid.hpp"
+#include "bicgstab_solver.hpp"
+
+bool solid7( double x, double y, double z )
+{
+    return( x*x + y*y < 0.1*0.1 );
+}
+
+int main( void )
+{
+    Geometry geom( MODE_2D, Int3D( 11, 11, 1 ), Vec3D( 0.0, 0.0, 0.0 ), 0.01 );
+    Solid *s7 = new FuncSolid( solid7 );
+    geom.set_solid( 7, s7 );
+    geom.build_mesh();
+
+    EpotProblem problem;
+    problem.costruct( geom );
+
+    ScalarField epot( geom );
+    ScalarField scharge( geom );
+
+    BiCGSTABSolver solver;
+    problem.set_solver( solver );
+    problem.solve( epot, scharge );
+
+    return( 0 );
+}
+\endcode
+ *
+ *  See class EpotProblem for more information in the reference manual.
+ */
+
+
 /*! \brief Plasma modes
  *
  *  Selection of modes for plasma calculation in electric potential

@@ -1,4 +1,4 @@
-/*! \file preferences.hpp
+/*! \file gtkpreferences.hpp
  *  \brief Header file for simulation preferences.
  */
 

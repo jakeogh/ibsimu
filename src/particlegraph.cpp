@@ -1,4 +1,4 @@
-/*! \file particleplot.cpp
+/*! \file particlegraph.cpp
  *  \brief Particle trajectory plotter.
  */
 
