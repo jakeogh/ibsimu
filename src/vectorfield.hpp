@@ -22,6 +22,34 @@
  *  of each other. The magnetic field consists of up to three vector
  *  components. The components can be defined or may be left undefined
  *  depending on the users requirements.
+ *
+ *  See the next piece of code for an example on building a roughly
+ *  gaussian magnetic field hill for a three dimensional simulation
+ *  with magnetic field only defined in z-direction. The magnetic
+ *  field hill is infinitely large in y- and z-directions.
+ *
+\code
+#include "vectorfield.hpp"
+
+    ...
+    bool fout[3] = { false, false, true };
+    VectorField bfield( MODE_3D, fout, Int3D( 2, 1, 1 ), Vec3D( 0, 0, 0 ), 0.01 );
+    bfield.set( 0, 0, Vec3D( 0, 0, 0.00) );
+    bfield.set( 1, 0, Vec3D( 0, 0, 0.01) );
+    bfield.set( 2, 0, Vec3D( 0, 0, 0.05) );
+    bfield.set( 3, 0, Vec3D( 0, 0, 0.10) );
+    bfield.set( 4, 0, Vec3D( 0, 0, 0.05) );
+    bfield.set( 5, 0, Vec3D( 0, 0, 0.01) );
+    bfield.set( 6, 0, Vec3D( 0, 0, 0.00) );
+    ...
+\endcode
+ *
+ * The %VectorField class has many convenient functions for defining
+ * fields from ASCII data files or manually as shown in the previous
+ * example. The fields can also be translated, scaled and rotated,
+ * which makes working with imported fields more fluent.
+ *
+ *  See class VectorField for more information in the reference manual.
  */
 
 

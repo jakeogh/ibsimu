@@ -39,9 +39,25 @@ The main features used in a typical Vlasov iteration problem are
 - \subpage p_bfield
 
 And after building a solution the user is likely to do some
-diagnostics on the solution. For that see
+diagnostics on the solution. For that see:
 
 - \subpage p_gtk_plotter
+
+Probably the best way of learning how to make a complete vlasov
+iteration simulation is by reading an example with all the most used
+features documented in a line-by-line style:
+
+- \subpage p_vlasov_example
+
+*/
+
+
+
+
+/*! \page p_vlasov_example Vlasov simulation example
+
+In this chapter an example simulation is shown and explained
+line-by-line.
 
 */
 

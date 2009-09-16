@@ -15,17 +15,25 @@
 /*! \page p_scharge Space charge
  *
  *  Space charge in simulations is handled as space charge \b density
- *  (C/m3) stored in a ScalarField object.
+ *  (C/m3) stored in a ScalarField object, the same object which is
+ *  used for storing electric potential.
  *
- *  The space charge field is cleared by the particle iterator before
- *  calculating particle trajectories. While calculating trajectories
- *  the iterator calls scharge_add_from_trajectory() at each mesh
- *  location the trajectory passes through. The charge deposited by
- *  the trajetory to the mesh is calculated. At this phase the \a
- *  scharge field contains charge per unit length (C/m) in case of 2D.
- *  and charge (C) in other cases. The space charge map is converted
- *  to space charge \b density map by a call to scharge_finalize() by
- *  the particle iterator at the end of particle calculation.
+ *  The space charge field is cleared automatically by the particle
+ *  iterator before calculating particle trajectories. While
+ *  calculating trajectories the iterator calls
+ *  scharge_add_from_trajectory() at each mesh location the trajectory
+ *  passes through. The charge deposited by the trajetory to the mesh
+ *  is calculated. At this phase the \a scharge field contains charge
+ *  per unit length (C/m) in case of 2D  and pure charge (C) in other
+ *  cases. The space charge map is converted to space charge \b
+ *  density map by a call to scharge_finalize() by the particle
+ *  iterator at the end of particle calculation.
+ *
+ *  What is left to the user is providing the space charge field to
+ *  the electric potential solver if self-consistent vlasov iteration
+ *  is being calculated. See \ref p_vlasov_example "typical vlasov example" 
+ *  for an example.
+ *
  */
 
 
