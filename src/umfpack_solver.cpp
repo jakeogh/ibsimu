@@ -61,9 +61,6 @@ void UMFPACKSolver::umfpack_decompose( const CColMatrix &mat )
     if( _numeric )
 	umfpack_di_free_numeric( &_numeric );
 
-    if( verbose_output )
-	std::cout << "    Making LU decomposition\n";
-
     status = umfpack_di_symbolic( mat.columns(), mat.rows(), 
 				  &mat.ptr(0), &mat.row(0), &mat.val(0), 
 				  &symbolic, (double *)NULL, (double *)NULL );
@@ -81,7 +78,8 @@ void UMFPACKSolver::umfpack_decompose( const CColMatrix &mat )
 }
 
 
-void UMFPACKSolver::umfpack_solve( const CColMatrix &mat, const Vector &rhs, Vector &sol )
+void UMFPACKSolver::umfpack_solve( const CColMatrix &mat, const Vector &rhs, Vector &sol, 
+				   bool force_decomposition )
 {
     int status;
 
@@ -89,13 +87,8 @@ void UMFPACKSolver::umfpack_solve( const CColMatrix &mat, const Vector &rhs, Vec
     sol.resize( rhs.size() );
 
     // Do decomposition if needed
-    if( !_numeric ) {
+    if( !_numeric || force_decomposition )
 	umfpack_decompose( mat );
-	if( verbose_output )
-	    std::cout << "    Using LU decomposition to solve the problem\n";
-    } else if( verbose_output ) {
-	std::cout << "    Using existing LU decomposition to solve the problem\n";
-    }
 
     status = umfpack_di_solve( UMFPACK_A, &mat.ptr(0), &mat.row(0), &mat.val(0), 
 			       sol.get_data(), rhs.get_data(), _numeric, 
@@ -147,7 +140,7 @@ void UMFPACKSolver::solve( const Problem &p, Vector &X )
 	    p.get_resjac( &J, &R, X );
 	    CColMatrix Jcol( *J );
 	    dX.clear();
-	    umfpack_solve( Jcol, *R, dX );
+	    umfpack_solve( Jcol, *R, dX, true );
 
 	    // Take step
 	    X -= dX;

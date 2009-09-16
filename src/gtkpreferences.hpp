@@ -13,7 +13,9 @@
 
 
 
-
+/*! \brief Common features of preferences settings for all gtk user
+ *  interface based interactive plotters.
+ */
 class GTKPreferences
 {
     class GTKWindow *_gtkwindow;

@@ -306,7 +306,7 @@ void GTKParticleDiagDialog::run( void )
 	//std::cout << "level = " << level << "\n";
 
 	// Read plot type
-	trajectory_diagnostic_e diagx, diagy;
+	trajectory_diagnostic_e diagx, diagy = DIAG_XP;
 	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_emit_xx) ) ) {
 	    diagx = DIAG_X;
 	    diagy = DIAG_XP;

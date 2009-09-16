@@ -7,6 +7,8 @@
 #define GTK_FIELD_DIAG_DIALOG_HPP 1
 
 
+/*! \brief Interactive dialog for launching field diagnostic window.
+ */
 class GTKFieldDiagDialog
 {
 

@@ -34,7 +34,8 @@ class UMFPACKSolver : public Solver {
     static void umfpack_error( const std::string func, int status );
 
     void umfpack_decompose( const CColMatrix &mat );
-    void umfpack_solve( const CColMatrix &mat, const Vector &rhs, Vector &sol );
+    void umfpack_solve( const CColMatrix &mat, const Vector &rhs, Vector &sol,
+			bool force_decomposition = false );
 
 public:
 

@@ -10,7 +10,8 @@
 
 
 
-
+/*! \brief Interactive geometry plotter.
+ */
 class GTKGeomWindow : public GTKWindow {
 
     GeomPlot                _geomplot;

@@ -1,3 +1,8 @@
+/*! \file gtkparticlediagdialog.hpp
+ *  \brief Header file for particle diagnostics dialog.
+ */
+
+
 #include <gtk/gtk.h>
 
 #include "gtkplotter.hpp"
@@ -7,6 +12,8 @@
 #define GTK_PARTICLE_DIAG_DIALOG_HPP 1
 
 
+/*! \brief Dialog window for starting interactive particle diagnostics.
+ */
 class GTKParticleDiagDialog
 {
 

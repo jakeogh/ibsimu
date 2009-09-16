@@ -1,3 +1,7 @@
+/*! \file gtkwindow.hpp
+ *  \brief Header file interactive plotter window class.
+ */
+
 #ifndef GTK_WINDOW_HPP
 #define GTK_WINDOW_HPP 1
 
@@ -11,6 +15,11 @@
 
 
 
+/*! \brief Base class for interactive plotters.
+ *
+ *  Provides all the common features for the interactive gtk based
+ *  plotter windows.
+ */
 class GTKWindow {
 
     size_t            _width;
@@ -85,6 +94,7 @@ protected:
     GtkWidget        *_window;
     GtkWidget        *_darea;
     GtkWidget        *_menubar;
+    GtkWidget        *_menu_file;
     GtkWidget        *_toolbar;
     GtkWidget        *_statusbar;
 

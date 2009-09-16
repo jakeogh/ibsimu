@@ -14,7 +14,7 @@
 
 #include "geometry.hpp"
 #include "scalarfield.hpp"
-#include "epot_efield.hpp"
+#include "efield.hpp"
 #include "vectorfield.hpp"
 #include "particledatabase.hpp"
 #include "particlediagplot.hpp"
@@ -72,9 +72,11 @@ public:
     GTKWindow *new_geometry_plot_window( void );
     GTKWindow *new_particle_plot_window( coordinate_axis_e axis, double level, 
 					 particle_diag_plot_type_e type,
-					 trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy );
+					 trajectory_diagnostic_e diagx, 
+					 trajectory_diagnostic_e diagy );
     GTKWindow *new_field_plot_window( size_t N, const Vec3D &x1, const Vec3D &x2,
-				      const field_diag_type_e diag[2], const field_loc_type_e loc[2] );
+				      const field_diag_type_e diag[2], 
+				      const field_loc_type_e loc[2] );
 
     //GTKWindow *new_window( void );
     void delete_window( class GTKWindow *window );

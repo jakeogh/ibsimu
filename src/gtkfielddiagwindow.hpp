@@ -6,6 +6,8 @@
 #include "fielddiagplot.hpp"
 
 
+/*! \brief Interactive field diagnostic plotter
+ */
 class GTKFieldDiagWindow : public GTKWindow {
 
     FieldDiagPlot              _plot;
@@ -18,6 +20,10 @@ class GTKFieldDiagWindow : public GTKWindow {
     virtual void zoom_fit( void );
     virtual void *build_preferences( GtkWidget *notebook );
     virtual void read_preferences( GtkWidget *notebook, void *pdata );
+
+    void export_data( void );
+    static void menuitem_export_signal( GtkToolButton *button,
+					gpointer object );
 
 public:
 

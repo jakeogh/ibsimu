@@ -6,8 +6,6 @@ Add PIC style particle stepper
 Suitesparse package to include umfpack.pc and amd.pc and newest
 versions of the algorithms
 
-Solver speed test for 2D (for talks)
-
 Particle plot mirroring auto/off
 
 Data export from geomplot, fieldplot windows

@@ -29,14 +29,19 @@ GTKWindow::GTKWindow( class GTKPlotter *plotter )
 
     // Menu bar
     _menubar = gtk_menu_bar_new();
-    GtkWidget *menu_file = gtk_menu_new();
+    _menu_file = gtk_menu_new();
+    GtkWidget *item_hardcopy = gtk_menu_item_new_with_mnemonic( "_Hardcopy" );
+    gtk_menu_shell_append( GTK_MENU_SHELL(_menu_file), item_hardcopy );
     GtkWidget *item_quit = gtk_menu_item_new_with_mnemonic( "_Quit" );
-    gtk_menu_shell_append( GTK_MENU_SHELL(menu_file), item_quit );
+    gtk_menu_shell_append( GTK_MENU_SHELL(_menu_file), item_quit );
     GtkWidget *item_file = gtk_menu_item_new_with_mnemonic( "_File" );
-    gtk_menu_item_set_submenu( GTK_MENU_ITEM(item_file), menu_file );
+    gtk_menu_item_set_submenu( GTK_MENU_ITEM(item_file), _menu_file );
     gtk_menu_bar_append( GTK_MENU_BAR(_menubar), item_file );
     g_signal_connect( G_OBJECT(item_quit), "activate",
 		      G_CALLBACK(menuitem_quit_signal),
+		      (gpointer)this );
+    g_signal_connect( G_OBJECT(item_hardcopy), "activate",
+		      G_CALLBACK(menuitem_hardcopy_signal),
 		      (gpointer)this );
     gtk_box_pack_start( GTK_BOX(vbox), _menubar, FALSE, TRUE, 0 );
 

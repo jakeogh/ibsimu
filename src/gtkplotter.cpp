@@ -16,7 +16,8 @@ bool GTKPlotter::_gtk_initialized = false;
 
 
 GTKPlotter::GTKPlotter( int *argc, char ***argv )
-    : _geom(NULL), _epot(NULL), _scharge(NULL), _bfield(NULL), _pdb(NULL)
+    : _geom(NULL), _epot(NULL), _efield(NULL), 
+      _scharge(NULL), _bfield(NULL), _pdb(NULL)
 {
     if( !_gtk_initialized ) {
 	if( gtk_init_check( argc, argv ) == FALSE )
@@ -48,7 +49,8 @@ GTKWindow *GTKPlotter::new_geometry_plot_window( void )
 
 GTKWindow *GTKPlotter::new_particle_plot_window( coordinate_axis_e axis, double level, 
 						 particle_diag_plot_type_e type,
-						 trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy )
+						 trajectory_diagnostic_e diagx, 
+						 trajectory_diagnostic_e diagy )
 {
     GTKWindow *window = new GTKParticleDiagWindow( this, _pdb, _geom, axis, level, type, diagx, diagy );
     _windows.push_back( window );
@@ -58,7 +60,8 @@ GTKWindow *GTKPlotter::new_particle_plot_window( coordinate_axis_e axis, double 
 
 
 GTKWindow *GTKPlotter::new_field_plot_window( size_t N, const Vec3D &x1, const Vec3D &x2,
-					      const field_diag_type_e diag[2], const field_loc_type_e loc[2] )
+					      const field_diag_type_e diag[2], 
+					      const field_loc_type_e loc[2] )
 {
     GTKWindow *window = new GTKFieldDiagWindow( this, _geom, N, x1, x2, diag, loc );
     _windows.push_back( window );

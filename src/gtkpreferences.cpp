@@ -19,7 +19,8 @@ void GTKPreferences::run( void )
 {
     GtkWidget *dialog = gtk_dialog_new_with_buttons( "Plot preferences",
 						     GTK_WINDOW(_window),
-						     (GtkDialogFlags)(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT), 
+						     (GtkDialogFlags)(GTK_DIALOG_MODAL | 
+								      GTK_DIALOG_DESTROY_WITH_PARENT), 
 						     GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
 						     GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
 						     NULL );

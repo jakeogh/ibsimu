@@ -1,7 +1,8 @@
 #include "gtkfielddiagdialog.hpp"
 
 
-GTKFieldDiagDialog::GTKFieldDiagDialog( GtkWidget *window, GTKPlotter *plotter, double x1[3], double x2[3] )
+GTKFieldDiagDialog::GTKFieldDiagDialog( GtkWidget *window, GTKPlotter *plotter, 
+					double x1[3], double x2[3] )
     : _window(window), _plotter(plotter)
 {
     _x1[0] = x1[0];
@@ -25,7 +26,8 @@ void GTKFieldDiagDialog::run( void )
 {
     GtkWidget *dialog = gtk_dialog_new_with_buttons( "Make field diagnostics",
                                                      GTK_WINDOW(_window),
-                                                     (GtkDialogFlags)(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT), 
+                                                     (GtkDialogFlags)(GTK_DIALOG_MODAL | 
+								      GTK_DIALOG_DESTROY_WITH_PARENT), 
                                                      GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
                                                      GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
                                                      NULL );
@@ -271,7 +273,7 @@ void GTKFieldDiagDialog::run( void )
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     GtkWidget *radio_g1_e = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_e = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
-    if( !_plotter->get_epot() ) {
+    if( !_plotter->get_efield() ) {
 	gtk_widget_set_sensitive( radio_g1_e, FALSE );
 	gtk_widget_set_sensitive( radio_g2_e, FALSE );
     }
@@ -286,7 +288,7 @@ void GTKFieldDiagDialog::run( void )
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     GtkWidget *radio_g1_ex = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_ex = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
-    if( !_plotter->get_epot() ) {
+    if( !_plotter->get_efield() ) {
 	gtk_widget_set_sensitive( radio_g1_ex, FALSE );
 	gtk_widget_set_sensitive( radio_g2_ex, FALSE );
     }
@@ -304,7 +306,7 @@ void GTKFieldDiagDialog::run( void )
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     GtkWidget *radio_g1_ey = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_ey = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
-    if( !_plotter->get_epot() ) {
+    if( !_plotter->get_efield() ) {
 	gtk_widget_set_sensitive( radio_g1_ey, FALSE );
 	gtk_widget_set_sensitive( radio_g2_ey, FALSE );
     }
@@ -319,7 +321,8 @@ void GTKFieldDiagDialog::run( void )
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     GtkWidget *radio_g1_ez = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_ez = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
-    if( !_plotter->get_epot() || _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL ) {
+    if( !_plotter->get_epot() || _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL ||
+	!_plotter->get_efield() ) {
 	gtk_widget_set_sensitive( radio_g1_ez, FALSE );
 	gtk_widget_set_sensitive( radio_g2_ez, FALSE );
     }

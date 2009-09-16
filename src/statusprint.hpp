@@ -10,6 +10,8 @@
 #include <time.h>
 
 
+/*! \brief A tool for printing running status on command line.
+ */
 class StatusPrint {
     
     size_t _width;

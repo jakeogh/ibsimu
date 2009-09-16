@@ -30,6 +30,8 @@ fonts.hpp \
 fonts.cpp \
 interpolation.hpp \
 interpolation.cpp \
+gtkfielddiagexportdialog.hpp \
+gtkfielddiagexportdialog.cpp \
 gtkpreferences.cpp \
 gtkpreferences.hpp \
 gtkgeomwindow.cpp \
@@ -153,6 +155,7 @@ libibsimu_la_includedir=$(includedir)/ibsimu
 libibsimu_la_include_HEADERS = \
 fielddiagplot.hpp \
 fielddiagplotter.hpp \
+gtkfielddiagexportdialog.hpp \
 particlediagplotter.hpp \
 particlediagplot.hpp \
 geomplot.hpp \

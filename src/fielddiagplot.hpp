@@ -1,3 +1,8 @@
+/*! \file fielddiagplot.hpp
+ *  \brief Header file for field diagnostic plot.
+ */
+
+
 #ifndef FIELDDIAGPLOT_HPP
 #define FIELDDIAGPLOT_HPP 1
 
@@ -35,6 +40,10 @@ enum field_loc_type_e {
 };
 
 
+/*! \brief Class for building plots
+ *
+ *  Used by GTKFieldDiagWindow.
+ */
 class FieldDiagPlot {
 
     Frame              *_frame;
@@ -53,6 +62,11 @@ class FieldDiagPlot {
     field_loc_type_e    _loc[2];
 
     XYGraph            *_graph[2];
+
+
+    void build_data( std::vector<double> coord[4], 
+		     std::vector<double> fielddata[2] ) const;
+    std::string diagnostic_label( field_diag_type_e diag ) const;
 
 public:
 
@@ -88,6 +102,10 @@ public:
 	_loc[0] = loc[0];
 	_loc[1] = loc[1];
     }
+
+    /*! \brief Export plotted data as ASCII.
+     */
+    void export_data( const std::string &filename ) const;
 
     /*! \brief Rebuild plot.
      */
