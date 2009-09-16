@@ -205,7 +205,7 @@ class EpotProblem : public Problem {
     double              _meniscus_x;    /*!< \brief Initial plasma meniscus x-coordinate. */
     int32_t             _meniscus_i;    /*!< \brief Initial plasma meniscus i-coordinate (calculated). */
 
-    const Solver       *_solver;        /*!< \brief Solver for solving problem.. */
+    Solver             *_solver;        /*!< \brief Solver for solving problem.. */
 
 
     void set_link( CRowMatrix &A, Vector &B, 
@@ -279,7 +279,7 @@ public:
 
     /*! \brief Set solver to be used for the problem.
      */
-    void set_solver( const Solver &s );
+    void set_solver( Solver &s );
 
     /*! \brief Solve the problem.
      *

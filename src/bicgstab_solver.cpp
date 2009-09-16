@@ -7,8 +7,11 @@
 
 
 BiCGSTABSolver::BiCGSTABSolver( double eps, int imax,
-				double newton_Reps, double newton_dXeps, int newton_imax )
-    : _eps(eps), _imax(imax), _newton_Reps(newton_Reps), _newton_dXeps(newton_dXeps), _newton_imax(newton_imax)
+				double newton_Reps, 
+				double newton_dXeps, 
+				int newton_imax )
+    : _eps(eps), _imax(imax), _newton_Reps(newton_Reps), 
+      _newton_dXeps(newton_dXeps), _newton_imax(newton_imax)
 {
     if( _imax <= 0 || _newton_imax <= 0 )
 	throw( ErrorDim( ERROR_LOCATION, "invalid number of iterations" ) );
@@ -17,7 +20,7 @@ BiCGSTABSolver::BiCGSTABSolver( double eps, int imax,
 }
 
 
-void BiCGSTABSolver::solve( const Problem &p, Vector &X ) const
+void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 {
     int imax;
     double eps;
@@ -106,7 +109,10 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X ) const
 }
 
 
+void BiCGSTABSolver::reset( void )
+{
 
+}
 
 
 

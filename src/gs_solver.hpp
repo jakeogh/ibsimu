@@ -53,7 +53,15 @@ public:
     /*! \brief Solve problem \a p defined in geometry \a g.  Initial
      *  guess and solution are in vector \a X.
      */
-    void solve( const Problem &p, Vector &X ) const;
+    virtual void solve( const Problem &p, Vector &X );
+
+    /*! \brief Reset solver.
+     *
+     *  This is a signal from the problem that the problem has changed
+     *  and internal caches (if they exist) in the solver should be
+     *  resetted.
+     */
+    virtual void reset( void );
 
     /*! \brief Sets maximum iteration count for Newton-Raphson steps.
      */

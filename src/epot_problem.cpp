@@ -61,6 +61,8 @@ EpotProblem::~EpotProblem()
 
 void EpotProblem::clear_problem( void )
 {
+    if( _solver )
+	_solver->reset();
     if( _fd_mat )
 	delete _fd_mat;
     if( _fd_vec )
@@ -955,8 +957,7 @@ void EpotProblem::construct( const Geometry &g )
     }
 
     // Delete old problem formulation
-    if( _fd_mat ) delete _fd_mat;
-    if( _fd_vec ) delete _fd_vec;
+    clear_problem();
 
     // Build n2d array and calculate degrees of freedom
     _n2d.resize( _g->size() );
@@ -1012,7 +1013,7 @@ void EpotProblem::construct( const Geometry &g )
 }
 
 
-void EpotProblem::set_solver( const Solver &s )
+void EpotProblem::set_solver( Solver &s )
 {
     _solver = &s;
 }

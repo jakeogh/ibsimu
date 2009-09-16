@@ -96,7 +96,7 @@ void Palette::norm( void )
     if( max-min == 0.0 )
 	coef = 1.0;
 
-    // Renorm entries
+    // Renormalize entries
     for( size_t a = 0; a < _entries.size(); a++ )
 	_entries[a]._val = coef*(offset+_entries[a]._val);
 }

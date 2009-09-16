@@ -8,10 +8,20 @@
 
 
 
-UMFPACKSolver::UMFPACKSolver( double newton_Reps, double newton_dXeps, uint32_t newton_imax )
-    : _newton_Reps(newton_Reps), _newton_dXeps(newton_dXeps), _newton_imax(newton_imax)
+UMFPACKSolver::UMFPACKSolver( double newton_Reps, 
+			      double newton_dXeps, 
+			      uint32_t newton_imax )
+    : _numeric(0), _newton_Reps(newton_Reps), 
+      _newton_dXeps(newton_dXeps), _newton_imax(newton_imax)
 {
 
+}
+
+
+UMFPACKSolver::~UMFPACKSolver()
+{
+    if( _numeric )
+	umfpack_di_free_numeric( &_numeric );
 }
 
 
@@ -42,45 +52,60 @@ void UMFPACKSolver::umfpack_error( const std::string func, int status )
 }
 
 
-void UMFPACKSolver::umfpack_solve( const CColMatrix &mat, const Vector &rhs, Vector &sol )
+void UMFPACKSolver::umfpack_decompose( const CColMatrix &mat )
 {
-    int     status;
-    void   *Symbolic;
-    void   *Numeric;
+    int   status;
+    void *symbolic;
 
-    sol.resize( rhs.size() );
+    // Free old decomposition
+    if( _numeric )
+	umfpack_di_free_numeric( &_numeric );
 
-    // Sort
-    //mat.order_ascending();
-    //if( !mat.check_ascending() )
-    //	throw( Error( ERROR_LOCATION, "matrix not in ascending order" ) );
+    if( verbose_output )
+	std::cout << "    Making LU decomposition\n";
 
-    // Make decomposition
     status = umfpack_di_symbolic( mat.columns(), mat.rows(), 
 				  &mat.ptr(0), &mat.row(0), &mat.val(0), 
-				  &Symbolic, (double *)NULL, (double *)NULL );
+				  &symbolic, (double *)NULL, (double *)NULL );
     if( status != UMFPACK_OK )
 	umfpack_error( "umfpack_di_symbolic", status );
 
     status = umfpack_di_numeric( &mat.ptr(0), &mat.row(0), &mat.val(0), 
-				 Symbolic, &Numeric, (double *)NULL, 
+				 symbolic, &_numeric, (double *)NULL, 
 				 (double *)NULL );
     if( status != UMFPACK_OK )
 	umfpack_error( "umfpack_di_numeric", status );
 
-    // Solve using decomposition
-    status = umfpack_di_solve( UMFPACK_A, &mat.ptr(0), &mat.row(0), &mat.val(0), 
-			       sol.get_data(), rhs.get_data(), Numeric, 
-			       (double *)NULL, (double *)NULL );
-    if( status != UMFPACK_OK )
-	umfpack_error( "umfpack_di_solve", status );
-    
-    umfpack_di_free_symbolic( &Symbolic );
-    umfpack_di_free_numeric( &Numeric );
+    // Free symbolic data
+    umfpack_di_free_symbolic( &symbolic );
 }
 
 
-void UMFPACKSolver::solve( const Problem &p, Vector &X ) const
+void UMFPACKSolver::umfpack_solve( const CColMatrix &mat, const Vector &rhs, Vector &sol )
+{
+    int status;
+
+    // Resize solution vector
+    sol.resize( rhs.size() );
+
+    // Do decomposition if needed
+    if( !_numeric ) {
+	umfpack_decompose( mat );
+	if( verbose_output )
+	    std::cout << "    Using LU decomposition to solve the problem\n";
+    } else if( verbose_output ) {
+	std::cout << "    Using existing LU decomposition to solve the problem\n";
+    }
+
+    status = umfpack_di_solve( UMFPACK_A, &mat.ptr(0), &mat.row(0), &mat.val(0), 
+			       sol.get_data(), rhs.get_data(), _numeric, 
+			       (double *)NULL, (double *)NULL );
+    if( status != UMFPACK_OK )
+	umfpack_error( "umfpack_di_solve", status );
+}
+
+
+void UMFPACKSolver::solve( const Problem &p, Vector &X )
 {
     Timer t;
     if( p.linear() ) {
@@ -153,3 +178,15 @@ void UMFPACKSolver::solve( const Problem &p, Vector &X ) const
     if( verbose_output )
         std::cout << "  time used = " << t << "\n";
 }
+
+
+void UMFPACKSolver::reset( void )
+{
+    if( _numeric )
+	umfpack_di_free_numeric( &_numeric );
+    _numeric = 0;
+}
+
+
+
+

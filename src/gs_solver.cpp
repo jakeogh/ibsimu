@@ -18,7 +18,7 @@ GSSolver::GSSolver( double w,
 
 
 
-void GSSolver::solve( const Problem &p, Vector &X ) const
+void GSSolver::solve( const Problem &p, Vector &X )
 {
     int imax;
     double eps;
@@ -49,6 +49,11 @@ void GSSolver::solve( const Problem &p, Vector &X ) const
 	std::cout << "  time used = " << t << "\n";
 }
 
+
+void GSSolver::reset( void )
+{
+
+}
 
 
 bool GSSolver::gauss_seidel( const CRowMatrix &mat, const Vector &rhs, Vector &sol,

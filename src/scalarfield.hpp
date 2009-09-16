@@ -236,8 +236,12 @@ public:
     inline const double &operator()( int32_t i, int32_t j, int32_t k ) const {
 	return( _F[i + (j + k*_size[1])*_size(0)] ); }
 
-    /*! \brief Operator for getting linearly interpolated field value
-     *  at \a x.
+    /*! \brief Operator for getting linearly interpolated field values.
+     *
+     *  The field is interpolated linearly to get the field value at
+     *  \a x. If \a x is outside the mesh, the field is extrapolated
+     *  linearly using the field points to \a x. This provides correct
+     *  field values also close to the mesh boundaries.
      */
     double operator()( Vec3D x ) const;
 

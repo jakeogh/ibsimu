@@ -28,8 +28,15 @@ public:
     /*! \brief Solve problem \a p. Initial guess and solution are in
      *  vector \a X.
      */
-    virtual void solve( const class Problem &p, Vector &X ) const = 0;
+    virtual void solve( const class Problem &p, Vector &X ) = 0;
 
+    /*! \brief Reset solver.
+     *
+     *  This is a signal from the problem that the problem has changed
+     *  and internal caches (if they exist) in the solver should be
+     *  resetted.
+     */
+    virtual void reset( void ) = 0;
 };
 
 

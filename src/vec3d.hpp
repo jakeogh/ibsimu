@@ -48,7 +48,7 @@ public:
 
     /*! \brief %Vector difference
      */
-    Vec3D operator-( const Vec3D &vec ) {
+    Vec3D operator-( const Vec3D &vec ) const {
 	return( Vec3D( p[0] - vec[0],
 		       p[1] - vec[1],
 		       p[2] - vec[2] ) );
