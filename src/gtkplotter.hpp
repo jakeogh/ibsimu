@@ -23,6 +23,33 @@
 
 /*! \page p_gtk_plotter GTK %Plotter
  *
+ *  The interactive plotter is started by GTKPlotter. This object has
+ *  to be created and given the data to plot with functions
+ *  set_geometry(), set_epot(), etc. Then the a geometry plot can be
+ *  started by calling new_geometry_plot_window() and run(). The
+ *  simulation progress is halted while any plotter windows exist. See
+ *  the following example:
+ *
+\code
+    Geometry geom( MODE_2D, Int3D( 41, 41, 1 ), Vec3D( 0, 0, 0 ), 0.0025 );
+    geom.set_boundary( 1, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 2, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 3, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 4, Bound(BOUND_DIRICHLET,  0.0) );
+    geom.build_mesh();
+
+    EpotProblem problem;
+    problem.construct( geom );
+    BiCGSTABSolver solver;
+    problem.set_solver( solver );
+    problem.solve( epot, scharge );
+
+    GTKPlotter plotter( argc, argv );
+    plotter.set_geometry( &geom );
+    plotter.set_epot( &epot );
+    plotter.new_geometry_plot_window();
+    plotter.run();
+\endcode
  *
  *  See class GTKPlotter for more information.
  */
