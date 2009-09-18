@@ -1,10 +1,6 @@
 /*! \file vecfield.cpp 
- *  \brief Test VectorField class
- *
  *  \test Test VectorField class
- *
  */
-
 
 
 #include <fstream>

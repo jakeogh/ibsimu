@@ -1,25 +1,11 @@
 /*! \file solver3d_sphere.cpp 
- *  \brief Test solver with a 3d problem made of two concentric spheres.
- *
- *  \test Analytically this problem is solved by using spherical coordinates.
- *  The Poisson equation 
- *  \f[ \nabla^2 \phi = -\frac{\rho}{\epsilon} \f]
- *  becomes
- *  \f[ \frac{1}{r^2} \frac{\partial}{\partial r}
-    \left( r^2 \frac{\partial \phi}{\partial r} \right)
-    = -\frac{\rho}{\epsilon}. \f]
- *  In caseof no space charge, the solution is
- *  \f[ \phi = \frac{A}{r} - B, \f]
- *  where \f$ A = \frac{\phi_a - \phi_b}{\frac{1}{r_a} - \frac{1}{r_b}} \f$ and 
- *  \f$ B = \phi_a + \frac{A}{r_a} \f$. 
- *
+ *  \test Test solver with a 3d problem made of two concentric spheres.
  */
 
 
 #include <fstream>
 #include <iomanip>
 #include "bicgstab_solver.hpp"
-#include "umfpack_solver.hpp"
 #include "epot_problem.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
@@ -64,8 +50,6 @@ double phi( double r )
 
 void test( int *argc, char ***argv )
 {
-    //verbose_output = 1;
-
     //Geometry g( MODE_3D, Int3D(81,81,81), Vec3D(0,0,0), 0.001 );
     Geometry g( MODE_3D, Int3D(41,41,41), Vec3D(0,0,0), 0.002 );
     Solid *s1 = new FuncSolid( solid1 );
@@ -82,14 +66,11 @@ void test( int *argc, char ***argv )
 
     EpotProblem p;
     p.construct( g );
-    //g.debug_print();
-    //p.debug_print();
 
     ScalarField epot( g );
     ScalarField scharge( g );
 
-    //BiCGSTABSolver solver;
-    UMFPACKSolver solver;
+    BiCGSTABSolver solver;
     p.set_solver( solver );
     p.solve( epot, scharge );
 
@@ -177,6 +158,7 @@ void test( int *argc, char ***argv )
 int main( int argc, char **argv )
 {
     try {
+	//verbose_output = 1;
 	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

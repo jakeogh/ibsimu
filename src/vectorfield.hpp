@@ -1,7 +1,44 @@
 /*! \file vectorfield.hpp
- *  \brief Header file defining vector field class.
+ *  \brief Header file for vectorfield.hpp
  */
 
+/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+ *
+ * You can redistribute this software and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ * 
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this library (file "COPYING" included in the package);
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * 
+ * If you have questions about your rights to use or distribute this
+ * software, please contact Berkeley Lab's Technology Transfer
+ * Department at TTD@lbl.gov. Other questions, comments and bug
+ * reports should be sent directly to the author via email at
+ * tvkalvas@cc.jyu.fi.
+ * 
+ * NOTICE. This software was developed under partial funding from the
+ * U.S.  Department of Energy.  As such, the U.S. Government has been
+ * granted for itself and others acting on its behalf a paid-up,
+ * nonexclusive, irrevocable, worldwide license in the Software to
+ * reproduce, prepare derivative works, and perform publicly and
+ * display publicly.  Beginning five (5) years after the date
+ * permission to assert copyright is obtained from the U.S. Department
+ * of Energy, and subject to any subsequent five (5) year renewals,
+ * the U.S. Government is granted for itself and others acting on its
+ * behalf a paid-up, nonexclusive, irrevocable, worldwide license in
+ * the Software to reproduce, prepare derivative works, distribute
+ * copies to the public, perform publicly and display publicly, and to
+ * permit others to do so.
+ */
 
 #ifndef VECTORFIELD_HPP
 #define VECTORFIELD_HPP 1
@@ -9,48 +46,6 @@
 
 #include "geometry.hpp"
 #include "vec3d.hpp"
-
-
-/*! \page p_bfield Magnetic field
- *
- *  The simulations may contain a static magnetic field that is used
- *  in the particle trajectory calculation. IBSimu does not calculate
- *  magnetic fields on it's own, but magnetic fields can be imported
- *  from outside. The magnetic fields are defined using VectorField
- *  class. The magnetic field is defined in a rectangular mesh like
- *  the electric field, but the mesh size and density are independent
- *  of each other. The magnetic field consists of up to three vector
- *  components. The components can be defined or may be left undefined
- *  depending on the users requirements.
- *
- *  See the next piece of code for an example on building a roughly
- *  gaussian magnetic field hill for a three dimensional simulation
- *  with magnetic field only defined in z-direction. The magnetic
- *  field hill is infinitely large in y- and z-directions.
- *
-\code
-#include "vectorfield.hpp"
-
-    ...
-    bool fout[3] = { false, false, true };
-    VectorField bfield( MODE_3D, fout, Int3D( 2, 1, 1 ), Vec3D( 0, 0, 0 ), 0.01 );
-    bfield.set( 0, 0, Vec3D( 0, 0, 0.00) );
-    bfield.set( 1, 0, Vec3D( 0, 0, 0.01) );
-    bfield.set( 2, 0, Vec3D( 0, 0, 0.05) );
-    bfield.set( 3, 0, Vec3D( 0, 0, 0.10) );
-    bfield.set( 4, 0, Vec3D( 0, 0, 0.05) );
-    bfield.set( 5, 0, Vec3D( 0, 0, 0.01) );
-    bfield.set( 6, 0, Vec3D( 0, 0, 0.00) );
-    ...
-\endcode
- *
- * The %VectorField class has many convenient functions for defining
- * fields from ASCII data files or manually as shown in the previous
- * example. The fields can also be translated, scaled and rotated,
- * which makes working with imported fields more fluent.
- *
- *  See class VectorField for more information in the reference manual.
- */
 
 
 /*! \brief %Vector field class.

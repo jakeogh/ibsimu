@@ -1,10 +1,6 @@
 /*! \file solvercyl_coax.cpp 
- *  \brief Test solver with a cylindrical problem with coaxial electrodes
- *
  *  \test Test solver with a cylindrical problem with coaxial
- *  electrodes. Basically this test is the same with
- *  solver2d_cylinder.cpp
- *
+ *  electrodes.
  */
 
 

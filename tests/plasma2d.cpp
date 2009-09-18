@@ -10,7 +10,6 @@
 #include <fstream>
 #include <iomanip>
 #include "bicgstab_solver.hpp"
-#include "umfpack_solver.hpp"
 #include "epot_problem.hpp"
 #include "particledatabase.hpp"
 #include "geometry.hpp"
@@ -19,8 +18,6 @@
 #include "vectorfield.hpp"
 #include "verbose.hpp"
 #include "error.hpp"
-
-#include "gtkplotter.hpp"
 #include "geomplotter.hpp"
 #include "particlediagplotter.hpp"
 #include "fielddiagplotter.hpp"
@@ -44,9 +41,7 @@ bool solid2( double x, double y, double z )
 
 void test( int *argc, char ***argv )
 {
-    verbose_output = 1;
-    //Geometry geom( MODE_2D, Int3D(241,141,1), Vec3D(0,0,0), 0.00005 );
-    Geometry geom( MODE_2D, Int3D(481,281,1), Vec3D(0,0,0), 0.000025 );
+    Geometry geom( MODE_2D, Int3D(241,141,1), Vec3D(0,0,0), 0.00005 );
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
@@ -66,8 +61,7 @@ void test( int *argc, char ***argv )
     ScalarField epot( geom );
     ScalarField scharge( geom );
 
-    //BiCGSTABSolver solver;
-    UMFPACKSolver solver;
+    BiCGSTABSolver solver;
     p.set_solver( solver );
 
     VectorField bfield;
@@ -100,6 +94,7 @@ void test( int *argc, char ***argv )
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
     }
 
+    /*
     GTKPlotter plotter( argc, argv );
     plotter.set_geometry( &geom );
     plotter.set_scharge( &scharge );
@@ -107,6 +102,7 @@ void test( int *argc, char ***argv )
     plotter.set_particledatabase( &pdb );
     plotter.new_geometry_plot_window();
     plotter.run();
+    */
 
     GeomPlotter gplotter( &geom );
     gplotter.set_scharge( &scharge );
@@ -143,6 +139,7 @@ void test( int *argc, char ***argv )
 int main( int argc, char **argv )
 {
     try {
+	//verbose_output = 1;
 	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

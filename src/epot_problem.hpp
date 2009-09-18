@@ -1,7 +1,44 @@
 /*! \file epot_problem.hpp
- *  \brief Header file defining class problem.
+ *  \brief Header file for epot_problem.hpp
  */
 
+/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+ *
+ * You can redistribute this software and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ * 
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this library (file "COPYING" included in the package);
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * 
+ * If you have questions about your rights to use or distribute this
+ * software, please contact Berkeley Lab's Technology Transfer
+ * Department at TTD@lbl.gov. Other questions, comments and bug
+ * reports should be sent directly to the author via email at
+ * tvkalvas@cc.jyu.fi.
+ * 
+ * NOTICE. This software was developed under partial funding from the
+ * U.S.  Department of Energy.  As such, the U.S. Government has been
+ * granted for itself and others acting on its behalf a paid-up,
+ * nonexclusive, irrevocable, worldwide license in the Software to
+ * reproduce, prepare derivative works, and perform publicly and
+ * display publicly.  Beginning five (5) years after the date
+ * permission to assert copyright is obtained from the U.S. Department
+ * of Energy, and subject to any subsequent five (5) year renewals,
+ * the U.S. Government is granted for itself and others acting on its
+ * behalf a paid-up, nonexclusive, irrevocable, worldwide license in
+ * the Software to reproduce, prepare derivative works, distribute
+ * copies to the public, perform publicly and display publicly, and to
+ * permit others to do so.
+ */
 
 #ifndef EPOT_PROBLEM_HPP
 #define EPOT_PROBLEM_HPP 1
@@ -14,52 +51,6 @@
 #include "scalarfield.hpp"
 #include "geometry.hpp"
 #include "vec3d.hpp"
-
-
-/*! \page p_epot_problem Electric potential field problem
- *
- *  The electric potential field problem, or EpotProblem to be short,
- *  is a class takes in settings from user and the geometry from class
- *  Geometry and builds a matrix representation of the problem and
- *  solves it together with a Solver.
- *
- *  In the following example a simple geometry is made and the elecric 
- *  potential is solved in the defined geometry using default settings
- *  for the problem:
- *
-\code
-#include "geometry.hpp"
-#include "func_solid.hpp"
-#include "bicgstab_solver.hpp"
-
-bool solid7( double x, double y, double z )
-{
-    return( x*x + y*y < 0.1*0.1 );
-}
-
-int main( void )
-{
-    Geometry geom( MODE_2D, Int3D( 11, 11, 1 ), Vec3D( 0.0, 0.0, 0.0 ), 0.01 );
-    Solid *s7 = new FuncSolid( solid7 );
-    geom.set_solid( 7, s7 );
-    geom.build_mesh();
-
-    EpotProblem problem;
-    problem.costruct( geom );
-
-    ScalarField epot( geom );
-    ScalarField scharge( geom );
-
-    BiCGSTABSolver solver;
-    problem.set_solver( solver );
-    problem.solve( epot, scharge );
-
-    return( 0 );
-}
-\endcode
- *
- *  See class EpotProblem for more information in the reference manual.
- */
 
 
 /*! \brief Plasma modes

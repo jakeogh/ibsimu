@@ -1,7 +1,7 @@
-AC_INIT([libibsimu], [0.0.1], [tvkalvas@jyu.fi])
+AC_INIT([libibsimu], [1.0.0], [tvkalvas@jyu.fi])
 AM_CONFIG_HEADER(src/config.h)
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([0.0.1])
+AM_INIT_AUTOMAKE([1.0.0])
 
 dnl ---------------------------------
 dnl Check for programs
@@ -40,6 +40,23 @@ if test x$with_umfpack != xno ; then
 else
   AC_SUBST(UMFPACK_COND,"")
 fi
+
+
+AC_ARG_WITH([csg],
+  [AS_HELP_STRING([--with-csg],
+                  [enable optional support for csg solids])],
+                  [],
+                  [with_csg=no])
+LIBCSG=
+  AS_IF([test "x$with_csg" != xno],
+        [PKG_CHECK_MODULES(csg, csg)])
+AM_CONDITIONAL([CSG], [test x$with_csg != xno])
+if test x$with_csg != xno ; then
+  AC_SUBST(CSG_COND,csg)
+else
+  AC_SUBST(CSG_COND,"")
+fi
+
 
 dnl ---------------------------------
 dnl Check for libraries

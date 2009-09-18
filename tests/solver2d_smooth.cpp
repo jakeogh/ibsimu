@@ -1,6 +1,4 @@
 /*! \file solver2d_smooth.cpp 
- *  \brief Test solver with a 2d surfaces for edge smoothing
- *
  *  \test Test solver with a 2d surfaces for edge smoothing
  */
 
@@ -14,11 +12,9 @@
 #include "epot_efield.hpp"
 #include "error.hpp"
 
-#include "gtkplotter.hpp"
+#include "geomplotter.hpp"
 #include "frame.hpp"
-#include "solidplot.hpp"
-#include "particleplot.hpp"
-#include "eqpotplot.hpp"
+
 
 using namespace std;
 
@@ -37,57 +33,52 @@ bool solid2( double x, double y, double z )
 
 void test( int *argc, char ***argv )
 {
-    verbose_output = 1;
-
-    Geometry g( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.01 );
+    Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.01 );
     Solid *s1 = new FuncSolid( solid1 );
-    g.set_solid( 7, s1 );
+    geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
-    g.set_solid( 8, s2 );
-    g.set_boundary( 1, Bound(BOUND_DIRICHLET,  0.0) );
-    g.set_boundary( 2, Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 3, Bound(BOUND_DIRICHLET,  0.0) );
-    g.set_boundary( 4, Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
-    g.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
-    g.build_mesh();
+    geom.set_solid( 8, s2 );
+    geom.set_boundary( 1, Bound(BOUND_DIRICHLET,  0.0) );
+    geom.set_boundary( 2, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 3, Bound(BOUND_DIRICHLET,  0.0) );
+    geom.set_boundary( 4, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
+    geom.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
+    geom.build_mesh();
 
     EpotProblem p;
     //p.enable_smooth_solids( false );
-    p.construct( g );
-    g.debug_print();
-    p.debug_print();
+    p.construct( geom );
+    //geom.debug_print();
+    //p.debug_print();
 
-    ScalarField epot( g );
-    ScalarField scharge( g );
+    ScalarField epot( geom );
+    ScalarField scharge( geom );
 
     BiCGSTABSolver solver;
     p.set_solver( solver );
     p.solve( epot, scharge );
     
-    /*
-    GeomPlotter geomplotter;
-    geomplotter.set_size( 1024, 768 );
-    //geomplotter.set_range( 0.09, 0.12000001, 0.02, 0.04 );
-    geomplotter.set_meshlines( true );
-    geomplotter.set_geometry( g );
-    geomplotter.set_epot( epot );
-    pngplot( &geomplotter, "solver2d_smooth.png" );
-    */
+    GeomPlotter geomplotter( &geom );
+    geomplotter.set_mesh( true );
+    geomplotter.set_epot( &epot );
+    geomplotter.plot_png( "solver2d_smooth.png" );
 
+    /*
     GTKPlotter plotter( argc, argv );
     plotter.set_geometry( &g );
     plotter.set_scharge( &scharge );
     plotter.set_epot( &epot );
-    //plotter.set_particledatabase( &pdb );
     plotter.new_geometry_plot_window();
     plotter.run();
+    */
 }
 
 
 int main( int argc, char **argv )
 {
     try {
+	//verbose_output = 1;
 	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

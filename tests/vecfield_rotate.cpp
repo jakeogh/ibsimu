@@ -1,6 +1,4 @@
-/*! \file vecfield.cpp 
- *  \brief Test VectorField rotate functions
- *
+/*! \file vecfield_rotate.cpp 
  *  \test Test VectorField rotate functions
  *
  */

@@ -1,19 +1,5 @@
 /*! \file solvercyl_beam.cpp 
- *  \brief Test solver with a cylindrical problem with localized space charge.
- *
- *  \test The test consists of a cylindrical beam tube with radius 
- *  \f$ r_1 = 0.05\mathrm{~cm} \f$. There is a beam with radius \f$ r_0 = 
-    0.01\mathrm{~cm} \f$ in the tube with constant space charge 
- *  \f$ \rho = 1\cdot10^{-4}\mathrm{~C/m}^3 \f$ inside. The problem can
- *  be solved analytically by integrating the Poisson equation in the 
- *  two domains and by using the boundary conditions. The solution is
- *  \f{eqnarray*} \phi &=& -\frac{\rho}{4 \epsilon_0}r^2 + C, r <= r_0 \\
-                  \phi &=& A \log r + B, r > r_0, \f}
- *  where the constants are 
- *  \f[ A = -\frac{\rho r_0^2}{2 \epsilon_0} \mathrm{~and~} 
-        B = -A \log r_1 \mathrm{~and~} C = A \log \frac{r_0}{r_1} + 
-        \frac{\rho r_0^2}{4 \epsilon_0} \f]
- *
+ *  \test Test solver with a cylindrical problem with localized space charge.
  */
 
 

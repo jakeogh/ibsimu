@@ -1,19 +1,18 @@
-/*! \file vlasov2d.cpp 
- *  \brief Test with vlasov iteration in 2d electrode configuration.
- *
+/*! \file tests/vlasov2d.cpp 
  *  \test Test with vlasov iteration in 2d electrode configuration.
- *
  */
 
 
 #include <iostream>
 #include <iomanip>
-#include "fileplot.hpp"
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
+#include "vectorfield.hpp"
+#include "particledatabase.hpp"
+#include "geomplotter.hpp"
 #include "verbose.hpp"
 #include "error.hpp"
 
@@ -44,33 +43,33 @@ void test( void )
     verbose_output = 1;
     
     // 12x5 cm geometry with 0.05 cm mesh size
-    Geometry g( MODE_2D, Int3D(241,101,1), Vec3D(0,0,0), 0.0005 );
+    Geometry geom( MODE_2D, Int3D(241,101,1), Vec3D(0,0,0), 0.0005 );
     Solid *s1 = new FuncSolid( solid1 );
-    g.set_solid( 7, s1 );
+    geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
-    g.set_solid( 8, s2 );
+    geom.set_solid( 8, s2 );
     Solid *s3 = new FuncSolid( solid3 );
-    g.set_solid( 9, s3 );
-    g.set_boundary( 1, Bound(BOUND_NEUMANN,    -3.0e3) );
-    g.set_boundary( 2, Bound(BOUND_DIRICHLET,  -1.0e3) );
-    g.set_boundary( 3, Bound(BOUND_NEUMANN,     0.0  ) );
-    g.set_boundary( 4, Bound(BOUND_NEUMANN,     0.0  ) );
-    g.set_boundary( 7, Bound(BOUND_DIRICHLET,  -3.0e3) );
-    g.set_boundary( 8, Bound(BOUND_DIRICHLET, -14.0e3) );
-    g.set_boundary( 9, Bound(BOUND_DIRICHLET,  -1.0e3) );
-    g.build_mesh();
+    geom.set_solid( 9, s3 );
+    geom.set_boundary( 1, Bound(BOUND_NEUMANN,    -3.0e3) );
+    geom.set_boundary( 2, Bound(BOUND_DIRICHLET,  -1.0e3) );
+    geom.set_boundary( 3, Bound(BOUND_NEUMANN,     0.0  ) );
+    geom.set_boundary( 4, Bound(BOUND_NEUMANN,     0.0  ) );
+    geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  -3.0e3) );
+    geom.set_boundary( 8, Bound(BOUND_DIRICHLET, -14.0e3) );
+    geom.set_boundary( 9, Bound(BOUND_DIRICHLET,  -1.0e3) );
+    geom.build_mesh();
 
     EpotProblem p;
-    p.construct( g );
+    p.construct( geom );
 
-    ScalarField epot( g );
-    ScalarField scharge( g );
+    ScalarField epot( geom );
+    ScalarField scharge( geom );
 
     BiCGSTABSolver solver;
     p.set_solver( solver );
 
     VectorField bfield;
-    EpotEfield efield( g, epot );
+    EpotEfield efield( geom, epot );
     efield_extrpl_e efldextrpl[6] = {EFIELD_EXTRAPOLATE, EFIELD_EXTRAPOLATE, 
 				     EFIELD_MIRROR,EFIELD_EXTRAPOLATE,
 				     EFIELD_EXTRAPOLATE, EFIELD_EXTRAPOLATE };
@@ -82,29 +81,26 @@ void test( void )
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
 
-    for( size_t i = 0; i < 10; i++ ) {
+    for( size_t i = 0; i < 3; i++ ) {
 	p.solve( epot, scharge );
 	pdb.clear();
 	pdb.add_2d_beam_with_energy( 1000, 50.0, 1.0, 1.0, 
 				     3.0e3, 0.0, 0.0, 
 				     0.0, 0.0, 
 				     0.0, 0.012 );
-	pdb.iterate_trajectories( scharge, efield, bfield, g );
+	pdb.iterate_trajectories( scharge, efield, bfield, geom );
     }
 
-    GeomPlotter geomplotter;
+    GeomPlotter geomplotter( &geom );
     geomplotter.set_size( 1024, 768 );
-    //geomplotter.set_range( 0.09, 0.12000001, 0.02, 0.04 );
-    //geomplotter.set_meshlines( true );
-    geomplotter.set_geometry( g );
-    geomplotter.set_epot( epot );
+    geomplotter.set_epot( &epot );
     std::vector<double> eqlines;
     eqlines.push_back( -5.0 );
     eqlines.push_back( 0.0 );
     eqlines.push_back( +5.0 );
-    geomplotter.set_manual_eqlines( eqlines );
-    geomplotter.set_particledatabase( pdb );
-    pngplot( &geomplotter, "vlasov2d.png" );
+    geomplotter.set_eqlines_manual( eqlines );
+    geomplotter.set_particle_database( &pdb );
+    geomplotter.plot_png( "vlasov2d.png" );
 }
 
 

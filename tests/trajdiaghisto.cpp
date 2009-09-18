@@ -1,6 +1,4 @@
 /*! \file trajdiaghisto.cpp 
- *  \brief Test particle trajectory diagnostic histogram
- *
  *  \test Test particle trajectory diagnostic histogram
  *
  */
@@ -8,11 +6,13 @@
 
 #include <fstream>
 #include <iomanip>
-#include "fileplot.hpp"
 #include "geometry.hpp"
+#include "histogram.hpp"
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "epot_efield.hpp"
+#include "trajectory.hpp"
+#include "trajectorydiagnostics.hpp"
 #include "particles.hpp"
 #include "error.hpp"
 #include "verbose.hpp"
@@ -42,14 +42,16 @@ void test( void )
     c1.add_data(  0.0 );
     c2.add_data(  0.0 );
 
-    Histogram2D h( 11, 11, c1, c2 );
+    Histogram2D h( 11, 11, c1.data(), c2.data() );
 
+    /*
     for( int j = 10; j >= 0; j-- ) {
 	for( int i = 0; i < 11; i++ ) {
 	    cout << setw(12) << h(i,j) << " ";
 	}
 	cout << "\n";
     }
+    */
 }
 
 

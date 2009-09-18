@@ -3,7 +3,7 @@
 
 
 Ion Beam Simulator (IBSimu) library is made by Taneli Kalvas
-<tvkalvas@cc.jyu.fi>. All source code copyright (c) 2004-2009 Taneli
+<taneli.kalvas@jyu.fi>. All source code copyright (c) 2004-2009 Taneli
 Kalvas and The Regents of the University of California, through
 Lawrence Berkeley National Laboratory (subject to receipt of any
 required approvals from the U.S. Dept. of Energy). All rights
@@ -28,7 +28,7 @@ If you have questions about your rights to use or distribute this
 software, please contact Berkeley Lab's Technology Transfer
 Department at TTD@lbl.gov. Other questions, comments and bug
 reports should be sent directly to the author via email at
-tvkalvas@cc.jyu.fi.
+taneli.kalvas@jyu.fi.
 
 NOTICE. This software was developed under partial funding from the
 U.S.  Department of Energy.  As such, the U.S. Government has been
@@ -75,9 +75,19 @@ available and correctly installed, it should be pretty straightforward
 to compile the library using GNU autotools build system:
 
 1. First, run './configure' with necessary options.
-   * One possible option is the --prefix, which can be used to set the 
-     installation directory. For example --prefix=/home/homedir/ to 
+
+   * One possible option is the '--prefix', which can be used to set the 
+     installation directory. For example '--prefix=/home/homedir/' to 
      install under you home directory.
+
+   * Other configuration option is the selection of conditional 
+     compilation. The possible selectable compilations are:
+
+     A. UMFPACKSolver class, selected with option '--with-umfpack'.
+        You need to have UMFPACK and AMD installed with pkg-config
+	packages to use this option.
+     B. CSGObjectSolid class, selected with option '--with-csg'.
+        You need to have CSG library installed for this option
 
 2. Do 'make' to compile the library.
 
@@ -107,13 +117,30 @@ IBSimu needs at least the following libraries:
 
 These libraries are needed for optional features:
 
+- CSG -- Constructive Solid Geometry library (available at 
+  http://users.jyu.fi/~tvkalvas/code/csg/).
 - SuiteSparse -- Sparse matrix package by Tim Davis (a modified copy 
-  available at http://users.jyu.fi/~tvkalvas/code/suitesparse).
+  available at http://users.jyu.fi/~tvkalvas/code/suitesparse/).
 - BLAS -- Basic linear algebra subprograms package (several versions
-  available, for example the reference blas at 
-  http://www.netlib.org/blas/ (this is slow), GOTO BLAS at 
-  http://www.tacc.utexas.edu/resources/software/ or ATLAS at 
-  http://math-atlas.sourceforge.net/).
+  available, for example the reference blas:
+  http://www.netlib.org/blas/ (this is slow), or faster/better options:
+  GOTO BLAS at http://www.tacc.utexas.edu/resources/software/ or 
+  ATLAS at http://math-atlas.sourceforge.net/).
+
+
+
+Compiling against the library
+-----------------------------
+
+The IBSimu library uses GNU autotools including pkg-config. Therefore
+the compilation of a program is rather simple. For compilation with
+GNU C++ compiler for example, do
+
+> g++ -Wall -g `pkg-config --cflags ibsimu` -c -o simu.o simu.cpp
+
+The linkin can be done by
+
+> cc `pkg-config --libs ibsimu` simu.o -o simu
 
 
 
@@ -121,9 +148,9 @@ Documentation
 -------------
 
 IBSimu is using Doxygen documentation system for building the
-documentation from source code metadata. See directories doc/html and
-doc/latex for built documentation or do 'make doc' for generating the
-docs.
+reference manual from documentation blocks included in the source
+code. See directory doc/html and for built HTML documentation or do
+'make doc' for generating the docs.
 
 
 
@@ -133,9 +160,9 @@ Acknowledgements
 I would like to thank fellow workers at LBNL including S. K. Hahto,
 J. H.  Vainionpää and J. Reijonen for fruitful discussions on
 simulation codes and for giving me time and the possibility to develop
-the code. Also I would like to thank J.~H.~Sarén for brainstorming the
+the code. Also I would like to thank J. H. Sarén for brainstorming the
 C++ version of the code with me.
 
 
 
--- Taneli Kalvas <taneli.kalvas@jyu.fi>, 02 Sep 2009
+-- Taneli Kalvas <taneli.kalvas@jyu.fi>, 18 Sep 2009

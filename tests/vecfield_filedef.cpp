@@ -1,6 +1,4 @@
 /*! \file vecfield_filedef.cpp 
- *  \brief Test VectorField definition from ascii file
- *
  *  \test Test VectorField definition from ascii file
  */
 
@@ -21,7 +19,7 @@ void test( void )
 
     bool fout[3] = {false, false, true};
     VectorField f( MODE_2D, fout, 1.0, 1.0, "vecfield_filedef.dat" );
-    f.debug_print();
+    //f.debug_print();
 }
 
 

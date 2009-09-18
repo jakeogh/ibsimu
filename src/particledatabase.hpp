@@ -1,7 +1,44 @@
 /*! \file particledatabase.hpp
- *  \brief Header file defining particle database classes
+ *  \brief Header file for particledatabase.hpp
  */
 
+/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+ *
+ * You can redistribute this software and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ * 
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this library (file "COPYING" included in the package);
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * 
+ * If you have questions about your rights to use or distribute this
+ * software, please contact Berkeley Lab's Technology Transfer
+ * Department at TTD@lbl.gov. Other questions, comments and bug
+ * reports should be sent directly to the author via email at
+ * tvkalvas@cc.jyu.fi.
+ * 
+ * NOTICE. This software was developed under partial funding from the
+ * U.S.  Department of Energy.  As such, the U.S. Government has been
+ * granted for itself and others acting on its behalf a paid-up,
+ * nonexclusive, irrevocable, worldwide license in the Software to
+ * reproduce, prepare derivative works, and perform publicly and
+ * display publicly.  Beginning five (5) years after the date
+ * permission to assert copyright is obtained from the U.S. Department
+ * of Energy, and subject to any subsequent five (5) year renewals,
+ * the U.S. Government is granted for itself and others acting on its
+ * behalf a paid-up, nonexclusive, irrevocable, worldwide license in
+ * the Software to reproduce, prepare derivative works, distribute
+ * copies to the public, perform publicly and display publicly, and to
+ * permit others to do so.
+ */
 
 #ifndef PARTICLEDATABASE_HPP
 #define PARTICLEDATABASE_HPP 1
@@ -15,49 +52,6 @@
 #include "particleiterator.hpp"
 #include "trajectorydiagnostics.hpp"
 
-
-
-/*! \page p_pdb %Particle database
- *
- *  %Particle trajectory calculation in simulations is handled through
- *  a ParticleDataBase class. %Particle database is the class that
- *  contains the particle definitions, saved particle trajectories and
- *  settings for particle calculation. The particle database calls
- *  other objects for doing the calculation itself but as far as the
- *  user is conserned the particle database is the front end to all
- *  particle related issues. Individual particles in simulations are
- *  represented by the Particle classes Particle2D, ParticleCyl and
- *  Particle3D. The particle coordinate sets ((t,x,vx,y,vy) in 2D
- *  simulations for example) are represented by the particle point
- *  classes ParticleP2D, ParticlePCyl and ParticleP3D.
- *
- *  The following partial example code shown the use of particle
- *  database for definining and calculating a particle beam.
- *
-\code
-#include "particledatabase.hpp"
-
-int main( void )
-{
-    ...
-
-    ParticleDataBase2D pdb;
-    pdb.set_thread_count( 4 );
-    bool pmirror[6] = { false, false, true, false, false, false };
-    pdb.set_mirror( pmirror );
-    pdb.set_polyint( true );
-    pdb.add_2d_beam_with_energy( 30000, 600.0, 1.0, 1.0, 
-                                 5.0, 0.0, 0.5, 
-				 0.0, 0.0, 
-				 0.0, 0.0015 );
-    pdb.iterate_trajectories( scharge, efield, bfield, geom );
-
-    ...
-}
-\endcode
- *
- *
- */ 
 
 
 /* ************************************************************************************************ *

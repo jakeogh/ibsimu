@@ -1,10 +1,47 @@
 /*! \file gtkplotter.hpp
- *  \brief Header file for simulation plotter
+ *  \brief Header file for gtkplotter.hpp
  */
 
+/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+ *
+ * You can redistribute this software and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ * 
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this library (file "COPYING" included in the package);
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * 
+ * If you have questions about your rights to use or distribute this
+ * software, please contact Berkeley Lab's Technology Transfer
+ * Department at TTD@lbl.gov. Other questions, comments and bug
+ * reports should be sent directly to the author via email at
+ * tvkalvas@cc.jyu.fi.
+ * 
+ * NOTICE. This software was developed under partial funding from the
+ * U.S.  Department of Energy.  As such, the U.S. Government has been
+ * granted for itself and others acting on its behalf a paid-up,
+ * nonexclusive, irrevocable, worldwide license in the Software to
+ * reproduce, prepare derivative works, and perform publicly and
+ * display publicly.  Beginning five (5) years after the date
+ * permission to assert copyright is obtained from the U.S. Department
+ * of Energy, and subject to any subsequent five (5) year renewals,
+ * the U.S. Government is granted for itself and others acting on its
+ * behalf a paid-up, nonexclusive, irrevocable, worldwide license in
+ * the Software to reproduce, prepare derivative works, distribute
+ * copies to the public, perform publicly and display publicly, and to
+ * permit others to do so.
+ */
 
-#ifndef GTK_PLOTTER_HPP
-#define GTK_PLOTTER_HPP 1
+#ifndef GTKPLOTTER_HPP
+#define GTKPLOTTER_HPP 1
 
 
 #include <cairo.h>
@@ -19,40 +56,6 @@
 #include "particledatabase.hpp"
 #include "particlediagplot.hpp"
 #include "fielddiagplot.hpp"
-
-
-/*! \page p_gtk_plotter GTK %Plotter
- *
- *  The interactive plotter is started by GTKPlotter. This object has
- *  to be created and given the data to plot with functions
- *  set_geometry(), set_epot(), etc. Then the a geometry plot can be
- *  started by calling new_geometry_plot_window() and run(). The
- *  simulation progress is halted while any plotter windows exist. See
- *  the following example:
- *
-\code
-    Geometry geom( MODE_2D, Int3D( 41, 41, 1 ), Vec3D( 0, 0, 0 ), 0.0025 );
-    geom.set_boundary( 1, Bound(BOUND_NEUMANN,    0.0) );
-    geom.set_boundary( 2, Bound(BOUND_NEUMANN,    0.0) );
-    geom.set_boundary( 3, Bound(BOUND_NEUMANN,    0.0) );
-    geom.set_boundary( 4, Bound(BOUND_DIRICHLET,  0.0) );
-    geom.build_mesh();
-
-    EpotProblem problem;
-    problem.construct( geom );
-    BiCGSTABSolver solver;
-    problem.set_solver( solver );
-    problem.solve( epot, scharge );
-
-    GTKPlotter plotter( argc, argv );
-    plotter.set_geometry( &geom );
-    plotter.set_epot( &epot );
-    plotter.new_geometry_plot_window();
-    plotter.run();
-\endcode
- *
- *  See class GTKPlotter for more information.
- */
 
 
 /*! \brief GTK %Plotter class

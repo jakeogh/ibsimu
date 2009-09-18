@@ -1,5 +1,5 @@
 /*! \file bicgstab.hpp
- *  \brief Header file for BiCGSTAB solver.
+ *  \brief Header file for bicgstab.hpp
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
@@ -39,7 +39,6 @@
  * copies to the public, perform publicly and display publicly, and to
  * permit others to do so.
  */
-
 
 #ifndef BICGSTAB_HPP
 #define BICGSTAB_HPP 1

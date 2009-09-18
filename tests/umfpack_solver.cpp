@@ -1,6 +1,4 @@
-/*! \file umfpack_solver.cpp 
- *  \brief Test UMFPACK solver with a 2d problem made of two concentric cylinders.
- *
+/*! \file tests/umfpack_solver.cpp 
  *  \test Test UMFPACK solver with a 2d problem made of two concentric cylinders.
  */
 
