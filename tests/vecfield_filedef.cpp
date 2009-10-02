@@ -3,6 +3,7 @@
  */
 
 
+#include <cstdlib>
 #include <iostream>
 #include <iomanip>
 #include "vectorfield.hpp"
@@ -15,8 +16,6 @@ using namespace std;
 
 void test( void )
 {
-    verbose_output = 1;
-
     bool fout[3] = {false, false, true};
     VectorField f( MODE_2D, fout, 1.0, 1.0, "vecfield_filedef.dat" );
     //f.debug_print();
@@ -26,6 +25,7 @@ void test( void )
 int main( void )
 {
     try {
+	verbose_output = 0;
 	test();
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

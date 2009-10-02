@@ -1,3 +1,9 @@
+/*! \file matrixsolver.cpp 
+ *  \test Test internal matrix solvers.
+ */
+
+
+#include <cstdlib>
 #include "bicgstab.hpp"
 #include "crowmatrix.hpp"
 #include "ccolmatrix.hpp"
@@ -5,7 +11,7 @@
 #include "empty_precond.hpp"
 #include "diag_precond.hpp"
 #include "ilu0_precond.hpp"
-#include "gauss_seidel.hpp"
+#include "gs_solver.hpp"
 #include "hbio.hpp"
 
 
@@ -19,7 +25,7 @@ void test( void )
     CRowMatrix mat;
     HBIO hb;
     double x, w;
-    uint32_t imax[4];
+    int imax[4];
     double eps[4];
     string filename = "matrixsolver.hb";
     bool failed = false;
@@ -62,7 +68,7 @@ void test( void )
     w = 1.66;
     eps[3] = 1.0e-9;
     imax[3] = 100000;
-    if( !gauss_seidel( mat, rhs, sol[3], imax[3], eps[3], w ) ) {
+    if( !GSSolver::gauss_seidel( mat, rhs, sol[3], imax[3], eps[3], w ) ) {
 	cout << "Gauss-Seidel solver failed.\n";
 	exit( 1 );
     }

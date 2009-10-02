@@ -47,7 +47,11 @@
 #include "polysolver.hpp"
 
 
-void TrajectoryRep1D::construct( double dt, double x1, double v1, double x2, double v2,
+//#define DEBUG_TRAJECTORY 1
+
+
+void TrajectoryRep1D::construct( double dt, double x1, double v1, 
+				 double x2, double v2,
 				 trajectory_rep_e force )
 {
     double sca = 1.0/(x2-x1);
@@ -105,7 +109,8 @@ void TrajectoryRep1D::construct( double dt, double x1, double v1, double x2, dou
 }
 
 
-TrajectoryRep1D::TrajectoryRep1D( double dt, double x1, double v1, double x2, double v2,
+TrajectoryRep1D::TrajectoryRep1D( double dt, double x1, double v1, 
+				  double x2, double v2,
 				  trajectory_rep_e force )
 {
     construct( dt, x1, v1, x2, v2, force );
@@ -136,20 +141,49 @@ void TrajectoryRep1D::coord( double &x, double &v, double K )
 
 int TrajectoryRep1D::solve( double K[3], double x )
 {
+#ifdef DEBUG_TRAJECTORY
+    std::cout << "solve( x = " << x << " ):\n";
+    switch( _rep ) {
+    case TRAJ_EMPTY:
+	std::cout << "  rep = TRAJ_EMPTY\n";
+	break;
+    case TRAJ_LINEAR:
+	std::cout << "  rep = TRAJ_LINEAR\n";
+	break;
+    case TRAJ_QUADRATIC:
+	std::cout << "  rep = TRAJ_QUADRATIC\n";
+	break;
+    case TRAJ_CUBIC:
+	std::cout << "  rep = TRAJ_CUBIC\n";
+	break;
+    };
+#endif
+
     switch( _rep ) {
     case TRAJ_EMPTY:
 	throw( Error( ERROR_LOCATION, "empty representation" ) );
 	break;
     case TRAJ_LINEAR:
+    {
 	if( _A == 0.0 )
 	    return( 0 );
-	K[0] = (x-_B) / _A;
+	// Some tests fail here of spotting K equal to one
+	// Rounding to 64-bit from 80-bit help
+	// This is really not the way to go... temporary
+	volatile double KT = (x-_B) / _A;
+	K[0] = KT;
 	if( K[0] > 0.0 && K[0] <= 1.0 )
 	    return( 1 );
 	break;
+    }
     case TRAJ_QUADRATIC:
     {
 	int nroots = solve_quadratic( _A, _B, _C-x, &K[0], &K[1] );
+#ifdef DEBUG_TRAJECTORY
+	std::cout << "  nroots = " << nroots << "\n";
+	for( int a = 0; a < nroots; a++ )
+	    std::cout << "  K[" << a << "] = " << K[a] <<"\n";
+#endif
 	if( nroots == 0 ) {
 	    return( 0 );
 	} else if( nroots == 1 ) {

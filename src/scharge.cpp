@@ -44,6 +44,9 @@
 #include "verbose.hpp"
 
 
+//#define DEBUG_SCHARGE 1
+
+
 void scharge_finalize( ScalarField &scharge )
 {
     if( verbose_output )
@@ -133,18 +136,22 @@ void scharge_add_from_trajectory( ScalarField &scharge, double IQ,
     double t[2];
     int i[2];
 
-    //std::cout << "Calculating space charge\n";
-    //std::cout << "x1 = " << x1 << "\n";
-    //std::cout << "x2 = " << x2 << "\n";
+#ifdef DEBUG_SCHARGE
+    std::cout << "Calculating space charge\n";
+    std::cout << "x1 = " << x1 << "\n";
+    std::cout << "x2 = " << x2 << "\n";
+#endif
     for( size_t a = 0; a < 2; a++ ) {
 	x[a] = 0.5*( x1[2*a+1] + x2[2*a+1] );
 	i[a] = (int)floor( ( x[a]-scharge.origo(a) ) * scharge.div_h() );
 	t[a] = ( x[a]-(i[a]*scharge.h()+scharge.origo(a)) ) * scharge.div_h();
 	
-	//std::cout << "a = " << a << "\n";
-	//std::cout << "x = " << x[a] << "\n";
-	//std::cout << "i = " << i[a] << "\n";
-	//std::cout << "t = " << t[a] << "\n";
+#ifdef DEBUG_SCHARGE
+	std::cout << "a = " << a << "\n";
+	std::cout << "x = " << x[a] << "\n";
+	std::cout << "i = " << i[a] << "\n";
+	std::cout << "t = " << t[a] << "\n";
+#endif
 
 	// Add charge to boundaries when over simulation area
 	if( i[a] < 0 ) {
@@ -166,9 +173,11 @@ void scharge_add_from_trajectory( ScalarField &scharge, double IQ,
     */
 
     double Q = IQ*(x2[0]-x1[0]); // Q = I*dt
-    //std::cout << "IQ = " << IQ << "\n";
-    //std::cout << "dt = " << (x2[0]-x1[0]) << "\n";
-    //std::cout << "Q = " << Q << "\n\n";
+#ifdef DEBUG_SCHARGE
+    std::cout << "IQ = " << IQ << "\n";
+    std::cout << "dt = " << (x2[0]-x1[0]) << "\n";
+    std::cout << "Q = " << Q << "\n\n";
+#endif
     int p = scharge.size(0)*i[1] + i[0];
     scharge( p )                   += (1.0-t[0])*(1.0-t[1])*Q;
     scharge( p+scharge.size(0) )   += (1.0-t[0])*t[1]*Q;

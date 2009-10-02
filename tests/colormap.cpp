@@ -1,6 +1,4 @@
 /*! \file colormap.cpp 
- *  \brief Test colormap.
- *
  *  \test Test colormap.
  */
 
@@ -8,6 +6,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
+#include <cstdlib>
 #include "frame.hpp"
 #include "xygraph.hpp"
 #include "colormap.hpp"
@@ -49,7 +48,7 @@ void test( void )
     }
     Colormap colormap( datarange, 15, 15, data );
     colormap.set_palette( palette );
-    f.add_drawable( PLOT_AXIS_X1, PLOT_AXIS_Y1, &colormap );
+    f.add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, &colormap );
 
     // Closest interpolation
     colormap.set_interpolation( INTERPOLATION_CLOSEST );

@@ -1,21 +1,19 @@
 /*! \file solver2d_cylindrical_beam.cpp 
- *  \brief Test solver with a 2d problem with cylindrical symmetry and beam.
- *
- *  \test The test consists of a cylindrical beam tube with a
- *  cylindrical beam inside. The test is a 2d mesh version of the
- *  problem described in solvercyl_beam.cpp.
+ *  \test Test solver with a 2d problem with cylindrical symmetry and beam.
  */
 
 
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
-#include "fileplot.hpp"
+#include "geomplotter.hpp"
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
 #include "error.hpp"
+#include "verbose.hpp"
 
 
 using namespace std;
@@ -40,27 +38,25 @@ double phi( double r )
 
 void test( void )
 {
-    Geometry g( MODE_2D, Int3D(121,121,1), Vec3D(0,0,0), 0.0005 );
+    Geometry geom( MODE_2D, Int3D(121,121,1), Vec3D(0,0,0), 0.0005 );
     Solid *s1 = new FuncSolid( solid1 );
-    g.set_solid( 7, s1 );
-    g.set_boundary( 1, Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 2, Bound(BOUND_DIRICHLET,  0.0) );
-    g.set_boundary( 3, Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 4, Bound(BOUND_DIRICHLET,  0.0) );
-    g.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
-    g.build_mesh();
+    geom.set_solid( 7, s1 );
+    geom.set_boundary( 1, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 2, Bound(BOUND_DIRICHLET,  0.0) );
+    geom.set_boundary( 3, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 4, Bound(BOUND_DIRICHLET,  0.0) );
+    geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
+    geom.build_mesh();
 
     EpotProblem p;
-    p.construct( g );
-    //g.debug_print();
-    //p.debug_print();
+    p.construct( geom );
 
-    ScalarField epot( g );
-    ScalarField scharge( g );
-    for( int a = 0; a < g.size(0); a++ ) {
-	for( int b = 0; b < g.size(1); b++ ) {
-	    double x = a*g.h();
-	    double y = b*g.h();
+    ScalarField epot( geom );
+    ScalarField scharge( geom );
+    for( int a = 0; a < geom.size(0); a++ ) {
+	for( int b = 0; b < geom.size(1); b++ ) {
+	    double x = a*geom.h();
+	    double y = b*geom.h();
 	    if( sqrt(x*x + y*y) < 0.01 )
 		scharge(a,b) = 1.0e-4;
 	}
@@ -78,10 +74,10 @@ void test( void )
 	 << setw(14) << "r (m)" << " " 
 	 << setw(14) << "potential (V)" << " "
 	 << setw(14) << "theory (V)" << "\n";
-    for( int a = 0; a < g.size(0); a++ ) {
-	for( int b = 0; b < g.size(1); b++ ) {
-	    double x = a*g.h();
-	    double y = b*g.h();
+    for( int a = 0; a < geom.size(0); a++ ) {
+	for( int b = 0; b < geom.size(1); b++ ) {
+	    double x = a*geom.h();
+	    double y = b*geom.h();
 	    double r = sqrt(x*x + y*y);
 	    // Allow 10 % relative error and 10 V absolute error
 	    if( r < 0.05 && fabs( (epot(a,b) - phi(r))/phi(r) ) > 0.10 &&
@@ -107,6 +103,7 @@ void test( void )
 int main( void )
 {
     try {
+	verbose_output = 0;
 	test();
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

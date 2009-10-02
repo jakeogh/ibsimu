@@ -3,10 +3,12 @@
  */
 
 
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include "vectorfield.hpp"
 #include "error.hpp"
+#include "verbose.hpp"
 
 
 using namespace std;
@@ -22,7 +24,6 @@ void test( void )
     f.set(1,0,Vec3D(0,0,1.5));
     f.set(0,1,Vec3D(0,0,1));
     f.set(1,1,Vec3D(0,0,-1.5));
-    //f.debug_print();
 
     ofstream ostr( "vecfield.dat" );
     ostr << "# "
@@ -44,6 +45,7 @@ void test( void )
 int main( void )
 {
     try {
+	verbose_output = 0;
 	test();
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

@@ -1,10 +1,9 @@
-/* sclfield.cpp -- Test ScalarField class
- *
- *
+/*! \file sclfield.cpp
+ *  \test Test for ScalarField class
  */
 
 
-
+#include <cstdlib>
 #include <iostream>
 #include <iomanip>
 #include "scalarfield.hpp"

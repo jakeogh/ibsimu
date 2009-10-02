@@ -1,10 +1,9 @@
 /*! \file histogram.cpp 
- *  \brief Test histogram.
- *
  *  \test Test histogram.
  *
  */
 
+#include <cstdlib>
 #include <iostream>
 #include <iomanip>
 #include <vector>

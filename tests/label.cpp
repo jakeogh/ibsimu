@@ -1,10 +1,9 @@
 /*! \file label.cpp 
- *  \brief Test label.
- *
  *  \test Test label.
  */
 
 
+#include <cstdlib>
 #include <iostream>
 #include <iomanip>
 #include <cairo.h>
@@ -16,7 +15,8 @@
 using namespace std;
 
 
-void draw_extents( cairo_t *cairo, double x, double y, const cairo_text_extents_t *extents )
+void draw_extents( cairo_t *cairo, double x, double y, 
+		   const cairo_text_extents_t *extents )
 {
     cairo_set_source_rgb( cairo, 1, 0, 0 );
     cairo_set_line_width( cairo, 1 );
@@ -57,13 +57,15 @@ void draw_bbox( cairo_t *cairo, const double bbox[4] )
 {
     cairo_set_source_rgb( cairo, 1, 0, 0 );
     cairo_set_line_width( cairo, 1 );
-    cairo_rectangle( cairo, bbox[0], bbox[1], bbox[2]-bbox[0], bbox[3]-bbox[1] );
+    cairo_rectangle( cairo, bbox[0], bbox[1], 
+		     bbox[2]-bbox[0], bbox[3]-bbox[1] );
     cairo_stroke( cairo );
 }
 
 void test( void )
 {
-    cairo_surface_t *surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, 640, 480 );
+    cairo_surface_t *surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32,
+							   640, 480 );
     cairo_t *cairo = cairo_create( surface );
 
     cairo_set_source_rgb( cairo, 1, 0, 0 );

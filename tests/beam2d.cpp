@@ -1,14 +1,11 @@
 /*! \file beam2d.cpp 
- *  \brief Test with a beam in 2d system.
- *
  *  \test Test with a beam in 2d system. Space charge on axis is checked.
- *
  */
 
 
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
-
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "geometry.hpp"
@@ -25,9 +22,7 @@ using namespace std;
 
 
 void test( int *argc, char ***argv )
-{
-    verbose_output = 1;
-    
+{    
     // 10x10 cm geometry with 0.25 cm mesh
     Geometry g( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.0025 );
     g.set_boundary( 1, Bound(BOUND_NEUMANN,  0.0) );
@@ -51,13 +46,15 @@ void test( int *argc, char ***argv )
 
     ParticleDataBase2D pdb;
     pdb.set_thread_count( 1 );
-    bool pmirror[6] = { false, false, true, false, false, false };
+    bool pmirror[6] = { false, false, false, false, false, false };
     pdb.set_mirror( pmirror );
-    pdb.add_2d_beam_with_energy( 1000, 50.0, 1.0, 1.0, 
+    pdb.add_2d_beam_with_energy( 100, 50.0, 1.0, 1.0, 
 				 3.0e3, 0.0, 0.0, 
 				 0.0, 0.0, 
 				 0.0, 0.009 );
+    //pdb.debug_print();
     pdb.iterate_trajectories( scharge, efield, bfield, g );
+    //pdb.debug_print();
     p.solve( epot, scharge );
 
     // Write calculated space charge and epot to file
@@ -80,7 +77,8 @@ void test( int *argc, char ***argv )
 	      << setw(14) << scharge( x ) << "\n";
 	for( int i = 0; i < g.size(0); i++ ) {
 	    Vec3D x( g.h()*i, g.h()*j, 0.0  );
-	    if( j == 0 && fabs(scharge(x)-6.57148899428e-5) > 1e-9 )
+	    // Check space charge density on axis
+	    if( j == 0 && fabs(scharge(x)-6.57148899428e-5) > 1e-8 )
 		err = true;
 	    ostr << setw(14) << x[0] << " "
 		 << setw(14) << x[1] << " "
@@ -91,7 +89,9 @@ void test( int *argc, char ***argv )
     }
     ostr << "\n\n";
     ostr.close();
+    ostr2.close();
 
+    /*
     GTKPlotter plotter( argc, argv );
     plotter.set_geometry( &g );
     plotter.set_epot( &epot );
@@ -99,6 +99,7 @@ void test( int *argc, char ***argv )
     plotter.set_particledatabase( &pdb );
     plotter.new_geometry_plot_window();
     plotter.run();
+    */
 
     if( err ) {
 	std::cout << "Error: calculated space charge differs from theory\n";
@@ -110,6 +111,7 @@ void test( int *argc, char ***argv )
 int main( int argc, char **argv )
 {
     try {
+	verbose_output = 0;
 	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

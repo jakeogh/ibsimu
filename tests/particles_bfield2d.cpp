@@ -1,18 +1,12 @@
 /*! \file particles_bfield2d.cpp 
- *  \brief Test particle iterator in constant magnetic field in 2d geometry.
- *
- *  \test  Test particle iterator in constant magnetic field 
- *  and no electric field. %Particle trajectory is checked. The
- *  particle trajectory should be circular with radius
- *  \f[ r = \frac{mv}{qB} = \frac{1\mathrm{~u} \cdot 2\cdot10^6}
-    {1\mathrm{~e} \cdot 1\mathrm{~T}} = 0.020728544\mathrm{~m} \f]
- *
+ *  \test  Test particle iterator in 2D in constant magnetic field.
  */
 
 
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
-#include "fileplot.hpp"
+#include "geomplotter.hpp"
 #include "geometry.hpp"
 #include "bicgstab_solver.hpp"
 #include "vectorfield.hpp"
@@ -30,25 +24,25 @@ void test( void )
 {
     verbose_output = 0;
 
-    Geometry g( MODE_2D, Int3D(11,11,1), Vec3D(-0.05,-0.05,0.0), 0.01 );
-    g.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
-    g.set_boundary( 2, Bound(BOUND_DIRICHLET,    0.0) );
-    g.set_boundary( 3, Bound(BOUND_DIRICHLET,    0.0) );
-    g.set_boundary( 4, Bound(BOUND_DIRICHLET,    0.0) );
-    g.build_mesh();
+    Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(-0.05,-0.05,0.0), 0.01 );
+    geom.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
+    geom.set_boundary( 2, Bound(BOUND_DIRICHLET,    0.0) );
+    geom.set_boundary( 3, Bound(BOUND_DIRICHLET,    0.0) );
+    geom.set_boundary( 4, Bound(BOUND_DIRICHLET,    0.0) );
+    geom.build_mesh();
     //g.debug_print();
 
     EpotProblem p;
-    p.construct( g );
+    p.construct( geom );
 
-    ScalarField epot( g );
-    ScalarField scharge( g );
+    ScalarField epot( geom );
+    ScalarField scharge( geom );
 
     BiCGSTABSolver solver;
     p.set_solver( solver );
     p.solve( epot, scharge );
     
-    EpotEfield efield( g, epot );
+    EpotEfield efield( geom, epot );
 
     // Make magnetic field
     bool fout[3] = {false,false,true};
@@ -62,7 +56,7 @@ void test( void )
     pdb.set_thread_count( 1 );
     pdb.set_max_steps( 100 );
     pdb.add_particle( 0.0, 1.0, 1.0, ParticleP2D( 0, -0.020728544449, 0.0, 0.0, 2e6 ) );
-    pdb.iterate_trajectories( scharge, efield, bfield, g );
+    pdb.iterate_trajectories( scharge, efield, bfield, geom );
     //pdb.debug_print();
 
     // Check particle trajectory points
@@ -84,11 +78,10 @@ void test( void )
 	    err = true;
     }
 
-    GeomPlotter geomplotter;
-    geomplotter.set_geometry( g );
-    geomplotter.set_epot( epot );
-    geomplotter.set_particledatabase( pdb );
-    pngplot( &geomplotter, "particles_bfield2d.png" );
+    GeomPlotter geomplotter( &geom );
+    geomplotter.set_epot( &epot );
+    geomplotter.set_particle_database( &pdb );
+    geomplotter.plot_png( "particles_bfield2d.png" );
 
     ostr.close();
     if( err ) {

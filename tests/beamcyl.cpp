@@ -1,14 +1,12 @@
 /*! \file beamcyl.cpp 
- *  \brief Test with a beam in cylindrical system.
- *
- *  \test Test with a beam in cylindrical system. Space charge on axis is checked.
- *
+ *  \test Test with a beam in cylindrical system. Space 
+ *  charge on axis is checked.
  */
 
 
 #include <fstream>
 #include <iomanip>
-#include "fileplot.hpp"
+#include "geomplotter.hpp"
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "geometry.hpp"
@@ -26,24 +24,24 @@ void test( void )
     verbose_output = 1;
     
     // 10x10 cm geometry with 0.25 cm mesh
-    Geometry g( MODE_CYL, Int3D(41,41,1), Vec3D(0,0,0), 0.0025 );
-    g.set_boundary( 1, Bound(BOUND_NEUMANN,  0.0) );
-    g.set_boundary( 2, Bound(BOUND_NEUMANN,  0.0) );
-    g.set_boundary( 3, Bound(BOUND_NEUMANN,  0.0) );
-    g.set_boundary( 4, Bound(BOUND_DIRICHLET,  0.0) );
-    g.build_mesh();
+    Geometry geom( MODE_CYL, Int3D(41,41,1), Vec3D(0,0,0), 0.0025 );
+    geom.set_boundary( 1, Bound(BOUND_NEUMANN,  0.0) );
+    geom.set_boundary( 2, Bound(BOUND_NEUMANN,  0.0) );
+    geom.set_boundary( 3, Bound(BOUND_NEUMANN,  0.0) );
+    geom.set_boundary( 4, Bound(BOUND_DIRICHLET,  0.0) );
+    geom.build_mesh();
 
     EpotProblem p;
-    p.construct( g );
+    p.construct( geom );
 
-    ScalarField epot( g );
-    ScalarField scharge( g );
+    ScalarField epot( geom );
+    ScalarField scharge( geom );
 
     BiCGSTABSolver solver;
     p.set_solver( solver );
     p.solve( epot, scharge );
 
-    EpotEfield efield( g, epot );
+    EpotEfield efield( geom, epot );
     VectorField bfield;
 
     ParticleDataBaseCyl pdb;
@@ -54,7 +52,7 @@ void test( void )
 				 3.0e3, 0.0, 0.0, 
 				 0.0, 0.0, 
 				 0.0, 0.009 );
-    pdb.iterate_trajectories( scharge, efield, bfield, g );
+    pdb.iterate_trajectories( scharge, efield, bfield, geom );
     p.solve( epot, scharge );
 
     // Write calculated space charge and epot to file
@@ -73,14 +71,14 @@ void test( void )
          << setw(12) << "E_z (V/m)" << " "
          << setw(14) << "scharge (C/m3)" << "\n";
     bool err = false;
-    for( int j = 0; j < g.size(1); j++ ) {
-	Vec3D x( 0.05, g.h()*j, 0.0  );
+    for( int j = 0; j < geom.size(1); j++ ) {
+	Vec3D x( 0.05, geom.h()*j, 0.0  );
 	ostr2 << setw(14) << x[1] << " "
 	      << setw(14) << epot( x ) << " "
 	      << setw(14) << efield( x ) << " "
 	      << setw(14) << scharge( x ) << "\n";
-	for( int i = 0; i < g.size(0); i++ ) {
-	    Vec3D x( g.h()*i, g.h()*j, 0.0  );
+	for( int i = 0; i < geom.size(0); i++ ) {
+	    Vec3D x( geom.h()*i, geom.h()*j, 0.0  );
 	    if( j == 0 && fabs(scharge(x)-6.57148899428e-5) > 1e-9 )
 		err = true;
 	    ostr << setw(14) << x[0] << " "
@@ -93,14 +91,12 @@ void test( void )
     ostr << "\n\n";
     ostr.close();
 
-    GeomPlotter geomplotter;
+    GeomPlotter geomplotter( &geom );
     geomplotter.set_size( 640, 480 );
-    //geomplotter.set_range( 0.09, 0.12000001, 0.02, 0.04 );
-    geomplotter.set_meshlines( true );
-    geomplotter.set_geometry( g );
-    geomplotter.set_epot( epot );
-    geomplotter.set_particledatabase( pdb );
-    pngplot( &geomplotter, "beamcyl.png" );
+    geomplotter.set_mesh( true );
+    geomplotter.set_epot( &epot );
+    geomplotter.set_particle_database( &pdb );
+    geomplotter.plot_png( "beamcyl.png" );
 
     if( err ) {
 	std::cout << "Error: calculated space charge differs from theory\n";

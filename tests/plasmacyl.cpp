@@ -1,11 +1,9 @@
 /*! \file plasmacyl.cpp 
- *  \brief Test with a plasma in cylindrical electrode configuration.
- *
  *  \test Test with a plasma in cylindrical electrode configuration.
- *
  */
 
 
+#include <cstdlib>
 #include <sstream>
 #include <fstream>
 #include <iomanip>
@@ -20,10 +18,7 @@
 #include "error.hpp"
 
 #include "gtkplotter.hpp"
-#include "frame.hpp"
-#include "solidplot.hpp"
-#include "particleplot.hpp"
-#include "eqpotplot.hpp"
+
 
 using namespace std;
 

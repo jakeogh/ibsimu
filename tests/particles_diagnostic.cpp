@@ -1,19 +1,19 @@
 /*! \file particles_diagnostic.cpp 
- *  \brief Test particle diagnostic tool
- *
- *  \test Test particle diagnostic tool
+ *  \test Test particle diagnostic tool.
  *
  */
 
 
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
-#include "fileplot.hpp"
+#include "geomplotter.hpp"
 #include "geometry.hpp"
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "epot_efield.hpp"
 #include "particles.hpp"
+#include "particledatabase.hpp"
 #include "error.hpp"
 #include "verbose.hpp"
 
@@ -32,30 +32,30 @@ void test( void )
 {
     //verbose_output = 1;
 
-    Geometry g( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.01 );
-    g.set_boundary( 1, Bound(BOUND_DIRICHLET, 1000.0) );
-    g.set_boundary( 2, Bound(BOUND_DIRICHLET,    0.0) );
-    g.set_boundary( 3, Bound(BOUND_NEUMANN,      0.0) );
-    g.set_boundary( 4, Bound(BOUND_NEUMANN,      0.0) );
-    g.build_mesh();
+    Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.01 );
+    geom.set_boundary( 1, Bound(BOUND_DIRICHLET, 1000.0) );
+    geom.set_boundary( 2, Bound(BOUND_DIRICHLET,    0.0) );
+    geom.set_boundary( 3, Bound(BOUND_NEUMANN,      0.0) );
+    geom.set_boundary( 4, Bound(BOUND_NEUMANN,      0.0) );
+    geom.build_mesh();
 
     EpotProblem p;
-    p.construct( g );
+    p.construct( geom );
 
-    ScalarField epot( g );
+    ScalarField epot( geom );
     VectorField bfield;
-    ScalarField scharge( g );
+    ScalarField scharge( geom );
 
     BiCGSTABSolver solver;
     p.set_solver( solver );
     p.solve( epot, scharge );
 
-    EpotEfield efield( g, epot );
+    EpotEfield efield( geom, epot );
 
     ParticleDataBase2D pdb;
     pdb.set_thread_count( 1 );
     pdb.add_particle( 0.0, 1.0, 1.0, ParticleP2D( 0, 0.01, 0.0, 0.0, 1e5 ) );
-    pdb.iterate_trajectories( scharge, efield, bfield, g );
+    pdb.iterate_trajectories( scharge, efield, bfield, geom );
     //pdb.debug_print();
 
     std::vector<trajectory_diagnostic_e> diagnostics;
@@ -102,11 +102,10 @@ void test( void )
     if( fabs(tdata(0,6)-(vy/vx))/(vy/vx) > 0.001 )
 	ERROR();
 
-    GeomPlotter geomplotter;
-    geomplotter.set_geometry( g );
-    geomplotter.set_epot( epot );
-    geomplotter.set_particledatabase( pdb );
-    pngplot( &geomplotter, "particles_diagnostic.png" );
+    GeomPlotter geomplotter( &geom );
+    geomplotter.set_epot( &epot );
+    geomplotter.set_particle_database( &pdb );
+    geomplotter.plot_png( "particles_diagnostic.png" );
 }
 
 

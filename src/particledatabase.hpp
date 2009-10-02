@@ -633,7 +633,7 @@ public:
 
     /*! \brief Prints internal data to std::cout.
      */
-    virtual void debug_print( void ) const{
+    virtual void debug_print( void ) const {
 	std::cout << "threadcount = " << _threadcount << "\n";
 	std::cout << "epsabs = "      << _epsabs << "\n";
 	std::cout << "epsrel = "      << _epsrel << "\n";

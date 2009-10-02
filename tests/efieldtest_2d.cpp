@@ -1,11 +1,9 @@
 /*! \file efieldtest_2d.cpp 
- *  \brief Test electric field interpolation in 2d.
- *
  *  \test Test electric field interpolation in 2d.
- *
  */
 
 
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include "epot_efield.hpp"

@@ -1,7 +1,9 @@
 /*! \file particles_mirror.cpp 
- *  \brief Test particle mirroring
- *
- *  \test The test case has a 1000 V potential difference between
+ *  \test Test particle mirroring
+ */
+
+/*
+ *  The test case has a 1000 V potential difference between
  *  x=-0.05 m and x=0.05 m planes. The electric field is therefore
  *  -1000 V / 0.1 m = -10000 V/m. The particle trajectories should
  *  follow trajectories defined by constant acceleration motion
@@ -10,13 +12,12 @@
  *  \f[ a_x = \frac{F_x}{m} = \frac{Eq}{m}. \f]
  *  In this test case the particles have q = 1e, m = 1u. Therefore 
  *  \f$a_x = -9.64853082148e11\mathrm{~m/s}^2 \f$
- *
  */
 
 
 #include <iostream>
 #include <iomanip>
-#include "fileplot.hpp"
+#include "geomplotter.hpp"
 #include "geometry.hpp"
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
@@ -66,28 +67,26 @@ void check_particle( Particle2D &p, double x0, double vx, double y0, double vy )
 
 void test( void )
 {
-    verbose_output = 0;
-
-    Geometry g( MODE_2D, Int3D(11,11,1), Vec3D(-0.05,-0.05,0.0), 0.01 );
-    g.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
-    g.set_boundary( 2, Bound(BOUND_DIRICHLET, 1000.0) );
-    g.set_boundary( 3, Bound(BOUND_NEUMANN,      0.0) );
-    g.set_boundary( 4, Bound(BOUND_NEUMANN,      0.0) );
-    g.build_mesh();
+    Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(-0.05,-0.05,0.0), 0.01 );
+    geom.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
+    geom.set_boundary( 2, Bound(BOUND_DIRICHLET, 1000.0) );
+    geom.set_boundary( 3, Bound(BOUND_NEUMANN,      0.0) );
+    geom.set_boundary( 4, Bound(BOUND_NEUMANN,      0.0) );
+    geom.build_mesh();
     //g.debug_print();
 
     EpotProblem p;
-    p.construct( g );
+    p.construct( geom );
 
-    ScalarField epot( g );
-    ScalarField scharge( g );
+    ScalarField epot( geom );
+    ScalarField scharge( geom );
     VectorField bfield;
 
     BiCGSTABSolver solver;
     p.set_solver( solver );
     p.solve( epot, scharge );
 
-    EpotEfield efield( g, epot );
+    EpotEfield efield( geom, epot );
     efield_extrpl_e efldextrpl[6] = {EFIELD_MIRROR, EFIELD_MIRROR, EFIELD_MIRROR,
 				     EFIELD_MIRROR, EFIELD_MIRROR, EFIELD_MIRROR };
     efield.set_extrapolation( efldextrpl );
@@ -97,23 +96,23 @@ void test( void )
     bool pmirror[6] = { true, false, false, false, false, false };
     pdb.set_mirror( pmirror );
     pdb.add_particle( 0.0, 1.0, 1.0, ParticleP2D( 0.0, 0.0, 0.0, -0.04, 1e5 ) );
-    pdb.iterate_trajectories( scharge, efield, bfield, g );
+    pdb.iterate_trajectories( scharge, efield, bfield, geom );
     //pdb.debug_print();
 
     // Check particle trajectory points
     check_particle( pdb.particle(0), 0.0, 0.0, -0.04, 1e5 );
 
-    GeomPlotter geomplotter;
-    geomplotter.set_geometry( g );
-    geomplotter.set_epot( epot );
-    geomplotter.set_particledatabase( pdb );
-    pngplot( &geomplotter, "particles_mirror.png" );
+    GeomPlotter geomplotter( &geom );
+    geomplotter.set_epot( &epot );
+    geomplotter.set_particle_database( &pdb );
+    geomplotter.plot_png( "particles_mirror.png" );
 }
 
 
 int main( void )
 {
     try {
+	verbose_output = 0;
 	test();
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

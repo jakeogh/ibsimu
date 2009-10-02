@@ -33,7 +33,6 @@ particles_mirror_SOURCES = particles_mirror.cpp
 particles_trajectory_SOURCES = particles_trajectory.cpp
 plasma2d_SOURCES = plasma2d.cpp
 plasmacyl_SOURCES = plasmacyl.cpp
-plotgeom_SOURCES = plotgeom.cpp
 qrandom_SOURCES = qrandom.cpp
 quadrupole_SOURCES = quadrupole.cpp
 ruler_SOURCES = ruler.cpp
@@ -41,7 +40,6 @@ ruler_inv_SOURCES = ruler_inv.cpp
 ruler_tic_bbox_test_SOURCES = ruler_tic_bbox_test.cpp
 scharge_out_of_range_SOURCES = scharge_out_of_range.cpp
 sclfield_SOURCES = sclfield.cpp
-solidplot_SOURCES = solidplot.cpp
 solver1d_edge_SOURCES = solver1d_edge.cpp
 solver1d_hard_edge_SOURCES = solver1d_hard_edge.cpp
 solver1d_neumann_SOURCES = solver1d_neumann.cpp
@@ -104,7 +102,6 @@ particles_mirror \
 particles_trajectory \
 plasma2d \
 plasmacyl \
-plotgeom \
 qrandom \
 quadrupole \
 ruler \
@@ -112,7 +109,6 @@ ruler_inv \
 ruler_tic_bbox_test \
 scharge_out_of_range \
 sclfield \
-solidplot \
 solver1d_edge \
 solver1d_hard_edge \
 solver1d_neumann \

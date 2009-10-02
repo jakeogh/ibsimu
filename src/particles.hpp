@@ -82,9 +82,9 @@ enum particle_status_e {
 
 
 
-/* ************************************************************************************************ *
- * Particle point classes                                                                           *
- * ************************************************************************************************ */
+/* ******************************************************************************************* *
+ * Particle point classes                                                                      *
+ * ******************************************************************************************* */
 
 
 /*! \brief %Particle point base class
@@ -215,11 +215,12 @@ public:
 
 inline std::ostream &operator<<( std::ostream &os, const ParticleP2D &pp )
 {
-    os << std::setw(12) << pp(0) << " "
-       << std::setw(12) << pp(1) << " "
-       << std::setw(12) << pp(2) << " "
-       << std::setw(12) << pp(3) << " "
-       << std::setw(12) << pp(4);
+    os << "("
+       << std::setw(12) << pp(0) << ", "
+       << std::setw(12) << pp(1) << ", "
+       << std::setw(12) << pp(2) << ", "
+       << std::setw(12) << pp(3) << ", "
+       << std::setw(12) << pp(4) << ")";
     return( os );
 }
 
@@ -293,7 +294,8 @@ public:
      */
     static int trajectory_intersections_at_plane( std::vector<ParticlePCyl> &intsc, 
 						  int crd, double val,
-						  const ParticlePCyl &x1, const ParticlePCyl &x2 );
+						  const ParticlePCyl &x1,
+						  const ParticlePCyl &x2 );
 
     /*! \brief Returns the location of particle point in Vec3D.
      */
@@ -362,12 +364,13 @@ public:
 
 inline std::ostream &operator<<( std::ostream &os, const ParticlePCyl &pp )
 {
-    os << std::setw(12) << pp(0) << " "
-       << std::setw(12) << pp(1) << " "
-       << std::setw(12) << pp(2) << " "
-       << std::setw(12) << pp(3) << " "
-       << std::setw(12) << pp(4) << " "
-       << std::setw(12) << pp(5);
+    os << "("
+       << std::setw(12) << pp(0) << ", "
+       << std::setw(12) << pp(1) << ", "
+       << std::setw(12) << pp(2) << ", "
+       << std::setw(12) << pp(3) << ", "
+       << std::setw(12) << pp(4) << ", "
+       << std::setw(12) << pp(5) << ")";
     return( os );
 }
 
@@ -511,13 +514,14 @@ public:
 
 inline std::ostream &operator<<( std::ostream &os, const ParticleP3D &pp )
 {
-    os << std::setw(12) << pp(0) << " "
-       << std::setw(12) << pp(1) << " "
-       << std::setw(12) << pp(2) << " "
-       << std::setw(12) << pp(3) << " "
-       << std::setw(12) << pp(4) << " "
-       << std::setw(12) << pp(5) << " "
-       << std::setw(12) << pp(6);
+    os << "("
+       << std::setw(12) << pp(0) << ", "
+       << std::setw(12) << pp(1) << ", "
+       << std::setw(12) << pp(2) << ", "
+       << std::setw(12) << pp(3) << ", "
+       << std::setw(12) << pp(4) << ", "
+       << std::setw(12) << pp(5) << ", "
+       << std::setw(12) << pp(6) << ")";
     return( os );
 }
 
@@ -538,9 +542,9 @@ inline ParticleP3D operator*( double x, const ParticleP3D &pp )
 
 
 
-/* ************************************************************************************************ *
- * Particle classes                                                                                 *
- * ************************************************************************************************ */
+/* ******************************************************************************************* *
+ * Particle classes                                                                            *
+ * ******************************************************************************************* */
 
 
 /*! \brief %Particle base class
@@ -554,10 +558,12 @@ protected:
     particle_status_e   _status;       /*!< \brief Status of particle */
     double              _IQ;           /*!< \brief Current or charge of particle
 					*
-					*   In time-dependent simulations particles are localized and IQ 
-					*   is charge, in time-independent simulation IQ is current.
-					*   In case of 2D simulations this is in units A/m or C/m.
-					*   In 3D and cylindrically symmetric simulations unit is A or C.
+					*   In time-dependent simulations particles are 
+					*   localized and IQ is charge, in time-independent
+					*   simulation IQ is current. In case of 2D 
+					*   simulations this is in units A/m or C/m.
+					*   In 3D and cylindrically symmetric simulations 
+					*   unit is A or C.
 					*/
     double              _qm;           /*!< \brief Ratio q/m [C/kg] */
 
@@ -671,33 +677,41 @@ public:
 	size_t a;
 	std::cout << "**Particle\n";
 	if( _status == PARTICLE_OK )
-	    std::cout << "status = PARTICLE_OK\n";
+	    std::cout << "stat = PARTICLE_OK\n";
 	else if( _status == PARTICLE_OUT )
-	    std::cout << "status = PARTICLE_OUT\n";
+	    std::cout << "stat = PARTICLE_OUT\n";
 	else if( _status == PARTICLE_COLL )
-	    std::cout << "status = PARTICLE_COLL\n";
+	    std::cout << "stat = PARTICLE_COLL\n";
 	else if( _status == PARTICLE_BADDEF )
-	    std::cout << "status = PARTICLE_BADDEF\n";
+	    std::cout << "stat = PARTICLE_BADDEF\n";
 	else if( _status == PARTICLE_TIME )
-	    std::cout << "status = PARTICLE_TIME\n";
+	    std::cout << "stat = PARTICLE_TIME\n";
 	else if( _status == PARTICLE_NSTP )
-	    std::cout << "status = PARTICLE_NSTP\n";
+	    std::cout << "stat = PARTICLE_NSTP\n";
 	else
 	    std::cout << "status = Unknown\n";
-	std::cout << "IQ = " << _IQ << "\n";
-	std::cout << "q/m = " << _qm << "\n";
-	std::cout << "x = (";
-	for( a = 0; a < _x.size()-1; a++ )
-	    std::cout << _x(a) << ", ";
-	std::cout << _x(a) << ")\n";
+	std::cout << "IQ   = " << _IQ << "\n";
+	std::cout << "q/m  = " << _qm << "\n";
+	std::cout << "x    = " << _x << "\n";
+	std::cout << "Trajectory:\n";
+	for( a = 0; a < _trajectory.size(); a++ )
+	    std::cout << "x[" << a << "] = " << _trajectory[a] << "\n";
+
+	/*
 	std::cout << "Trajectory:\n";
 	for( a = 0; a < _trajectory.size(); a++ ) {
 	    std::cout << "x[" << a << "] = (";
 	    uint32_t b;
-	    for( b = 0; b < _trajectory[a].size()-1; b++ )
-		std::cout << _trajectory[a](b) << ", ";
-	    std::cout << _trajectory[a](b) << ")\n";
+	    const PP &tp = _trajectory[a];
+	    if( tp.size() > 0 ) {
+		for( b = 0; b < tp.size()-1; b++ )
+		    std::cout << tp[b] << ", ";
+		std::cout << tp[b] << ")\n";
+	    } else {
+		std::cout << ")\n";
+	    }
 	}
+	*/
     }
 };
 

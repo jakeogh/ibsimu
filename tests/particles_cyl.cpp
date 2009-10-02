@@ -1,7 +1,9 @@
 /*! \file particles_cyl.cpp 
- *  \brief Test particle iterator in zero field in cylindrical coordinates.
- *
  *  \test Test particle iterator in zero field in cylindrical coordinates.
+ */
+
+/*
+ *  Test particle iterator in zero field in cylindrical coordinates.
  *  The trajectory is linear in (x,y) coordinates and is compared to cylindrical
  *  coordinates, which are
  *  \f[ r = \sqrt{ x^2 + y^2 }, \f]
@@ -13,14 +15,16 @@
  */
 
 
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
-#include "fileplot.hpp"
+#include "geomplotter.hpp"
 #include "geometry.hpp"
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "epot_efield.hpp"
 #include "particles.hpp"
+#include "particledatabase.hpp"
 #include "error.hpp"
 #include "verbose.hpp"
 

@@ -1,9 +1,9 @@
 /*! \file vecfield_rotate.cpp 
  *  \test Test VectorField rotate functions
- *
  */
 
 
+#include <cstdlib>
 #include <iostream>
 #include <iomanip>
 #include "vectorfield.hpp"

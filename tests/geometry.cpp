@@ -5,6 +5,7 @@
 
 
 
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include "geometry.hpp"

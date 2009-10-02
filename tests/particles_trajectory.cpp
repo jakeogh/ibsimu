@@ -1,7 +1,9 @@
 /*! \file particles_trajectory.cpp 
- *  \brief Test particle iterator in constant electric field.
- *
- *  \test The test case has a 1000 V potential difference between
+ *  \test Test particle iterator in constant electric field.
+ */
+
+/*
+ *  The test case has a 1000 V potential difference between
  *  x=-0.05 m and x=0.05 m planes. The electric field is therefore
  *  -1000 V / 0.1 m = -10000 V/m. The particle trajectories should
  *  follow trajectories defined by constant acceleration motion
@@ -17,13 +19,16 @@
 
 
 #include <iostream>
+#include <cstdlib>
 #include <iomanip>
-#include "fileplot.hpp"
+#include "geomplotter.hpp"
 #include "geometry.hpp"
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "epot_efield.hpp"
 #include "particles.hpp"
+#include "gtkplotter.hpp"
+#include "particledatabase.hpp"
 #include "error.hpp"
 #include "verbose.hpp"
 
@@ -51,56 +56,62 @@ void check_particle( Particle2D &p, double vx, double vy )
 }
 
 
-void test( void )
+void test( int *argc, char ***argv )
 {
-    verbose_output = 0;
-
-    Geometry g( MODE_2D, Int3D(11,11,1), Vec3D(-0.05,-0.05,0.0), 0.01 );
-    g.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
-    g.set_boundary( 2, Bound(BOUND_DIRICHLET, 1000.0) );
-    g.set_boundary( 3, Bound(BOUND_NEUMANN,      0.0) );
-    g.set_boundary( 4, Bound(BOUND_NEUMANN,      0.0) );
-    g.build_mesh();
-    //g.debug_print();
+    Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(-0.05,-0.05,0.0), 0.01 );
+    geom.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
+    geom.set_boundary( 2, Bound(BOUND_DIRICHLET, 1000.0) );
+    geom.set_boundary( 3, Bound(BOUND_NEUMANN,      0.0) );
+    geom.set_boundary( 4, Bound(BOUND_NEUMANN,      0.0) );
+    geom.build_mesh();
 
     EpotProblem p;
-    p.construct( g );
+    p.construct( geom );
 
-    ScalarField epot( g );
+    ScalarField epot( geom );
     VectorField bfield;
-    ScalarField scharge( g );
+    ScalarField scharge( geom );
 
     BiCGSTABSolver solver;
     p.set_solver( solver );
     p.solve( epot, scharge );
 
-    EpotEfield efield( g, epot );
+    EpotEfield efield( geom, epot );
 
     ParticleDataBase2D pdb;
     pdb.set_thread_count( 1 );
-    pdb.add_particle( 0.0, 1.0, 1.0, ParticleP2D( 0, 0.0,  0.0, 0.0,  1e5 ) );
-    pdb.add_particle( 0.0, 1.0, 1.0, ParticleP2D( 0, 0.0,  1e5, 0.0,  0.0 ) );
-    pdb.add_particle( 0.0, 1.0, 1.0, ParticleP2D( 0, 0.0,  0.0, 0.0, -1e5 ) );
-    pdb.iterate_trajectories( scharge, efield, bfield, g );
-    //pdb.debug_print();
+    pdb.add_particle( 1.0, 1.0, 1.0, ParticleP2D( 0, 0.0,  0.0, 0.0,  1e5 ) );
+    pdb.add_particle( 1.0, 1.0, 1.0, ParticleP2D( 0, 0.0,  1e5, 0.0,  0.0 ) );
+    pdb.add_particle( 1.0, 1.0, 1.0, ParticleP2D( 0, 0.0,  0.0, 0.0, -1e5 ) );
+    pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
     // Check particle trajectory points
     check_particle( pdb.particle(0),  0.0,  1e5 );
     check_particle( pdb.particle(1),  1e5,  0.0 );
     check_particle( pdb.particle(2),  0.0, -1e5 );
 
-    GeomPlotter geomplotter;
-    geomplotter.set_geometry( g );
-    geomplotter.set_epot( epot );
-    geomplotter.set_particledatabase( pdb );
-    pngplot( &geomplotter, "particles_trajectory.png" );
+    GeomPlotter geomplotter( &geom );
+    geomplotter.set_epot( &epot );
+    geomplotter.set_particle_database( &pdb );
+    geomplotter.plot_png( "particles_trajectory.png" );
+
+    /*
+    GTKPlotter plotter( argc, argv );
+    plotter.set_geometry( &geom );
+    plotter.set_epot( &epot );
+    plotter.set_scharge( &scharge );
+    plotter.set_particledatabase( &pdb );
+    plotter.new_geometry_plot_window();
+    plotter.run();
+    */
 }
 
 
-int main( void )
+int main( int argc, char **argv )
 {
     try {
-	test();
+	verbose_output = 0;
+	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 
 	     << " in " << e._loc._func << "(): " << e._error_str << "\n";

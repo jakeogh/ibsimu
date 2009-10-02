@@ -1,7 +1,12 @@
+/*! \file quadrupole.cpp 
+ *  \test Test with a quadrupole field in 2D.
+ */
+
+
+#include <cstdlib>
 #include <iostream>
 #include <iomanip>
-#include "fileplot.hpp"
-#include "gtkplot.hpp"
+#include "geomplotter.hpp"
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "geometry.hpp"
@@ -43,55 +48,47 @@ bool solid4( double x, double y, double z )
 
 void test( int *argc, char ***argv )
 {
-    //verbose_output = 1;
-
-    // size = (0.1,0.1)
-    //Geometry g( MODE_2D, Int3D(51,51,1), Vec3D(0,0,0), 0.002 );
-    //Geometry g( MODE_2D, Int3D(26,26,1), Vec3D(0,0,0), 0.004 );
-    Geometry g( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.01 );
+    Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.01 );
 
     Solid *s1 = new FuncSolid( solid1 );
-    g.set_solid( 7, s1 );
+    geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
-    g.set_solid( 8, s2 );
+    geom.set_solid( 8, s2 );
     Solid *s3 = new FuncSolid( solid3 );
-    g.set_solid( 9, s3 );
+    geom.set_solid( 9, s3 );
     Solid *s4 = new FuncSolid( solid4 );
-    g.set_solid( 10, s4 );
-    g.set_boundary( 1,  Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 2,  Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 3,  Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 4,  Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 7,  Bound(BOUND_DIRICHLET,  0.0) );
-    g.set_boundary( 8,  Bound(BOUND_DIRICHLET, 10.0) );
-    g.set_boundary( 9,  Bound(BOUND_DIRICHLET,  0.0) );
-    g.set_boundary( 10, Bound(BOUND_DIRICHLET, 10.0) );
-    g.build_mesh();
+    geom.set_solid( 10, s4 );
+    geom.set_boundary( 1,  Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 2,  Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 3,  Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 4,  Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 7,  Bound(BOUND_DIRICHLET,  0.0) );
+    geom.set_boundary( 8,  Bound(BOUND_DIRICHLET, 10.0) );
+    geom.set_boundary( 9,  Bound(BOUND_DIRICHLET,  0.0) );
+    geom.set_boundary( 10, Bound(BOUND_DIRICHLET, 10.0) );
+    geom.build_mesh();
 
     EpotProblem p;
-    p.construct( g );
-    //g.debug_print();
-    //p.debug_print();
+    p.construct( geom );
 
-    ScalarField epot( g );
-    ScalarField scharge( g );
+    ScalarField epot( geom );
+    ScalarField scharge( geom );
 
     BiCGSTABSolver solver;
     p.set_solver( solver );
     p.solve( epot, scharge );
 
-    GeomPlotter geomplotter;
-    geomplotter.set_geometry( g );
-    geomplotter.set_epot( epot );
-    geomplotter.set_meshlines( true );
-    //gtkplot( &geomplotter, argc, argv );
-    pngplot( &geomplotter, "quadrupole.png" );
+    GeomPlotter geomplotter( &geom );
+    geomplotter.set_epot( &epot );
+    geomplotter.set_mesh( true );
+    geomplotter.plot_png( "quadrupole.png" );
 }
 
 
 int main( int argc, char **argv )
 {
     try {
+	//verbose_output = 1;
 	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

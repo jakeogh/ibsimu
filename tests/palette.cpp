@@ -1,10 +1,9 @@
-/*! \file palette.cpp 
- *  \brief Test palette
- *
+/*! \file palette.cpp
  *  \test Test palette.
  */
 
 
+#include <cstdlib>
 #include <iostream>
 #include <iomanip>
 #include <cmath>
