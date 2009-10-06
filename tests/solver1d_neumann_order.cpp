@@ -1,6 +1,4 @@
 /*! \file solver1d_neumann_order.cpp 
- *  \brief Test solver with a 1d problem with different Neumann boundary orders.
- *
  *  \test  Test solver with a 1d problem with different Neumann boundary orders.
  */
 
@@ -13,6 +11,7 @@
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
 #include "error.hpp"
+#include "verbose.hpp"
 
 
 using namespace std;
@@ -20,9 +19,9 @@ using namespace std;
 
 void test( void )
 {
-    Geometry g( MODE_1D, Int3D(11,1,1), Vec3D(0,0,0), 0.01 );
+    Geometry g( MODE_1D, Int3D(6,1,1), Vec3D(0,0,0), 0.02 );
     g.set_boundary( 1, Bound(BOUND_DIRICHLET,  0.0) );
-    g.set_boundary( 2, Bound(BOUND_NEUMANN,   10.0) );
+    g.set_boundary( 2, Bound(BOUND_NEUMANN,    0.0) );
     g.build_mesh();
 
     EpotProblem p;
@@ -50,7 +49,16 @@ void test( void )
     ostr << "\n\n";
     ostr.close();
 
-    // *********************************
+    if( fabs( epot(g.size(0)-1) - 45176.4 ) > 50.0 ) {
+	std::cout << "Unexpected potential value for 1st order Neumann boundary condition problem.\n";
+	exit( 1 );
+    }
+    if( fabs( epot(g.size(0)-1) - epot(g.size(0)-2) ) > 25.0 ) {
+	std::cout << "Last two nodes differ in potential for 1st "
+	    "order Neumann boundary condition problem.\n";
+	exit( 1 );
+    }
+
 
     p.set_neumann_order( 2 );
     p.construct( g );
@@ -66,12 +74,18 @@ void test( void )
     }
     ostr << "\n\n";
     ostr.close();
+
+    if( fabs( epot(g.size(0)-1) - 56470.5 ) > 50.0 ) {
+	std::cout << "Unexpected potential value for 2nd order Neumann boundary condition problem.\n";
+	exit( 1 );
+    }
 }
 
 
 int main( void )
 {
     try {
+	verbose_output = 0;
 	test();
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

@@ -1,6 +1,4 @@
 /*! \file fonts.cpp 
- *  \brief Test fonts.
- *
  *  \test Test fonts.
  */
 
@@ -66,13 +64,11 @@ void test( void )
     cairo_matrix_rotate( &matrix, -0.1 );
     cairo_set_font_matrix( cairo, &matrix );
 
-    double x = 200;
+    double x = 100;
     double y = 200;
     fontlib.draw_text( cairo, "Toj \u03B1 \u2630", x, y );
-    std::cout << "x = " << x << "\n";
-    std::cout << "y = " << y << "\n";
     fontlib.text_extents( cairo, "Toj \u03B1 \u2630", &extents );
-    draw_extents( cairo, 200, 200, &extents );
+    draw_extents( cairo, 100, 200, &extents );
 
     fontlib.draw_text( cairo, "Kala", x, y );
 

@@ -1,7 +1,9 @@
 /*! \file solver1d_neumann.cpp 
- *  \brief Test solver with a 1d problem with Neumann and Dirichlet boundaries.
- *
- *  \test The simple 1d problems with constant space charge are easily
+ *  \test Test solver with a 1d problem with Neumann and Dirichlet boundaries.
+ */
+
+/*
+ *  The simple 1d problems with constant space charge are easily
  *  solved analytically. The Poisson equation 
  *  \f[ \nabla^2 \phi = -\frac{\rho}{\epsilon} \f]
  *  can be integrated twice to get
@@ -22,6 +24,7 @@
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
+#include "verbose.hpp"
 #include "error.hpp"
 
 
@@ -29,10 +32,14 @@ using namespace std;
 
 
 const double eps0 = 8.85418781762e-12;
+
+
 double phi1( double x )
 {
     return( -10.0*x + 0.0 );
 }
+
+
 double phi2( double x )
 {
     return( 10.0*x - 1.0 );
@@ -92,6 +99,7 @@ void test( void )
 int main( void )
 {
     try {
+	verbose_output = 0;
 	test();
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

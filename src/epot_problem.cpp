@@ -80,7 +80,7 @@ void EpotProblem::Node2DoF::debug_print( void ) const
 EpotProblem::EpotProblem() 
     : _nodecount(0), _dof(0), _fd_mat(0), _fd_vec(0), _neumann_order(2), 
       _smooth_solid(true), _plasma(PLASMA_NONE), _rhoc(0.0), _Tc(0.0), _Up(0.0), 
-      _meniscus_x(0.0), _solver(0)
+      _meniscus_x(0.0), _meniscus_i(0), _solver(0)
 {
     
 }
@@ -192,7 +192,7 @@ void EpotProblem::add_initial_plasma( int32_t i, int32_t j, int32_t k,
 				      CRowMatrix &A, Vector &B, Node2DoF &n2d )
 {
     set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
-    B[n2d(i,j,k)] = _Up;
+    B[n2d(i,j,k)] += _Up;
 }
 
 
@@ -236,34 +236,47 @@ void EpotProblem::add_vacuum_node( int32_t i, int32_t j, int32_t k,
 }
 
 
-/*! \brief Adds a Neumann boundary node (i,j,k) to the linear system.
+/* Adds a Neumann boundary node (i,j,k) to the linear system.
+ *
+ * Second order approximation is used if enabled and the approximation
+ * does not reference any solid nodes (edges are ok if smooth edges enabled)
  */
 void EpotProblem::add_neumann_node( signed char a, int32_t i, int32_t j, int32_t k, 
 				    CRowMatrix &A, Vector &B, Node2DoF &n2d )
 {
+    double coef = 0.0;
+
+
+
     switch( a ) {
     case -1:
 	if( _neumann_order == 2 && 
-	    _g->mesh_check(i+1,j,k) > 0 &&
-	    _g->mesh_check(i+2,j,k) > 0 ) {
+	    ( (_smooth_solid && 
+	       _g->mesh_check(i+1,j,k) <= 0 && _g->mesh_check(i+2,j,k) <= 0) || 
+	      (_g->mesh_check(i+1,j,k) == 0 && _g->mesh_check(i+2,j,k) == 0) ) ) {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), -4.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i+2,j,k), 1.0 );
+	    coef = -2.0;
 	} else {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), -1.0 );
+	    coef = -1.0;
 	}
 	break;
     case -2:
 	if( _neumann_order == 2 &&
- 	    _g->mesh_check(i-1,j,k) > 0 &&
-	    _g->mesh_check(i-2,j,k) > 0 ) {
+	    ( (_smooth_solid && 
+	       _g->mesh_check(i-1,j,k) <= 0 && _g->mesh_check(i-2,j,k) <= 0) || 
+	      (_g->mesh_check(i-1,j,k) == 0 && _g->mesh_check(i-2,j,k) == 0) ) ) {
 	    set_link( A, B, n2d(i,j,k), n2d(i-2,j,k), 1.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), -4.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
+	    coef = -2.0;
 	} else {
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), -1.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
+	    coef = -1.0;
 	}
 	break;
     case -3:
@@ -277,64 +290,86 @@ void EpotProblem::add_neumann_node( signed char a, int32_t i, int32_t j, int32_t
 	    return;
 	} else {
 	    if( _neumann_order == 2 &&
-		_g->mesh_check(i,j+1,k) > 0 &&
-		_g->mesh_check(i,j+2,k) > 0 ) {
+		( (_smooth_solid && 
+		   _g->mesh_check(i,j+1,k) <= 0 && _g->mesh_check(i,j+2,k) <= 0) || 
+		  (_g->mesh_check(i,j+1,k) == 0 && _g->mesh_check(i,j+2,k) == 0) ) ) {
 		set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
 		set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), -4.0 );
 		set_link( A, B, n2d(i,j,k), n2d(i,j+2,k), 1.0 );
+		coef = -2.0;
 	    } else {
 		set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
 		set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), -1.0 );
+		coef = -1.0;
 	    }
 	}
 	break;
     case -4:
 	if( _neumann_order == 2 &&
-	    _g->mesh_check(i,j-1,k) > 0 &&
-	    _g->mesh_check(i,j-2,k) > 0 ) {
+	    ( (_smooth_solid && 
+	       _g->mesh_check(i,j-1,k) <= 0 && _g->mesh_check(i,j-2,k) <= 0) || 
+	      (_g->mesh_check(i,j-1,k) == 0 && _g->mesh_check(i,j-2,k) == 0) ) ) {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j-2,k), 1.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), -4.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
+	    coef = -2.0;
 	} else {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), -1.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
+	    coef = -1.0;
 	}
 	break;
     case -5:
 	if( _neumann_order == 2 &&
-	    _g->mesh_check(i,j,k+1) > 0 &&
-	    _g->mesh_check(i,j,k+2) > 0 ) {
+	    ( (_smooth_solid && 
+	       _g->mesh_check(i,j,k+1) <= 0 && _g->mesh_check(i,j,k+2) <= 0) || 
+	      (_g->mesh_check(i,j,k+1) == 0 && _g->mesh_check(i,j,k+2) == 0) ) ) {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k+1), -4.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k+2), 1.0 );
+	    coef = -2.0;
 	} else {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k+1), -1.0 );
+	    coef = -1.0;
 	}
 	break;
     default:
 	if( _neumann_order == 2 &&
-	    _g->mesh_check(i,j,k-1) > 0 &&
-	    _g->mesh_check(i,j,k-2) > 0 ) {
+	    ( (_smooth_solid && 
+	       _g->mesh_check(i,j,k-1) <= 0 && _g->mesh_check(i,j,k-2) <= 0) || 
+	      (_g->mesh_check(i,j,k-1) == 0 && _g->mesh_check(i,j,k-2) == 0) ) ) {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k-2), 1.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k-1), -4.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 3.0 );
+	    coef = -2.0;
 	} else {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k-1), -1.0 );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
+	    coef = -1.0;
 	}
 	break;
     }
 
-    // Neumann derivative value
-    B[n2d(i,j,k)] = -2.0 * _g->h() * _g->get_boundary(-_g->mesh(i,j,k)).val;
+    // Add right hand side coefficient
+    B[n2d(i,j,k)] = coef * _g->h() * _g->get_boundary(-_g->mesh(i,j,k)).val;
 }
 
 
-#define VAC_OR_NEU(i,j,k) (_g->mesh_check(i,j,k) <= 0 &&	\
-			   _g->mesh_check(i,j,k) >= -6 )
-#define SOL_OR_DIR(i,j,k) (_g->mesh_check(i,j,k) <= -7 ||	\
-			   _g->mesh_check(i,j,k) > 0 )
+bool vac_or_edg( const Geometry *g, int32_t i, int32_t j, int32_t k ) 
+{
+    signed char a = g->mesh_check( i, j, k ); 
+    
+    return( a >= -6 && a <= 6 ); // Vacuum or Neumann or Dirichlet
+}
+
+
+bool sol_or_dir( const Geometry *g, int32_t i, int32_t j, int32_t k ) 
+{
+    signed char a = g->mesh_check( i, j, k ); 
+    
+    return( a > 0 || a <= -7 ); // Solid or Dirichlet
+}
 
 
 /*! \brief Adds a solid edge node (i,j,k) to the linear system.
@@ -348,29 +383,29 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
     case MODE_1D:
 
 	// Edge (i+1)
-	if( VAC_OR_NEU(i+1,j,k) &&
-	    SOL_OR_DIR(i-1,j,k) ) {
+	if( vac_or_edg(_g,i+1,j,k) &&
+	    sol_or_dir(_g,i-1,j,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k), 
 					    _g->origo()+_g->h()*Vec3D(i+1,j,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Edge (i-1)
-	else if( VAC_OR_NEU(i-1,j,k) &&
-		 SOL_OR_DIR(i+1,j,k) ) {
+	else if( vac_or_edg(_g,i-1,j,k) &&
+		 sol_or_dir(_g,i+1,j,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k), 
 					    _g->origo()+_g->h()*Vec3D(i-1,j,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Otherwise like normal solid node
 	else {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 	break;
 
@@ -378,117 +413,117 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
     case MODE_CYL:  // *******************************************************************
 
 	// Face (i+1,j)
-	if( VAC_OR_NEU(i+1,j,  k) && 
-	    SOL_OR_DIR(i-1,j,  k) &&
-	    SOL_OR_DIR(i,  j+1,k) &&
-	    SOL_OR_DIR(i,  j-1,k) ) {
+	if( vac_or_edg(_g,i+1,j,  k) && 
+	    sol_or_dir(_g,i-1,j,  k) &&
+	    sol_or_dir(_g,i,  j+1,k) &&
+	    sol_or_dir(_g,i,  j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	} 
 
 	// Face (i-1,j)
-	else if( SOL_OR_DIR(i+1,j,  k) &&
-		 VAC_OR_NEU(i-1,j,  k) &&
-		 SOL_OR_DIR(i,  j+1,k) &&
-		 SOL_OR_DIR(i,  j-1,k) ) {
+	else if( sol_or_dir(_g,i+1,j,  k) &&
+		 vac_or_edg(_g,i-1,j,  k) &&
+		 sol_or_dir(_g,i,  j+1,k) &&
+		 sol_or_dir(_g,i,  j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 	
 	// Face (i,j+1)
-	else if( SOL_OR_DIR(i+1,j,  k) &&
-		 SOL_OR_DIR(i-1,j,  k) &&
-		 VAC_OR_NEU(i,  j+1,k) &&
-		 SOL_OR_DIR(i,  j-1,k) ) {
+	else if( sol_or_dir(_g,i+1,j,  k) &&
+		 sol_or_dir(_g,i-1,j,  k) &&
+		 vac_or_edg(_g,i,  j+1,k) &&
+		 sol_or_dir(_g,i,  j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j+1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 	
 	// Face (i,j-1) 
-	else if( SOL_OR_DIR(i+1,j,  k) &&
-		 SOL_OR_DIR(i-1,j,  k) &&
-		 SOL_OR_DIR(i,  j+1,k) &&
-		 VAC_OR_NEU(i,  j-1,k) ) {
+	else if( sol_or_dir(_g,i+1,j,  k) &&
+		 sol_or_dir(_g,i-1,j,  k) &&
+		 sol_or_dir(_g,i,  j+1,k) &&
+		 vac_or_edg(_g,i,  j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j-1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Corner (i+1,j+1)
-	else if( VAC_OR_NEU(i+1,j,  k) &&
-		 SOL_OR_DIR(i-1,j,  k) &&
-		 VAC_OR_NEU(i,  j+1,k) &&
-		 SOL_OR_DIR(i,  j-1,k) &&
-		 VAC_OR_NEU(i+1,j+1,k) ) {
+	else if( vac_or_edg(_g,i+1,j,  k) &&
+		 sol_or_dir(_g,i-1,j,  k) &&
+		 vac_or_edg(_g,i,  j+1,k) &&
+		 sol_or_dir(_g,i,  j-1,k) &&
+		 vac_or_edg(_g,i+1,j+1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j+1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j+1,k), x*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	} 
 
 	// Corner (i+1,j-1)
-	else if( VAC_OR_NEU(i+1,j,  k) &&
-		 SOL_OR_DIR(i-1,j,  k) &&
-		 SOL_OR_DIR(i,  j+1,k) &&
-		 VAC_OR_NEU(i,  j-1,k) &&
-		 VAC_OR_NEU(i+1,j-1,k) ) {
+	else if( vac_or_edg(_g,i+1,j,  k) &&
+		 sol_or_dir(_g,i-1,j,  k) &&
+		 sol_or_dir(_g,i,  j+1,k) &&
+		 vac_or_edg(_g,i,  j-1,k) &&
+		 vac_or_edg(_g,i+1,j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j-1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j-1,k), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k), (1.0-x)*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	} 
 
 	// Corner (i-1,j-1)
-	else if( SOL_OR_DIR(i+1,j,  k) &&
-		 VAC_OR_NEU(i-1,j,  k) &&
-		 SOL_OR_DIR(i,  j+1,k) &&
-		 VAC_OR_NEU(i,  j-1,k) &&
-		 VAC_OR_NEU(i-1,j-1,k) ) {
+	else if( sol_or_dir(_g,i+1,j,  k) &&
+		 vac_or_edg(_g,i-1,j,  k) &&
+		 sol_or_dir(_g,i,  j+1,k) &&
+		 vac_or_edg(_g,i,  j-1,k) &&
+		 vac_or_edg(_g,i-1,j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j-1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j-1,k), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	} 
 
 	// Corner (i-1,j+1)
-	else if( SOL_OR_DIR(i+1,j,  k) &&
-		 VAC_OR_NEU(i-1,j,  k) &&
-		 VAC_OR_NEU(i,  j+1,k) &&
-		 SOL_OR_DIR(i,  j-1,k) &&
-		 VAC_OR_NEU(i-1,j+1,k) ) {
+	else if( sol_or_dir(_g,i+1,j,  k) &&
+		 vac_or_edg(_g,i-1,j,  k) &&
+		 vac_or_edg(_g,i,  j+1,k) &&
+		 sol_or_dir(_g,i,  j-1,k) &&
+		 vac_or_edg(_g,i-1,j+1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j+1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j+1,k), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k), (1.0-x)*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Otherwise like normal solid node
 	else {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	break;
@@ -496,301 +531,301 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
     case MODE_3D: // *******************************************************************
 
 	// Face (i+1,j,k)
-	if( VAC_OR_NEU(i+1,j,  k  ) && 
-	    SOL_OR_DIR(i-1,j,  k  ) &&
-	    SOL_OR_DIR(i,  j+1,k  ) &&
-	    SOL_OR_DIR(i,  j-1,k  ) &&
-	    SOL_OR_DIR(i,  j,  k+1) &&
-	    SOL_OR_DIR(i,  j,  k-1) ) {
+	if( vac_or_edg(_g,i+1,j,  k  ) && 
+	    sol_or_dir(_g,i-1,j,  k  ) &&
+	    sol_or_dir(_g,i,  j+1,k  ) &&
+	    sol_or_dir(_g,i,  j-1,k  ) &&
+	    sol_or_dir(_g,i,  j,  k+1) &&
+	    sol_or_dir(_g,i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Face (i-1,j,k)
-	else if( SOL_OR_DIR(i+1,j,  k  ) &&
-		 VAC_OR_NEU(i-1,j,  k  ) && 
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) &&
+		 vac_or_edg(_g,i-1,j,  k  ) && 
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,k), 1.0-x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Face (i,j+1,k)
-	else if( SOL_OR_DIR(i+1,j,  k  ) && 
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 VAC_OR_NEU(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) && 
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 vac_or_edg(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j+1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,  k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Face (i,j-1,k)
-	else if( SOL_OR_DIR(i+1,j,  k  ) &&
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 VAC_OR_NEU(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) &&
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 vac_or_edg(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j-1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,  k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Face (i,j,k+1)
-	else if( SOL_OR_DIR(i+1,j,  k  ) && 
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 VAC_OR_NEU(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) && 
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 vac_or_edg(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k+1), x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Face (i,j,k-1)
-	else if( SOL_OR_DIR(i+1,j,  k  ) &&
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 VAC_OR_NEU(i,  j,  k-1) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) &&
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 vac_or_edg(_g,i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k-1), x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// XY-Edge (i+1,j+1,k)
-	else if( VAC_OR_NEU(i+1,j,  k  ) &&
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 VAC_OR_NEU(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) &&
-		 VAC_OR_NEU(i+1,j+1,k  ) ) {
+	else if( vac_or_edg(_g,i+1,j,  k  ) &&
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 vac_or_edg(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i+1,j+1,k  ) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j+1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j+1,k), x*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// XY-Edge (i-1,j+1,k)
-	else if( SOL_OR_DIR(i+1,j,  k  ) &&
-		 VAC_OR_NEU(i-1,j,  k  ) &&
-		 VAC_OR_NEU(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) &&
-		 VAC_OR_NEU(i-1,j+1,k  ) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) &&
+		 vac_or_edg(_g,i-1,j,  k  ) &&
+		 vac_or_edg(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i-1,j+1,k  ) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j+1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j+1,k), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k), (1.0-x)*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// XY-Edge (i+1,j-1,k)
-	else if( VAC_OR_NEU(i+1,j,  k  ) &&
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 VAC_OR_NEU(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) &&
-		 VAC_OR_NEU(i+1,j-1,k  ) ) {
+	else if( vac_or_edg(_g,i+1,j,  k  ) &&
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 vac_or_edg(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i+1,j-1,k  ) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j-1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j-1,k), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k), (1.0-x)*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// XY-Edge (i-1,j-1,k)
-	else if( SOL_OR_DIR(i+1,j,  k  ) &&
-		 VAC_OR_NEU(i-1,j,  k  ) &&
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 VAC_OR_NEU(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) &&
-		 VAC_OR_NEU(i-1,j-1,k  ) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) &&
+		 vac_or_edg(_g,i-1,j,  k  ) &&
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 vac_or_edg(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i-1,j-1,k  ) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j-1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j-1,k), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// XZ-Edge (i+1,j,k+1)
-	else if( VAC_OR_NEU(i+1,j,  k  ) &&
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 VAC_OR_NEU(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) &&
-		 VAC_OR_NEU(i+1,j,  k+1) ) {
+	else if( vac_or_edg(_g,i+1,j,  k  ) &&
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 vac_or_edg(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i+1,j,  k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k  ), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k+1), x*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// XZ-Edge (i-1,j,k+1)
-	else if( SOL_OR_DIR(i+1,j,  k  ) &&
-		 VAC_OR_NEU(i-1,j,  k  ) &&
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 VAC_OR_NEU(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) &&
-		 VAC_OR_NEU(i-1,j,  k+1) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) &&
+		 vac_or_edg(_g,i-1,j,  k  ) &&
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 vac_or_edg(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i-1,j,  k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k+1), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// XZ-Edge (i+1,j,k-1)
-	else if( VAC_OR_NEU(i+1,j,  k  ) &&
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 VAC_OR_NEU(i,  j,  k-1) &&
-		 VAC_OR_NEU(i+1,j,  k-1) ) {
+	else if( vac_or_edg(_g,i+1,j,  k  ) &&
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 vac_or_edg(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i+1,j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k-1), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k  ), (1.0-x)*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// XZ-Edge (i-1,j,k-1)
-	else if( SOL_OR_DIR(i+1,j,  k  ) &&
-		 VAC_OR_NEU(i-1,j,  k  ) &&
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 VAC_OR_NEU(i,  j,  k-1) &&
-		 VAC_OR_NEU(i-1,j,  k-1) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) &&
+		 vac_or_edg(_g,i-1,j,  k  ) &&
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 vac_or_edg(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i-1,j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k-1), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// YZ-Edge (i,j+1,k+1)
-	else if( SOL_OR_DIR(i+1,j,  k  ) &&
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 VAC_OR_NEU(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 VAC_OR_NEU(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) &&
-		 VAC_OR_NEU(i,  j+1,k+1) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) &&
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 vac_or_edg(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 vac_or_edg(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i,  j+1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j+1,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k  ), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k+1), x*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// YZ-Edge (i,j-1,k+1)
-	else if( SOL_OR_DIR(i+1,j,  k  ) &&
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 VAC_OR_NEU(i,  j-1,k  ) &&
-		 VAC_OR_NEU(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) &&
-		 VAC_OR_NEU(i,  j-1,k+1) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) &&
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 vac_or_edg(_g,i,  j-1,k  ) &&
+		 vac_or_edg(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i,  j-1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j-1,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k+1), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// YZ-Edge (i,j+1,k-1)
-	else if( SOL_OR_DIR(i+1,j,  k  ) &&
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 VAC_OR_NEU(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 VAC_OR_NEU(i,  j,  k-1) &&
-		 VAC_OR_NEU(i,  j+1,k-1) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) &&
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 vac_or_edg(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 vac_or_edg(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i,  j+1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j+1,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k-1), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k  ), (1.0-x)*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// YZ-Edge (i,j-1,k-1)
-	else if( SOL_OR_DIR(i+1,j,  k  ) &&
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 VAC_OR_NEU(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 VAC_OR_NEU(i,  j,  k-1) &&
-		 VAC_OR_NEU(i,  j-1,k-1) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) &&
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 vac_or_edg(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 vac_or_edg(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i,  j-1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i,j-1,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k-1), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Corner (i+1,j+1,k+1)
-	else if( VAC_OR_NEU(i+1,j,  k  ) &&
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 VAC_OR_NEU(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 VAC_OR_NEU(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) &&
-		 VAC_OR_NEU(i+1,j+1,k+1) ) {
+	else if( vac_or_edg(_g,i+1,j,  k  ) &&
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 vac_or_edg(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 vac_or_edg(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i+1,j+1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j+1,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
@@ -801,17 +836,17 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k+1), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k+1), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j+1,k+1), x*x*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Corner (i-1,j+1,k+1)
-	else if( SOL_OR_DIR(i+1,j,  k  ) &&
-		 VAC_OR_NEU(i-1,j,  k  ) &&
-		 VAC_OR_NEU(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 VAC_OR_NEU(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) &&
-		 VAC_OR_NEU(i-1,j+1,k+1) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) &&
+		 vac_or_edg(_g,i-1,j,  k  ) &&
+		 vac_or_edg(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 vac_or_edg(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i-1,j+1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j+1,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*(1.0-x)*x );
@@ -822,17 +857,17 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j+1,k+1), x*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k+1), (1.0-x)*x*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Corner (i+1,j-1,k+1)
-	else if( VAC_OR_NEU(i+1,j,  k  ) &&
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 VAC_OR_NEU(i,  j-1,k  ) &&
-		 VAC_OR_NEU(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) &&
-		 VAC_OR_NEU(i+1,j-1,k+1) ) {
+	else if( vac_or_edg(_g,i+1,j,  k  ) &&
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 vac_or_edg(_g,i,  j-1,k  ) &&
+		 vac_or_edg(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i+1,j-1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j-1,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*(1.0-x)*x );
@@ -843,17 +878,17 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j-1,k+1), x*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k+1), (1.0-x)*x*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Corner (i-1,j-1,k+1)
-	else if( SOL_OR_DIR(i+1,j,  k  ) &&
-		 VAC_OR_NEU(i-1,j,  k  ) &&
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 VAC_OR_NEU(i,  j-1,k  ) &&
-		 VAC_OR_NEU(i,  j,  k+1) &&
-		 SOL_OR_DIR(i,  j,  k-1) &&
-		 VAC_OR_NEU(i-1,j-1,k+1) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) &&
+		 vac_or_edg(_g,i-1,j,  k  ) &&
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 vac_or_edg(_g,i,  j-1,k  ) &&
+		 vac_or_edg(_g,i,  j,  k+1) &&
+		 sol_or_dir(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i-1,j-1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j-1,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j-1,k  ), (1.0-x)*x*x );
@@ -864,17 +899,17 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k+1), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k+1), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*(1.0-x)*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Corner (i+1,j+1,k-1)
-	else if( VAC_OR_NEU(i+1,j,  k  ) &&
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 VAC_OR_NEU(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 VAC_OR_NEU(i,  j,  k-1) &&
-		 VAC_OR_NEU(i+1,j+1,k-1) ) {
+	else if( vac_or_edg(_g,i+1,j,  k  ) &&
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 vac_or_edg(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 vac_or_edg(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i+1,j+1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j+1,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*(1.0-x)*x );
@@ -885,17 +920,17 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k  ), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k  ), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j+1,k  ), (1.0-x)*x*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Corner (i-1,j+1,k-1)
-	else if( SOL_OR_DIR(i+1,j,  k  ) &&
-		 VAC_OR_NEU(i-1,j,  k  ) &&
-		 VAC_OR_NEU(i,  j+1,k  ) &&
-		 SOL_OR_DIR(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 VAC_OR_NEU(i,  j,  k-1) &&
-		 VAC_OR_NEU(i-1,j+1,k-1) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) &&
+		 vac_or_edg(_g,i-1,j,  k  ) &&
+		 vac_or_edg(_g,i,  j+1,k  ) &&
+		 sol_or_dir(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 vac_or_edg(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i-1,j+1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j+1,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k-1), (1.0-x)*x*x );
@@ -906,17 +941,17 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j+1,k  ), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k  ), (1.0-x)*(1.0-x)*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Corner (i+1,j-1,k-1)
-	else if( VAC_OR_NEU(i+1,j,  k  ) &&
-		 SOL_OR_DIR(i-1,j,  k  ) &&
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 VAC_OR_NEU(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 VAC_OR_NEU(i,  j,  k-1) &&
-		 VAC_OR_NEU(i+1,j-1,k-1) ) {
+	else if( vac_or_edg(_g,i+1,j,  k  ) &&
+		 sol_or_dir(_g,i-1,j,  k  ) &&
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 vac_or_edg(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 vac_or_edg(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i+1,j-1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i+1,j-1,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k-1), (1.0-x)*x*x );
@@ -927,17 +962,17 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j-1,k  ), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k  ), (1.0-x)*(1.0-x)*x );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Corner (i-1,j-1,k-1)
-	else if( SOL_OR_DIR(i+1,j,  k  ) &&
-		 VAC_OR_NEU(i-1,j,  k  ) &&
-		 SOL_OR_DIR(i,  j+1,k  ) &&
-		 VAC_OR_NEU(i,  j-1,k  ) &&
-		 SOL_OR_DIR(i,  j,  k+1) &&
-		 VAC_OR_NEU(i,  j,  k-1) &&
-		 VAC_OR_NEU(i-1,j-1,k-1) ) {
+	else if( sol_or_dir(_g,i+1,j,  k  ) &&
+		 vac_or_edg(_g,i-1,j,  k  ) &&
+		 sol_or_dir(_g,i,  j+1,k  ) &&
+		 vac_or_edg(_g,i,  j-1,k  ) &&
+		 sol_or_dir(_g,i,  j,  k+1) &&
+		 vac_or_edg(_g,i,  j,  k-1) &&
+		 vac_or_edg(_g,i-1,j-1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
 					  _g->origo()+_g->h()*Vec3D(i-1,j-1,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j-1,k-1), x*x*x );
@@ -948,13 +983,13 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 
 	// Otherwise like normal solid node
 	else {
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
-	    B[n2d(i,j,k)] = _g->get_boundary(-a).val;
+	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
 	break;
 
@@ -1198,7 +1233,7 @@ void EpotProblem::debug_print( void ) const
     _n2d.debug_print();
     std::cout << "fd_mat = \n" << *_fd_mat << "\n";
     std::cout << "fd_vec = \n" << *_fd_vec << "\n";
-    std::cout << "neunann_order = " << _neumann_order << "\n";
+    std::cout << "neumann_order = " << _neumann_order << "\n";
     std::cout << "plasma = " << _plasma << "\n";
     std::cout << "rhoc = " << _rhoc << "\n";
     std::cout << "Tc = " << _Tc << "\n";

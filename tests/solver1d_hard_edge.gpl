@@ -7,4 +7,8 @@ set size 0.8,0.4
 set out "solver1d_hard_edge.ps"
 set xlabel "x (m)"
 set ylabel "Potential (V)"
-plot "solver1d_hard_edge.dat" w lp 1
+f(x) = 10.0/0.10*x
+g(x) = x < 0.09 ? 10.0/0.09*x : 10.0
+plot \
+"solver1d_hard_edge1.dat" w p 1, f(x) w l 1, \
+"solver1d_hard_edge2.dat" w p 3, g(x )w l 3

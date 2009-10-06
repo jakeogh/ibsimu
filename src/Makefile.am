@@ -190,6 +190,7 @@ label.hpp \
 legend.hpp \
 lineclip.hpp \
 matrix.hpp \
+meshgraph.hpp \
 mvector.hpp \
 palette.hpp \
 particledatabase.hpp \

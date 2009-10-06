@@ -45,8 +45,6 @@ double wfunc( double y, double vy, double z, double vz )
 
 void test( void )
 {
-    verbose_output = 0;
-
     Geometry g( MODE_CYL, Int3D(11,11,1), Vec3D(-0.05,0.0,0.0), 0.01 );
     g.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
     g.set_boundary( 2, Bound(BOUND_DIRICHLET,    0.0) );
@@ -133,6 +131,7 @@ void test( void )
 int main( void )
 {
     try {
+	verbose_output = 0;
 	test();
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

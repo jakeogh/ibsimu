@@ -24,8 +24,6 @@ using namespace std;
 
 void test( void )
 {
-    verbose_output = 1;
-
     Geometry geom( MODE_CYL, Int3D(21,11,1), Vec3D(-0.05,0.0,0.0), 0.01 );
     geom.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
     geom.set_boundary( 2, Bound(BOUND_DIRICHLET,    0.0) );
@@ -97,6 +95,7 @@ void test( void )
     GeomPlotter geomplotter( &geom );
     geomplotter.set_epot( &epot );
     geomplotter.set_particle_database( &pdb );
+    geomplotter.set_particle_div( 1 );
     geomplotter.plot_png( "particles_bfieldcyl.png" );
 
     ostr.close();
@@ -110,6 +109,7 @@ void test( void )
 int main( void )
 {
     try {
+	verbose_output = 0;
 	test();
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

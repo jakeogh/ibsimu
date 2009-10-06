@@ -7,6 +7,8 @@ set size 0.8,0.4
 set out "solver1d_solid_neumann_conflict.ps"
 set xlabel "x (m)"
 set ylabel "Potential (V)"
-plot [0:0.1] "solver1d_solid_neumann_conflict.dat" w p 3
+plot [0:0.1] \
+"solver1d_solid_neumann_conflict1.dat" w lp 1, \
+"solver1d_solid_neumann_conflict2.dat" w lp 3
 
 

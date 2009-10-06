@@ -1,7 +1,9 @@
 /*! \file solver1d_edge.cpp 
- *  \brief Test solver with a 1d problem with smooth edges.
- *
- *  \test The simple 1d problems with constant space charge are easily
+ *  \test Test solver with a 1d problem with smooth edges.
+ */
+
+/*
+ *  The simple 1d problems with constant space charge are easily
  *  solved analytically. The Poisson equation 
  *  \f[ \nabla^2 \phi = -\frac{\rho}{\epsilon} \f]
  *  can be integrated twice to get
@@ -22,6 +24,7 @@
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
+#include "verbose.hpp"
 #include "error.hpp"
 
 
@@ -70,7 +73,6 @@ void test( void )
 
     EpotProblem p;
     p.construct( g );
-    p.debug_print();
 
     ScalarField epot( g );
     ScalarField scharge( g );
@@ -106,6 +108,7 @@ void test( void )
 int main( void )
 {
     try {
+	verbose_output = 0;
 	test();
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

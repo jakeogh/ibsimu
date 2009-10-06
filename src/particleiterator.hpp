@@ -240,16 +240,19 @@ template <class PP> class ParticleIterator {
 	gsl_odeiv_evolve_reset( _evolve );
     }
 
-    void handle_collision( Particle<PP> &particle, size_t c, int border ) {
+
+    void handle_collision( Particle<PP> &particle, size_t c, PP &status_x ) {
 
 #ifdef DEBUG_PARTICLE_ITERATOR
 	std::cout << "    handle_collision()\n";
 #endif
 
 	_traj.push_back( _coldata[c]._x );
+	status_x = _coldata[c]._x;
 	particle.set_status( PARTICLE_OUT );
 	_end_out++;
     }
+
 
     /*! \brief Handle particle mesh intersection.
      *
@@ -350,14 +353,14 @@ template <class PP> class ParticleIterator {
 		if( _mirror[2*a] )
 		    handle_mirror( c, i, a, -1, x2 );
 		else {
-		    handle_collision( particle, c, -1 );
+		    handle_collision( particle, c, x2 );
 		    return( false );
 		}
 	    } else if( i[a] >= (_pidata._g->size(a)-1) ) {
 		if( _mirror[2*a+1] )
 		    handle_mirror( c, i, a, +1, x2 );
 		else {
-		    handle_collision( particle, c, +1 );
+		    handle_collision( particle, c, x2 );
 		    return( false );
 		}
 	    }
@@ -545,7 +548,7 @@ template <class PP> class ParticleIterator {
      *  Return true if particle status is PARTICLE_OK after trajectory
      *  step, false otherwise.
      */
-    bool handle_trajectory( Particle<PP> &particle, PP &x1, PP &x2, 
+    bool handle_trajectory( Particle<PP> &particle, const PP &x1, PP &x2, 
 			    bool force_linear=false ) {
 
 #ifdef DEBUG_PARTICLE_ITERATOR
@@ -627,9 +630,10 @@ template <class PP> class ParticleIterator {
      */
      bool axis_mirror_required( const PP &x2 ) {
 	 return( _pidata._g->geom_mode() == MODE_CYL && 
-		 x2[4] <= 0.0 && 
-		 x2[3]*fabs(x2[5]) <= 1.0e-9*fabs(x2[4]) && 
-		 x2[3] <= 0.01*_pidata._g->h() );
+		 x2[4] < 0.0 && 
+		 x2[3] <= 0.01*_pidata._g->h() &&
+		 x2[3]*fabs(x2[5]) <= 1.0e-9*fabs(x2[4]) );
+		 
      }
 
 
@@ -949,8 +953,10 @@ public:
 #endif
 
 	    // Handle collisions and space charge of step.
-	    if( !handle_trajectory( *particle, x, x2 ) )
+	    if( !handle_trajectory( *particle, x, x2 ) ) {
+		x = x2;
 		break; // Particle done
+	    }
 
 	    // Check if particle mirroring is required to avoid 
 	    // singularity at symmetry axis.
@@ -989,7 +995,7 @@ public:
 	if( _trajdiv != 0 && (particle-_first) % _trajdiv == 0 )
 	    particle->copy_trajectory( _traj );
 
-	// Save particle location
+	// Save last particle location
 	particle->x() = x;
     }
 

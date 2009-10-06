@@ -1,7 +1,10 @@
 /*! \file particles_edip.cpp 
- *  \brief Test particle iterator in circular electrostatic dipole.
- *
  *  \test Test particle iterator in circular electrostatic dipole.
+ *
+ */
+
+/*
+ *  Test particle iterator in circular electrostatic dipole.
  *  The trajectory is circular while
  *  \f[ F = ma = \frac{mv^2}{r}, \f]
  *  where \f$r\f$ is the radius of turn in the dipole. The force of 
@@ -35,6 +38,8 @@
 #include "error.hpp"
 #include "verbose.hpp"
 
+#include "geomplotter.hpp"
+
 
 using namespace std;
 
@@ -52,17 +57,13 @@ bool outside_electrode( double x, double y, double z )
 
 void test( int *argc, char ***argv )
 {
-    verbose_output = 1;
-
-    Geometry g( MODE_2D, Int3D(71,71,1), Vec3D(0.0,0.0,0.0), 0.001 );
-    //Geometry g( MODE_2D, Int3D(141,141,1), Vec3D(0.0,0.0,0.0), 0.0005 );
-    //Geometry g( MODE_2D, Int3D(281,281,1), Vec3D(0.0,0.0,0.0), 0.00025 );
+    Geometry geom( MODE_2D, Int3D(71,71,1), Vec3D(0.0,0.0,0.0), 0.001 );
 
     Solid *solid_in = new FuncSolid( inside_electrode );
-    g.set_solid( 7, solid_in );
+    geom.set_solid( 7, solid_in );
 
     Solid *solid_out = new FuncSolid( outside_electrode );
-    g.set_solid( 8, solid_out );
+    geom.set_solid( 8, solid_out );
 
     // Speed of particle
     double vy = sqrt(2*10e3*6.0*CHARGE_E/(19.9924*MASS_U));
@@ -72,26 +73,26 @@ void test( int *argc, char ***argv )
     double U = 19.9924*MASS_U*vy*vy*log(6.0/4.0)/(6.0*CHARGE_E*2.0);
     //std::cout << "U = " << U << "\n";
 
-    g.set_boundary( 1, Bound(BOUND_NEUMANN,     0.0) );
-    g.set_boundary( 2, Bound(BOUND_DIRICHLET,   0.0) );
-    g.set_boundary( 3, Bound(BOUND_NEUMANN,     0.0) );
-    g.set_boundary( 4, Bound(BOUND_DIRICHLET,   0.0) );
-    g.set_boundary( 7, Bound(BOUND_DIRICHLET,   -U) );
-    g.set_boundary( 8, Bound(BOUND_DIRICHLET ,  +U) );
-    g.build_mesh();
-    //g.debug_print();
+    geom.set_boundary( 1, Bound(BOUND_NEUMANN,     0.0) );
+    geom.set_boundary( 2, Bound(BOUND_DIRICHLET,   0.0) );
+    geom.set_boundary( 3, Bound(BOUND_NEUMANN,     0.0) );
+    geom.set_boundary( 4, Bound(BOUND_DIRICHLET,   0.0) );
+    geom.set_boundary( 7, Bound(BOUND_DIRICHLET,   -U) );
+    geom.set_boundary( 8, Bound(BOUND_DIRICHLET ,  +U) );
+    geom.build_mesh();
+    //geom.debug_print();
 
     EpotProblem p;
-    p.construct( g );
+    p.construct( geom );
 
-    ScalarField epot( g );
-    ScalarField scharge( g );
+    ScalarField epot( geom );
+    ScalarField scharge( geom );
 
     BiCGSTABSolver solver;
     p.set_solver( solver );
     p.solve( epot, scharge );
 
-    EpotEfield efield( g, epot );
+    EpotEfield efield( geom, epot );
     VectorField bfield;
 
     ParticleDataBase2D pdb;
@@ -101,7 +102,7 @@ void test( int *argc, char ***argv )
 
     // Add 20-Ne, q=6+
     pdb.add_particle( 0.0, 6.0, 19.9924, ParticleP2D( 0, 0.05, 0.0, 0.0, vy ) );
-    pdb.iterate_trajectories( scharge, efield, bfield, g );
+    pdb.iterate_trajectories( scharge, efield, bfield, geom );
     //pdb.debug_print();
 
     /*
@@ -151,6 +152,13 @@ void test( int *argc, char ***argv )
     }
     */
 
+    GeomPlotter gplotter( &geom );
+    gplotter.set_size( 1024, 768 );
+    gplotter.set_epot( &epot );
+    gplotter.set_particle_database( &pdb );
+    gplotter.plot_png( "particles_edip.png" );
+
+    /*
     GTKPlotter plotter( argc, argv );
     plotter.set_geometry( &g );
     plotter.set_scharge( &scharge );
@@ -158,12 +166,14 @@ void test( int *argc, char ***argv )
     plotter.set_particledatabase( &pdb );
     plotter.new_geometry_plot_window();
     plotter.run();
+    */
 }
 
 
 int main( int argc, char **argv )
 {
     try {
+	verbose_output = 0;
 	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

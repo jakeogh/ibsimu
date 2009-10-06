@@ -1,6 +1,4 @@
 /*! \file scharge_out_of_range.cpp 
- *  \brief Test for scharge out of range error
- *
  *  \test Test for scharge out of range error
  *
  */
@@ -24,8 +22,6 @@ using namespace std;
 
 void test( int *argc, char ***argv )
 {
-    verbose_output = 1;
-
     Geometry g( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.01 );
     g.set_boundary( 1, Bound(BOUND_DIRICHLET, -1000.0) );
     g.set_boundary( 2, Bound(BOUND_DIRICHLET,     0.0) );
@@ -58,8 +54,9 @@ void test( int *argc, char ***argv )
     pdb.add_particle( 1.0, 1.0, 1.0, ParticleP2D( 0, 0.1, 1e4, 0.0, 1e5 ) );
     pdb.add_particle( 1.0, 1.0, 1.0, ParticleP2D( 0, 0.05, 5e5, 0.05, 1e5 ) );
     pdb.iterate_trajectories( scharge, efield, bfield, g );
-    pdb.debug_print();
-
+    //pdb.debug_print();
+    
+    /*
     GTKPlotter plotter( argc, argv );
     plotter.set_geometry( &g );
     plotter.set_scharge( &scharge );
@@ -67,6 +64,7 @@ void test( int *argc, char ***argv )
     plotter.set_particledatabase( &pdb );
     plotter.new_geometry_plot_window();
     plotter.run();
+    */
 
     /*
     GeomPlotter geomplotter;
@@ -81,6 +79,7 @@ void test( int *argc, char ***argv )
 int main( int argc, char **argv )
 {
     try {
+	verbose_output = 0;
 	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

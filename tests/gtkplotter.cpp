@@ -1,6 +1,4 @@
 /*! \file gtkplotter.cpp 
- *  \brief Test gtkplotter.
- *
  *  \test Test gtkplotter.
  */
 
@@ -39,7 +37,7 @@ void test( int *argc, char ***argv )
 int main( int argc, char **argv )
 {
     try {
-	test( &argc, &argv );
+	//test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 
 	     << " in " << e._loc._func << "(): " << e._error_str << "\n";

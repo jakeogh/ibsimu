@@ -1,7 +1,9 @@
 /*! \file solver2d_coax.cpp 
- *  \brief Test solver with a 2d problem made of two concentric cylinders.
- *
- *  \test Analytically this problem is solved by using cylindrical coordinates.
+ *  \test Test solver with a 2d problem made of two concentric cylinders.
+ */
+
+/*
+ *  Analytically this problem is solved by using cylindrical coordinates.
  *  The Poisson equation 
  *  \f[ \nabla^2 \phi = -\frac{\rho}{\epsilon} \f]
  *  becomes
@@ -36,6 +38,7 @@
 #include "epot_efield.hpp"
 #include "gtkplotter.hpp"
 #include "error.hpp"
+#include "verbose.hpp"
 
 
 using namespace std;
@@ -61,27 +64,26 @@ double phi( double r )
 
 void test( int *argc, char ***argv )
 {
-    //Geometry g( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.002 );
-    Geometry g( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.002 );
+    Geometry geom( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.002 );
     Solid *s1 = new FuncSolid( solid1 );
-    g.set_solid( 7, s1 );
+    geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
-    g.set_solid( 8, s2 );
-    g.set_boundary( 1, Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 2, Bound(BOUND_DIRICHLET, 10.0) );
-    g.set_boundary( 3, Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 4, Bound(BOUND_DIRICHLET, 10.0) );
-    g.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
-    g.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
-    g.build_mesh();
+    geom.set_solid( 8, s2 );
+    geom.set_boundary( 1, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 2, Bound(BOUND_DIRICHLET, 10.0) );
+    geom.set_boundary( 3, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 4, Bound(BOUND_DIRICHLET, 10.0) );
+    geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
+    geom.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
+    geom.build_mesh();
 
     EpotProblem p;
-    p.construct( g );
-    g.debug_print();
-    p.debug_print();
+    p.construct( geom );
+    //geom.debug_print();
+    //p.debug_print();
 
-    ScalarField epot( g );
-    ScalarField scharge( g );
+    ScalarField epot( geom );
+    ScalarField scharge( geom );
 
     BiCGSTABSolver solver;
     p.set_solver( solver );
@@ -95,10 +97,10 @@ void test( int *argc, char ***argv )
 	 << setw(14) << "r (m)" << " " 
 	 << setw(14) << "potential (V)" << " "
 	 << setw(14) << "theory (V)" << "\n";
-    for( int a = 0; a < g.size(0); a++ ) {
-	for( int b = 0; b < g.size(1); b++ ) {
-	    double x = a*g.h();
-	    double y = b*g.h();
+    for( int a = 0; a < geom.size(0); a++ ) {
+	for( int b = 0; b < geom.size(1); b++ ) {
+	    double x = a*geom.h();
+	    double y = b*geom.h();
 	    double r = sqrt(x*x + y*y);
 	    if( r > 0.02 && r < 0.07 && fabs( epot(a,b) - phi(r) ) > 0.15  )
 		err = true;
@@ -112,11 +114,13 @@ void test( int *argc, char ***argv )
 
     ostr.close();
 
+    /*
     GTKPlotter plotter( argc, argv );
-    plotter.set_geometry( &g );
+    plotter.set_geometry( &geom );
     plotter.set_epot( &epot );
     plotter.new_geometry_plot_window();
     plotter.run();
+    */
 
     if( err ) {
 	std::cout << "Error: solved potential differs from theory\n";
@@ -128,6 +132,7 @@ void test( int *argc, char ***argv )
 int main( int argc, char **argv )
 {
     try {
+	verbose_output = 0;
 	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

@@ -1,6 +1,4 @@
 /*! \file beam3d.cpp 
- *  \brief Test with a beam in 3d system.
- *
  *  \test Test with a beam in 3d system.
  *
  */
@@ -45,10 +43,8 @@ bool electrode2_func( double x, double y, double z )
 
 void test( int *argc, char ***argv )
 {
-    verbose_output = 1;
-    
     // 10x20x40 cm geometry with 0.25 cm mesh
-    Geometry geom( MODE_3D, Int3D(26,101,51), Vec3D(0,-0.1,-0.1), 0.004 );
+    Geometry geom( MODE_3D, Int3D(41,41,41), Vec3D(0,0,0), 0.0025 );
     //Geometry geom( MODE_3D, Int3D(51,101,101), Vec3D(0,-0.1,-0.1), 0.002 );
 
     Solid *solid1 = new FuncSolid( electrode1_func );
@@ -105,7 +101,6 @@ void test( int *argc, char ***argv )
     plotter.run();
     */
 
-    /*
     GeomPlotter gplotter( &geom );
     gplotter.set_scharge( &scharge );
     gplotter.set_scharge_field( true );
@@ -119,18 +114,18 @@ void test( int *argc, char ***argv )
     pot.push_back( -20 );
     gplotter.set_eqlines_manual( pot );
     gplotter.set_font_size( 15 );
-    gplotter.set_view( VIEW_XY, 25 );
+    gplotter.set_view( VIEW_XY, 0 );
     gplotter.plot_png( "beam3d_xy.png" );
     gplotter.set_view( VIEW_YZ, 0 );
     gplotter.plot_png( "beam3d_yz.png" );
-    */
 }
 
 
 int main( int argc, char **argv )
 {
     try {
-	test( &argc, &argv );
+	verbose_output = 0;
+    	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 
 	     << " in " << e._loc._func << "(): " << e._error_str << "\n";

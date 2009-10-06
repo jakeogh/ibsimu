@@ -1,7 +1,5 @@
 /*! \file fileplot.cpp 
- *  \brief Test plotting to files.
- *
- *  \test Test plotting to files.
+ *  \test Test plotting to files png, eps, pdf, svg.
  */
 
 
@@ -38,9 +36,7 @@ bool solid2( double x, double y, double z )
 
 
 void test( int *argc, char ***argv )
-{
-    verbose_output = 1;
-    
+{    
     // 12x7 mm geometry with 0.05 mm mesh size
     Geometry geom( MODE_2D, Int3D(121,71,1), Vec3D(0,0,0), 0.0001 );
     Solid *s1 = new FuncSolid( solid1 );
@@ -131,6 +127,7 @@ void test( int *argc, char ***argv )
 int main( int argc, char **argv )
 {
     try {
+	verbose_output = 0;
 	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

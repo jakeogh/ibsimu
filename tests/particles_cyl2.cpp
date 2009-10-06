@@ -1,9 +1,9 @@
-/*! \file particles_cyl.cpp 
+/*! \file particles_cyl2.cpp 
  *  \test Test particle iterator in zero field in cylindrical coordinates.
  */
 
-
-/*  Test particle iterator in zero field in cylindrical coordinates.
+/*
+ *  Test particle iterator in zero field in cylindrical coordinates.
  *  The trajectory is linear in (x,y) coordinates and is compared to cylindrical
  *  coordinates, which are
  *  \f[ r = \sqrt{ x^2 + y^2 }, \f]
@@ -45,8 +45,6 @@ double wfunc( double y, double vy, double z, double vz )
 
 void test( void )
 {
-    verbose_output = 1;
-
     Geometry g( MODE_CYL, Int3D(11,11,1), Vec3D(-0.05,0.0,0.0), 0.01 );
     g.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
     g.set_boundary( 2, Bound(BOUND_DIRICHLET,    0.0) );
@@ -133,6 +131,7 @@ void test( void )
 int main( void )
 {
     try {
+	verbose_output = 0;
 	test();
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

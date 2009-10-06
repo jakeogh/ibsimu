@@ -18,6 +18,7 @@
 #include "error.hpp"
 
 #include "gtkplotter.hpp"
+#include "geomplotter.hpp"
 
 
 using namespace std;
@@ -38,34 +39,32 @@ bool solid2( double x, double y, double z )
 
 void test( int *argc, char ***argv )
 {
-    verbose_output = 1;
-    
     // 12x7 mm geometry with 0.05 mm mesh size
-    Geometry g( MODE_CYL, Int3D(241,141,1), Vec3D(0,0,0), 0.00005 );
+    Geometry geom( MODE_CYL, Int3D(241,141,1), Vec3D(0,0,0), 0.00005 );
     Solid *s1 = new FuncSolid( solid1 );
-    g.set_solid( 7, s1 );
+    geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
-    g.set_solid( 8, s2 );
-    g.set_boundary( 1, Bound(BOUND_NEUMANN,    0.0 ) );
-    g.set_boundary( 2, Bound(BOUND_DIRICHLET, -8.0e3) );
-    g.set_boundary( 3, Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 4, Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0)  );
-    g.set_boundary( 8, Bound(BOUND_DIRICHLET, -8.0e3) );
-    g.build_mesh();
+    geom.set_solid( 8, s2 );
+    geom.set_boundary( 1, Bound(BOUND_NEUMANN,    0.0 ) );
+    geom.set_boundary( 2, Bound(BOUND_DIRICHLET, -8.0e3) );
+    geom.set_boundary( 3, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 4, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0)  );
+    geom.set_boundary( 8, Bound(BOUND_DIRICHLET, -8.0e3) );
+    geom.build_mesh();
 
     EpotProblem p;
     p.set_initial_plasma( 5.0, 0.00055 );
-    p.construct( g );
+    p.construct( geom );
 
-    ScalarField epot( g );
-    ScalarField scharge( g );
+    ScalarField epot( geom );
+    ScalarField scharge( geom );
 
     BiCGSTABSolver solver;
     p.set_solver( solver );
 
     VectorField bfield;
-    EpotEfield efield( g, epot );
+    EpotEfield efield( geom, epot );
     efield_extrpl_e efldextrpl[6] = {EFIELD_EXTRAPOLATE, EFIELD_EXTRAPOLATE, 
 				     EFIELD_MIRROR,EFIELD_EXTRAPOLATE,
 				     EFIELD_EXTRAPOLATE, EFIELD_EXTRAPOLATE };
@@ -77,28 +76,12 @@ void test( int *argc, char ***argv )
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
 
-    /*
-    GeomPlotter geomplotter;
-    geomplotter.set_size( 1024, 768 );
-    //geomplotter.set_range( 0.09, 0.12000001, 0.02, 0.04 );
-    //geomplotter.set_meshlines( true );
-    geomplotter.set_geometry( g );
-    geomplotter.set_epot( epot );
-    std::vector<double> eqlines;
-    eqlines.push_back( -8.0 );
-    eqlines.push_back( -4.0 );
-    eqlines.push_back( 0.0 );
-    eqlines.push_back( +4.0 );
-    geomplotter.set_manual_eqlines( eqlines );
-    geomplotter.set_particledatabase( pdb );
-    */
-
-    for( size_t i = 0; i < 1; i++ ) {
+    for( size_t i = 0; i < 3; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
 	    p.set_pexp_plasma( -rhoe, 5.0, 5.0 );
-	    p.construct( g );
+	    p.construct( geom );
 	}
 
 	p.solve( epot, scharge );
@@ -107,12 +90,22 @@ void test( int *argc, char ***argv )
 				     5.0, 0.0, 0.5, 
 				     0.0, 0.0, 
 				     0.0, 0.0015 );
-	pdb.iterate_trajectories( scharge, efield, bfield, g );
-	//stringstream ss;
-	//ss << "plasmacyl_" << i << ".png";
-	//pngplot( &geomplotter, ss.str() );
+	pdb.iterate_trajectories( scharge, efield, bfield, geom );
     }
 
+    GeomPlotter gplotter( &geom );
+    gplotter.set_size( 1024, 768 );
+    gplotter.set_epot( &epot );
+    std::vector<double> eqlines;
+    eqlines.push_back( -8.0 );
+    eqlines.push_back( -4.0 );
+    eqlines.push_back( 0.0 );
+    eqlines.push_back( +4.0 );
+    gplotter.set_eqlines_manual( eqlines );
+    gplotter.set_particle_database( &pdb );
+    gplotter.plot_png( "plasmacyl.png" );
+
+    /*
     GTKPlotter plotter( argc, argv );
     plotter.set_geometry( &g );
     plotter.set_epot( &epot );
@@ -120,13 +113,15 @@ void test( int *argc, char ***argv )
     plotter.set_particledatabase( &pdb );
     plotter.new_geometry_plot_window();
     plotter.run();
+    */
 }
 
 
 int main( int argc, char **argv )
 {
     try {
-	test( &argc, &argv );
+	verbose_output = 0;
+    	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 
 	     << " in " << e._loc._func << "(): " << e._error_str << "\n";

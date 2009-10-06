@@ -1,6 +1,4 @@
 /*! \file gs_solver.cpp 
- *  \brief Test Gauss-Seidel solver with a 2d problem made of two concentric cylinders.
- *
  *  \test Test Gauss-Seidel solver with a 2d problem made of two concentric cylinders.
  */
 
@@ -84,8 +82,6 @@ void check_epot( Geometry &geom, ScalarField &epot )
 
 void test( void )
 {
-    verbose_output = 1;
-
     Geometry geom( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.002 );
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
@@ -116,6 +112,7 @@ void test( void )
 int main( void )
 {
     try {
+	verbose_output = 0;
 	test();
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 
