@@ -1,3 +1,222 @@
+2009-10-06 10:36  tvkalvas
+
+	* src/Makefile.am, src/epot_problem.cpp, src/particleiterator.hpp,
+	  tests/beam3d.cpp, tests/beamcyl.cpp, tests/fileplot.cpp,
+	  tests/fileplot.pdf, tests/fonts.cpp, tests/gs_solver.cpp,
+	  tests/gtkplotter.cpp, tests/histogram.cpp,
+	  tests/particles_bfieldcyl.cpp, tests/particles_cyl.cpp,
+	  tests/particles_cyl2.cpp, tests/particles_edip.cpp,
+	  tests/plasmacyl.cpp, tests/scharge_out_of_range.cpp,
+	  tests/solver1d_edge.cpp, tests/solver1d_hard_edge.cpp,
+	  tests/solver1d_hard_edge.gpl, tests/solver1d_neumann.cpp,
+	  tests/solver1d_neumann_order.cpp,
+	  tests/solver1d_solid_neumann_conflict.cpp,
+	  tests/solver1d_solid_neumann_conflict.gpl,
+	  tests/solver2d_coax.cpp, tests/vlasov2d.cpp: Tests made to
+	  compile and last problems fixed
+
+	  - All edges (Neumann and Dirichlet) are made acceptable for
+	  neighbouring	 smooth edges - Changed from setting to
+	  accumulating right hand side vector in problem   building (caused
+	  problems with smooth edges) - Fixed and updated tests and made
+	  them silent - Fixed particle iterator last position coordinate
+	  after exiting simulation   geometry (coordinate was never
+	  updated) - Fixed condition for doing axis mirroring in
+	  cylindrical symmetry beam   simulation from "vr <= 0" to "vr <
+	  0". Beamcyl test now works.
+
+2009-10-02 06:52  tvkalvas
+
+	* src/Makefile.am, src/particledatabase.hpp, src/particles.hpp,
+	  src/scharge.cpp, src/trajectory.cpp, tests/Makefile.am,
+	  tests/beam2d.cpp, tests/beam3d.cpp, tests/beamcyl.cpp,
+	  tests/colormap.cpp, tests/efieldtest_2d.cpp, tests/geometry.cpp,
+	  tests/histogram.cpp, tests/label.cpp, tests/matrixsolver.cpp,
+	  tests/palette.cpp, tests/particles_bfield2d.cpp,
+	  tests/particles_bfieldcyl.cpp, tests/particles_cyl.cpp,
+	  tests/particles_cyl2.cpp, tests/particles_diagnostic.cpp,
+	  tests/particles_mirror.cpp, tests/particles_trajectory.cpp,
+	  tests/plasmacyl.cpp, tests/quadrupole.cpp, tests/sclfield.cpp,
+	  tests/solver2d_cylindrical_beam.cpp, tests/vecfield.cpp,
+	  tests/vecfield_filedef.cpp, tests/vecfield_rotate.cpp: A lot of
+	  updates. Preparing for release
+
+	  - Tests updated - Copyright notices inserted - Bug fixed in
+	  trajectory intersection algorithm. Missed K=0,K=1 sometimes.
+
+2009-09-18 22:07  tvkalvas
+
+	* acinclude.m4, configure.in: Autobuild process editing. GSL check
+	  made better.
+
+2009-09-18 16:10  tvkalvas
+
+	* README, configure.in, doc/Doxyfile.in, doc/main.dxy,
+	  src/Makefile.am, src/bicgstab.cpp, src/bicgstab.hpp,
+	  src/bicgstab_solver.cpp, src/bicgstab_solver.hpp,
+	  src/ccolmatrix.cpp, src/ccolmatrix.hpp, src/color.hpp,
+	  src/colormap.cpp, src/colormap.hpp, src/config.hpp,
+	  src/coordmapper.hpp, src/coordmatrix.cpp, src/coordmatrix.hpp,
+	  src/crowmatrix.cpp, src/crowmatrix.hpp, src/csg_solid.loT,
+	  src/csgobject_solid.cpp, src/csgobject_solid.hpp,
+	  src/diag_precond.cpp, src/diag_precond.hpp, src/efield.hpp,
+	  src/empty_precond.hpp, src/epot_efield.cpp, src/epot_efield.hpp,
+	  src/epot_problem.cpp, src/epot_problem.hpp, src/eqpotgraph.cpp,
+	  src/eqpotgraph.hpp, src/error.hpp, src/fielddiagplot.cpp,
+	  src/fielddiagplot.hpp, src/fielddiagplotter.cpp,
+	  src/fielddiagplotter.hpp, src/fieldgraph.cpp, src/fieldgraph.hpp,
+	  src/fieldplot.loT, src/file.hpp, src/fileplot.loT, src/fonts.cpp,
+	  src/fonts.hpp, src/frame.cpp, src/frame.hpp, src/func_solid.cpp,
+	  src/func_solid.hpp, src/geometry.cpp, src/geometry.hpp,
+	  src/geomplot.cpp, src/geomplot.hpp, src/geomplotter.cpp,
+	  src/geomplotter.hpp, src/graph.hpp, src/graph3d.hpp,
+	  src/gs_solver.cpp, src/gs_solver.hpp, src/gtkfielddiagdialog.cpp,
+	  src/gtkfielddiagdialog.hpp, src/gtkfielddiagexportdialog.cpp,
+	  src/gtkfielddiagexportdialog.hpp, src/gtkfielddiagwindow.cpp,
+	  src/gtkfielddiagwindow.hpp, src/gtkgeomwindow.cpp,
+	  src/gtkgeomwindow.hpp, src/gtkhardcopy.cpp, src/gtkhardcopy.hpp,
+	  src/gtkparticlediagdialog.cpp, src/gtkparticlediagdialog.hpp,
+	  src/gtkparticlediagwindow.cpp, src/gtkparticlediagwindow.hpp,
+	  src/gtkplotter.cpp, src/gtkplotter.hpp, src/gtkpreferences.cpp,
+	  src/gtkpreferences.hpp, src/gtkwindow.cpp, src/gtkwindow.hpp,
+	  src/hbio.cpp, src/hbio.hpp, src/histogram.cpp, src/histogram.hpp,
+	  src/icon_field_diag.cpp, src/icon_hardcopy.cpp,
+	  src/icon_move.cpp, src/icon_move.loT, src/icon_particle_diag.cpp,
+	  src/icon_track.cpp, src/icon_zoom_fit.cpp, src/icon_zoom_in.cpp,
+	  src/icon_zoom_out.cpp, src/icons.cpp, src/icons.hpp,
+	  src/ilu0_precond.cpp, src/ilu0_precond.hpp,
+	  src/interpolation.cpp, src/interpolation.hpp, src/label.cpp,
+	  src/label.hpp, src/legend.cpp, src/legend.hpp, src/lineclip.cpp,
+	  src/lineclip.hpp, src/matrix.cpp, src/matrix.hpp,
+	  src/meshgraph.cpp, src/meshgraph.hpp, src/mvector.cpp,
+	  src/mvector.hpp, src/palette.cpp, src/palette.hpp,
+	  src/particledatabase.cpp, src/particledatabase.hpp,
+	  src/particlediagplot.cpp, src/particlediagplot.hpp,
+	  src/particlediagplotter.cpp, src/particlediagplotter.hpp,
+	  src/particlegraph.cpp, src/particlegraph.hpp,
+	  src/particleiterator.hpp, src/particleiterator.loT,
+	  src/particles.cpp, src/particles.hpp, src/plotter.cpp,
+	  src/plotter.hpp, src/polysolver.cpp, src/polysolver.hpp,
+	  src/precond.hpp, src/problem.hpp, src/qrandom.cpp,
+	  src/qrandom.hpp, src/ruler.cpp, src/ruler.hpp,
+	  src/scalarfield.cpp, src/scalarfield.hpp, src/scharge.cpp,
+	  src/scharge.hpp, src/scheduler.hpp, src/solid.hpp,
+	  src/solidgraph.cpp, src/solidgraph.hpp, src/solver.hpp,
+	  src/sort.hpp, src/statusprint.cpp, src/statusprint.hpp,
+	  src/symbols.cpp, src/timer.cpp, src/timer.hpp,
+	  src/trajectory.cpp, src/trajectory.hpp,
+	  src/trajectorydiagnostics.cpp, src/trajectorydiagnostics.hpp,
+	  src/types.cpp, src/types.hpp, src/umfpack_solver.cpp,
+	  src/umfpack_solver.hpp, src/vec3d.hpp, src/vectorfield.cpp,
+	  src/vectorfield.hpp, src/verbose.cpp, src/verbose.hpp,
+	  src/xygraph.cpp, src/xygraph.hpp, tests/Makefile.am,
+	  tests/plasma2d.cpp, tests/solver2d_smooth.cpp,
+	  tests/solver3d_sphere.cpp, tests/solvercyl_beam.cpp,
+	  tests/solvercyl_coax.cpp, tests/trajdiaghisto.cpp,
+	  tests/umfpack_solver.cpp, tests/vecfield.cpp,
+	  tests/vecfield_filedef.cpp, tests/vecfield_filedef.dat,
+	  tests/vecfield_rotate.cpp, tests/vlasov2d.cpp: Preparing for
+	  release.
+
+	  - Updated copyright notices on source files - Changed version
+	  number - Made CSG library conditional - Partially made tests
+	  compilable and silent - Changed documentation settings - Removed
+	  introductory parts from docs -> reference manual only - Corrected
+	  some CVS problems still remaining
+
+2009-09-18 14:39  tvkalvas
+
+	* src/bicgstab.hpp: Some update.
+
+2009-09-18 13:43  tvkalvas
+
+	* src/: gtkfielddiagexportdialog.cpp, gtkfielddiagexportdialog.hpp:
+	  Added field data export.
+
+2009-09-18 13:40  tvkalvas
+
+	* doc/main.dxy, src/gtkplotter.hpp: Updates
+
+2009-09-16 22:13  tvkalvas
+
+	* doc/main.dxy, src/scharge.hpp, src/vectorfield.hpp: Added
+	  documentation.
+
+2009-09-16 20:40  tvkalvas
+
+	* BUGS, TODO, src/Makefile.am, src/fielddiagplot.cpp,
+	  src/fielddiagplot.hpp, src/gtkfielddiagdialog.cpp,
+	  src/gtkfielddiagdialog.hpp, src/gtkfielddiagwindow.cpp,
+	  src/gtkfielddiagwindow.hpp, src/gtkgeomwindow.hpp,
+	  src/gtkparticlediagdialog.cpp, src/gtkparticlediagdialog.hpp,
+	  src/gtkparticlediagwindow.hpp, src/gtkplotter.cpp,
+	  src/gtkplotter.hpp, src/gtkpreferences.cpp,
+	  src/gtkpreferences.hpp, src/gtkwindow.cpp, src/gtkwindow.hpp,
+	  src/statusprint.hpp, src/umfpack_solver.cpp,
+	  src/umfpack_solver.hpp: Added data export to field diagnostics.
+	  Fixed non-linear UMFPACK.
+
+	  Chopped field plotter to smaller logical parts. Added dialog for
+	  exporting.  Made "file" menu accessible to children of GTKWindow.
+	  Added global "hardcopy" button to file menu. Added force to LU
+	  decomposition for non-linear UMFPACK.  Added documentation.
+
+2009-09-16 14:44  tvkalvas
+
+	* src/: bicgstab_solver.cpp, bicgstab_solver.hpp, epot_problem.cpp,
+	  epot_problem.hpp, gs_solver.cpp, gs_solver.hpp, palette.cpp,
+	  scalarfield.hpp, solver.hpp, umfpack_solver.cpp,
+	  umfpack_solver.hpp, vec3d.hpp: UMFPACK decomposition cache
+
+	  Changed solver to be non-const in problem. Therefore added a
+	  possibility for problem cache in solver. Added a callback
+	  function reset() to solvers for clearing cache when problem
+	  changes. Made UMFPACK LU decomposition cache. Is tested.
+
+	  Also some minor commenting/documentation and fixed small errors.
+
+	  Commenting
+
+2009-09-14 22:59  tvkalvas
+
+	* doc/main.dxy, src/ccolmatrix.cpp, src/coordmatrix.cpp,
+	  src/crowmatrix.cpp, src/csgobject_solid.hpp,
+	  src/epot_problem.hpp, src/eqpotgraph.cpp, src/fielddiagplot.cpp,
+	  src/geometry.hpp, src/gtkhardcopy.hpp, src/gtkplotter.hpp,
+	  src/gtkpreferences.hpp, src/label.hpp, src/particledatabase.hpp,
+	  src/particlediagplot.hpp, src/particlegraph.cpp,
+	  src/scalarfield.hpp, tests/solver2d_coax.cpp: Updated
+	  documentation. Updated eqpotplot.
+
+2009-09-13 15:57  tvkalvas
+
+	* TODO, src/Makefile.am, src/bicgstab_solver.hpp,
+	  src/gauss_seidel.cpp, src/gauss_seidel.hpp, src/gs_solver.cpp,
+	  src/gs_solver.hpp, src/umfpack_solver.cpp,
+	  src/umfpack_solver.hpp, tests/Makefile.am, tests/gs_solver.cpp,
+	  tests/plasma2d.cpp: Added Gauss-Seidel solver and test. Added
+	  UMFPACK nonlinear solver.
+
+2009-09-11 15:05  tvkalvas
+
+	* src/ccolmatrix.cpp, src/ccolmatrix.hpp, src/crowmatrix.cpp,
+	  src/crowmatrix.hpp, src/geometry.cpp, src/umfpack_solver.cpp,
+	  src/umfpack_solver.hpp, tests/ccolmatrix.cpp,
+	  tests/crowmatrix.cpp, tests/matrixconv.cpp,
+	  tests/solver3d_sphere.cpp: Matrix conversion made to do ascending
+	  index order matrices.
+
+	  Umfpack no longer needs to sort matrix. Tests made for features
+	  modified/added.
+
+2009-09-10 07:37  tvkalvas
+
+	* ChangeLog, src/ccolmatrix.cpp, src/ccolmatrix.hpp,
+	  src/coordmatrix.cpp, src/coordmatrix.hpp, src/crowmatrix.cpp,
+	  src/crowmatrix.hpp: Added matrix conversion from unknown matrix
+	  type to CRowMatrix and CoordMatrix types. Added comments to
+	  coordmatrix.hpp
+
 2009-09-09 22:38  tvkalvas
 
 	* TODO, src/epot_problem.cpp: Changed matrix build order to sorted

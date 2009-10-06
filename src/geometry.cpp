@@ -158,7 +158,7 @@ void Geometry::set_solid( int32_t n, const Solid *s )
 	throw( Error( ERROR_LOCATION, "illegal solid number" ) );
 
     if( n <= _n+6 ) {
-	delete _sdata[n];
+	delete _sdata[n-7];
     } else {
 	_sdata.push_back( 0 );
 	_bound.push_back( Bound(BOUND_DIRICHLET,0.0) );
@@ -172,7 +172,7 @@ void Geometry::set_solid( int32_t n, const Solid *s )
 const Solid *Geometry::get_solid( int32_t n ) const
 {
     if( n <= 6 || n > _n+6 )
-	throw( Error( ERROR_LOCATION, "illegal solid number" ) );
+	throw( Error( ERROR_LOCATION, "illegal solid number " + to_string(n) ) );
     
     return( _sdata[n-7] );
 }
@@ -181,7 +181,7 @@ const Solid *Geometry::get_solid( int32_t n ) const
 void Geometry::set_boundary( int32_t n, const Bound &b )
 {
     if( n <= 0 || n > _n+6 )
-	throw( Error( ERROR_LOCATION, "illegal solid number" ) );
+	throw( Error( ERROR_LOCATION, "illegal solid number " + to_string(n) ) );
 
     _bound[n-1] = b;
 }
@@ -190,7 +190,7 @@ void Geometry::set_boundary( int32_t n, const Bound &b )
 Bound Geometry::get_boundary( int32_t n ) const
 {
     if( n <= 0 || n > _n+6 )
-	throw( Error( ERROR_LOCATION, "illegal solid number" ) );
+	throw( Error( ERROR_LOCATION, "illegal solid number " + to_string(n) ) );
 
     return( _bound[n-1] );
 }
