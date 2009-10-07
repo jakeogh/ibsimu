@@ -155,7 +155,7 @@ int32_t Geometry::dim( void ) const
 void Geometry::set_solid( int32_t n, const Solid *s )
 {
     if( n <= 6 || n > _n+7 )
-	throw( Error( ERROR_LOCATION, "illegal solid number" ) );
+	throw( Error( ERROR_LOCATION, "illegal solid number" + to_string(n) ) );
 
     if( n <= _n+6 ) {
 	delete _sdata[n-7];

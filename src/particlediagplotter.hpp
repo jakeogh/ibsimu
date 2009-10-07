@@ -65,7 +65,7 @@ public:
     ParticleDiagPlotter( const Geometry *geom, const ParticleDataBase *pdb, 
 			 coordinate_axis_e axis, double level, 
 			 particle_diag_plot_type_e type,
-			 trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy );
+			 trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy = DIAG_NONE );
 
     /*! \brief Destructor for particle diagnostic plotter.
      */

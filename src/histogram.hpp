@@ -47,9 +47,23 @@
 #include <vector>
 
 
-/*! \brief Class for 1D histogram type representation of data.
+/*! \brief Base histogram class.
  */
 class Histogram
+{
+
+public:
+
+    /*! \brief Destructor.
+     */
+    virtual ~Histogram() {}
+
+};
+
+
+/*! \brief Class for 1D histogram type representation of data.
+ */
+class Histogram1D : public Histogram
 {
     int                 _n;         /*!< \brief Number of bins. */
     double              _range[2];  /*!< \brief Ranges: min, max. */
@@ -60,19 +74,19 @@ public:
 
     /*! \brief Constructor for \a n bin histogram with \a ranges.
      */
-    Histogram( size_t n, const double range[2] );
+    Histogram1D( size_t n, const double range[2] );
 
     /*! \brief Constructor for \a n bin histogram from scatter data with even weights.
      */
-    Histogram( size_t n, const std::vector<double> &xdata );
+    Histogram1D( size_t n, const std::vector<double> &xdata );
 
     /*! \brief Constructor for \a n bin histogram from scatter data with weights wrom \a wdata.
      */
-    Histogram( size_t n, const std::vector<double> &xdata, const std::vector<double> &wdata );
+    Histogram1D( size_t n, const std::vector<double> &xdata, const std::vector<double> &wdata );
 
     /*! \brief Destructor.
      */
-    ~Histogram();
+    virtual ~Histogram1D();
 
     /*! \brief Return the number of bins.
      */
@@ -142,7 +156,7 @@ public:
 
 /*! \brief Class for 2d histogram type representation of data.
  */
-class Histogram2D
+class Histogram2D : public Histogram
 {
     int                 _n;         /*!< \brief Number of bins along first axis. */
     int                 _m;         /*!< \brief Number of bins along second axis. */
@@ -172,7 +186,7 @@ public:
 
     /*! \brief Destructor.
      */
-    ~Histogram2D();
+    virtual ~Histogram2D();
 
     /*! \brief Return the number of bins along the first axis.
      */

@@ -48,7 +48,7 @@
 #include "error.hpp"
 
 
-Histogram::Histogram( size_t n, const double range[2] )
+Histogram1D::Histogram1D( size_t n, const double range[2] )
     : _n(n), _data(n,0.0)
 {
     if( _n < 4 )
@@ -61,7 +61,7 @@ Histogram::Histogram( size_t n, const double range[2] )
 }
 
 
-Histogram::Histogram( size_t n, const std::vector<double> &xdata )
+Histogram1D::Histogram1D( size_t n, const std::vector<double> &xdata )
     : _n(n), _data(n,0.0)
 {
     if( _n < 4 )
@@ -94,7 +94,7 @@ Histogram::Histogram( size_t n, const std::vector<double> &xdata )
 }
 
 
-Histogram::Histogram( size_t n, const std::vector<double> &xdata, const std::vector<double> &wdata )
+Histogram1D::Histogram1D( size_t n, const std::vector<double> &xdata, const std::vector<double> &wdata )
     : _n(n), _data(n,0.0)
 {
     if( _n < 4 )
@@ -127,13 +127,13 @@ Histogram::Histogram( size_t n, const std::vector<double> &xdata, const std::vec
 }
 
 
-Histogram::~Histogram()
+Histogram1D::~Histogram1D()
 {
 
 }
 
 
-void Histogram::get_bin_range( double &min, double &max )
+void Histogram1D::get_bin_range( double &min, double &max )
 {
     min = std::numeric_limits<double>::infinity();
     max = -std::numeric_limits<double>::infinity();
@@ -145,9 +145,9 @@ void Histogram::get_bin_range( double &min, double &max )
 	    max = _data[a];
     }
 }
-    
 
-void Histogram::accumulate_linear( double x, double weight )
+
+void Histogram1D::accumulate_linear( double x, double weight )
 {
     //std::cout << "(x,y) = (" << x << "," << y << ")\n";
     int i = (int)floor( (x-_range[0]) / _step );

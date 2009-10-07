@@ -305,6 +305,9 @@ template<class PP> class ParticleDataBasePP : public ParticleDataBase {
     static void add_diagnostics( TrajectoryDiagnosticData &tdata, const PP &x, const Particle<PP> &p, int crd ) {
 	for( size_t a = 0; a < tdata.diag_size(); a++ ) {
 	    switch( tdata.diagnostic( a ) ) {
+	    case DIAG_NONE:
+		tdata.add_data( a, 0.0 );
+		break;
 	    case DIAG_T:
 		tdata.add_data( a, x[0] );
 		break;

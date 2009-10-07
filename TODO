@@ -1,6 +1,8 @@
 		TODO list
 		=========
 
+particlediagplot.cpp: scaling for profile plots in 2D
+
 Add PIC style particle stepper
 
 Suitesparse package to include umfpack.pc and amd.pc and newest

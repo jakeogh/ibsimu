@@ -44,6 +44,9 @@
 #include "ruler.hpp"
 
 
+#define DEBUG_RULER 1
+
+
 Ruler::Ruler()
     : _color((Color(0,0,0))), _ticlen_in(5.0), _ticlen_out(5.0), _labelspace(5.0),
       _fontsize(12.0), _label_enabled(true), _indir(true), _cind(0)
@@ -192,6 +195,10 @@ void Ruler::get_autorange( bool &autorange_min, bool &autorange_max ) const
 
 void Ruler::set_ranges( double min, double max )
 {
+#ifdef DEBUG_RULER
+    std::cout << "Ruler::set_ranges( " << min << ", " << max << ")\n";
+#endif
+
     if( isinf(min) || isnan(min) ) {
 	if( isinf(max) || isnan(max) ) {
 	    _range[0] = 0.0;
@@ -368,16 +375,37 @@ bool Ruler::add_tic( double x, cairo_t *cairo, const Coordmapper1D &cm,
 }
 
 
+/* Calculate pow( 10, x ) accurately
+ */
+double accpow10( int x )
+{
+    if( x > 0 ) {
+
+	double res = 1.0;
+	for( int a = 0; a < x; a++ )
+	    res *= 10.0;
+	return( res );
+
+    } else if( x < 0 ) {
+
+	double res = 1.0;
+	for( int a = 0; a < -x; a++ )
+	    res *= 10.0;
+	return( 1.0/res );
+
+    }
+
+    return( 1.0 );
+}
+
+
 void Ruler::calculate( cairo_t *cairo, Coordmapper1D &cm, bool ruler_tic_bbox_test ) 
 {
-    //std::cout << "Tic calculate\n";
-    //std::cout << "min = " << _range[0] << "\n";
-    //std::cout << "max = " << _range[1] << "\n";
-
     int num = 8;
     double step;
     double big  = fabs(_range[1]-_range[0]) / num;
-    double bigl = pow( 10, floor( log10( fabs(_range[1]-_range[0]) / num ) ) );
+    //double bigl = pow( 10, floor( log10( fabs(_range[1]-_range[0]) / num ) ) );
+    double bigl = accpow10( (int)floor( log10( fabs(_range[1]-_range[0]) / num ) ) );
     int fac;
     if( bigl >= big ) 
         fac = 1;
@@ -393,9 +421,13 @@ void Ruler::calculate( cairo_t *cairo, Coordmapper1D &cm, bool ruler_tic_bbox_te
     if( _range[1] < _range[0] )
 	stepdir = false;
 
-    //std::cout << "big = " << big << "\n";
-    //std::cout << "bigl = " << bigl << "\n";
-    //std::cout << "step = " << step << "\n";
+#ifdef DEBUG_RULER
+    std::cout << "Ruler::calculate()\n";
+    std::cout << "  min = " << _range[0] << "\n";
+    std::cout << "  max = " << _range[1] << "\n";
+    std::cout << "  big = " << big << "\n";
+    std::cout << "  bigl = " << bigl << "\n";
+#endif
 
     double maxsize = 0.0;
     double orig_range[2] = { _range[0], _range[1] };
@@ -420,11 +452,20 @@ void Ruler::calculate( cairo_t *cairo, Coordmapper1D &cm, bool ruler_tic_bbox_te
 	if( _autorange[0] )
 	    _range[0] = x;
 	if( _autorange[1] ) {
-	    while( (stepdir && x < _range[1]) || (!stepdir && x > _range[1]) )
-		x += step;
-	    if( (stepdir && x > _range[1]) || (!stepdir && x < _range[1]) )
-		_range[1] = x;
+	    int i = 0;
+	    while( (stepdir && x < _range[1]) || (!stepdir && x > _range[1]) ) {
+		i++;
+		x = _range[0] + i*step;
+	    }
+	    //if( (stepdir && x > _range[1]) || (!stepdir && x < _range[1]) )
+	    _range[1] = x;
 	}
+
+#ifdef DEBUG_RULER
+	std::cout << "  step = " << step << "\n";
+	std::cout << "  autoranged min = " << _range[0] << "\n";
+	std::cout << "  autoranged max = " << _range[1] << "\n";
+#endif
 
 	// Calculate coordmapper with current ranges
 	if( _cind == 0 ) {
@@ -442,9 +483,13 @@ void Ruler::calculate( cairo_t *cairo, Coordmapper1D &cm, bool ruler_tic_bbox_te
 	double obbox[4];
 	bool bbox_test_crash = false;
 	_tic.clear();
-	x = step*floor(_range[0]/step);
-	while( (stepdir && x < _range[0]) || (!stepdir && x > _range[0]) )
-	    x += step;
+	double startx = step*floor(_range[0]/step);
+	x = startx;
+	int i = 0;
+	while( (stepdir && x < _range[0]) || (!stepdir && x > _range[0]) ) {
+	    i++;
+	    x = startx + i*step;
+	}
 	while( (stepdir && x <= _range[1]) || (!stepdir && x >= _range[1]) ) {
 
 	    // Make a tic and set parameters and make bounding box
@@ -454,7 +499,8 @@ void Ruler::calculate( cairo_t *cairo, Coordmapper1D &cm, bool ruler_tic_bbox_te
 		break;
 	    }
 
-	    x += step;
+	    i++;
+	    x = startx + i*step;
 	}
 	if( bbox_test_crash ) {
 	    // Increase fac according to 1, 2, 5, 10 sequence

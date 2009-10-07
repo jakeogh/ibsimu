@@ -87,7 +87,8 @@ extern const char *coordinate_axis_string_with_unit[];
 /*! \brief Type of diagnostic for trajectories.
  */
 enum trajectory_diagnostic_e {
-    DIAG_T = 0,
+    DIAG_NONE = 0,
+    DIAG_T,
     DIAG_X,
     DIAG_VX,
     DIAG_Y,

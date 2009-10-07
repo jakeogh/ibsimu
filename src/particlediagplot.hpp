@@ -48,6 +48,7 @@
 #include "geometry.hpp"
 #include "particledatabase.hpp"
 #include "types.hpp"
+#include "histogram.hpp"
 
 #include "xygraph.hpp"
 #include "colormap.hpp"
@@ -63,6 +64,14 @@ enum particle_diag_plot_type_e {
 
 /*! \brief %Particle diagnostic plot.
  *
+ *  Two dimensional histograms have particle trajectory currents
+ *  always taken in account.  Similarly profile plot
+ *  (PARTICLE_DIAG_PLOT_HISTO1D) always takes in account the
+ *  trajectory current. In cylindrical symmetry cases the output is
+ *  scaled to have constant area per histogram bin.  One dimensional
+ *  Emittance plots in (r,r') space are scaled to have constant area
+ *  per histogram bin.
+ *  
  */
 class ParticleDiagPlot {
     
@@ -93,6 +102,7 @@ class ParticleDiagPlot {
     interpolation_e            _interpolation;
     double                     _dot_size;
     
+    void build_data( TrajectoryDiagnosticData &tdata, Histogram **histo ) const;
     void merge_bbox( double bbox[4], const double bb[4] );
     
 public:
@@ -100,7 +110,7 @@ public:
     ParticleDiagPlot( Frame *frame, const Geometry *geom, const ParticleDataBase *pdb, 
 		      coordinate_axis_e axis, double level, 
 		      particle_diag_plot_type_e type,
-		      trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy );
+		      trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy = DIAG_NONE );
 
     ~ParticleDiagPlot();
 
@@ -177,6 +187,10 @@ public:
     double get_dot_size( void ) {
 	return( _dot_size );
     }
+
+    /*! \brief Export plotted data as ASCII.
+     */
+    void export_data( const std::string &filename ) const;
 
     /*! \brief Rebuild plot.
      */

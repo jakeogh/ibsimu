@@ -1,19 +1,17 @@
 /*! \file csgobjectsolid.cpp 
- *  \brief Test for CSGObjectSolid.
- *
  *  \test Test for CSGObjectSolid.
  */
 
 
 #include <iostream>
 #include <iomanip>
-#include "fileplot.hpp"
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "csgobject_solid.hpp"
 #include "epot_efield.hpp"
+#include "geomplotter.hpp"
 #include "error.hpp"
 
 
@@ -38,23 +36,20 @@ CSGObject *object1( void )
 
 void test( void )
 {
-    Geometry g( MODE_2D, Int3D(101,101,1), Vec3D(-2.5,-2.5,0), 0.05 );
+    Geometry geom( MODE_2D, Int3D(101,101,1), Vec3D(-2.5,-2.5,0), 0.05 );
     CSGObject *o1 = object1();
     Solid *s1 = new CSGObjectSolid( o1 );
-    g.set_solid( 7, s1 );
-    g.set_boundary( 1,  Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 2,  Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 3,  Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 4,  Bound(BOUND_NEUMANN,    0.0) );
-    g.set_boundary( 7,  Bound(BOUND_DIRICHLET,  0.0) );
-    g.build_mesh();
+    geom.set_solid( 7, s1 );
+    geom.set_boundary( 1,  Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 2,  Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 3,  Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 4,  Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 7,  Bound(BOUND_DIRICHLET,  0.0) );
+    geom.build_mesh();
 
-    GeomPlotter geomplotter;
-    geomplotter.set_geometry( g );
-    //geomplotter.set_epot( epot );
-    geomplotter.set_meshlines( true );
-    //gtkplot( &geomplotter, argc, argv );
-    pngplot( &geomplotter, "csgobjectsolid.png" );
+    GeomPlotter gplotter( &geom );
+    gplotter.set_mesh( true );
+    gplotter.plot_png( "csgobjectsolid.png" );
 }
 
 

@@ -41,9 +41,8 @@
  */
 
 #include <limits>
-
+#include <fstream>
 #include "particlediagplot.hpp"
-#include "histogram.hpp"
 
 
 ParticleDiagPlot::ParticleDiagPlot( Frame *frame, const Geometry *geom, const ParticleDataBase *pdb, 
@@ -72,38 +71,9 @@ ParticleDiagPlot::~ParticleDiagPlot()
 }
 
 
-void ParticleDiagPlot::build_plot( void )
+void ParticleDiagPlot::build_data( TrajectoryDiagnosticData &tdata, Histogram **histo ) const
 {
-    // Set axis labels
-    if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
-	_frame->set_axis_label( PLOT_AXIS_X1, trajectory_diagnostic_string_with_unit[_diagx] );
-	_frame->set_axis_label( PLOT_AXIS_Y1, "Intensity (a.u.)" );
-    } else {
-	_frame->set_axis_label( PLOT_AXIS_X1, trajectory_diagnostic_string_with_unit[_diagx] );
-	_frame->set_axis_label( PLOT_AXIS_Y1, trajectory_diagnostic_string_with_unit[_diagy] );
-    }
-
-    // Clear old graphs
-    _frame->clear_graphs();
-    if( _scatter ) {
-	delete _scatter;
-	_scatter = NULL;
-    }
-    if( _colormap ) {
-	delete _colormap; 
-	_colormap = NULL;
-    }
-    if( _ellipse ) {
-	delete _ellipse;
-	_ellipse = NULL;
-    }
-    if( _profile ) {
-	delete _profile;
-	_profile = NULL;
-    }
-
     // Get diagnostic data
-    TrajectoryDiagnosticData tdata;
     std::vector<trajectory_diagnostic_e> diagnostics;
     diagnostics.push_back( _diagx );
     if( _type != PARTICLE_DIAG_PLOT_HISTO1D )
@@ -135,6 +105,153 @@ void ParticleDiagPlot::build_plot( void )
 	tdata.mirror( AXIS_Z, _geom->max(2) );
     }
 
+    if( _type == PARTICLE_DIAG_PLOT_HISTO2D ) {
+
+	// Make colormap
+	Histogram2D *histo2d = new Histogram2D( _histogram_n, _histogram_m, tdata(0).data(), 
+						tdata(1).data(), tdata(2).data() );
+	*histo = histo2d;
+
+	// Scale emittance plot to have constant area per square.
+	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R && _diagy == DIAG_RP) {
+	    double dr = histo2d->nstep();
+	    for( size_t i = 0; i < histo2d->n(); i++ ) {
+		double r = fabs( histo2d->icoord( i ) );
+		double w = M_PI*((r+0.5*dr)*(r+0.5*dr) - (r-0.5*dr)*(r-0.5*dr));
+		if( r == 0.0 )
+		    w = M_PI*dr*dr;
+		for( size_t j = 0; j < histo2d->m(); j++ )
+		    (*histo2d)(i,j) /= w;
+	    }
+	}
+
+    } else if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
+
+	// Make XYGraph profile plot
+	Histogram1D *histo1d = new Histogram1D( _histogram_n, tdata(0).data(), tdata(1).data() );
+	*histo = histo1d;
+
+	// Scale profile plot to have constant area per bin.
+	// 
+	// Some weird things can be seen near the axis of profile plots
+	// On odd number of bins used the 1.5 factor below fixes everything
+	// On even number of bins the histogram gives a bit higher on the closest nodes
+	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
+	    double dr = histo1d->step();
+	    for( size_t i = 0; i < histo1d->n(); i++ ) {
+		double r = fabs( histo1d->coord(i) );
+		double w = M_PI*((r+0.5*dr)*(r+0.5*dr) - (r-0.5*dr)*(r-0.5*dr));
+		if( fabs(r/histo1d->coord(histo1d->n())) < 1.0e-7 )
+		    w = M_PI*dr*dr/1.5; 
+		(*histo1d)(i) /= w;
+	    }
+	}
+    }
+}
+
+
+void ParticleDiagPlot::export_data( const std::string &filename ) const
+{
+    std::ofstream fstr( filename.c_str() );
+
+    // Build particle data
+    Histogram *histo = NULL;
+    TrajectoryDiagnosticData tdata;
+    build_data( tdata, &histo );
+
+    // Write header
+    if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
+	fstr << "# ";
+	fstr << std::setw(11) << trajectory_diagnostic_string_with_unit[_diagx];
+	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R )
+	    fstr << std::setw(14) << "Int (A/m^2)";
+	else
+	    fstr << std::setw(14) << "Int (a.u.)";
+	fstr << "\n";
+    } else {
+	fstr << "# ";
+	fstr << std::setw(11) << trajectory_diagnostic_string_with_unit[_diagx];
+	fstr << std::setw(14) << trajectory_diagnostic_string_with_unit[_diagy];
+	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R && _diagy == DIAG_RP)
+	    fstr << std::setw(14) << "Int (A/m/rad)";
+	else
+	    fstr << std::setw(14) << "Int (a.u.)";
+	fstr << "\n";
+    }
+
+    // Write data
+    if( _type == PARTICLE_DIAG_PLOT_SCATTER ) {
+	size_t N = tdata.traj_size();
+	for( size_t a = 0; a < N; a++ ) {
+	    fstr << std::setw(13) << tdata(a,0) << " ";
+	    fstr << std::setw(13) << tdata(a,1) << " ";
+	    fstr << std::setw(13) << tdata(a,2) << "\n";
+	}
+    } else if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
+	Histogram1D *histo1d = dynamic_cast<Histogram1D *>( histo );
+	if( !histo1d )
+	    throw( Error( ERROR_LOCATION, "dynamic cast error" ) );
+	size_t N = histo1d->n();
+	for( size_t a = 0; a < N; a++ ) {
+	    fstr << std::setw(13) << histo1d->coord(a) << " ";
+	    fstr << std::setw(13) << (*histo1d)(a) << "\n";
+	}
+    } else if( _type == PARTICLE_DIAG_PLOT_HISTO2D ) {
+	Histogram2D *histo2d = dynamic_cast<Histogram2D *>( histo );
+	if( !histo2d )
+	    throw( Error( ERROR_LOCATION, "dynamic cast error" ) );
+	size_t N = histo2d->n();
+	size_t M = histo2d->m();
+	for( size_t b = 0; b < M; b++ ) {
+	    for( size_t a = 0; a < N; a++ ) {
+		fstr << std::setw(13) << histo2d->icoord(a) << " ";
+		fstr << std::setw(13) << histo2d->jcoord(b) << " ";
+		fstr << std::setw(13) << (*histo2d)(a,b) << "\n";
+	    }
+	}
+    }
+
+    if( histo )
+	delete histo;
+    fstr.close();
+}
+
+
+void ParticleDiagPlot::build_plot( void )
+{
+    // Build particle data
+    Histogram *histo = NULL;
+    TrajectoryDiagnosticData tdata;
+    build_data( tdata, &histo );
+
+    // Set axis labels
+    if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
+	_frame->set_axis_label( PLOT_AXIS_X1, trajectory_diagnostic_string_with_unit[_diagx] );
+	_frame->set_axis_label( PLOT_AXIS_Y1, "Intensity (a.u.)" );
+    } else {
+	_frame->set_axis_label( PLOT_AXIS_X1, trajectory_diagnostic_string_with_unit[_diagx] );
+	_frame->set_axis_label( PLOT_AXIS_Y1, trajectory_diagnostic_string_with_unit[_diagy] );
+    }
+
+    // Clear old graphs
+    _frame->clear_graphs();
+    if( _scatter ) {
+	delete _scatter;
+	_scatter = NULL;
+    }
+    if( _colormap ) {
+	delete _colormap; 
+	_colormap = NULL;
+    }
+    if( _ellipse ) {
+	delete _ellipse;
+	_ellipse = NULL;
+    }
+    if( _profile ) {
+	delete _profile;
+	_profile = NULL;
+    }
+
     if( _type == PARTICLE_DIAG_PLOT_SCATTER ) {
 
 	// Make scatter
@@ -146,11 +263,13 @@ void ParticleDiagPlot::build_plot( void )
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO2D ) {
 
 	// Make colormap
-	Histogram2D histogram( _histogram_n, _histogram_m, tdata(0).data(), tdata(1).data(), tdata(2).data() );
+	Histogram2D *histo2d = dynamic_cast<Histogram2D *>( histo );
+	if( !histo2d )
+	    throw( Error( ERROR_LOCATION, "dynamic cast error" ) );
 	double range[4];
-	histogram.get_range( range );
+	histo2d->get_range( range );
 	double zmin, zmax;
-	histogram.get_bin_range( zmin, zmax );
+	histo2d->get_bin_range( zmin, zmax );
 
 	Palette palette;
 	palette.clear();
@@ -178,19 +297,7 @@ void ParticleDiagPlot::build_plot( void )
 	}
 	palette.norm();
 
-	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R && _diagy == DIAG_RP) {
-	    // Scale emittance plot to have constant area per square.
-	    double dr = histogram.nstep();
-	    for( size_t i = 0; i < histogram.n(); i++ ) {
-		double r = fabs( histogram.icoord( i ) );
-		double w = M_PI*((r+0.5*dr)*(r+0.5*dr) - (r-0.5*dr)*(r-0.5*dr));
-		if( r == 0.0 )
-		    w = M_PI*dr*dr;
-		for( size_t j = 0; j < histogram.m(); j++ )
-		    histogram(i,j) /= w;
-	    }
-	}
-	_colormap = new Colormap( range, histogram.n(), histogram.m(), histogram.get_data() );
+	_colormap = new Colormap( range, histo2d->n(), histo2d->m(), histo2d->get_data() );
 	_colormap->set_palette( palette );
 	_colormap->set_interpolation( _interpolation );
 	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _colormap );
@@ -198,25 +305,18 @@ void ParticleDiagPlot::build_plot( void )
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
 
 	// Make XYGraph profile plot
-	Histogram histogram( _histogram_n, tdata(0).data(), tdata(1).data() );
+	Histogram1D *histo1d = dynamic_cast<Histogram1D *>( histo );
+	if( !histo1d )
+	    throw( Error( ERROR_LOCATION, "dynamic cast error" ) );
 	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
-	    std::cout << "scaling profile histogram\n";
-	    // Scale profile plot to have constant area per bin.
-	    double dr = histogram.step();
-	    for( size_t i = 0; i < histogram.n(); i++ ) {
-		double r = fabs( histogram.coord(i) );
-		double w = M_PI*((r+0.5*dr)*(r+0.5*dr) - (r-0.5*dr)*(r-0.5*dr));
-		if( r == 0.0 )
-		    w = M_PI*dr*dr;
-		histogram(i) /= w;
-	    }
+	    _frame->set_axis_label( PLOT_AXIS_Y1, "Intensity (A/m^2)" );
 	}
 	std::vector<double> xdata;
-	xdata.reserve( histogram.n() );
-	for( size_t a = 0; a < histogram.n(); a++ )
-	    xdata.push_back( histogram.coord(a) );
+	xdata.reserve( histo1d->n() );
+	for( size_t a = 0; a < histo1d->n(); a++ )
+	    xdata.push_back( histo1d->coord(a) );
 
-	_profile = new XYGraph( xdata, histogram.get_data() );
+	_profile = new XYGraph( xdata, histo1d->get_data() );
 	_profile->set_color( Color(1,0,0) );
 	_profile->set_line_style( XYGRAPH_LINE_SOLID );
 	_profile->set_point_style( XYGRAPH_POINT_DISABLE );
@@ -275,6 +375,9 @@ void ParticleDiagPlot::build_plot( void )
 	_frame->set_title( "" );
 
     }
+
+    if( histo )
+	delete histo;
 }
 
 

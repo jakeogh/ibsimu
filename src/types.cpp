@@ -60,6 +60,7 @@ const char *coordinate_axis_string_with_unit[] = {
 
 
 const char *trajectory_diagnostic_string[] = {
+    "none",
     "time",
     "x",
     "v_x",
@@ -82,6 +83,7 @@ const char *trajectory_diagnostic_string[] = {
 
 
 const char *trajectory_diagnostic_string_with_unit[] = {
+    "none ()",
     "time (s)",
     "x (m)",
     "v_x (m/s)",
