@@ -159,6 +159,65 @@ void ParticleDataBaseCyl::add_2d_beam_with_energy( uint32_t N, double J, double 
 
 
 
+/*
+// perpendicular temperature and angle of start should be made possible
+void ParticleDataBaseCyl::add_2d_KV_beam_with_emittance( uint32_t N, double I, double q, double m,
+							 double a, double b, double e,
+							 double Ex, double x0 )
+{
+    throw( ErrorUnimplemented( ERROR_LOCATION ) );
+	
+    if( verbose_output )
+	std::cout << "Defining a cylindrical beam with gaussian emittance\n";
+
+    QRandom qrng( 1 );
+
+    m *= MASS_U;
+    q *= CHARGE_E;
+
+    // Calculate ellipse radii
+    double g   = (1.0+a*a)/b;
+    double H   = 0.5*(b+g);
+    double Hps = sqrt(H+1.0);
+    double Hms = sqrt(H-1.0);
+    double rr  = sqrt(0.5*e)*(Hps-Hms);
+    double rpr = sqrt(0.5*e)*(Hps+Hms);
+
+    // Ellipse angle
+    //double theta = 0.5*atan( -2.0*a/(b-g) );
+
+    double r[1];
+    double crd[2];
+    ParticlePCyl x;
+    x[0] = 0.0;
+
+    _particles.reserve( _particles.size()+N );
+
+    for( uint32_t a = 0; a < N; a++ ) {
+
+	qrng.get( r );
+	crd[0] = rr*(a+0.5)/N;
+	crd[1] = rpr*r[0];
+
+	double IQ = 0.0;
+	_particles.push_back( ParticleCyl( IQ, q, m, x ) );
+    }
+}
+
+
+void ParticleDataBaseCyl::add_2d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
+							       double a, double b, double erms,
+							       double Ex, double x0 )
+{
+    throw( ErrorUnimplemented( ERROR_LOCATION ) );
+
+    if( verbose_output )
+	std::cout << "Defining a cylindrical beam with KV emittance\n";
+
+    _particles.reserve( _particles.size()+N );
+}
+*/
+
 void ParticleDataBase3D::add_cylindrical_beam_with_velocity( uint32_t N, double J, double q, double m, 
 							     double v, double dvp, double dvt, Vec3D c, 
 							     Vec3D dir1, Vec3D dir2, double r )

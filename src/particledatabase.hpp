@@ -551,6 +551,20 @@ public:
 	// Clear space charge
 	scharge.clear();
 
+	// Clear statistics
+	_end_time   = 0;
+	_end_step   = 0;
+	_end_out    = 0;
+	_end_coll   = 0;
+	_end_baddef = 0;
+	_sum_steps  = 0;
+
+	// Check number of particles
+	if( _particles.size() == 0 ) {
+	    std::cout << "  no particles to calculate\n";
+	    return;
+	}
+
 	// Make separate space charge maps for all threads and build iterators
 	for( uint32_t a = 0; a < _threadcount; a++ ) {
 	    if( a == 0 ) schmap[a] = &scharge;
@@ -581,12 +595,6 @@ public:
 
 	// Combine separate space charge maps and collect
 	// statistics. Free all allocated memory.
-	_end_time   = 0;
-	_end_step   = 0;
-	_end_out    = 0;
-	_end_coll   = 0;
-	_end_baddef  = 0;
-	_sum_steps  = 0;
 	for( uint32_t a = 0; a < _threadcount; a++ ) {
 	    if( a != 0 ) {
 		scharge += *schmap[a];
@@ -811,6 +819,24 @@ public:
 				    double v, double dvp, double dvt, 
 				    double x1, double y1, double x2, double y2 );
 
+
+    /*! \brief Add a 2d beam with defined KV emittance.
+     *
+     */
+    /*
+    void add_2d_KV_beam_with_emittance( uint32_t N, double I, double q, double m,
+					double a, double b, double e,
+					double Ex, double x0 );
+    */
+
+    /*! \brief Add a 2d beam with defined gaussian emittance.
+     *
+     */
+    /*
+    void add_2d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
+					      double a, double b, double erms,
+					      double Ex, double x0 );
+    */
 };
 
 

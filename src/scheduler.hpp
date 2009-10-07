@@ -334,6 +334,8 @@ public:
      */
     ~Scheduler() {
 	finish();
+	pthread_join( _scheduler_thread, NULL );
+
 	pthread_mutex_destroy( &_mutex );
 	pthread_cond_destroy( &_scheduler_cond );
 	pthread_cond_destroy( &_consumer_cond );

@@ -182,7 +182,7 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
     */
 
     // Prepare data
-    Interpolation2D *intrp;
+    Interpolation2D *intrp = NULL;
     switch( _interpolation ) {
     case INTERPOLATION_CLOSEST:
 	intrp = new ClosestInterpolation2D( _n, _m, _f );
