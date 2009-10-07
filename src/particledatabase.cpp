@@ -299,17 +299,3 @@ void ParticleDataBase3D::add_cylindrical_beam_with_energy( uint32_t N, double J,
 					c, dir1, dir2, r );
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-

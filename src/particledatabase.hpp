@@ -302,7 +302,8 @@ template<class PP> class ParticleDataBasePP : public ParticleDataBase {
 
     /*! \brief Add requested diagnostics to \a tdata from particle point \a x.
      */
-    static void add_diagnostics( TrajectoryDiagnosticData &tdata, const PP &x, const Particle<PP> &p, int crd ) {
+    static void add_diagnostics( TrajectoryDiagnosticData &tdata, const PP &x, 
+				 const Particle<PP> &p, int crd ) {
 	for( size_t a = 0; a < tdata.diag_size(); a++ ) {
 	    switch( tdata.diagnostic( a ) ) {
 	    case DIAG_NONE:
@@ -417,7 +418,8 @@ public:
 					const std::vector<trajectory_diagnostic_e> &diagnostics ) const {
 
 	if( verbose_output )
-	    std::cout << "Making trajectory diagnostics at " << coordinate_axis_string[axis] << " = " << val << "\n";
+	    std::cout << "Making trajectory diagnostics at " 
+		      << coordinate_axis_string[axis] << " = " << val << "\n";
 
 	// Check query
 	switch( PP::geom_mode() ) {
