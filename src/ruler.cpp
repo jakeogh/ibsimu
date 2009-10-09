@@ -44,7 +44,7 @@
 #include "ruler.hpp"
 
 
-#define DEBUG_RULER 1
+//#define DEBUG_RULER 1
 
 
 Ruler::Ruler()
@@ -448,7 +448,11 @@ void Ruler::calculate( cairo_t *cairo, Coordmapper1D &cm, bool ruler_tic_bbox_te
 	}
 
 	// Do autoranges according to tic spacing
-	double x = step*floor(_range[0]/step);
+	double x = 0.0;
+	if( stepdir )
+	    x = step*floor(_range[0]/step+0.01); // Allow 1% error for inaccurate arithmetic
+	else
+	    x = step*ceil(_range[0]/step-0.01);
 	if( _autorange[0] )
 	    _range[0] = x;
 	if( _autorange[1] ) {

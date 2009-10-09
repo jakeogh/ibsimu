@@ -14,6 +14,8 @@
 #include "epot_efield.hpp"
 #include "verbose.hpp"
 #include "error.hpp"
+#include "particlediagplotter.hpp"
+
 
 
 using namespace std;
@@ -46,7 +48,9 @@ void test( void )
     pdb.set_thread_count( 1 );
     bool pmirror[6] = { false, false, true, false, false, false };
     pdb.set_mirror( pmirror );
-    pdb.add_2d_beam_with_energy( 1000, 50.0, 1.0, 1.0, 
+    // Neon (m=20) 6+ beam of J = 45 A/m2 with r = 9 mm and R = 3 keV.
+    // Space charge density is rho = J / v = J * sqrt(m/(2E)) = 2.64497329883e-4 C/m^3
+    pdb.add_2d_beam_with_energy( 1000, 45.0, 6.0, 20.0, 
 				 3.0e3, 0.0, 0.0, 
 				 0.0, 0.0, 
 				 0.0, 0.009 );
@@ -77,7 +81,7 @@ void test( void )
 	      << setw(14) << scharge( x ) << "\n";
 	for( int i = 0; i < geom.size(0); i++ ) {
 	    Vec3D x( geom.h()*i, geom.h()*j, 0.0  );
-	    if( j == 0 && fabs(scharge(x)-6.57148899428e-5) > 1e-9 )
+	    if( j == 0 && fabs(scharge(x)-2.64497329883e-4) > 1e-9 )
 		err = true;
 	    ostr << setw(14) << x[0] << " "
 		 << setw(14) << x[1] << " "
@@ -89,6 +93,14 @@ void test( void )
     ostr << "\n\n";
     ostr.close();
     ostr2.close();
+
+    // Do current density plot
+    ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 0.05, PARTICLE_DIAG_PLOT_HISTO1D, DIAG_R );
+    pplotter.set_font_size( 18 );
+    pplotter.set_histogram_n( 101 );
+    pplotter.set_size( 640, 640 );
+    pplotter.export_data( "beamcyl_curr.dat" );
+    pplotter.plot_png( "beamcyl_curr.png" );
 
     GeomPlotter geomplotter( &geom );
     geomplotter.set_size( 640, 480 );

@@ -45,6 +45,10 @@
 #include <cstring>
 #include <cmath>
 #include "trajectorydiagnostics.hpp"
+#include "error.hpp"
+
+
+#define DEBUG_EMITTANCECONV 1
 
 
 void TrajectoryDiagnosticColumn::mirror( coordinate_axis_e axis, double level )
@@ -96,38 +100,46 @@ void TrajectoryDiagnosticColumn::mirror( coordinate_axis_e axis, double level )
 }
 
 
+Emittance::Emittance()
+    : _Isum(0.0), _xave(0.0), _xpave(0.0), _x2(0.0), _xp2(0.0), _xxp(0.0), 
+      _alpha(0.0), _beta(0.0), _gamma(0.0), _epsilon(0.0)
+{
+
+}
+
+
 Emittance::Emittance( const std::vector<double> &x,
 		      const std::vector<double> &xp,
-		      const std::vector<double> &w )
+		      const std::vector<double> &I )
 {
     size_t N = x.size() < xp.size() ? 
-	(x.size() < w.size() ? x.size() : w.size()) : 
-	(xp.size() < w.size() ? xp.size() : w.size());
+	(x.size() < I.size() ? x.size() : I.size()) : 
+	(xp.size() < I.size() ? xp.size() : I.size());
 
     // Calculate averages
-    _wsum  = 0.0;
+    _Isum  = 0.0;
     _xave  = 0.0;
     _xpave = 0.0;
     for( size_t a = 0; a < N; a++ ) {
-	_wsum  += w[a];
-	_xave  += x[a]*w[a];
-	_xpave += xp[a]*w[a];
+	_Isum  += I[a];
+	_xave  += x[a]*I[a];
+	_xpave += xp[a]*I[a];
     }
-    _xave  = _xave  / _wsum;
-    _xpave = _xpave / _wsum;
+    _xave  = _xave  / _Isum;
+    _xpave = _xpave / _Isum;
 
     // Calculate expectation values
     _x2  = 0.0;
     _xp2 = 0.0;
     _xxp = 0.0;
     for( size_t a = 0; a < N; a++ ) {
-	_x2 += (x[a]-_xave)*(x[a]-_xave)*w[a];
-	_xp2 += (xp[a]-_xpave)*(xp[a]-_xpave)*w[a];
-	_xxp += (x[a]-_xave)*(xp[a]-_xpave)*w[a];
+	_x2 += (x[a]-_xave)*(x[a]-_xave)*I[a];
+	_xp2 += (xp[a]-_xpave)*(xp[a]-_xpave)*I[a];
+	_xxp += (x[a]-_xave)*(xp[a]-_xpave)*I[a];
     }
-    _x2  = _x2  / _wsum;
-    _xp2 = _xp2 / _wsum;
-    _xxp = _xxp / _wsum;
+    _x2  = _x2  / _Isum;
+    _xp2 = _xp2 / _Isum;
+    _xxp = _xxp / _Isum;
 
     // Calculate Twiss parameters
     _epsilon = sqrt( _xp2*_x2 - _xxp*_xxp );
@@ -135,6 +147,7 @@ Emittance::Emittance( const std::vector<double> &x,
     _beta    = _x2/_epsilon;
     _gamma   = _xp2/_epsilon;
 
+    // Calculate axes and angle
     _angle = 0.5*atan( (2.0*_alpha) / (_beta - _gamma) );
     double H = 0.5*(_beta+_gamma);
     _rmajor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)+sqrt(H-1.0) );
@@ -142,15 +155,204 @@ Emittance::Emittance( const std::vector<double> &x,
 }
 
 
+int min( int n1, int n2, int n3, int n4 )
+{
+    int n;
+
+    if( n1 < n2 )
+	n = n1;
+    else
+	n = n2;
+
+    if( n3 < n )
+	n = n3;
+
+    if( n4 < n )
+	n = n4;
+    
+    return( n );
+}
 
 
+EmittanceConv::EmittanceConv( int n, int m,
+			      const std::vector<double> &r,
+			      const std::vector<double> &rp,
+			      const std::vector<double> &ap,
+			      const std::vector<double> &I )
+{
+    int N = min( r.size(), rp.size(), ap.size(), I.size() );
+
+    // Find ranges
+    double range[4] = { 0.0, 0.0, 0.0, 0.0 };
+
+    // xmax = rmax, xmin = -rmax
+    double rmax = 0.0;
+    for( int a = 0; a < N; a++ ) {
+	if( r[a] > rmax )
+	    rmax = r[a];
+    }
+    range[0] = -rmax;
+    range[2] = rmax;
+
+    // xpmax
+    double xpmax = 0.0;
+    for( int a = 0; a < N; a++ ) {
+	double t = ap[a]/rp[a];
+	double xpm = rp[a]*sqrt( 1.0 + t*t );
+	if( xpm > xpmax )
+	    xpmax = xpm;
+    }
+    range[1] = -xpmax;
+    range[3] = xpmax;
+
+    // Make grid
+    _grid = new Histogram2D( n, m, range );
+    double dx = _grid->nstep();
+    double dxp = _grid->mstep();
+
+#ifdef DEBUG_EMITTANCECONV 
+    std::cout << "Building emittance conversion\n";
+    std::cout << "  N     = " << N << "\n";
+    std::cout << "  n     = " << n << "\n";
+    std::cout << "  m     = " << m << "\n";
+    std::cout << "  dx    = " << dx << "\n";
+    std::cout << "  dxp   = " << dxp << "\n";
+    std::cout << "  range = {" 
+	      << range[0] << ", "
+	      << range[1] << ", "
+	      << range[2] << ", "
+	      << range[3] << "}\n";
+#endif
+
+    // For each particle
+    for( int a = 0; a < N; a++ ) {
+
+#ifdef DEBUG_EMITTANCECONV 
+	std::cout << "  Particle " << a << "\n";
+	std::cout << "    r  = " << r[a] << "\n";
+	std::cout << "    rp = " << rp[a] << "\n";
+	std::cout << "    ap = " << ap[a] << "\n";
+	std::cout << "    I  = " << I[a] << "\n\n";
+#endif
+
+	// Skip zero r
+	if( r[a] == 0.0 )
+	    continue;
+
+	// Draw a line on grid from -r to r
+	int i = (int)floor( (-r[a]-range[0]) / dx + 0.5 );
+
+	bool done = false;
+	while( !done ) {
+
+	    // Current density to this grid point
+	    double xi = _grid->icoord(i);
+	    double x1 = xi-0.5*dx;
+	    double x2 = xi+0.5*dx;
+
+#ifdef DEBUG_EMITTANCECONV 
+	    std::cout << "    i  = " << i << "\n";
+	    std::cout << "    xi = " << xi << "\n";
+	    std::cout << "    x1 = " << x1 << "\n";
+	    std::cout << "    x2 = " << x2 << "\n";
+#endif
+
+	    // Check validity of points
+	    if( x1 < -r[a] ) {
+		x1 = -r[a];
+#ifdef DEBUG_EMITTANCECONV 
+		std::cout << "    x1 = " << x1 << " (limit)\n";
+#endif
+	    }
+	    if( x2 >= r[a] ) {
+		x2 = r[a];
+		done = true;
+#ifdef DEBUG_EMITTANCECONV 
+		std::cout << "    x2 = " << x2 << " (limit)\n";
+#endif
+	    }
+	    if( xi < -r[a] ) {
+		xi = -r[a];
+#ifdef DEBUG_EMITTANCECONV 
+		std::cout << "    xi = " << xi << " (limit)\n";
+#endif
+	    }
+	    if( xi > r[a] ) {
+		xi = r[a];
+#ifdef DEBUG_EMITTANCECONV 
+		std::cout << "    xi = " << xi << " (limit)\n";
+#endif
+	    }
+
+	    double dI = I[a]*( asin(x2/r[a]) - asin(x1/r[a]) ) / ( M_PI*r[a] );
+
+	    // Deposit to closest xp(j)
+	    double t = xi/r[a];
+	    double xp = rp[a]*xi/r[a] - ap[a]*sqrt( 1.0 - t*t );
+	    int j = (int)floor( (xp-range[1]) / _grid->mstep() + 0.5 );
+
+#ifdef DEBUG_EMITTANCECONV 
+	    std::cout << "    dI = " << dI << "\n";
+	    std::cout << "    t  = " << t << "\n";
+	    std::cout << "    xp = " << xp << "\n";
+	    std::cout << "    j  = " << j << "\n\n";
+#endif
+
+	    /*
+	    if( i < 0 || i >= n || j < 0 || j >= m )
+		throw( Error( ERROR_LOCATION, "grid index out of range" ) );
+	    */
+	    if( i >= 0 && i < n && j >= 0 && j < m )
+		_grid->accumulate( i, j, dI );
+
+	    i++;
+	}
+    }
+
+    // Build Emittance statistics from grid
+
+    // Calculate averages
+    for( int j = 0; j < m; j++ ) {
+	for( int i = 0; i < n; i++ ) {
+	    double I = (*_grid)(i,j);
+	    _Isum  += I;
+	    _xave  += _grid->icoord(i)*I;
+	    _xpave += _grid->jcoord(j)*I;
+	}
+    }
+    _xave  = _xave  / _Isum;
+    _xpave = _xpave / _Isum;
+
+    // Calculate expectation values
+    for( int j = 0; j < m; j++ ) {
+	for( int i = 0; i < n; i++ ) {
+	    double I = (*_grid)(i,j);
+	    double x = _grid->icoord(i);
+	    double xp = _grid->jcoord(j);
+	    _x2 += (x-_xave)*(x-_xave)*I;
+	    _xp2 += (xp-_xpave)*(xp-_xpave)*I;
+	    _xxp += (x-_xave)*(xp-_xpave)*I;
+	}
+    }    
+    _x2  = _x2  / _Isum;
+    _xp2 = _xp2 / _Isum;
+    _xxp = _xxp / _Isum;
+
+    // Calculate Twiss parameters
+    _epsilon = sqrt( _xp2*_x2 - _xxp*_xxp );
+    _alpha   = -_xxp/_epsilon;
+    _beta    = _x2/_epsilon;
+    _gamma   = _xp2/_epsilon;
+
+    // Calculate axes and angle
+    _angle = 0.5*atan( (2.0*_alpha) / (_beta - _gamma) );
+    double H = 0.5*(_beta+_gamma);
+    _rmajor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)+sqrt(H-1.0) );
+    _rminor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)-sqrt(H-1.0) );
+}
 
 
-
-
-
-
-
-
-
-
+EmittanceConv::~EmittanceConv()
+{
+    delete _grid;
+}

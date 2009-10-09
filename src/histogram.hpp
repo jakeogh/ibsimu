@@ -90,15 +90,15 @@ public:
 
     /*! \brief Return the number of bins.
      */
-    size_t n( void ) { return( _n ); }
+    size_t n( void ) const { return( _n ); }
 
     /*! \brief Return the step size.
      */
-    double step( void ) { return( _step ); }
+    double step( void ) const { return( _step ); }
 
     /*! \brief Return the coordinate on bin \a i.
      */
-    double coord( size_t i ) { return( _range[0] + i*(_range[1]-_range[0]) / (_n-1.0) ); }
+    double coord( size_t i ) const { return( _range[0] + i*(_range[1]-_range[0]) / (_n-1.0) ); }
 
     /*! \brief Accumulate \a weight on bin \a i.
      *
@@ -121,7 +121,7 @@ public:
 
     /*! \brief Return data range.
      */
-    void get_range( double range[2] ) { 
+    void get_range( double range[2] ) const { 
 	range[0] =  _range[0];
 	range[1] =  _range[1];
     }
@@ -130,7 +130,7 @@ public:
      *
      *  Returns minimum and maximum values on any bin in histogram.
      */
-    void get_bin_range( double &min, double &max );
+    void get_bin_range( double &min, double &max ) const;
     
     /*! \brief Return a reference to the histogram data.
      */
@@ -190,27 +190,27 @@ public:
 
     /*! \brief Return the number of bins along the first axis.
      */
-    size_t n( void ) { return( _n ); }
+    size_t n( void ) const { return( _n ); }
 
     /*! \brief Return the number of bins along the second axis.
      */
-    size_t m( void ) { return( _m ); }
+    size_t m( void ) const { return( _m ); }
 
     /*! \brief Return the step size along along the first axis.
      */
-    double nstep( void ) { return( _nstep ); }
+    double nstep( void ) const { return( _nstep ); }
 
     /*! \brief Return the step size along along the second axis.
      */
-    double mstep( void ) { return( _mstep ); }
+    double mstep( void ) const { return( _mstep ); }
 
     /*! \brief Return the coordinate along the first axis on bin \a i.
      */
-    double icoord( size_t i ) { return( _range[0] + i*(_range[2]-_range[0]) / (_n-1.0) ); }
+    double icoord( size_t i ) const { return( _range[0] + i*(_range[2]-_range[0]) / (_n-1.0) ); }
 
     /*! \brief Return the coordinate along the second axis on bin \a j.
      */
-    double jcoord( size_t j ) { return( _range[1] + j*(_range[3]-_range[1]) / (_m-1.0) ); }
+    double jcoord( size_t j ) const { return( _range[1] + j*(_range[3]-_range[1]) / (_m-1.0) ); }
 
     /*! \brief Accumulate \a weight on bin \a (i,j).
      *
@@ -233,7 +233,7 @@ public:
 
     /*! \brief Return data range.
      */
-    void get_range( double range[4] ) { 
+    void get_range( double range[4] ) const { 
 	range[0] =  _range[0];
 	range[1] =  _range[1];
 	range[2] =  _range[2];
@@ -244,7 +244,7 @@ public:
      *
      *  Returns minimum and maximum values on any bin in histogram.
      */
-    void get_bin_range( double &min, double &max );
+    void get_bin_range( double &min, double &max ) const;
     
     /*! \brief Return a reference to the histogram data.
      */

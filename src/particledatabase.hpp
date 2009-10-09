@@ -343,6 +343,9 @@ template<class PP> class ParticleDataBasePP : public ParticleDataBase {
 		break;
 	    case DIAG_YP:
 	    case DIAG_RP:
+		tdata.add_data( a, x[3]*x[5]/x[2*crd+2] );
+		break;
+	    case DIAG_AP:
 		tdata.add_data( a, x[4]/x[2*crd+2] );
 		break;
 	    case DIAG_ZP:
@@ -440,6 +443,19 @@ public:
 	    break;
 	default:
 	    throw( Error( ERROR_LOCATION, "unsupported dimension number" ) );
+	}
+
+	// Check diagnostics query validity
+	for( size_t a = 0; a < diagnostics.size(); a++ ) {
+	    if( diagnostics[a] == DIAG_NONE )
+		throw( Error( ERROR_LOCATION, "invalid diagnostics query \'DIAG_NONE\'" ) );
+	    else if( PP::geom_mode() != MODE_CYL && (diagnostics[a] == DIAG_R ||
+						     diagnostics[a] == DIAG_VR ||
+						     diagnostics[a] == DIAG_RP ||
+						     diagnostics[a] == DIAG_W ||
+						     diagnostics[a] == DIAG_VTHETA ||
+						     diagnostics[a] == DIAG_AP) )
+		throw( Error( ERROR_LOCATION, "invalid diagnostics query for geometry type" ) );
 	}
 
 	// Prepare output vector

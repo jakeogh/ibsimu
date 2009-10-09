@@ -45,12 +45,14 @@
 
 
 #include <vector>
+#include "histogram.hpp"
 #include "types.hpp"
 
 
 /*! \brief Class for trajectory diagnostic data column.
  */
-class TrajectoryDiagnosticColumn {
+class TrajectoryDiagnosticColumn 
+{
 
     trajectory_diagnostic_e _diag; /*!< \brief Type of diagnostic in data. */
     std::vector<double>     _data; /*!< \brief Vector of diagnostic data. */
@@ -94,7 +96,8 @@ public:
 
 /*! \brief Class for trajectory diagnostic data.
  */
-class TrajectoryDiagnosticData {
+class TrajectoryDiagnosticData 
+{
 
     std::vector<TrajectoryDiagnosticColumn> _column; /*!< \brief Vector of diagnostic data columns. */
 
@@ -160,7 +163,9 @@ public:
  */
 class Emittance
 {
-    double _wsum;
+protected:
+
+    double _Isum;
 
     double _xave;
     double _xpave;
@@ -180,12 +185,16 @@ class Emittance
 
 public:
 
+    /*! \brief Default constructor for emittance statistics
+     */
+    Emittance();
+
     /*! \brief Constructor for emittance statistics from trajectory
-     *  diagnostic data columns \a x, \a xp and weight \a w.
+     *  diagnostic data columns \a x, \a xp and current \a I.
      */
     Emittance( const std::vector<double> &x,
 	       const std::vector<double> &xp,
-	       const std::vector<double> &w );
+	       const std::vector<double> &I );
 
     double xave( void ) { return( _xave ); }
     double xpave( void ) { return( _xpave ); }
@@ -198,6 +207,41 @@ public:
     double angle( void ) { return( _angle ); }
     double rmajor( void ) { return( _rmajor ); }
     double rminor( void ) { return( _rminor ); } 
+};
+
+
+
+/*! \brief Class for emittance conversion from (r,r') to (x,x')
+ */
+class EmittanceConv : public Emittance
+{
+
+    Histogram2D *_grid;
+
+public:
+
+    /*! \brief Constructor for \a (x,x') emittance data and statistics
+     *  from \a (r,r') data.
+     *
+     *  Reads particle diagnostic data arrays for \a r (radius), \a rp
+     *  (radial angle), \a ap (skew angle) and \a I (current) and
+     *  builds \a (x,x') data in a grid array of size \a n by \a
+     *  m. Here the skew angle is \f[ \frac{r\omega}{v_z} \f], where
+     *  \f[ v_z \f] is the velocity to the direction of beam propagation.
+     */
+    EmittanceConv( int n, int m,
+		   const std::vector<double> &r,
+		   const std::vector<double> &rp,
+		   const std::vector<double> &ap,
+		   const std::vector<double> &I );
+
+    /*! \brief Destructor for emittance converter.
+     */
+    ~EmittanceConv();
+
+    /*! \brief Get a const reference to histogram built.
+     */
+    const Histogram2D &histogram( void ) const { return( *_grid ); }
 };
 
 

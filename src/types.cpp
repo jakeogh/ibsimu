@@ -76,6 +76,7 @@ const char *trajectory_diagnostic_string[] = {
     "x\'",
     "y\'",
     "r\'",
+    "\\alpha\'",
     "z\'",
     "E_k",
     "q/m"
@@ -99,6 +100,7 @@ const char *trajectory_diagnostic_string_with_unit[] = {
     "x\' (rad)",
     "y\' (rad)",
     "r\' (rad)",
+    "\\alpha\' (rad)",
     "z\' (rad)",
     "E_k (J)",
     "q/m (C/kg)"

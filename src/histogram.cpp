@@ -133,7 +133,7 @@ Histogram1D::~Histogram1D()
 }
 
 
-void Histogram1D::get_bin_range( double &min, double &max )
+void Histogram1D::get_bin_range( double &min, double &max ) const
 {
     min = std::numeric_limits<double>::infinity();
     max = -std::numeric_limits<double>::infinity();
@@ -174,6 +174,7 @@ void Histogram1D::accumulate_linear( double x, double weight )
 /* ****************************************************************************
  *
  */
+
 
 Histogram2D::Histogram2D( size_t n, size_t m, const double range[4] )
     : _n(n), _m(m), _data(n*m,0.0)
@@ -290,7 +291,7 @@ Histogram2D::~Histogram2D()
 }
 
 
-void Histogram2D::get_bin_range( double &min, double &max )
+void Histogram2D::get_bin_range( double &min, double &max ) const
 {
     min = std::numeric_limits<double>::infinity();
     max = -std::numeric_limits<double>::infinity();

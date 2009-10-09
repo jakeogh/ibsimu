@@ -103,6 +103,7 @@ enum trajectory_diagnostic_e {
     DIAG_XP,
     DIAG_YP,
     DIAG_RP,
+    DIAG_AP,
     DIAG_ZP,
     DIAG_EK,
     DIAG_QM

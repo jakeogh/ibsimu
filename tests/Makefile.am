@@ -7,6 +7,7 @@ crowmatrix_SOURCES = crowmatrix.cpp
 efield_SOURCES = efield.cpp
 efield_extrpl_SOURCES = efield_extrpl.cpp
 efieldtest_2d_SOURCES = efieldtest_2d.cpp
+emittanceconv_SOURCES = emittanceconv.cpp
 fileplot_SOURCES = fileplot.cpp
 fonts_SOURCES = fonts.cpp
 frame_SOURCES = frame.cpp
@@ -76,6 +77,7 @@ crowmatrix \
 efield \
 efield_extrpl \
 efieldtest_2d \
+emittanceconv \
 fileplot \
 fonts \
 frame \

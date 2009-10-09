@@ -128,21 +128,23 @@ void ParticleDiagPlot::build_data( TrajectoryDiagnosticData &tdata, Histogram **
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
 
 	// Make XYGraph profile plot
+	if( _geom->geom_mode() == MODE_CYL ) {
+	    for( size_t a = 0; a < tdata.traj_size(); a++ ) {
+		if( tdata(a,0) != 0.0 )
+		    tdata(a,1) /= (2.0*M_PI*fabs(tdata(a,0)));
+		else
+		    tdata(a,1) = 0.0;
+	    }
+	}
+
 	Histogram1D *histo1d = new Histogram1D( _histogram_n, tdata(0).data(), tdata(1).data() );
 	*histo = histo1d;
 
 	// Scale profile plot to have constant area per bin.
-	// 
-	// Some weird things can be seen near the axis of profile plots
-	// On odd number of bins used the 1.5 factor below fixes everything
-	// On even number of bins the histogram gives a bit higher on the closest nodes
 	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
 	    double dr = histo1d->step();
 	    for( size_t i = 0; i < histo1d->n(); i++ ) {
-		double r = fabs( histo1d->coord(i) );
-		double w = M_PI*((r+0.5*dr)*(r+0.5*dr) - (r-0.5*dr)*(r-0.5*dr));
-		if( fabs(r/histo1d->coord(histo1d->n())) < 1.0e-7 )
-		    w = M_PI*dr*dr/1.5; 
+		double w = dr;
 		(*histo1d)(i) /= w;
 	    }
 	}
