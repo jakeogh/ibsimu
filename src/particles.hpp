@@ -82,9 +82,9 @@ enum particle_status_e {
 
 
 
-/* ******************************************************************************************* *
- * Particle point classes                                                                      *
- * ******************************************************************************************* */
+/* ************************************************************************************* *
+ * Particle point classes                                                                *
+ * ************************************************************************************* */
 
 
 /*! \brief %Particle point base class
@@ -281,9 +281,9 @@ public:
                       \frac{dr}{dt}   &=& v_r \\ 
                       \frac{dv_x}{dt} &=& a_x = \frac{q}{m}(E_x + v_r B_{\theta} - v_\theta B_r) \\ 
                       \frac{dv_r}{dt} &=& a_r + r\left(\frac{d\theta}{dt}\right)^2 = 
-                        \frac{q}{m}(E_y + v_{\theta} B_x - v_x B_{\theta}) + r \left(\frac{d\theta}{dt}\right)^2 \\
+                      \frac{q}{m}(E_y + v_{\theta} B_x - v_x B_{\theta}) + r \left(\frac{d\theta}{dt}\right)^2 \\
                       \frac{d^2\theta}{dt^2} &=& \frac{1}{r} \left(a_\theta-\frac{dr}{dt} \frac{d\theta}{dt}\right) =
-		        \frac{1}{r} \left(\frac{q}{m}(v_x B_r - v_r B_x)-2 \frac{dr}{dt} \frac{d\theta}{dt}\right), \f}
+		      \frac{1}{r} \left(\frac{q}{m}(v_x B_r - v_r B_x)-2 \frac{dr}{dt} \frac{d\theta}{dt}\right), \f}
      *  where \f$ v_\theta = r \frac{d\theta}{dt} \f$.
      */
     static int get_derivatives( double t, const double *x, double *dxdt, void *data );
@@ -542,9 +542,9 @@ inline ParticleP3D operator*( double x, const ParticleP3D &pp )
 
 
 
-/* ******************************************************************************************* *
- * Particle classes                                                                            *
- * ******************************************************************************************* */
+/* ************************************************************************************** *
+ * Particle classes                                                                       *
+ * ************************************************************************************** */
 
 
 /*! \brief %Particle base class

@@ -160,6 +160,23 @@ public:
 
 
 /*! \brief Class for emittance statistics.
+ *
+ *  %Emittance class does a statistical analysis on the particle
+ *  distribution and it calculates averages \f$ <x> \f$ and 
+ *  \f$ <x'> \f$ and the expectation values \f$ <x^2> \f$, 
+ *  \f$ <x'^2> \f$ and \f$ <x x'> \f$. From these it calculates 
+ *  the rms-emittance
+ *  \f[ \epsilon = \sqrt{ <x^2><x'^2> - <x x'>^2 } \f]
+ *  and the Twiss parameters
+ *  \f[ \alpha = \frac{-<x x'>}{\epsilon}, \beta = \frac{<x^2>}{\epsilon}, \gamma = \frac{<x'^2>}{\epsilon} \f]
+ *  In addition to these physical values, the class calculates the angle of the ellipse
+ *  \f[ \theta = \frac{1}{2} \arctan{\left( \frac{2\alpha}{\beta - \gamma} \right)} \f]
+ *  and the half-axis lengths
+ *  \f[ r_1 = \sqrt{\frac{\epsilon}{2}} ( \sqrt{H+1} + \sqrt{H-1} ) \f]
+ *  \f[ r_2 = \sqrt{\frac{\epsilon}{2}} ( \sqrt{H+1} - \sqrt{H-1} ), \f]
+ *  where
+ *  \f[ H = \frac{\beta + \gamma}{2} \f]
+ *  
  */
 class Emittance
 {
@@ -212,6 +229,8 @@ public:
 
 
 /*! \brief Class for emittance conversion from (r,r') to (x,x')
+ *
+ *  The emittance converted takes the 
  */
 class EmittanceConv : public Emittance
 {
@@ -226,8 +245,8 @@ public:
      *  Reads particle diagnostic data arrays for \a r (radius), \a rp
      *  (radial angle), \a ap (skew angle) and \a I (current) and
      *  builds \a (x,x') data in a grid array of size \a n by \a
-     *  m. Here the skew angle is \f[ \frac{r\omega}{v_z} \f], where
-     *  \f[ v_z \f] is the velocity to the direction of beam propagation.
+     *  m. Here the skew angle is \f$ \frac{r\omega}{v_z} \f$, where
+     *  \f$ v_z \f$ is the velocity to the direction of beam propagation.
      */
     EmittanceConv( int n, int m,
 		   const std::vector<double> &r,
@@ -242,6 +261,10 @@ public:
     /*! \brief Get a const reference to histogram built.
      */
     const Histogram2D &histogram( void ) const { return( *_grid ); }
+
+    /*! \brief Free emittance histogram.
+     */
+    void free_histogram( void ) { delete _grid; _grid = NULL; }
 };
 
 

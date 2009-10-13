@@ -42,13 +42,15 @@
 
 #include <iostream>
 #include <limits>
+#include <cstdlib>
 #include <cstring>
 #include <cmath>
 #include "trajectorydiagnostics.hpp"
 #include "error.hpp"
 
 
-#define DEBUG_EMITTANCECONV 1
+//#define DEBUG_EMITTANCECONV 1
+#define EMITTANCE_ROTN 100
 
 
 void TrajectoryDiagnosticColumn::mirror( coordinate_axis_e axis, double level )
@@ -207,6 +209,131 @@ EmittanceConv::EmittanceConv( int n, int m,
 
     // Make grid
     _grid = new Histogram2D( n, m, range );
+
+#ifdef DEBUG_EMITTANCECONV 
+    std::cout << "Building emittance conversion\n";
+    std::cout << "  N     = " << N << "\n";
+    std::cout << "  n     = " << n << "\n";
+    std::cout << "  m     = " << m << "\n";
+    std::cout << "  range = {" 
+	      << range[0] << ", "
+	      << range[1] << ", "
+	      << range[2] << ", "
+	      << range[3] << "}\n";
+#endif
+
+    // For each particle
+    for( int a = 0; a < N; a++ ) {
+
+#ifdef DEBUG_EMITTANCECONV 
+	std::cout << "  Particle " << a << "\n";
+	std::cout << "    r  = " << r[a] << "\n";
+	std::cout << "    rp = " << rp[a] << "\n";
+	std::cout << "    ap = " << ap[a] << "\n";
+	std::cout << "    I  = " << I[a] << "\n\n";
+#endif
+
+	// Skip zero r
+	if( r[a] == 0.0 )
+	    continue;
+
+	// Rotate around xy-plane
+	double dI = I[a]/EMITTANCE_ROTN;
+	for( int b = 0; b < EMITTANCE_ROTN; b++ ) {
+
+	    double rnd  = ((double)rand())/RAND_MAX;
+	    double ang  = 2.0*M_PI*(b+rnd)/EMITTANCE_ROTN;
+	    double sint = sin( ang );
+	    double cost = cos( ang );
+
+	    double x  = r[a]*sint;
+	    double xp = rp[a]*sint + ap[a]*cost;
+
+	    int i = (int)floor( (x -range[0]) / _grid->nstep() + 0.5 );
+	    int j = (int)floor( (xp-range[1]) / _grid->mstep() + 0.5 );
+
+	    if( i >= 0 && i < n && j >= 0 && j < m )
+		_grid->accumulate( i, j, dI );
+	}
+    }
+
+    // Build Emittance statistics from grid
+
+    // Calculate averages
+    for( int j = 0; j < m; j++ ) {
+	for( int i = 0; i < n; i++ ) {
+	    double I = (*_grid)(i,j);
+	    _Isum  += I;
+	    _xave  += _grid->icoord(i)*I;
+	    _xpave += _grid->jcoord(j)*I;
+	}
+    }
+    _xave  = _xave  / _Isum;
+    _xpave = _xpave / _Isum;
+
+    // Calculate expectation values
+    for( int j = 0; j < m; j++ ) {
+	for( int i = 0; i < n; i++ ) {
+	    double I = (*_grid)(i,j);
+	    double x = _grid->icoord(i);
+	    double xp = _grid->jcoord(j);
+	    _x2 += (x-_xave)*(x-_xave)*I;
+	    _xp2 += (xp-_xpave)*(xp-_xpave)*I;
+	    _xxp += (x-_xave)*(xp-_xpave)*I;
+	}
+    }    
+    _x2  = _x2  / _Isum;
+    _xp2 = _xp2 / _Isum;
+    _xxp = _xxp / _Isum;
+
+    // Calculate Twiss parameters
+    _epsilon = sqrt( _xp2*_x2 - _xxp*_xxp );
+    _alpha   = -_xxp/_epsilon;
+    _beta    = _x2/_epsilon;
+    _gamma   = _xp2/_epsilon;
+
+    // Calculate axes and angle
+    _angle = 0.5*atan( (2.0*_alpha) / (_beta - _gamma) );
+    double H = 0.5*(_beta+_gamma);
+    _rmajor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)+sqrt(H-1.0) );
+    _rminor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)-sqrt(H-1.0) );
+}
+
+
+/*	
+EmittanceConv::EmittanceConv( int n, int m,
+			      const std::vector<double> &r,
+			      const std::vector<double> &rp,
+			      const std::vector<double> &ap,
+			      const std::vector<double> &I )
+{
+    int N = min( r.size(), rp.size(), ap.size(), I.size() );
+
+    // Find ranges
+    double range[4] = { 0.0, 0.0, 0.0, 0.0 };
+
+    // xmax = rmax, xmin = -rmax
+    double rmax = 0.0;
+    for( int a = 0; a < N; a++ ) {
+	if( r[a] > rmax )
+	    rmax = r[a];
+    }
+    range[0] = -rmax;
+    range[2] = rmax;
+
+    // xpmax
+    double xpmax = 0.0;
+    for( int a = 0; a < N; a++ ) {
+	double t = ap[a]/rp[a];
+	double xpm = rp[a]*sqrt( 1.0 + t*t );
+	if( xpm > xpmax )
+	    xpmax = xpm;
+    }
+    range[1] = -xpmax;
+    range[3] = xpmax;
+
+    // Make grid
+    _grid = new Histogram2D( n, m, range );
     double dx = _grid->nstep();
     double dxp = _grid->mstep();
 
@@ -239,7 +366,7 @@ EmittanceConv::EmittanceConv( int n, int m,
 	if( r[a] == 0.0 )
 	    continue;
 
-	// Draw a line on grid from -r to r
+	    // Draw a line on grid from -r to r
 	int i = (int)floor( (-r[a]-range[0]) / dx + 0.5 );
 
 	bool done = false;
@@ -298,10 +425,6 @@ EmittanceConv::EmittanceConv( int n, int m,
 	    std::cout << "    j  = " << j << "\n\n";
 #endif
 
-	    /*
-	    if( i < 0 || i >= n || j < 0 || j >= m )
-		throw( Error( ERROR_LOCATION, "grid index out of range" ) );
-	    */
 	    if( i >= 0 && i < n && j >= 0 && j < m )
 		_grid->accumulate( i, j, dI );
 
@@ -350,9 +473,11 @@ EmittanceConv::EmittanceConv( int n, int m,
     _rmajor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)+sqrt(H-1.0) );
     _rminor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)-sqrt(H-1.0) );
 }
+*/
 
 
 EmittanceConv::~EmittanceConv()
 {
-    delete _grid;
+    if( _grid )
+	delete _grid;
 }

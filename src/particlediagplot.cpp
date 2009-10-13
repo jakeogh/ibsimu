@@ -50,7 +50,8 @@ ParticleDiagPlot::ParticleDiagPlot( Frame *frame, const Geometry *geom, const Pa
 				    particle_diag_plot_type_e type,
 				    trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy )
     : _frame(frame), _geom(geom), _pdb(pdb), _axis(axis), _level(level), 
-      _type(type), _diagx(diagx), _diagy(diagy),
+      _type(type), _diagx(diagx), _diagy(diagy), _diagz(DIAG_NONE),
+      _pdb_it_no(-1), _update(true), _tdata(NULL), _histo(NULL), _emit(NULL),
       _scatter(NULL), _ellipse(NULL), _ellipse_enable(true), _colormap(NULL), _profile(NULL), 
       _histogram_n(50), _histogram_m(50), _interpolation(INTERPOLATION_CLOSEST), _dot_size(1.0)
 {
@@ -60,6 +61,13 @@ ParticleDiagPlot::ParticleDiagPlot( Frame *frame, const Geometry *geom, const Pa
 
 ParticleDiagPlot::~ParticleDiagPlot()
 {
+    if( _tdata )
+	delete _tdata;
+    if( _histo )
+	delete _histo;
+    if( _emit )
+	delete _emit;
+
     if( _scatter )
 	delete _scatter;
     if( _colormap )
@@ -71,49 +79,127 @@ ParticleDiagPlot::~ParticleDiagPlot()
 }
 
 
-void ParticleDiagPlot::build_data( TrajectoryDiagnosticData &tdata, Histogram **histo ) const
+/* Build data for particle diagnostics only if update needed (particle 
+ * iteration redone or plot parameters changed)
+ *
+ * 1. Only in case of scatter plot return tdata
+ * 2. Only in case of histogram plot return histogram
+ * 3. Always when applicable, return emittance fit
+ */
+void ParticleDiagPlot::build_data( void )
 {
-    // Get diagnostic data
+    // Is update needed?
+    if( _pdb->get_iteration_number() == _pdb_it_no && !_update )
+	return;
+
+    _pdb_it_no = _pdb->get_iteration_number();
+    _update = false;
+
+    // Free old data
+    if( _tdata )
+	delete _tdata;
+    if( _histo )
+	delete _histo;
+    if( _emit )
+	delete _emit;
+    _tdata = NULL;
+    _histo = NULL;
+    _emit  = NULL;
+
+    // Prepare diagnostic request
+    bool emittanceconv = false;
     std::vector<trajectory_diagnostic_e> diagnostics;
-    diagnostics.push_back( _diagx );
-    if( _type != PARTICLE_DIAG_PLOT_HISTO1D )
-	diagnostics.push_back( _diagy );
-    diagnostics.push_back( DIAG_CURR );
-    _pdb->trajectories_at_plane( tdata, _axis, _level, diagnostics );
+    if( _type == PARTICLE_DIAG_PLOT_HISTO2D && _geom->geom_mode() == MODE_CYL && 
+	( (_diagx == DIAG_Y && _diagy == DIAG_YP) || 
+	  (_diagx == DIAG_Z && _diagy == DIAG_ZP)) ) {
 
-    // Do data mirroring (limited to only one mirroring per
+	// Diagnostics for emittance conversion
+	emittanceconv = true;
+	diagnostics.push_back( DIAG_R );
+	diagnostics.push_back( DIAG_RP );
+	diagnostics.push_back( DIAG_AP );
+	diagnostics.push_back( DIAG_CURR );
+
+    } else {
+
+	if( _diagx == DIAG_NONE )
+	    throw( Error( ERROR_LOCATION, "no first diagnostic" ) );	
+	diagnostics.push_back( _diagx );
+	if( _diagy != DIAG_NONE )
+	    diagnostics.push_back( _diagy );
+	if( _diagz != DIAG_NONE )
+	    diagnostics.push_back( _diagz );
+	diagnostics.push_back( DIAG_CURR );
+    }
+
+    // Get diagnostic data
+    _tdata = new TrajectoryDiagnosticData;
+    _pdb->trajectories_at_plane( *_tdata, _axis, _level, diagnostics );
+
+    // Do data mirroring. Llimited to only one mirroring per
     // axis-direction, lower end dominates if both edges have
-    // mirroring enabled)
-    bool mirror[6];
-    _pdb->get_mirror( mirror );
-    // Mirror in x-direction
-    if( mirror[0] ) {
-	tdata.mirror( AXIS_X, _geom->origo(0) );
-    } else if( mirror[1] ) {
-	tdata.mirror( AXIS_X, _geom->max(0) );
-    }
-    // Mirror in y-direction
-    if( mirror[2] ) {
-	tdata.mirror( AXIS_Y, _geom->origo(1) );
-    } else if( mirror[3] ) {
-	tdata.mirror( AXIS_Y, _geom->max(1) );
-    }
-    // Mirror in z-direction
-    if( mirror[4] ) {
-	tdata.mirror( AXIS_Z, _geom->origo(2) );
-    } else if( mirror[5] ) {
-	tdata.mirror( AXIS_Z, _geom->max(2) );
+    // mirroring enabled. No mirroring done if making emittance
+    // conversion plot.
+    if( !emittanceconv ) {
+	bool mirror[6];
+	_pdb->get_mirror( mirror );
+	// Mirror in x-direction
+	if( mirror[0] ) {
+	    _tdata->mirror( AXIS_X, _geom->origo(0) );
+	} else if( mirror[1] ) {
+	    _tdata->mirror( AXIS_X, _geom->max(0) );
+	}
+	// Mirror in y-direction, forced if cylindrical geometry
+	if( _geom->geom_mode() == MODE_CYL || mirror[2] ) {
+	    _tdata->mirror( AXIS_Y, _geom->origo(1) );
+	} else if( mirror[3] ) {
+	    _tdata->mirror( AXIS_Y, _geom->max(1) );
+	}
+	// Mirror in z-direction
+	if( mirror[4] ) {
+	    _tdata->mirror( AXIS_Z, _geom->origo(2) );
+	} else if( mirror[5] ) {
+	    _tdata->mirror( AXIS_Z, _geom->max(2) );
+	}
     }
 
-    if( _type == PARTICLE_DIAG_PLOT_HISTO2D ) {
+    if( emittanceconv ) {
+	
+	// Make emittance conversion histogram
+	EmittanceConv *emit = new EmittanceConv( _histogram_n, _histogram_m,
+						 (*_tdata)(0).data(), (*_tdata)(1).data(), 
+						 (*_tdata)(2).data(), (*_tdata)(3).data() );
+
+	// Copy and save emittance fit and histogram
+	_histo = new Histogram2D( emit->histogram() );
+	_emit  = emit;
+	emit->free_histogram();
+
+	// Delete invalid tdata
+	delete _tdata;
+	_tdata = NULL;
+	
+    } else if( _type == PARTICLE_DIAG_PLOT_SCATTER ) {
+
+	// Build emittance fit if applicable
+	if( (_diagx == DIAG_X && _diagy == DIAG_XP)  ||
+	    (_diagx == DIAG_Y && _diagy == DIAG_YP)  ||
+	    (_diagx == DIAG_R && _diagy == DIAG_RP)  ||
+	    (_diagx == DIAG_Z && _diagy == DIAG_ZP) ) {
+	    _emit = new Emittance( (*_tdata)(0).data(), 
+				   (*_tdata)(1).data(), 
+				   (*_tdata)(2).data() );
+	}
+
+    } else if( _type == PARTICLE_DIAG_PLOT_HISTO2D ) {
 
 	// Make colormap
-	Histogram2D *histo2d = new Histogram2D( _histogram_n, _histogram_m, tdata(0).data(), 
-						tdata(1).data(), tdata(2).data() );
-	*histo = histo2d;
+	Histogram2D *histo2d = new Histogram2D( _histogram_n, _histogram_m, (*_tdata)(0).data(), 
+						(*_tdata)(1).data(), (*_tdata)(2).data() );
+	_histo = histo2d;
 
-	// Scale emittance plot to have constant area per square.
-	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R && _diagy == DIAG_RP) {
+	// Scale plot to have constant area per square for cylindrical geometry.
+	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
 	    double dr = histo2d->nstep();
 	    for( size_t i = 0; i < histo2d->n(); i++ ) {
 		double r = fabs( histo2d->icoord( i ) );
@@ -125,20 +211,34 @@ void ParticleDiagPlot::build_data( TrajectoryDiagnosticData &tdata, Histogram **
 	    }
 	}
 
+	// Build emittance fit if applicable
+	if( (_diagx == DIAG_X && _diagy == DIAG_XP)  ||
+	    (_diagx == DIAG_Y && _diagy == DIAG_YP)  ||
+	    (_diagx == DIAG_R && _diagy == DIAG_RP)  ||
+	    (_diagx == DIAG_Z && _diagy == DIAG_ZP) ) {
+	    _emit = new Emittance( (*_tdata)(0).data(), 
+				   (*_tdata)(1).data(), 
+				   (*_tdata)(2).data() );
+	}
+
+	// Delete unnecessary tdata
+	delete _tdata;
+	_tdata = NULL;
+
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
 
 	// Make XYGraph profile plot
 	if( _geom->geom_mode() == MODE_CYL ) {
-	    for( size_t a = 0; a < tdata.traj_size(); a++ ) {
-		if( tdata(a,0) != 0.0 )
-		    tdata(a,1) /= (2.0*M_PI*fabs(tdata(a,0)));
+	    for( size_t a = 0; a < _tdata->traj_size(); a++ ) {
+		if( (*_tdata)(a,0) != 0.0 )
+		    (*_tdata)(a,1) /= (2.0*M_PI*fabs((*_tdata)(a,0)));
 		else
-		    tdata(a,1) = 0.0;
+		    (*_tdata)(a,1) = 0.0;
 	    }
 	}
 
-	Histogram1D *histo1d = new Histogram1D( _histogram_n, tdata(0).data(), tdata(1).data() );
-	*histo = histo1d;
+	Histogram1D *histo1d = new Histogram1D( _histogram_n, (*_tdata)(0).data(), (*_tdata)(1).data() );
+	_histo = histo1d;
 
 	// Scale profile plot to have constant area per bin.
 	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
@@ -148,18 +248,31 @@ void ParticleDiagPlot::build_data( TrajectoryDiagnosticData &tdata, Histogram **
 		(*histo1d)(i) /= w;
 	    }
 	}
+
+	// Delete unnecessary tdata
+	delete _tdata;
+	_tdata = NULL;
+
     }
 }
 
 
-void ParticleDiagPlot::export_data( const std::string &filename ) const
+const Emittance &ParticleDiagPlot::calculate_emittance( void )
 {
-    std::ofstream fstr( filename.c_str() );
+    build_data();
 
-    // Build particle data
-    Histogram *histo = NULL;
-    TrajectoryDiagnosticData tdata;
-    build_data( tdata, &histo );
+    if( _emit )
+	return( *_emit );
+
+    throw( Error( ERROR_LOCATION, "diagnostic not emittance" ) );
+}
+
+
+void ParticleDiagPlot::export_data( const std::string &filename )
+{
+    build_data();
+
+    std::ofstream fstr( filename.c_str() );
 
     // Write header
     if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
@@ -183,14 +296,14 @@ void ParticleDiagPlot::export_data( const std::string &filename ) const
 
     // Write data
     if( _type == PARTICLE_DIAG_PLOT_SCATTER ) {
-	size_t N = tdata.traj_size();
+	size_t N = _tdata->traj_size();
 	for( size_t a = 0; a < N; a++ ) {
-	    fstr << std::setw(13) << tdata(a,0) << " ";
-	    fstr << std::setw(13) << tdata(a,1) << " ";
-	    fstr << std::setw(13) << tdata(a,2) << "\n";
+	    fstr << std::setw(13) << (*_tdata)(a,0) << " ";
+	    fstr << std::setw(13) << (*_tdata)(a,1) << " ";
+	    fstr << std::setw(13) << (*_tdata)(a,2) << "\n";
 	}
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
-	Histogram1D *histo1d = dynamic_cast<Histogram1D *>( histo );
+	Histogram1D *histo1d = dynamic_cast<Histogram1D *>( _histo );
 	if( !histo1d )
 	    throw( Error( ERROR_LOCATION, "dynamic cast error" ) );
 	size_t N = histo1d->n();
@@ -199,7 +312,7 @@ void ParticleDiagPlot::export_data( const std::string &filename ) const
 	    fstr << std::setw(13) << (*histo1d)(a) << "\n";
 	}
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO2D ) {
-	Histogram2D *histo2d = dynamic_cast<Histogram2D *>( histo );
+	Histogram2D *histo2d = dynamic_cast<Histogram2D *>( _histo );
 	if( !histo2d )
 	    throw( Error( ERROR_LOCATION, "dynamic cast error" ) );
 	size_t N = histo2d->n();
@@ -213,18 +326,13 @@ void ParticleDiagPlot::export_data( const std::string &filename ) const
 	}
     }
 
-    if( histo )
-	delete histo;
     fstr.close();
 }
 
 
 void ParticleDiagPlot::build_plot( void )
 {
-    // Build particle data
-    Histogram *histo = NULL;
-    TrajectoryDiagnosticData tdata;
-    build_data( tdata, &histo );
+    build_data();
 
     // Set axis labels
     if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
@@ -257,7 +365,7 @@ void ParticleDiagPlot::build_plot( void )
     if( _type == PARTICLE_DIAG_PLOT_SCATTER ) {
 
 	// Make scatter
-	_scatter = new XYGraph( tdata(0).data(), tdata(1).data() );
+	_scatter = new XYGraph( (*_tdata)(0).data(), (*_tdata)(1).data() );
 	_scatter->set_line_style( XYGRAPH_LINE_DISABLE );
 	_scatter->set_point_style( XYGRAPH_POINT_CIRCLE, true, _dot_size );
 	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _scatter );
@@ -265,7 +373,7 @@ void ParticleDiagPlot::build_plot( void )
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO2D ) {
 
 	// Make colormap
-	Histogram2D *histo2d = dynamic_cast<Histogram2D *>( histo );
+	Histogram2D *histo2d = dynamic_cast<Histogram2D *>( _histo );
 	if( !histo2d )
 	    throw( Error( ERROR_LOCATION, "dynamic cast error" ) );
 	double range[4];
@@ -307,7 +415,7 @@ void ParticleDiagPlot::build_plot( void )
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
 
 	// Make XYGraph profile plot
-	Histogram1D *histo1d = dynamic_cast<Histogram1D *>( histo );
+	Histogram1D *histo1d = dynamic_cast<Histogram1D *>( _histo );
 	if( !histo1d )
 	    throw( Error( ERROR_LOCATION, "dynamic cast error" ) );
 	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
@@ -332,18 +440,17 @@ void ParticleDiagPlot::build_plot( void )
 	 (_diagx == DIAG_R && _diagy == DIAG_RP)  ||
 	 (_diagx == DIAG_Z && _diagy == DIAG_ZP)) && _ellipse_enable ) {
 
-	// Make emittance calculation
-	Emittance em( tdata(0).data(), tdata(1).data(), tdata(2).data() );
-	double a = em.rmajor();
-	double b = em.rminor();
-	double p = em.angle();
+	// Plot emittance ellipse
+	double a = _emit->rmajor();
+	double b = _emit->rminor();
+	double p = _emit->angle();
 	double sinp = sin(p);	
 	double cosp = cos(p);
 	std::vector<double> xd, yd;
 	for( size_t i = 0; i < 100; i++ ) {
 	    double t = 2.0*M_PI*i/99.0;
-	    xd.push_back( em.xave()  + a*cos(t)*sinp + b*sin(t)*cosp );
-	    yd.push_back( em.xpave() + a*cos(t)*cosp - b*sin(t)*sinp );
+	    xd.push_back( _emit->xave()  + a*cos(t)*sinp + b*sin(t)*cosp );
+	    yd.push_back( _emit->xpave() + a*cos(t)*cosp - b*sin(t)*sinp );
 	}
 
 	// Add ellipse xy graph
@@ -356,10 +463,10 @@ void ParticleDiagPlot::build_plot( void )
 	// Add emittance numbers to title
 	std::stringstream ss;
 	ss << "Emittance plot at " << coordinate_axis_string[_axis] << " = " << _level << " m\n"
-	   << "\\alpha  = "   << em.alpha()   << ", "
-	   << "\\beta  = "    << em.beta()    << " m/rad, "
-	   << "\\gamma  = "   << em.gamma()   << " rad/m, "
-	   << "\\epsilon  = " << em.epsilon() << " \\pi \\cdot m\\cdot rad";
+	   << "\\alpha  = "   << _emit->alpha()   << ", "
+	   << "\\beta  = "    << _emit->beta()    << " m/rad, "
+	   << "\\gamma  = "   << _emit->gamma()   << " rad/m, "
+	   << "\\epsilon  = " << _emit->epsilon() << " \\pi \\cdot m\\cdot rad";
 	_frame->set_title( ss.str().c_str() );
 
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO1D && 
@@ -377,9 +484,6 @@ void ParticleDiagPlot::build_plot( void )
 	_frame->set_title( "" );
 
     }
-
-    if( histo )
-	delete histo;
 }
 
 

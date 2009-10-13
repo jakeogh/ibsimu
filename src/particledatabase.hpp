@@ -54,9 +54,9 @@
 
 
 
-/* ************************************************************************************************ *
- * ParticleDataBase classes                                                                         *
- * ************************************************************************************************ */
+/* ******************************************************************************************* *
+ * ParticleDataBase classes                                                                    *
+ * ******************************************************************************************* */
 
 
 /*! \brief %Particle database base class.
@@ -91,12 +91,14 @@ protected:
     uint32_t       _end_baddef;  /*!< \brief Number of bad particle definitions. */
     uint32_t       _sum_steps;   /*!< \brief Total number of steps taken. */
 
+    int            _iteration;   /*!< \brief Iteration number. */
+
     /*! \brief Constructor.
      */
     ParticleDataBase()
 	: _threadcount(1), _epsabs(1e-6), _epsrel(1e-6), _polyint(true), _maxsteps(1000), 
 	  _maxt(1e-3), _trajdiv(1), _rhosum(0.0), _end_time(0), _end_step(0), _end_out(0), 
-	  _end_coll(0), _end_baddef(0), _sum_steps(0) {
+	  _end_coll(0), _end_baddef(0), _sum_steps(0), _iteration(-1) {
 	_mirror[0] = false;
 	_mirror[1] = false;
 	_mirror[2] = false;
@@ -199,6 +201,10 @@ public:
 	mirror[3] = _mirror[3];
 	mirror[4] = _mirror[4];
 	mirror[5] = _mirror[5];
+    }
+
+    int get_iteration_number( void ) const {
+	return( _iteration );
     }
 
     /*! \brief Return sum of defined beam space charge density.
@@ -304,64 +310,70 @@ template<class PP> class ParticleDataBasePP : public ParticleDataBase {
      */
     static void add_diagnostics( TrajectoryDiagnosticData &tdata, const PP &x, 
 				 const Particle<PP> &p, int crd ) {
+	//std::cout << "add_diagnostics():\n";
 	for( size_t a = 0; a < tdata.diag_size(); a++ ) {
+	    //std::cout << "  diagnostic[" << a << "] = " << tdata.diagnostic(a) << "\n";
+	    
+	    double data;
 	    switch( tdata.diagnostic( a ) ) {
 	    case DIAG_NONE:
-		tdata.add_data( a, 0.0 );
+		data = 0.0;
 		break;
 	    case DIAG_T:
-		tdata.add_data( a, x[0] );
+		data = x[0];
 		break;
 	    case DIAG_X:
-		tdata.add_data( a, x[1] );
+		data = x[1];
 		break;
 	    case DIAG_VX:
-		tdata.add_data( a, x[2] );
+		data = x[2];
 		break;
 	    case DIAG_Y:
 	    case DIAG_R:
-		tdata.add_data( a, x[3] );
+		data = x[3];
 		break;
 	    case DIAG_VY:
 	    case DIAG_VR:
-		tdata.add_data( a, x[4] );
+		data = x[4];
 		break;
 	    case DIAG_Z:
-		tdata.add_data( a, x[5] );
+		data = x[5];
 		break;
 	    case DIAG_VZ:
-		tdata.add_data( a, x[6] );
+		data = x[6];
 		break;
 	    case DIAG_W:
-		tdata.add_data( a, x[5] );
+		data = x[5];
 		break;
 	    case DIAG_VTHETA:
-		tdata.add_data( a, x[5]*x[3] );
+		data = x[5]*x[3];
 		break;
 	    case DIAG_XP:
-		tdata.add_data( a, x[2]/x[2*crd+2] );
+		data = x[2]/x[2*crd+2];
 		break;
 	    case DIAG_YP:
 	    case DIAG_RP:
-		tdata.add_data( a, x[3]*x[5]/x[2*crd+2] );
+		data = x[4]/x[2*crd+2];
 		break;
 	    case DIAG_AP:
-		tdata.add_data( a, x[4]/x[2*crd+2] );
+		data = x[3]*x[5]/x[2*crd+2];
 		break;
 	    case DIAG_ZP:
-		tdata.add_data( a, x[6]/x[2*crd+2] );
+		data = x[6]/x[2*crd+2];
 		break;
 	    case DIAG_CURR:
-		tdata.add_data( a, p.IQ() );
+		data = p.IQ();
 		break;
 	    case DIAG_QM:
-		tdata.add_data( a, p.qm() );
+		data = p.qm();
 		break;
 	    case DIAG_EK:
 		Vec3D velocity = x.velocity();
-		tdata.add_data( a, velocity.norm2() );
+		data = velocity.norm2();
 		break;
 	    }
+	    //std::cout << "  adding data = " << data << "\n";
+	    tdata.add_data( a, data );
 	}
     }
 
@@ -488,17 +500,21 @@ public:
 	    if( N < 2 )
 		continue;
 	    PP x1 = _particles[a].traj(0);
+	    size_t nintsum = 0;
 	    for( size_t b = 1; b < N; b++ ) {
 		PP x2 = _particles[a].traj(b);
 		intsc.clear();
 		size_t nintsc = PP::trajectory_intersections_at_plane( intsc, crd, val, x1, x2 );
-		//std::cout << "Found " << nintsc << " intersections\n";
+		nintsum += nintsc;
 		for( size_t c = 0; c < nintsc; c++ ) 
 		    add_diagnostics( tdata, intsc[c], _particles[a], crd );
 
 		x1 = x2;
 	    }
-	}	
+	}
+
+	if( verbose_output )
+	    std::cout << "  number of trajectories = " << tdata.traj_size() << "\n";
     }
 
 /* ************************************** *
@@ -565,6 +581,7 @@ public:
 	Timer t;
 	if( verbose_output )
 	    std::cout << "Calculating particle trajectories\n";
+	_iteration++;
 
 	// Clear space charge
 	scharge.clear();

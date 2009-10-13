@@ -121,7 +121,8 @@ void test( int *argc, char ***argv )
     gplotter.set_ranges( 0, 0, 0.002, 0.002 );
     gplotter.plot_png( "plasma2d_zoom.png" );
 
-    ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 0.01, PARTICLE_DIAG_PLOT_HISTO2D, DIAG_R, DIAG_RP );
+    ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 0.01, 
+				  PARTICLE_DIAG_PLOT_HISTO2D, DIAG_Y, DIAG_YP );
     pplotter.plot_png( "plasma2d_emit.png" );
 
     FieldDiagPlotter fplotter( &geom );
@@ -139,7 +140,7 @@ void test( int *argc, char ***argv )
 int main( int argc, char **argv )
 {
     try {
-	//verbose_output = 1;
+	verbose_output = 1;
 	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

@@ -49,6 +49,7 @@
 #include "particledatabase.hpp"
 #include "types.hpp"
 #include "histogram.hpp"
+#include "trajectorydiagnostics.hpp"
 
 #include "xygraph.hpp"
 #include "colormap.hpp"
@@ -86,6 +87,13 @@ class ParticleDiagPlot {
     particle_diag_plot_type_e  _type;
     trajectory_diagnostic_e    _diagx;
     trajectory_diagnostic_e    _diagy;
+    trajectory_diagnostic_e    _diagz;
+
+    int                        _pdb_it_no;
+    bool                       _update;
+    TrajectoryDiagnosticData  *_tdata;  /*!< \brief Trajectory data (scatter) */
+    Histogram                 *_histo;  /*!< \brief Histogram data */
+    Emittance                 *_emit;   /*!< \brief Emittance data */
 
     XYGraph                   *_scatter;
 
@@ -102,7 +110,7 @@ class ParticleDiagPlot {
     interpolation_e            _interpolation;
     double                     _dot_size;
     
-    void build_data( TrajectoryDiagnosticData &tdata, Histogram **histo ) const;
+    void build_data( void );
     void merge_bbox( double bbox[4], const double bb[4] );
     
 public:
@@ -123,6 +131,7 @@ public:
     }
 
     void set_view( coordinate_axis_e axis, double level ) {	
+	_update = true;
 	_axis = axis;
 	_level = level;
     }
@@ -133,6 +142,7 @@ public:
     }
 
     void set_type( particle_diag_plot_type_e type ) {
+	_update = true;
 	_type = type;
     }
 
@@ -142,6 +152,7 @@ public:
 
     void set_plot( particle_diag_plot_type_e type,
 		   trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy ) {
+	_update = true;
 	_type = type;
 	_diagx = diagx;
 	_diagy = diagy;
@@ -155,6 +166,7 @@ public:
     }
 
     void set_histogram_n( size_t n ) {
+	_update = true;
 	_histogram_n = n;
     }
 
@@ -163,6 +175,7 @@ public:
     }
 
     void set_histogram_m( size_t m ) {
+	_update = true;
 	_histogram_m = m;
     }
 
@@ -182,15 +195,21 @@ public:
 
     void set_dot_size( double size ) {
 	_dot_size = size;
+	if( _scatter )
+	    _scatter->set_point_style( XYGRAPH_POINT_CIRCLE, true, _dot_size );
     }
 
     double get_dot_size( void ) {
 	return( _dot_size );
     }
 
+    /*! \brief Calculate Emittance fit.
+     */
+    const Emittance &calculate_emittance( void );
+
     /*! \brief Export plotted data as ASCII.
      */
-    void export_data( const std::string &filename ) const;
+    void export_data( const std::string &filename );
 
     /*! \brief Rebuild plot.
      */
