@@ -113,24 +113,32 @@ public:
 
 #ifdef CAIRO_HAS_PNG_FUNCTIONS
     /*! \brief Make a plot to a PNG-file.
+     *
+     *  Only defined if cairo supports PNG and CAIRO_HAS_PNG_FUNCTIONS is defined.
      */
     void plot_png( const std::string &filename );
 #endif
 
 #ifdef CAIRO_HAS_PS_SURFACE
     /*! \brief Make a plot to a EPS-file.
+     *
+     *  Only defined if cairo supports EPS and CAIRO_HAS_EPS_SURFACE is defined.
      */
     void plot_eps( const std::string &filename );
 #endif
 
 #ifdef CAIRO_HAS_PDF_SURFACE
     /*! \brief Make a plot to a PDF-file.
+     *
+     *  Only defined if cairo supports PDF and CAIRO_HAS_PDF_SURFACE is defined.
      */
     void plot_pdf( const std::string &filename );
 #endif
 
 #ifdef CAIRO_HAS_SVG_SURFACE
     /*! \brief Make a plot to a SVG-file.
+     *
+     *  Only defined if cairo supports SVG and CAIRO_HAS_SVG_SURFACE is defined.
      */
     void plot_svg( const std::string &filename );
 #endif

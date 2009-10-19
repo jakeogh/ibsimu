@@ -7,20 +7,22 @@ set size 0.8,0.4
 set out "beamcyl_efield.ps"
 set xlabel "r (m)"
 set ylabel "E_r (V/m)"
-plot "beamcyl.dat" u 1:4 w lp title "Efield"
+plot [0:0.05] "beamcyl.dat" u 1:4 w lp title "Efield"
 
 set ytics nomirror
 set y2tics nomirror
 
 set out "beamcyl.ps"
+set title "Plot at x=0.05 m, mesh size h=0.0025 m, beam r=0.009"
 set xlabel "r (m)"
 set ylabel "Potential (V)"
 set y2label "Space charge density (10^{-6} C/m^3)"
-plot "beamcyl.dat" u 1:2 w lp title "Potential", \
+plot [0:0.05] "beamcyl.dat" u 1:2 w lp title "Potential", \
 "beamcyl.dat" u 1:(1e6*$6) axes x1y2 w lp title "Space charge density"
 
 set ytics mirror
 set out "beamcyl_map.ps"
+set title ""
 set xlabel "r (m)"
 set ylabel "Space charge density (10^{-6} C/m^3)"
 unset y2label

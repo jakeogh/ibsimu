@@ -80,7 +80,7 @@ void test( void )
 int main( void )
 {
     try {
-	verbose_output = 1;
+	verbose_output = 0;
 	test();
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

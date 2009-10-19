@@ -9,6 +9,9 @@ efield_extrpl_SOURCES = efield_extrpl.cpp
 efieldtest_2d_SOURCES = efieldtest_2d.cpp
 emittance3d_SOURCES = emittance3d.cpp
 emittanceconv_SOURCES = emittanceconv.cpp
+emittancedef2d_SOURCES = emittancedef2d.cpp
+emittancedef3d_SOURCES = emittancedef3d.cpp
+emittancedefcyl_SOURCES = emittancedefcyl.cpp
 fileplot_SOURCES = fileplot.cpp
 fonts_SOURCES = fonts.cpp
 frame_SOURCES = frame.cpp
@@ -80,6 +83,9 @@ efield_extrpl \
 efieldtest_2d \
 emittance3d \
 emittanceconv \
+emittancedef2d \
+emittancedef3d \
+emittancedefcyl \
 fileplot \
 fonts \
 frame \

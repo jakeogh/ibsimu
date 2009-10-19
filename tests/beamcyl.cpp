@@ -59,26 +59,13 @@ void test( void )
 
     // Write calculated space charge and epot to file
     ofstream ostr( "beamcyl_map.dat" );
-    ofstream ostr2( "beamcyl.dat" );
     ostr << "# "
          << setw(12) << "x (m)" << " " 
          << setw(14) << "r (m)" << " " 
          << setw(14) << "potential (V)" << " "
          << setw(14) << "scharge (C/m3)" << "\n";
-    ostr2 << "# "
-         << setw(12) << "r (m)" << " " 
-         << setw(14) << "potential (V)" << " "
-         << setw(12) << "E_x (V/m)" << " "
-         << setw(12) << "E_r (V/m)" << " "
-         << setw(12) << "E_z (V/m)" << " "
-         << setw(14) << "scharge (C/m3)" << "\n";
     bool err = false;
     for( int j = 0; j < geom.size(1); j++ ) {
-	Vec3D x( 0.05, geom.h()*j, 0.0  );
-	ostr2 << setw(14) << x[1] << " "
-	      << setw(14) << epot( x ) << " "
-	      << setw(14) << efield( x ) << " "
-	      << setw(14) << scharge( x ) << "\n";
 	for( int i = 0; i < geom.size(0); i++ ) {
 	    Vec3D x( geom.h()*i, geom.h()*j, 0.0  );
 	    if( j == 0 && fabs(scharge(x)-2.64497329883e-4) > 1e-9 )
@@ -92,7 +79,24 @@ void test( void )
     }
     ostr << "\n\n";
     ostr.close();
-    ostr2.close();
+
+    ostr.open( "beamcyl.dat" );
+    ostr << "# "
+         << setw(12) << "r (m)" << " " 
+         << setw(14) << "potential (V)" << " "
+         << setw(12) << "E_x (V/m)" << " "
+         << setw(12) << "E_r (V/m)" << " "
+         << setw(12) << "E_z (V/m)" << " "
+         << setw(14) << "scharge (C/m3)" << "\n";
+    for( double y = 0.0; y < 0.1; y += 0.0005 ) {
+	Vec3D x( 0.05, y, 0.0 );
+	ostr << setw(14) << y << " "
+	     << setw(14) << epot( x ) << " "
+	     << setw(14) << efield( x ) << " "
+	     << setw(14) << scharge( x ) << "\n";
+    }
+    ostr << "\n\n";
+    ostr.close();
 
     // Do current density plot
     ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 0.05, PARTICLE_DIAG_PLOT_HISTO1D, DIAG_R );

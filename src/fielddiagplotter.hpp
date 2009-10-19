@@ -54,7 +54,7 @@
 /*! \brief Non-interactive fielddiagetry plotter.
  *
  *  This class ties together Plotter, which provides basic graphics
- *  features including frame control, and FielddiagPlot, which makes the
+ *  features including frame control, and FieldDiagPlot, which makes the
  *  fielddiagetry plot.
  */
 class FieldDiagPlotter : public Plotter, public FieldDiagPlot {

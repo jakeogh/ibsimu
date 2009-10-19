@@ -199,8 +199,7 @@ EmittanceConv::EmittanceConv( int n, int m,
     // xpmax
     double xpmax = 0.0;
     for( int a = 0; a < N; a++ ) {
-	double t = ap[a]/rp[a];
-	double xpm = rp[a]*sqrt( 1.0 + t*t );
+	double xpm = sqrt( rp[a]*rp[a] + ap[a]*ap[a] );
 	if( xpm > xpmax )
 	    xpmax = xpm;
     }

@@ -41,6 +41,7 @@
  */
 
 #include "particledatabase.hpp"
+#include "polysolver.hpp"
 #include "qrandom.hpp"
 
 
@@ -95,6 +96,105 @@ void ParticleDataBase2D::add_2d_beam_with_energy( uint32_t N, double J, double q
 			       sqrt(Tp*CHARGE_E/(m*MASS_U)), 
 			       sqrt(Tt*CHARGE_E/(m*MASS_U)), 
 			       x1, y1, x2, y2 );
+}
+
+
+void ParticleDataBase2D::add_2d_KV_beam_with_emittance( uint32_t N, double I, double q, double m,
+							double a, double b, double e,
+							double Ex, double x0, double y0 )
+{
+    if( verbose_output )
+	std::cout << "Defining a 2d beam using Twiss parameters\n";
+
+    _particles.reserve( _particles.size()+N );
+
+    QRandom qrng( 2 );
+
+    m *= MASS_U;
+    q *= CHARGE_E;
+
+    double g = (1.0 + a*a)/b;
+    double ymax = sqrt( b*e );
+    double ypmax = sqrt( g*e );
+    double rn[2];
+    double IQ = I/N;
+
+    ParticleP2D x;
+    x[0] = 0.0;
+    x[1] = x0;
+    x[2] = sqrt(2.0*Ex/m);
+
+    uint32_t n = 0;
+    while( n < N ) {
+
+	qrng.get( rn );
+
+	// Randomize (y,y')
+	double y = -ymax + 2.0*ymax*rn[0];
+	double yp = -ypmax + 2.0*ypmax*rn[1];
+
+	// Check if inside ellipse
+	double yp1, yp2;
+	int nroots = solve_quadratic( b, 2.0*a*y, g*y*y-e, &yp1, &yp2 );
+	if( nroots != 2 || yp < yp1 || yp > yp2 )
+	    continue;
+	
+	// Set up particle
+	x[3] = y0 + y;
+	x[4] = x[2]*yp;
+
+	_particles.push_back( Particle2D( IQ, q, m, x ) );
+	n++;
+    }
+}
+
+
+void ParticleDataBase2D::add_2d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
+							      double a, double b, double e,
+							      double Ex, double x0, double y0 )
+{
+    if( verbose_output )
+	std::cout << "Defining a 2d beam using Twiss parameters\n";
+
+    _particles.reserve( _particles.size()+N );
+
+    QRandom qrng( 2 );
+
+    m *= MASS_U;
+    q *= CHARGE_E;
+
+    double g = (1.0 + a*a)/b;
+    double h = 0.5*(b+g);
+    double rmaj = sqrt(0.5*e)*(sqrt(h+1)-sqrt(h-1));
+    double rmin = sqrt(0.5*e)*(sqrt(h+1)+sqrt(h-1));
+    double theta = 0.5*atan( (-2.0*a)/(b-g) );
+    double w[2], rn[2];
+    double IQ = I/N;
+
+    ParticleP2D x;
+    x[0] = 0.0;
+    x[1] = x0;
+    x[2] = sqrt(2.0*Ex/m);
+
+    uint32_t n = 0;
+    while( n < N ) {
+
+	// Randomize point from gaussian distribution
+	qrng.get_gaussian( rn );
+	w[0] = rmaj*rn[0];
+	w[1] = rmin*rn[1];
+
+	// Rotate to correct angle
+	double y  = w[0]*cos(theta) - w[1]*sin(theta);
+	double yp = w[0]*sin(theta) + w[1]*cos(theta);
+
+	// Set up particle
+	x[3] = y0 + y;
+	x[4] = x[2]*yp;
+
+	_particles.push_back( Particle2D( IQ, q, m, x ) );
+	n++;
+    }
 }
 
 
@@ -157,66 +257,70 @@ void ParticleDataBaseCyl::add_2d_beam_with_energy( uint32_t N, double J, double 
 }
 
 
-
-
-/*
-// perpendicular temperature and angle of start should be made possible
-void ParticleDataBaseCyl::add_2d_KV_beam_with_emittance( uint32_t N, double I, double q, double m,
-							 double a, double b, double e,
-							 double Ex, double x0 )
+void ParticleDataBaseCyl::add_2d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
+							       double a, double b, double e,
+							       double Ex, double x0 )
 {
-    throw( ErrorUnimplemented( ERROR_LOCATION ) );
-	
     if( verbose_output )
-	std::cout << "Defining a cylindrical beam with gaussian emittance\n";
+	std::cout << "Defining a cylindrical beam using Twiss parameters\n";
 
-    QRandom qrng( 1 );
+    _particles.reserve( _particles.size()+N );
 
     m *= MASS_U;
     q *= CHARGE_E;
 
-    // Calculate ellipse radii
-    double g   = (1.0+a*a)/b;
-    double H   = 0.5*(b+g);
-    double Hps = sqrt(H+1.0);
-    double Hms = sqrt(H-1.0);
-    double rr  = sqrt(0.5*e)*(Hps-Hms);
-    double rpr = sqrt(0.5*e)*(Hps+Hms);
+    QRandom qrng( 4 );
+    double w[4], rn[4];
 
-    // Ellipse angle
-    //double theta = 0.5*atan( -2.0*a/(b-g) );
+    double g = (1.0 + a*a)/b;
+    double h = 0.5*(b+g);
+    double rmaj = sqrt(0.5*e)*(sqrt(h+1)-sqrt(h-1));
+    double rmin = sqrt(0.5*e)*(sqrt(h+1)+sqrt(h-1));
+    double theta = 0.5*atan( (-2.0*a)/(b-g) );
 
-    double r[1];
-    double crd[2];
+    double IQ = I/N;
+
     ParticlePCyl x;
     x[0] = 0.0;
+    x[1] = x0;
+    x[2] = sqrt(2.0*Ex/m);
 
-    _particles.reserve( _particles.size()+N );
+    uint32_t n = 0;
+    while( n < N ) {
 
-    for( uint32_t a = 0; a < N; a++ ) {
+	// Randomize point from gaussian distribution
+	qrng.get_gaussian( rn );
+	w[0] = rmaj*rn[0];
+	w[1] = rmin*rn[1];
+	w[2] = rmaj*rn[2];
+	w[3] = rmin*rn[3];
 
-	qrng.get( r );
-	crd[0] = rr*(a+0.5)/N;
-	crd[1] = rpr*r[0];
+	// Rotate to correct angle
+	double sint = sin(theta);
+	double cost = cos(theta);
+	double y  = w[0]*cost - w[1]*sint;
+	double yp = w[0]*sint + w[1]*cost;
+	double z  = w[2]*cost - w[3]*sint;
+	double zp = w[2]*sint + w[3]*cost;
 
-	double IQ = 0.0;
+	// Convert to cylindrical coordinates
+	double r  = sqrt( y*y + z*z );
+	double alpha = atan2( z, y );
+	double sina = sin(alpha);
+	double cosa = cos(alpha);
+	double rp = yp*cosa + zp*sina;
+	double ap = -yp*sina + zp*cosa;
+
+	// Set up particle
+	x[3] = r;
+	x[4] = x[2]*rp;
+	x[5] = x[2]*ap/r;
+
 	_particles.push_back( ParticleCyl( IQ, q, m, x ) );
+	n++;
     }
 }
 
-
-void ParticleDataBaseCyl::add_2d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
-							       double a, double b, double erms,
-							       double Ex, double x0 )
-{
-    throw( ErrorUnimplemented( ERROR_LOCATION ) );
-
-    if( verbose_output )
-	std::cout << "Defining a cylindrical beam with KV emittance\n";
-
-    _particles.reserve( _particles.size()+N );
-}
-*/
 
 void ParticleDataBase3D::add_cylindrical_beam_with_velocity( uint32_t N, double J, double q, double m, 
 							     double v, double dvp, double dvt, Vec3D c, 
@@ -299,3 +403,129 @@ void ParticleDataBase3D::add_cylindrical_beam_with_energy( uint32_t N, double J,
 					c, dir1, dir2, r );
 }
 
+
+void ParticleDataBase3D::add_3d_KV_beam_with_emittance( uint32_t N, double I, double q, double m,
+							double ay, double by, double ey,
+							double az, double bz, double ez,
+							double Ex, double x0, double y0, double z0 )
+{
+    if( verbose_output )
+	std::cout << "Defining a 3d beam using Twiss parameters\n";
+
+    _particles.reserve( _particles.size()+N );
+
+    m *= MASS_U;
+    q *= CHARGE_E;
+
+    QRandom qrng( 4 );
+    double rn[4];
+
+    double gy = (1.0 + ay*ay)/by;
+    double gz = (1.0 + az*az)/bz;
+    
+    double ymax = sqrt( by*ey );
+    double ypmax = sqrt( gy*ey );
+    double zmax = sqrt( bz*ez );
+    double zpmax = sqrt( gz*ez );
+
+    double IQ = I/N;
+
+    ParticleP3D x;
+    x[0] = 0.0;
+    x[1] = x0;
+    x[2] = sqrt(2.0*Ex/m);
+
+    uint32_t n = 0;
+    while( n < N ) {
+
+	qrng.get( rn );
+
+	// Randomize (y,y',z,z')
+	double y = -ymax + 2.0*ymax*rn[0];
+	double yp = -ypmax + 2.0*ypmax*rn[1];
+	double z = -zmax + 2.0*zmax*rn[2];
+	double zp = -zpmax + 2.0*zpmax*rn[3];
+
+	// Check if inside ellipse
+	double yp1, yp2;
+	int nroots = solve_quadratic( by, 2.0*ay*y, gy*y*y-ey, &yp1, &yp2 );
+	if( nroots != 2 || yp < yp1 || yp > yp2 )
+	    continue;
+	double zp1, zp2;
+	nroots = solve_quadratic( bz, 2.0*az*z, gz*z*z-ez, &zp1, &zp2 );
+	if( nroots != 2 || zp < zp1 || zp > zp2 )
+	    continue;
+	
+	// Set up particle
+	x[3] = y0 + y;
+	x[4] = x[2]*yp;
+	x[5] = z0 + z;
+	x[6] = x[2]*zp;
+
+	_particles.push_back( Particle3D( IQ, q, m, x ) );
+	n++;
+    }
+}
+
+
+void ParticleDataBase3D::add_3d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
+							      double ay, double by, double ey,
+							      double az, double bz, double ez,
+							      double Ex, double x0, double y0, double z0 )
+{
+    if( verbose_output )
+	std::cout << "Defining a 3d beam using Twiss parameters\n";
+
+    _particles.reserve( _particles.size()+N );
+
+    m *= MASS_U;
+    q *= CHARGE_E;
+
+    QRandom qrng( 4 );
+    double w[4], rn[4];
+
+    double gy = (1.0 + ay*ay)/by;
+    double hy = 0.5*(by+gy);
+    double rmajy = sqrt(0.5*ey)*(sqrt(hy+1)-sqrt(hy-1));
+    double rminy = sqrt(0.5*ey)*(sqrt(hy+1)+sqrt(hy-1));
+    double thetay = 0.5*atan( (-2.0*ay)/(by-gy) );
+
+    double gz = (1.0 + az*az)/bz;
+    double hz = 0.5*(bz+gz);
+    double rmajz = sqrt(0.5*ez)*(sqrt(hz+1)-sqrt(hz-1));
+    double rminz = sqrt(0.5*ez)*(sqrt(hz+1)+sqrt(hz-1));
+    double thetaz = 0.5*atan( (-2.0*az)/(bz-gz) );
+
+    double IQ = I/N;
+
+    ParticleP3D x;
+    x[0] = 0.0;
+    x[1] = x0;
+    x[2] = sqrt(2.0*Ex/m);
+
+    uint32_t n = 0;
+    while( n < N ) {
+
+	// Randomize point from gaussian distribution
+	qrng.get_gaussian( rn );
+	w[0] = rmajy*rn[0];
+	w[1] = rminy*rn[1];
+	w[2] = rmajz*rn[2];
+	w[3] = rminz*rn[3];
+
+	// Rotate to correct angle
+	double y  = w[0]*cos(thetay) - w[1]*sin(thetay);
+	double yp = w[0]*sin(thetay) + w[1]*cos(thetay);
+	double z  = w[2]*cos(thetaz) - w[3]*sin(thetaz);
+	double zp = w[2]*sin(thetaz) + w[3]*cos(thetaz);
+
+	// Set up particle
+	x[3] = y0 + y;
+	x[4] = x[2]*yp;
+	x[5] = z0 + z;
+	x[6] = x[2]*zp;
+
+	_particles.push_back( Particle3D( IQ, q, m, x ) );
+	n++;
+    }
+}

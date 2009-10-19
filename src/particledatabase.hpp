@@ -775,6 +775,20 @@ public:
 				    double v, double dvp, double dvt, 
 				    double x1, double y1, double x2, double y2 );
 
+
+    /*! \brief Add a 2d beam with defined KV emittance.
+     *
+     */
+    void add_2d_KV_beam_with_emittance( uint32_t N, double I, double q, double m,
+					double a, double b, double e,
+					double Ex, double x0, double y0 );
+
+    /*! \brief Add a 2d beam with defined gaussian emittance.
+     *
+     */
+    void add_2d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
+					      double a, double b, double e,
+					      double Ex, double x0, double y0 );
 };
 
 
@@ -854,24 +868,20 @@ public:
 				    double v, double dvp, double dvt, 
 				    double x1, double y1, double x2, double y2 );
 
-
-    /*! \brief Add a 2d beam with defined KV emittance.
-     *
-     */
-    /*
-    void add_2d_KV_beam_with_emittance( uint32_t N, double I, double q, double m,
-					double a, double b, double e,
-					double Ex, double x0 );
-    */
-
     /*! \brief Add a 2d beam with defined gaussian emittance.
      *
+     *  The beam is made to match Twiss parameters \f$ \alpha \f$ (a), \f$ \beta \f$ (b), 
+     *  \f$ \epsilon \f$ (e) in projectional directions (y,y') and (z,z'). The particles 
+     *  are defined to have equal currents. This is different from other beam definitions 
+     *  for cylindrical coordinates. This might change soon.
+     *
+     *  \todo Redo particle distribution definition from emittance for cylindrical 
+     *  symmetry systems.
+     *
      */
-    /*
     void add_2d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
-					      double a, double b, double erms,
+					      double a, double b, double e,
 					      double Ex, double x0 );
-    */
 };
 
 
@@ -961,6 +971,22 @@ public:
 					     double v, double dvp, double dvt, Vec3D c, 
 					     Vec3D dir1, Vec3D dir2, double r );
 
+
+    /*! \brief Add a 3d beam with defined KV emittance.
+     *
+     */
+    void add_3d_KV_beam_with_emittance( uint32_t N, double I, double q, double m,
+					double ay, double by, double ey,
+					double az, double bz, double ez,
+					double Ex, double x0, double y0, double z0 );
+
+    /*! \brief Add a 3d beam with defined gaussian emittance.
+     *
+     */
+    void add_3d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
+					      double ay, double by, double ey,
+					      double az, double bz, double ez,
+					      double Ex, double x0, double y0, double z0 );
 };
 
 

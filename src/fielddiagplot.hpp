@@ -77,9 +77,9 @@ enum field_loc_type_e {
 };
 
 
-/*! \brief Class for building plots
+/*! \brief Field diagnostics plot.
  *
- *  Used by GTKFieldDiagWindow.
+ *  A class for building xy-plots of various fields in simulations.
  */
 class FieldDiagPlot {
 
@@ -107,32 +107,57 @@ class FieldDiagPlot {
 
 public:
 
+    /*! \brief Constructor for field diagnostics plot.
+     */
     FieldDiagPlot( Frame *frame, const Geometry *geom );
 
+    /*! \brief Destructor for field diagnostics plot.
+     */
     ~FieldDiagPlot();
 
+    /*! \brief Add pointer to electric potential.
+     */
     void set_epot( const ScalarField *epot ) {
 	_epot = epot;
     }
 
+    /*! \brief Add pointer to electric field.
+     */
     void set_efield( const Efield *efield ) {
 	_efield = efield;
     }
 
+    /*! \brief Add pointer to space charge density map.
+     */
     void set_scharge( const ScalarField *scharge ) {
 	_scharge = scharge;
     }
 
+    /*! \brief Add pointer to magnetic field.
+     */
     void set_bfield( const VectorField *bfield ) {
 	_bfield = bfield;
     }
 
+    /*! \brief Set coordinates for field diagnostics.
+     *
+     *  The fields to be plotted are evaluated at \a N steps from \a
+     *  x1 to \a x2. The first point of the plot is exactly at \a x1
+     *  and the last at \a x2.
+     */
     void set_coordinates( size_t N, const Vec3D &x1, const Vec3D &x2 ) {
 	_N = N;
 	_x1 = x1;
 	_x2 = x2;
     }
 
+    /*! \brief Set field and location plot types
+     *
+     *  The plot can have two x-axes and two y-axes. The diagnostic
+     *  for y1-axis is set by \a diag[0] and the diagnostic for
+     *  y2-axis by \a diag[1]. The x1-axis is defined by \a loc[0] and
+     *  x2-axis by \a loc[1].
+     */
     void set_diagnostic( const field_diag_type_e diag[2], const field_loc_type_e loc[2] ) {
 	_diag[0] = diag[0];
 	_diag[1] = diag[1];

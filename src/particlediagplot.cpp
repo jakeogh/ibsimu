@@ -227,8 +227,8 @@ void ParticleDiagPlot::build_data( void )
 
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
 
-	// Make XYGraph profile plot
-	if( _geom->geom_mode() == MODE_CYL ) {
+	// Scale trajectory currents by 1/(2*pi*r)
+	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
 	    for( size_t a = 0; a < _tdata->traj_size(); a++ ) {
 		if( (*_tdata)(a,0) != 0.0 )
 		    (*_tdata)(a,1) /= (2.0*M_PI*fabs((*_tdata)(a,0)));
@@ -237,6 +237,7 @@ void ParticleDiagPlot::build_data( void )
 	    }
 	}
 
+	// Make XYGraph profile plot
 	Histogram1D *histo1d = new Histogram1D( _histogram_n, (*_tdata)(0).data(), (*_tdata)(1).data() );
 	_histo = histo1d;
 
@@ -244,8 +245,7 @@ void ParticleDiagPlot::build_data( void )
 	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
 	    double dr = histo1d->step();
 	    for( size_t i = 0; i < histo1d->n(); i++ ) {
-		double w = dr;
-		(*histo1d)(i) /= w;
+		(*histo1d)(i) /= dr;
 	    }
 	}
 
