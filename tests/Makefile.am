@@ -175,7 +175,7 @@ solver2d_coax.gpl \
 solver2d_cylindrical_beam.gpl \
 solvercyl_beam.gpl \
 solvercyl_coax.gpl \
-vecfield_filedef.dat
+vecfield_filedef.in
 
-CLEANFILES = *~ *.png *.ps *.dat 
+CLEANFILES = *~ *.png *.eps *.svg *.pdf *.ps *.dat
 

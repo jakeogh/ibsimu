@@ -1,3 +1,74 @@
+2009-10-22 09:19  tvkalvas
+
+	* tests/: emittancedef2d.cpp, emittancedef3d.cpp,
+	  emittancedefcyl.cpp: Added emittance definition checks.
+
+2009-10-19 11:02  tvkalvas
+
+	* doc/Doxyfile.in, src/fielddiagplot.hpp, src/fielddiagplotter.hpp,
+	  src/particledatabase.cpp, src/particledatabase.hpp,
+	  src/particlediagplot.cpp, src/plotter.hpp,
+	  src/trajectorydiagnostics.cpp, tests/Makefile.am,
+	  tests/beamcyl.cpp, tests/beamcyl.gpl, tests/emittance3d.cpp,
+	  tests/emittanceconv.cpp, tests/plasma2d.cpp, tests/plasmacyl.cpp:
+	  Updates.
+
+2009-10-13 06:50  tvkalvas
+
+	* src/particledatabase.hpp, src/particlediagplot.cpp,
+	  src/particlediagplot.hpp, src/particles.hpp,
+	  src/trajectorydiagnostics.cpp, src/trajectorydiagnostics.hpp,
+	  tests/Makefile.am, tests/emittance3d.cpp,
+	  tests/emittanceconv.cpp, tests/plasma2d.cpp: Emittance converter
+	  made
+
+2009-10-09 17:01  tvkalvas
+
+	* doc/Doxyfile.in, src/histogram.cpp, src/histogram.hpp,
+	  src/particledatabase.hpp, src/particlediagplot.cpp,
+	  src/ruler.cpp, src/trajectorydiagnostics.cpp,
+	  src/trajectorydiagnostics.hpp, src/types.cpp, src/types.hpp,
+	  tests/Makefile.am, tests/beamcyl.cpp, tests/emittance3d.cpp,
+	  tests/emittanceconv.cpp: Made emittance converter. Fixed and
+	  added required features in other components along the way.
+
+2009-10-07 23:05  tvkalvas
+
+	* src/: particledatabase.cpp, particledatabase.hpp,
+	  particleiterator.hpp: Minor mods.
+
+2009-10-07 21:57  tvkalvas
+
+	* BUGS, src/colormap.cpp, src/particledatabase.cpp,
+	  src/particledatabase.hpp, src/scheduler.hpp: Fixed error in
+	  scheduler. In some cases the dynamic memory was freed before all
+	  threads from scheduler had ended. This resulted in memory
+	  corruption.
+
+	  Started building particle beam definition using Twiss parameters.
+
+2009-10-07 13:49  tvkalvas
+
+	* tests/fileplot.pdf: Removed file.
+
+2009-10-07 13:48  tvkalvas
+
+	* TODO, src/geometry.cpp, src/histogram.cpp, src/histogram.hpp,
+	  src/particledatabase.hpp, src/particlediagplot.cpp,
+	  src/particlediagplot.hpp, src/particlediagplotter.hpp,
+	  src/ruler.cpp, src/types.cpp, src/types.hpp,
+	  tests/csgobjectsolid.cpp, tests/umfpack_solver.cpp: Added
+	  exporting possibility for particle diagnostics. Only rough
+	  testing made. Made a base class for histogram. Fixed autoranging
+	  floating point number rounding problem, which caused missing
+	  ticlabels at the end of ruler.
+
+2009-10-06 13:56  tvkalvas
+
+	* ChangeLog, src/geometry.cpp: Fixed error in solid delete indexing
+	  in Geometry::set_solid(). Added index information to error
+	  messages with solids.
+
 2009-10-06 10:36  tvkalvas
 
 	* src/Makefile.am, src/epot_problem.cpp, src/particleiterator.hpp,

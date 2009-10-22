@@ -17,7 +17,7 @@ using namespace std;
 void test( void )
 {
     bool fout[3] = {false, false, true};
-    VectorField f( MODE_2D, fout, 1.0, 1.0, "vecfield_filedef.dat" );
+    VectorField f( MODE_2D, fout, 1.0, 1.0, "vecfield_filedef.in" );
     //f.debug_print();
 }
 
