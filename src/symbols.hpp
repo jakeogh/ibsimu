@@ -1,5 +1,5 @@
-/*! \file symbols.cpp
- *  \brief Source code for symbols.cpp
+/*! \file symbols.hpp
+ *  \brief Latex symbols chart
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
@@ -39,6 +39,7 @@
  * copies to the public, perform publicly and display publicly, and to
  * permit others to do so.
  */
+
 
 const FontLib::Symbolname FontLib::symbols[] = 
 {
