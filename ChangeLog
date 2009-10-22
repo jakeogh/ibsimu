@@ -1,3 +1,20 @@
+2009-10-22 12:28  tvkalvas
+
+	* src/: icon_field_diag.cpp, icon_field_diag.hpp,
+	  icon_hardcopy.cpp, icon_hardcopy.hpp, icon_move.cpp,
+	  icon_move.hpp, icon_particle_diag.cpp, icon_particle_diag.hpp,
+	  icon_track.cpp, icon_track.hpp, icon_zoom_fit.cpp,
+	  icon_zoom_fit.hpp, icon_zoom_in.cpp, icon_zoom_in.hpp,
+	  icon_zoom_out.cpp, icon_zoom_out.hpp, symbols.cpp, symbols.hpp:
+	  Updated sources for distribution compatibility.
+
+2009-10-22 12:26  tvkalvas
+
+	* ChangeLog, RELEASING, src/Makefile.am, src/fonts.cpp,
+	  src/hbio.cpp, src/icons.cpp, tests/Makefile.am,
+	  tests/matrixsolver.cpp, tests/vecfield_filedef.cpp: Updated tests
+	  for distribution compatibility.
+
 2009-10-22 09:30  tvkalvas
 
 	* ChangeLog, tests/Makefile.am, tests/beam2d.gpl,

@@ -33,7 +33,7 @@ void test( void )
     char *srcdir_default = ".";
     if( srcdir == NULL )
 	srcdir = srcdir_default;
-    string filename = to_string(srcdir) + "\matrixsolver.hb";
+    string filename = to_string(srcdir) + "/matrixsolver.hb";
 
     hb.read( filename );
     hb.get_matrix( cmat );
