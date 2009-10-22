@@ -1,3 +1,17 @@
+2009-10-22 09:30  tvkalvas
+
+	* ChangeLog, tests/Makefile.am, tests/beam2d.gpl,
+	  tests/beamcyl.gpl, tests/efield.gpl, tests/efield_extrpl.gpl,
+	  tests/particles_cyl.gpl, tests/solver1d_edge.gpl,
+	  tests/solver1d_hard_edge.gpl, tests/solver1d_neumann.gpl,
+	  tests/solver1d_neumann_order.gpl, tests/solver1d_scharge.gpl,
+	  tests/solver1d_solid_neumann_conflict.gpl,
+	  tests/solver2d_coax.gpl, tests/solver2d_cylindrical_beam.gpl,
+	  tests/solvercyl_beam.gpl, tests/solvercyl_coax.gpl,
+	  tests/vecfield_filedef.cpp, tests/vecfield_filedef.dat,
+	  tests/vecfield_filedef.in: Added reset to gpl-files to be able to
+	  do 'gnuplot *.gpl'
+
 2009-10-22 09:19  tvkalvas
 
 	* tests/: emittancedef2d.cpp, emittancedef3d.cpp,

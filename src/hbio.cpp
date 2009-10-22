@@ -252,7 +252,7 @@ void HBIO::read( const std::string filename )
 
     std::fstream fstr( filename.c_str(), std::fstream::in );
     if( !fstr.is_open() )
-	throw( Error( ERROR_LOCATION, "Could not open file" + filename ) );
+	throw( Error( ERROR_LOCATION, "Could not open file " + filename ) );
 
     // Read line 1
     getline( fstr, buf );

@@ -17,7 +17,13 @@ using namespace std;
 void test( void )
 {
     bool fout[3] = {false, false, true};
-    VectorField f( MODE_2D, fout, 1.0, 1.0, "vecfield_filedef.in" );
+    char *srcdir = getenv( "srcdir" );
+    char *srcdir_default = ".";
+    if( srcdir == NULL )
+	srcdir = srcdir_default;
+    string infile = to_string(srcdir) + "/vecfield_filedef.in";
+
+    VectorField f( MODE_2D, fout, 1.0, 1.0, infile );
     //f.debug_print();
 }
 

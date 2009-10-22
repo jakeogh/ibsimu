@@ -45,11 +45,15 @@
 #include <cairo-ft.h>
 #include <iostream>
 #include "error.hpp"
-#include "symbols.cpp"
+#include "symbols.hpp"
 
 
 
+// Global fontlib object
 FontLib fontlib;
+
+
+
 //#define CAIROPLOT_FONTS_DEBUG 1
 
 

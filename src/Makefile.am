@@ -80,6 +80,14 @@ hbio.cpp \
 hbio.hpp \
 histogram.cpp \
 histogram.hpp \
+icon_field_diag.hpp \
+icon_hardcopy.hpp \
+icon_move.hpp \
+icon_particle_diag.hpp \
+icon_track.hpp \
+icon_zoom_fit.hpp \
+icon_zoom_in.hpp \
+icon_zoom_out.hpp \
 icons.cpp \
 icons.hpp \
 ilu0_precond.cpp \
@@ -133,6 +141,7 @@ solver.hpp \
 sort.hpp \
 statusprint.cpp \
 statusprint.hpp \
+symbols.hpp \
 timer.cpp \
 timer.hpp \
 trajectory.cpp \

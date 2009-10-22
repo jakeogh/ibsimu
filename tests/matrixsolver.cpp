@@ -27,8 +27,13 @@ void test( void )
     double x, w;
     int imax[4];
     double eps[4];
-    string filename = "matrixsolver.hb";
     bool failed = false;
+
+    char *srcdir = getenv( "srcdir" );
+    char *srcdir_default = ".";
+    if( srcdir == NULL )
+	srcdir = srcdir_default;
+    string filename = to_string(srcdir) + "\matrixsolver.hb";
 
     hb.read( filename );
     hb.get_matrix( cmat );

@@ -164,6 +164,7 @@ beam2d.gpl \
 beamcyl.gpl \
 efield_extrpl.gpl \
 efield.gpl \
+matrixsolver.hb \
 particles_cyl.gpl \
 solver1d_edge.gpl \
 solver1d_hard_edge.gpl \
