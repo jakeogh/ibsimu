@@ -57,8 +57,12 @@
  *
  *  An implementation of virtual class Solver using
  *  Gauss-Seidel/Successive over relaxation method for solving matrix
- *  equation. Linear and nonlinear solvers. Nonlinear solver based on
- *  Newton-Raphson iteration.
+ *  equation. Linear and nonlinear solvers. Nonlinear solver not
+ *  implemented.
+ *
+ *  The Gauss-Seidel solver has special limitations for the problem
+ *  type because of convergence issues. The problem has to have first
+ *  order neumann edges and the edge smoothing must be switched off.
  *
  */
 class GSSolver : public Solver {

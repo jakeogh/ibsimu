@@ -76,9 +76,10 @@ to compile the library using GNU autotools build system:
 
 1. First, run './configure' with necessary options.
 
-   * One possible option is the '--prefix', which can be used to set the 
-     installation directory. For example '--prefix=/home/homedir/' to 
-     install under you home directory.
+   * One possible option is the '--prefix', which can be used to set
+     the installation directory. For example '--prefix=/home/homedir/'
+     to install under you home directory. Please note that GNU
+     autotools does not support spaces in path names.
 
    * Other configuration option is the selection of conditional 
      compilation. The possible selectable compilations are:
