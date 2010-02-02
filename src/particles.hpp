@@ -558,6 +558,8 @@ protected:
     particle_status_e   _status;       /*!< \brief Status of particle */
     double              _IQ;           /*!< \brief Current or charge of particle
 					*
+					*   The sign is forced to be same as the sign of q/m.
+					*
 					*   In time-dependent simulations particles are 
 					*   localized and IQ is charge, in time-independent
 					*   simulation IQ is current. In case of 2D 
@@ -568,7 +570,12 @@ protected:
     double              _qm;           /*!< \brief Ratio q/m [C/kg] */
 
     ParticleBase( double IQ, double q, double m ) 
-	: _status(PARTICLE_OK), _IQ(IQ), _qm(q/m) {}
+	: _status(PARTICLE_OK), _qm(q/m) {
+	if( _qm < 0 )
+	    _IQ = -fabs(IQ);
+	else
+	    _IQ = fabs(IQ);
+    }
 
     ~ParticleBase() {}
 
@@ -756,16 +763,4 @@ struct ParticleIteratorData {
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
 
