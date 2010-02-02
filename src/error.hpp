@@ -47,6 +47,7 @@
 #include <string>
 #include <cstring>
 #include <sstream>
+#include <stdint.h>
 #include <errno.h>
 
 
