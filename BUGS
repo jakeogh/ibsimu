@@ -13,3 +13,6 @@ number of particles. Fills all of memory. Probably particle close to
 the axis causes problems. Even no fields \phi=const. causes the problem.
  - Possibly fixed 6 Oct 2009
 
+Beam defining functioon in ParticleDataBaseCyl class has incorrect
+units in energy
+- 19 Mar 2010

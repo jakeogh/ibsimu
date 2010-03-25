@@ -42,6 +42,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <math.h>
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "error.hpp"
@@ -50,15 +51,19 @@
 
 
 Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
-    : _geom_mode(geom_mode), _size(size), _origo(origo), _h(h)
+    : _geom_mode(geom_mode), _size(size), _origo(origo)
 {
+    _h = fabs(h);
+    if( _h == 0.0 )
+	throw( Error( ERROR_LOCATION, "zero mesh step size" ) );
+
     if( verbose_output ) {
 	Int3D one(1,1,1);
 	std::cout << "Constructing geometry\n";
 	std::cout << "  origo = " << origo << "\n";
 	std::cout << "  size  = " << size << "\n";
-	std::cout << "  max   = " << origo+h*(size-one) << "\n";
-	std::cout << "  h     = " << h << "\n";
+	std::cout << "  max   = " << origo+_h*(size-one) << "\n";
+	std::cout << "  h     = " << _h << "\n";
     }
 
     if( _geom_mode == MODE_CYL ) {
