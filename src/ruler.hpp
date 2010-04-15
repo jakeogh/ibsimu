@@ -47,6 +47,7 @@
 #include <cairo.h>
 #include <vector>
 #include <string>
+#include <stdio.h>
 #include <iostream>
 #include "color.hpp"
 #include "label.hpp"
