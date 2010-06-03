@@ -184,7 +184,6 @@ frame.hpp \
 func_solid.hpp \
 geometry.hpp \
 geomplot.hpp \
-geomplot.hpp \
 geomplotter.hpp \
 graph.hpp \
 graph3d.hpp \

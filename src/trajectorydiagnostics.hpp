@@ -213,6 +213,12 @@ public:
 	       const std::vector<double> &xp,
 	       const std::vector<double> &I );
 
+    /*! \brief Constructor for emittance statistics from trajectory
+     *  diagnostic data columns \a x, \a xp, assuming even weights.
+     */
+    Emittance( const std::vector<double> &x,
+	       const std::vector<double> &xp );
+
     double xave( void ) { return( _xave ); }
     double xpave( void ) { return( _xpave ); }
 

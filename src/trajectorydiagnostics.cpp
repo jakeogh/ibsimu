@@ -157,6 +157,48 @@ Emittance::Emittance( const std::vector<double> &x,
 }
 
 
+Emittance::Emittance( const std::vector<double> &x,
+		      const std::vector<double> &xp )
+{
+    size_t N = x.size() > xp.size() ? x.size() : xp.size();
+
+    // Calculate averages
+    _xave  = 0.0;
+    _xpave = 0.0;
+    for( size_t a = 0; a < N; a++ ) {
+	_xave  += x[a];
+	_xpave += xp[a];
+    }
+    _xave  = _xave  / (double)N;
+    _xpave = _xpave / (double)N;
+
+    // Calculate expectation values
+    _x2  = 0.0;
+    _xp2 = 0.0;
+    _xxp = 0.0;
+    for( size_t a = 0; a < N; a++ ) {
+	_x2 += (x[a]-_xave)*(x[a]-_xave);
+	_xp2 += (xp[a]-_xpave)*(xp[a]-_xpave);
+	_xxp += (x[a]-_xave)*(xp[a]-_xpave);
+    }
+    _x2  = _x2  / (double)N;
+    _xp2 = _xp2 / (double)N;
+    _xxp = _xxp / (double)N;
+
+    // Calculate Twiss parameters
+    _epsilon = sqrt( _xp2*_x2 - _xxp*_xxp );
+    _alpha   = -_xxp/_epsilon;
+    _beta    = _x2/_epsilon;
+    _gamma   = _xp2/_epsilon;
+
+    // Calculate axes and angle
+    _angle = 0.5*atan( (2.0*_alpha) / (_beta - _gamma) );
+    double H = 0.5*(_beta+_gamma);
+    _rmajor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)+sqrt(H-1.0) );
+    _rminor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)-sqrt(H-1.0) );
+}
+
+
 int min( int n1, int n2, int n3, int n4 )
 {
     int n;

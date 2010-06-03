@@ -131,10 +131,18 @@ int main( void )
     // CColMatrix 
     init_fdm_problem( Ac, B, 10.0, -10.0 );
     ILU0_Precond pc = ILU0_Precond( Ac );
+    std::cout << "Ac = \n" << Ac << "\n";
+    std::cout << "B = \n" << B << "\n";
     const Matrix *Lc = pc.get_L();
     const Matrix *Uc = pc.get_U();
+    std::cout << "Lc = \n" << *Lc << "\n";
+    std::cout << "Uc = \n" << *Uc << "\n";
     Lc->lower_unit_solve( Y, B );
+    std::cout << "Y = \n" << Y << "\n";
+    std::cout << "Y_check = \n" << Y_check << "\n";
     Uc->upper_diag_solve( X, Y );
+    std::cout << "X = \n" << Y << "\n";
+    std::cout << "X_check = \n" << X_check << "\n";
 
     if( max_abs(Y-Y_check) > 0.1 )
 	ERROR();

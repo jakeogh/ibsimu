@@ -539,8 +539,9 @@ template <class PP> class ParticleIterator {
      *  Searches mesh intersections between points \a x1 and \a x2 and
      *  builds ColData. Checks for collisions with solids and
      *  boundaries and sets space charge. If particle collides with
-     *  mirroring boundary, the \a x2 coordinates are changed and GSL ODE
-     *  integrator is resetted.
+     *  mirroring boundary, the \a x2 coordinates are changed and GSL
+     *  ODE integrator is resetted. Space charge is deposited at each
+     *  mesh line crossing.
      *
      *  If \a force_linear is true, linear interpolation of trajectory
      *  is used regardless of interpolation settings.

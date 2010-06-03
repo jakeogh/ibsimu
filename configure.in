@@ -104,13 +104,13 @@ CPPFLAGS="$CPPFLAGS $cairo_CFLAGS"
 dnl -------------
 dnl csg
 
-dnl if $PKG_CONFIG --exists csg ; then
-dnl   PKG_CHECK_MODULES(csg, csg >= 0.0.1 )
-dnl else
-dnl  AC_MSG_ERROR([required library csg not found])
-dnl fi
-dnl LIBS="$LIBS $csg_LIBS"
-dnl CPPFLAGS="$CPPFLAGS $csg_CFLAGS"
+if $PKG_CONFIG --exists csg ; then
+  PKG_CHECK_MODULES(csg, csg >= 0.0.1 )
+else
+  AC_MSG_ERROR([required library csg not found])
+fi
+LIBS="$LIBS $csg_LIBS"
+CPPFLAGS="$CPPFLAGS $csg_CFLAGS"
 
 dnl -------------
 dnl POSIX threads
@@ -125,14 +125,8 @@ fi
 dnl -------------
 dnl GSL
 
-AC_CHECK_LIB([gslcblas], [cblas_dgemm], [], [
-  AC_MSG_ERROR([required library gslcblas not found])
-])
-AC_CHECK_LIB([gsl], [gsl_blas_dgemm], [], [
-  AC_MSG_ERROR([required library gsl not found])
-])
-
-
+AC_CHECK_LIB([gslcblas],[cblas_dgemm])
+AC_CHECK_LIB([gsl],[gsl_blas_dgemm])
 dnl LIBS_GSL=`gsl-config --libs`
 dnl CFLAGS_GSL=`gsl-config --cflags`
 

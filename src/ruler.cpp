@@ -41,7 +41,6 @@
  */
 
 #include <cmath>
-#include <cstdio>
 #include "ruler.hpp"
 
 

@@ -65,7 +65,8 @@
  *      = - \sum_i n_i \frac{\partial \phi}{\partial x_i} 
  *      = q_0. \f]
  */
-struct Bound {
+struct Bound 
+{
     bound_e         type;
     double          val;
 
@@ -105,7 +106,8 @@ struct Bound {
  *  Bounding box edges are numbered in order xmin, xmax, ymin, ymax,
  *  zmin, xmax.
  */
-class Geometry {
+class Geometry 
+{
     geom_mode_e                _geom_mode; /*!< \brief Geometry mode */
     Int3D                      _size;      /*!< \brief Size of mesh */
     Vec3D                      _origo;     /*!< \brief Location of mesh point (0,0,0) [m] */
@@ -118,6 +120,8 @@ class Geometry {
 
     bool                       _built;     /*!< \brief Is solid mesh array built? */
     signed char               *_smesh;     /*!< \brief Solid mesh array */
+
+    int32_t                    _brktc;     /*!< \brief Bracket count (accuracy) */
 
 public:
 
@@ -219,6 +223,25 @@ public:
     /*! \brief Returns a vector of boundary conditions.
      */
     std::vector<Bound> get_boundaries() const;
+
+    /*! \brief Set the solid bracketing count number.
+     *
+     *  The "exact" locations of the solid surfaces are determined by
+     *  bracketing in class %Geometry using function
+     *  bracket_surface(). In a typical case the bracketing is started
+     *  from two mesh nodes and the estimate for the location of the
+     *  surface is halved at each bracketing. This function sets the
+     *  number halvings \a n that are done before bracket_surface()
+     *  returns the best estimate.
+     *
+     *  The bracketing count number defaults to 12, which corresponds
+     *  to relative accuracy of 1/4096.
+     */
+    void set_bracket_count( int32_t n );
+
+    /*! \brief Returns the solid bracketing count number.
+     */
+    int32_t get_bracket_count( void ) const;
 
     /*! \brief Returns 0 if point \a x is vacuum or the number of
      *  solid of \a x is inside a defined solid. Returns a number from

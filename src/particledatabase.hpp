@@ -214,8 +214,9 @@ public:
      *  individually added particle trajectories. \a rhosum is cleared
      *  with particle database clearing function clear().
      *
-     *  Can be used to program plasma electron density. Please note
-     *  that it gives to accumulated charge density which might be
+     *  Can be used to program plasma electron density with
+     *  EpotProblem::set_pexp_plasma() for example. Please note that
+     *  it gives to accumulated charge density which might be
      *  incorrect for multi-beam extraction simulation defined with
      *  several calls to "add_beam" functions.
      */
@@ -494,6 +495,7 @@ public:
 	}
 
 	// Scan through particle trajectory points
+	double Isum = 0.0;
 	std::vector<PP> intsc;
 	for( size_t a = 0; a < _particles.size(); a++ ) {
 	    size_t N = _particles[a].traj_size();
@@ -506,15 +508,22 @@ public:
 		intsc.clear();
 		size_t nintsc = PP::trajectory_intersections_at_plane( intsc, crd, val, x1, x2 );
 		nintsum += nintsc;
-		for( size_t c = 0; c < nintsc; c++ ) 
+		for( size_t c = 0; c < nintsc; c++ ) {
+		    Isum += _particles[a].IQ();
 		    add_diagnostics( tdata, intsc[c], _particles[a], crd );
+		}
 
 		x1 = x2;
 	    }
 	}
 
-	if( verbose_output )
+	if( verbose_output ) {
 	    std::cout << "  number of trajectories = " << tdata.traj_size() << "\n";
+	    if( PP::geom_mode() == MODE_2D )
+		std::cout << "  total current = " << Isum << " A/m\n";
+	    else
+		std::cout << "  total current = " << Isum << " A\n";
+	}
     }
 
 /* ************************************** *

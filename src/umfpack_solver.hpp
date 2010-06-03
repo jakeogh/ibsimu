@@ -59,6 +59,9 @@
  *  solver library doing LU decomposition to solve linear matrix
  *  problems. This solver includes both linear and nonlinear
  *  solvers. Nonlinear solver based on Newton-Raphson iteration.
+ *
+ *  \todo Should this solver have a flag to use globally convergent
+ *  version?
  */
 class UMFPACKSolver : public Solver {
 
