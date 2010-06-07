@@ -59,7 +59,7 @@ void init_fdm_problem( Matrix &A, Vector &B, double v1, double v2 )
     A.set(5,4) = 1;
     A.set(5,5) = -4;
     A.set(5,8) = 1;
-    B(4) = -v2;
+    B(5) = -v2;
 
     A.set(6,3) = 1;
     A.set(6,6) = -4;
@@ -119,30 +119,46 @@ int main( void )
     CRowMatrix Ar;
     Vector B, X, Y;
 
-    double X_check_data[15] = { 52.9488,  62.9203,  12.9249,  52.9488,  62.9203,
-			        12.9249,  85.9261, 161.5295,  36.4280, 140.1998,
-			       503.9262, 131.5812,   5.0000, 465.6016, 131.5813 };
+    double X_check_data[15] = { 54.1396,
+				66.1492,
+				10.3966,
+				54.1396,
+				66.1492,
+				10.3966,
+				86.2697,
+				162.668,
+				36.0411,
+				140.321,
+				504.379,
+				131.559,
+				5,
+				466.062,
+				131.559 };
     Vector X_check( 15, X_check_data );
-    double Y_check_data[15] = {       0,        0,        0,      -10,  6.66667,
-				    2.5, -13.3333, -1.13636,  10.6134, -13.6364,
-				  -1133, -316.797, -3.65854, -329.993, -92.9675 };
+    double Y_check_data[15] = { 0,
+				0,
+				0,
+				-10,
+				-3.33333,
+				8.75,
+				-13.3333,
+				-4.88636,
+				11.8757,
+				-13.6364,
+				-1134.12,
+				-316.742,
+				-3.65854,
+				-330.318,
+				-92.9515 };
     Vector Y_check( 15, Y_check_data );
 
     // CColMatrix 
     init_fdm_problem( Ac, B, 10.0, -10.0 );
     ILU0_Precond pc = ILU0_Precond( Ac );
-    //std::cout << "Ac = \n" << Ac << "\n";
-    //std::cout << "B = \n" << B << "\n";
     const Matrix *Lc = pc.get_L();
     const Matrix *Uc = pc.get_U();
-    //std::cout << "Lc = \n" << *Lc << "\n";
-    //std::cout << "Uc = \n" << *Uc << "\n";
     Lc->lower_unit_solve( Y, B );
-    //std::cout << "Y = \n" << Y << "\n";
-    //std::cout << "Y_check = \n" << Y_check << "\n";
     Uc->upper_diag_solve( X, Y );
-    //std::cout << "X = \n" << Y << "\n";
-    //std::cout << "X_check = \n" << X_check << "\n";
 
     if( max_abs(Y-Y_check) > 0.1 )
 	ERROR();
