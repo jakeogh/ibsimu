@@ -127,8 +127,6 @@ dnl GSL
 
 AC_CHECK_LIB([gslcblas],[cblas_dgemm])
 AC_CHECK_LIB([gsl],[gsl_blas_dgemm])
-dnl LIBS_GSL=`gsl-config --libs`
-dnl CFLAGS_GSL=`gsl-config --cflags`
 
 dnl ---------------------------------
 dnl Output

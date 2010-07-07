@@ -81,7 +81,7 @@ void test( void )
     /* Compare results */
     for( int a = 1; a < 4; a++ ) {
 	x = max_abs(sol[0]-sol[a]);
-	if( x >  1.0e-4 )
+	if( x >  5.0e-4 )
 	    failed = true;
     }
 
