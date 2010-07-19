@@ -2,7 +2,7 @@
  *  \brief Source code for label.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -42,6 +42,7 @@
 
 #include "label.hpp"
 #include "fonts.hpp"
+#include "compmath.hpp"
 #include <cmath>
 
 
@@ -301,7 +302,7 @@ void Label::draw( cairo_t *cairo )
 
     // Process text with alignment
     fontlib.push_font( _family, _slant, _weight );
-    if( isnan(_xalign) || isnan(_yalign) || isinf(_xalign) || isinf(_yalign) ) {
+    if( isnan(_xalign) || isnan(_yalign) || comp_isinf(_xalign) || comp_isinf(_yalign) ) {
 
 	cairo_save( cairo );
 	cairo_translate( cairo, _xlocation, _ylocation );

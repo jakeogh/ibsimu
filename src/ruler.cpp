@@ -2,7 +2,7 @@
  *  \brief Source code for ruler.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -42,6 +42,7 @@
 
 #include <cmath>
 #include "ruler.hpp"
+#include "compmath.hpp"
 
 
 //#define DEBUG_RULER 1
@@ -199,15 +200,15 @@ void Ruler::set_ranges( double min, double max )
     std::cout << "Ruler::set_ranges( " << min << ", " << max << ")\n";
 #endif
 
-    if( isinf(min) || isnan(min) ) {
-	if( isinf(max) || isnan(max) ) {
+    if( comp_isinf(min) || isnan(min) ) {
+	if( comp_isinf(max) || isnan(max) ) {
 	    _range[0] = 0.0;
 	    _range[1] = 1.0;
 	} else {
 	    _range[0] = max-1.0;
 	    _range[1] = max;
 	}    
-    } else if( isinf(max) || isnan(max) ) {
+    } else if( comp_isinf(max) || isnan(max) ) {
 	_range[0] = min;
 	_range[1] = min+1.0;
     } else {

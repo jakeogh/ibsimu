@@ -17,6 +17,8 @@ ccolmatrix.hpp \
 color.hpp \
 colormap.cpp \
 colormap.hpp \
+compmath.cpp \
+compmath.hpp \
 config.hpp \
 coordmapper.hpp \
 coordmatrix.cpp \

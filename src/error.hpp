@@ -2,7 +2,7 @@
  *  \brief Header file for error.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -103,11 +103,16 @@ struct ErrorNoMem : public Error {
 /*! \brief %Error class for C-style errno errors.
  */
 struct ErrorErrno : public Error {
-    int _errno;
-    ErrorErrno( ErrorLocation loc ) : _errno(errno) {
+    int _ierrno;
+    ErrorErrno( ErrorLocation loc ) : _ierrno(errno) {
 	_loc = loc;
-	char buf[128];
-	_error_str = strerror_r( _errno, buf, 128 );
+#if defined(WIN32) || defined(__MINGW32__)
+	_error_str = "errno " + to_string(_ierrno);
+#else
+	char buf[1024];
+	strerror_r( _ierrno, buf, 1024 );
+	_error_str = buf;
+#endif
     }
 };
 

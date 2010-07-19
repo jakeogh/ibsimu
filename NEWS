@@ -1,7 +1,15 @@
 		NEWS
 		====
 
+IBSimu 1.0.2
+---------------------------------------------------------------------------
+
+- Fixes to get code running in windows mingw
+- Replaced isinf with custom function
+- Workaround for strerror_r in windows
+
 IBSimu 1.0.1 released
+---------------------------------------------------------------------------
 
 - Minor bugfixes
 

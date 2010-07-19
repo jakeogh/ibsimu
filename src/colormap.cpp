@@ -2,7 +2,7 @@
  *  \brief Source code for colormap.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -42,6 +42,7 @@
 
 #include <cmath>
 #include <limits>
+#include "compmath.hpp"
 #include "colormap.hpp"
 #include "interpolation.hpp"
 
@@ -225,7 +226,7 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 		val = (log(0.001+val) - log(0.001)) / (log(1.001) - log(0.001));
 	    }
 	    Color c;
-	    if( isinf( val ) || isnan( val ) )
+	    if( comp_isinf( val ) || isnan( val ) )
 		continue;
 
 	    c = _palette( val );

@@ -2,7 +2,7 @@
  *  \brief Source code for frame.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -43,6 +43,7 @@
 #include <iostream>
 #include <cmath>
 #include <limits>
+#include "compmath.hpp"
 #include "frame.hpp"
 #include "verbose.hpp"
 
@@ -218,11 +219,11 @@ Coordmapper Frame::get_coordmapper( PlotAxis xaxis, PlotAxis yaxis ) const
 void Frame::set_ranges( PlotAxis axis, double min, double max )
 {
     bool autorange_min, autorange_max;
-    if( isinf(min) )
+    if( comp_isinf(min) )
 	autorange_min = true;
     else
 	autorange_min = false;
-    if( isinf(max) )
+    if( comp_isinf(max) )
 	autorange_max = true;
     else
 	autorange_max = false;
