@@ -200,15 +200,15 @@ void Ruler::set_ranges( double min, double max )
     std::cout << "Ruler::set_ranges( " << min << ", " << max << ")\n";
 #endif
 
-    if( comp_isinf(min) || isnan(min) ) {
-	if( comp_isinf(max) || isnan(max) ) {
+    if( comp_isinf(min) || comp_isnan(min) ) {
+	if( comp_isinf(max) || comp_isnan(max) ) {
 	    _range[0] = 0.0;
 	    _range[1] = 1.0;
 	} else {
 	    _range[0] = max-1.0;
 	    _range[1] = max;
 	}    
-    } else if( comp_isinf(max) || isnan(max) ) {
+    } else if( comp_isinf(max) || comp_isnan(max) ) {
 	_range[0] = min;
 	_range[1] = min+1.0;
     } else {

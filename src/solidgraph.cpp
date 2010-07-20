@@ -2,7 +2,7 @@
  *  \brief Source code for solidgraph.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,6 +45,7 @@
 #include <cmath>
 #include <cstring>
 #include <cstdlib>
+#include "compmath.hpp"
 #include "solidgraph.hpp"
 #include "vec3d.hpp"
 #include "lineclip.hpp"
@@ -346,10 +347,10 @@ void SolidGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
 	lc.move_to( xout[0], xout[1] );
 
 	for( size_t b = 1; b < sp->p.size(); b++ ) {
-	    if( isnan( sp->p[b].x[0] ) ) {
+	    if( comp_isnan( sp->p[b].x[0] ) ) {
 		// Break in path, separate paths
 		do b++;
-		while( b != sp->p.size() && isnan( sp->p[b].x[0] ) );
+		while( b != sp->p.size() && comp_isnan( sp->p[b].x[0] ) );
 		if( b == sp->p.size() )
 		    break;
 		lc.close_path();

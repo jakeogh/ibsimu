@@ -302,7 +302,8 @@ void Label::draw( cairo_t *cairo )
 
     // Process text with alignment
     fontlib.push_font( _family, _slant, _weight );
-    if( isnan(_xalign) || isnan(_yalign) || comp_isinf(_xalign) || comp_isinf(_yalign) ) {
+    if( comp_isnan(_xalign) || comp_isnan(_yalign) || 
+	comp_isinf(_xalign) || comp_isinf(_yalign) ) {
 
 	cairo_save( cairo );
 	cairo_translate( cairo, _xlocation, _ylocation );

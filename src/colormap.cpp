@@ -226,7 +226,7 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 		val = (log(0.001+val) - log(0.001)) / (log(1.001) - log(0.001));
 	    }
 	    Color c;
-	    if( comp_isinf( val ) || isnan( val ) )
+	    if( comp_isinf( val ) || comp_isnan( val ) )
 		continue;
 
 	    c = _palette( val );

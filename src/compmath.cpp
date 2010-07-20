@@ -48,5 +48,14 @@ int comp_isinf( double x )
     if( (x == x) && ((x - x) != 0.0) )
 	return( x < 0.0 ? -1 : 1 );
     else 
-	return 0;
+        return( 0 );
+}
+
+
+int comp_isnan( double x )
+{
+    if( x == x )
+	return( 0 );
+    else 
+        return( 1 );
 }

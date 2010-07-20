@@ -2,7 +2,7 @@
  *  \brief Source code for xygraph.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -43,6 +43,7 @@
 #include <limits>
 #include <iostream>
 #include <cmath>
+#include "compmath.hpp"
 #include "xygraph.hpp"
 
 
@@ -71,7 +72,7 @@ void XYGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4]
 	for( size_t a = 0; a < N; a++ ) {
 	    double x = _xdata[a];
 	    double y = _ydata[a];
-	    if( isnan(x) || isnan(y) ) {
+	    if( comp_isnan(x) || comp_isnan(y) ) {
 		cont = false;
 		continue;
 	    }
@@ -88,7 +89,7 @@ void XYGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4]
 	for( size_t a = 0; a < N; a++ ) {
 	    double x = _xdata[a];
 	    double y = _ydata[a];
-	    if( isnan(x) || isnan(y) )
+	    if( comp_isnan(x) || comp_isnan(y) )
 		continue;
 
 	    cm->transform( x, y );

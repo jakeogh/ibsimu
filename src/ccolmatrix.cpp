@@ -448,7 +448,7 @@ bool CColMatrix::check_ascending( void )
 {
     /* Check each column. */
     for( int i = 0; i < _m; i++ ) {
-	int prev;
+	int prev = 0;
 	for( int j = _ptr[i]; j < _ptr[i+1]; j++ ) {
 	    if( j > _ptr[i] && prev > _row[j] )
 		return( false );

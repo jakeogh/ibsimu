@@ -45,6 +45,7 @@
 
 
 int comp_isinf( double x );
+int comp_isnan( double x );
 
 
 #endif

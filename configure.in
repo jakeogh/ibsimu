@@ -87,6 +87,30 @@ CPPFLAGS="$CPPFLAGS $gtk_CFLAGS"
 
 
 dnl -------------
+dnl libpng
+
+if $PKG_CONFIG --exists libpng ; then
+  PKG_CHECK_MODULES(libpng, libpng)
+else
+  AC_MSG_ERROR([required library libpng not found])
+fi
+LIBS="$LIBS $libpng_LIBS"
+CPPFLAGS="$CPPFLAGS $libpng_CFLAGS"
+
+
+dnl -------------
+dnl fontconfig
+
+if $PKG_CONFIG --exists fontconfig ; then
+  PKG_CHECK_MODULES(fontconfig, fontconfig)
+else
+  AC_MSG_ERROR([required library fontconfig not found])
+fi
+LIBS="$LIBS $fontconfig_LIBS"
+CPPFLAGS="$CPPFLAGS $fontconfig_CFLAGS"
+
+
+dnl -------------
 dnl Freetype2
 
 if $PKG_CONFIG --exists freetype2 ; then
