@@ -62,9 +62,17 @@ dnl ---------------------------------
 dnl Check for libraries
 dnl ---------------------------------
 
+dnl -------------
+dnl libm
+
 AC_CHECK_LIBM
 CPPFLAGS="$CFLAGS $CPPFLAGS"
 LIBS="$LIBS $LIBM"
+
+dnl -------------
+dnl zlib
+
+CHECK_ZLIB()
 
 dnl -------------
 dnl gtk+-2.0
@@ -127,6 +135,13 @@ dnl GSL
 
 AC_CHECK_LIB([gslcblas],[cblas_dgemm])
 AC_CHECK_LIB([gsl],[gsl_blas_dgemm])
+
+dnl -------------
+dnl Time
+
+AC_CHECK_HEADERS([sys/time.h])
+AC_HEADER_TIME
+AC_CHECK_FUNCS([gettimeofday])
 
 dnl ---------------------------------
 dnl Output

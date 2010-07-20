@@ -2,7 +2,7 @@
  *  \brief Source code for timer.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,27 +40,67 @@
  * permit others to do so.
  */
 
+#include "config.h"
 #include "timer.hpp"
+
+#if defined(WIN32) || defined(__MINGW32__)
+#include <windows.h>
+#endif
+
+
+#if !defined(HAVE_GETTIMEOFDAY)
+#if defined(WIN32) || defined(__MINGW32__)
+#define EPOCHFILETIME (116444736000000000LL)
+int ibs_gettimeofday( struct timeval *tv, struct timezone *tz )
+{
+      FILETIME        ft;
+    LARGE_INTEGER   li;
+    __int64         t;
+
+    if( tv ) {
+        GetSystemTimeAsFileTime(&ft);
+        li.LowPart  = ft.dwLowDateTime;
+        li.HighPart = ft.dwHighDateTime;
+        t  = li.QuadPart;       /* In 100-nanosecond intervals */
+        t -= EPOCHFILETIME;     /* Offset to the Epoch time */
+        t /= 10;                /* In microseconds */
+        tv->tv_sec  = (long)(t / 1000000);
+        tv->tv_usec = (long)(t % 1000000);
+    }
+
+    return( 0 );
+}
+#else
+/* gettimeofday using time() */
+int ibs_gettimeofday( struct timeval *tv, struct timezone *tz )
+{
+    tv->tv_sec = (long)time(NULL);
+    return( 0 );
+}
+#endif
+#else
+#define ibs_gettimeofday gettimeofday
+#endif
 
 
 Timer::Timer()
 {
     _cpu1 = clock();
-    gettimeofday( &_time1, NULL );
+    ibs_gettimeofday( &_time1, NULL );
 }
 
 
 void Timer::start( void )
 {
     _cpu1 = clock();
-    gettimeofday( &_time1, NULL );
+    ibs_gettimeofday( &_time1, NULL );
 }
 
 
 void Timer::stop( void )
 {
     _cpu2 = clock();
-    gettimeofday( &_time2, NULL );
+    ibs_gettimeofday( &_time2, NULL );
 }
 
 
