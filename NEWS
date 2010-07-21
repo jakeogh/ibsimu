@@ -1,14 +1,14 @@
 		NEWS
 		====
 
-IBSimu 1.0.2 (not released yet)
+IBSimu 1.0.2							21 Jul 2010
 ---------------------------------------------------------------------------
 
 - Fixes to get code running in windows mingw
 - Replaced isinf and isnan with custom functions
 - Workaround for strerror_r in windows
 - Timer implementations for windows
-- Zlib and gettimeofday checks in configure
+- Zlib, gettimeofday, pthreads and many more checks added to configure
 
 IBSimu 1.0.1 released
 ---------------------------------------------------------------------------

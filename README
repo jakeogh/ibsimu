@@ -67,81 +67,11 @@ Installing
 ----------
 
 Ion Beam Simulator is a library written in C++ and is compilable by
-modern gcc compilers in linux/unix environments. So far I haven't
-tried to try to port the library into Microsoft Windows environment,
-but I believe it shouldn't be a problem. You will need a valid C++
-compiler to install and run the simulator. If the dependencies are
-available and correctly installed, it should be pretty straightforward
-to compile the library using GNU autotools build system:
-
-1. First, run './configure' with necessary options.
-
-   * One possible option is the '--prefix', which can be used to set
-     the installation directory. For example '--prefix=/home/homedir/'
-     to install under you home directory. Please note that GNU
-     autotools does not support spaces in path names.
-
-   * Other configuration option is the selection of conditional 
-     compilation. The possible selectable compilations are:
-
-     A. UMFPACKSolver class, selected with option '--with-umfpack'.
-        You need to have UMFPACK and AMD installed with pkg-config
-	packages to use this option.
-     B. CSGObjectSolid class, selected with option '--with-csg'.
-        You need to have CSG library installed for this option
-
-2. Do 'make' to compile the library.
-
-3. Do 'make check' to run tests distributed with the library.
-
-4. Do 'make install' (as root if necessary).
-
-If you install libraries in home directory, note that environment
-variables need to be set. For example:
-
-export PKG_CONFIG_PATH="/home/homedir/lib/pkgconfig"
-export LD_LIBRARY_PATH="/home/homedir/lib"
-export CXXFLAGS="-I/home/homedir/include"
-export LDFLAGS="-L/home/homedir/lib"
-
-
-
-Dependencies
-------------
-
-Ion Beam Simulator depends on other software to perform its functions.
-IBSimu needs at least the following libraries:
-
-- GSL -- GNU scientific library (http://www.gnu.org/software/gsl/).
-- GTK+ -- GNOME Toolkit, library for graphical user interfaces 
-  (http://www.gtk.org/).
-
-These libraries are needed for optional features:
-
-- CSG -- Constructive Solid Geometry library (available at 
-  http://users.jyu.fi/~tvkalvas/code/csg/).
-- SuiteSparse -- Sparse matrix package by Tim Davis (a modified copy 
-  available at http://users.jyu.fi/~tvkalvas/code/suitesparse/).
-- BLAS -- Basic linear algebra subprograms package (several versions
-  available, for example the reference blas:
-  http://www.netlib.org/blas/ (this is slow), or faster/better options:
-  GOTO BLAS at http://www.tacc.utexas.edu/resources/software/ or 
-  ATLAS at http://math-atlas.sourceforge.net/).
-
-
-
-Compiling against the library
------------------------------
-
-The IBSimu library uses GNU autotools including pkg-config. Therefore
-the compilation of a program is rather simple. For compilation with
-GNU C++ compiler for example, do
-
-> g++ -Wall -g `pkg-config --cflags ibsimu` -c -o simu.o simu.cpp
-
-The linkin can be done by
-
-> cc `pkg-config --libs ibsimu` simu.o -o simu
+modern gcc compilers in linux/unix and Microsoft Windows
+environments. If the dependencies are available and correctly
+installed, it should be pretty straightforward to compile the library
+using GNU autotools build system. See the file INSTALL for details or
+the IBSimu website for even more detailed description of installation.
 
 
 
@@ -153,6 +83,9 @@ reference manual from documentation blocks included in the source
 code. See directory doc/html and for built HTML documentation or do
 'make doc' for generating the docs.
 
+In the IBSimu website http://users.jyu.fi/~tvkalvas/ibsimu/ there are
+also installation instructions and a tutorial for first time users in
+html format.
 
 
 Acknowledgements

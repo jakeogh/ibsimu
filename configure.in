@@ -135,24 +135,28 @@ CPPFLAGS="$CPPFLAGS $cairo_CFLAGS"
 
 dnl -------------
 dnl csg
-
-if $PKG_CONFIG --exists csg ; then
-  PKG_CHECK_MODULES(csg, csg >= 0.0.1 )
-else
-  AC_MSG_ERROR([required library csg not found])
-fi
-LIBS="$LIBS $csg_LIBS"
-CPPFLAGS="$CPPFLAGS $csg_CFLAGS"
+dnl 
+dnl if $PKG_CONFIG --exists csg ; then
+dnl   PKG_CHECK_MODULES(csg, csg >= 0.0.1 )
+dnl else
+dnl   AC_MSG_ERROR([required library csg not found])
+dnl fi
+dnl LIBS="$LIBS $csg_LIBS"
+dnl CPPFLAGS="$CPPFLAGS $csg_CFLAGS"
 
 dnl -------------
 dnl POSIX threads
 
-AC_CHECK_HEADERS([pthread.h])
-if $HAVE_PTHREAD_H ; then
-  LIBS="$LIBS -lpthread"
-else
-  AC_MSG_ERROR([required library pthread not found])
-fi
+ACX_PTHREAD()
+LIBS="$LIBS $PTHREAD_LIBS $PTHREAD_CFLAGS"
+CPPFLAGS="$CPPFLAGS $PTHREAD_CFLAGS"
+
+dnl AC_CHECK_HEADERS([pthread.h])
+dnl if $HAVE_PTHREAD_H ; then
+dnl   LIBS="$LIBS -lpthread"
+dnl else
+dnl   AC_MSG_ERROR([required library pthread not found])
+dnl fi
 
 dnl -------------
 dnl GSL

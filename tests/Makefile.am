@@ -148,7 +148,8 @@ endif
 TESTS = $(check_PROGRAMS)
 
 AM_CPPFLAGS = $(CPPFLAGS) -Wall -g -I$(top_srcdir)/src
-AM_LDFLAGS = $(LIBS) -I$(top_srcdir)/src `gsl-config --libs`
+AM_LDFLAGS = $(LIBS) -L$(top_srcdir)/src 
+# `gsl-config --libs`
 LDADD = $(top_builddir)/src/libibsimu.la -lm
 if UMFPACK
 AM_CPPFLAGS += `pkg-config --cflags umfpack`

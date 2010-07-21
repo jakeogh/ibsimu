@@ -2,7 +2,7 @@
  *  \brief Source code for epot_problem.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -155,13 +155,21 @@ void EpotProblem::set_pexp_plasma( double rhoe, double Te, double Up )
 }
 
 
-void EpotProblem::set_nexp_plasma( double rhop, double Tp, double Up )
+
+void EpotProblem::set_nsimp_initial_plasma( double meniscus_x )
 {
-    throw( Error( ERROR_LOCATION, "negative plasma extraction not implemented" ) );
-    _plasma     = PLASMA_NEXP;
+    _plasma     = PLASMA_INITIAL;
+    _Up         = 0.0;
+    _meniscus_x = meniscus_x;
+    clear_problem();
+}
+
+
+void EpotProblem::set_nsimp_plasma( double rhop, double Ep )
+{
+    _plasma     = PLASMA_NSIMP;
     _rhoc       = fabs(rhop);  // Ensure correct sign of charge density
-    _Tc         = Tp;
-    _Up         = Up;
+    _Tc         = Ep;
     clear_problem();
 }
 
@@ -1030,6 +1038,11 @@ void EpotProblem::construct( const Geometry &g )
 	    std::cout << "  Using exponential plasma model for positive ion extraction\n";
 	    std::cout << "  Te = " << _Tc << " eV, Up = " << _Up 
 		      << " V, rhoe = " << _rhoc << " C/m^3\n";
+	}
+    } else if( _plasma == PLASMA_NSIMP ) {
+	if( verbose_output ) {
+	    std::cout << "  Using simple three component plasma model for negative ion extraction\n";
+	    std::cout << "  Ep = " << _Tc << " eV, rhop = " << _rhoc << " C/m^3\n";
 	}
     }
 

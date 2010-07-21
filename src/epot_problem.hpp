@@ -2,7 +2,7 @@
  *  \brief Header file for epot_problem.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -56,15 +56,19 @@
 /*! \brief Plasma modes
  *
  *  Selection of modes for plasma calculation in electric potential
- *  problem. In a typical plasma calculation the plasma mode is
- *  PLASMA_INITIAL in the first iteration round to use initial guess
- *  for plasma meniscus location. Thereafter PLASMA_PEXP is used for
- *  positive ion extraction and PLASMA_NEXP for negative ion
- *  extraction.
+ *  problem. In a typical positive ion plasma extraction simulation
+ *  the plasma mode is PLASMA_PEXP_INITIAL in the first iteration
+ *  round to use initial guess for plasma meniscus
+ *  location. Thereafter PLASMA_PEXP is used. For negative ion
+ *  extraction the PLASMA_NSIMP_INITIAL is used for the first iteration
+ *  and PLASMA_NSIMP thereafter. PLASMA_INITIAL is a macro, which
+ *  equals to PLASMA_PEXP_INITIAL. It exists for backward compatibility.
  *
  */
-enum plasma_mode_e {PLASMA_NONE = 0, PLASMA_INITIAL, PLASMA_PEXP, PLASMA_NEXP};
+enum plasma_mode_e {PLASMA_NONE = 0, PLASMA_PEXP_INITIAL, PLASMA_PEXP, 
+		    PLASMA_NSIMP_INITIAL, PLASMA_NSIMP};
 
+#define PLASMA_INITIAL PLASMA_PEXP_INITIAL
 
 /*! \brief Class for constructing the linear/nonlinear problem for the
     solver.
@@ -258,9 +262,16 @@ public:
      */
     void set_pexp_plasma( double rhoe, double Te, double Up );
 
-    /*! \brief Enable plasma model for negative ion extraction problem.
+    /*! \brief Define initial plasma to negative ion extraction problem.
      */
-    void set_nexp_plasma( double rhop, double Tp, double Up );
+    void set_nsimp_initial_plasma( double meniscus_x );
+
+    /*! \brief Enable plasma model for negative ion extraction problem.
+     *
+     *  Set parameters are \a rhop, the space charge density of
+     *  protons and \a Ep, the energy of protons at zero potential.
+     */
+    void set_nsimp_plasma( double rhop, double Ep );
 
     /*! \brief Construct matrix form of the problem.
      *

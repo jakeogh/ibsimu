@@ -8,4 +8,6 @@ ACLOCAL_AMFLAGS = -I m4
 doc:
 	$(MAKE) -C doc doc
 
+EXTRA_DIST = NEWS
+
 CLEANFILES = *~
