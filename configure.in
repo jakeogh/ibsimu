@@ -31,11 +31,11 @@ AC_ARG_WITH([umfpack],
                   [enable optional support for umfpack solver])],
                   [],
                   [with_umfpack=no])
-LIBUMFPACK=
-  AS_IF([test "x$with_umfpack" != xno],
-        [PKG_CHECK_MODULES(umfpack, umfpack)])
 AM_CONDITIONAL([UMFPACK], [test x$with_umfpack != xno])
 if test x$with_umfpack != xno ; then
+  PKG_CHECK_MODULES(umfpack, umfpack)
+  CPPFLAGS="$CPPFLAGS $umfpack_CFLAGS"
+  LIBS="$LIBS $umfpack_LIBS"
   AC_SUBST(UMFPACK_COND,umfpack)
 else
   AC_SUBST(UMFPACK_COND,"")
@@ -47,11 +47,11 @@ AC_ARG_WITH([csg],
                   [enable optional support for csg solids])],
                   [],
                   [with_csg=no])
-LIBCSG=
-  AS_IF([test "x$with_csg" != xno],
-        [PKG_CHECK_MODULES(csg, csg)])
 AM_CONDITIONAL([CSG], [test x$with_csg != xno])
 if test x$with_csg != xno ; then
+  PKG_CHECK_MODULES(csg, csg)
+  CPPFLAGS="$CPPFLAGS $csg_CFLAGS"
+  LIBS="$LIBS $csg_LIBS"
   AC_SUBST(CSG_COND,csg)
 else
   AC_SUBST(CSG_COND,"")
