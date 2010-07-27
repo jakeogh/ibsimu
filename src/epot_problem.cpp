@@ -1192,8 +1192,13 @@ void EpotProblem::get_vecmat( const Matrix **A, const Vector **B ) const
 void EpotProblem::get_resjac( const Matrix **J, const Vector **R, const Vector &X ) const
 {
     // Precalculate coefficients
-    double Q = 1.0/_Tc;
-    double K = _Up/_Tc;
+    double Q, K;
+    if( _plasma == PLASMA_PEXP ) {
+	Q = 1.0/_Tc;
+	K = _Up/_Tc;
+    } else if( _plasma == PLASMA_NSIMP ) {
+	Q = 1.0/_Tc;
+    }
 
     // Construct jacobian to _fd_mat2 from general (linear) problem matrix _fd_mat;
     // Calculate R = J0*X - B(X) and J = J0 + I*D(X)
@@ -1210,9 +1215,17 @@ void EpotProblem::get_resjac( const Matrix **J, const Vector **R, const Vector &
 	if( (b = _n2d(a)) >= 0 ) {
 	    if( _g->mesh(a) == 0 || (_g->mesh(a) == -3 && _g->geom_mode() == MODE_CYL) ) {
 		// Vacuum node
-		double Y = exp( Q*X(b) - K );
-		(*_fd_vec3)(b) -= (*_fd_vec2)(b) - coef*_rhoc*Y;
-		_fd_mat2->set(b,b) += coef*_rhoc*Q*Y;
+		if( _plasma == PLASMA_PEXP ) {
+		    double Y = exp( Q*X(b) - K );
+		    (*_fd_vec3)(b) -= (*_fd_vec2)(b) - coef*_rhoc*Y;
+		    _fd_mat2->set(b,b) += coef*_rhoc*Q*Y;
+		} else if( _plasma == PLASMA_NSIMP ) {
+		    double Y = 1.0 - Q*X(b);
+		    (*_fd_vec3)(b) -= (*_fd_vec2)(b) - coef*_rhoc*Y;
+		    _fd_mat2->set(b,b) += coef*_rhoc*Q;
+		} else {
+		    throw( Error( ERROR_LOCATION, "unknown plasma model type" ) );
+		}
 	    } else {
 		// Neumann or edge node
 		(*_fd_vec3)(b) -= (*_fd_vec2)(b);
