@@ -2,7 +2,7 @@
  *  \brief Source code for meshgraph.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -41,7 +41,7 @@
  */
 
 #include "meshgraph.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 
 
 MeshGraph::MeshGraph( const Geometry &g )
@@ -59,7 +59,7 @@ MeshGraph::~MeshGraph()
 
 void MeshGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
         std::cout << "  Plotting mesh\n";
 
     cairo_set_source_rgb( cairo, 0.5, 0.5, 0.5 );
@@ -115,4 +115,6 @@ void MeshGraph::get_bbox( double bbox[4] )
     bbox[2] = _g.max( _vb[0] );
     bbox[3] = _g.max( _vb[1] );
 }
+
+
 

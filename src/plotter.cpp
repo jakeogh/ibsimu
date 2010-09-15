@@ -2,7 +2,7 @@
  *  \brief Source code for plotter.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -41,7 +41,7 @@
  */
 
 #include "plotter.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 
 
 
@@ -178,7 +178,7 @@ void Plotter::write_to_png( cairo_surface_t *p_surface,
 
 void Plotter::plot_png( const std::string &filename )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "Plotting to PNG-file \"" << filename << "\"\n";    
 
     // Build plot
@@ -218,7 +218,7 @@ void Plotter::plot_png( const std::string &filename )
 #ifdef CAIRO_HAS_PS_SURFACE
 void Plotter::plot_eps( const std::string &filename )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "Plotting to EPS-file \"" << filename << "\"\n";    
 
     // Build plot
@@ -257,7 +257,7 @@ void Plotter::plot_eps( const std::string &filename )
 #ifdef CAIRO_HAS_PDF_SURFACE
 void Plotter::plot_pdf( const std::string &filename )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "Plotting to PDF-file \"" << filename << "\"\n";    
 
     // Build plot
@@ -292,7 +292,7 @@ void Plotter::plot_pdf( const std::string &filename )
 #ifdef CAIRO_HAS_SVG_SURFACE
 void Plotter::plot_svg( const std::string &filename )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "Plotting to SVG-file \"" << filename << "\"\n";    
 
     // Build plot
@@ -317,3 +317,5 @@ void Plotter::plot_svg( const std::string &filename )
     cairo_surface_destroy( surface );
 }
 #endif
+
+

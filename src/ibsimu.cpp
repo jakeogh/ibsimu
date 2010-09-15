@@ -1,8 +1,8 @@
-/*! \file verbose.hpp
- *  \brief Header file for verbose.hpp
+/*! \file ibsimu.cpp
+ *  \brief Source code for ibsimu.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,15 +40,37 @@
  * permit others to do so.
  */
 
-#ifndef VERBOSE_HPP
-#define VERBOSE_HPP 1
+
+#include <iostream>
+#include "ibsimu.hpp"
+#include "config.h"
 
 
-extern int verbose_output;
+IBSimu::IBSimu()
+    : _hello(false), _verbose_output(0)
+{
+    
+}
 
 
-#endif
+void IBSimu::set_verbose_output( int level )
+{
+    _verbose_output = level;
+    if( level > 0 && !_hello ) {
+	_hello = true;
+	std::cout << "Ion Beam Simulator " << VERSION << "\n";
+    }
+}
 
+
+int IBSimu::get_verbose_output( void )
+{
+    return( _verbose_output );
+}
+
+
+/* Global instance */
+IBSimu ibsimu;
 
 
 

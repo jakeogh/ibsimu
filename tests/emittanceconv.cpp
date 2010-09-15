@@ -12,7 +12,7 @@
 #include "bicgstab_solver.hpp"
 #include "particledatabase.hpp"
 #include "particlediagplotter.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 #include "error.hpp"
 
 
@@ -80,7 +80,7 @@ void test( void )
 int main( void )
 {
     try {
-	verbose_output = 0;
+	ibsimu.set_verbose_output( 0 );
 	test();
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 
@@ -90,4 +90,6 @@ int main( void )
 
     return( 0 );
 }
+
+
 

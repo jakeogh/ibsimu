@@ -1,8 +1,8 @@
-/*! \file verbose.cpp
- *  \brief Source code for verbose.cpp
+/*! \file ibsimu.hpp
+ *  \brief Header file ibsimu.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,22 +40,40 @@
  * permit others to do so.
  */
 
-#include "verbose.hpp"
+
+#ifndef IBSIMU_HPP
+#define IBSIMU_HPP 1
 
 
-int verbose_output = 0;
+/*! \brief Main class for IBSimu.
+ *
+ *  Used to store global settings.
+ */
+class IBSimu 
+{
+    bool _hello;
+    int _verbose_output;
+
+public:
+
+    /*! \brief Default constructor.
+     */
+    IBSimu();
+
+    /*! \brief Set verbosity level.
+     */
+    void set_verbose_output( int level );
+
+    /*! \brief Get verbosity level.
+     */
+    int get_verbose_output( void );
+
+};
 
 
+#endif
 
-
-
-
-
-
-
-
-
-
-
+/* Global instance */
+extern IBSimu ibsimu;
 
 

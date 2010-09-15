@@ -2,7 +2,7 @@
  *  \brief Source code for vectorfield.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -46,7 +46,7 @@
 #include <cmath>
 #include <cstdlib>
 #include "vectorfield.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 
 
 VectorField::VectorField( const Geometry &g, bool fout[3] )
@@ -135,7 +135,7 @@ bool VectorField::parse_line( const std::string &str, double c[6], double xscale
 VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], double xscale, 
 			  double fscale, std::string filename )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "Reading vector field from " << filename << "\n";
     
     // Read through data to find out mesh parameters
@@ -243,7 +243,7 @@ VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], double xscale,
 		      + to_string(size[1]) + "x" + to_string(size[2]) ) );
     }
 
-    if( verbose_output ) {
+    if( ibsimu.get_verbose_output() ) {
 	Int3D one(1,1,1);
 	std::cout << "  origo = " << origo << "\n";
 	std::cout << "  size  = " << size << "\n";
@@ -874,6 +874,8 @@ void VectorField::debug_print( void ) const
     }
 
 }
+
+
 
 
 

@@ -8,7 +8,7 @@
 #include <iomanip>
 #include "vectorfield.hpp"
 #include "error.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 
 
 using namespace std;
@@ -45,7 +45,7 @@ void test( void )
 int main( void )
 {
     try {
-	verbose_output = 0;
+	ibsimu.set_verbose_output( 0 );
 	test();
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 
@@ -55,4 +55,6 @@ int main( void )
 
     return( 0 );
 }
+
+
 

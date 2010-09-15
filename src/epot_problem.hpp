@@ -142,6 +142,13 @@ enum plasma_mode_e {PLASMA_NONE = 0, PLASMA_PEXP_INITIAL, PLASMA_PEXP,
 class EpotProblem : public Problem {
 
     /*! \brief Class nodes to degrees of freedom mapping.
+     *
+     *  Uses running numbers starting from 0 to point to vectors with
+     *  free variables (electric potential and matrices during solving
+     *  for example). If a node is solid interior point or dirichlet
+     *  boundary, a fixed negative number corresponding to the solid
+     *  is used, i.e. from -1 to -6 for boundaries and starting from
+     *  -7 for electrodes.
      */
     class Node2DoF {
 	Int3D         _size;          /*!< \brief Size of mesh */
@@ -337,6 +344,8 @@ public:
 
 
 #endif
+
+
 
 
 

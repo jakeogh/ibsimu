@@ -2,7 +2,7 @@
  *  \brief Header file for geometry.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -93,15 +93,32 @@ struct Bound
 /*! \brief %Geometry defining class.
  *
  *  %Geometry class holds the definitions of the geometry
- *  dimensionality, mesh size and electrode configuration.
+ *  dimensionality, mesh size and electrode configuration. Also it
+ *  contains a signed char array for information about the type of
+ *  each node. This array is known as the solid mesh.
  *
- *  Solids are numbered increasingly starting from 7. The solid number
- *  0 is reserved for vacuum and solid numbers from 1 to 6 are
- *  reserved for Dirichlet type boundaries of the bounding box. %Solid
- *  numbers from -1 to -6 are reserved for Neumann type boundaries of
- *  the bounding box. Negative solid numbers starting from -7 are used
- *  for marking electrode edges. The mesh edges are therefore always
- *  'well' defined after running build_mesh().
+ *  The integer numbers in the solid mesh have the following meanings:
+ *  The solid number 0 is reserved for vacuum and solid numbers from 1
+ *  to 6 are reserved for Dirichlet type boundaries of the bounding
+ *  box. %Solid numbers from -1 to -6 are reserved for Neumann type
+ *  boundaries of the bounding box. Negative solid numbers starting
+ *  from -7 are used for marking electrode edges and the positive
+ *  numbers starting from 7 are used to mark the interior points of
+ *  the electrodes.
+ *
+ *  The mesh nodes are marked using the following logic: First nodes,
+ *  which are inside electrodes are marked solid (>=7). If a point is
+ *  inside several solids, the highest solid number is marked. Other
+ *  points are left as vacuum nodes (0). As the next step the solid
+ *  nodes are mapped to find nodes which have vacuum as closest
+ *  neighbour along any of the axes (not diagonal). These nodes are
+ *  marked as solid edges (<=-7). As the last step, the vacuum nodes
+ *  at the simulation box boundary are marked either as Neumann (<0
+ *  and >-7) or Dirichlet (>0 and <7).
+ *
+ *  Starting from 1.0.3: A. Mark solids, B. Mark Neumann and Dirichlet
+ *  boundaries, C. Mark edges taking in account that Neumann = Vacuum
+ *  and Dirichlet != Vacuum.
  *
  *  Bounding box edges are numbered in order xmin, xmax, ymin, ymax,
  *  zmin, xmax.
@@ -122,6 +139,11 @@ class Geometry
     signed char               *_smesh;     /*!< \brief Solid mesh array */
 
     int32_t                    _brktc;     /*!< \brief Bracket count (accuracy) */
+
+    
+    /*! \brief Check if node is vacuum or Neumann.
+     */
+    bool vac_or_neu( int32_t i, int32_t j, int32_t k );
 
 public:
 
@@ -245,7 +267,9 @@ public:
 
     /*! \brief Returns 0 if point \a x is vacuum or the number of
      *  solid of \a x is inside a defined solid. Returns a number from
-     *  1 to 6 if point \a x is outside the defined geometry.
+     *  1 to 6 if point \a x is outside the defined geometry. If the
+     *  point is inside several defined solids, the solid with the
+     *  highest solid number is returned.
      */
     int32_t inside( const Vec3D &x ) const;
 
@@ -321,6 +345,8 @@ public:
 
 
 #endif
+
+
 
 
 

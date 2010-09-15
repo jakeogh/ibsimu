@@ -2,7 +2,7 @@
  *  \brief Source code for particledatabase.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -49,7 +49,7 @@ void ParticleDataBase2D::add_2d_beam_with_velocity( uint32_t N, double J, double
 						    double v, double dvp, double dvt, 
 						    double x1, double y1, double x2, double y2 )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "Defining a 2d beam\n";
 
     _particles.reserve( _particles.size()+N );
@@ -83,7 +83,7 @@ void ParticleDataBase2D::add_2d_beam_with_velocity( uint32_t N, double J, double
 	Isum += IQ;
     }
 
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "  Total beam current " << Isum << " A/m\n";
 }
 
@@ -103,7 +103,7 @@ void ParticleDataBase2D::add_2d_KV_beam_with_emittance( uint32_t N, double I, do
 							double a, double b, double e,
 							double Ex, double x0, double y0 )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "Defining a 2d beam using Twiss parameters\n";
 
     _particles.reserve( _particles.size()+N );
@@ -153,7 +153,7 @@ void ParticleDataBase2D::add_2d_gaussian_beam_with_emittance( uint32_t N, double
 							      double a, double b, double e,
 							      double Ex, double x0, double y0 )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "Defining a 2d beam using Twiss parameters\n";
 
     _particles.reserve( _particles.size()+N );
@@ -202,7 +202,7 @@ void ParticleDataBaseCyl::add_2d_beam_with_velocity( uint32_t N, double J, doubl
 						     double v, double dvp, double dvt, 
 						     double x1, double y1, double x2, double y2 )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "Defining a cylindrical beam\n";
 
     _particles.reserve( _particles.size()+N );
@@ -241,7 +241,7 @@ void ParticleDataBaseCyl::add_2d_beam_with_velocity( uint32_t N, double J, doubl
 	Isum += IQ*x[3];
     }
 
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "  Total beam current " << Isum << " A\n";
 }
 
@@ -261,7 +261,7 @@ void ParticleDataBaseCyl::add_2d_gaussian_beam_with_emittance( uint32_t N, doubl
 							       double a, double b, double e,
 							       double Ex, double x0 )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "Defining a cylindrical beam using Twiss parameters\n";
 
     _particles.reserve( _particles.size()+N );
@@ -326,7 +326,7 @@ void ParticleDataBase3D::add_cylindrical_beam_with_velocity( uint32_t N, double 
 							     double v, double dvp, double dvt, Vec3D c, 
 							     Vec3D dir1, Vec3D dir2, double r )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "Defining a cylindrical beam\n";
 
     _particles.reserve( _particles.size()+N );
@@ -387,7 +387,7 @@ void ParticleDataBase3D::add_cylindrical_beam_with_velocity( uint32_t N, double 
 	a++;
     }
 
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "  Total beam current " << Isum << " A\n";
 }
 
@@ -409,7 +409,7 @@ void ParticleDataBase3D::add_3d_KV_beam_with_emittance( uint32_t N, double I, do
 							double az, double bz, double ez,
 							double Ex, double x0, double y0, double z0 )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "Defining a 3d beam using Twiss parameters\n";
 
     _particles.reserve( _particles.size()+N );
@@ -473,7 +473,7 @@ void ParticleDataBase3D::add_3d_gaussian_beam_with_emittance( uint32_t N, double
 							      double az, double bz, double ez,
 							      double Ex, double x0, double y0, double z0 )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "Defining a 3d beam using Twiss parameters\n";
 
     _particles.reserve( _particles.size()+N );
@@ -529,3 +529,5 @@ void ParticleDataBase3D::add_3d_gaussian_beam_with_emittance( uint32_t N, double
 	n++;
     }
 }
+
+

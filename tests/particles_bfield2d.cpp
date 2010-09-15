@@ -14,7 +14,7 @@
 #include "epot_efield.hpp"
 #include "particles.hpp"
 #include "error.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 
 
 using namespace std;
@@ -22,7 +22,7 @@ using namespace std;
 
 void test( void )
 {
-    verbose_output = 0;
+    ibsimu.set_verbose_output( 0 );
 
     Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(-0.05,-0.05,0.0), 0.01 );
     geom.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
@@ -103,4 +103,6 @@ int main( void )
 
     return( 0 );
 }
+
+
 

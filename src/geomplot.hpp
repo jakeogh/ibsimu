@@ -2,7 +2,7 @@
  *  \brief Header file for geomplot.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,6 +47,7 @@
 #include "frame.hpp"
 #include "geometry.hpp"
 #include "scalarfield.hpp"
+#include "vectorfield.hpp"
 #include "particledatabase.hpp"
 
 #include "solidgraph.hpp"
@@ -63,6 +64,7 @@ class GeomPlot {
     const Geometry          *_geom;
     const ScalarField       *_epot;
     const ScalarField       *_scharge;
+    const VectorField       *_bfield;
     const ParticleDataBase  *_pdb;
 
     SolidGraph              *_solidgraph;
@@ -108,6 +110,14 @@ public:
 	return( _eqlines_auto );
     }
 
+    /*! \brief Set magnetic field.
+     *
+     *  Saves a pointer to the magnetic field data in the geometry
+     *  plot. Does not enable plotting of the magnetic field by
+     *  default. NOTE: Plotting of the magnetic field is not implemented yet.
+     */
+    void set_bfield( const VectorField *bfield );
+
     void set_scharge( const ScalarField *scharge );
 
     void set_scharge_field( bool enable );
@@ -116,7 +126,11 @@ public:
 	return( _scharge_field );
     }
     
-    void set_particle_database( const ParticleDataBase *pdb );
+    void set_particle_database( const ParticleDataBase *pdb ) {
+	set_particledatabase( pdb );
+    }
+
+    void set_particledatabase( const ParticleDataBase *pdb );
 
     void set_particle_div( size_t particle_div );
 
@@ -136,7 +150,14 @@ public:
 	return( _mesh );
     }
 
-    void set_view( view_e view, int level );
+    /*! \brief Set view.
+     *
+     *  Sets the viewplane to the geometry. The viewplane is set by
+     *  direction \a view and depth \a level set as mesh level. Level
+     *  is checked and limited to existing levels. Level -1 (default)
+     *  means half the range (midplane).
+     */
+    void set_view( view_e view, int level = -1 );
 
     view_e get_view( void ) const {
 	return( _view );
@@ -164,3 +185,5 @@ public:
 
 
 #endif
+
+

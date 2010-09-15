@@ -380,6 +380,7 @@ std::string GTKGeomWindow::track_text( double x, double y )
     return( ss.str() );
 }
 
+
 struct PreferencesData {
     GtkWidget *manual_eqlines_entry;
     GtkWidget *automatic_eqlines_spin;
@@ -655,4 +656,6 @@ void GTKGeomWindow::menuitem_tool_change_signal( GtkToolButton *button,
     GTKGeomWindow *plotter = (GTKGeomWindow *)object;
     plotter->menuitem_tool_change( button );
 }
+
+
 

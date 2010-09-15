@@ -14,7 +14,7 @@
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
 #include "vectorfield.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 #include "error.hpp"
 #include "particlediagplotter.hpp"
 #include "gtkplotter.hpp"
@@ -85,12 +85,23 @@ void test( int *argc, char ***argv )
 	}
 
 	p.solve( epot, scharge );
+
 	pdb.clear();
 	pdb.add_2d_beam_with_energy( 5000, 600.0, 1.0, 1.0, 
 				     5.0, 0.0, 0.5, 
 				     0.0, 0.0, 
 				     0.0, 0.0015 );
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
+
+	/*
+	GTKPlotter plotter( argc, argv );
+	plotter.set_geometry( &geom );
+	plotter.set_epot( &epot );
+	plotter.set_scharge( &scharge );
+	plotter.set_particledatabase( &pdb );
+	plotter.new_geometry_plot_window();
+	plotter.run();
+	*/
     }
 
     GeomPlotter gplotter( &geom );
@@ -146,7 +157,7 @@ void test( int *argc, char ***argv )
 int main( int argc, char **argv )
 {
     try {
-	verbose_output = 0;
+	ibsimu.set_verbose_output( 0 );
     	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 
@@ -156,4 +167,6 @@ int main( int argc, char **argv )
 
     return( 0 );
 }
+
+
 

@@ -2,7 +2,7 @@
  *  \brief Source code for eqpotgraph.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -42,7 +42,7 @@
 
 #include "eqpotgraph.hpp"
 #include "lineclip.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 
 
 EqPotGraph::EqPotGraph( const ScalarField &epot, const Geometry &g )
@@ -223,7 +223,7 @@ void EqPotGraph::disable_cache( void )
 
 void EqPotGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "  Plotting equipotentials\n";
 
     if( !_data_built || _oview != _view || _olevel != _level || !_cache ) {
@@ -262,6 +262,8 @@ void EqPotGraph::get_bbox( double bbox[4] )
     bbox[2] = _g.max( _vb[0] );
     bbox[3] = _g.max( _vb[1] );
 }
+
+
 
 
 

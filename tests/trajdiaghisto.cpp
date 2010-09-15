@@ -15,7 +15,7 @@
 #include "trajectorydiagnostics.hpp"
 #include "particles.hpp"
 #include "error.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 
 
 using namespace std;
@@ -67,4 +67,6 @@ int main( void )
 
     return( 0 );
 }
+
+
 

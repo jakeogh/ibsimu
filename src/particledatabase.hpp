@@ -46,7 +46,7 @@
 
 #include <vector>
 #include "timer.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 #include "trajectory.hpp"
 #include "particles.hpp"
 #include "particleiterator.hpp"
@@ -433,7 +433,7 @@ public:
 					double val,
 					const std::vector<trajectory_diagnostic_e> &diagnostics ) const {
 
-	if( verbose_output )
+	if( ibsimu.get_verbose_output() )
 	    std::cout << "Making trajectory diagnostics at " 
 		      << coordinate_axis_string[axis] << " = " << val << "\n";
 
@@ -517,7 +517,7 @@ public:
 	    }
 	}
 
-	if( verbose_output ) {
+	if( ibsimu.get_verbose_output() ) {
 	    std::cout << "  number of trajectories = " << tdata.traj_size() << "\n";
 	    if( PP::geom_mode() == MODE_2D )
 		std::cout << "  total current = " << Isum << " A/m\n";
@@ -588,7 +588,7 @@ public:
 	std::vector<ParticleIterator<PP> *>  iterators;
 
 	Timer t;
-	if( verbose_output )
+	if( ibsimu.get_verbose_output() )
 	    std::cout << "Calculating particle trajectories\n";
 	_iteration++;
 
@@ -659,7 +659,7 @@ public:
 	scharge_finalize( scharge );
 	
 	t.stop();
-	if( verbose_output ) {
+	if( ibsimu.get_verbose_output() ) {
 	    std::cout << "  Particle histories (" << _particles.size() << " total):\n";
 	    std::cout << "    time limited = " << _end_time << "\n";
 	    std::cout << "    step count limited = " << _end_step << "\n";
@@ -1004,6 +1004,8 @@ public:
 
 
 #endif
+
+
 
 
 

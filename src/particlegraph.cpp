@@ -2,7 +2,7 @@
  *  \brief Source code for particlegraph.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,7 +47,7 @@
 #include <string.h>
 #include <iostream>
 #include "particlegraph.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 
 
 ParticleGraph::ParticleGraph( const Geometry &g, const ParticleDataBase &pdb, 
@@ -224,7 +224,7 @@ void ParticleGraph::draw_curve( const Coordmapper *cm, LineClip &lc,
 
 void ParticleGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "  Plotting particles\n";
 
     // No plotting
@@ -302,6 +302,8 @@ void ParticleGraph::clear_colors( void )
 {
     _color.clear();
 }
+
+
 
 
 

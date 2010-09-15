@@ -2,7 +2,7 @@
  *  \brief Source code for geometry.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -46,7 +46,7 @@
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "error.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 #include "file.hpp"
 
 
@@ -57,7 +57,7 @@ Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
     if( _h == 0.0 )
 	throw( Error( ERROR_LOCATION, "zero mesh step size" ) );
 
-    if( verbose_output ) {
+    if( ibsimu.get_verbose_output() ) {
 	Int3D one(1,1,1);
 	std::cout << "Constructing geometry\n";
 	std::cout << "  origo = " << origo << "\n";
@@ -281,6 +281,15 @@ double Geometry::bracket_surface( int32_t n, const Vec3D &xin, const Vec3D &xout
 }
 
 
+bool Geometry::vac_or_neu( int32_t i, int32_t j, int32_t k )
+{
+    signed char a = mesh_check( i, j, k );
+    if( a >= -6 && a <= 0 ) // Vacuum or Neumann
+	return( true );
+    return( false );
+}
+
+
 void Geometry::build_mesh( void )
 {
     int a;
@@ -297,25 +306,6 @@ void Geometry::build_mesh( void )
 	    for( i = 0; i < _size[0]; i++ ) {
 		x = i*_h+_origo[0];
 		mesh(i,j,k) = inside( Vec3D(x,y,z) );
-	    }
-	}
-    }
-
-    // Mark solid edges
-    for( k = 0; k < _size[2]; k++ ) {
-	for( j = 0; j < _size[1]; j++ ) {
-	    for( i = 0; i < _size[0]; i++ ) {
-		// Check if node is an edge node
-		if( (a = mesh(i,j,k)) != 0 &&
-		    ( mesh_check(i-1,j,  k  ) == 0 ||
-		      mesh_check(i+1,j,  k  ) == 0 ||
-		      mesh_check(i,  j-1,k  ) == 0 || 
-		      mesh_check(i,  j+1,k  ) == 0 ||
-		      mesh_check(i,  j,  k-1) == 0 || 
-		      mesh_check(i,  j,  k+1) == 0 ) ) {
-		    // Mark node as an edge
-		    mesh(i,j,k) = -a;
-		}
 	    }
 	}
     }
@@ -380,6 +370,26 @@ void Geometry::build_mesh( void )
 	    }
 	}
     }
+
+    // Mark solid edges
+    for( k = 0; k < _size[2]; k++ ) {
+	for( j = 0; j < _size[1]; j++ ) {
+	    for( i = 0; i < _size[0]; i++ ) {
+		// Check if solid node is an solid edge node
+		if( (a = mesh(i,j,k)) >= 7 &&
+		    ( vac_or_neu(i-1,j,  k  ) ||
+		      vac_or_neu(i+1,j,  k  ) ||
+		      vac_or_neu(i,  j-1,k  ) || 
+		      vac_or_neu(i,  j+1,k  ) ||
+		      vac_or_neu(i,  j,  k-1) || 
+		      vac_or_neu(i,  j,  k+1) ) )  {
+		    // Mark node as an edge
+		    mesh(i,j,k) = -a;
+		}
+	    }
+	}
+    }
+
 }
 
 
@@ -450,6 +460,8 @@ void Geometry::debug_print( void ) const
 	std::cout << "\n";
     }
 }
+
+
 
 
 

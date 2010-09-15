@@ -11,7 +11,7 @@
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
 #include "error.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 
 #include "gtkplotter.hpp"
 
@@ -168,4 +168,6 @@ int main( int argc, char **argv )
 
     return( 0 );
 }
+
+
 

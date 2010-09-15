@@ -2,7 +2,7 @@
  *  \brief Source code for scharge.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -41,7 +41,7 @@
  */
 
 #include "scharge.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 
 
 //#define DEBUG_SCHARGE 1
@@ -49,7 +49,7 @@
 
 void scharge_finalize( ScalarField &scharge )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "  Finalizing space charge density map\n";
 
     switch( scharge.geom_mode() ) {
@@ -262,6 +262,8 @@ void scharge_add_from_trajectory( ScalarField &scharge, double IQ,
     scharge( p+1 )                 += t[0]*(1.0-t[1])*t[2]*Q;
     scharge( p+1+scharge.size(0) ) += t[0]*t[1]*t[2]*Q;
 }
+
+
 
 
 

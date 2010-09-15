@@ -82,6 +82,8 @@ hbio.cpp \
 hbio.hpp \
 histogram.cpp \
 histogram.hpp \
+ibsimu.cpp \
+ibsimu.hpp \
 icon_field_diag.hpp \
 icon_hardcopy.hpp \
 icon_move.hpp \
@@ -155,8 +157,6 @@ types.hpp \
 vec3d.hpp \
 vectorfield.cpp \
 vectorfield.hpp \
-verbose.cpp \
-verbose.hpp \
 xygraph.cpp \
 xygraph.hpp
 
@@ -194,6 +194,7 @@ gtkfielddiagexportdialog.hpp \
 gtkplotter.hpp \
 hbio.hpp \
 histogram.hpp \
+ibsimu.hpp \
 ilu0_precond.hpp \
 interpolation.hpp \
 label.hpp \
@@ -229,7 +230,6 @@ trajectorydiagnostics.hpp \
 types.hpp \
 vec3d.hpp \
 vectorfield.hpp \
-verbose.hpp \
 xygraph.hpp
 
 if UMFPACK

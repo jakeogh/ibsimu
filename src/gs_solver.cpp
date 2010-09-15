@@ -2,7 +2,7 @@
  *  \brief Source code for gs_solver.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -42,7 +42,7 @@
 
 #include <limits>
 #include "gs_solver.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 #include "timer.hpp"
 #include "error.hpp"
 
@@ -68,7 +68,7 @@ void GSSolver::solve( const Problem &p, Vector &X )
     if( p.linear() ) {
 
         // Linear solver
-        if( verbose_output )
+        if( ibsimu.get_verbose_output() )
             std::cout << "  Using Gauss-Seidel solver\n";
 
         const Matrix *A; // Matrix needs to be modified for smooth edges
@@ -78,7 +78,7 @@ void GSSolver::solve( const Problem &p, Vector &X )
         eps = _eps;
         gauss_seidel( *A, *B, X, imax, eps, _w );
 
-        if( verbose_output ) {
+        if( ibsimu.get_verbose_output() ) {
             std::cout << "  iterations = " << imax << " (max " << _imax << ")\n";
             std::cout << "  eps = " << eps << " (requested " << _eps << ")\n";
         }
@@ -87,7 +87,7 @@ void GSSolver::solve( const Problem &p, Vector &X )
     }
 
     t.stop();
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "  time used = " << t << "\n";
 }
 
@@ -148,5 +148,7 @@ bool GSSolver::gauss_seidel( const CRowMatrix &mat, const Vector &rhs, Vector &s
     eps = d_max;
     return( true );
 }
+
+
 
 

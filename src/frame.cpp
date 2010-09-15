@@ -45,7 +45,7 @@
 #include <limits>
 #include "compmath.hpp"
 #include "frame.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 
 
 //#define FRAME_DEBUG 1
@@ -653,6 +653,8 @@ void Frame::draw( cairo_t *cairo )
     // Draw frame (on top of user drawn image)
     draw_frame( cairo );
 }
+
+
 
 
 

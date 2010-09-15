@@ -110,3 +110,5 @@ void ColormapLegend::set_height( double height )
 
 
 
+
+

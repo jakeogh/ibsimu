@@ -27,6 +27,7 @@ lu_test_SOURCES = lu_test.cpp
 matrixconv_SOURCES = matrixconv.cpp
 matrixsolver_SOURCES = matrixsolver.cpp
 mvector_SOURCES = mvector.cpp
+nsimp_plasmacyl_SOURCES = nsimp_plasmacyl.cpp
 palette_SOURCES = palette.cpp
 particles_bfield2d_SOURCES = particles_bfield2d.cpp
 particles_bfieldcyl_SOURCES = particles_bfieldcyl.cpp
@@ -101,6 +102,7 @@ lu_test \
 matrixconv \
 matrixsolver \
 mvector \
+nsimp_plasmacyl \
 palette \
 particles_bfield2d \
 particles_bfieldcyl \

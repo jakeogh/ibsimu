@@ -2,7 +2,7 @@
  *  \brief Source code for bicgstab_solver.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -43,7 +43,7 @@
 #include "bicgstab_solver.hpp"
 #include "bicgstab.hpp"
 #include "ilu0_precond.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 #include "timer.hpp"
 #include "error.hpp"
 
@@ -70,7 +70,7 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
     if( p.linear() ) {
 
 	// Linear solver
-	if( verbose_output )
+	if( ibsimu.get_verbose_output() )
 	    std::cout << "  Using ILU0-BiCGSTAB solver\n";
 
 	const Matrix *A;
@@ -81,7 +81,7 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 	eps = _eps;
 	bicgstab( *A, *B, X, pc, imax, eps );
 
-	if( verbose_output ) {
+	if( ibsimu.get_verbose_output() ) {
 	    std::cout << "  iterations = " << imax << " (max " << _imax << ")\n";
 	    std::cout << "  eps = " << eps << " (requested " << _eps << ")\n";
 	}
@@ -89,7 +89,7 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
     } else {
 
 	// Nonlinear solver (Newton-Raphson)
-	if( verbose_output )
+	if( ibsimu.get_verbose_output() )
 	    std::cout << "  Using Newton-Raphson ILU0-BiCGSTAB solver\n";
 
 	int32_t a;
@@ -99,7 +99,7 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 	double accR = 0.0, accX = 0.0;
 	Vector dX;
 
-	if( verbose_output )
+	if( ibsimu.get_verbose_output() )
 	    std::cout << "    " 
 		      << std::setw(5) << "Iter" << " " 
 		      << std::setw(14) << "Step size" << " " 
@@ -122,7 +122,7 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 	    accR = max_abs( *R );
 	    accX = max_abs( dX );
 
-	    if( verbose_output )
+	    if( ibsimu.get_verbose_output() )
 		std::cout << "    " 
 			  << std::setw(5) << a << " " 
 			  << std::setw(14) << accX << " " 
@@ -132,7 +132,7 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 		break;
 	}
 
-	if( verbose_output ) {
+	if( ibsimu.get_verbose_output() ) {
 	    if( accR < _newton_Reps || accX < _newton_dXeps )
 		std::cout << "  Newton-Raphson converged\n";
 	    else if( imax_sum >= _imax )
@@ -146,7 +146,7 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
     }
 
     t.stop();
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "  time used = " << t << "\n";
 }
 
@@ -155,6 +155,8 @@ void BiCGSTABSolver::reset( void )
 {
 
 }
+
+
 
 
 

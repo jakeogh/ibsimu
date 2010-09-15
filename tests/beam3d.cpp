@@ -14,7 +14,7 @@
 #include "epot_efield.hpp"
 #include "vectorfield.hpp"
 #include "particledatabase.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 #include "error.hpp"
 
 #include "gtkplotter.hpp"
@@ -124,7 +124,7 @@ void test( int *argc, char ***argv )
 int main( int argc, char **argv )
 {
     try {
-	verbose_output = 0;
+	ibsimu.set_verbose_output( 0 );
     	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 
@@ -134,4 +134,6 @@ int main( int argc, char **argv )
 
     return( 0 );
 }
+
+
 

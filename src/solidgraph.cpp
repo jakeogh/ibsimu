@@ -49,7 +49,7 @@
 #include "solidgraph.hpp"
 #include "vec3d.hpp"
 #include "lineclip.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 
 
 int SolidGraph::get_mesh( const int i[3], int offsetx, int offsety ) const
@@ -315,7 +315,7 @@ void SolidGraph::disable_cache( void )
 
 void SolidGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "  Plotting solids\n";
 
     //std::cout << "--Plotting solids--\n";
@@ -375,6 +375,8 @@ void SolidGraph::get_bbox( double bbox[4] )
     bbox[2] = _g.max( _vb[0] );
     bbox[3] = _g.max( _vb[1] );
 }
+
+
 
 
 

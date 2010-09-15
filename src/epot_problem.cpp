@@ -44,7 +44,7 @@
 #include "mvector.hpp"
 #include "crowmatrix.hpp"
 #include "epot_problem.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 #include "error.hpp"
 
 
@@ -376,7 +376,7 @@ bool sol_or_dir( const Geometry *g, int32_t i, int32_t j, int32_t k )
 {
     signed char a = g->mesh_check( i, j, k ); 
     
-    return( a > 0 || a <= -7 ); // Solid or Dirichlet
+    return( a > 0 || a <= -7 ); // Solid or Dirichlet (or outside simulation geometry)
 }
 
 
@@ -426,7 +426,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 	    sol_or_dir(_g,i,  j+1,k) &&
 	    sol_or_dir(_g,i,  j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i+1,j,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i+1,j,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), x );
 	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
@@ -438,7 +438,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j+1,k) &&
 		 sol_or_dir(_g,i,  j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i-1,j,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i-1,j,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
@@ -450,7 +450,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 vac_or_edg(_g,i,  j+1,k) &&
 		 sol_or_dir(_g,i,  j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i,j+1,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i,j+1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), x );
 	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
@@ -462,7 +462,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j+1,k) &&
 		 vac_or_edg(_g,i,  j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i,j-1,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i,j-1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
@@ -475,7 +475,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j-1,k) &&
 		 vac_or_edg(_g,i+1,j+1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i+1,j+1,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i+1,j+1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k), (1.0-x)*x );
@@ -490,7 +490,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 vac_or_edg(_g,i,  j-1,k) &&
 		 vac_or_edg(_g,i+1,j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i+1,j-1,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i+1,j-1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j-1,k), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
@@ -505,7 +505,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 vac_or_edg(_g,i,  j-1,k) &&
 		 vac_or_edg(_g,i-1,j-1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i-1,j-1,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i-1,j-1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j-1,k), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k), (1.0-x)*x );
@@ -520,7 +520,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j-1,k) &&
 		 vac_or_edg(_g,i-1,j+1,k) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i-1,j+1,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i-1,j+1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j+1,k), x*x );
@@ -530,6 +530,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 
 	// Otherwise like normal solid node
 	else {
+
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
 	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
 	}
@@ -546,7 +547,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 	    sol_or_dir(_g,i,  j,  k+1) &&
 	    sol_or_dir(_g,i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i+1,j,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i+1,j,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,k), x );
 	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
@@ -560,7 +561,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k+1) &&
 		 sol_or_dir(_g,i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i-1,j,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i-1,j,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,k), x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,k), 1.0-x );
 	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
@@ -574,7 +575,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k+1) &&
 		 sol_or_dir(_g,i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i,j+1,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i,j+1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,  k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j+1,k), x );
 	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
@@ -588,7 +589,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k+1) &&
 		 sol_or_dir(_g,i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i,j-1,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i,j-1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,  k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j-1,k), x );
 	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
@@ -602,7 +603,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 vac_or_edg(_g,i,  j,  k+1) &&
 		 sol_or_dir(_g,i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i,j,k+1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i,j,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k+1), x );
 	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
@@ -616,7 +617,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k+1) &&
 		 vac_or_edg(_g,i,  j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i,j,k-1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i,j,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k-1), x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0-x );
 	    B[n2d(i,j,k)] += _g->get_boundary(-a).val;
@@ -631,7 +632,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i+1,j+1,k  ) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i+1,j+1,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i+1,j+1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k), (1.0-x)*x );
@@ -648,7 +649,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i-1,j+1,k  ) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i-1,j+1,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i-1,j+1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j+1,k), x*x );
@@ -665,7 +666,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i+1,j-1,k  ) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i+1,j-1,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i+1,j-1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j-1,k), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k), (1.0-x)*(1.0-x) );
@@ -682,7 +683,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i-1,j-1,k  ) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i-1,j-1,k), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i-1,j-1,k), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j-1,k), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k), (1.0-x)*x );
@@ -699,7 +700,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i+1,j,  k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i+1,j,k+1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i+1,j,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k  ), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*x );
@@ -716,7 +717,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i-1,j,  k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i-1,j,k+1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i-1,j,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k+1), x*x );
@@ -733,7 +734,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 vac_or_edg(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i+1,j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i+1,j,k-1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i+1,j,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k-1), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
@@ -750,7 +751,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 vac_or_edg(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i-1,j,  k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i-1,j,k-1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i-1,j,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k-1), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*x );
@@ -767,7 +768,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i,  j+1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i,j+1,k+1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i,j+1,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k  ), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k+1), (1.0-x)*x );
@@ -784,7 +785,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i,  j-1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i,j-1,k+1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i,j-1,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k+1), x*x );
@@ -801,7 +802,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 vac_or_edg(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i,  j+1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i,j+1,k-1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i,j+1,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k-1), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x) );
@@ -818,7 +819,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 vac_or_edg(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i,  j-1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i,j-1,k-1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i,j-1,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k-1), x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*x );
@@ -835,7 +836,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i+1,j+1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i+1,j+1,k+1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i+1,j+1,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k  ), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k  ), (1.0-x)*(1.0-x)*x );
@@ -856,7 +857,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i-1,j+1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i-1,j+1,k+1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i-1,j+1,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j+1,k  ), (1.0-x)*x*x );
@@ -877,7 +878,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i+1,j-1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i+1,j-1,k+1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i+1,j-1,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j-1,k  ), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k  ), (1.0-x)*(1.0-x)*(1.0-x) );
@@ -898,7 +899,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 sol_or_dir(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i-1,j-1,k+1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i-1,j-1,k+1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i-1,j-1,k+1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j-1,k  ), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k  ), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k  ), (1.0-x)*(1.0-x)*x );
@@ -919,7 +920,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 vac_or_edg(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i+1,j+1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i+1,j+1,k-1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i+1,j+1,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j,  k-1), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j+1,k-1), (1.0-x)*x*x );
@@ -940,7 +941,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 vac_or_edg(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i-1,j+1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i-1,j+1,k-1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i-1,j+1,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k-1), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*(1.0-x)*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j+1,k-1), x*x*x );
@@ -961,7 +962,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 vac_or_edg(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i+1,j-1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i+1,j-1,k-1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i+1,j-1,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k-1), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i+1,j-1,k-1), x*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j,  k-1), (1.0-x)*(1.0-x)*x );
@@ -982,7 +983,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 		 vac_or_edg(_g,i,  j,  k-1) &&
 		 vac_or_edg(_g,i-1,j-1,k-1) ) {
 	    double x = _g->bracket_surface( -a, _g->origo()+_g->h()*Vec3D(i,j,k),
-					  _g->origo()+_g->h()*Vec3D(i-1,j-1,k-1), xsurf );
+					    _g->origo()+_g->h()*Vec3D(i-1,j-1,k-1), xsurf );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j-1,k-1), x*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i,  j-1,k-1), (1.0-x)*x*x );
 	    set_link( A, B, n2d(i,j,k), n2d(i-1,j,  k-1), (1.0-x)*x*x );
@@ -1014,7 +1015,7 @@ void EpotProblem::construct( const Geometry &g )
     signed char a;
     int32_t i, j, k;
 
-    if( verbose_output ) {
+    if( ibsimu.get_verbose_output() ) {
 	if( _plasma == PLASMA_NONE )
 	    std::cout << "Constructing linear electric potential problem\n";
 	else if( _plasma == PLASMA_INITIAL )
@@ -1030,17 +1031,17 @@ void EpotProblem::construct( const Geometry &g )
     _g = &g;
     if( _plasma == PLASMA_INITIAL ) {
 	_meniscus_i = (int32_t)floor((_meniscus_x-g.origo(0))/g.h()+0.5);
-	if( verbose_output )
+	if( ibsimu.get_verbose_output() )
 	    std::cout << "  Initial plasma meniscus at x = " << _meniscus_x 
 		      << " (at i = " << _meniscus_i << ")\n";
     } else if( _plasma == PLASMA_PEXP ) {
-	if( verbose_output ) {
+	if( ibsimu.get_verbose_output() ) {
 	    std::cout << "  Using exponential plasma model for positive ion extraction\n";
 	    std::cout << "  Te = " << _Tc << " eV, Up = " << _Up 
 		      << " V, rhoe = " << _rhoc << " C/m^3\n";
 	}
     } else if( _plasma == PLASMA_NSIMP ) {
-	if( verbose_output ) {
+	if( ibsimu.get_verbose_output() ) {
 	    std::cout << "  Using simple three component plasma model for negative ion extraction\n";
 	    std::cout << "  Ep = " << _Tc << " eV, rhop = " << _rhoc << " C/m^3\n";
 	}
@@ -1070,7 +1071,7 @@ void EpotProblem::construct( const Geometry &g )
 	throw( Error( ERROR_LOCATION, "zero degrees of freedom" ) );
     }
 
-    if( verbose_output ) {
+    if( ibsimu.get_verbose_output() ) {
 	std::cout << "  dof = " << _dof << "\n";
     }
 
@@ -1116,7 +1117,7 @@ void EpotProblem::set_solver( Solver &s )
 
 void EpotProblem::solve( ScalarField &epot, const ScalarField &scharge ) const
 {
-    if( verbose_output ) {
+    if( ibsimu.get_verbose_output() ) {
 	std::cout << "Solving problem\n";
     }
 
@@ -1189,6 +1190,9 @@ void EpotProblem::get_vecmat( const Matrix **A, const Vector **B ) const
 }
 
 
+// 2.0/sqrt(pi)
+#define GSCOEF  1.1283791671
+
 void EpotProblem::get_resjac( const Matrix **J, const Vector **R, const Vector &X ) const
 {
     // Precalculate coefficients
@@ -1197,7 +1201,7 @@ void EpotProblem::get_resjac( const Matrix **J, const Vector **R, const Vector &
 	Q = 1.0/_Tc;
 	K = _Up/_Tc;
     } else if( _plasma == PLASMA_NSIMP ) {
-	Q = 1.0/_Tc;
+	Q = -1.0/_Tc;
     }
 
     // Construct jacobian to _fd_mat2 from general (linear) problem matrix _fd_mat;
@@ -1220,9 +1224,10 @@ void EpotProblem::get_resjac( const Matrix **J, const Vector **R, const Vector &
 		    (*_fd_vec3)(b) -= (*_fd_vec2)(b) - coef*_rhoc*Y;
 		    _fd_mat2->set(b,b) += coef*_rhoc*Q*Y;
 		} else if( _plasma == PLASMA_NSIMP ) {
-		    double Y = 1.0 - Q*X(b);
+		    double xx = Q*X(b);
+		    double Y = 1.0 + erf( xx );
 		    (*_fd_vec3)(b) -= (*_fd_vec2)(b) - coef*_rhoc*Y;
-		    _fd_mat2->set(b,b) += coef*_rhoc*Q;
+		    _fd_mat2->set(b,b) += coef*_rhoc * Q*GSCOEF*exp(-xx*xx);
 		} else {
 		    throw( Error( ERROR_LOCATION, "unknown plasma model type" ) );
 		}
@@ -1274,6 +1279,8 @@ void EpotProblem::save( std::ostream &s ) const
 {
 
 }
+
+
 
 
 

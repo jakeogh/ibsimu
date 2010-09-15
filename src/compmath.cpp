@@ -59,3 +59,5 @@ int comp_isnan( double x )
     else 
         return( 1 );
 }
+
+

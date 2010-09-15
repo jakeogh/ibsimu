@@ -151,6 +151,13 @@ void GeomPlot::set_eqlines_auto( size_t N )
 }
 
 
+void GeomPlot::set_bfield( const VectorField *bfield )
+{
+    _bfield = bfield;
+    // magnetic field graph is disabled by default (and is not implemented yet)
+}
+
+
 void GeomPlot::set_scharge( const ScalarField *scharge ) 
 {
     _scharge = scharge;
@@ -177,7 +184,7 @@ void GeomPlot::set_scharge_field( bool enable )
 
 
 
-void GeomPlot::set_particle_database( const ParticleDataBase *pdb ) 
+void GeomPlot::set_particledatabase( const ParticleDataBase *pdb ) 
 {
     _pdb = pdb;
 
@@ -269,11 +276,22 @@ void GeomPlot::set_view( view_e view, int level )
 	    _frame->set_axis_label( PLOT_AXIS_X1, "y (m)" );
 	_frame->set_axis_label( PLOT_AXIS_Y1, "z (m)" );
 
+    } else {
+	throw( Error( ERROR_LOCATION, "unknown view" ) );
     }
 
-    // Set view and level
+    // Set view
     _view = view;
-    _level = level;
+    
+    // Set and check level
+    if( level == -1 )
+	_level = _geom->size(_vb[2])/2;
+    else if( level < 0 )
+	_level = 0;
+    else if( level >= _geom->size(_vb[2]) )
+	_level = _geom->size(_vb[2])-1;
+    else
+	_level = level;
 
     if( _solidgraph )
 	_solidgraph->set_view( _view, _level );
@@ -286,5 +304,7 @@ void GeomPlot::set_view( view_e view, int level )
     if( _fieldgraph )
 	_fieldgraph->set_view( _view, _level );
 }
+
+
 
 

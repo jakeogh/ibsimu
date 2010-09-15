@@ -15,7 +15,7 @@
 #include "particles.hpp"
 #include "particledatabase.hpp"
 #include "error.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 
 
 using namespace std;
@@ -121,4 +121,6 @@ int main( void )
 
     return( 0 );
 }
+
+
 

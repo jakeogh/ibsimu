@@ -2,7 +2,7 @@
  *  \brief Source code for fieldgraph.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -41,7 +41,7 @@
  */
 
 #include "fieldgraph.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 
 
 FieldGraph::FieldGraph( const ScalarField *field )
@@ -101,7 +101,7 @@ void FieldGraph::build_scalarfield_plot( void )
 
 void FieldGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
-    if( verbose_output )
+    if( ibsimu.get_verbose_output() )
 	std::cout << "  Plotting field\n";
 
     if( _colormap == NULL || _oview != _view || _olevel != _level ) {
@@ -126,6 +126,8 @@ void FieldGraph::get_bbox( double bbox[4] )
 	bbox[3] = _scalarfield->max( _vb[1] );
     }
 }
+
+
 
 
 

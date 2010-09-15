@@ -2,7 +2,7 @@
  *  \brief Source code for bicgstab.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,7 +45,7 @@
 #include <sstream>
 
 #include "bicgstab.hpp"
-#include "verbose.hpp"
+#include "ibsimu.hpp"
 #include "statusprint.hpp"
 
 
@@ -80,7 +80,7 @@ bool bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
     }
 
     StatusPrint sp;
-    if( verbose_output ) {
+    if( ibsimu.get_verbose_output() ) {
 	std::stringstream ss;
 	ss << "  " << std::setw(5) << 0 << " " << std::setw(20) << resid;
 	sp.print( ss.str() );
@@ -132,7 +132,7 @@ bool bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
 	    break;
 	}
 
-	if( verbose_output ) {
+	if( ibsimu.get_verbose_output() ) {
 	    std::stringstream ss;
 	    ss << "  " << std::setw(5) << i << " " << std::setw(20) << resid;
 	    sp.print( ss.str() );
@@ -146,6 +146,8 @@ bool bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
     
     return( retval );
 }
+
+
 
 
 
