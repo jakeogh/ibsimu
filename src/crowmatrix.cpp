@@ -2,7 +2,7 @@
  *  \brief Source code for crowmatrix.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -166,7 +166,7 @@ void CRowMatrix::build( const class CRowMatrix &mat )
     _m     = mat._m;
     _nz    = mat._nz;
     _asize = mat._nz;
-    allocate();
+    reallocate();
 
     memcpy( _ptr, mat._ptr, (_n+1)*sizeof(int) );
     memcpy( _col, mat._col, _nz*sizeof(int) );
@@ -175,6 +175,7 @@ void CRowMatrix::build( const class CRowMatrix &mat )
 
 
 CRowMatrix::CRowMatrix( const CRowMatrix &mat )
+    : _ptr(NULL), _col(NULL), _val(NULL)
 {
     build( mat );
 }
@@ -193,7 +194,7 @@ void CRowMatrix::build( const class CColMatrix &mat )
     _m     = mat._m;
     _nz    = mat._nz;
     _asize = mat._nz;
-    allocate();
+    reallocate();
     
     int *c = new int[_n];
     int i, j, ind, rr;
@@ -224,6 +225,7 @@ void CRowMatrix::build( const class CColMatrix &mat )
 
 
 CRowMatrix::CRowMatrix( const class CColMatrix &mat )
+    : _ptr(NULL), _col(NULL), _val(NULL)
 {
     build( mat );
 }
@@ -242,7 +244,7 @@ void CRowMatrix::build( const class CoordMatrix &mat )
     _m     = mat._m;
     _nz    = mat._nz;
     _asize = mat._nz;
-    allocate();
+    reallocate();
 
     int *c = new int[_n];
     int i, start, r;
@@ -271,6 +273,7 @@ void CRowMatrix::build( const class CoordMatrix &mat )
 
 
 CRowMatrix::CRowMatrix( const class CoordMatrix &mat )
+    : _ptr(NULL), _col(NULL), _val(NULL)
 {
     build( mat );
 }
@@ -284,6 +287,7 @@ CRowMatrix &CRowMatrix::operator=( const class CoordMatrix &mat )
 
 
 CRowMatrix::CRowMatrix( const class Matrix &mat )
+    : _ptr(NULL), _col(NULL), _val(NULL)
 {
     const CRowMatrix  *crmat;
     const CColMatrix  *ccmat;

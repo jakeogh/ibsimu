@@ -2,7 +2,7 @@
  *  \brief Source code for coordmatrix.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -160,7 +160,7 @@ void CoordMatrix::build( const class CoordMatrix &mat )
     _m     = mat._m;
     _nz    = mat._nz;
     _asize = mat._nz;
-    allocate();
+    reallocate();
 
     memcpy( _row, mat._row, _nz*sizeof(int) );
     memcpy( _col, mat._col, _nz*sizeof(int) );
@@ -169,6 +169,7 @@ void CoordMatrix::build( const class CoordMatrix &mat )
 
 
 CoordMatrix::CoordMatrix( const CoordMatrix &mat )
+    : _row(NULL), _col(NULL), _val(NULL)
 {
     build( mat );
 }
@@ -186,7 +187,7 @@ void CoordMatrix::build( const class CRowMatrix &mat )
     _m     = mat._m;
     _nz    = mat._nz;
     _asize = mat._nz;
-    allocate();
+    reallocate();
 
     int i, j;
     for( i = j = 0; i < _n; i++ ) {
@@ -201,6 +202,7 @@ void CoordMatrix::build( const class CRowMatrix &mat )
 
 
 CoordMatrix::CoordMatrix( const class CRowMatrix &mat )
+    : _row(NULL), _col(NULL), _val(NULL)
 {
     build( mat );
 }
@@ -218,7 +220,7 @@ void CoordMatrix::build( const class CColMatrix &mat )
     _m     = mat._m;
     _nz    = mat._nz;
     _asize = mat._nz;
-    allocate();
+    reallocate();
 
     int i, j;
     for( i = j = 0; j < _m; j++ ) {
@@ -233,6 +235,7 @@ void CoordMatrix::build( const class CColMatrix &mat )
 
 
 CoordMatrix::CoordMatrix( const class CColMatrix &mat )
+    : _row(NULL), _col(NULL), _val(NULL)
 {
     build( mat );
 }
@@ -246,6 +249,7 @@ CoordMatrix &CoordMatrix::operator=( const CColMatrix &mat )
 
 
 CoordMatrix::CoordMatrix( const class Matrix &mat )
+    : _row(NULL), _col(NULL), _val(NULL)
 {
     const CRowMatrix  *crmat;
     const CColMatrix  *ccmat;
