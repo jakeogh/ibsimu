@@ -48,10 +48,10 @@
 #include "error.hpp"
 
 
-BiCGSTABSolver::BiCGSTABSolver( double eps, int imax,
+BiCGSTABSolver::BiCGSTABSolver( double eps, uint32_t imax,
 				double newton_Reps, 
 				double newton_dXeps, 
-				int newton_imax )
+				uint32_t newton_imax )
     : _eps(eps), _imax(imax), _newton_Reps(newton_Reps), 
       _newton_dXeps(newton_dXeps), _newton_imax(newton_imax)
 {

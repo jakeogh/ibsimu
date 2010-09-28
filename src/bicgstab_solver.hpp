@@ -2,7 +2,7 @@
  *  \brief Header file for bicgstab_solver.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -61,18 +61,19 @@
  */
 class BiCGSTABSolver : public Solver {
     double   _eps;          /*!< \brief Accuracy request. */
-    int      _imax;         /*!< \brief Maximum iteration count. */
+    uint32_t _imax;         /*!< \brief Maximum iteration count. */
 
     double   _newton_Reps;  /*!< \brief Accuracy request for Newton-Raphson residual. */
     double   _newton_dXeps; /*!< \brief Accuracy request for Newton-Raphson step. */
-    double   _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
+    uint32_t _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
 
 public:
 
     /*! \brief Constructor.
      */
-    BiCGSTABSolver( double eps = 1.0e-6, int imax = 10000,
-		    double newton_Reps = 1.0e-5, double newton_dXeps = 1.0e-6, int newton_imax = 10 );
+    BiCGSTABSolver( double eps = 1.0e-6, uint32_t imax = 10000,
+		    double newton_Reps = 1.0e-5, double newton_dXeps = 1.0e-6, 
+		    uint32_t newton_imax = 10 );
 
     /*! \brief Destructor.
      */
@@ -99,25 +100,25 @@ public:
 
     /*! \brief Sets maximum iteration count for BiCGSTAB solver.
      */
-    void set_imax( int imax ) {
+    void set_imax( uint32_t imax ) {
 	_imax = imax;
     }
 
     /*! \brief Sets maximum iteration count for Newton-Raphson steps.
      */
-    void set_newton_imax( int newton_imax ) {
+    void set_newton_imax( uint32_t newton_imax ) {
 	_newton_imax = newton_imax;
     }
 
     /*! \brief Sets the accuracy request for Newton-Raphson residual.
      */
-    void set_newton_residual_eps( int newton_Reps ) {
+    void set_newton_residual_eps( double newton_Reps ) {
 	_newton_Reps = newton_Reps;
     }
 
     /*! \brief Sets the accuracy request for Newton-Raphson step size.
      */
-    void set_newton_step_eps( int newton_dXeps ) {
+    void set_newton_step_eps( double newton_dXeps ) {
 	_newton_dXeps = newton_dXeps;
     }
 

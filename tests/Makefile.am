@@ -14,6 +14,7 @@ emittancedef3d_SOURCES = emittancedef3d.cpp
 emittancedefcyl_SOURCES = emittancedefcyl.cpp
 fileplot_SOURCES = fileplot.cpp
 fonts_SOURCES = fonts.cpp
+fielddiagplot_SOURCES = fielddiagplot.cpp
 frame_SOURCES = frame.cpp
 frame_extend_range_SOURCES = frame_extend_range.cpp
 frame_increase_margin_SOURCES = frame_increase_margin.cpp
@@ -88,6 +89,7 @@ emittancedef2d \
 emittancedef3d \
 emittancedefcyl \
 fileplot \
+fielddiagplot \
 fonts \
 frame \
 frame_extend_range \

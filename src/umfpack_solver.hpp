@@ -2,7 +2,7 @@
  *  \brief Header file for umfpack_solver.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -69,7 +69,7 @@ class UMFPACKSolver : public Solver {
 
     double   _newton_Reps;  /*!< \brief Accuracy request for Newton-Raphson residual. */
     double   _newton_dXeps; /*!< \brief Accuracy request for Newton-Raphson step. */
-    double   _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
+    uint32_t _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
 
     static void umfpack_error( const std::string func, int status );
 
@@ -109,13 +109,13 @@ public:
 
     /*! \brief Sets the accuracy request for Newton-Raphson residual.
      */
-    void set_newton_residual_eps( uint32_t newton_Reps ) {
+    void set_newton_residual_eps( double newton_Reps ) {
 	_newton_Reps = newton_Reps;
     }
 
     /*! \brief Sets the accuracy request for Newton-Raphson step size.
      */
-    void set_newton_step_eps( uint32_t newton_dXeps ) {
+    void set_newton_step_eps( double newton_dXeps ) {
 	_newton_dXeps = newton_dXeps;
     }
 };
