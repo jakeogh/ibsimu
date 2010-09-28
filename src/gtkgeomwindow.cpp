@@ -419,7 +419,7 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     label = gtk_label_new( "Automatic eqlines" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     size_t eqlines_auto = _geomplot.get_eqlines_auto();
-    GtkObject *automatic_eqlines_adj = gtk_adjustment_new( eqlines_auto, 0, 1000, 1, 10, 10 );
+    GtkObject *automatic_eqlines_adj = gtk_adjustment_new( eqlines_auto, 0, 1000, 1, 10, 0 );
     pdata->automatic_eqlines_spin = gtk_spin_button_new( GTK_ADJUSTMENT(automatic_eqlines_adj), 1, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), pdata->automatic_eqlines_spin, FALSE, TRUE, 0 );
@@ -430,7 +430,7 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     label = gtk_label_new( "Trajectory division" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     size_t particle_div = _geomplot.get_particle_div();
-    GtkObject *particlediv_adj = gtk_adjustment_new( particle_div, 0, 10000, 1, 10, 10 );
+    GtkObject *particlediv_adj = gtk_adjustment_new( particle_div, 0, 10000, 1, 10, 0 );
     pdata->particlediv_spin = gtk_spin_button_new( GTK_ADJUSTMENT(particlediv_adj), 1, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), pdata->particlediv_spin, FALSE, TRUE, 0 );

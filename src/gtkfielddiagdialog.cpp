@@ -180,7 +180,7 @@ void GTKFieldDiagDialog::run( void )
     label = gtk_label_new( "Samples" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    GtkObject *n_adj = gtk_adjustment_new( 100, 0, 10000, 10, 100, 100 );
+    GtkObject *n_adj = gtk_adjustment_new( 100, 0, 10000, 10, 100, 0 );
     GtkWidget *n_spin = gtk_spin_button_new( GTK_ADJUSTMENT(n_adj), 10, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), n_spin, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
