@@ -93,10 +93,6 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 	fielddata[a].reserve( _N );
 	switch( _diag[a] ) {
 
-	case FIELDD_DIAG_NONE:
-	    // Nothing to do
-	    break;
-
 	case FIELDD_DIAG_EPOT:
 	    if( _epot == NULL )
 		throw( Error( ERROR_LOCATION, "epot undefined" ) );		
@@ -184,6 +180,13 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 		fielddata[a].push_back( B[2] );
 	    }
 	    break;
+
+	case FIELDD_DIAG_NONE:
+	default:
+	    // Nothing to do
+	    break;
+
+
 	}
     }
 }
@@ -192,10 +195,6 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 std::string FieldDiagPlot::diagnostic_label( field_diag_type_e diag ) const
 {
     switch( diag ) {
-	    
-    case FIELDD_DIAG_NONE:
-	return( "" );
-	break;
 	
     case FIELDD_DIAG_EPOT:
 	return( "\\phi  (V)" );
@@ -244,6 +243,11 @@ std::string FieldDiagPlot::diagnostic_label( field_diag_type_e diag ) const
 	    return( "B_\\theta  (T)" );
 	else
 	    return( "B_z (T)" );
+	break;
+
+    case FIELDD_DIAG_NONE:
+    default:
+	return( "" );
 	break;
     }
 

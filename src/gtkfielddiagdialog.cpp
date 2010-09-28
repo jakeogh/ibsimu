@@ -2,7 +2,7 @@
  *  \brief Source code for gtkfielddiagdialog.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -502,6 +502,8 @@ void GTKFieldDiagDialog::run( void )
 	    loc[0] = FIELDD_LOC_Y;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_axis1_z) ) )
 	    loc[0] = FIELDD_LOC_Z;
+	else
+	    loc[0] = FIELDD_LOC_NONE;
 
 	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_axis2_dist) ) )
 	    loc[1] = FIELDD_LOC_DIST;
@@ -511,6 +513,8 @@ void GTKFieldDiagDialog::run( void )
 	    loc[1] = FIELDD_LOC_Y;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_axis2_z) ) )
 	    loc[1] = FIELDD_LOC_Z;
+	else
+	    loc[1] = FIELDD_LOC_NONE;
 
 	// Read plots to be made
 	field_diag_type_e diag[2];
@@ -534,7 +538,9 @@ void GTKFieldDiagDialog::run( void )
 	    diag[0] = FIELDD_DIAG_BFIELD_Y;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_bz) ) )
 	    diag[0] = FIELDD_DIAG_BFIELD_Z;
-
+	else
+	    diag[0] = FIELDD_DIAG_NONE;
+	
 	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_epot) ) )
 	    diag[1] = FIELDD_DIAG_EPOT;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_e) ) )
@@ -555,6 +561,8 @@ void GTKFieldDiagDialog::run( void )
 	    diag[1] = FIELDD_DIAG_BFIELD_Y;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_bz) ) )
 	    diag[1] = FIELDD_DIAG_BFIELD_Z;
+	else
+	    diag[1] = FIELDD_DIAG_NONE;
 
 	std::cout << "x1 = " << x1[0] << "\n";
 	std::cout << "y1 = " << x1[1] << "\n";
