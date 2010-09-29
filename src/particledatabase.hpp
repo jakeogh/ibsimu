@@ -787,12 +787,36 @@ public:
 
     /*! \brief Add a 2d beam with defined KV emittance.
      *
+     *  Adds a beam consisting of \a N particles and a total current
+     *  of \a I (A). The particles are defined to have equal currents,
+     *  charge \a q (in multiples of e) and mass \a m (u). The
+     *  starting energy of the beam is \a Ex (eV) and the starting
+     *  location \a (x0,y0) (center point). The beam propagates to
+     *  positive x-direction. The beam is made to match Twiss
+     *  parameters \f$ \alpha \f$ (a), \f$ \beta \f$ (b), \f$ \epsilon
+     *  \f$ (e) in projectional direction (y,y'). 
+     *
+     *  The beam spread in the projectional space is made according to
+     *  KV/hard-edged (Kapchinsky-Vladimirsky) distribution.
+     *
      */
     void add_2d_KV_beam_with_emittance( uint32_t N, double I, double q, double m,
 					double a, double b, double e,
 					double Ex, double x0, double y0 );
 
     /*! \brief Add a 2d beam with defined gaussian emittance.
+     *
+     *  Adds a beam consisting of \a N particles and a total current
+     *  of \a I (A). The particles are defined to have equal currents,
+     *  charge \a q (in multiples of e) and mass \a m (u). The
+     *  starting energy of the beam is \a Ex (eV) and the starting
+     *  location \a (x0,y0) (center point). The beam propagates to
+     *  positive x-direction. The beam is made to match Twiss
+     *  parameters \f$ \alpha \f$ (a), \f$ \beta \f$ (b), \f$ \epsilon
+     *  \f$ (e) in projectional direction (y,y'). 
+     *
+     *  The beam spread in the projectional space is made according to
+     *  Gaussian distribution.
      *
      */
     void add_2d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
@@ -879,14 +903,21 @@ public:
 
     /*! \brief Add a 2d beam with defined gaussian emittance.
      *
-     *  The beam is made to match Twiss parameters \f$ \alpha \f$ (a), \f$ \beta \f$ (b), 
-     *  \f$ \epsilon \f$ (e) in projectional directions (y,y') and (z,z'). The particles 
-     *  are defined to have equal currents. This is different from other beam definitions 
-     *  for cylindrical coordinates. This might change soon.
+     *  Adds a beam consisting of \a N particles and a total current
+     *  of \a I (A). The particles are defined to have equal currents,
+     *  charge \a q (in multiples of e) and mass \a m (u). The
+     *  starting energy of the beam is \a Ex (eV) and the starting
+     *  location \a x0 (center point). The beam propagates to positive
+     *  x-direction. The beam is made to match Twiss parameters \f$
+     *  \alpha \f$ (a), \f$ \beta \f$ (b), \f$ \epsilon \f$ (e) in
+     *  projectional directions (y,y') and (z,z').
      *
-     *  \todo Redo particle distribution definition from emittance for cylindrical 
-     *  symmetry systems.
+     *  The even beam current distribution is different from other
+     *  beam definitions for cylindrical coordinates. This might
+     *  change soon.
      *
+     *  \todo Redo particle distribution definition from emittance for
+     *  cylindrical symmetry systems.
      */
     void add_2d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
 					      double a, double b, double e,
@@ -983,6 +1014,19 @@ public:
 
     /*! \brief Add a 3d beam with defined KV emittance.
      *
+     *  Adds a beam consisting of \a N particles and a total current
+     *  of \a I (A). The particles are defined to have equal currents,
+     *  charge \a q (in multiples of e) and mass \a m (u). The
+     *  starting energy of the beam is \a Ex (eV) and the starting
+     *  location \a (x0,y0,z0) (center point). The beam propagates to
+     *  positive x-direction. The beam is made to match Twiss
+     *  parameters \f$ \alpha_y \f$ (a), \f$ \beta_y \f$ (b), \f$
+     *  \epsilon_y \f$ (e) in projectional direction (y,y') and \f$
+     *  \alpha_z \f$ (a), \f$ \beta_z \f$ (b), \f$ \epsilon_z \f$ (e)
+     *  in projectional direction (z,z').
+     *
+     *  The beam spread in the projectional space is made according to
+     *  KV/hard-edged (Kapchinsky-Vladimirsky) distribution.
      */
     void add_3d_KV_beam_with_emittance( uint32_t N, double I, double q, double m,
 					double ay, double by, double ey,
@@ -991,6 +1035,19 @@ public:
 
     /*! \brief Add a 3d beam with defined gaussian emittance.
      *
+     *  Adds a beam consisting of \a N particles and a total current
+     *  of \a I (A). The particles are defined to have equal currents,
+     *  charge \a q (in multiples of e) and mass \a m (u). The
+     *  starting energy of the beam is \a Ex (eV) and the starting
+     *  location \a (x0,y0,z0) (center point). The beam propagates to
+     *  positive x-direction. The beam is made to match Twiss
+     *  parameters \f$ \alpha_y \f$ (a), \f$ \beta_y \f$ (b), \f$
+     *  \epsilon_y \f$ (e) in projectional direction (y,y') and \f$
+     *  \alpha_z \f$ (a), \f$ \beta_z \f$ (b), \f$ \epsilon_z \f$ (e)
+     *  in projectional direction (z,z').
+     *
+     *  The beam spread in the projectional space is made according to
+     *  Gaussian distribution.
      */
     void add_3d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
 					      double ay, double by, double ey,

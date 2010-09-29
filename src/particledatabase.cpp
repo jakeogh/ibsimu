@@ -122,7 +122,7 @@ void ParticleDataBase2D::add_2d_KV_beam_with_emittance( uint32_t N, double I, do
     ParticleP2D x;
     x[0] = 0.0;
     x[1] = x0;
-    x[2] = sqrt(2.0*Ex/m);
+    x[2] = sqrt(2.0*Ex*CHARGE_E/m);
 
     uint32_t n = 0;
     while( n < N ) {
@@ -174,7 +174,7 @@ void ParticleDataBase2D::add_2d_gaussian_beam_with_emittance( uint32_t N, double
     ParticleP2D x;
     x[0] = 0.0;
     x[1] = x0;
-    x[2] = sqrt(2.0*Ex/m);
+    x[2] = sqrt(2.0*Ex*CHARGE_E/m);
 
     uint32_t n = 0;
     while( n < N ) {
@@ -283,7 +283,7 @@ void ParticleDataBaseCyl::add_2d_gaussian_beam_with_emittance( uint32_t N, doubl
     ParticlePCyl x;
     x[0] = 0.0;
     x[1] = x0;
-    x[2] = sqrt(2.0*Ex/m);
+    x[2] = sqrt(2.0*Ex*CHARGE_E/m);
 
     uint32_t n = 0;
     while( n < N ) {
@@ -433,7 +433,7 @@ void ParticleDataBase3D::add_3d_KV_beam_with_emittance( uint32_t N, double I, do
     ParticleP3D x;
     x[0] = 0.0;
     x[1] = x0;
-    x[2] = sqrt(2.0*Ex/m);
+    x[2] = sqrt(2.0*Ex*CHARGE_E/m);
 
     uint32_t n = 0;
     while( n < N ) {
@@ -501,7 +501,7 @@ void ParticleDataBase3D::add_3d_gaussian_beam_with_emittance( uint32_t N, double
     ParticleP3D x;
     x[0] = 0.0;
     x[1] = x0;
-    x[2] = sqrt(2.0*Ex/m);
+    x[2] = sqrt(2.0*Ex*CHARGE_E/m);
 
     uint32_t n = 0;
     while( n < N ) {

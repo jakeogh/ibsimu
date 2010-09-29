@@ -8,6 +8,9 @@ IBSimu 1.0.3
 - Moved verbose setting to IBSimu class, where all global 
   settings are to be gathered.
 - Bugfix for errnous virtual potential point on the simulation boundary
+- Bugfix for leaking memory in Newton-Raphson iterator
+- Bugfix for errnous axes in field diagnostic plots
+- Corrected energy units in beam emittance definition functions.
 
 IBSimu 1.0.2							21 Jul 2010
 ---------------------------------------------------------------------------
