@@ -93,12 +93,17 @@ protected:
 
     int            _iteration;   /*!< \brief Iteration number. */
 
+    bool           _nsimp;
+    const ScalarField *_epot;
+    double         _phi_plasma;
+
     /*! \brief Constructor.
      */
     ParticleDataBase()
 	: _threadcount(1), _epsabs(1e-6), _epsrel(1e-6), _polyint(true), _maxsteps(1000), 
 	  _maxt(1e-3), _trajdiv(1), _rhosum(0.0), _end_time(0), _end_step(0), _end_out(0), 
-	  _end_coll(0), _end_baddef(0), _sum_steps(0), _iteration(-1) {
+	  _end_coll(0), _end_baddef(0), _sum_steps(0), _iteration(-1), _nsimp(false), 
+	  _epot(NULL), _phi_plasma(0.0) {
 	_mirror[0] = false;
 	_mirror[1] = false;
 	_mirror[2] = false;
@@ -137,6 +142,12 @@ public:
     void set_accuracy( double epsabs, double epsrel ) {
 	_epsabs = epsabs;
 	_epsrel = epsrel;
+    }
+
+    void enable_nsimp_plasma_threshold( const ScalarField *epot, double phi_plasma ) {
+	_nsimp = true;
+	_epot = epot;
+	_phi_plasma = phi_plasma;
     }
 
     /*! \brief Set the interpolation type to polynomial(true) or linear(false).
@@ -616,6 +627,8 @@ public:
 	    iterators.push_back( new ParticleIterator<PP>( _epsabs, _epsrel, _polyint, _maxsteps, 
 							   _maxt, _trajdiv, _mirror, schmap[a], 
 							   &efield, &bfield, &g, &_particles[0] ) );
+	    if( _nsimp )
+		iterators[a]->enable_nsimp_plasma_threshold( _epot, _phi_plasma );
 	}
 
 	// Make Scheduler

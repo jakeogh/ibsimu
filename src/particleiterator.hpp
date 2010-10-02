@@ -817,6 +817,14 @@ public:
     }
 
 
+    /*! \brief Enable plasma threshold model for NSIMP plasma model.
+     */
+    void enable_nsimp_plasma_threshold( const ScalarField *epot, double phi_plasma ) {
+	_pidata._epot = epot;
+	_pidata._phi_plasma = phi_plasma;
+    }
+
+
     /*! \brief Get particle iterator statistics.
      *
      *  Returns statistics in variables \a end_time, \a end_step, \a

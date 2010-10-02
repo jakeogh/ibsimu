@@ -6,7 +6,7 @@ IBSimu 1.0.3
 
 - Implemented simple negative ion plasma extraction model.
 - Moved verbose setting to IBSimu class, where all global 
-  settings are to be gathered.
+  settings are to be gathered (see COMPATIBILITY).
 - Bugfix for errnous virtual potential point on the simulation boundary
 - Bugfix for leaking memory in Newton-Raphson iterator
 - Bugfix for errnous axes in field diagnostic plots

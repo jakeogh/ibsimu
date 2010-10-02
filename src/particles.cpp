@@ -209,6 +209,11 @@ int ParticleP3D::get_derivatives( double t, const double *x, double *dxdt, void 
 	E = (*pi->_efield)( xc );
     if( pi->_bfield )
 	B = (*pi->_bfield)( xc );
+    if( pi->_epot ) {
+	double phi = (*pi->_epot)( xc );
+	if( phi < pi->_phi_plasma )
+	    B = 0.0;
+    }
 
     /*
     std::cout << "\nget_derivatives query:\n";

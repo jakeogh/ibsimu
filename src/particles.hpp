@@ -749,15 +749,19 @@ typedef Particle<ParticleP3D>  Particle3D;
  */
 struct ParticleIteratorData {
     ScalarField          *_scharge;       /*!< \brief Space charge field or NULL. */
+    const ScalarField    *_epot;          /*!< \brief Electric potential field or NULL. */
     const Efield         *_efield;        /*!< \brief Electric field or NULL. */
     const VectorField    *_bfield;        /*!< \brief Magnetic field or NULL. */
     const Geometry       *_g;             /*!< \brief Geometry. */
     double                _qm;            /*!< \brief Precalculated q/m. */
+    double                _phi_plasma;    /*!< \brief Threshold for plasma area. Used 
+					   *   for bfield suppression in negative ion 
+					   *   plasma extraction model. */
 
     ParticleIteratorData( ScalarField *scharge, const Efield *efield, 
 			  const VectorField *bfield, const Geometry *g )
-	: _scharge(scharge), _efield(efield), _bfield(bfield), 
-	  _g(g), _qm(0.0) {}
+	: _scharge(scharge), _epot(NULL), _efield(efield), _bfield(bfield), 
+	  _g(g), _qm(0.0), _phi_plasma(0.0) {}
 };
 
 

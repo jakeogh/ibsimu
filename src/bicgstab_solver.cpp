@@ -64,7 +64,7 @@ BiCGSTABSolver::BiCGSTABSolver( double eps, uint32_t imax,
 
 void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 {
-    int imax;
+    uint32_t imax;
     double eps;
     Timer t;
     if( p.linear() ) {
@@ -92,8 +92,8 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 	if( ibsimu.get_verbose_output() )
 	    std::cout << "  Using Newton-Raphson ILU0-BiCGSTAB solver\n";
 
-	int32_t a;
-	int imax_sum = 0;
+	uint32_t a;
+	uint32_t imax_sum = 0;
 	const Matrix *J;
 	const Vector *R;
 	double accR = 0.0, accX = 0.0;

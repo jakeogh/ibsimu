@@ -133,6 +133,20 @@ public:
 	return( false ); 
     }
 
+    Vec3D &operator=( const Vec3D &x ) { 
+	p[0] = x[0];
+	p[1] = x[1];
+	p[2] = x[2];
+	return( *this );
+    }
+
+    Vec3D &operator=( const double &x ) { 
+	p[0] = x;
+	p[1] = x;
+	p[2] = x;
+	return( *this );
+    }
+
     /*! \brief Normalize vector
      */
     void normalize() {

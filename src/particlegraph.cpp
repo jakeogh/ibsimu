@@ -275,8 +275,8 @@ void ParticleGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double ra
 	    _pdb.trajectory_point( t, loc, vel, a, b );
 	    double x[5] = { loc(_vb[0]), loc(_vb[1]), 
 			    vel(_vb[0]), vel(_vb[1]), t };
-	    //draw_linear( cm, lc, x, b == 0 );
-	    draw_curve( cm, lc, x, b == 0 );
+	    draw_linear( cm, lc, x, b == 0 );
+	    //draw_curve( cm, lc, x, b == 0 );
 	}
 	cairo_stroke( cairo );
     }
