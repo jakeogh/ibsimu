@@ -46,7 +46,7 @@
 #include <iomanip>
 
 
-#define DEBUG_PARTICLE_DERIVATIVES 1
+//#define DEBUG_PARTICLE_DERIVATIVES 1
 
 
 int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void *data )

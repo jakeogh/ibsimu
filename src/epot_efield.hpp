@@ -105,6 +105,9 @@ public:
      *  The use of EFIELD_MIRROR in case of symmetric cases, where
      *  beam is traversing next to the geometry boundary, is necessary
      *  to get physical results.
+     *
+     *  Very far (double the size of the simulation box) the field
+     *  evaluator will always return zero.
      */
     void set_extrapolation( efield_extrpl_e extrpl[6] ) {
 	memcpy( _extrpl, extrpl, 6*sizeof(efield_extrpl_e) );

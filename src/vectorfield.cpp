@@ -707,6 +707,13 @@ Vec3D VectorField::operator()( Vec3D x ) const
 	    break;
 	}
 
+	// Limit to double the simulation box -> return zero
+	if( x[0] < _origo[0]-_size[0]*_h ) {
+	    break;
+	} else if( x[0] > _origo[0]+2.0*_size[0]*_h ) {
+	    break;
+	}
+
 	// Linear approximation
 	int32_t i = (int32_t)floor( (x[0]-_origo[0])*_div_h );
 	if( i < 0 )
@@ -728,6 +735,17 @@ Vec3D VectorField::operator()( Vec3D x ) const
     {
 	int32_t i, j, di, dj;
 	double t, u;
+
+	// Limit to double the simulation box -> return zero
+	if( x[0] < _origo[0]-_size[0]*_h ) {
+	    break;
+	} else if( x[0] > _origo[0]+2.0*_size[0]*_h ) {
+	    break;
+	} else if( x[1] < _origo[1]-_size[1]*_h ) {
+	    break;
+	} else if( x[1] > _origo[1]+2.0*_size[1]*_h ) {
+	    break;
+	}
 
 	if( _size[0] == 1 ) {
 	    i  = 0;
@@ -772,6 +790,21 @@ Vec3D VectorField::operator()( Vec3D x ) const
     {
 	int32_t i, j, k, di, dj, dk;
 	double t, u, v;
+
+	// Limit to double the simulation box -> return zero
+	if( x[0] < _origo[0]-_size[0]*_h ) {
+	    break;
+	} else if( x[0] > _origo[0]+2.0*_size[0]*_h ) {
+	    break;
+	} else if( x[1] < _origo[1]-_size[1]*_h ) {
+	    break;
+	} else if( x[1] > _origo[1]+2.0*_size[1]*_h ) {
+	    break;
+	} else if( x[2] < _origo[2]-_size[2]*_h ) {
+	    break;
+	} else if( x[2] > _origo[2]+2.0*_size[2]*_h ) {
+	    break;
+	}
 
 	if( _size[0] == 1 ) {
 	    i  = 0;

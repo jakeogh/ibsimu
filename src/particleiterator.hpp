@@ -2,7 +2,7 @@
  *  \brief Header file for particleiterator.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -59,7 +59,7 @@
 #include "polysolver.hpp"
 
 
-#define DEBUG_PARTICLE_ITERATOR 1
+//#define DEBUG_PARTICLE_ITERATOR 1
 
 
 /*! \brief %Particle iterator class for continuous Vlasov-type iteration.
@@ -609,6 +609,15 @@ template <class PP> class ParticleIterator {
 		scharge_add_from_trajectory( *_pidata._scharge, particle.IQ(), 
 					     _xi, _coldata[a]._x );
 
+#ifdef DEBUG_PARTICLE_ITERATOR
+	    if( particle.get_status() == PARTICLE_OUT ) {
+		std::cout << "  Particle out\n";
+		std::cout << "  x = " << x2 << "\n";
+	    } else if( particle.get_status() == PARTICLE_COLL ) {
+		std::cout << "  Particle collided\n";
+		std::cout << "  x = " << x2 << "\n";
+	    }
+#endif
 	    // Clear coldata and exit if particle collided.
 	    if( particle.get_status() != PARTICLE_OK ) {
 		_coldata.clear();
@@ -801,9 +810,22 @@ public:
 	_system.function  = PP::get_derivatives;
 	_system.dimension = PP::size()-1; // Time is not part of differential equation dimensions
 
+	// Make scale
+	// 2D:  x vx y vy
+	// Cyl: x vx r vr omega
+	// 3D:  x vx y vy z vz
+	double scale_abs[PP::size()-1];
+	for( uint32_t a; a < PP::size()-2; a+=2 ) {
+	    scale_abs[a+0] = 1.0;
+	    scale_abs[a+1] = 1.0e6;
+	}
+	if( _pidata._g->geom_mode() == MODE_CYL )
+	    scale_abs[4] = 1.0;
+
 	// Initialize ODE solver
 	_step    = gsl_odeiv_step_alloc( gsl_odeiv_step_rkck, _system.dimension );
-	_control = gsl_odeiv_control_standard_new( _epsabs, _epsrel, 1.0, 1.0 );
+	//_control = gsl_odeiv_control_standard_new( _epsabs, _epsrel, 1.0, 1.0 );
+	_control = gsl_odeiv_control_scaled_new( _epsabs, _epsrel, 1.0, 1.0, scale_abs, PP::size()-1 );
 	_evolve  = gsl_odeiv_evolve_alloc( _system.dimension );
     }
 
@@ -928,6 +950,8 @@ public:
 
 #ifdef DEBUG_PARTICLE_ITERATOR
 	    std::cout << "\n*** Step ***\n";
+	    std::cout << "  x  = " << x2 << "\n";
+	    std::cout << "  dt = " << dt << " (proposed)\n";
 #endif
 	    
 	    // Take a step.
@@ -962,8 +986,9 @@ public:
 
 #ifdef DEBUG_PARTICLE_ITERATOR
 	    std::cout << "Step accepted from x1 to x2:\n";
-	    std::cout << "  x1: " << x << "\n";
-	    std::cout << "  x2: " << x2 << "\n";
+	    std::cout << "  dt = " << dt << " (taken)\n";
+	    std::cout << "  x1 = " << x << "\n";
+	    std::cout << "  x2 = " << x2 << "\n";
 #endif
 
 	    // Handle collisions and space charge of step.

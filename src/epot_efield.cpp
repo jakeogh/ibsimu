@@ -2,7 +2,7 @@
  *  \brief Source code for epot_efield.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -108,13 +108,17 @@ inline double epot_efield_interpolate_deriv
 Vec3D EpotEfield::operator()( Vec3D x ) const
 {
     Vec3D E;
+    double h = _g.h();
     double inv_h = 1.0/_g.h();
 
     switch( _g.geom_mode() ) {
     case MODE_1D:
     {
 	double sign = -1.0;
-	if( x[0] < _g.origo(0) ) {
+	if( x[0] < _g.origo(0)-_g.size(0)*h ) {
+	    // Outside double the simulation box: return zero
+	    return( E );
+	} else if( x[0] < _g.origo(0) ) {
 	    if( _extrpl[0] == EFIELD_MIRROR ) {
 		sign *= -1.0;
 		x[0]  = 2.0*_g.origo(0) - x[0];
@@ -122,6 +126,9 @@ Vec3D EpotEfield::operator()( Vec3D x ) const
 		// return zero
 		return( E );
 	    }
+	} else if( x[0] > _g.origo(0)+2.0*_g.size(0)*h ) {
+	    // Outside double the simulation box: return zero
+	    return( E );
 	} else if( x[0] > _g.max(0) ) {
 	    if( _extrpl[1] == EFIELD_MIRROR ) {
 		sign *= -1.0;
@@ -157,7 +164,10 @@ Vec3D EpotEfield::operator()( Vec3D x ) const
     {
 	double sign[2] = {-1.0, -1.0};
 	for( int a = 0; a < 2; a++ ) {
-	    if( x[a] < _g.origo(a) ) {
+	    if( x[a] < _g.origo(a)-_g.size(a)*h ) {
+		// Outside double the simulation box: return zero
+		return( E );
+	    } else if( x[a] < _g.origo(a) ) {
 		if( _extrpl[2*a] == EFIELD_MIRROR ) {
 		    sign[a] *= -1.0;
 		    x[a]     = 2.0*_g.origo(a) - x[a];
@@ -165,6 +175,9 @@ Vec3D EpotEfield::operator()( Vec3D x ) const
 		    // return zero
 		    return( E );
 		}
+	    } else if( x[a] > _g.origo(a)+2.0*_g.size(a)*h ) {
+		// Outside double the simulation box: return zero
+		return( E );
 	    } else if( x[0] > _g.max(0) ) {
 		if( _extrpl[2*a+1] == EFIELD_MIRROR ) {
 		    sign[a] *= -1.0;
@@ -245,7 +258,10 @@ Vec3D EpotEfield::operator()( Vec3D x ) const
     {
 	double sign[3] = {-1.0, -1.0, -1.0};
 	for( int a = 0; a < 3; a++ ) {
-	    if( x[a] < _g.origo(a) ) {
+	    if( x[a] < _g.origo(a)-_g.size(a)*h ) {
+		// Outside double the simulation box: return zero
+		return( E );
+	    } else if( x[a] < _g.origo(a) ) {
 		if( _extrpl[2*a] == EFIELD_MIRROR ) {
 		    sign[a] *= -1.0;
 		    x[a]     = 2.0*_g.origo(a) - x[a];
@@ -253,6 +269,9 @@ Vec3D EpotEfield::operator()( Vec3D x ) const
 		    // return zero
 		    return( E );
 		}
+	    } else if( x[a] > _g.origo(a)+2.0*_g.size(a)*h ) {
+		// Outside double the simulation box: return zero
+		return( E );
 	    } else if( x[0] > _g.max(0) ) {
 		if( _extrpl[2*a+1] == EFIELD_MIRROR ) {
 		    sign[a] *= -1.0;
