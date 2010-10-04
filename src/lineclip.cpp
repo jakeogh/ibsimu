@@ -2,7 +2,7 @@
  *  \brief Source code for lineclip.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -41,6 +41,8 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <iostream>
 #include <math.h>
 #include <limits>
 #include "lineclip.hpp"
@@ -51,6 +53,9 @@
 #define OP_MOVE 1
 #define OP_NULL 2
 
+
+//#define LINECLIP_DEBUG
+//extern int ppdbg;
 
 LineClip::LineClip( cairo_t *dc )
 {
@@ -128,8 +133,7 @@ void LineClip::reset()
 }
 
 
-int LineClip::outcode
-( double x, double y )
+int LineClip::outcode( double x, double y )
 {
     int outcode = 0;
 
@@ -146,8 +150,7 @@ int LineClip::outcode
 }
 
 
-int LineClip::exit_outcode
-( double x, double y )
+int LineClip::exit_outcode( double x, double y )
 {
     int outcode = 0;
 
@@ -164,8 +167,7 @@ int LineClip::exit_outcode
 }
 
 
-void LineClip::move_to
-( double x, double y )
+void LineClip::move_to( double x, double y )
 {
     drawn_outcode = 0;
 
@@ -209,8 +211,7 @@ void LineClip::move_to
 
 
 
-void LineClip::line_to
-( double x, double y )
+void LineClip::line_to( double x, double y )
 {
     int outcodeout;
     int outcode1_orig;
@@ -226,41 +227,65 @@ void LineClip::line_to
     y2 = y;
     outcode2_orig = outcode2 = outcode( x, y );
 
-    //printf( "Line to %d: (%g, %g)\n", outcode2_orig, x, y );
-
-    //printf( "Start: (%lf,%lf) to (%lf,%lf)\n", x1, y1, x2, y2 );
+    //if( ppdbg ) {
+    //	std::cout << "\n-------------------------------\nline_to() started\n";
+    //	std::cout << "Line from " << outcode1_orig << ": (" << x1 << ", " << y1 << ")\n";
+    //	std::cout << "Line to   " << outcode2_orig << ": (" << x2 << ", " << y2 << ")\n";
+    //	std::cout << "clip[0] = " << clip[0] << ", " << "clip[1] = " << clip[1] << "\n";
+    //	std::cout << "clip[2] = " << clip[2] << ", " << "clip[3] = " << clip[3] << "\n";
+    //  }
   
     /* Do line clipping iteration */
     while( 1 ) {
-	if( (outcode1 | outcode2) == 0 )
+
+	//if( ppdbg )
+	//    std::cout << "\nClipping loop\n";
+
+	if( (outcode1 | outcode2) == 0 ) {
 	    /* Trivial inside */
+	    //if( ppdbg )
+	    //std::cout << "Trivial inside\n";
 	    break;
-	else if( (outcode1 & outcode2) != 0 )
+	} else if( (outcode1 & outcode2) != 0 ) {
 	    /* Trivial outside */
+	    //if( ppdbg )
+	    //std::cout << "Trivial outside\n";
 	    break;
-	else {
+	} else {
 	    /* Non-trivial case, at least one point outside clip region, do
 	     * iteration */
+	    //if( ppdbg )
+	    //std::cout << "Nontrivial case\n";
+	    
 	    if( outcode1 != 0 ) outcodeout = outcode1;
 	    else outcodeout = outcode2;
 
 	    if( (outcodeout & 8) == 8 ) {
 		/* Divide line at top of clip area */
-		xt = x1 + (x2 - x1)*(clip[3] - y1)/(y2 - y1);
+		double tt = (clip[3] - y1)/(y2 - y1);
+		xt = x2*tt + x1*(1.0-tt);
 		yt = clip[3];
 	    } else if( (outcodeout & 4) == 4 ) {
 		/* Divide line at bottom of clip area */
-		xt = x1 + (x2 - x1)*(clip[1] - y1)/(y2 - y1);
+		double tt = (clip[1] - y1)/(y2 - y1);
+		xt = x2*tt + x1*(1.0-tt);
 		yt = clip[1];
 	    } else if( (outcodeout & 2) == 2 ) {
 		/* Divide line at right of clip area */
-		yt = y1 + (y2 - y1)*(clip[2] - x1)/(x2 - x1);
+		double tt = (clip[2] - x1)/(x2 - x1);
+		yt = y2*tt + y1*(1.0-tt);
 		xt = clip[2];
 	    } else {
 		/* Divide line at left of clip area */
-		yt = y1 + (y2 - y1)*(clip[0] - x1)/(x2 - x1);
+		double tt = (clip[0] - x1)/(x2 - x1);
+		yt = y2*tt + y1*(1.0-tt);
 		xt = clip[0];
 	    }
+
+	    //if( ppdbg ) {
+	    //std::cout << "xt = " << xt << "\n";
+	    //std::cout << "yt = " << yt << "\n";
+	    //}
 
 	    /* Make outside point equal to the intersection point and redo
 	     * clipping for this new point */
@@ -276,9 +301,16 @@ void LineClip::line_to
 	}
     }
 
+    //if( ppdbg ) {
+    //std::cout << "Processed data:\n";
+    //std::cout << "Line from " << outcode1 << ": (" << x1 << ", " << y1 << ")\n";
+    //std::cout << "Line to   " << outcode2 << ": (" << x2 << ", " << y2 << ")\n";
+    //}
+
     /* Process different cases */
     if( (outcode1_orig | outcode2_orig) == 0 ) {
 	/* From inside to inside *************************************************** */
+	//if( ppdbg )
 	//printf( "Inside to inside\n" );
 	if( last_op == OP_MOVE )
 	    cairo_move_to( p_dc, x1, y1 );
@@ -286,6 +318,7 @@ void LineClip::line_to
 
     } else if( outcode1_orig == 0 ) {
 	/* From inside to outside ************************************************** */
+	//if( ppdbg )
 	//printf( "Inside to outside\n" );
 	if( last_op == OP_MOVE )
 	    cairo_move_to( p_dc, x1, y1 );
@@ -296,18 +329,22 @@ void LineClip::line_to
 
     } else if( outcode2_orig == 0 || (outcode1 | outcode2) == 0 ) {
 	/* From outside to inside or outside to outside, through inside ************ */
+	//if( ppdbg )
 	//printf( "Outside to inside\n" );
 	if( last_op == OP_MOVE ) {
 	    cairo_move_to( p_dc, x1, y1 );
 	    cairo_line_to( p_dc, x2, y2 );
 	} else {
+	    //if( ppdbg ) {
 	    //printf( "drawn_outcode = %d\n", drawn_outcode );
 	    //printf( "exit_outcode = %d\n", exit_outcode( x1, y1 ) );
+	    //}
 	    if( drawn_outcode &&
 		(drawn_outcode & exit_outcode( x1, y1 )) == 0 ) {
 		/* No common edge with last drawn and first to be drawn ->
 		 * needs two connecting lines */
-		//printf( "Here\n" );
+		//if( ppdbg )
+		//printf( "Going around a corner\n" );
 		outcodeout = exit_outcode( x1, y1 );
 		if( AROUND_5( drawn_outcode, outcodeout ) )
 		    cairo_line_to( p_dc, clip[0], clip[1] );
@@ -323,6 +360,7 @@ void LineClip::line_to
 		    //throw( int(1) );
 		}
 	    }
+	    //if( ppdbg )
 	    //printf( "Line: (%g, %g) to (%g, %g)\n", x1, y1, x2, y2 );
 	    cairo_line_to( p_dc, x1, y1 );
 	    cairo_line_to( p_dc, x2, y2 );
@@ -337,7 +375,8 @@ void LineClip::line_to
 
     } else {
 	/* Outside only ************************************************************ */
-	//printf( "Outside only\n" );
+	//if( ppdbg ) 
+	//std::cout << "Outside only\n";
 
 	if( last_op == OP_MOVE ) {
 	    /* Start drawing at border */
@@ -373,7 +412,9 @@ void LineClip::line_to
 	    last_outcode = drawn_outcode = outcode1_orig;
 	}
 
+	//if( ppdbg ) 
 	//printf( "%d to %d\n", drawn_outcode, outcode2_orig );
+
 	if( (drawn_outcode & outcode2_orig) == 0 ) {
 	    /* No common edge with last drawn and last point of this line ->
 	     * draw line to common corner */
@@ -435,7 +476,7 @@ void LineClip::line_to
 			}
 		    }
 		}
-	
+		
 	    } else {
 		/* Going around a corner (not across) */
 
@@ -466,6 +507,8 @@ void LineClip::line_to
 	    drawn[0] = xt;
 	    drawn[1] = yt;
 	    drawn_outcode = outcodeout;
+
+	    //if( ppdbg ) 
 	    //printf( "Connected to corner at %d: (%g, %g)\n", outcodeout, xt, yt );
 	}
     }
@@ -479,8 +522,7 @@ void LineClip::line_to
 
 
 /* Save a point at t (t=[0,1]) on cubic Bezier curve to array coords. */
-void LineClip::get_point
-( double *coords, double t,
+    void LineClip::get_point( double *coords, double t,
   double x0, double y0,
   double x1, double y1,
   double x2, double y2,

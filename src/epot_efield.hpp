@@ -2,7 +2,7 @@
  *  \brief Header file for epot_efield.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -63,11 +63,11 @@ enum efield_extrpl_e {
  *  %EpotEfield contains pointers to Geometry and to ScalarField
  *  electric potential (epot). In 1D %EpotEfield uses three closest
  *  mesh neighbours of point \a x to calculate the electric field at
- *  \a x (9 points in 2D and 27 points in 3D).  A second order
- *  polynomial is fitted to these points to get a linear (continuous)
- *  interpolation of electric field. Use of solid mesh points is
- *  avoided in the interpolation because they would mess with the
- *  virtual edge points.
+ *  \a x in 1D (9 points in 2D and 27 points in 3D).  A second order
+ *  polynomial is fitted to the potential field to get a linear
+ *  (continuous) interpolation of electric field. Use of solid mesh
+ *  points is avoided in the interpolation because they would mess
+ *  with the virtual edge points.
  *
  *  The behaviour of the interpolation function outside mesh points
  *  can be programmed with set_extrapolation() function. Behaviour

@@ -143,7 +143,7 @@ void ParticleGraph::draw_curve( const Coordmapper *cm, LineClip &lc,
     double By = 3.0*(x[1]-_ox[1]) - (2.0*_ox[3]+x[3])*dt;
     double Cy = _ox[3]*dt;
     double Dy = _ox[1];
-    
+
     // Fill database with three points
     size_t coord_N = 3;
     cm->transform( &_coord[0], &_ox[0] );
@@ -173,11 +173,11 @@ void ParticleGraph::draw_curve( const Coordmapper *cm, LineClip &lc,
 		maxerr = err;
 	}
 	
-	//std::cout << "maxerr = " << std::setw(8) << maxerr << "\n";
-
 	// If maximum error is less than 2.5 pixels, it is good enough
-	if( maxerr < 2.5 )
+	// Or if number of coordinates is 33 or more
+	if( maxerr < 2.5 || coord_N >= 33 ) {
 	    break;
+	}
 
 	// Add more points
 	coord_N += coord_N-1;
@@ -275,8 +275,8 @@ void ParticleGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double ra
 	    _pdb.trajectory_point( t, loc, vel, a, b );
 	    double x[5] = { loc(_vb[0]), loc(_vb[1]), 
 			    vel(_vb[0]), vel(_vb[1]), t };
-	    draw_linear( cm, lc, x, b == 0 );
-	    //draw_curve( cm, lc, x, b == 0 );
+	    //draw_linear( cm, lc, x, b == 0 );
+	    draw_curve( cm, lc, x, b == 0 );
 	}
 	cairo_stroke( cairo );
     }

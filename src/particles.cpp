@@ -46,7 +46,7 @@
 #include <iomanip>
 
 
-//#define DEBUG_PARTICLE_DERIVATIVES 1
+#define DEBUG_PARTICLE_DERIVATIVES 1
 
 
 int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void *data )
@@ -58,8 +58,9 @@ int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void 
 	E = (*pi->_efield)( xc );
     if( pi->_bfield )
 	B = (*pi->_bfield)( xc );
-    //std::cout << "E=(" << E << ") at x=(" << xc << ")\n";
-    
+#ifdef DEBUG_PARTICLE_DERIVATIVES
+    std::cout << "E=(" << E << ") at x=(" << xc << ")\n";
+#endif
     /* Positions: dx/dt = vx, dy/dt = vy */
     dxdt[0] = x[1];
     dxdt[2] = x[3];
@@ -205,45 +206,55 @@ int ParticleP3D::get_derivatives( double t, const double *x, double *dxdt, void 
     Vec3D E, B, xc( x[0], x[2], x[4] );
     ParticleIteratorData *pi = (ParticleIteratorData *)data;
 
+#ifdef DEBUG_PARTICLE_DERIVATIVES
+    std::cout << "Particle get_derivatives query\n";
+    std::cout << "  t    = " << t << "\n";    
+    std::cout << "  x    = " 
+	      << std::setw(12) << x[0] << " " 
+	      << std::setw(12) << x[1] << " " 
+	      << std::setw(12) << x[2] << " " 
+	      << std::setw(12) << x[3] << " " 
+	      << std::setw(12) << x[4] << " "
+	      << std::setw(12) << x[5] << "\n";
+#endif
+
     if( pi->_efield )
 	E = (*pi->_efield)( xc );
     if( pi->_bfield )
 	B = (*pi->_bfield)( xc );
     if( pi->_epot ) {
 	double phi = (*pi->_epot)( xc );
+#ifdef DEBUG_PARTICLE_DERIVATIVES
+	std::cout << "  phi  = " << phi << "\n";
+#endif
 	if( phi < pi->_phi_plasma )
 	    B = 0.0;
     }
 
-    /*
-    std::cout << "\nget_derivatives query:\n";
-    std::cout << "t=" << t << "\n";
-    std::cout << "x=(" << xc << ")\n";
-    std::cout << "E=(" << E << ")\n";
-    std::cout << "B=(" << B << ")\n";
-    std::cout << "qm= " << pi->_qm << "\n";    
-    */
+#ifdef DEBUG_PARTICLE_DERIVATIVES
+    std::cout << "  E    = " << E << "\n";
+    std::cout << "  B    = " << B << "\n";
+    std::cout << "  qm   = " << pi->_qm << "\n";    
+#endif
 
     /* Positions: dx/dt = vx, dy/dt = vy, dz/dt = vz */
     dxdt[0] = x[1];
     dxdt[2] = x[3];
     dxdt[4] = x[5];
     
-    /* Velocities:
-     * dvx/dt = ax
-     * dvy/dt = ay
-     * dvz/dt = az
-     */
+    /* Velocities: dvx/dt = ax, dvy/dt = ay, dvz/dt = az */
     dxdt[1] = pi->_qm * (E[0] + x[3]*B[2] - x[5]*B[1]);
     dxdt[3] = pi->_qm * (E[1] + x[5]*B[0] - x[1]*B[2]);
     dxdt[5] = pi->_qm * (E[2] + x[1]*B[1] - x[3]*B[0]);
     
-    //std::cout << "dxdt=(" 
-    //<< dxdt[0] << " "
-    //<< dxdt[1] << " "
-    //<< dxdt[2] << " "
-    //<< dxdt[3] << " "
-    //<< dxdt[4] << ")\n";
+#ifdef DEBUG_PARTICLE_DERIVATIVES
+    std::cout << "  dxdt = " 
+	      << dxdt[0] << " "
+	      << dxdt[1] << " "
+	      << dxdt[2] << " "
+	      << dxdt[3] << " "
+	      << dxdt[4] << "\n";
+#endif
 
     return( GSL_SUCCESS );
 }

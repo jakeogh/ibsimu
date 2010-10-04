@@ -59,7 +59,7 @@
 #include "polysolver.hpp"
 
 
-//#define DEBUG_PARTICLE_ITERATOR 1
+#define DEBUG_PARTICLE_ITERATOR 1
 
 
 /*! \brief %Particle iterator class for continuous Vlasov-type iteration.
@@ -867,11 +867,13 @@ public:
 	// Reset trajectory and save first trajectory point.
 	_traj.clear();
 	_traj.push_back( x );
-	//std::cout << x[0] << " " 
-	//      << x[1] << " " 
-	//      << x[2] << " " 
-	//      << x[3] << " " 
-	//      << x[4] << "\n";
+#ifdef DEBUG_PARTICLE_ITERATOR
+	std::cout << x[0] << " " 
+		  << x[1] << " " 
+		  << x[2] << " " 
+		  << x[3] << " " 
+		  << x[4] << "\n";
+#endif
 	_pidata._qm = particle->qm();
 	_xi = x;
 
@@ -909,7 +911,10 @@ public:
 	spd = _pidata._g->h() / sqrt(spd);
 	acc = sqrt( 2.0*_pidata._g->h() / sqrt(acc) );
 	dt = spd < acc ? spd : acc;
-	//std::cout << "dt = " << dt << "\n";
+
+#ifdef DEBUG_PARTICLE_ITERATOR
+	std::cout << "dt = " << dt << "\n";
+#endif
 	
 #ifdef DEBUG_PARTICLE_ITERATOR
 	std::cout << "*** Starting iteration\n";
