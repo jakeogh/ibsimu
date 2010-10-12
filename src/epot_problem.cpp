@@ -1105,7 +1105,8 @@ void EpotProblem::construct( const Geometry &g )
 		} else if( a >= -6 && a < 0 ) {
 		    // Neumann boundary
 		    add_neumann_node( a, i, j, k, *_fd_mat, *_fd_vec, _n2d );
-		} else if( a == 0 && _plasma == PLASMA_INITIAL && i <= _meniscus_i ) {
+		} else if( _plasma == PLASMA_INITIAL && i <= _meniscus_i && 
+			   (a == 0 || a == -3 || a == -4) ) {
 		    // Initial plasma area (vacuum)
 		    add_initial_plasma( i, j, k, *_fd_mat, *_fd_vec, _n2d );
 		} else if( a == 0 ) {
