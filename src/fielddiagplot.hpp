@@ -171,7 +171,7 @@ public:
 
     /*! \brief Rebuild plot.
      */
-    void build_plot( void );
+    virtual void build_plot( void );
 
 };
 

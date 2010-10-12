@@ -230,26 +230,26 @@ void Frame::set_ranges( PlotAxis axis, double min, double max )
 
     switch( axis ) {
     case PLOT_AXIS_X1:
-	_autorange[0] = autorange_min ? true : false;
-	_autorange[1] = autorange_max ? true : false;
+	_autorange[0] = autorange_min;
+	_autorange[1] = autorange_max;
 	_ruler[0].set_autorange( autorange_min, autorange_max );
 	_ruler[0].set_ranges( min, max );
 	break;
     case PLOT_AXIS_Y1:
-	_autorange[2] = autorange_min ? true : false;
-	_autorange[3] = autorange_max ? true : false;
+	_autorange[2] = autorange_min;
+	_autorange[3] = autorange_max;
 	_ruler[1].set_autorange( autorange_min, autorange_max );
 	_ruler[1].set_ranges( min, max );
 	break;
     case PLOT_AXIS_X2:
-	_autorange[4] = autorange_min ? true : false;
-	_autorange[5] = autorange_max ? true : false;
+	_autorange[4] = autorange_min;
+	_autorange[5] = autorange_max;
 	_ruler[2].set_autorange( autorange_min, autorange_max );
 	_ruler[2].set_ranges( min, max );
 	break;
     case PLOT_AXIS_Y2:
-	_autorange[6] = autorange_min ? true : false;
-	_autorange[7] = autorange_max ? true : false;
+	_autorange[6] = autorange_min;
+	_autorange[7] = autorange_max;
 	_ruler[3].set_autorange( autorange_min, autorange_max );
 	_ruler[3].set_ranges( min, max );
 	break;
@@ -285,6 +285,10 @@ void Frame::get_ranges( PlotAxis axis, double &min, double &max ) const
 void Frame::calculate_autoranging( void )
 {
     double range[8]; // x1min, x1max, y1min, y1max, x2min, x2max, y2min, y2max
+
+#ifdef FRAME_DEBUG
+    std::cout << "\nFRAME::CALCULATE_AUTORANGING()\n\n";
+#endif
 
     for( size_t a = 0; a < 4; a++ ) {
 	range[2*a+0] = std::numeric_limits<double>::infinity();
@@ -325,25 +329,44 @@ void Frame::calculate_autoranging( void )
 	}
     }
 
-    // Set ruler ranges for autoranged axes
+    // Set ruler ranges for autoranged axes and/or adjust ranges to
+    // prevent zero range span
     for( size_t a = 0; a < 4; a++ ) {
 
 	//bool autorange_min, autorange_max;
 	double range_min, range_max;
 	//_ruler[a].get_autorange( autorange_min, autorange_max );
+
+	// Get manually set/previous ranges
 	_ruler[a].get_ranges( range_min, range_max );
+
+	// Set automatic ranges
 	if( _autorange[2*a+0] )
 	    range_min = range[2*a+0];
 	if( _autorange[2*a+1] )
 	    range_max = range[2*a+1];
+
+	// Correct if range span zero
+	if( range_max - range_min == 0.0 ) {
+	    range_max = 1.1*range_max + 1.0e-6;
+	    range_min = 0.9*range_min - 1.0e-6;
+	}
+
+	// Set new ranges
 	_ruler[a].set_ranges( range_min, range_max );
+
+#ifdef FRAME_DEBUG
+	std::cout << "ruler[" << a << "] = {" << range_min << ", " << range_max << "}\n";
+#endif
     }
 }
 
 
 void Frame::calculate_rulers( cairo_t *cairo, bool ruler_tic_bbox_test )
 {
-    //std::cout << "\nFRAME::CALCULATE_RULERS()\n\n";
+#ifdef FRAME_DEBUG
+    std::cout << "\nFRAME::CALCULATE_RULERS()\n\n";
+#endif
 
     // Recalculate enabled rulers
     for( size_t a = 0; a < 4; a++ ) {
@@ -400,7 +423,9 @@ void Frame::force_enable_ruler( PlotAxis axis, bool force )
 
 void Frame::calculate_frame( cairo_t *cairo )
 {
-    //std::cout << "\nFRAME::CALCULATE_FRAME()\n\n";
+#ifdef FRAME_DEBUG
+    std::cout << "\nFRAME::CALCULATE_FRAME()\n\n";
+#endif
 
     // Set initial margins
     _tmargin[0] = _tmargin[1] = _tmargin[2] = _tmargin[3] = 0.0;
@@ -535,11 +560,11 @@ void Frame::calculate_frame( cairo_t *cairo )
 
 void Frame::mirror_rulers( void )
 {
-    //std::cout << "\nFRAME::MIRROR_RULERS()\n\n";
-
     // Set enable/disable and do mirroring of rulers if necessary
 
 #ifdef FRAME_DEBUG
+    std::cout << "\nFRAME::MIRROR_RULERS()\n\n";
+
     for( size_t a = 0; a < 4; a++ ) 
 	std::cout << "_enable[" << a << "] = " << _enable[a] << "\n";
 #endif
@@ -603,7 +628,9 @@ void Frame::mirror_rulers( void )
 
 void Frame::draw_frame( cairo_t *cairo )
 {
-    //std::cout << "\nFRAME::DRAW_FRAME()\n\n";
+#ifdef FRAME_DEBUG
+    std::cout << "\nFRAME::DRAW_FRAME()\n\n";
+#endif
 
     // Draw rulers
     for( size_t a = 0; a < 4; a++ ) {
@@ -623,6 +650,10 @@ void Frame::draw_frame( cairo_t *cairo )
 
 void Frame::draw( cairo_t *cairo )
 {
+#ifdef FRAME_DEBUG
+    std::cout << "\nFRAME::DRAW()\n\n";
+#endif
+
     // Draw background
     cairo_rectangle( cairo, _offx, _offy, _width, _height );
     cairo_set_source_rgba( cairo, _bg[0], _bg[1], _bg[2], _bg[3] );

@@ -201,9 +201,16 @@ class EpotProblem : public Problem {
     bool                _smooth_solid;  /*!< \brief Enable smooth solids. */
 
     plasma_mode_e       _plasma;        /*!< \brief Plasma simulation mode. */
-    double              _rhoc;          /*!< \brief Compensating charge density (C/m3), < 0. */
-    double              _Tc;            /*!< \brief Compensating particle temperature, > 0. */
-    double              _Up;            /*!< \brief Plasma potential, > 0 typically. */
+
+    double              _rhoe;          /*!< \brief Electron charge density (C/m3), < 0. */
+    double              _Te;            /*!< \brief Electron thermal energy, > 0. */
+    double              _Up;            /*!< \brief Plasma potential, > 0. */
+
+    std::vector<double> _rhoi;          /*!< \brief Charge density for positive ions, 
+					 *   first fast protons, then thermal ions */
+    std::vector<double> _Ei;            /*!< \brief Energy for positive ions,
+					 *   first fast protons, then thermal ions */
+
     double              _meniscus_x;    /*!< \brief Initial plasma meniscus x-coordinate. */
     int32_t             _meniscus_i;    /*!< \brief Initial plasma meniscus i-coordinate (calculated). */
 
@@ -269,16 +276,26 @@ public:
      */
     void set_pexp_plasma( double rhoe, double Te, double Up );
 
-    /*! \brief Define initial plasma to negative ion extraction problem.
+    /*! \brief Define initial plasma boundary location to negative ion
+     *  extraction problem.
      */
     void set_nsimp_initial_plasma( double meniscus_x );
 
     /*! \brief Enable plasma model for negative ion extraction problem.
      *
-     *  Set parameters are \a rhop, the space charge density of
-     *  protons and \a Ep, the energy of protons at zero potential.
+     *  The positive (analytic) space charges for the negative ion
+     *  plasma extraction are set using this function. The positive
+     *  ions consist of fast (directed) protons and any number of
+     *  thermal positive ions trapped at the plasma boundary in the
+     *  zero potential.
+     *
+     *  The parameters set are \a rhop, the space charge density of
+     *  protons and \a Ep, the energy of protons at zero
+     *  potential. Vectors \a rhoi and \a Ei are used to set the space
+     *  charge densities and thermal energies of the trapped ions.
      */
-    void set_nsimp_plasma( double rhop, double Ep );
+    void set_nsimp_plasma( double rhop, double Ep, 
+			   std::vector<double> rhoi, std::vector<double> Ei );
 
     /*! \brief Construct matrix form of the problem.
      *

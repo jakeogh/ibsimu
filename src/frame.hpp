@@ -78,20 +78,20 @@ enum PlotAxis {
  *  coordinates to canvas coordinates. Also the plotter can do
  *  numbered tics to the frame and labels for x- and y-axes. Frame x-
  *  and y-ranges can be set and coordinates can be forced to fixed
- *  aspect ratio. Content to the plot is drawn with user defined
- *  drawing function.
+ *  aspect ratio. Content to the plot is drawn with Graph objects,
+ *  which can be inserted and removed into the plot.
  *
- *  Ruler autorange is different from frame/drawable autorange:
- *  - Frame autorange: Frame asks drawables of the range they need 
- *    and sets the ruler range according to drawable requests
+ *  Ruler autorange is different from frame/graph autorange:
+ *  - Frame autorange: Frame asks graph of the range they need 
+ *    and sets the ruler range according to graph requests
  *  - Ruler autorange: Rounds up the set range to the next tic mark.
  *
  */
 class Frame {
 
     struct DObj {
-	PlotAxis        _xaxis;         /*!< \brief X-axis for drawable. */
-	PlotAxis        _yaxis;         /*!< \brief Y-axis for drawable. */
+	PlotAxis        _xaxis;         /*!< \brief X-axis for graph. */
+	PlotAxis        _yaxis;         /*!< \brief Y-axis for graph. */
 	Graph          *_graph;            /*!< \brief Graphs to plot in the frame. */
 
 	DObj( PlotAxis xaxis, PlotAxis yaxis, Graph *graph )
@@ -210,7 +210,7 @@ public:
 
     /*! \brief Force enable ruler for \a axis.
      *
-     *  Normally rulers for axes that are not referenced by drawables
+     *  Normally rulers for axes that are not referenced by graphs
      *  are not shown and mirrored tics from the other ruler are shown
      *  instead. Ruler enable is automatic by default.
      */
@@ -227,7 +227,7 @@ public:
     /*! \brief Set coordinate ranges for axis
      *
      *  Use plus or minus infinite for full autoranging according to
-     *  drawable bounding boxes. Use finite numbers for manual range
+     *  graph bounding boxes. Use finite numbers for manual range
      *  setting.
      */
     void set_ranges( PlotAxis axis, double min, double max );

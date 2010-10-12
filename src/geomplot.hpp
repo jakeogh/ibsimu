@@ -90,6 +90,13 @@ class GeomPlot {
 
 public:
 
+    /*! \brief Constructor for new geometry plot
+     *
+     *  Builds a new geometry plot in the plot frame. Default graph
+     *  (SolidGraph) is added to the plot and view is set as
+     *  XY-view. The default plane of view is the midplane for 3D
+     *  geometries and 0 for others.
+     */
     GeomPlot( Frame *frame, const Geometry *geom );
 
     ~GeomPlot();

@@ -2,7 +2,7 @@
  *  \brief Source code for geomplot.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -66,7 +66,10 @@ GeomPlot::GeomPlot( Frame *frame, const Geometry *geom )
     // Add default drawable (solid geometry)
     _solidgraph = new SolidGraph( *_geom );
     _frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _solidgraph );
-    set_view( VIEW_XY, 0 );
+    if( _geom->geom_mode() == MODE_3D )
+	set_view( VIEW_XY, -1 );
+    else
+	set_view( VIEW_XY, 0 );
 }
 
 

@@ -78,10 +78,16 @@ void test( int *argc, char ***argv )
     fplotter.set_scharge( &scharge );
     fplotter.set_epot( &epot );
     fplotter.set_coordinates( 100, Vec3D(0,0,0), Vec3D(12e-3,0,0) );
+
     field_diag_type_e diag[2] = {FIELDD_DIAG_EPOT, FIELDD_DIAG_NONE};
     field_loc_type_e loc[2] = {FIELDD_LOC_X, FIELDD_LOC_NONE};
     fplotter.set_diagnostic( diag, loc );
     fplotter.plot_png( "fielddiagplot.png" );
+
+    field_diag_type_e diag2[2] = {FIELDD_DIAG_SCHARGE, FIELDD_DIAG_NONE};
+    field_loc_type_e loc2[2] = {FIELDD_LOC_X, FIELDD_LOC_NONE};
+    fplotter.set_diagnostic( diag2, loc2 );
+    fplotter.plot_png( "fielddiagplot2.png" );
 }
 
 

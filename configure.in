@@ -161,8 +161,16 @@ dnl fi
 dnl -------------
 dnl GSL
 
-AC_CHECK_LIB([gslcblas],[cblas_dgemm])
-AC_CHECK_LIB([gsl],[gsl_blas_dgemm])
+if $PKG_CONFIG --exists gsl ; then
+  PKG_CHECK_MODULES(gsl, gsl >= 1.12 )
+else
+  AC_MSG_ERROR([required version of gsl not found])
+fi
+LIBS="$LIBS $gsl_LIBS"
+CPPFLAGS="$CPPFLAGS $gsl_CFLAGS"
+
+dnl AC_CHECK_LIB([gslcblas],[cblas_dgemm])
+dnl AC_CHECK_LIB([gsl],[gsl_blas_dgemm])
 
 dnl -------------
 dnl Time

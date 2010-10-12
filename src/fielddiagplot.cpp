@@ -257,6 +257,13 @@ std::string FieldDiagPlot::diagnostic_label( field_diag_type_e diag ) const
 
 void FieldDiagPlot::build_plot( void )
 {
+    // Remove old graphs
+    _frame->clear_graphs();
+    if( _graph[0] )
+	delete _graph[0];
+    if( _graph[1] )
+	delete _graph[1];
+
     // Build data
     std::vector<double> coord[4];
     std::vector<double> fielddata[2];
@@ -279,7 +286,7 @@ void FieldDiagPlot::build_plot( void )
     PlotAxis xaxis_use = PLOT_AXIS_X1;
     std::vector<double> *datax = NULL;
     for( size_t b = 0; b < 2; b++ ) {
-
+	
 	// Check if xaxis disabled
 	if( _loc[b] == FIELDD_LOC_NONE ) {
 	    //std::cout << "Disabled\n";
@@ -337,8 +344,10 @@ void FieldDiagPlot::build_plot( void )
     for( size_t a = 0; a < 2; a++ ) {
 
 	// Check if there is data for yaxis
-	if( _diag[a] == FIELDD_DIAG_NONE )
+	if( _diag[a] == FIELDD_DIAG_NONE ) {
+	    _graph[a] = NULL;
 	    continue;
+	}
 
 	// Select yaxis accordingly
 	PlotAxis yaxis;

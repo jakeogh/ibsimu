@@ -79,7 +79,7 @@ void EpotProblem::Node2DoF::debug_print( void ) const
 
 EpotProblem::EpotProblem() 
     : _nodecount(0), _dof(0), _fd_mat(0), _fd_vec(0), _neumann_order(2), 
-      _smooth_solid(true), _plasma(PLASMA_NONE), _rhoc(0.0), _Tc(0.0), _Up(0.0), 
+      _smooth_solid(true), _plasma(PLASMA_NONE), _rhoe(0.0), _Te(0.0), _Up(0.0), 
       _meniscus_x(0.0), _meniscus_i(0), _solver(0)
 {
     
@@ -148,8 +148,8 @@ void EpotProblem::set_initial_plasma( double Up, double meniscus_x )
 void EpotProblem::set_pexp_plasma( double rhoe, double Te, double Up )
 {
     _plasma     = PLASMA_PEXP;
-    _rhoc       = -fabs(rhoe); // Ensure correct sign of charge density
-    _Tc         = Te;
+    _rhoe       = -fabs(rhoe); // Ensure correct sign of charge density
+    _Te         = Te;
     _Up         = Up;
     clear_problem();
 }
@@ -165,11 +165,22 @@ void EpotProblem::set_nsimp_initial_plasma( double meniscus_x )
 }
 
 
-void EpotProblem::set_nsimp_plasma( double rhop, double Ep )
+void EpotProblem::set_nsimp_plasma( double rhop, double Ep, 
+				    std::vector<double> rhoi, std::vector<double> Ei )
 {
-    _plasma     = PLASMA_NSIMP;
-    _rhoc       = fabs(rhop);  // Ensure correct sign of charge density
-    _Tc         = Ep;
+    _plasma = PLASMA_NSIMP;
+    _rhoi.clear();
+    _Ei.clear();
+
+    _rhoi.push_back( fabs(rhop) ); // Ensure correct sign of charge density
+    _Ei.push_back( Ep );
+
+    size_t size = rhoi.size() < Ei.size() ? rhoi.size() : Ei.size();
+    for( size_t a = 0; a < size; a++ ) {
+	_rhoi.push_back( fabs(rhoi[a]) ); // Ensure correct sign of charge density
+	_Ei.push_back( Ei[a] );
+    }
+
     clear_problem();
 }
 
@@ -1037,13 +1048,16 @@ void EpotProblem::construct( const Geometry &g )
     } else if( _plasma == PLASMA_PEXP ) {
 	if( ibsimu.get_verbose_output() ) {
 	    std::cout << "  Using exponential plasma model for positive ion extraction\n";
-	    std::cout << "  Te = " << _Tc << " eV, Up = " << _Up 
-		      << " V, rhoe = " << _rhoc << " C/m^3\n";
+	    std::cout << "  Te = " << _Te << " eV, Up = " << _Up 
+		      << " V, rhoe = " << _rhoe << " C/m^3\n";
 	}
     } else if( _plasma == PLASMA_NSIMP ) {
 	if( ibsimu.get_verbose_output() ) {
-	    std::cout << "  Using simple three component plasma model for negative ion extraction\n";
-	    std::cout << "  Ep = " << _Tc << " eV, rhop = " << _rhoc << " C/m^3\n";
+	    std::cout << "  Using negative ion extraction plasma model\n";
+	    std::cout << "  Ep = " << _Ei[0] << " eV, rhop = " << _rhoi[0] << " C/m^3\n";
+	    for( size_t a = 1; a < _Ei.size(); a++ )
+		std::cout << "  Ei[" << a << "] = " << _Ei[a] << " eV, rhop[" 
+			  << a << "] = " << _rhoi[a] << " C/m^3\n";
 	}
     }
 
@@ -1190,18 +1204,15 @@ void EpotProblem::get_vecmat( const Matrix **A, const Vector **B ) const
 }
 
 
-// 2.0/sqrt(pi)
-#define GSCOEF  1.1283791671
+#define GSCOEF  1.12837916709551257390
 
 void EpotProblem::get_resjac( const Matrix **J, const Vector **R, const Vector &X ) const
 {
     // Precalculate coefficients
     double Q, K;
     if( _plasma == PLASMA_PEXP ) {
-	Q = 1.0/_Tc;
-	K = _Up/_Tc;
-    } else if( _plasma == PLASMA_NSIMP ) {
-	Q = -1.0/_Tc;
+	Q = 1.0/_Te;
+	K = _Up/_Te;
     }
 
     // Construct jacobian to _fd_mat2 from general (linear) problem matrix _fd_mat;
@@ -1221,13 +1232,19 @@ void EpotProblem::get_resjac( const Matrix **J, const Vector **R, const Vector &
 		// Vacuum node
 		if( _plasma == PLASMA_PEXP ) {
 		    double Y = exp( Q*X(b) - K );
-		    (*_fd_vec3)(b) -= (*_fd_vec2)(b) - coef*_rhoc*Y;
-		    _fd_mat2->set(b,b) += coef*_rhoc*Q*Y;
+		    (*_fd_vec3)(b) -= (*_fd_vec2)(b) - coef*_rhoe*Y;
+		    _fd_mat2->set(b,b) += coef*_rhoe*Q*Y;
 		} else if( _plasma == PLASMA_NSIMP ) {
-		    double xx = Q*X(b);
-		    double Y = 1.0 + erf( xx );
-		    (*_fd_vec3)(b) -= (*_fd_vec2)(b) - coef*_rhoc*Y;
-		    _fd_mat2->set(b,b) += coef*_rhoc * Q*GSCOEF*exp(-xx*xx);
+		    double xx = X(b)/_Ei[0];
+		    double f = _rhoi[0]*(1.0 + erf( -xx ));
+		    double df = -_rhoi[0] * GSCOEF*exp(-xx*xx)/_Ei[0];
+		    for( size_t a = 1; a < _Ei.size(); a++ ) {
+			xx = exp( -X(b)/_Ei[a] );
+			f += _rhoi[a]*xx;
+			df -= _rhoi[a]*xx/_Ei[a];
+		    }
+		    (*_fd_vec3)(b) -= (*_fd_vec2)(b) - coef*f;
+		    _fd_mat2->set(b,b) += coef*df;
 		} else {
 		    throw( Error( ERROR_LOCATION, "unknown plasma model type" ) );
 		}
@@ -1266,8 +1283,8 @@ void EpotProblem::debug_print( void ) const
     std::cout << "fd_vec = \n" << *_fd_vec << "\n";
     std::cout << "neumann_order = " << _neumann_order << "\n";
     std::cout << "plasma = " << _plasma << "\n";
-    std::cout << "rhoc = " << _rhoc << "\n";
-    std::cout << "Tc = " << _Tc << "\n";
+    std::cout << "rhoe = " << _rhoe << "\n";
+    std::cout << "Tc = " << _Te << "\n";
     std::cout << "Up = " << _Up << "\n";
     std::cout << "meniscus_x = " << _meniscus_x << "\n";
     std::cout << "meniscus_i = " << _meniscus_i << "\n";
