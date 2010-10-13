@@ -136,7 +136,7 @@ void ParticleDiagPlot::build_data( void )
     _tdata = new TrajectoryDiagnosticData;
     _pdb->trajectories_at_plane( *_tdata, _axis, _level, diagnostics );
 
-    // Do data mirroring. Llimited to only one mirroring per
+    // Do data mirroring. Limited to only one mirroring per
     // axis-direction, lower end dominates if both edges have
     // mirroring enabled. No mirroring done if making emittance
     // conversion plot.

@@ -110,7 +110,7 @@ void test( int *argc, char ***argv )
     std::vector<double> eqlines;
     eqlines.push_back( -8.0 );
     eqlines.push_back( -4.0 );
-    eqlines.push_back( 0.0 );
+    eqlines.push_back( 0.01 );
     eqlines.push_back( +4.0 );
     gplotter.set_eqlines_manual( eqlines );
     gplotter.set_particle_database( &pdb );

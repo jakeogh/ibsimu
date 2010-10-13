@@ -281,8 +281,8 @@ public:
      *  function is designed to be used with negative ion plasma
      *  extraction to stabilize plasma close non-physical boundaries.
      */
-    void set_force_potential_volume( double force_pot, 
-				     bool (*force_pot_func)(double,double,double) );
+    void set_forced_potential_volume( double force_pot, 
+				      bool (*force_pot_func)(double,double,double) );
 
     /*! \brief Define initial plasma to the problem.
      */

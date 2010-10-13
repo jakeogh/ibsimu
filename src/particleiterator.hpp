@@ -815,7 +815,7 @@ public:
 	// Cyl: x vx r vr omega
 	// 3D:  x vx y vy z vz
 	double scale_abs[PP::size()-1];
-	for( uint32_t a; a < PP::size()-2; a+=2 ) {
+	for( uint32_t a = 0.0; a < PP::size()-2; a+=2 ) {
 	    scale_abs[a+0] = 1.0;
 	    scale_abs[a+1] = 1.0e6;
 	}

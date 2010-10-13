@@ -136,8 +136,8 @@ void EpotProblem::enable_smooth_solids( bool enable )
 }
 
 
-void EpotProblem::set_force_potential_volume( double force_pot, 
-					      bool (*force_pot_func)(double,double,double) )
+void EpotProblem::set_forced_potential_volume( double force_pot, 
+					       bool (*force_pot_func)(double,double,double) )
 {
     _force_pot = force_pot;
     _force_pot_func = force_pot_func;
@@ -1122,9 +1122,6 @@ void EpotProblem::construct( const Geometry &g )
 		if( _smooth_solid && a < -6 ) { 
 		    // Solid smooth edge
 		    add_solid_edge_node( a, i, j, k, *_fd_mat, *_fd_vec, _n2d );
-		} else if( a >= -6 && a < 0 ) {
-		    // Neumann boundary
-		    add_neumann_node( a, i, j, k, *_fd_mat, *_fd_vec, _n2d );
 		} else if( _plasma == PLASMA_INITIAL && i <= _meniscus_i && 
 			   (a <= 0 && a >= -6) ) {
 		    // Initial plasma area (vacuum or neumann)
@@ -1135,6 +1132,9 @@ void EpotProblem::construct( const Geometry &g )
 					   k*_g->h()+_g->origo(2)) ) {
 		    // Forced potential area (vacuum or neumann)
 		    add_forced_pot( i, j, k, *_fd_mat, *_fd_vec, _n2d );
+		} else if( a >= -6 && a < 0 ) {
+		    // Neumann boundary
+		    add_neumann_node( a, i, j, k, *_fd_mat, *_fd_vec, _n2d );
 		} else if( a == 0 ) {
 		    // Vacuum
 		    add_vacuum_node( i, j, k, *_fd_mat, *_fd_vec, _n2d );
@@ -1252,36 +1252,52 @@ void EpotProblem::get_resjac( const Matrix **J, const Vector **R, const Vector &
     Vector Diag( _dof );
     int32_t a, b;
     double coef = _g->h()*_g->h()/EPSILON0;
-    for( a = 0; a < _nodecount; a++ ) {
-	// For each vacuum node calculate contribution of plasma model to matrix and vector
-	if( (b = _n2d(a)) >= 0 ) {
-	    if( _g->mesh(a) == 0 || (_g->mesh(a) == -3 && _g->geom_mode() == MODE_CYL) ) {
-		// Vacuum node
-		if( _plasma == PLASMA_PEXP ) {
-		    double Y = exp( Q*X(b) - K );
-		    (*_fd_vec3)(b) -= (*_fd_vec2)(b) - coef*_rhoe*Y;
-		    _fd_mat2->set(b,b) += coef*_rhoe*Q*Y;
-		} else if( _plasma == PLASMA_NSIMP ) {
-		    double xx = X(b)/_Ei[0];
-		    double f = _rhoi[0]*(1.0 + erf( -xx ));
-		    double df = -_rhoi[0] * GSCOEF*exp(-xx*xx)/_Ei[0];
-		    for( size_t a = 1; a < _Ei.size(); a++ ) {
-			xx = exp( -X(b)/_Ei[a] );
-			f += _rhoi[a]*xx;
-			df -= _rhoi[a]*xx/_Ei[a];
-		    }
-		    (*_fd_vec3)(b) -= (*_fd_vec2)(b) - coef*f;
-		    _fd_mat2->set(b,b) += coef*df;
-		} else {
-		    throw( Error( ERROR_LOCATION, "unknown plasma model type" ) );
-		}
-	    } else {
-		// Neumann or edge node
-		(*_fd_vec3)(b) -= (*_fd_vec2)(b);
-	    }
-	}	
-    }
 
+    for( int32_t k = 0; k < _g->size(2); k++ ) {
+	for( int32_t j = 0; j < _g->size(1); j++ ) {
+	    for( int32_t i = 0; i < _g->size(0); i++ ) {
+
+		a = i + j*_g->size(0) + k*_g->size(0)*_g->size(1);
+		//for( a = 0; a < _nodecount; a++ ) {
+
+		// For each vacuum node calculate contribution of plasma model to matrix and vector
+		if( (b = _n2d(a)) >= 0 ) {
+		    if( _g->mesh(a) == 0 || (_g->mesh(a) == -3 && _g->geom_mode() == MODE_CYL) ) {
+			
+			if( _force_pot_func != 0 && (_g->mesh(a) <= 0 && _g->mesh(a) >= -6) && 
+			    // Forced potential node
+			    _force_pot_func(i*_g->h()+_g->origo(0),
+					    j*_g->h()+_g->origo(1),
+					    k*_g->h()+_g->origo(2)) ) {
+			    (*_fd_vec3)(b) = 0.0;
+			} else if( _plasma == PLASMA_PEXP ) {
+			    double Y = exp( Q*X(b) - K );
+			    (*_fd_vec3)(b) -= (*_fd_vec2)(b) - coef*_rhoe*Y;
+			    _fd_mat2->set(b,b) += coef*_rhoe*Q*Y;
+			} else if( _plasma == PLASMA_NSIMP ) {
+			    double xx = X(b)/_Ei[0];
+			    double f = _rhoi[0]*(1.0 + erf( -xx ));
+			    double df = -_rhoi[0] * GSCOEF*exp(-xx*xx)/_Ei[0];
+			    for( size_t a = 1; a < _Ei.size(); a++ ) {
+				xx = exp( -X(b)/_Ei[a] );
+				f += _rhoi[a]*xx;
+				df -= _rhoi[a]*xx/_Ei[a];
+			    }
+			    (*_fd_vec3)(b) -= (*_fd_vec2)(b) - coef*f;
+			    _fd_mat2->set(b,b) += coef*df;
+			} else {
+			    throw( Error( ERROR_LOCATION, "unknown plasma model type" ) );
+			}
+		    } else {
+			// Neumann or edge node
+			(*_fd_vec3)(b) -= (*_fd_vec2)(b);
+		    }
+		}
+	
+	    }
+	}
+    }
+    
     *J = _fd_mat2;
     *R = _fd_vec3;
 }
