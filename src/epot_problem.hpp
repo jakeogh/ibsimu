@@ -214,7 +214,10 @@ class EpotProblem : public Problem {
     double              _meniscus_x;    /*!< \brief Initial plasma meniscus x-coordinate. */
     int32_t             _meniscus_i;    /*!< \brief Initial plasma meniscus i-coordinate (calculated). */
 
-    Solver             *_solver;        /*!< \brief Solver for solving problem.. */
+    double              _force_pot;     /*!< \brief Potential to be forced. */
+    bool (*_force_pot_func)(double,double,double); /*!< \brief Force area potential function. */
+
+    Solver             *_solver;        /*!< \brief Solver for solving problem. */
 
 
     void set_link( CRowMatrix &A, Vector &B, 
@@ -222,6 +225,9 @@ class EpotProblem : public Problem {
 
     void add_initial_plasma( int32_t i, int32_t j, int32_t k, 
 			     CRowMatrix &A, Vector &B, Node2DoF &n2d );
+
+    void add_forced_pot( int32_t i, int32_t j, int32_t k, 
+			 CRowMatrix &A, Vector &B, Node2DoF &n2d );
 
     void add_vacuum_node( int32_t i, int32_t j, int32_t k, 
 			  CRowMatrix &A, Vector &B, Node2DoF &n2d );
@@ -267,6 +273,16 @@ public:
      *  Smooth edges are enabled by default.
      */
     void enable_smooth_solids( bool enable );
+
+    /*! \brief Define forced potential volume.
+     *
+     *  Vacuum volume inside the volume defined by function \a
+     *  force_pot_func will be forced to potential \a force_pot. This
+     *  function is designed to be used with negative ion plasma
+     *  extraction to stabilize plasma close non-physical boundaries.
+     */
+    void set_force_potential_volume( double force_pot, 
+				     bool (*force_pot_func)(double,double,double) );
 
     /*! \brief Define initial plasma to the problem.
      */

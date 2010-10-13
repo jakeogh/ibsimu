@@ -80,7 +80,7 @@ void EpotProblem::Node2DoF::debug_print( void ) const
 EpotProblem::EpotProblem() 
     : _nodecount(0), _dof(0), _fd_mat(0), _fd_vec(0), _neumann_order(2), 
       _smooth_solid(true), _plasma(PLASMA_NONE), _rhoe(0.0), _Te(0.0), _Up(0.0), 
-      _meniscus_x(0.0), _meniscus_i(0), _solver(0)
+      _meniscus_x(0.0), _meniscus_i(0), _force_pot(0.0), _force_pot_func(0), _solver(0)
 {
     
 }
@@ -133,6 +133,14 @@ void EpotProblem::enable_smooth_solids( bool enable )
 {
     _smooth_solid = enable;
     clear_problem();
+}
+
+
+void EpotProblem::set_force_potential_volume( double force_pot, 
+					      bool (*force_pot_func)(double,double,double) )
+{
+    _force_pot = force_pot;
+    _force_pot_func = force_pot_func;
 }
 
 
@@ -212,6 +220,18 @@ void EpotProblem::add_initial_plasma( int32_t i, int32_t j, int32_t k,
 {
     set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
     B[n2d(i,j,k)] += _Up;
+}
+
+
+/*! \brief Adds an forced potential node (i,j,k) to the linear system.
+ *
+ *  The node is forced to \a _force_pot.
+ */
+void EpotProblem::add_forced_pot( int32_t i, int32_t j, int32_t k, 
+				  CRowMatrix &A, Vector &B, Node2DoF &n2d )
+{
+    set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
+    B[n2d(i,j,k)] += _force_pot;
 }
 
 
@@ -1106,9 +1126,15 @@ void EpotProblem::construct( const Geometry &g )
 		    // Neumann boundary
 		    add_neumann_node( a, i, j, k, *_fd_mat, *_fd_vec, _n2d );
 		} else if( _plasma == PLASMA_INITIAL && i <= _meniscus_i && 
-			   (a == 0 || a == -3 || a == -4) ) {
-		    // Initial plasma area (vacuum)
+			   (a <= 0 && a >= -6) ) {
+		    // Initial plasma area (vacuum or neumann)
 		    add_initial_plasma( i, j, k, *_fd_mat, *_fd_vec, _n2d );
+		} else if( _force_pot_func != 0 && (a <= 0 && a >= -6) && 
+			   _force_pot_func(i*_g->h()+_g->origo(0),
+					   j*_g->h()+_g->origo(1),
+					   k*_g->h()+_g->origo(2)) ) {
+		    // Forced potential area (vacuum or neumann)
+		    add_forced_pot( i, j, k, *_fd_mat, *_fd_vec, _n2d );
 		} else if( a == 0 ) {
 		    // Vacuum
 		    add_vacuum_node( i, j, k, *_fd_mat, *_fd_vec, _n2d );
@@ -1210,7 +1236,7 @@ void EpotProblem::get_vecmat( const Matrix **A, const Vector **B ) const
 void EpotProblem::get_resjac( const Matrix **J, const Vector **R, const Vector &X ) const
 {
     // Precalculate coefficients
-    double Q, K;
+    double Q = 0.0, K = 0.0;
     if( _plasma == PLASMA_PEXP ) {
 	Q = 1.0/_Te;
 	K = _Up/_Te;
