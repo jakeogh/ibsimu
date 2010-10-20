@@ -1,0 +1,15 @@
+		INCOMPATIBLE LIBRARY CHANGES
+		============================
+
+This document describes those library changes that break end-user
+programs, that is removal or changes of old features or
+functions. This list was started from version 1.0.3.
+
+IBSimu 1.0.3							
+---------------------------------------------------------------------------
+
+Verbosity level is now controlled using IBSimu::set_verbose_output()
+in global ibsimu class instead of the old globally defined integer
+verbose_output. The header file verbose.hpp doesn't exist
+anymore. IBSimu class is defined in ibsimu.h
+
