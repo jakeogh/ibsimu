@@ -480,14 +480,20 @@ void GTKFieldDiagDialog::run( void )
 	// Read coordinates
 	Vec3D x1;
 	Vec3D x2;
+
 	const char *entry_text = gtk_entry_get_text( GTK_ENTRY(entry_x1) );
 	x1[0] = atof(entry_text);
 	entry_text = gtk_entry_get_text( GTK_ENTRY(entry_y1) );
 	x1[1] = atof(entry_text);
+	entry_text = gtk_entry_get_text( GTK_ENTRY(entry_z1) );
+	x1[2] = atof(entry_text);
+
 	entry_text = gtk_entry_get_text( GTK_ENTRY(entry_x2) );
 	x2[0] = atof(entry_text);
 	entry_text = gtk_entry_get_text( GTK_ENTRY(entry_y2) );
 	x2[1] = atof(entry_text);
+	entry_text = gtk_entry_get_text( GTK_ENTRY(entry_z2) );
+	x2[2] = atof(entry_text);
 
 	// Read N
 	size_t N = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(n_spin) );
@@ -576,24 +582,17 @@ void GTKFieldDiagDialog::run( void )
 	std::cout << "d1 = " << loc[0] << "\n";
 	std::cout << "d2 = " << loc[1] << "\n";
 
-	_plotter->new_field_plot_window( N, x1, x2, diag, loc );
+	try {
+	    _plotter->new_field_plot_window( N, x1, x2, diag, loc );
+	} catch( Error e ) {
+	    //GTKErrorDialog error( _window, e );
+	    std::cout << "Error in " << e._loc._file << ":" << e._loc._line 
+		      << " in " << e._loc._func << "(): " << e._error_str << "\n";
+	    std::cout << "Trying to continue\n";
+	}
     }
 
     gtk_widget_destroy( dialog );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

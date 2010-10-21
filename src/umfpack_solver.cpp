@@ -177,7 +177,7 @@ void UMFPACKSolver::solve( const Problem &p, Vector &X )
 		      << std::setw(14) << "Step size" << " " 
 		      << std::setw(14) << "Residual" << "\n";
 
-	for( a = 0; a < _newton_imax; a++ ) {
+	for( a = 0; a < (int)_newton_imax; a++ ) {
 	    // Calculate dX = J^{-1}*R	    
 	    p.get_resjac( &J, &R, X );
 	    CColMatrix Jcol( *J );

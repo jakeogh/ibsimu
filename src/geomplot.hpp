@@ -57,6 +57,9 @@
 #include "fieldgraph.hpp"
 
 
+/*! \brief %Geometry plotter class.
+ *
+ */
 class GeomPlot {
 
     Frame                   *_frame;

@@ -127,7 +127,7 @@ public:
 };
 
 
-/*! \brief Legend for presenting plot styles.
+/*! \brief %Legend for presenting plot styles.
  */
 class MultiEntryLegend {
 
@@ -157,7 +157,7 @@ public:
 };
 
 
-/*! \brief Legend for presenting colormap key.
+/*! \brief %Legend for presenting colormap key.
  */
 class ColormapLegend {
 

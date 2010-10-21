@@ -330,7 +330,7 @@ void GTKWindow::zoom_fit( void )
     _frame.set_ranges( PLOT_AXIS_Y1, min, max );
     //_frame.ruler_autorange_enable( PLOT_AXIS_X1, false, false );
     //_frame.ruler_autorange_enable( PLOT_AXIS_Y1, false, false );
-    
+
     //Redraw and enforce expose
     _frame.draw( _cairo );
     expose( 0, 0, _width, _height );
@@ -366,7 +366,7 @@ void GTKWindow::track( int action, double x, double y )
         gtk_misc_set_alignment( GTK_MISC(_tracklabel), 0.0, 0.0 );
         gtk_label_set_justify( GTK_LABEL(_tracklabel), GTK_JUSTIFY_LEFT );
         gtk_widget_set_size_request( _tracklabel, 300, 150 );
-        
+
         gtk_container_add( GTK_CONTAINER(_trackwindow), _tracklabel );
         g_signal_connect( G_OBJECT(_trackwindow), "delete_event",
                           G_CALLBACK(gtk_true),  // Prevent delete
@@ -824,28 +824,13 @@ void GTKWindow::draw_and_expose( void )
 
 void GTKWindow::hardcopy( void )
 {
-    GTKHardcopy hardcopy( _window, &_frame, _width, _height );
+    Frame hcframe( _frame );
+
+    GTKHardcopy hardcopy( _window, &hcframe, _width, _height );
     hardcopy.run();
 
     // Reset frame settings
-    _frame.set_geometry( _width, _height, 0, 0 );
+    //_frame.set_geometry( _width, _height, 0, 0 );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

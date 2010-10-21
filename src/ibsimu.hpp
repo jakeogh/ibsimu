@@ -45,7 +45,7 @@
 #define IBSIMU_HPP 1
 
 
-/*! \brief Main class for IBSimu.
+/*! \brief Main class for %IBSimu.
  *
  *  Used to store global settings.
  */

@@ -998,7 +998,7 @@ public:
 					   double E, double Tp, double Tt, Vec3D c, 
 					   Vec3D dir1, Vec3D dir2, double r );
 
-    /*! \brief Add a 3d beam with velocities.
+    /*! \brief Add a cylindrical beam with velocities.
      *
      *  Adds a beam consisting of \a N particles. The beam current
      *  density is \a J (A/m^2), charge of beam particles is \a q (in
@@ -1023,6 +1023,30 @@ public:
     void add_cylindrical_beam_with_velocity( uint32_t N, double J, double q, double m, 
 					     double v, double dvp, double dvt, Vec3D c, 
 					     Vec3D dir1, Vec3D dir2, double r );
+
+    /*! \brief Add a rectangular beam with energies.
+     *
+     *  Very much like add_cylindrical_beam_with_energy(), but the
+     *  beam shape is rectangular. The beam size is defined with two
+     *  variables, \a sizex and \a sizey. These sizes are half the
+     *  range, i.e. the beam ranges in the first direction from center
+     *  point - size1 to center point + size1.
+     */
+    void add_rectangular_beam_with_energy( uint32_t N, double J, double q, double m, 
+					   double E, double Tp, double Tt, Vec3D c, 
+					   Vec3D dir1, Vec3D dir2, double size1, double size2 );
+
+    /*! \brief Add a rectangular beam with velocities.
+     *
+     *  Very much like add_cylindrical_beam_with_velocity(), but the
+     *  beam shape is rectangular.  The beam size is defined with two
+     *  variables, \a sizex and \a sizey. These sizes are half the
+     *  range, i.e. the beam ranges in the first direction from center
+     *  point - size1 to center point + size1.
+     */
+    void add_rectangular_beam_with_velocity( uint32_t N, double J, double q, double m, 
+					     double v, double dvp, double dvt, Vec3D c, 
+					     Vec3D dir1, Vec3D dir2, double size1, double size2 );
 
 
     /*! \brief Add a 3d beam with defined KV emittance.

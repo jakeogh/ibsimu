@@ -1,8 +1,8 @@
-/*! \file gtkhardcopy.hpp
- *  \brief Header file for gtkhardcopy.hpp
+/*! \file mydxfheader.hpp
+ *  \brief Header file for mydxfheader.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,86 +40,38 @@
  * permit others to do so.
  */
 
-#ifndef GTKHARDCOPY_HPP
-#define GTKHARDCOPY_HPP 1
+#ifndef MY_DXF_HEADER_HPP
+#define MY_DXF_HEADER_HPP 1
 
 
-#include <gtk/gtk.h>
-#include <png.h>
-#include "frame.hpp"
+#include <stdint.h>
+#include "mydxffile.hpp"
 
 
-
-
-/*! \brief Interactive dialog for producing hardcopies.
+/*! \brief DXF header class.
+ *
+ *  Container for data of a DXF file header. The data currently
+ *  doesn't affect the functioning of the MyDXF library. All settings
+ *  are currently ignored.
  */
-class GTKHardcopy
+class MyDXFHeader
 {
-    GtkWidget        *_window;
-    Frame            *_frame;
-
-    double            _aspect;
-    size_t            _width;
-    size_t            _height;
-
-    GtkWidget        *_spinx;
-    GtkWidget        *_spiny;
-
-    static void spinx_signal( GtkSpinButton *spinbutton,
-			      gpointer object );
-    static void spiny_signal( GtkSpinButton *spinbutton,
-			      gpointer object );
-    static int type_from_extension( const char *filename );
-    static void ensure_extension( std::string &filename, 
-				  const std::string &extension );
-    static void treeview_changed( GtkTreeSelection *selection,
-				  gpointer userdata );
-    
-    void spinx( void );
-    void spiny( void );
-
-    void get_image_size( cairo_surface_t *p_surface, 
-			 int &width, int &height );
-    static void unpremultiply_data( png_structp png, 
-				    png_row_infop row_info, 
-				    png_bytep data );
-    void write_to_png( cairo_surface_t *p_surface, 
-		       int width, int height, 
-		       const char *filename );
-    void write_png( const char *filename );
 
 
-    void write_eps( const char *filename );
 
-
-    void write_svg( const char *filename );
-
-
-    void write_pdf( const char *filename );
 public:
 
-    GTKHardcopy( GtkWidget *window, Frame *frame, size_t width, size_t height );
+    std::string acadver;
+    double angbase;
+    int16_t angdir;
 
-    ~GTKHardcopy();
-
-    void run( void );
+    MyDXFHeader( class MyDXFFile *dxf );
+    ~MyDXFHeader();
 
 };
 
 
+
+
+
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

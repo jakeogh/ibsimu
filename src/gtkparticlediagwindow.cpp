@@ -117,7 +117,7 @@ void *GTKParticleDiagWindow::build_preferences( GtkWidget *notebook )
     hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Bin size n" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    GtkObject *histo_n_adj = gtk_adjustment_new( _plot.get_histogram_n(), 0, 1000, 1, 10, 10 );
+    GtkObject *histo_n_adj = gtk_adjustment_new( _plot.get_histogram_n(), 0, 1000, 1, 10, 0 );
     pdata->histo_n_spin = gtk_spin_button_new( GTK_ADJUSTMENT(histo_n_adj), 1, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), pdata->histo_n_spin, FALSE, TRUE, 0 );
@@ -127,7 +127,7 @@ void *GTKParticleDiagWindow::build_preferences( GtkWidget *notebook )
     hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Bin size m" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    GtkObject *histo_m_adj = gtk_adjustment_new( _plot.get_histogram_m(), 0, 1000, 1, 10, 10 );
+    GtkObject *histo_m_adj = gtk_adjustment_new( _plot.get_histogram_m(), 0, 1000, 1, 10, 0 );
     pdata->histo_m_spin = gtk_spin_button_new( GTK_ADJUSTMENT(histo_m_adj), 1, 0 );
     if( type == 2 )
 	gtk_widget_set_sensitive( pdata->histo_m_spin, false );
@@ -169,7 +169,7 @@ void *GTKParticleDiagWindow::build_preferences( GtkWidget *notebook )
     hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Dot size" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    GtkObject *dot_size_adj = gtk_adjustment_new( _plot.get_dot_size(), 0.1, 10.0, 0.1, 1, 1 );
+    GtkObject *dot_size_adj = gtk_adjustment_new( _plot.get_dot_size(), 0.1, 10.0, 0.1, 1, 0 );
     pdata->dot_size_spin = gtk_spin_button_new( GTK_ADJUSTMENT(dot_size_adj), 0.1, 1 );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), pdata->dot_size_spin, FALSE, TRUE, 0 );

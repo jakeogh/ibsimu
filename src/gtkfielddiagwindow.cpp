@@ -69,7 +69,15 @@ GTKFieldDiagWindow::GTKFieldDiagWindow( GTKPlotter *plotter, const Geometry *geo
 		      G_CALLBACK(menuitem_export_signal),
 		      (gpointer)this );
 
-    _plot.build_plot();
+    try {
+	_plot.build_plot();
+    } catch( Error e ) {
+	// Destroy window
+	gtk_widget_destroy( _window );
+	//plotter->delete_window( this ); Didn't work, still got window and pressing 'X' caused seg fault
+
+	throw e;
+    }
     _frame.get_ranges( PLOT_AXIS_X1, _x1min, _x1max );
     _frame.get_ranges( PLOT_AXIS_X1, _x2min, _x2max );
     show();

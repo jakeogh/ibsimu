@@ -92,7 +92,7 @@ class Frame {
     struct DObj {
 	PlotAxis        _xaxis;         /*!< \brief X-axis for graph. */
 	PlotAxis        _yaxis;         /*!< \brief Y-axis for graph. */
-	Graph          *_graph;            /*!< \brief Graphs to plot in the frame. */
+	Graph          *_graph;         /*!< \brief Graph to plot in the frame. */
 
 	DObj( PlotAxis xaxis, PlotAxis yaxis, Graph *graph )
 	    : _xaxis(xaxis), _yaxis(yaxis), _graph(graph) {}
@@ -185,7 +185,10 @@ public:
 	_fg = fg;
     }
 
-    /*! \brief Get a 2d coordinate mapper for axes.
+    /*! \brief Get a 2d coordinate mapper for selected axes.
+     *
+     *  The returned coordinate mapper is the last mapper used and
+     *  built while drawing a plot.
      */
     Coordmapper get_coordmapper( PlotAxis xaxis, PlotAxis yaxis ) const;
 
@@ -268,7 +271,8 @@ public:
 
     /*! \brief Add graph to frame.
      *
-     *  A pointer to the graph is added to frame. The graph is not freed by frame.
+     *  A pointer to the graph is added to frame. The graph is not
+     *  freed by frame.
      */
     void add_graph( PlotAxis xaxis, PlotAxis yaxis, Graph *drawable );
 

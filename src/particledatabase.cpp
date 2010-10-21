@@ -404,6 +404,84 @@ void ParticleDataBase3D::add_cylindrical_beam_with_energy( uint32_t N, double J,
 }
 
 
+void ParticleDataBase3D::add_rectangular_beam_with_velocity( uint32_t N, double J, double q, double m, 
+							     double v, double dvp, double dvt, Vec3D c, 
+							     Vec3D dir1, Vec3D dir2, double size1, double size2 )
+{
+    if( ibsimu.get_verbose_output() )
+	std::cout << "Defining a rectangular beam\n";
+
+    _particles.reserve( _particles.size()+N );
+
+    // Random number generator for two positions and three velocities (gaussian)
+    QRandom qrng( 5 );
+    bool randmask[5] = {false, false, true, true, true};
+    double qx[5];
+    double px[6];
+
+    m *= MASS_U;
+    q *= CHARGE_E;
+    _rhosum += J/v;
+    double IQ = 4.0*size1*size2*J/N;
+
+    // Calculate and check base vectors
+    Vec3D dir3 = cross( dir1, dir2 );
+    dir2 = cross( dir1, dir3 );
+    dir1.normalize();
+    dir2.normalize();
+    dir3.normalize();
+    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] ) {
+	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
+    }
+
+    // Prepare particle
+    ParticleP3D x;
+    x[0] = 0.0;
+
+    double Isum = 0.0;
+    uint32_t a = 0;
+    while( a < N ) {
+
+	qrng.get_part_gaussian( randmask, qx );
+
+	// Calculate in natural (dir1,dir2,dir3) coordinates
+	px[0] = size1*(2.0*qx[0]-1.0);
+	px[1] = size2*(2.0*qx[1]-1.0);
+	px[2] = 0.0;
+	px[3] = dvt*qx[2];
+	px[4] = dvt*qx[3];
+	px[5] = dvp*qx[4] + v;
+
+	// Map to world coordinates
+	x[1] = dir1[0]*px[0] + dir2[0]*px[1] + dir3[0]*px[2] + c[0];
+	x[2] = dir1[0]*px[3] + dir2[0]*px[4] + dir3[0]*px[5];
+	x[3] = dir1[1]*px[0] + dir2[1]*px[1] + dir3[1]*px[2] + c[1];
+	x[4] = dir1[1]*px[3] + dir2[1]*px[4] + dir3[1]*px[5];
+	x[5] = dir1[2]*px[0] + dir2[2]*px[1] + dir3[2]*px[2] + c[2];
+	x[6] = dir1[2]*px[3] + dir2[2]*px[4] + dir3[2]*px[5];
+
+	_particles.push_back( Particle3D( IQ, q, m, x ) );
+	Isum += IQ;
+	a++;
+    }
+
+    if( ibsimu.get_verbose_output() )
+	std::cout << "  Total beam current " << Isum << " A\n";
+}
+
+
+void ParticleDataBase3D::add_rectangular_beam_with_energy( uint32_t N, double J, double q, double m, 
+							   double E, double Tp, double Tt, Vec3D c, 
+							   Vec3D dir1, Vec3D dir2, double size1, double size2 )
+{
+    add_rectangular_beam_with_velocity( N, J, q, m, 
+					sqrt(2.0*E*CHARGE_E/(m*MASS_U)), 
+					sqrt(Tp*CHARGE_E/(m*MASS_U)),
+					sqrt(Tt*CHARGE_E/(m*MASS_U)),
+					c, dir1, dir2, size1, size2 );
+}
+
+
 void ParticleDataBase3D::add_3d_KV_beam_with_emittance( uint32_t N, double I, double q, double m,
 							double ay, double by, double ey,
 							double az, double bz, double ez,

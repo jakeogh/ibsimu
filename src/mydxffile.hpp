@@ -1,8 +1,8 @@
-/*! \file gtkhardcopy.hpp
- *  \brief Header file for gtkhardcopy.hpp
+/*! \file mydxffile.hpp
+ *  \brief Header file for mydxffile.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,86 +40,69 @@
  * permit others to do so.
  */
 
-#ifndef GTKHARDCOPY_HPP
-#define GTKHARDCOPY_HPP 1
-
-
-#include <gtk/gtk.h>
-#include <png.h>
-#include "frame.hpp"
+#ifndef MY_DXF_FILE_HPP
+#define MY_DXF_FILE_HPP 1
 
 
 
+//#define MYDXF_DEBUG 1
 
-/*! \brief Interactive dialog for producing hardcopies.
+
+
+#include <fstream>
+#include "mydxfheader.hpp"
+#include "mydxfentities.hpp"
+
+
+
+
+/*! \brief DXF file class.
+ *
+ *  This class is a memory representation of a dxf file read from the
+ *  disc.
  */
-class GTKHardcopy
+class MyDXFFile
 {
-    GtkWidget        *_window;
-    Frame            *_frame;
+    std::ifstream _fstr;
+    bool _ascii;
+    int  _linec;
 
-    double            _aspect;
-    size_t            _width;
-    size_t            _height;
+    int          _group_code;
 
-    GtkWidget        *_spinx;
-    GtkWidget        *_spiny;
+    int          _group_type;
+    std::string  _group_string;
+    double       _group_double;
+    bool         _group_bool;
+    int8_t       _group_int8;
+    int16_t      _group_int16;
+    int32_t      _group_int32;
+    int64_t      _group_int64;
 
-    static void spinx_signal( GtkSpinButton *spinbutton,
-			      gpointer object );
-    static void spiny_signal( GtkSpinButton *spinbutton,
-			      gpointer object );
-    static int type_from_extension( const char *filename );
-    static void ensure_extension( std::string &filename, 
-				  const std::string &extension );
-    static void treeview_changed( GtkTreeSelection *selection,
-				  gpointer userdata );
-    
-    void spinx( void );
-    void spiny( void );
-
-    void get_image_size( cairo_surface_t *p_surface, 
-			 int &width, int &height );
-    static void unpremultiply_data( png_structp png, 
-				    png_row_infop row_info, 
-				    png_bytep data );
-    void write_to_png( cairo_surface_t *p_surface, 
-		       int width, int height, 
-		       const char *filename );
-    void write_png( const char *filename );
+    class MyDXFHeader *_header;
+    class MyDXFEntities *_entities;
 
 
-    void write_eps( const char *filename );
-
-
-    void write_svg( const char *filename );
-
-
-    void write_pdf( const char *filename );
 public:
+	
+    MyDXFFile( const std::string &filename );
+    ~MyDXFFile();
 
-    GTKHardcopy( GtkWidget *window, Frame *frame, size_t width, size_t height );
+    int read_group( void );
 
-    ~GTKHardcopy();
+    int group_get_code( void ) const;
 
-    void run( void );
+    std::string group_get_string( void ) const;
+    double group_get_double( void ) const;
+    bool group_get_bool( void ) const;
+    int8_t group_get_int8( void ) const;
+    int16_t group_get_int16( void ) const;
+    int32_t group_get_int32( void ) const;
+    int64_t group_get_int64( void ) const;
 
+    int linec( void ) const { return( _linec ); }
+
+    class MyDXFEntities *get_entities( void ) { return( _entities ); };
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -27,6 +27,8 @@ crowmatrix.cpp \
 crowmatrix.hpp \
 diag_precond.cpp \
 diag_precond.hpp \
+dxf_solid.cpp \
+dxf_solid.hpp \
 efield.hpp \
 empty_precond.hpp \
 epot_efield.cpp \
@@ -110,6 +112,13 @@ meshgraph.cpp \
 meshgraph.hpp \
 mvector.cpp \
 mvector.hpp \
+mydxfentities.cpp \
+mydxfentities.hpp \
+mydxffile.cpp \
+mydxffile.hpp \
+mydxfheader.cpp \
+mydxfheader.hpp \
+mydxfvec.hpp \
 palette.cpp \
 palette.hpp \
 particledatabase.cpp \
@@ -171,6 +180,7 @@ coordmapper.hpp \
 coordmatrix.hpp \
 crowmatrix.hpp \
 diag_precond.hpp \
+dxf_solid.hpp \
 efield.hpp \
 empty_precond.hpp \
 epot_efield.hpp \
@@ -203,6 +213,10 @@ lineclip.hpp \
 matrix.hpp \
 meshgraph.hpp \
 mvector.hpp \
+mydxfentities.hpp \
+mydxffile.hpp \
+mydxfheader.hpp \
+mydxfvec.hpp \
 palette.hpp \
 particledatabase.hpp \
 particlediagplot.hpp \
