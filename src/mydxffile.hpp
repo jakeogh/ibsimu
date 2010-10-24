@@ -59,24 +59,26 @@
 /*! \brief DXF file class.
  *
  *  This class is a memory representation of a dxf file read from the
- *  disc.
+ *  disc. The class can be used to read a dxf file. All supported
+ *  features are saved to the hierarchy, all others are silently
+ *  ignored.
  */
 class MyDXFFile
 {
     std::ifstream _fstr;
-    bool _ascii;
-    int  _linec;
+    bool          _ascii;
+    int           _linec;
 
-    int          _group_code;
+    int           _group_code;
+    int           _group_type;
 
-    int          _group_type;
-    std::string  _group_string;
-    double       _group_double;
-    bool         _group_bool;
-    int8_t       _group_int8;
-    int16_t      _group_int16;
-    int32_t      _group_int32;
-    int64_t      _group_int64;
+    std::string   _group_string;
+    double        _group_double;
+    bool          _group_bool;
+    int8_t        _group_int8;
+    int16_t       _group_int16;
+    int32_t       _group_int32;
+    int64_t       _group_int64;
 
     class MyDXFHeader *_header;
     class MyDXFEntities *_entities;
@@ -84,24 +86,86 @@ class MyDXFFile
 
 public:
 	
+    /*! \brief Construct empty DXF file.
+     */
+    MyDXFFile();
+
+    /*! \brief Construct by reading a DXF file.
+     */
     MyDXFFile( const std::string &filename );
+
+    /*! \brief Destructor.
+     */
     ~MyDXFFile();
 
+    /*! \brief Read next group from open file and return group code.
+     *
+     *  Returns the group code read or -1 on EOF. An error is thrown
+     *  on all other errors.
+     */
     int read_group( void );
 
+    /*! \brief Get code of the last group read.
+     */
     int group_get_code( void ) const;
 
+    /*! \brief Get the value of the last group read assuming it is a string.
+     *
+     *  An error is thrown if group type does not match.
+     */
     std::string group_get_string( void ) const;
+
+    /*! \brief Get the value of the last group read assuming it is a double.
+     *
+     *  An error is thrown if group type does not match.
+     */
     double group_get_double( void ) const;
+
+    /*! \brief Get the value of the last group read assuming it is a bool.
+     *
+     *  An error is thrown if group type does not match.
+     */
     bool group_get_bool( void ) const;
+
+    /*! \brief Get the value of the last group read assuming it is a int8.
+     *
+     *  An error is thrown if group type does not match.
+     */
     int8_t group_get_int8( void ) const;
+
+    /*! \brief Get the value of the last group read assuming it is a int16.
+     *
+     *  An error is thrown if group type does not match.
+     */
     int16_t group_get_int16( void ) const;
+
+    /*! \brief Get the value of the last group read assuming it is a int32.
+     *
+     *  An error is thrown if group type does not match.
+     */
     int32_t group_get_int32( void ) const;
+
+    /*! \brief Get the value of the last group read assuming it is a int64.
+     *
+     *  An error is thrown if group type does not match.
+     */
     int64_t group_get_int64( void ) const;
 
+    /*! \brief Get the current line number in DXF file during read.
+     */
     int linec( void ) const { return( _linec ); }
 
+
+
+
+
+    /*! \brief Get a pointer to the entities of DXF file.
+     */
     class MyDXFEntities *get_entities( void ) { return( _entities ); };
+
+    /*! \brief Get a const pointer to the entities of DXF file.
+     */
+    const class MyDXFEntities *get_entities( void ) const { return( _entities ); };
 };
 
 

@@ -60,7 +60,12 @@ class Palette {
 
 public:
 
-    struct Entry {
+    /*! \brief Palette defining entry.
+     *
+     *  An entry containing color-value pair, which are used for
+     *  defining palettes.
+     */
+   struct Entry {
 	Color  _color; /*!< \brief Entry colors */
 	double _val;   /*!< \brief Entry values. */
 

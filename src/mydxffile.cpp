@@ -5,6 +5,13 @@
 #include "error.hpp"
 
 
+MyDXFFile::MyDXFFile()
+    : _header(0), _entities(0)
+{
+
+}
+
+
 MyDXFFile::MyDXFFile( const std::string &filename )
     : _header(0), _entities(0)
 {
@@ -138,6 +145,9 @@ int MyDXFFile::read_group( void )
 {
     char buf[257];
     char *endptr;
+
+    if( !_fstr.is_open )
+	throw Error( ERROR_LOCATION, "No open file" );
 
     if( _ascii ) {
 
