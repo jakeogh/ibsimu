@@ -2,7 +2,7 @@
  *  \brief Header file for qrandom.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -44,29 +44,88 @@
 #define QRANDOM_HPP 1
 
 
+#include <gsl/gsl_rng.h>
 #include <gsl/gsl_qrng.h>
 #include <gsl/gsl_roots.h>
 
 
-/*! \brief Quasi random number generator for N dimensions.
+/*! \brief Random number generator for N dimensions.
  *
- *  This QRNG can produce quasi random numbers in N independent
- *  dimensions. QRNG includes functions to return uniformly
+ *  This RNG can produce random numbers in N independent
+ *  dimensions. RNG includes functions to return uniformly
  *  distributed numbers between 0 and 1 and numbers from a gaussian
  *  distribution.
  */
-class QRandom {
-    int                 N;        /*!< \brief Number of dimensions for QRNG. */
-    gsl_qrng           *qrng;     /*!< \brief Random number generator from gsl. */
-    gsl_function_fdf    fdf;      /*!< \brief Function to solve for gaussian transformation. */
-    gsl_root_fdfsolver *solver;   /*!< \brief Solver for gaussian transformation. */
+class Random {
 
-    QRandom( const QRandom &qrng ) {}
+    gsl_function_fdf    _fdf;      /*!< \brief Function to solve for gaussian transformation. */
+    gsl_root_fdfsolver *_solver;   /*!< \brief Solver for gaussian transformation. */
+
+    static double rgauss_f_func( double x, void *params );
+    static double rgauss_df_func( double x, void *params );
+    static void rgauss_fdf_func( double x, void *params, double *f, double *df );
+
+protected:
+
+    /*! \brief Constructor.
+     */
+    Random( int n );
+
+    /*! \brief Prevent copying
+     */
+    Random( const Random &rng ) {}
+
+    int                 _N;        /*!< \brief Number of dimensions for RNG. */
 
     /*! \brief Returns number from gaussian distribution, transformed
      *  from uniformly distributed R, where 0 <= R <= 1.
      */
     double transform_gaussian( double R );
+
+public:
+
+    /*! \brief Destructor.
+     */
+    virtual ~Random();
+
+    /*! \brief Get gaussian random numbers.
+     *
+     *  Get next sampling from gaussian quasi random number generator
+     *  to \a x with standard deviation of 1. Array \a x must have
+     *  space for \a N numbers. */
+    virtual void get_gaussian( double *x ) = 0;
+    
+    /*! \brief Get uniform and gaussian random numbers.
+     * 
+     *  Get next sampling from quasi random number generator to \a x
+     *  with dimensions marked (to true) in list gaussian mapped
+     *  to gaussian distribution with standard deviation of 1. Rest of
+     *  the dimensions are linear. Array x must have space for \a N
+     *  numbers. */
+    virtual void get_part_gaussian( bool *gaussian, double *x ) = 0;
+
+    /*! \brief Get uniform random numbers.
+     * 
+     *  Get next sampling from quasi random number generator to \a x.
+     *  Array x must have space for \a N numbers. */
+    virtual void get( double *x ) = 0;
+
+};
+
+
+/*! \brief Quasi random number generator for N dimensions.
+ *
+ *  This QRNG can produce quasi random numbers in N independent
+ *  dimensions using the Sobol sequence from GSL library. QRNG
+ *  includes functions to return uniformly distributed numbers between
+ *  0 and 1 and numbers from a gaussian distribution.
+ */
+class QRandom : public Random {
+    gsl_qrng           *_qrng;     /*!< \brief Random number generator from gsl. */
+
+    /*! \brief Prevent copying
+     */
+    QRandom( const QRandom &qrng ) : Random(qrng) {}
 
 public:
 
@@ -83,7 +142,7 @@ public:
      *  Get next sampling from gaussian quasi random number generator
      *  to \a x with standard deviation of 1. Array \a x must have
      *  space for \a N numbers. */
-    void get_gaussian( double *x );
+    virtual void get_gaussian( double *x );
     
     /*! \brief Get uniform and gaussian random numbers.
      * 
@@ -92,29 +151,63 @@ public:
      *  to gaussian distribution with standard deviation of 1. Rest of
      *  the dimensions are linear. Array x must have space for \a N
      *  numbers. */
-    void get_part_gaussian( bool *gaussian, double *x );
+    virtual void get_part_gaussian( bool *gaussian, double *x );
 
     /*! \brief Get uniform random numbers.
      * 
      *  Get next sampling from quasi random number generator to \a x.
      *  Array x must have space for \a N numbers. */
-    void get( double *x );
+    virtual void get( double *x );
+};
+
+
+/*! \brief Quasi random number generator for N dimensions.
+ *
+ *  This QRNG can produce quasi random numbers in N independent
+ *  dimensions. QRNG includes functions to return uniformly
+ *  distributed numbers between 0 and 1 and numbers from a gaussian
+ *  distribution.
+ */
+class MTRandom : public Random {
+    gsl_rng           *_rng;     /*!< \brief Random number generator from gsl. */
+
+    /*! \brief Prevent copying
+     */
+    MTRandom( const MTRandom &rng ) : Random(rng) {}
+
+public:
+
+    /*! \brief Constructor for QRNG in \a N independent dimensions.
+     */
+    MTRandom( int n );
+
+    /*! \brief Destructor.
+     */
+    ~MTRandom();
+
+    /*! \brief Get gaussian random numbers.
+     *
+     *  Get next sampling from gaussian quasi random number generator
+     *  to \a x with standard deviation of 1. Array \a x must have
+     *  space for \a N numbers. */
+    virtual void get_gaussian( double *x );
+    
+    /*! \brief Get uniform and gaussian random numbers.
+     * 
+     *  Get next sampling from quasi random number generator to \a x
+     *  with dimensions marked (to true) in list gaussian mapped
+     *  to gaussian distribution with standard deviation of 1. Rest of
+     *  the dimensions are linear. Array x must have space for \a N
+     *  numbers. */
+    virtual void get_part_gaussian( bool *gaussian, double *x );
+
+    /*! \brief Get uniform random numbers.
+     * 
+     *  Get next sampling from quasi random number generator to \a x.
+     *  Array x must have space for \a N numbers. */
+    virtual void get( double *x );
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

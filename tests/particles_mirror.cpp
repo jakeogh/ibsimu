@@ -31,20 +31,25 @@ using namespace std;
 
 
 const double ax = -9.64853082148e11;
+double maxerr = 0.0;
+bool err = false;
 
 
 void check_particle( Particle2D &p, double x0, double vx, double y0, double vy )
 {
     for( uint32_t b = 0; b < p.traj_size(); b++ ) {
 	double t = p.traj(b)(0);
+	//std::cout << t << "\n";
 	if( t < 3.21935897726e-7 - 0.1e-7 ) {
 	    double x = x0 + vx * t + 0.5*ax*t*t;
 	    double y = y0 + vy * t;
-	    if( fabs( p.traj(b)(1) - x ) > 1e-5 ||
-		fabs( p.traj(b)(3) - y ) > 1e-5 ) {
-		std::cout << "Error: trajectory differs from theory before mirroring\n";
-		exit( 1 );
-	    }
+	    //std::cout << x << "\t" << y << "\t" << p.traj(b)(1) << "\t" << p.traj(b)(3) << "\n";
+	    double xerr = fabs( p.traj(b)(1) - x );
+	    double yerr = fabs( p.traj(b)(3) - y );
+	    if( xerr > 5e-5 || yerr > 5e-5 )
+		err = true;
+	    //std::cout << "xerr = " << xerr << "\n";
+	    //std::cout << "yerr = " << yerr << "\n";
 	} else if( t > 3.21935897726e-7 + 0.1e-7 ) {
 	    double t2 = 3.21935897726e-7;
 	    double new_x0 = x0 + vx * t2 + 0.5*ax*t2*t2;
@@ -53,15 +58,15 @@ void check_particle( Particle2D &p, double x0, double vx, double y0, double vy )
 	    t = t - t2;
 	    double x = new_x0 + new_vx * t + 0.5*ax*t*t;
 	    double y = new_y0 + vy * t;
-	    if( fabs( p.traj(b)(1) - x ) > 1e-5 ||
-		fabs( p.traj(b)(3) - y ) > 1e-5 ) {
-		std::cout << "Error: trajectory differs from theory after mirroring\n";
-		exit( 1 );
-	    }
-	}
-	    
+	    double xerr = fabs( p.traj(b)(1) - x );
+	    double yerr = fabs( p.traj(b)(3) - y );
+	    //std::cout << x << "\t" << y << "\t" << p.traj(b)(1) << "\t" << p.traj(b)(3) << "\n";
+	    if( xerr > 5e-5 || yerr > 5e-5 ) 
+		err = true;
+	    //std::cout << "xerr = " << xerr << "\n";
+	    //std::cout << "yerr = " << yerr << "\n";
+	}	    
     }
-
 }
 
 
@@ -106,6 +111,11 @@ void test( void )
     geomplotter.set_epot( &epot );
     geomplotter.set_particle_database( &pdb );
     geomplotter.plot_png( "particles_mirror.png" );
+
+    if( err ) {
+	std::cout << "Error: trajectory differs from theory before mirroring\n";
+	exit( 1 );
+    }
 }
 
 

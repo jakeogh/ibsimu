@@ -25,12 +25,12 @@ void test( void )
     CRowMatrix mat;
     HBIO hb;
     double x, w;
-    int imax[4];
+    uint32_t imax[4];
     double eps[4];
     bool failed = false;
 
-    char *srcdir = getenv( "srcdir" );
-    char *srcdir_default = ".";
+    const char *srcdir = getenv( "srcdir" );
+    const char *srcdir_default = ".";
     if( srcdir == NULL )
 	srcdir = srcdir_default;
     string filename = to_string(srcdir) + "/matrixsolver.hb";

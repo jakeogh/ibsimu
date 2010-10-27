@@ -94,7 +94,7 @@ public:
 
     /*! \brief Set entity handle.
      */
-    void set_handle( const std::string &layer ) { _handle = handle; }
+    void set_handle( const std::string &handle ) { _handle = handle; }
 
     /*! \brief Get entity handle.
      */

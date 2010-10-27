@@ -48,10 +48,10 @@
 
 
 GSSolver::GSSolver( double w,
-		    double eps, int imax,
+		    double eps, uint32_t imax,
 		    double newton_Reps, 
 		    double newton_dXeps, 
-		    int newton_imax )
+		    uint32_t newton_imax )
     : _eps(eps), _imax(imax), _w(w), _newton_Reps(newton_Reps), 
       _newton_dXeps(newton_dXeps), _newton_imax(newton_imax)
 {
@@ -62,7 +62,7 @@ GSSolver::GSSolver( double w,
 
 void GSSolver::solve( const Problem &p, Vector &X )
 {
-    int imax;
+    uint32_t imax;
     double eps;
     Timer t;
     if( p.linear() ) {
@@ -99,14 +99,14 @@ void GSSolver::reset( void )
 
 
 bool GSSolver::gauss_seidel( const CRowMatrix &mat, const Vector &rhs, Vector &sol,
-			     int &imax, double &eps, double w )
+			     uint32_t &imax, double &eps, double w )
 {
-    int i;          /* Number of iterations */
-    int j, k, l;    /* Row, data and column pointers */
-    double dia = 0; /* Diagonal element */
-    double x;       /* Temporary variable */
-    double d;       /* Change */
-    double d_max;   /* Maximum change */
+    uint32_t i;          /* Number of iterations */
+    int j, k, l;         /* Row, data and column pointers */
+    double dia = 0;      /* Diagonal element */
+    double x;            /* Temporary variable */
+    double d;            /* Change */
+    double d_max;        /* Maximum change */
     double w2 = 1.0-w;
 
     sol.resize( rhs.size() );

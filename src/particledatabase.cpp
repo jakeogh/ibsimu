@@ -207,8 +207,11 @@ void ParticleDataBaseCyl::add_2d_beam_with_velocity( uint32_t N, double J, doubl
 
     _particles.reserve( _particles.size()+N );
 
-    QRandom qrng( 3 );
-
+    // 0: temperature parallel to defining line (transverse to beam)
+    // 1: temperature perpendicular to line (parallel to beam)
+    // 2: temperature in angular direction (skew velocity)
+    QRandom qrng( 3 ); 
+ 
     m *= MASS_U;
     q *= CHARGE_E;
     double s = sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) );
