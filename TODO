@@ -1,6 +1,15 @@
 		TODO list
 		=========
 
+Tracking for field plotter
+ - x1, x2, y1, y2 axes
+
+Tracking for particle plotter
+ - intensity with colormap plots
+
+Q/M discrimination for plots
+ - Create one more level to pdb for particle "groups"
+
 particlediagplot.cpp: scaling for profile plots in 2D
 
 Add PIC style particle stepper
@@ -10,23 +19,15 @@ versions of the algorithms
 
 Particle plot mirroring auto/off
 
-Data export from geomplot, fieldplot windows
+Data export from geomplot window
 
 Smooth edges for Gauss-Seidel solver
-
-Integrate DXF-file
 
 Colormap plots on eps/pdf canvas.
 
 Optimize solvers (time using gperf)
 
 Parallelize solvers
-
-Documentation: fill introductory parts
-
-Negative ion plasma solver
-
-Change debug printing to stream.
 
 Improve CSG usability through input geometry definition script
 

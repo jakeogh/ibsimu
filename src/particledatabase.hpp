@@ -624,7 +624,8 @@ public:
 	for( uint32_t a = 0; a < _threadcount; a++ ) {
 	    if( a == 0 ) schmap[a] = &scharge;
 	    else schmap[a] = new ScalarField( g );
-	    iterators.push_back( new ParticleIterator<PP>( _epsabs, _epsrel, _polyint, _maxsteps, 
+	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
+							   _polyint, _maxsteps, 
 							   _maxt, _trajdiv, _mirror, schmap[a], 
 							   &efield, &bfield, &g, &_particles[0] ) );
 	    if( _nsimp )

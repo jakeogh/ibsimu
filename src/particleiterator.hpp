@@ -62,9 +62,18 @@
 //#define DEBUG_PARTICLE_ITERATOR 1
 
 
+/*! \brief %Particle iterator type.
+ */
+enum particle_iterator_type_e {
+    PARTICLE_ITERATOR_ADAPTIVE = 0,
+    PARTICLE_ITERATOR_FIXED_STEP_LEN
+};
+
+
 /*! \brief %Particle iterator class for continuous Vlasov-type iteration.
  *
  *  \todo Detailed documentation needed.
+ *  \todo PIC style iterator needed.
  */
 template <class PP> class ParticleIterator {
 
@@ -86,6 +95,8 @@ template <class PP> class ParticleIterator {
     gsl_odeiv_step       *_step;      /**< \brief GSL ODE integrator stepper. */
     gsl_odeiv_control    *_control;   /**< \brief GSL ODE integrator constrol. */
     gsl_odeiv_evolve     *_evolve;    /**< \brief GSL ODE integrator integrator. */
+
+   particle_iterator_type_e _type;    /**< \brief Iteratory type. */
 
     bool                  _polyint;   /*!< \brief Interpolation type to use. True means use polynomial */
     double                _epsabs;    /*!< \brief Absolute error limit. */
@@ -760,7 +771,30 @@ template <class PP> class ParticleIterator {
 	return( true );
     }
     
+    double calculate_dt( const PP &x, const double *dxdt ) {
 
+	double spd = 0.0, acc = 0.0;
+
+	for( size_t a = 0; a < (PP::size()-1)/2; a++ ) {
+	    //std::cout << "spd += " << dxdt[2*a]*dxdt[2*a] << "\n";
+	    spd += dxdt[2*a]*dxdt[2*a];
+	    //std::cout << "acc += " << dxdt[2*a+1]*dxdt[2*a+1] << "\n";
+	    acc += dxdt[2*a+1]*dxdt[2*a+1];
+	}
+	if( _pidata._g->geom_mode() == MODE_CYL ) {
+	    //std::cout << "MODE_CYL\n";
+	    //std::cout << "spd += " << x[3]*x[3]*x[5]*x[5] << "\n";
+	    spd += x[3]*x[3]*x[5]*x[5];
+	    //std::cout << "acc += " << x[3]*x[3]*dxdt[4]*dxdt[4] << "\n";
+	    acc += x[3]*x[3]*dxdt[4]*dxdt[4];
+	}
+	//std::cout << "spd = " << sqrt(spd) << "\n";
+	//std::cout << "acc = " << sqrt(acc) << "\n";
+	spd = _pidata._g->h() / sqrt(spd);
+	acc = sqrt( 2.0*_pidata._g->h() / sqrt(acc) );
+
+	return( spd < acc ? spd : acc );
+    }
 
 public:
 
@@ -789,10 +823,11 @@ public:
      *  vector is used to calculate the particle number from the
      *  particle memory location.
      */
-    ParticleIterator( double epsabs, double epsrel, bool polyint, uint32_t maxsteps, double maxt, 
+    ParticleIterator( particle_iterator_type_e type, double epsabs, double epsrel, 
+		      bool polyint, uint32_t maxsteps, double maxt, 
 		      uint32_t trajdiv, bool mirror[6], ScalarField *scharge, const Efield *efield, 
 		      const VectorField *bfield, const Geometry *g, Particle<PP> *first )
-	: _polyint(polyint), _epsabs(epsabs), _epsrel(epsrel), _maxsteps(maxsteps), _maxt(maxt), 
+	: _type(type), _polyint(polyint), _epsabs(epsabs), _epsrel(epsrel), _maxsteps(maxsteps), _maxt(maxt), 
 	  _trajdiv(trajdiv), _first(first), _pidata(scharge,efield,bfield,g), _end_time(0), 
 	  _end_step(0), _end_out(0), _end_coll(0), _end_baddef(0), _sum_steps(0) {
 
@@ -905,40 +940,16 @@ public:
 	
 	// Make initial guess for step size
 	//std::cout << "Guess dt ------------------------------------------------\n";
-	double dt;
 	double dxdt[PP::size()-1];
 	PP::get_derivatives( 0.0, &x[1], dxdt, (void *)&_pidata );
+	double dt = calculate_dt( x, dxdt );
+
 #ifdef DEBUG_PARTICLE_ITERATOR
 	std::cout << "dxdt = ";
 	for( size_t a = 0; a < PP::size()-1; a++ )
 	    std::cout  << dxdt[a] << " ";
 	std::cout << "\n";
-#endif
-	double spd = 0.0, acc = 0.0;
-	for( size_t a = 0; a < (PP::size()-1)/2; a++ ) {
-	    //std::cout << "spd += " << dxdt[2*a]*dxdt[2*a] << "\n";
-	    spd += dxdt[2*a]*dxdt[2*a];
-	    //std::cout << "acc += " << dxdt[2*a+1]*dxdt[2*a+1] << "\n";
-	    acc += dxdt[2*a+1]*dxdt[2*a+1];
-	}
-	if( _pidata._g->geom_mode() == MODE_CYL ) {
-	    //std::cout << "MODE_CYL\n";
-	    //std::cout << "spd += " << x[3]*x[3]*x[5]*x[5] << "\n";
-	    spd += x[3]*x[3]*x[5]*x[5];
-	    //std::cout << "acc += " << x[3]*x[3]*dxdt[4]*dxdt[4] << "\n";
-	    acc += x[3]*x[3]*dxdt[4]*dxdt[4];
-	}
-	//std::cout << "spd = " << sqrt(spd) << "\n";
-	//std::cout << "acc = " << sqrt(acc) << "\n";
-	spd = _pidata._g->h() / sqrt(spd);
-	acc = sqrt( 2.0*_pidata._g->h() / sqrt(acc) );
-	dt = spd < acc ? spd : acc;
-
-#ifdef DEBUG_PARTICLE_ITERATOR
 	std::cout << "dt = " << dt << "\n";
-#endif
-	
-#ifdef DEBUG_PARTICLE_ITERATOR
 	std::cout << "*** Starting iteration\n";
 #endif
 	
