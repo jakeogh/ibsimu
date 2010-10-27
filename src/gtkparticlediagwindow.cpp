@@ -129,7 +129,7 @@ void *GTKParticleDiagWindow::build_preferences( GtkWidget *notebook )
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     GtkObject *histo_m_adj = gtk_adjustment_new( _plot.get_histogram_m(), 0, 1000, 1, 10, 0 );
     pdata->histo_m_spin = gtk_spin_button_new( GTK_ADJUSTMENT(histo_m_adj), 1, 0 );
-    if( type == 2 )
+    if( type == PARTICLE_DIAG_PLOT_HISTO1D )
 	gtk_widget_set_sensitive( pdata->histo_m_spin, false );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), pdata->histo_m_spin, FALSE, TRUE, 0 );

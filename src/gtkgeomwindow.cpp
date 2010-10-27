@@ -62,7 +62,7 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       *plotter,
     : GTKWindow(plotter), _geomplot(&_frame,geom), 
       _geom(geom), _epot(epot), _scharge(scharge), _bfield(bfield), _pdb(pdb)
 {
-    std::cout << "GTKGeomWindow constructor\n";
+    //std::cout << "GTKGeomWindow constructor\n";
 
     // Setup GeomPlot
     _geomplot.set_epot( epot );

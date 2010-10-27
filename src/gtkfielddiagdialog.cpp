@@ -570,17 +570,17 @@ void GTKFieldDiagDialog::run( void )
 	else
 	    diag[1] = FIELDD_DIAG_NONE;
 
-	std::cout << "x1 = " << x1[0] << "\n";
-	std::cout << "y1 = " << x1[1] << "\n";
-	std::cout << "z1 = " << x1[2] << "\n";
-	std::cout << "x2 = " << x2[0] << "\n";
-	std::cout << "y2 = " << x2[1] << "\n";
-	std::cout << "z2 = " << x2[2] << "\n";
-	std::cout << "N  = " << N << "\n";
-	std::cout << "g1 = " << diag[0] << "\n";
-	std::cout << "g2 = " << diag[1] << "\n";
-	std::cout << "d1 = " << loc[0] << "\n";
-	std::cout << "d2 = " << loc[1] << "\n";
+	//std::cout << "x1 = " << x1[0] << "\n";
+	//std::cout << "y1 = " << x1[1] << "\n";
+	//std::cout << "z1 = " << x1[2] << "\n";
+	//std::cout << "x2 = " << x2[0] << "\n";
+	//std::cout << "y2 = " << x2[1] << "\n";
+	//std::cout << "z2 = " << x2[2] << "\n";
+	//std::cout << "N  = " << N << "\n";
+	//std::cout << "g1 = " << diag[0] << "\n";
+	//std::cout << "g2 = " << diag[1] << "\n";
+	//std::cout << "d1 = " << loc[0] << "\n";
+	//std::cout << "d2 = " << loc[1] << "\n";
 
 	try {
 	    _plotter->new_field_plot_window( N, x1, x2, diag, loc );

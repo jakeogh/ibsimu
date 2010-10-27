@@ -737,7 +737,7 @@ gboolean GTKWindow::window_delete_signal( GtkWidget *widget,
 
 void GTKWindow::menuitem_preferences( GtkMenuItem *menuitem )
 {
-    std::cout << "menu preferences\n";
+    //std::cout << "menu preferences\n";
     GTKPreferences preferences( this, _window, &_frame );
     preferences.run();
 }

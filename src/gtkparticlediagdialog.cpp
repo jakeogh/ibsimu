@@ -2,7 +2,7 @@
  *  \brief Source code for gtkparticlediagdialog.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,7 +45,8 @@
 #include "types.hpp"
 
 
-GTKParticleDiagDialog::GTKParticleDiagDialog( GtkWidget *window, GTKPlotter *plotter, int plane, double val )
+GTKParticleDiagDialog::GTKParticleDiagDialog( GtkWidget *window, GTKPlotter *plotter, 
+int plane, double val )
     : _window(window), _plotter(plotter), _plane(plane), _val(val)
 {
     _geom = _plotter->get_geometry();
@@ -85,6 +86,10 @@ void GTKParticleDiagDialog::plane_activated( void )
 	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_emit_xx) ) )
 	    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_yy), TRUE );
 	gtk_widget_set_sensitive( _radio_emit_yy, TRUE );
+	if( _geom->geom_mode() == MODE_CYL ) {
+	    // EmittanceConv
+	    gtk_widget_set_sensitive( _radio_emit_zz, TRUE );
+	}
 	if( _geom->geom_mode() == MODE_3D ) {
 	    gtk_widget_set_sensitive( _radio_emit_zz, TRUE );
 	    gtk_widget_set_sensitive( _radio_prof_yz, TRUE );
@@ -107,6 +112,12 @@ void GTKParticleDiagDialog::plane_activated( void )
 	gtk_widget_set_sensitive( _radio_emit_yy, FALSE );
 	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_emit_yy) ) )
 	    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_xx), TRUE );
+	if( _geom->geom_mode() == MODE_CYL ) {
+	    // EmittanceConv
+	    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_emit_zz) ) )
+		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_xx), TRUE );
+	    gtk_widget_set_sensitive( _radio_emit_zz, FALSE );
+	}
 	if( _geom->geom_mode() == MODE_3D ) {
 	    gtk_widget_set_sensitive( _radio_emit_zz, TRUE );
 	    gtk_widget_set_sensitive( _radio_prof_yz, FALSE );
@@ -259,15 +270,24 @@ void GTKParticleDiagDialog::run( void )
     if( _plane != 0 )
 	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_xx), TRUE );
     gtk_box_pack_start( GTK_BOX(vbox2), _radio_emit_xx, FALSE, TRUE, 0 );
-    if( _geom->geom_mode() == MODE_CYL )
+    if( _geom->geom_mode() == MODE_CYL ) {
 	_radio_emit_yy = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 								      "Emittance r-r\'" );
-    else
+	if( _plane == 0 )
+	    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_yy), TRUE );
+	gtk_box_pack_start( GTK_BOX(vbox2), _radio_emit_yy, FALSE, TRUE, 0 );
+	_radio_emit_zz = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
+								      "Emittance z-z\' (conv)" );
+	g_signal_connect( _radio_emit_zz, "toggled",
+			  G_CALLBACK(profile_toggled), (gpointer)this );
+	gtk_box_pack_start( GTK_BOX(vbox2), _radio_emit_zz, FALSE, TRUE, 0 );
+    } else {
 	_radio_emit_yy = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 								      "Emittance y-y\'" );
-    if( _plane == 0 )
-	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_yy), TRUE );
-    gtk_box_pack_start( GTK_BOX(vbox2), _radio_emit_yy, FALSE, TRUE, 0 );
+	if( _plane == 0 )
+	    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_yy), TRUE );
+	gtk_box_pack_start( GTK_BOX(vbox2), _radio_emit_yy, FALSE, TRUE, 0 );
+    }
     if( _geom->geom_mode() == MODE_3D ) {
 	_radio_emit_zz = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 								      "Emittance z-z\'" );
@@ -323,7 +343,7 @@ void GTKParticleDiagDialog::run( void )
     plane_activated();
 
     gtk_widget_show_all( dialog );
-    particle_diag_plot_type_e type = PARTICLE_DIAG_PLOT_SCATTER;
+    particle_diag_plot_type_e type = PARTICLE_DIAG_PLOT_NONE;
     if( gtk_dialog_run( GTK_DIALOG(dialog) ) == GTK_RESPONSE_ACCEPT ) {
 
 	// Read in options and start particle diagnostics plot
@@ -360,10 +380,16 @@ void GTKParticleDiagDialog::run( void )
 		diagx = DIAG_Y;
 		diagy = DIAG_YP;
 	    }
-	} else if( _geom->geom_mode() == MODE_3D && 
-		   gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_emit_zz) ) ) {
-	    diagx = DIAG_Z;
-	    diagy = DIAG_ZP;
+	} else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_emit_zz) ) ) {
+	    if( _geom->geom_mode() == MODE_3D ) {
+		diagx = DIAG_Z;
+		diagy = DIAG_ZP;
+	    } else /* MODE_CYL */ {
+		// EmittanceConv
+		diagx = DIAG_Z;
+		diagy = DIAG_ZP;
+		type = PARTICLE_DIAG_PLOT_HISTO2D;
+	    }
 	} else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_yz) ) ) {
 	    if( _geom->geom_mode() == MODE_3D ) {
 		diagx = DIAG_Y;
@@ -388,8 +414,8 @@ void GTKParticleDiagDialog::run( void )
 	    diagy = DIAG_Y;
 	}
 
-	// Read plot style
-	if( type != PARTICLE_DIAG_PLOT_HISTO1D ) {
+	// Read plot style if not set already
+	if( type == PARTICLE_DIAG_PLOT_NONE ) {
 	    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_plot_scatter) ) )
 		type = PARTICLE_DIAG_PLOT_SCATTER;
 	    else
@@ -401,17 +427,6 @@ void GTKParticleDiagDialog::run( void )
 
     gtk_widget_destroy( dialog );
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 

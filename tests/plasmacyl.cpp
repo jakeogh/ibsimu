@@ -93,7 +93,6 @@ void test( int *argc, char ***argv )
 				     0.0, 0.0015 );
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
-	/*
 	GTKPlotter plotter( argc, argv );
 	plotter.set_geometry( &geom );
 	plotter.set_epot( &epot );
@@ -101,7 +100,6 @@ void test( int *argc, char ***argv )
 	plotter.set_particledatabase( &pdb );
 	plotter.new_geometry_plot_window();
 	plotter.run();
-	*/
     }
 
     GeomPlotter gplotter( &geom );
