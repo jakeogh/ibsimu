@@ -2,7 +2,7 @@
  *  \brief Header file for gtkfielddiagwindow.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -63,6 +63,8 @@ class GTKFieldDiagWindow : public GTKWindow {
     virtual void *build_preferences( GtkWidget *notebook );
     virtual void read_preferences( GtkWidget *notebook, void *pdata );
 
+    virtual std::string track_text( double x, double y );
+
     void export_data( void );
     static void menuitem_export_signal( GtkToolButton *button,
 					gpointer object );
@@ -87,20 +89,4 @@ public:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

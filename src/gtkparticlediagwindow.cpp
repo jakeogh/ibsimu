@@ -2,7 +2,7 @@
  *  \brief Source code for gtkparticlediagwindow.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -234,16 +234,68 @@ void GTKParticleDiagWindow::read_preferences( GtkWidget *notebook, void *_pdata 
 
 
 
+std::string GTKParticleDiagWindow::track_text( double x, double y )
+{
+    std::stringstream ss;
 
+    particle_diag_plot_type_e type;
+    trajectory_diagnostic_e diagx, diagy;
+    _plot.get_plot( type, diagx, diagy );
 
+    for( int i = 0; i < 2; i++ ) {
 
+	double val;
+	trajectory_diagnostic_e diag;
+	if( i == 0 ) {
+	    val = x;
+	    diag = diagx;
+	} else {
+	    val = y;
+	    diag = diagy;
+	}
 
+	switch( diag ) {
+	case DIAG_X:
+	    ss << "x = " << val << " m\n";
+	    break;
+	case DIAG_Y:
+	    ss << "y = " << val << " m\n";
+	    break;
+	case DIAG_R:
+	    ss << "r = " << val << " m\n";
+	    break;
+	case DIAG_Z:
+	    ss << "z = " << val << " m\n";
+	    break;
+	case DIAG_XP:
+	    ss << "x\' = " << val << " rad\n";
+	    break;
+	case DIAG_YP:
+	    ss << "y\' = " << val << " rad\n";
+	    break;
+	case DIAG_RP:
+	    ss << "r\' = " << val << " rad\n";
+	    break;
+	case DIAG_ZP:
+	    ss << "z\' = " << val << " rad\n";
+	    break;
+	case DIAG_CURR:
+	    ss << "I = " << val << " A\n";
+	    break;
+	default:
+	    std::cout << "unknown diagnostic " << diag << "\n";
+	    break;
+	};
+    }
 
+    if( type == PARTICLE_DIAG_PLOT_HISTO2D ) {
+	const Colormap *cmap = _plot.get_colormap();
+	double val = cmap->get_value( x, y );
+	ss << "J = " << val << " A/(m rad)\n";
+    }
 
-
-
-
-
-
+    
+    return( ss.str() );
+}
 
 

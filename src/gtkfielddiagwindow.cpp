@@ -2,7 +2,7 @@
  *  \brief Source code for gtkfielddiagwindow.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -131,6 +131,92 @@ void GTKFieldDiagWindow::read_preferences( GtkWidget *notebook, void *pdata )
 {
 
 }
+
+
+std::string GTKFieldDiagWindow::track_text( double x, double y )
+{
+    std::stringstream ss;
+
+    // Calculate relative track location on x-axis
+    double xmin, xmax;
+    _frame.get_ranges( PLOT_AXIS_X1, xmin, xmax );
+    double t = (x - xmin)/(xmax-xmin);
+
+    // Calculate absolute coordinates of track location
+    Vec3D start = _plot.start();
+    Vec3D end = _plot.end();
+    Vec3D xc = start + t*(end-start);
+    double dist = norm2( xc-start );
+
+    ss << "x = " << xc[0] << " m\n"
+       << "y = " << xc[1] << " m\n"
+       << "z = " << xc[2] << " m\n"
+       << "d = " << dist << " m\n";
+
+    // Process Y-axes
+    double x2 = _track_px;
+    double y2 = _track_py;
+    Coordmapper cm = _frame.get_coordmapper( PLOT_AXIS_X2, PLOT_AXIS_Y2 );
+    cm.inv_transform( x2, y2 );
+    for( int i = 0; i < 2; i++ ) {
+
+	double val;
+	if( i == 0 ) {
+	    val = y;
+	} else {
+	    val = y2;
+	}
+
+	switch( _plot.get_diagnostic_type( i ) ) {
+	case FIELDD_DIAG_EPOT:
+	    ss << "epot = " << val << "V\n";
+	    break;
+	    
+	case FIELDD_DIAG_EFIELD:
+	    ss << "|E| = " << val << "V/m\n";
+	    break;
+	    
+	case FIELDD_DIAG_EFIELD_X:
+	    ss << "Ex = " << val << "V/m\n";
+	    break;
+	    
+	case FIELDD_DIAG_EFIELD_Y:
+	    ss << "Ey = " << val << "V/m\n";
+	    break;
+	    
+	case FIELDD_DIAG_EFIELD_Z:
+	    ss << "Ez = " << val << "V/m\n";
+	    break;
+	    
+	case FIELDD_DIAG_SCHARGE:
+	    ss << "rho = " << val << "C/m^3\n";
+	    break;
+	    
+	case FIELDD_DIAG_BFIELD:
+	    ss << "|B| = " << val << "T\n";
+	    break;
+	    
+	case FIELDD_DIAG_BFIELD_X:
+	    ss << "Bx = " << val << "T\n";
+	    break;
+	    
+	case FIELDD_DIAG_BFIELD_Y:
+	    ss << "By = " << val << "T\n";
+	    break;
+	    
+	case FIELDD_DIAG_BFIELD_Z:
+	    ss << "Bz = " << val << "T\n";
+	    break;
+	    
+	case FIELDD_DIAG_NONE:
+	default:
+	    break;
+	};
+    }
+    
+    return( ss.str() );
+}
+
 
 
 

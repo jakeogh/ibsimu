@@ -2,7 +2,7 @@
  *  \brief Header file for colormap.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -49,6 +49,7 @@
 #include "palette.hpp"
 #include "graph.hpp"
 #include "coordmapper.hpp"
+#include "interpolation.hpp"
 
 
 
@@ -84,7 +85,11 @@ class Colormap : public Graph {
     size_t                 _n;             /*!< \brief Size of data-array in x-direction. */
     size_t                 _m;             /*!< \brief Size of data-array in y-direction. */
 
-    std::vector<double>    _f;             /*!< \brief Functuion value data, y major order. */
+    std::vector<double>    _f;             /*!< \brief Function value data, y major order. */
+
+    Interpolation2D       *_intrp;         /*!< \brief Data interpolation. */
+
+    void make_data_interpolation( void );
 
 public:
 
@@ -97,14 +102,14 @@ public:
      *  Data is defined as \a n by \a m array of data, where x and y
      *  ranges are defined in datarange in order xmin, ymin, xmax,
      *  ymax. Z-values are defined in vector \a data in y major
-     *  order. Internal copies of the data from data is made.
+     *  order. Internal copy of the data from data is made.
      */
     Colormap( const double datarange[4], size_t n, size_t m, 
 	      const std::vector<double> &data );
 
     /*! \brief Destructor.
      */
-    virtual ~Colormap() {}
+    virtual ~Colormap();
 
     /*! \brief Set interpolation mode.
      */
@@ -136,24 +141,13 @@ public:
     /*! \brief Get zrange for colormap plot.
      */
     void get_zrange( double &min, double &max ) const;
+
+    /*! \brief Get value of interpolated colormap data.
+     */
+    double get_value( double x, double y ) const;
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

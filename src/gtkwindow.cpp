@@ -405,6 +405,8 @@ void GTKWindow::track( int action, double x, double y )
 	    gdk_draw_lines( _darea->window, gc, p, 2 );
 	}
 	
+	_track_px = x;
+	_track_py = y;
 	Coordmapper cm = _frame.get_coordmapper( PLOT_AXIS_X1, PLOT_AXIS_Y1 );
 	cm.inv_transform( x, y );
 	std::string s = track_text( x, y );

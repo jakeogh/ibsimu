@@ -194,6 +194,10 @@ public:
 	return( _interpolation );
     }
 
+    const Colormap *get_colormap( void ) const {
+	return( _colormap );
+    }
+
     void set_dot_size( double size ) {
 	_dot_size = size;
 	if( _scatter )
@@ -202,6 +206,14 @@ public:
 
     double get_dot_size( void ) {
 	return( _dot_size );
+    }
+
+    /*! \brief Return a pointer to histogram.
+     *
+     *  Histogram might not exist in the plot object.
+     */
+    const Histogram *get_histogram( void ) {
+	return( _histo );
     }
 
     /*! \brief Calculate Emittance fit.

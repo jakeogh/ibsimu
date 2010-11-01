@@ -7,10 +7,28 @@ Tracking for field plotter
 Tracking for particle plotter
  - intensity with colormap plots
 
-Q/M discrimination for plots
+Q/M discrimination for plots (particle and geom) - two possibilities:
  - Create one more level to pdb for particle "groups"
+ - Do the discrimination in plotter
+ * Should have coloring and on/off selection for each group (preferences tab)
+
+Particle plotter with points
+
+UMFPACK gnewton
+ - Better stability with high-intensity negative ion source simu
+
+Particle iterator force delta s steplen
+ - Problem with cylindrical coordinates -> seems to need adaptive steps
+
+Particle beam definition
+ - Possibility for ordered definition
+
+Particle database save/load for making debugging
 
 particlediagplot.cpp: scaling for profile plots in 2D
+
+New space charge setting routine
+ - Old routine is inaccurate with beams that are in E-fields
 
 Add PIC style particle stepper
 

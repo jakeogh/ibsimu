@@ -138,10 +138,21 @@ protected:
 
     GtkToolItem      *_radioitem;
 
+    double            _track_px; // Track x coordinate in pixels
+    double            _track_py; // Track y coordinate in pixels
+
+
     GTKWindow( GTKPlotter *plotter );
 
     virtual void zoom_fit( void );
+
+    /*! \brief Function which providies tracking text at (x,y)
+     *
+     *  Virtual function. Provides empty string by default but can be
+     *  overwritten by implementations of GTKWindow.
+     */
     virtual std::string track_text( double x, double y );
+
     void expose( int x, int y, int width, int height );
 
 public:

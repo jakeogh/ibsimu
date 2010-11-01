@@ -31,7 +31,7 @@ int main( void )
     Vector B(5);
     if( B.size() != 5 || B.get_data() == NULL )
 	ERROR();
-    if( B[0] != 0 || B[1] != 0 | B[2] != 0 || B[3] != 0 || B[4] != 0 )
+    if( B[0] != 0 || B[1] != 0 || B[2] != 0 || B[3] != 0 || B[4] != 0 )
 	ERROR();
     double C_data[5] = {1, -2, 3, -2, 4};
     Vector C(5,C_data); 

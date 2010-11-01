@@ -151,6 +151,24 @@ public:
 	_x2 = x2;
     }
 
+    /*! \brief Get start coordinates of diagnostic line.
+     */
+    const Vec3D &start( void ) {
+	return( _x1 );
+    }
+
+    /*! \brief Get end coordinates of diagnostic line.
+     */
+    const Vec3D &end( void ) {
+	return( _x2 );
+    }
+
+    /*! \brief Get number of steps on diagnostic line.
+     */
+    const size_t &N( void ) {
+	return( _N );
+    }
+
     /*! \brief Set field and location plot types
      *
      *  The plot can have two x-axes and two y-axes. The diagnostic
@@ -163,6 +181,18 @@ public:
 	_diag[1] = diag[1];
 	_loc[0] = loc[0];
 	_loc[1] = loc[1];
+    }
+
+    /*! \brief Get diagnostic type for y-axis \a i.
+     */
+    const field_diag_type_e &get_diagnostic_type( int i ) {
+	return( _diag[i] );
+    }
+
+    /*! \brief Get location type for x-axis \a i.
+     */
+    const field_loc_type_e &get_location_type( int i ) {
+	return( _loc[i] );
     }
 
     /*! \brief Export plotted data as ASCII.

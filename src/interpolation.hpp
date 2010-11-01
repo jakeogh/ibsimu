@@ -61,6 +61,9 @@ protected:
     std::vector<double>       _f;    /*!< \brief Function data mesh. */
 
     /*! \brief Constructor.
+     *
+     *  Makes an independent object for interpolation of data. An
+     *  internal copy of \a f is created.
      */
     Interpolation2D( size_t n, size_t m, const std::vector<double> &f );
 

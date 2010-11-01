@@ -2,7 +2,7 @@
  *  \brief Header file for gtkparticlediagwindow.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -55,6 +55,8 @@
 class GTKParticleDiagWindow : public GTKWindow {
 
     ParticleDiagPlot _plot;
+
+    virtual std::string track_text( double x, double y );
 
     virtual void *build_preferences( GtkWidget *notebook );
     virtual void read_preferences( GtkWidget *notebook, void *pdata );

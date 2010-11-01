@@ -44,11 +44,10 @@
 #include <limits>
 #include "compmath.hpp"
 #include "colormap.hpp"
-#include "interpolation.hpp"
 
 
 Colormap::Colormap()
-    : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), _n(0), _m(0)
+    : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), _n(0), _m(0), _intrp(NULL)
 {
 
 }
@@ -56,7 +55,7 @@ Colormap::Colormap()
 
 Colormap::Colormap( const double datarange[4], size_t n, size_t m, 
 		    const std::vector<double> &data )
-    : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), _n(n), _m(m)
+    : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), _n(n), _m(m), _intrp(NULL)
 {
     _datarange[0] = datarange[0];
     _datarange[1] = datarange[1];
@@ -83,12 +82,22 @@ Colormap::Colormap( const double datarange[4], size_t n, size_t m,
 	_zmax += 1.0;
 	//_zmin -= 1.0;
     }
+
+    make_data_interpolation();
+}
+
+
+Colormap::~Colormap()
+{
+    if( _intrp )
+	delete _intrp;
 }
 
 
 void Colormap::set_interpolation( interpolation_e interpolation )
 {
     _interpolation = interpolation;
+    make_data_interpolation();
 }
 
 
@@ -182,19 +191,8 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 	      << plim[3] << "\n";
     */
 
-    // Prepare data
-    Interpolation2D *intrp = NULL;
-    switch( _interpolation ) {
-    case INTERPOLATION_CLOSEST:
-	intrp = new ClosestInterpolation2D( _n, _m, _f );
-	break;
-    case INTERPOLATION_BILINEAR:
-	intrp = new BiLinearInterpolation2D( _n, _m, _f );
-	break;
-    case INTERPOLATION_BICUBIC:
-	intrp = new BiCubicInterpolation2D( _n, _m, _f );
-	break;
-    }
+    if( !_intrp )
+	throw( Error( ERROR_LOCATION, "No data available" ) );
 
     // Go through pixel limits
     //std::cout << "zmin = " << _zmin << "\n";
@@ -209,12 +207,7 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 	    double x[2] = { i, j };
 	    cm->inv_transform( x[0], x[1] );
 
-	    // Calculate relative point in data
-	    double t = (x[0]-_datarange[0])/(_datarange[2]-_datarange[0]);
-	    double u = (x[1]-_datarange[1])/(_datarange[3]-_datarange[1]);
-
-	    // Get zvalue
-	    double val = (*intrp)( t, u );
+	    double val = get_value( x[0], x[1] );
 
 	    // Scale value
 	    if( _zscale == ZSCALE_LINEAR )
@@ -236,8 +229,6 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 	    buf[j*stride+4*i+3] = (unsigned char)255;       // Alpha
 	}
     }
-
-    delete intrp;
 }
 
 
@@ -263,18 +254,34 @@ void Colormap::get_zrange( double &min, double &max ) const
 }
 
 
+void Colormap::make_data_interpolation( void )
+{
+    // Free old interpolation
+    if( _intrp )
+	delete _intrp;
+
+    // Make a new interpolation
+    switch( _interpolation ) {
+    case INTERPOLATION_CLOSEST:
+	_intrp = new ClosestInterpolation2D( _n, _m, _f );
+	break;
+    case INTERPOLATION_BILINEAR:
+	_intrp = new BiLinearInterpolation2D( _n, _m, _f );
+	break;
+    case INTERPOLATION_BICUBIC:
+	_intrp = new BiCubicInterpolation2D( _n, _m, _f );
+	break;
+    default:
+	throw( Error( ERROR_LOCATION, "unknown interpoltaion type" ) );	
+    }
+}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+double Colormap::get_value( double x, double y ) const
+{	    
+    // Calculate relative point in data
+    double t = (x-_datarange[0])/(_datarange[2]-_datarange[0]);
+    double u = (y-_datarange[1])/(_datarange[3]-_datarange[1]);
+    
+    return( (*_intrp)( t, u ) );
+}
