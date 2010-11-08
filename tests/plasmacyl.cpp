@@ -37,6 +37,12 @@ bool solid2( double x, double y, double z )
 }
 
 
+bool init_plasma( double x, double y, double z )
+{
+    return( x < 0.00055 );
+}
+
+
 void test( int *argc, char ***argv )
 {
     // 12x7 mm geometry with 0.05 mm mesh size
@@ -54,7 +60,7 @@ void test( int *argc, char ***argv )
     geom.build_mesh();
 
     EpotProblem p;
-    p.set_initial_plasma( 5.0, 0.00055 );
+    p.set_initial_plasma( 5.0, init_plasma );
     p.construct( geom );
 
     ScalarField epot( geom );
@@ -93,6 +99,7 @@ void test( int *argc, char ***argv )
 				     0.0, 0.0015 );
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
+	/*
 	GTKPlotter plotter( argc, argv );
 	plotter.set_geometry( &geom );
 	plotter.set_epot( &epot );
@@ -100,6 +107,7 @@ void test( int *argc, char ***argv )
 	plotter.set_particledatabase( &pdb );
 	plotter.new_geometry_plot_window();
 	plotter.run();
+	*/
     }
 
     GeomPlotter gplotter( &geom );

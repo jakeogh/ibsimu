@@ -211,11 +211,10 @@ class EpotProblem : public Problem {
     std::vector<double> _Ei;            /*!< \brief Energy for positive ions,
 					 *   first fast protons, then thermal ions */
 
-    double              _meniscus_x;    /*!< \brief Initial plasma meniscus x-coordinate. */
-    int32_t             _meniscus_i;    /*!< \brief Initial plasma meniscus i-coordinate (calculated). */
-
     double              _force_pot;     /*!< \brief Potential to be forced. */
+
     bool (*_force_pot_func)(double,double,double); /*!< \brief Force area potential function. */
+    bool (*_init_plasma_func)(double,double,double); /*!< \brief Initial plasma area function. */
 
     Solver             *_solver;        /*!< \brief Solver for solving problem. */
 
@@ -239,6 +238,8 @@ class EpotProblem : public Problem {
 			      CRowMatrix &A, Vector &B, Node2DoF &n2d );
     
     void clear_problem( void );
+
+    bool initial_plasma_func_x( double x, double y, double z );
 
 public:
 
@@ -285,8 +286,11 @@ public:
 				      bool (*force_pot_func)(double,double,double) );
 
     /*! \brief Define initial plasma to the problem.
+     *
+     *  Initial plasma volume is defined in the area given by \a plasma_func.
      */
-    void set_initial_plasma( double Up, double meniscus_x );
+    void set_initial_plasma( double Up, 
+			     bool (*plasma_func)(double,double,double) );
 
     /*! \brief Enable plasma model for positive ion extraction problem.
      */
@@ -294,8 +298,10 @@ public:
 
     /*! \brief Define initial plasma boundary location to negative ion
      *  extraction problem.
+     *
+     *  Initial plasma volume is defined in the area given by \a plasma_func.
      */
-    void set_nsimp_initial_plasma( double meniscus_x );
+    void set_nsimp_initial_plasma( bool (*plasma_func)(double,double,double) );
 
     /*! \brief Enable plasma model for negative ion extraction problem.
      *

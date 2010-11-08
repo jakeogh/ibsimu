@@ -80,7 +80,7 @@ void EpotProblem::Node2DoF::debug_print( void ) const
 EpotProblem::EpotProblem() 
     : _nodecount(0), _dof(0), _fd_mat(0), _fd_vec(0), _neumann_order(2), 
       _smooth_solid(true), _plasma(PLASMA_NONE), _rhoe(0.0), _Te(0.0), _Up(0.0), 
-      _meniscus_x(0.0), _meniscus_i(0), _force_pot(0.0), _force_pot_func(0), _solver(0)
+      _force_pot(0.0), _force_pot_func(0), _init_plasma_func(0), _solver(0)
 {
     
 }
@@ -144,11 +144,14 @@ void EpotProblem::set_forced_potential_volume( double force_pot,
 }
 
 
-void EpotProblem::set_initial_plasma( double Up, double meniscus_x )
+void EpotProblem::set_initial_plasma( double Up, 
+				      bool (*plasma_func)(double,double,double) )
 {
     _plasma     = PLASMA_INITIAL;
     _Up         = Up;
-    _meniscus_x = meniscus_x;
+    if( !plasma_func )
+	throw( Error( ERROR_LOCATION, "NULL initial plasma function" ) );
+    _init_plasma_func = plasma_func;
     clear_problem();
 }
 
@@ -164,11 +167,13 @@ void EpotProblem::set_pexp_plasma( double rhoe, double Te, double Up )
 
 
 
-void EpotProblem::set_nsimp_initial_plasma( double meniscus_x )
+void EpotProblem::set_nsimp_initial_plasma( bool (*plasma_func)(double,double,double) )
 {
     _plasma     = PLASMA_INITIAL;
     _Up         = 0.0;
-    _meniscus_x = meniscus_x;
+    if( !plasma_func )
+	throw( Error( ERROR_LOCATION, "NULL initial plasma function" ) );
+    _init_plasma_func = plasma_func;
     clear_problem();
 }
 
@@ -1045,6 +1050,7 @@ void EpotProblem::construct( const Geometry &g )
 {
     signed char a;
     int32_t i, j, k;
+    double x, y, z;
 
     if( ibsimu.get_verbose_output() ) {
 	if( _plasma == PLASMA_NONE )
@@ -1061,10 +1067,8 @@ void EpotProblem::construct( const Geometry &g )
     _nodecount = g.nodecount();
     _g = &g;
     if( _plasma == PLASMA_INITIAL ) {
-	_meniscus_i = (int32_t)floor((_meniscus_x-g.origo(0))/g.h()+0.5);
 	if( ibsimu.get_verbose_output() )
-	    std::cout << "  Initial plasma meniscus at x = " << _meniscus_x 
-		      << " (at i = " << _meniscus_i << ")\n";
+	    std::cout << "  Using initial plasma volume at Up = " << _Up << " V\n";
     } else if( _plasma == PLASMA_PEXP ) {
 	if( ibsimu.get_verbose_output() ) {
 	    std::cout << "  Using exponential plasma model for positive ion extraction\n";
@@ -1119,17 +1123,19 @@ void EpotProblem::construct( const Geometry &g )
 	    for( i = 0; i < _g->size(0); i++ ) {
 
 		a = _g->mesh(i,j,k);
+		x = i*_g->h()+_g->origo(0);
+		y = j*_g->h()+_g->origo(1);
+		z = k*_g->h()+_g->origo(2);
+
 		if( _smooth_solid && a < -6 ) { 
 		    // Solid smooth edge
 		    add_solid_edge_node( a, i, j, k, *_fd_mat, *_fd_vec, _n2d );
-		} else if( _plasma == PLASMA_INITIAL && i <= _meniscus_i && 
-			   (a <= 0 && a >= -6) ) {
+		} else if( _plasma == PLASMA_INITIAL && (a <= 0 && a >= -6) &&
+			   _init_plasma_func( x, y, z ) ) {
 		    // Initial plasma area (vacuum or neumann)
 		    add_initial_plasma( i, j, k, *_fd_mat, *_fd_vec, _n2d );
 		} else if( _force_pot_func != 0 && (a <= 0 && a >= -6) && 
-			   _force_pot_func(i*_g->h()+_g->origo(0),
-					   j*_g->h()+_g->origo(1),
-					   k*_g->h()+_g->origo(2)) ) {
+			   _force_pot_func( x, y, z ) ) {
 		    // Forced potential area (vacuum or neumann)
 		    add_forced_pot( i, j, k, *_fd_mat, *_fd_vec, _n2d );
 		} else if( a >= -6 && a < 0 ) {
@@ -1329,9 +1335,6 @@ void EpotProblem::debug_print( void ) const
     std::cout << "rhoe = " << _rhoe << "\n";
     std::cout << "Tc = " << _Te << "\n";
     std::cout << "Up = " << _Up << "\n";
-    std::cout << "meniscus_x = " << _meniscus_x << "\n";
-    std::cout << "meniscus_i = " << _meniscus_i << "\n";
-
 }
 
 
