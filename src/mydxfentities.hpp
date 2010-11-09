@@ -65,6 +65,14 @@ protected:
 
     MyDXFEntity();
 
+
+    /*! \brief Propose a point to bounding box.
+     *
+     *  Updates bounding box value at min and max by including point p
+     *  in the bounding box.
+     */
+    static void bbox_ppoint( MyDXFVec &min, MyDXFVec &max, const MyDXFVec &p );
+
     void process_group( class MyDXFFile *dxf );
     void constructor_debug_print( void ) const;
     void debug_print_base( std::ostream &os ) const;
@@ -99,6 +107,10 @@ public:
     /*! \brief Get entity handle.
      */
     std::string get_handle( void ) const { return( _handle ); }
+
+   /*! \brief Return bounding box of entity
+     */
+    virtual void get_bbox( MyDXFVec &min, MyDXFVec &max ) const = 0;
 
     friend std::ostream &operator<<( std::ostream &os, const MyDXFEntity &ent );
 };
@@ -210,6 +222,96 @@ public:
      */
     bool geom_same( const MyDXFLine &line, double eps = 1.0e-6 ) const;
 
+   /*! \brief Return bounding box of entity
+     */
+    virtual void get_bbox( MyDXFVec &min, MyDXFVec &max ) const;
+
+    /*! \brief Scale entity by factor \a s.
+     */
+    virtual void scale( double s );
+};
+
+
+/* Polyline flags */
+#define LWPOLYLINE_CLOSED_MASK  1
+#define LWPOLYLINE_LINEGEN_MASK 128
+
+
+/*! \brief DXF LW polyline entity class.
+ *
+ *  
+ */
+class MyDXFLWPolyline : public MyDXFPathEntity
+{
+
+    std::vector<MyDXFVec> _p;       /*!< \brief Vector with x and y coordinates of vertex and bulge as z coordinate */
+    int16_t               _flags;
+
+    virtual void debug_print( std::ostream &os ) const;
+
+public:
+
+    /*! \brief Construct line entity by reading from DXF file.
+     */
+    MyDXFLWPolyline( class MyDXFFile *dxf );
+
+    /*! \brief Virtual destructor.
+     */
+    virtual ~MyDXFLWPolyline() {}
+
+    /*! \brief Get a new copy of entity.
+     */
+    virtual MyDXFLWPolyline *copy( void ) const { return( new MyDXFLWPolyline( *this ) ); }
+
+    /*! \brief Get start point of path entity.
+     */
+    virtual MyDXFVec start( void ) const { return( _p[0] ); }
+
+    /*! \brief Get end point of path entity.
+     */
+    virtual MyDXFVec end( void ) const { return( _p[_p.size()-1] ); }
+
+    /*! \brief Set start point of path entity.
+     */
+    virtual void set_start( const MyDXFVec &s );
+
+    /*! \brief Set end point of path entity.
+     */
+    virtual void set_end( const MyDXFVec &e );
+
+    /*! \brief Check for ray crossing.
+     *
+     *  Check if ray going from point (x,y) downwards (negative y
+     *  direction) crosses the entity. Return 1 if crosses odd number
+     *  of times and 0 if even number of times. Return 2 in case of
+     *  exact crossing at boundaries. This function is used as a
+     *  subroutine to inside_loop().
+     */
+    virtual int ray_cross( double x, double y ) const;
+
+    /*! \brief Check if two entities are geometrically same.
+     *
+     *   Checks if entity \a a is the geometrically same as entity \a
+     *   b within error limit \a eps.
+     */
+    bool geom_same( const MyDXFLWPolyline &line, double eps = 1.0e-6 ) const;
+
+    /*! \brief Get number of vertices in entity.
+     */
+    uint32_t size() const { return( _p.size() ); }
+
+    /*! \brief Get vertix \a i.
+     */
+    MyDXFVec vertex( uint32_t i ) const { return( _p[i] ); }
+
+    /*! \brief Is entity closed path?
+     */
+    bool closed( void ) const { return( _flags & LWPOLYLINE_CLOSED_MASK ); }
+
+    /*! \brief Return bounding box of entity.
+     */
+    virtual void get_bbox( MyDXFVec &min, MyDXFVec &max ) const;
+
     /*! \brief Scale entity by factor \a s.
      */
     virtual void scale( double s );
@@ -249,6 +351,14 @@ public:
      */
     virtual MyDXFArc *copy( void ) const { return( new MyDXFArc( *this ) ); }
 
+    /*! \brief Get center point of arc.
+     */
+    MyDXFVec center( void ) const { return( _pc ); }
+
+    /*! \brief Get radius of arc.
+     */
+    double radius( void ) const { return( _r ); }
+
     /*! \brief Get start point of path entity.
      */
     virtual MyDXFVec start( void ) const {
@@ -276,6 +386,14 @@ public:
     /*! \brief Set end angle.
      */
     void set_ang2( double ang2 );
+    
+    /*! \brief Get start angle.
+     */
+    double get_ang1( void ) const { return( _ang1 ); }
+
+    /*! \brief Get end angle.
+     */
+    double get_ang2( void ) const { return( _ang2 ); }
 
     /*! \brief Reset arc according to end points.
      *
@@ -314,6 +432,10 @@ public:
      */
     bool geom_same( const MyDXFArc &arc, double eps = 1.0e-6 ) const;
 
+   /*! \brief Return bounding box of entity
+     */
+    virtual void get_bbox( MyDXFVec &min, MyDXFVec &max ) const;
+
     /*! \brief Scale entity by factor \a s.
      */
     virtual void scale( double s );
@@ -350,6 +472,14 @@ public:
      */
     virtual MyDXFCircle *copy( void ) const { return( new MyDXFCircle( *this ) ); }
 
+    /*! \brief Get center point of circle.
+     */
+    MyDXFVec center( void ) const { return( _pc ); }
+
+    /*! \brief Get radius of circle.
+     */
+    double radius( void ) const { return( _r ); }
+
     /*! \brief Get start point of path entity.
      */
     virtual MyDXFVec start( void ) const { return( _pc+MyDXFVec(_r,0) ); }
@@ -382,6 +512,10 @@ public:
      *   b within error limit \a eps.
      */
     bool geom_same( const MyDXFCircle &circle, double eps = 1.0e-6 ) const;
+
+   /*! \brief Return bounding box of entity
+     */
+    virtual void get_bbox( MyDXFVec &min, MyDXFVec &max ) const;
 
     /*! \brief Scale entity by factor \a s.
      */
@@ -440,9 +574,68 @@ public:
      */
     virtual MyDXFMText *copy( void ) const { return( new MyDXFMText( *this ) ); }
 
+   /*! \brief Return bounding box of entity
+     */
+    virtual void get_bbox( MyDXFVec &min, MyDXFVec &max ) const;
+
     /*! \brief Scale entity by factor \a s.
      */
     virtual void scale( double s );
+};
+
+
+
+/*! \brief DXF insert entity class.
+ *
+ *
+ */
+class MyDXFInsert : public MyDXFEntity
+{
+
+    std::string _block_name;
+
+    MyDXFVec    _p;        // Insertion point
+    MyDXFVec    _scale;
+
+    double      _rotation;
+
+    int16_t     _col_count;
+    int16_t     _row_count;
+
+    double      _col_spacing;
+    double      _row_spacing;
+
+    virtual void debug_print( std::ostream &os ) const;
+
+public:
+
+    /*! \brief Default constructor.
+     */
+    MyDXFInsert();
+
+    /*! \brief Construct entity by reading from DXF file.
+     */
+    MyDXFInsert( class MyDXFFile *dxf );
+
+    /*! \brief Virtual destructor.
+     */
+    virtual ~MyDXFInsert() {}
+
+    /*! \brief Get a new copy of entity.
+     */
+    virtual MyDXFInsert *copy( void ) const { return( new MyDXFInsert( *this ) ); }
+
+   /*! \brief Return bounding box of entity
+     */
+    virtual void get_bbox( MyDXFVec &min, MyDXFVec &max ) const;
+
+    /*! \brief Scale entity by factor \a s.
+     */
+    virtual void scale( double s );
+
+   /*! \brief Return name of the block inserted.
+     */
+    const std::string &block_name( void ) const { return( _block_name ); }
 };
 
 
@@ -510,8 +703,11 @@ public:
     MyDXFEntities( MyDXFEntities *ent, MyDXFEntitySelection *sel );
 
     /*! \brief Construct entities database by reading from DXF file.
+     *
+     *  Called with reading_block = true if called from inside BLOCKS
+     *  section.
      */
-    MyDXFEntities( class MyDXFFile *dxf );
+    MyDXFEntities( class MyDXFFile *dxf, bool reading_blocks = false );
 
     /*! \brief Destructor.
      */
@@ -571,7 +767,9 @@ public:
      */
     bool inside_loop( MyDXFEntitySelection *selection, double x, double y, double eps = 1.0e-6 );
 
-
+    /*! \brief Get bounding box containing all entities in selection.
+     */
+    void get_bbox(  const MyDXFEntitySelection *selection, MyDXFVec &min, MyDXFVec &max ) const;
 
 
 
@@ -585,6 +783,13 @@ public:
     /* ! \brief Scale selected entities by factor s.
      */
     void scale( MyDXFEntitySelection *selection, double s );
+
+
+    /*! \brief Print debugging information to os.
+     */
+    void debug_print( std::ostream &os ) const;
+
+
 };
 
 

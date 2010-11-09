@@ -112,6 +112,8 @@ meshgraph.cpp \
 meshgraph.hpp \
 mvector.cpp \
 mvector.hpp \
+mydxfblocks.cpp \
+mydxfblocks.hpp \
 mydxfentities.cpp \
 mydxfentities.hpp \
 mydxffile.cpp \
@@ -213,6 +215,7 @@ lineclip.hpp \
 matrix.hpp \
 meshgraph.hpp \
 mvector.hpp \
+mydxfblocks.hpp \
 mydxfentities.hpp \
 mydxffile.hpp \
 mydxfheader.hpp \

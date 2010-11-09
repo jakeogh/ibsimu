@@ -1,5 +1,5 @@
-/*! \file mydxfheader.hpp
- *  \brief Header file for mydxfheader.hpp
+/*! \file mydxfblocks.hpp
+ *  \brief Blocks file for mydxfblocks.hpp
  */
 
 /* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
@@ -40,33 +40,72 @@
  * permit others to do so.
  */
 
-#ifndef MY_DXF_HEADER_HPP
-#define MY_DXF_HEADER_HPP 1
+#ifndef MY_DXF_BLOCKS_HPP
+#define MY_DXF_BLOCKS_HPP 1
 
 
 #include <stdint.h>
+#include <vector>
+#include <string>
+#include "mydxfvec.hpp"
 #include "mydxffile.hpp"
+#include "mydxfentities.hpp"
 
 
-/*! \brief DXF header class.
- *
- *  Container for data of a DXF file header. The data currently
- *  doesn't affect the functioning of the MyDXF library. All settings
- *  are currently ignored.
+/*! \brief DXF block class.
  */
-class MyDXFHeader
+class MyDXFBlock
 {
 
+    std::string    _path;
+    std::string    _handle;
+    std::string    _layer;
+    std::string    _owner_handle;
+    std::string    _name;
 
+    int16_t        _type;
+    MyDXFVec       _p;             // Base point
+
+    class MyDXFEntities *_entities;
 
 public:
 
-    std::string acadver;
-    double angbase;
-    int16_t angdir;
+    MyDXFBlock( class MyDXFFile *dxf );
+    ~MyDXFBlock();
 
-    MyDXFHeader( class MyDXFFile *dxf );
-    ~MyDXFHeader();
+    /*! \brief Get a pointer to the entities of block.
+     */
+    class MyDXFEntities *get_entities( void ) { return( _entities ); };
+
+    /*! \brief Get a const pointer to the entities of block.
+     */
+    const class MyDXFEntities *get_entities( void ) const { return( _entities ); };
+
+
+    friend std::ostream &operator<<( std::ostream &os, const MyDXFBlock &blk );
+};
+
+
+
+/*! \brief DXF blocks class.
+ *
+ *  Container for data of a DXF file blocks.
+ */
+class MyDXFBlocks
+{
+
+    std::vector<MyDXFBlock *> _blocks;
+
+public:
+
+    MyDXFBlocks( class MyDXFFile *dxf );
+    ~MyDXFBlocks();
+
+    uint32_t size( void ) const { return( _blocks.size() ); }
+
+    MyDXFBlock *operator()( int a ) { return( _blocks[a] ); }
+
+    const MyDXFBlock *operator()( int a ) const { return( _blocks[a] ); }
 
     /*! \brief Print debugging information to os.
      */

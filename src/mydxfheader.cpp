@@ -54,3 +54,16 @@ MyDXFHeader::~MyDXFHeader()
 {
 
 }
+
+
+
+void MyDXFHeader::debug_print( std::ostream &os ) const
+{
+    os << "*** Section HEADER ****************************************\n";
+
+    os << "  acadver = " << acadver << "\n";
+    os << "  angbase = " << angbase << "\n";
+    os << "  angdir = " << angdir << "\n";
+
+    os << "\n";
+}

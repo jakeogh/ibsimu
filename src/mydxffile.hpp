@@ -51,6 +51,7 @@
 
 #include <fstream>
 #include "mydxfheader.hpp"
+#include "mydxfblocks.hpp"
 #include "mydxfentities.hpp"
 
 
@@ -69,6 +70,8 @@ class MyDXFFile
     bool          _ascii;
     int           _linec;
 
+    int           _wlevel;
+
     int           _group_code;
     int           _group_type;
 
@@ -80,8 +83,9 @@ class MyDXFFile
     int32_t       _group_int32;
     int64_t       _group_int64;
 
-    class MyDXFHeader *_header;
-    class MyDXFEntities *_entities;
+    class MyDXFHeader    *_header;
+    class MyDXFBlocks    *_blocks;
+    class MyDXFEntities  *_entities;
 
 
 public:
@@ -97,6 +101,22 @@ public:
     /*! \brief Destructor.
      */
     ~MyDXFFile();
+
+    /*! \brief Read a DXF file.
+     */
+    void read( const std::string &filename );
+
+    /*! \brief Set the level of warning messages.
+     *
+     *  If \a wlevel is set to zero, no warnings will be printed. With
+     *  increasing \a wlevel more warning messages are printed to
+     *  standard output.
+     */
+    void set_warning_level( int wlevel ) { _wlevel = wlevel; }
+
+    /*! \brief Get the level of warning messages.
+     */
+    int wlevel( void ) { return( _wlevel ); }
 
     /*! \brief Read next group from open file and return group code.
      *
@@ -166,6 +186,23 @@ public:
     /*! \brief Get a const pointer to the entities of DXF file.
      */
     const class MyDXFEntities *get_entities( void ) const { return( _entities ); };
+
+
+
+    /*! \brief Get a pointer to the blocks of DXF file.
+     */
+    class MyDXFBlocks *get_blocks( void ) { return( _blocks ); };
+
+    /*! \brief Get a const pointer to the blocks of DXF file.
+     */
+    const class MyDXFBlocks *get_blocks( void ) const { return( _blocks ); };
+
+
+
+
+    /*! \brief Print debugging information to os.
+     */
+    void debug_print( std::ostream &os ) const;
 };
 
 
