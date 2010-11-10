@@ -1,18 +1,24 @@
 		NEWS
 		====
 
-IBSimu 1.0.3							
+IBSimu 1.0.3							10 Non 2010
 ---------------------------------------------------------------------------
 
 - Implemented simple negative ion plasma extraction model.
 - Moved verbose setting to IBSimu class, where all global 
   settings are to be gathered (see COMPATIBILITY).
+- Changed uintial plasma area definition to use a function for fully three
+  dimensional possibilities (see COMPATIBILITY).
 - Added a small DXF library for reading geometries.
-- Bugfix for errnous virtual potential point on the simulation boundary
-- Bugfix for leaking memory in Newton-Raphson iterator
-- Bugfix for errnous axes in field diagnostic plots
+- Added (r,r') conversion emittance to interactive plotter.
 - Corrected energy units in beam emittance definition functions.
-- Minor bugfixes
+- Bugfixes and improvements to configure script.
+- Bugfix for errnous virtual potential point on the simulation boundary
+- Bugfix for leaking memory and redefinition of iteration limits in 
+  Newton-Raphson solver
+- Bugfix for errnous axes in field diagnostic plots
+- Various minor bugfixes
+- Documentation
 
 IBSimu 1.0.2							21 Jul 2010
 ---------------------------------------------------------------------------
