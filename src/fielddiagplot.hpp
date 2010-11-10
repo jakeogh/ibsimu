@@ -2,7 +2,7 @@
  *  \brief Header file for fielddiagplot.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -23,7 +23,7 @@
  * software, please contact Berkeley Lab's Technology Transfer
  * Department at TTD@lbl.gov. Other questions, comments and bug
  * reports should be sent directly to the author via email at
- * tvkalvas@cc.jyu.fi.
+ * taneli.kalvas@jyu.fi.
  * 
  * NOTICE. This software was developed under partial funding from the
  * U.S.  Department of Energy.  As such, the U.S. Government has been
@@ -201,12 +201,14 @@ public:
 
     /*! \brief Rebuild plot.
      */
-    virtual void build_plot( void );
-
+    void build_plot( void );
 };
 
 
 
 #endif
+
+
+
 
 

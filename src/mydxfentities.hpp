@@ -23,7 +23,7 @@
  * software, please contact Berkeley Lab's Technology Transfer
  * Department at TTD@lbl.gov. Other questions, comments and bug
  * reports should be sent directly to the author via email at
- * tvkalvas@cc.jyu.fi.
+ * taneli.kalvas@jyu.fi.
  * 
  * NOTICE. This software was developed under partial funding from the
  * U.S.  Department of Energy.  As such, the U.S. Government has been
@@ -47,7 +47,7 @@
 #include <stdint.h>
 #include <vector>
 #include "mydxffile.hpp"
-#include "mydxfvec.hpp"
+#include "vec3d.hpp"
 
 
 /*! \brief DXF entity base class.
@@ -71,7 +71,7 @@ protected:
      *  Updates bounding box value at min and max by including point p
      *  in the bounding box.
      */
-    static void bbox_ppoint( MyDXFVec &min, MyDXFVec &max, const MyDXFVec &p );
+    static void bbox_ppoint( Vec3D &min, Vec3D &max, const Vec3D &p );
 
     void process_group( class MyDXFFile *dxf );
     void constructor_debug_print( void ) const;
@@ -110,7 +110,7 @@ public:
 
    /*! \brief Return bounding box of entity
      */
-    virtual void get_bbox( MyDXFVec &min, MyDXFVec &max ) const = 0;
+    virtual void get_bbox( Vec3D &min, Vec3D &max ) const = 0;
 
     friend std::ostream &operator<<( std::ostream &os, const MyDXFEntity &ent );
 };
@@ -137,19 +137,19 @@ public:
 
     /*! \brief Get start point of path entity.
      */
-    virtual MyDXFVec start( void ) const = 0;
+    virtual Vec3D start( void ) const = 0;
 
     /*! \brief Get end point of path entity.
      */
-    virtual MyDXFVec end( void ) const = 0;
+    virtual Vec3D end( void ) const = 0;
 
     /*! \brief Set start point of path entity.
      */
-    virtual void set_start( const MyDXFVec &s ) = 0;
+    virtual void set_start( const Vec3D &s ) = 0;
 
     /*! \brief Set end point of path entity.
      */
-    virtual void set_end( const MyDXFVec &e ) = 0;
+    virtual void set_end( const Vec3D &e ) = 0;
 
     /*! \brief Check for ray crossing.
      *
@@ -170,8 +170,8 @@ public:
 class MyDXFLine : public MyDXFPathEntity
 {
 
-    MyDXFVec _p1;
-    MyDXFVec _p2;
+    Vec3D _p1;
+    Vec3D _p2;
 
     virtual void debug_print( std::ostream &os ) const;
 
@@ -191,19 +191,19 @@ public:
 
     /*! \brief Get start point of path entity.
      */
-    virtual MyDXFVec start( void ) const { return( _p1 ); }
+    virtual Vec3D start( void ) const { return( _p1 ); }
 
     /*! \brief Get end point of path entity.
      */
-    virtual MyDXFVec end( void ) const { return( _p2 ); }
+    virtual Vec3D end( void ) const { return( _p2 ); }
 
     /*! \brief Set start point of path entity.
      */
-    virtual void set_start( const MyDXFVec &s );
+    virtual void set_start( const Vec3D &s );
 
     /*! \brief Set end point of path entity.
      */
-    virtual void set_end( const MyDXFVec &e );
+    virtual void set_end( const Vec3D &e );
 
     /*! \brief Check for ray crossing.
      *
@@ -224,7 +224,7 @@ public:
 
    /*! \brief Return bounding box of entity
      */
-    virtual void get_bbox( MyDXFVec &min, MyDXFVec &max ) const;
+    virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
 
     /*! \brief Scale entity by factor \a s.
      */
@@ -244,7 +244,7 @@ public:
 class MyDXFLWPolyline : public MyDXFPathEntity
 {
 
-    std::vector<MyDXFVec> _p;       /*!< \brief Vector with x and y coordinates of vertex and bulge as z coordinate */
+    std::vector<Vec3D> _p;       /*!< \brief Vector with x and y coordinates of vertex and bulge as z coordinate */
     int16_t               _flags;
 
     virtual void debug_print( std::ostream &os ) const;
@@ -265,19 +265,19 @@ public:
 
     /*! \brief Get start point of path entity.
      */
-    virtual MyDXFVec start( void ) const { return( _p[0] ); }
+    virtual Vec3D start( void ) const { return( _p[0] ); }
 
     /*! \brief Get end point of path entity.
      */
-    virtual MyDXFVec end( void ) const { return( _p[_p.size()-1] ); }
+    virtual Vec3D end( void ) const { return( _p[_p.size()-1] ); }
 
     /*! \brief Set start point of path entity.
      */
-    virtual void set_start( const MyDXFVec &s );
+    virtual void set_start( const Vec3D &s );
 
     /*! \brief Set end point of path entity.
      */
-    virtual void set_end( const MyDXFVec &e );
+    virtual void set_end( const Vec3D &e );
 
     /*! \brief Check for ray crossing.
      *
@@ -302,7 +302,7 @@ public:
 
     /*! \brief Get vertix \a i.
      */
-    MyDXFVec vertex( uint32_t i ) const { return( _p[i] ); }
+    Vec3D vertex( uint32_t i ) const { return( _p[i] ); }
 
     /*! \brief Is entity closed path?
      */
@@ -310,7 +310,7 @@ public:
 
     /*! \brief Return bounding box of entity.
      */
-    virtual void get_bbox( MyDXFVec &min, MyDXFVec &max ) const;
+    virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
 
     /*! \brief Scale entity by factor \a s.
      */
@@ -326,7 +326,7 @@ public:
 class MyDXFArc : public MyDXFPathEntity
 {
 
-    MyDXFVec _pc;
+    Vec3D _pc;
     double   _r;
     double   _ang1; // Must be between 0 and 2 pi.
     double   _ang2; // Must be between 0 and 2 pi.
@@ -353,7 +353,7 @@ public:
 
     /*! \brief Get center point of arc.
      */
-    MyDXFVec center( void ) const { return( _pc ); }
+    Vec3D center( void ) const { return( _pc ); }
 
     /*! \brief Get radius of arc.
      */
@@ -361,19 +361,19 @@ public:
 
     /*! \brief Get start point of path entity.
      */
-    virtual MyDXFVec start( void ) const {
-	return( MyDXFVec(_pc[0] + _r*cos(_ang1), _pc[1] + _r*sin(_ang1), _pc[2] ) ); 
+    virtual Vec3D start( void ) const {
+	return( Vec3D(_pc[0] + _r*cos(_ang1), _pc[1] + _r*sin(_ang1), _pc[2] ) ); 
     }
 
     /*! \brief Get end point of path entity.
      */
-    virtual MyDXFVec end( void ) const { 
-	return( MyDXFVec(_pc[0] + _r*cos(_ang2), _pc[1] + _r*sin(_ang2), _pc[2] ) ); 
+    virtual Vec3D end( void ) const { 
+	return( Vec3D(_pc[0] + _r*cos(_ang2), _pc[1] + _r*sin(_ang2), _pc[2] ) ); 
     }
 
     /*! \brief Set center point.
      */
-    void set_pc( const MyDXFVec &pc ) { _pc = pc; }
+    void set_pc( const Vec3D &pc ) { _pc = pc; }
 
     /*! \brief Set radius.
      */
@@ -405,15 +405,15 @@ public:
      *  middle of start and end and the radius is set to half of the
      *  distance of start to end.
      */
-    void set_center_point( const MyDXFVec &s, const MyDXFVec &e );
+    void set_center_point( const Vec3D &s, const Vec3D &e );
 
     /*! \brief Set start point of path entity.
      */
-    virtual void set_start( const MyDXFVec &s );
+    virtual void set_start( const Vec3D &s );
 
     /*! \brief Set end point of path entity.
      */
-    virtual void set_end( const MyDXFVec &e );
+    virtual void set_end( const Vec3D &e );
 
     /*! \brief Check for ray crossing.
      *
@@ -434,7 +434,7 @@ public:
 
    /*! \brief Return bounding box of entity
      */
-    virtual void get_bbox( MyDXFVec &min, MyDXFVec &max ) const;
+    virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
 
     /*! \brief Scale entity by factor \a s.
      */
@@ -449,7 +449,7 @@ public:
 class MyDXFCircle : public MyDXFPathEntity
 {
 
-    MyDXFVec _pc;
+    Vec3D _pc;
     double   _r;
 
     virtual void debug_print( std::ostream &os ) const;
@@ -474,7 +474,7 @@ public:
 
     /*! \brief Get center point of circle.
      */
-    MyDXFVec center( void ) const { return( _pc ); }
+    Vec3D center( void ) const { return( _pc ); }
 
     /*! \brief Get radius of circle.
      */
@@ -482,19 +482,19 @@ public:
 
     /*! \brief Get start point of path entity.
      */
-    virtual MyDXFVec start( void ) const { return( _pc+MyDXFVec(_r,0) ); }
+    virtual Vec3D start( void ) const { return( _pc+Vec3D(_r,0) ); }
 
     /*! \brief Get end point of path entity.
      */
-    virtual MyDXFVec end( void ) const { return( _pc+MyDXFVec(_r,0) ); }
+    virtual Vec3D end( void ) const { return( _pc+Vec3D(_r,0) ); }
 
     /*! \brief Set start point of path entity.
      */
-    virtual void set_start( const MyDXFVec &s ) {}
+    virtual void set_start( const Vec3D &s ) {}
 
     /*! \brief Set end point of path entity.
      */
-    virtual void set_end( const MyDXFVec &e ) {}
+    virtual void set_end( const Vec3D &e ) {}
 
     /*! \brief Check for ray crossing.
      *
@@ -515,7 +515,7 @@ public:
 
    /*! \brief Return bounding box of entity
      */
-    virtual void get_bbox( MyDXFVec &min, MyDXFVec &max ) const;
+    virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
 
     /*! \brief Scale entity by factor \a s.
      */
@@ -546,7 +546,7 @@ class MyDXFMText : public MyDXFEntity
 {
 
     std::string _text;
-    MyDXFVec    _p;
+    Vec3D    _p;
     double      _text_height;
     double      _rect_width;
     int16_t     _attachment_point;
@@ -576,7 +576,7 @@ public:
 
    /*! \brief Return bounding box of entity
      */
-    virtual void get_bbox( MyDXFVec &min, MyDXFVec &max ) const;
+    virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
 
     /*! \brief Scale entity by factor \a s.
      */
@@ -594,8 +594,8 @@ class MyDXFInsert : public MyDXFEntity
 
     std::string _block_name;
 
-    MyDXFVec    _p;        // Insertion point
-    MyDXFVec    _scale;
+    Vec3D    _p;        // Insertion point
+    Vec3D    _scale;
 
     double      _rotation;
 
@@ -627,7 +627,7 @@ public:
 
    /*! \brief Return bounding box of entity
      */
-    virtual void get_bbox( MyDXFVec &min, MyDXFVec &max ) const;
+    virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
 
     /*! \brief Scale entity by factor \a s.
      */
@@ -769,7 +769,7 @@ public:
 
     /*! \brief Get bounding box containing all entities in selection.
      */
-    void get_bbox(  const MyDXFEntitySelection *selection, MyDXFVec &min, MyDXFVec &max ) const;
+    void get_bbox(  const MyDXFEntitySelection *selection, Vec3D &min, Vec3D &max ) const;
 
 
 
@@ -797,3 +797,6 @@ public:
 
 
 #endif
+
+
+

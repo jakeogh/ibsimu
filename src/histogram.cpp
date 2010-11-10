@@ -23,7 +23,7 @@
  * software, please contact Berkeley Lab's Technology Transfer
  * Department at TTD@lbl.gov. Other questions, comments and bug
  * reports should be sent directly to the author via email at
- * tvkalvas@cc.jyu.fi.
+ * taneli.kalvas@jyu.fi.
  * 
  * NOTICE. This software was developed under partial funding from the
  * U.S.  Department of Energy.  As such, the U.S. Government has been
@@ -335,6 +335,9 @@ void Histogram2D::accumulate_linear( double x, double y, double weight )
     if( i+1 >= 0 && j+1 >= 0 && i+1 < _n && j+1 < _m )
 	_data[i+1+(j+1)*_n] += weight*t*u;
 }
+
+
+
 
 
 

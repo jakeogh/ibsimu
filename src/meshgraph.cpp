@@ -23,7 +23,7 @@
  * software, please contact Berkeley Lab's Technology Transfer
  * Department at TTD@lbl.gov. Other questions, comments and bug
  * reports should be sent directly to the author via email at
- * tvkalvas@cc.jyu.fi.
+ * taneli.kalvas@jyu.fi.
  * 
  * NOTICE. This software was developed under partial funding from the
  * U.S.  Department of Energy.  As such, the U.S. Government has been
@@ -115,6 +115,9 @@ void MeshGraph::get_bbox( double bbox[4] )
     bbox[2] = _g.max( _vb[0] );
     bbox[3] = _g.max( _vb[1] );
 }
+
+
+
 
 
 

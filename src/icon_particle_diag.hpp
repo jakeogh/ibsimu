@@ -23,7 +23,7 @@
  * software, please contact Berkeley Lab's Technology Transfer
  * Department at TTD@lbl.gov. Other questions, comments and bug
  * reports should be sent directly to the author via email at
- * tvkalvas@cc.jyu.fi.
+ * taneli.kalvas@jyu.fi.
  * 
  * NOTICE. This software was developed under partial funding from the
  * U.S.  Department of Energy.  As such, the U.S. Government has been
@@ -95,6 +95,9 @@ const guint8 icon_particle_diag_inline[] =
   "\377\0\0\177\230\0\0\0\0\1\0\0\0\377\206\0\0\0\0\3\377\0\0\200\377\0"
   "\0\315\377\0\0\3\226\0\0\0\0\1\0\0\0\377\210\0\0\0\0\1\377\0\0\0\226"
   "\0\0\0\0\1\0\0\0\377\237\0\0\0\0\1\0\0\0\377\377\0\0\0\0\212\0\0\0\0"};
+
+
+
 
 
 

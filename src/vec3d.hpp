@@ -1,8 +1,8 @@
 /*! \file vec3d.hpp
- *  \brief Header file for vec3d.hpp
+ *  \brief Header file for three dimensional vectors.
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -23,7 +23,7 @@
  * software, please contact Berkeley Lab's Technology Transfer
  * Department at TTD@lbl.gov. Other questions, comments and bug
  * reports should be sent directly to the author via email at
- * tvkalvas@cc.jyu.fi.
+ * taneli.kalvas@jyu.fi.
  * 
  * NOTICE. This software was developed under partial funding from the
  * U.S.  Department of Energy.  As such, the U.S. Government has been
@@ -52,9 +52,10 @@
 #include "file.hpp"
 
 
-/*! \brief 3D %Vector class.
+/*! \brief Three dimensional vector.
  */
 class Vec3D {
+
     double p[3];
 
 public:
@@ -108,10 +109,14 @@ public:
 		p[2] * vec[2] );
     }
 
+    /*! \brief %Vector scaling.
+     */
     Vec3D operator*( double x ) { 
 	return( Vec3D( x*p[0], x*p[1], x*p[2] ) );
     }
 
+    /*! \brief %Vector scaling.
+     */
     Vec3D &operator*=( double x ) { 
 	p[0] *= x;
 	p[1] *= x;
@@ -119,6 +124,8 @@ public:
 	return( *this );
     }
 
+    /*! \brief %Vector scaling with divisor.
+     */
     Vec3D &operator/=( double x ) { 
 	double div = 1.0/x;
 	p[0] *= div;
@@ -127,12 +134,24 @@ public:
 	return( *this );
     }
 
+    /*! \brief Inequality test.
+     */
     bool operator!=( const Vec3D &x ) { 
 	if( p[0] != x.p[0] || p[1] != x.p[1] || p[2] != x.p[2] )
 	    return( true );
 	return( false ); 
     }
 
+    /*! \brief Equality test.
+     */
+    bool operator==( const Vec3D &x ) { 
+	if( p[0] == x.p[0] && p[1] == x.p[1] && p[2] == x.p[2] )
+	    return( true );
+	return( false ); 
+    }
+
+    /*! \brief Assignment.
+     */
     Vec3D &operator=( const Vec3D &x ) { 
 	p[0] = x[0];
 	p[1] = x[1];
@@ -140,6 +159,8 @@ public:
 	return( *this );
     }
 
+    /*! \brief Assignment of every coordinate.
+     */
     Vec3D &operator=( const double &x ) { 
 	p[0] = x;
 	p[1] = x;
@@ -182,10 +203,20 @@ public:
      */
     friend Vec3D cross( const Vec3D &vec1, const Vec3D &vec2 );
 
+    /*! \brief Second norm of vector.
+     */
     friend double norm2( const Vec3D &vec );
 
+    /*! \brief %Vector scaling.
+     */
     friend Vec3D operator*( double x, const Vec3D &vec );
+
+    /*! \brief %Vector scaling for integer vector.
+     */
     friend Vec3D operator*( double x, const class Int3D &i );
+
+    /*! \brief Outputting to stream.
+     */
     friend std::ostream &operator<<( std::ostream &os, const Vec3D &vec );
 };
 
@@ -286,6 +317,9 @@ inline std::ostream &operator<<( std::ostream &os, const Int3D &vec )
 
 
 #endif
+
+
+
 
 
 

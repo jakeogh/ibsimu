@@ -120,7 +120,6 @@ mydxffile.cpp \
 mydxffile.hpp \
 mydxfheader.cpp \
 mydxfheader.hpp \
-mydxfvec.hpp \
 palette.cpp \
 palette.hpp \
 particledatabase.cpp \
@@ -163,6 +162,8 @@ trajectory.cpp \
 trajectory.hpp \
 trajectorydiagnostics.cpp \
 trajectorydiagnostics.hpp \
+transformation.cpp \
+transformation.hpp \
 types.cpp \
 types.hpp \
 vec3d.hpp \
@@ -219,7 +220,6 @@ mydxfblocks.hpp \
 mydxfentities.hpp \
 mydxffile.hpp \
 mydxfheader.hpp \
-mydxfvec.hpp \
 palette.hpp \
 particledatabase.hpp \
 particlediagplot.hpp \
@@ -244,6 +244,7 @@ statusprint.hpp \
 timer.hpp \
 trajectory.hpp \
 trajectorydiagnostics.hpp \
+transformation.hpp \
 types.hpp \
 vec3d.hpp \
 vectorfield.hpp \

@@ -18,7 +18,7 @@ MyDXFEntity::MyDXFEntity()
 }
 
 
-void MyDXFEntity::bbox_ppoint( MyDXFVec &min, MyDXFVec &max, const MyDXFVec &p )
+void MyDXFEntity::bbox_ppoint( Vec3D &min, Vec3D &max, const Vec3D &p )
 {
     for( int a = 0; a < 3; a++ ) {
 	if( p[a] < min[a] )
@@ -99,7 +99,7 @@ MyDXFLine::MyDXFLine( class MyDXFFile *dxf )
 }
 
 
-void MyDXFLine::get_bbox( MyDXFVec &min, MyDXFVec &max ) const
+void MyDXFLine::get_bbox( Vec3D &min, Vec3D &max ) const
 {
     for( int a = 0; a < 3; a++ ) {
 	if( _p1[a] < _p2[a] ) {
@@ -156,13 +156,13 @@ void MyDXFLine::debug_print( std::ostream &os ) const
 }
 
 
-void MyDXFLine::set_start( const MyDXFVec &s )
+void MyDXFLine::set_start( const Vec3D &s )
 {
     _p1 = s;
 }
 
 
-void MyDXFLine::set_end( const MyDXFVec &e )
+void MyDXFLine::set_end( const Vec3D &e )
 {
     _p2 = e;
 }
@@ -233,12 +233,12 @@ MyDXFLWPolyline::MyDXFLWPolyline( class MyDXFFile *dxf )
 }
 
 
-void MyDXFLWPolyline::get_bbox( MyDXFVec &min, MyDXFVec &max ) const
+void MyDXFLWPolyline::get_bbox( Vec3D &min, Vec3D &max ) const
 {
-    min = MyDXFVec( std::numeric_limits<double>::infinity(),
+    min = Vec3D( std::numeric_limits<double>::infinity(),
 		    std::numeric_limits<double>::infinity(),
 		    std::numeric_limits<double>::infinity() );
-    max = MyDXFVec( -std::numeric_limits<double>::infinity(),
+    max = Vec3D( -std::numeric_limits<double>::infinity(),
 		    -std::numeric_limits<double>::infinity(),
 		    -std::numeric_limits<double>::infinity() );
 
@@ -256,12 +256,12 @@ void MyDXFLWPolyline::scale( double s  )
 
 int MyDXFLWPolyline::ray_cross( double x, double y ) const
 {
-    MyDXFVec p1 = _p[0];
+    Vec3D p1 = _p[0];
 
     // Go through all lines 
     int c = 0;
     for( uint32_t a = 1; a < _p.size(); a++ ) {
-	MyDXFVec p2 = _p[a];
+	Vec3D p2 = _p[a];
 
 	if( (x > p1[0] && x < p2[0]) || 
 	    (x < p1[0] && x > p2[0]) ) {
@@ -297,13 +297,13 @@ void MyDXFLWPolyline::debug_print( std::ostream &os ) const
 }
 
 
-void MyDXFLWPolyline::set_start( const MyDXFVec &s )
+void MyDXFLWPolyline::set_start( const Vec3D &s )
 {
     _p[0] = s;
 }
 
 
-void MyDXFLWPolyline::set_end( const MyDXFVec &e )
+void MyDXFLWPolyline::set_end( const Vec3D &e )
 {
     _p[_p.size()-1] = e;
 }
@@ -365,7 +365,7 @@ MyDXFCircle::MyDXFCircle( class MyDXFFile *dxf )
 }
 
 
-void MyDXFCircle::get_bbox( MyDXFVec &min, MyDXFVec &max ) const
+void MyDXFCircle::get_bbox( Vec3D &min, Vec3D &max ) const
 {
     for( int a = 0; a < 3; a++ ) {
 	min[a] = _pc[a] - _r;
@@ -473,18 +473,18 @@ MyDXFArc::MyDXFArc( class MyDXFFile *dxf )
 }
 
 
-void MyDXFArc::get_bbox( MyDXFVec &min, MyDXFVec &max ) const
+void MyDXFArc::get_bbox( Vec3D &min, Vec3D &max ) const
 {
-    min = MyDXFVec( std::numeric_limits<double>::infinity(),
+    min = Vec3D( std::numeric_limits<double>::infinity(),
 		    std::numeric_limits<double>::infinity(),
 		    std::numeric_limits<double>::infinity() );
-    max = MyDXFVec( -std::numeric_limits<double>::infinity(),
+    max = Vec3D( -std::numeric_limits<double>::infinity(),
 		    -std::numeric_limits<double>::infinity(),
 		    -std::numeric_limits<double>::infinity() );
 
     // Go through leftmost, rightmost, highest and lowest point of circle
     double a;
-    MyDXFVec p( 0.0, 0.0, _pc[2] );
+    Vec3D p( 0.0, 0.0, _pc[2] );
     for( int b = 0; b < 4; b++ ) {
 	
 	if( b == 0 ) {
@@ -518,10 +518,10 @@ void MyDXFArc::get_bbox( MyDXFVec &min, MyDXFVec &max ) const
     }
 
     // Process endpoints of arc
-    p = MyDXFVec(_pc[0] + _r*cos(_ang1), _pc[1] + _r*sin(_ang1), _pc[2] );
+    p = Vec3D(_pc[0] + _r*cos(_ang1), _pc[1] + _r*sin(_ang1), _pc[2] );
     bbox_ppoint( min, max, p );
 
-    p = MyDXFVec(_pc[0] + _r*cos(_ang2), _pc[1] + _r*sin(_ang2), _pc[2] );
+    p = Vec3D(_pc[0] + _r*cos(_ang2), _pc[1] + _r*sin(_ang2), _pc[2] );
     bbox_ppoint( min, max, p );
 }
 
@@ -608,25 +608,25 @@ bool MyDXFArc::geom_same( const MyDXFArc &arc, double eps ) const
 }
 
 
-void MyDXFArc::set_start( const MyDXFVec &s )
+void MyDXFArc::set_start( const Vec3D &s )
 {
-    MyDXFVec e = end();
+    Vec3D e = end();
     set_center_point( s, e );
 }
 
 
-void MyDXFArc::set_end( const MyDXFVec &e )
+void MyDXFArc::set_end( const Vec3D &e )
 {
-    MyDXFVec s = start();
+    Vec3D s = start();
     set_center_point( s, e );
 }
 
 
-void MyDXFArc::set_center_point( const MyDXFVec &s, const MyDXFVec &e )
+void MyDXFArc::set_center_point( const Vec3D &s, const Vec3D &e )
 {
     if( norm2( e-s ) < 2.0*_r ) {
-	MyDXFVec u = 0.5*(e-s);
-	MyDXFVec v( -u[1], u[0] );
+	Vec3D u = 0.5*(e-s);
+	Vec3D v( -u[1], u[0] );
 
 	double A = v[0]*v[0] + v[1]*v[1];
 	double B = 2.0*( v[0]*u[0] + v[1]*u[1] );
@@ -644,7 +644,7 @@ void MyDXFArc::set_center_point( const MyDXFVec &s, const MyDXFVec &e )
 	_r = 0.5*norm2( e-s );
     }
 
-    MyDXFVec dd = s-_pc;
+    Vec3D dd = s-_pc;
     double dx = dd[0];
     double dy = dd[1];
     _ang1 = atan2( dy,dx );
@@ -715,7 +715,7 @@ MyDXFMText::MyDXFMText( class MyDXFFile *dxf )
 }
 
 
-void MyDXFMText::get_bbox( MyDXFVec &min, MyDXFVec &max ) const
+void MyDXFMText::get_bbox( Vec3D &min, Vec3D &max ) const
 {
     std::cout << "Warning: bounding box for MText entity not implemented\n";
     min = _p;
@@ -818,7 +818,7 @@ MyDXFInsert::MyDXFInsert( class MyDXFFile *dxf )
 }
 
 
-void MyDXFInsert::get_bbox( MyDXFVec &min, MyDXFVec &max ) const
+void MyDXFInsert::get_bbox( Vec3D &min, Vec3D &max ) const
 {
     std::cout << "Warning: bounding box for INSERT entity not implemented\n";
     min = _p;
@@ -1085,7 +1085,7 @@ MyDXFEntitySelection *MyDXFEntities::selection_path_loop( MyDXFEntitySelection *
 
 	// Check if loop done, check if endpoint of last entity
 	// on stack matches some starting point on stack
-	MyDXFVec end, start;
+	Vec3D end, start;
 	if( stdir.back() ) {
 	    MyDXFEntity *e = _entities[ stack.back() ];
 	    MyDXFPathEntity *pe = dynamic_cast<MyDXFPathEntity *>( e );
@@ -1245,16 +1245,16 @@ MyDXFEntitySelection *MyDXFEntities::selection_path_loop( MyDXFEntitySelection *
 }
 
 
-void MyDXFEntities::get_bbox(  const MyDXFEntitySelection *selection, MyDXFVec &min, MyDXFVec &max ) const
+void MyDXFEntities::get_bbox(  const MyDXFEntitySelection *selection, Vec3D &min, Vec3D &max ) const
 {
-    min = MyDXFVec( std::numeric_limits<double>::infinity(),
+    min = Vec3D( std::numeric_limits<double>::infinity(),
 		    std::numeric_limits<double>::infinity(),
 		    std::numeric_limits<double>::infinity() );
-    max = MyDXFVec( -std::numeric_limits<double>::infinity(),
+    max = Vec3D( -std::numeric_limits<double>::infinity(),
 		    -std::numeric_limits<double>::infinity(),
 		    -std::numeric_limits<double>::infinity() );
 
-    MyDXFVec mi, ma;
+    Vec3D mi, ma;
 
     for( size_t a = 0; a < selection->size(); a++ ) {
 	MyDXFEntity *e = _entities[(*selection)(a)];
@@ -1289,3 +1289,6 @@ void MyDXFEntities::debug_print( std::ostream &os ) const
     
     os << "\n";
 }
+
+
+

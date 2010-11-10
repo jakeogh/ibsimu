@@ -1,5 +1,5 @@
-/*! \file dxf_solid.cpp
- *  \brief Source code for dxf_solid.hpp
+/*! \file transformation.cpp
+ *  \brief Affine transformation
  */
 
 /* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
@@ -41,49 +41,6 @@
  */
 
 
-#include "dxf_solid.hpp"
-
-
-DXFSolid::DXFSolid( MyDXFFile *dxffile, const std::string &layername )
-{
-    MyDXFEntities *ent = dxffile->get_entities();
-    MyDXFEntitySelection *layer = ent->selection_layer( layername );
-    MyDXFEntitySelection *loop = ent->selection_path_loop( layer );
-
-    _entities = new MyDXFEntities( ent, loop );
-    _selection = _entities->selection_all();
-}
-
-
-DXFSolid::~DXFSolid()
-{
-    if( _entities )
-	delete _entities;
-    if( _selection )
-	delete _selection;
-}
-
-
-bool DXFSolid::inside( const Vec3D &x ) const
-{
-    return( _entities->inside_loop( _selection, x(0), x(1) ) );
-}
-
-
-void DXFSolid::debug_print( void ) const
-{
-    for( size_t a = 0; a < _entities->size(); a++ ) {
-	std::cout << _entities->get_entity( a );
-    }
-}
-
-
-void DXFSolid::save( std::ostream &s ) const
-{
-    throw( ErrorUnimplemented( ERROR_LOCATION ) );
-}
-
-
-
+#include "transformation.hpp"
 
 

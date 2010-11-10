@@ -23,7 +23,7 @@
  * software, please contact Berkeley Lab's Technology Transfer
  * Department at TTD@lbl.gov. Other questions, comments and bug
  * reports should be sent directly to the author via email at
- * tvkalvas@cc.jyu.fi.
+ * taneli.kalvas@jyu.fi.
  * 
  * NOTICE. This software was developed under partial funding from the
  * U.S.  Department of Energy.  As such, the U.S. Government has been
@@ -834,5 +834,8 @@ void GTKWindow::hardcopy( void )
     // Reset frame settings
     //_frame.set_geometry( _width, _height, 0, 0 );
 }
+
+
+
 
 

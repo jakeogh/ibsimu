@@ -366,3 +366,6 @@ void MyDXFFile::debug_print( std::ostream &os ) const
     if( _entities )
 	_entities->debug_print( os );
 }
+
+
+
