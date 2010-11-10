@@ -239,8 +239,6 @@ class EpotProblem : public Problem {
     
     void clear_problem( void );
 
-    bool initial_plasma_func_x( double x, double y, double z );
-
 public:
 
 /* ************************************** *

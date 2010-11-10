@@ -13,3 +13,6 @@ in global ibsimu class instead of the old globally defined integer
 verbose_output. The header file verbose.hpp doesn't exist
 anymore. IBSimu class is defined in ibsimu.h
 
+Function set_nsimp_initial_plasma() to set initial plasma area has
+changed. The functionality is changed to be fully three dimensional
+and now the plasma area is defined using a function.

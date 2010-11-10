@@ -9,7 +9,6 @@
 #include <fstream>
 #include <iomanip>
 #include "bicgstab_solver.hpp"
-//#include "umfpack_solver.hpp"
 #include "epot_problem.hpp"
 #include "particledatabase.hpp"
 #include "geometry.hpp"
@@ -39,11 +38,16 @@ bool solid2( double x, double y, double z )
 	    x >= 0.0231 && y >= 0.0055 );
 }
 
+bool initial_plasma( double x, double y, double z )
+{
+    return( x <= 0.00055 );
+}
 
 void test( int *argc, char ***argv )
 {
     // 30x20 mm geometry with 0.05 mm mesh size
-    Geometry geom( MODE_CYL, Int3D(601,401,1), Vec3D(0,0,0), 0.00005 );
+    //Geometry geom( MODE_CYL, Int3D(601,401,1), Vec3D(0,0,0), 0.00005 );
+    Geometry geom( MODE_CYL, Int3D(301,201,1), Vec3D(0,0,0), 0.0001 );
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
@@ -57,15 +61,13 @@ void test( int *argc, char ***argv )
     geom.build_mesh();
 
     EpotProblem p;
-    p.set_nsimp_initial_plasma( 0.00055 );
+    p.set_nsimp_initial_plasma( initial_plasma );
     p.construct( geom );
 
     ScalarField epot( geom );
     ScalarField scharge( geom );
 
     BiCGSTABSolver solver;
-    //UMFPACKSolver solver;
-    //solver.set_imax( 400 );
     p.set_solver( solver );
 
     VectorField bfield;
@@ -141,7 +143,7 @@ void test( int *argc, char ***argv )
 int main( int argc, char **argv )
 {
     try {
-	ibsimu.set_verbose_output( 1 );
+	ibsimu.set_verbose_output( 0 );
     	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

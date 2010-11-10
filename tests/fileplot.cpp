@@ -24,8 +24,7 @@ using namespace std;
 
 bool solid1( double x, double y, double z )
 {
-    return( x <= 0.00187 && y >= 0.00054 && y >= 2.28*x - 0.0010 &&
-	    (x >= 0.00054 || y >= 0.0015) );
+    return( x <= 0.00187 && y >= 0.0015 && y >= 2.28*x - 0.0010 );
 }
 
 
@@ -52,7 +51,6 @@ void test( int *argc, char ***argv )
     geom.build_mesh();
 
     EpotProblem p;
-    p.set_initial_plasma( 5.0, 0.00055 );
     p.construct( geom );
 
     ScalarField epot( geom );
@@ -74,22 +72,13 @@ void test( int *argc, char ***argv )
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
 
-    for( size_t i = 0; i < 1; i++ ) {
-
-	if( i == 1 ) {
-	    double rhoe = pdb.get_rhosum();
-	    p.set_pexp_plasma( -rhoe, 5.0, 5.0 );
-	    p.construct( geom );
-	}
-
-	p.solve( epot, scharge );
-	pdb.clear();
-	pdb.add_2d_beam_with_energy( 5000, 600.0, 1.0, 1.0, 
-				     5.0, 0.0, 0.5, 
-				     0.0, 0.0, 
-				     0.0, 0.0015 );
-	pdb.iterate_trajectories( scharge, efield, bfield, geom );
-    }
+    p.solve( epot, scharge );
+    pdb.clear();
+    pdb.add_2d_beam_with_energy( 5000, 600.0, 1.0, 1.0, 
+				 500.0, 0.0, 0.5, 
+				 0.0, 0.0, 
+				 0.0, 0.0005 );
+    pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
     GeomPlotter gplotter( &geom );
     gplotter.set_scharge( &scharge );
@@ -97,12 +86,6 @@ void test( int *argc, char ***argv )
     gplotter.set_epot( &epot );
     gplotter.set_particle_database( &pdb );
     gplotter.set_particle_div( 100 );
-    std::vector<double> pot;
-    pot.push_back( +2 );
-    pot.push_back( 0 );
-    pot.push_back( -2 );
-    pot.push_back( -20 );
-    gplotter.set_eqlines_manual( pot );
     gplotter.set_font_size( 15 );
 
 #ifdef CAIRO_HAS_PNG_FUNCTIONS

@@ -38,7 +38,10 @@ bool solid2( double x, double y, double z )
     return( x >= 0.0095 && y >= 0.0023333 && y >= 0.01283 - x );
 }
 
-
+bool initial_plasma( double x, double y, double z )
+{
+    return( x <= 0.00055 );
+}
 void test( int *argc, char ***argv )
 {
     Geometry geom( MODE_2D, Int3D(241,141,1), Vec3D(0,0,0), 0.00005 );
@@ -55,7 +58,7 @@ void test( int *argc, char ***argv )
     geom.build_mesh();
 
     EpotProblem p;
-    p.set_initial_plasma( 5.0, 0.00055 );
+    p.set_initial_plasma( 5.0, initial_plasma );
     p.construct( geom );
 
     ScalarField epot( geom );

@@ -2,10 +2,10 @@
 			=========
 
 
-This is a list of procedures to follow when making a release of ibsimu.
+This is a list of procedures to follow when making a release of IBSimu.
 
  - Check version number in configure.in.
- - Check api version number in src/Makefile.am.
+ - Check api version number in src/Makefile.am (not used).
  - Run 'make check' to test library and visually inspect test images.
  - Commit all changes to cvs with 'cvs commit'.
  - Run 'make clean' and './reconf' to update ChangeLog.
@@ -16,4 +16,4 @@ This is a list of procedures to follow when making a release of ibsimu.
    where the release version number is the current version.
 
 
--- Taneli Kalvas <taneli.kalvas@jyu.fi>, 02 Sep 2009
+-- Taneli Kalvas <taneli.kalvas@jyu.fi>, 10 Nov 2010
