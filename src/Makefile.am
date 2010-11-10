@@ -167,6 +167,7 @@ transformation.hpp \
 types.cpp \
 types.hpp \
 vec3d.hpp \
+vec4d.hpp \
 vectorfield.cpp \
 vectorfield.hpp \
 xygraph.cpp \
@@ -247,6 +248,7 @@ trajectorydiagnostics.hpp \
 transformation.hpp \
 types.hpp \
 vec3d.hpp \
+vec4d.hpp \
 vectorfield.hpp \
 xygraph.hpp
 

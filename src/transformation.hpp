@@ -46,31 +46,35 @@
 
 #include <string.h>
 #include "vec3d.hpp"
+#include "vec4d.hpp"
 
 
-/*! \brief Affine transformation for three dimensional space.
+/*! \brief Transformation for homogenous three dimensional space.
  *
- *  Affine transformation operating on Vec3D vectors and points.
+ *  Transformation for homogenous three dimensional space operates of
+ *  4-vectors of type Vec4D. The transformation contains convenience
+ *  functions for making affine transformations on 3-vectors of type
+ *  Vec3D.
  */
 class Transformation
 {
 
-    double _x[16]; /* Matrix data in row first order:
-		    *   0  1  2  3
-		    *   4  5  6  7
-		    *   8  9 10 11
-		    *  12 13 14 15
-		    */
+    double x[16]; /* Matrix data in row first order:
+		   *   0  1  2  3
+		   *   4  5  6  7
+		   *   8  9 10 11
+		   *  12 13 14 15
+		   */
 
 public:
 
     /*! \brief Constructor for identity transformation.
      */
     Transformation() {
-	_x[0] = _x[5] = _x[10] = _x[15] = 1.0; 
-        _x[1] = _x[2] = _x[3] = _x[4] = _x[6] = _x[7] 
-	    = _x[8] = _x[9] = _x[11] = _x[12] = _x[13]
-	    = _x[14] = 0.0;
+	x[0] = x[5] = x[10] = x[15] = 1.0; 
+        x[1] = x[2] = x[3] = x[4] = x[6] = x[7] 
+	    = x[8] = x[9] = x[11] = x[12] = x[13]
+	    = x[14] = 0.0;
     }
 
     /*! \brief Constructor for preset transformation matrix.
@@ -79,28 +83,28 @@ public:
 		    double x21, double x22, double x23, double x24,
 		    double x31, double x32, double x33, double x34,
 		    double x41, double x42, double x43, double x44 ) { 
-        _x[0]  = x11;
-        _x[1]  = x12;
-        _x[2]  = x13;
-        _x[3]  = x14;
-        _x[4]  = x21;
-        _x[5]  = x22;
-        _x[6]  = x23;
-        _x[7]  = x24;
-        _x[8]  = x31;
-        _x[9]  = x32;
-        _x[10] = x33;
-        _x[11] = x34;
-        _x[12] = x41;
-        _x[13] = x42;
-        _x[14] = x43;
-        _x[15] = x44;
+        x[0]  = x11;
+        x[1]  = x12;
+        x[2]  = x13;
+        x[3]  = x14;
+        x[4]  = x21;
+        x[5]  = x22;
+        x[6]  = x23;
+        x[7]  = x24;
+        x[8]  = x31;
+        x[9]  = x32;
+        x[10] = x33;
+        x[11] = x34;
+        x[12] = x41;
+        x[13] = x42;
+        x[14] = x43;
+        x[15] = x44;
     }
 
     /*! \brief Copy constructor.
      */
     Transformation( const Transformation &m ) { 
-        memcpy( _x, m._x, 16*sizeof(double) );
+        memcpy( x, m.x, 16*sizeof(double) );
     }
 
     /*! \brief Destructor.
@@ -114,13 +118,13 @@ public:
     /*! \brief Indexing for transformation matrix.
      */
     double &operator[]( int i ) {
-        return( _x[i] );
+        return( x[i] );
     }
 
     /*! \brief Indexing for constant transformation matrix.
      */
     const double &operator[]( int i ) const {
-        return( _x[i] );
+        return( x[i] );
     }
     
     /*! \brief Return determinant of matrix.
@@ -130,6 +134,10 @@ public:
     /*! \brief Return inverse matrix.
      */
     Transformation inverse( void ) const;
+
+    /*! \brief Multiplication of tranformation matrix by scalar.
+     */
+    const Transformation &operator*=( double s );
 
     /*! \brief Multiplication of transformation matrices for combining
      *  transformations.
@@ -141,15 +149,34 @@ public:
      */
     Transformation operator*( const Transformation &m ) const;
 
+    /*! \brief Multiplication of tranformation matrix by vector.
+     *
+     *  Makes a full transformation on the homogenous vector \a v.
+     */
+    Vec4D operator*( const Vec4D &v ) const;
+
+    /*! \brief Multiplication of the transpose of the tranformation
+        matrix by vector.
+     *
+     *  Used for transforming surface normal vectors.
+     */
+    Vec4D operator%( const Vec4D &v ) const;
+
 
 
 
 
     /*! \brief Transform point \a xin.
+     *
+     *  Assumes the transformation is affine. Homogenization of output
+     *  vector is not done.
      */
     Vec3D transform_point( const Vec3D &xin ) const;
 
     /*! \brief Inverse transform point \a xin.
+     *
+     *  Assumes the transformation is affine. Homogenization of output
+     *  vector is not done.
      *
      *  This is a convenience function to inverting a transformation
      *  matrix and then doing a transform. If more than one transform
@@ -161,10 +188,16 @@ public:
 
 
     /*! \brief Transform vector \a xin.
+     *
+     *  Assumes the transformation is affine. Homogenization of output
+     *  vector is not done.
      */
     Vec3D transform_vector( const Vec3D &xin ) const;
 
     /*! \brief Inverse transform vector \a xin.
+     *
+     *  Assumes the transformation is affine. Homogenization of output
+     *  vector is not done.
      *
      *  This is a convenience function to inverting a transformation
      *  matrix and then doing a transform. If more than one transform
