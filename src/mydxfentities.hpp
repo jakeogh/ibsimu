@@ -46,8 +46,10 @@
 
 #include <stdint.h>
 #include <vector>
+#include <cairo.h>
 #include "mydxffile.hpp"
 #include "vec3d.hpp"
+#include "transformation.hpp"
 
 
 /*! \brief DXF entity base class.
@@ -108,7 +110,17 @@ public:
      */
     std::string get_handle( void ) const { return( _handle ); }
 
-   /*! \brief Return bounding box of entity
+    /*! \brief Plot entity with cairo
+     *
+     *  Plot the entity using the transformation \a from from the
+     *  object space to cairo coordinates. The visible range is
+     *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
+     *  coordinates.
+     */
+    virtual void plot( const class MyDXFFile *dxf, cairo_t *cairo, 
+		       const Transformation *t, const double range[4] ) const = 0;
+
+    /*! \brief Return bounding box of entity
      */
     virtual void get_bbox( Vec3D &min, Vec3D &max ) const = 0;
 
@@ -222,6 +234,16 @@ public:
      */
     bool geom_same( const MyDXFLine &line, double eps = 1.0e-6 ) const;
 
+    /*! \brief Plot entity with cairo
+     *
+     *  Plot the entity using the transformation \a from from the
+     *  object space to cairo coordinates. The visible range is
+     *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
+     *  coordinates.
+     */
+    virtual void plot( const class MyDXFFile *dxf, cairo_t *cairo, 
+		       const Transformation *t, const double range[4] ) const;
+
    /*! \brief Return bounding box of entity
      */
     virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
@@ -245,7 +267,7 @@ class MyDXFLWPolyline : public MyDXFPathEntity
 {
 
     std::vector<Vec3D> _p;       /*!< \brief Vector with x and y coordinates of vertex and bulge as z coordinate */
-    int16_t               _flags;
+    int16_t            _flags;
 
     virtual void debug_print( std::ostream &os ) const;
 
@@ -307,6 +329,16 @@ public:
     /*! \brief Is entity closed path?
      */
     bool closed( void ) const { return( _flags & LWPOLYLINE_CLOSED_MASK ); }
+
+    /*! \brief Plot entity with cairo
+     *
+     *  Plot the entity using the transformation \a from from the
+     *  object space to cairo coordinates. The visible range is
+     *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
+     *  coordinates.
+     */
+    virtual void plot( const class MyDXFFile *dxf, cairo_t *cairo,
+		       const Transformation *t, const double range[4] ) const;
 
     /*! \brief Return bounding box of entity.
      */
@@ -432,7 +464,17 @@ public:
      */
     bool geom_same( const MyDXFArc &arc, double eps = 1.0e-6 ) const;
 
-   /*! \brief Return bounding box of entity
+    /*! \brief Plot entity with cairo
+     *
+     *  Plot the entity using the transformation \a from from the
+     *  object space to cairo coordinates. The visible range is
+     *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
+     *  coordinates.
+     */
+    virtual void plot( const class MyDXFFile *dxf, cairo_t *cairo, 
+		       const Transformation *t, const double range[4] ) const;
+
+    /*! \brief Return bounding box of entity
      */
     virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
 
@@ -513,7 +555,17 @@ public:
      */
     bool geom_same( const MyDXFCircle &circle, double eps = 1.0e-6 ) const;
 
-   /*! \brief Return bounding box of entity
+    /*! \brief Plot entity with cairo
+     *
+     *  Plot the entity using the transformation \a from from the
+     *  object space to cairo coordinates. The visible range is
+     *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
+     *  coordinates.
+     */
+    virtual void plot( const class MyDXFFile *dxf, cairo_t *cairo, 
+		       const Transformation *t, const double range[4] ) const;
+
+    /*! \brief Return bounding box of entity
      */
     virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
 
@@ -574,7 +626,17 @@ public:
      */
     virtual MyDXFMText *copy( void ) const { return( new MyDXFMText( *this ) ); }
 
-   /*! \brief Return bounding box of entity
+    /*! \brief Plot entity with cairo
+     *
+     *  Plot the entity using the transformation \a from from the
+     *  object space to cairo coordinates. The visible range is
+     *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
+     *  coordinates.
+     */
+    virtual void plot( const class MyDXFFile *dxf, cairo_t *cairo, 
+		       const Transformation *t, const double range[4] ) const;
+
+    /*! \brief Return bounding box of entity
      */
     virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
 
@@ -594,8 +656,8 @@ class MyDXFInsert : public MyDXFEntity
 
     std::string _block_name;
 
-    Vec3D    _p;        // Insertion point
-    Vec3D    _scale;
+    Vec3D       _p;        // Insertion point
+    Vec3D       _scale;
 
     double      _rotation;
 
@@ -625,7 +687,17 @@ public:
      */
     virtual MyDXFInsert *copy( void ) const { return( new MyDXFInsert( *this ) ); }
 
-   /*! \brief Return bounding box of entity
+    /*! \brief Plot entity with cairo
+     *
+     *  Plot the entity using the transformation \a from from the
+     *  object space to cairo coordinates. The visible range is
+     *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
+     *  coordinates.
+     */
+    virtual void plot( const class MyDXFFile *dxf, cairo_t *cairo, 
+		       const Transformation *t, const double range[4] ) const;
+
+    /*! \brief Return bounding box of entity
      */
     virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
 
@@ -767,9 +839,19 @@ public:
      */
     bool inside_loop( MyDXFEntitySelection *selection, double x, double y, double eps = 1.0e-6 );
 
+    /*! \brief Plot selected entities with cairo
+     *
+     *  Plot the entity using the transformation \a from from the
+     *  object space to cairo coordinates. The visible range is
+     *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
+     *  coordinates.
+     */
+    void plot( const MyDXFEntitySelection *selection, const class MyDXFFile *dxf, 
+	       cairo_t *cairo, const Transformation *t, const double range[4] ) const;
+
     /*! \brief Get bounding box containing all entities in selection.
      */
-    void get_bbox(  const MyDXFEntitySelection *selection, Vec3D &min, Vec3D &max ) const;
+    void get_bbox( const MyDXFEntitySelection *selection, Vec3D &min, Vec3D &max ) const;
 
 
 

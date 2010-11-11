@@ -99,6 +99,13 @@ MyDXFLine::MyDXFLine( class MyDXFFile *dxf )
 }
 
 
+void MyDXFLine::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
+		      const Transformation *t, const double range[4] ) const
+{
+
+}
+
+
 void MyDXFLine::get_bbox( Vec3D &min, Vec3D &max ) const
 {
     for( int a = 0; a < 3; a++ ) {
@@ -230,6 +237,13 @@ MyDXFLWPolyline::MyDXFLWPolyline( class MyDXFFile *dxf )
 #ifdef MYDXF_DEBUG
     std::cout << *this;
 #endif
+}
+
+
+void MyDXFLWPolyline::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
+			    const Transformation *t, const double range[4] ) const
+{
+
 }
 
 
@@ -365,6 +379,13 @@ MyDXFCircle::MyDXFCircle( class MyDXFFile *dxf )
 }
 
 
+void MyDXFCircle::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
+			const Transformation *t, const double range[4] ) const
+{
+
+}
+
+
 void MyDXFCircle::get_bbox( Vec3D &min, Vec3D &max ) const
 {
     for( int a = 0; a < 3; a++ ) {
@@ -470,6 +491,13 @@ MyDXFArc::MyDXFArc( class MyDXFFile *dxf )
 #ifdef MYDXF_DEBUG
     std::cout << *this;
 #endif
+}
+
+
+void MyDXFArc::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
+		     const Transformation *t, const double range[4] ) const
+{
+
 }
 
 
@@ -715,6 +743,13 @@ MyDXFMText::MyDXFMText( class MyDXFFile *dxf )
 }
 
 
+void MyDXFMText::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
+		       const Transformation *t, const double range[4] ) const
+{
+
+}
+
+
 void MyDXFMText::get_bbox( Vec3D &min, Vec3D &max ) const
 {
     std::cout << "Warning: bounding box for MText entity not implemented\n";
@@ -815,6 +850,13 @@ MyDXFInsert::MyDXFInsert( class MyDXFFile *dxf )
 #ifdef MYDXF_DEBUG
     std::cout << *this;
 #endif
+}
+
+
+void MyDXFInsert::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
+			const Transformation *t, const double range[4] ) const
+{
+
 }
 
 
@@ -1242,6 +1284,13 @@ MyDXFEntitySelection *MyDXFEntities::selection_path_loop( MyDXFEntitySelection *
     }
 
     return( subsel );
+}
+
+
+void MyDXFEntities::plot( const MyDXFEntitySelection *selection, const class MyDXFFile *dxf, 
+			  cairo_t *cairo, const Transformation *t, const double range[4] ) const
+{
+
 }
 
 
