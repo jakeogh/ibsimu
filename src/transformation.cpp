@@ -175,6 +175,12 @@ Vec4D Transformation::operator%( const Vec4D &v ) const
 }
 
 
+Vec4D Transformation::transform( const Vec4D &xin ) const
+{
+    return( *this * xin );
+}
+
+
 Vec3D Transformation::transform_point( const Vec3D &xin ) const
 {
     Vec4D r = *this * Vec4D( xin[0], xin[1], xin[2], 1.0 );

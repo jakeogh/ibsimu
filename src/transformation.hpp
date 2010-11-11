@@ -166,6 +166,13 @@ public:
 
 
 
+    /*! \brief Transform homogenous vector \a xin.
+     */
+    Vec4D transform( const Vec4D &xin ) const;
+
+
+
+
     /*! \brief Transform point \a xin.
      *
      *  Assumes the transformation is affine. Homogenization of output

@@ -6,7 +6,6 @@
 #include "error.hpp"
 
 
-
 /* ************************************************************************** *
  * DXFEntity                                                                  *
  * ************************************************************************** */
@@ -102,7 +101,13 @@ MyDXFLine::MyDXFLine( class MyDXFFile *dxf )
 void MyDXFLine::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 		      const Transformation *t, const double range[4] ) const
 {
+    Vec4D x1 = t->transform( _p1 );
+    Vec4D x2 = t->transform( _p2 );
 
+    cairo_move_to( cairo, x1[0], x1[1] );
+    cairo_line_to( cairo, x2[0], x2[1] );
+
+    cairo_stroke( cairo );
 }
 
 
@@ -243,7 +248,21 @@ MyDXFLWPolyline::MyDXFLWPolyline( class MyDXFFile *dxf )
 void MyDXFLWPolyline::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 			    const Transformation *t, const double range[4] ) const
 {
+    if( _p.size == 0 )
+	return;
 
+    Vec4D x = t->transform( _p[0] );
+    cairo_move_to( cairo, x[0], x[1] );
+    for( uint32_t a = 1; a < lwpline->size(); a++ ) {
+	x = t->transform( _p[a] );
+	cairo_line_to( cairo, x[0], x[1] );
+    }
+    if( lwpline->closed() ) {
+	x = t->transform( _p[0] );
+	cairo_line_to( cairo, x[0], x[1] );
+    }
+
+    cairo_stroke( cairo );
 }
 
 
@@ -382,7 +401,23 @@ MyDXFCircle::MyDXFCircle( class MyDXFFile *dxf )
 void MyDXFCircle::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 			const Transformation *t, const double range[4] ) const
 {
+    // Iterative approach has to be taken.
+    
 
+    /*
+    Vec4D x = t->transform( _p[0] );
+    cairo_move_to( cairo, x[0], x[1] );
+    for( uint32_t a = 1; a < lwpline->size(); a++ ) {
+	x = t->transform( _p[a] );
+	cairo_line_to( cairo, x[0], x[1] );
+    }
+    if( lwpline->closed() ) {
+	x = t->transform( _p[0] );
+	cairo_line_to( cairo, x[0], x[1] );
+    }
+
+    cairo_stroke( cairo );
+    */
 }
 
 
@@ -1290,7 +1325,11 @@ MyDXFEntitySelection *MyDXFEntities::selection_path_loop( MyDXFEntitySelection *
 void MyDXFEntities::plot( const MyDXFEntitySelection *selection, const class MyDXFFile *dxf, 
 			  cairo_t *cairo, const Transformation *t, const double range[4] ) const
 {
-
+    // Go through selection
+    for( uint32_t a = 0; a < selection->size(); a++ ) {
+	MyDXFEntity *e = _entities[(*selection)(a)];
+	e->plot( dxf, cairo, t, range );
+    }
 }
 
 

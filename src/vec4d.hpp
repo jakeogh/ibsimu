@@ -74,6 +74,9 @@ public:
     Vec4D( double x, double y ) { p[0] = x; p[1] = y; p[2] = 0.0; p[3] = 0.0; }
     Vec4D( double x, double y, double z ) { p[0] = x; p[1] = y; p[2] = z; p[3] = 0.0; }
     Vec4D( double x, double y, double z, double w ) { p[0] = x; p[1] = y; p[2] = z; p[3] = w; }
+
+    Vec4D( const Vec3D &vec ) { p[0] = vec[0]; p[1] = vec[1]; p[2] = vec[2]; p[3] = 1.0; }
+
     Vec4D( std::istream &s ) {
 	p[0] = read_double( s );
 	p[1] = read_double( s );
