@@ -323,7 +323,7 @@ Vector &Vector::operator*=( double x )
 }
 
 
-Vector::Vector &Vector::operator=( double x )
+Vector &Vector::operator=( double x )
 {
     for( int i = 0; i < _n; i++ )
 	_val[i] = x;
