@@ -252,7 +252,13 @@ public:
      *  (radial angle), \a ap (skew angle) and \a I (current) and
      *  builds \a (x,x') data in a grid array of size \a n by \a
      *  m. Here the skew angle is \f$ \frac{r\omega}{v_z} \f$, where
-     *  \f$ v_z \f$ is the velocity to the direction of beam propagation.
+     *  \f$ v_z \f$ is the velocity to the direction of beam
+     *  propagation. The conversion is based on rotating each
+     *  trajectory diagnostic points around the axis in 100 steps (to
+     *  be made adjustable?).
+     *
+     *  The emittance statistics is built using original data and not
+     *  the gridded data for maximized precision.
      */
     EmittanceConv( int n, int m,
 		   const std::vector<double> &r,

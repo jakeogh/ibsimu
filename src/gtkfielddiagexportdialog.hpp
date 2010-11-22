@@ -2,7 +2,7 @@
  *  \brief Header file for gtkfielddiagexportdialog.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -49,6 +49,10 @@
 
 
 /*! \brief Interactive dialog for exporting field diagnostic data.
+ *
+ *  Creates a file chooser dialog for selecting the output file name,
+ *  calls the FieldDiagPlot::export_data() to write the data and
+ *  destroys the dialog.
  */
 class GTKFieldDiagExportDialog
 {

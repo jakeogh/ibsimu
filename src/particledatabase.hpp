@@ -798,7 +798,6 @@ public:
 				    double v, double dvp, double dvt, 
 				    double x1, double y1, double x2, double y2 );
 
-
     /*! \brief Add a 2d beam with defined KV emittance.
      *
      *  Adds a beam consisting of \a N particles and a total current
@@ -807,8 +806,9 @@ public:
      *  starting energy of the beam is \a Ex (eV) and the starting
      *  location \a (x0,y0) (center point). The beam propagates to
      *  positive x-direction. The beam is made to match Twiss
-     *  parameters \f$ \alpha \f$ (a), \f$ \beta \f$ (b), \f$ \epsilon
-     *  \f$ (e) in projectional direction (y,y'). 
+     *  parameters \f$ \alpha \f$ (a) and \f$ \beta \f$ (b) in
+     *  projectional direction (y,y'). The rms-emittance of the beam
+     *  is made to match \f$ \epsilon_{\mathrm{rms}} \f$ (e).
      *
      *  The beam spread in the projectional space is made according to
      *  KV/hard-edged (Kapchinsky-Vladimirsky) distribution.
@@ -826,8 +826,9 @@ public:
      *  starting energy of the beam is \a Ex (eV) and the starting
      *  location \a (x0,y0) (center point). The beam propagates to
      *  positive x-direction. The beam is made to match Twiss
-     *  parameters \f$ \alpha \f$ (a), \f$ \beta \f$ (b), \f$ \epsilon
-     *  \f$ (e) in projectional direction (y,y'). 
+     *  parameters \f$ \alpha \f$ (a) and \f$ \beta \f$ (b) in
+     *  projectional direction (y,y'). The rms-emittance of the beam
+     *  is made to match \f$ \epsilon_{\mathrm{rms}} \f$ (e).
      *
      *  The beam spread in the projectional space is made according to
      *  Gaussian distribution.
@@ -914,6 +915,12 @@ public:
     void add_2d_beam_with_velocity( uint32_t N, double J, double q, double m, 
 				    double v, double dvp, double dvt, 
 				    double x1, double y1, double x2, double y2 );
+
+    /*! \brief Add a 2d beam with gaussian profile and velocity distribution
+     */
+    void add_2d_full_gaussian_beam( uint32_t N, double I, double q, double m,
+				    double Ex, double Tp, double Tt, 
+				    double x0, double dr );
 
     /*! \brief Add a 2d beam with defined gaussian emittance.
      *
@@ -1059,9 +1066,10 @@ public:
      *  location \a (x0,y0,z0) (center point). The beam propagates to
      *  positive x-direction. The beam is made to match Twiss
      *  parameters \f$ \alpha_y \f$ (a), \f$ \beta_y \f$ (b), \f$
-     *  \epsilon_y \f$ (e) in projectional direction (y,y') and \f$
-     *  \alpha_z \f$ (a), \f$ \beta_z \f$ (b), \f$ \epsilon_z \f$ (e)
-     *  in projectional direction (z,z').
+     *  \epsilon_{y,\mathrm{rms}} \f$ (e) in projectional direction
+     *  (y,y') and \f$ \alpha_z \f$ (a), \f$ \beta_z \f$ (b), \f$
+     *  \epsilon_{z,\mathrm{rms}} \f$ (e) in projectional direction
+     *  (z,z').
      *
      *  The beam spread in the projectional space is made according to
      *  KV/hard-edged (Kapchinsky-Vladimirsky) distribution.
@@ -1080,9 +1088,10 @@ public:
      *  location \a (x0,y0,z0) (center point). The beam propagates to
      *  positive x-direction. The beam is made to match Twiss
      *  parameters \f$ \alpha_y \f$ (a), \f$ \beta_y \f$ (b), \f$
-     *  \epsilon_y \f$ (e) in projectional direction (y,y') and \f$
-     *  \alpha_z \f$ (a), \f$ \beta_z \f$ (b), \f$ \epsilon_z \f$ (e)
-     *  in projectional direction (z,z').
+     *  \epsilon_{y,\mathrm{rms}} \f$ (e) in projectional direction
+     *  (y,y') and \f$ \alpha_z \f$ (a), \f$ \beta_z \f$ (b), \f$
+     *  \epsilon_{z,\mathrm{rms}} \f$ (e) in projectional direction
+     *  (z,z').
      *
      *  The beam spread in the projectional space is made according to
      *  Gaussian distribution.

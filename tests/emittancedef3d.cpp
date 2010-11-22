@@ -58,9 +58,10 @@ void test( void )
     // Plot (y,y') emittance and check values
     ParticleDiagPlotter pplotter1( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				  DIAG_Y, DIAG_YP );
+    pplotter1.set_ranges( -0.02, -0.1, 0.02, 0.1 );
     pplotter1.plot_png( "emittancedef3d_kv_yyp.png" );
     Emittance emit1 = pplotter1.calculate_emittance();
-    if( fabs( 4.0*emit1.epsilon() - 3.23e-5 ) / 3.23e-5 > 0.01 )
+    if( fabs( emit1.epsilon() - 3.23e-5 ) / 3.23e-5 > 0.01 )
 	throw( Error( ERROR_LOCATION, "rms emittance does not match theory" ) );
     if( fabs( emit1.alpha() - 1.1 ) / 1.1 > 0.01 )
 	throw( Error( ERROR_LOCATION, "fitted alpha does not match theory" ) );
@@ -70,9 +71,10 @@ void test( void )
     // Plot (z,z') emittance and check values
     ParticleDiagPlotter pplotter2( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				  DIAG_Z, DIAG_ZP );
+    pplotter2.set_ranges( -0.02, -0.1, 0.02, 0.1 );
     pplotter2.plot_png( "emittancedef3d_kv_zzp.png" );
     Emittance emit2 = pplotter2.calculate_emittance();
-    if( fabs( 4.0*emit2.epsilon() - 6.6e-5 ) / 6.6e-5 > 0.01 )
+    if( fabs( emit2.epsilon() - 6.6e-5 ) / 6.6e-5 > 0.01 )
 	throw( Error( ERROR_LOCATION, "rms emittance does not match theory" ) );
     if( fabs( emit2.alpha() + 1.1 ) / 1.1 > 0.01 )
 	throw( Error( ERROR_LOCATION, "fitted alpha does not match theory" ) );
@@ -97,6 +99,7 @@ void test( void )
     // Plot (y,y') emittance and check values
     ParticleDiagPlotter pplotter4( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_Y, DIAG_YP );
+    pplotter4.set_ranges( -0.02, -0.1, 0.02, 0.1 );
     pplotter4.plot_png( "emittancedef3d_gaussian_yyp.png" );
     Emittance emit4 = pplotter4.calculate_emittance();
     if( fabs( emit4.epsilon() - 3.23e-5 ) / 3.23e-5 > 0.01 )
@@ -109,6 +112,7 @@ void test( void )
     // Plot (z,z') emittance and check value
     ParticleDiagPlotter pplotter5( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_Z, DIAG_ZP );
+    pplotter5.set_ranges( -0.02, -0.1, 0.02, 0.1 );
     pplotter5.plot_png( "emittancedef3d_gaussian_zzp.png" );
     Emittance emit5 = pplotter5.calculate_emittance();
     if( fabs( emit5.epsilon() - 6.6e-5 ) / 6.6e-5 > 0.01 )

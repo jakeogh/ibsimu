@@ -55,9 +55,10 @@ void test( void )
     // Plot (y,y') emittance and check value
     ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				  DIAG_Y, DIAG_YP );
+    pplotter.set_ranges( -0.006, -0.0601, 0.006, 0.0601 );
     pplotter.plot_png( "emittancedef2d_kv.png" );
     Emittance emit = pplotter.calculate_emittance();
-    if( fabs( 4.0*emit.epsilon() - 3.23e-5 ) / 3.23e-5 > 0.01 )
+    if( fabs( emit.epsilon() - 3.23e-5 ) / 3.23e-5 > 0.01 )
 	throw( Error( ERROR_LOCATION, "rms emittance does not match theory" ) );
     if( fabs( emit.alpha() - 1.1 ) / 1.1 > 0.01 )
 	throw( Error( ERROR_LOCATION, "fitted alpha does not match theory" ) );
@@ -76,6 +77,7 @@ void test( void )
     // Plot (y,y') emittance and check value
     ParticleDiagPlotter pplotter2( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_Y, DIAG_YP );
+    pplotter2.set_ranges( -0.006, -0.0601, 0.006, 0.0601 );
     pplotter2.plot_png( "emittancedef2d_gaussian.png" );
     Emittance emit2 = pplotter.calculate_emittance();
     if( fabs( emit2.epsilon() - 3.23e-5 ) / 3.23e-5 > 0.01 )

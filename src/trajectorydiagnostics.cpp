@@ -2,7 +2,7 @@
  *  \brief Source code for trajectorydiagnostics.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -50,6 +50,7 @@
 
 
 //#define DEBUG_EMITTANCECONV 1
+
 #define EMITTANCE_ROTN 100
 
 
@@ -77,7 +78,7 @@ void TrajectoryDiagnosticColumn::mirror( coordinate_axis_e axis, double level )
 	if( _diag == DIAG_Y || _diag == DIAG_R ) {
 	    for( size_t a = 0; a < size; a++ )
 		_data.push_back( 2*level-_data[a] );
-	} else if( _diag == DIAG_VY || _diag == DIAG_VR || _diag == DIAG_YP ||_diag == DIAG_RP ) {
+	} else if( _diag == DIAG_VY || _diag == DIAG_VR || _diag == DIAG_YP || _diag == DIAG_RP ) {
 	    for( size_t a = 0; a < size; a++ )
 		_data.push_back( -_data[a] );
 	} else {
@@ -150,10 +151,26 @@ Emittance::Emittance( const std::vector<double> &x,
     _gamma   = _xp2/_epsilon;
 
     // Calculate axes and angle
-    _angle = 0.5*atan( (2.0*_alpha) / (_beta - _gamma) );
+    _angle = 0.5*atan2( (-2.0*_alpha) , (_beta - _gamma) );
     double H = 0.5*(_beta+_gamma);
     _rmajor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)+sqrt(H-1.0) );
     _rminor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)-sqrt(H-1.0) );
+
+#if DEBUG_EMITTANCECONV >= 1
+    std::cout << "xave    = " << _xave << "\n";
+    std::cout << "xpave    = " << _xpave << "\n";
+    std::cout << "x2      = " << _x2 << "\n";
+    std::cout << "xp2     = " << _xp2 << "\n";
+    std::cout << "xxp     = " << _xxp << "\n";
+    std::cout << "epsilon = " << _epsilon << "\n";
+    std::cout << "alpha   = " << _alpha << "\n";
+    std::cout << "beta    = " << _beta << "\n";
+    std::cout << "gamma   = " << _gamma << "\n";
+    std::cout << "angle   = " << _angle << "\n";
+    std::cout << "H       = " << H << "\n";
+    std::cout << "rmajor  = " << _rmajor << "\n";
+    std::cout << "rminor  = " << _rminor << "\n";
+#endif
 }
 
 
@@ -192,10 +209,26 @@ Emittance::Emittance( const std::vector<double> &x,
     _gamma   = _xp2/_epsilon;
 
     // Calculate axes and angle
-    _angle = 0.5*atan( (2.0*_alpha) / (_beta - _gamma) );
+    _angle = 0.5*atan2( (-2.0*_alpha) , (_beta - _gamma) );
     double H = 0.5*(_beta+_gamma);
     _rmajor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)+sqrt(H-1.0) );
     _rminor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)-sqrt(H-1.0) );
+
+#if DEBUG_EMITTANCECONV >= 1
+    std::cout << "xave    = " << _xave << "\n";
+    std::cout << "xpave    = " << _xpave << "\n";
+    std::cout << "x2      = " << _x2 << "\n";
+    std::cout << "xp2     = " << _xp2 << "\n";
+    std::cout << "xxp     = " << _xxp << "\n";
+    std::cout << "epsilon = " << _epsilon << "\n";
+    std::cout << "alpha   = " << _alpha << "\n";
+    std::cout << "beta    = " << _beta << "\n";
+    std::cout << "gamma   = " << _gamma << "\n";
+    std::cout << "angle   = " << _angle << "\n";
+    std::cout << "H       = " << H << "\n";
+    std::cout << "rmajor  = " << _rmajor << "\n";
+    std::cout << "rminor  = " << _rminor << "\n";
+#endif
 }
 
 
@@ -251,7 +284,7 @@ EmittanceConv::EmittanceConv( int n, int m,
     // Make grid
     _grid = new Histogram2D( n, m, range );
 
-#ifdef DEBUG_EMITTANCECONV 
+#if DEBUG_EMITTANCECONV >= 2
     std::cout << "Building emittance conversion\n";
     std::cout << "  N     = " << N << "\n";
     std::cout << "  n     = " << n << "\n";
@@ -264,9 +297,12 @@ EmittanceConv::EmittanceConv( int n, int m,
 #endif
 
     // For each particle
+    _Isum = 0.0;
+    _x2 = _xp2 = _xxp = 0.0;
+    _xave = _xpave = 0.0;
     for( int a = 0; a < N; a++ ) {
 
-#ifdef DEBUG_EMITTANCECONV 
+#if DEBUG_EMITTANCECONV >= 2
 	std::cout << "  Particle " << a << "\n";
 	std::cout << "    r  = " << r[a] << "\n";
 	std::cout << "    rp = " << rp[a] << "\n";
@@ -279,6 +315,10 @@ EmittanceConv::EmittanceConv( int n, int m,
 	    continue;
 
 	// Rotate around xy-plane
+	_Isum += I[a];
+	double x2 = 0.0; // Avoid numerical noise
+	double xp2 = 0.0;
+	double xxp = 0.0;
 	double dI = I[a]/EMITTANCE_ROTN;
 	for( int b = 0; b < EMITTANCE_ROTN; b++ ) {
 
@@ -290,44 +330,28 @@ EmittanceConv::EmittanceConv( int n, int m,
 	    double x  = r[a]*sint;
 	    double xp = rp[a]*sint + ap[a]*cost;
 
+	    x2 += x*x*dI;
+	    xp2 += xp*xp*dI;
+	    xxp += x*xp*dI;
+
 	    int i = (int)floor( (x -range[0]) / _grid->nstep() + 0.5 );
 	    int j = (int)floor( (xp-range[1]) / _grid->mstep() + 0.5 );
 
 	    if( i >= 0 && i < n && j >= 0 && j < m )
 		_grid->accumulate( i, j, dI );
 	}
+
+	_x2 += x2;
+	_xp2 += xp2;
+	_xxp += xxp;
     }
 
-    // Build Emittance statistics from grid
-
-    // Calculate averages
-    for( int j = 0; j < m; j++ ) {
-	for( int i = 0; i < n; i++ ) {
-	    double I = (*_grid)(i,j);
-	    _Isum  += I;
-	    _xave  += _grid->icoord(i)*I;
-	    _xpave += _grid->jcoord(j)*I;
-	}
-    }
-    _xave  = _xave  / _Isum;
-    _xpave = _xpave / _Isum;
-
-    // Calculate expectation values
-    for( int j = 0; j < m; j++ ) {
-	for( int i = 0; i < n; i++ ) {
-	    double I = (*_grid)(i,j);
-	    double x = _grid->icoord(i);
-	    double xp = _grid->jcoord(j);
-	    _x2 += (x-_xave)*(x-_xave)*I;
-	    _xp2 += (xp-_xpave)*(xp-_xpave)*I;
-	    _xxp += (x-_xave)*(xp-_xpave)*I;
-	}
-    }    
     _x2  = _x2  / _Isum;
     _xp2 = _xp2 / _Isum;
     _xxp = _xxp / _Isum;
 
     // Calculate Twiss parameters
+    /*
     _epsilon = sqrt( _xp2*_x2 - _xxp*_xxp );
     _alpha   = -_xxp/_epsilon;
     _beta    = _x2/_epsilon;
@@ -338,6 +362,42 @@ EmittanceConv::EmittanceConv( int n, int m,
     double H = 0.5*(_beta+_gamma);
     _rmajor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)+sqrt(H-1.0) );
     _rminor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)-sqrt(H-1.0) );
+    */
+    long double epsilon = sqrtl( ((long double)_xp2) * ((long double)_x2) - 
+				 ((long double)_xxp) * ((long double)_xxp) );
+    long double alpha   = -_xxp/epsilon;
+    long double beta    = _x2/epsilon;
+    long double gamma   = _xp2/epsilon;
+
+    // Calculate axes and angle
+    long double angle = 0.5L*atan2l( (-2.0L*alpha) , (beta - gamma) );
+    long double H = 0.5L*(beta+gamma);
+    long double rmajor = sqrtl( 0.5L*epsilon ) * ( sqrtl(H+1.0L)+sqrtl(H-1.0L) );
+    long double rminor = sqrtl( 0.5L*epsilon ) * ( sqrtl(H+1.0L)-sqrtl(H-1.0L) );
+
+    _epsilon = epsilon;
+    _alpha = alpha;
+    _beta = beta;
+    _gamma = gamma;
+    _angle = angle;
+    _rmajor = rmajor;
+    _rminor = rminor;
+
+#if DEBUG_EMITTANCECONV >= 1
+    std::cout << "xave    = " << _xave << "\n";
+    std::cout << "xpave    = " << _xpave << "\n";
+    std::cout << "x2      = " << _x2 << "\n";
+    std::cout << "xp2     = " << _xp2 << "\n";
+    std::cout << "xxp     = " << _xxp << "\n";
+    std::cout << "epsilon = " << _epsilon << "\n";
+    std::cout << "alpha   = " << _alpha << "\n";
+    std::cout << "beta    = " << _beta << "\n";
+    std::cout << "gamma   = " << _gamma << "\n";
+    std::cout << "angle   = " << _angle << "\n";
+    std::cout << "H       = " << H << "\n";
+    std::cout << "rmajor  = " << _rmajor << "\n";
+    std::cout << "rminor  = " << _rminor << "\n";
+#endif
 }
 
 
@@ -509,7 +569,7 @@ EmittanceConv::EmittanceConv( int n, int m,
     _gamma   = _xp2/_epsilon;
 
     // Calculate axes and angle
-    _angle = 0.5*atan( (2.0*_alpha) / (_beta - _gamma) );
+    _angle = 0.5*atan2( (-2.0*_alpha) , (_beta - _gamma) );
     double H = 0.5*(_beta+_gamma);
     _rmajor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)+sqrt(H-1.0) );
     _rminor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)-sqrt(H-1.0) );

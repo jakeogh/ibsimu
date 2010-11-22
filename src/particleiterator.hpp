@@ -802,6 +802,7 @@ public:
      *
      *  New particle iterator is initialized with given settings.
      *
+     *  \param type Particle iterator type used
      *  \param epsabs Absolute error limit in iteration
      *  \param epsrel Relative error limit in iteration
      *  \param polyint Interpolation type to use. True means use polynomial

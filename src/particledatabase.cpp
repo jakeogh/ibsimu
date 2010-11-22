@@ -110,6 +110,8 @@ void ParticleDataBase2D::add_2d_KV_beam_with_emittance( uint32_t N, double I, do
 
     QRandom qrng( 2 );
 
+    e *= 4.0; // KV-distributed emittance limited inside 4*e_rms ellipse
+
     m *= MASS_U;
     q *= CHARGE_E;
 
@@ -165,8 +167,8 @@ void ParticleDataBase2D::add_2d_gaussian_beam_with_emittance( uint32_t N, double
 
     double g = (1.0 + a*a)/b;
     double h = 0.5*(b+g);
-    double rmaj = sqrt(0.5*e)*(sqrt(h+1)-sqrt(h-1));
-    double rmin = sqrt(0.5*e)*(sqrt(h+1)+sqrt(h-1));
+    double rmaj = sqrt(0.5*e)*(sqrt(h+1.0)+sqrt(h-1.0));
+    double rmin = sqrt(0.5*e)*(sqrt(h+1.0)-sqrt(h-1.0));
     double theta = 0.5*atan( (-2.0*a)/(b-g) );
     double w[2], rn[2];
     double IQ = I/N;
@@ -257,6 +259,71 @@ void ParticleDataBaseCyl::add_2d_beam_with_energy( uint32_t N, double J, double 
 			       sqrt(Tp*CHARGE_E/(m*MASS_U)), 
 			       sqrt(Tt*CHARGE_E/(m*MASS_U)), 
 			       x1, y1, x2, y2 );
+}
+
+
+void ParticleDataBaseCyl::add_2d_full_gaussian_beam( uint32_t N, double I, double q, double m,
+						     double Ex, double Tp, double Tt, 
+						     double x0, double dr )
+{
+    if( ibsimu.get_verbose_output() )
+	std::cout << "Defining a cylindrical full gaussian beam.\n";
+
+    _particles.reserve( _particles.size()+N );
+
+    m *= MASS_U;
+    q *= CHARGE_E;
+
+    QRandom qrng( 5 ); // vx, y, vy, z, vz
+    double rn[5];
+
+    double IQ = I/N;
+    double Isum = 0.0;
+
+    double vx0 = sqrt(2.0*Ex*CHARGE_E/m);
+    double dp = sqrt(Tp*CHARGE_E/m);
+    double dt = sqrt(Tt*CHARGE_E/m);
+
+    ParticlePCyl x;
+    x[0] = 0.0;
+    x[1] = x0;
+
+    uint32_t n = 0;
+    while( n < N ) {
+
+	qrng.get_gaussian( rn );
+	if( rn[1] < 0 || rn[3] < 0 )
+	    continue;
+
+	double vx = vx0 + dp*rn[0];
+	double y = dr*rn[1];
+	double vy = dt*rn[2];
+	double z = dr*rn[3];
+	double vz = dt*rn[4];
+
+	// Convert to cylindrical coordinates
+	double r  = sqrt( y*y + z*z );
+	if( r == 0.0 )
+	    continue;
+	double alpha = atan2( z, y );
+	double sina = sin(alpha);
+	double cosa = cos(alpha);
+	double vr = vy*cosa + vz*sina;
+	double va = -vy*sina + vz*cosa;
+
+	// Set up particle
+	x[2] = vx;
+	x[3] = r;
+	x[4] = vr;
+	x[5] = va/r;
+
+	_particles.push_back( ParticleCyl( IQ, q, m, x ) );
+	Isum += IQ;
+	n++;
+    }
+
+    if( ibsimu.get_verbose_output() )
+	std::cout << "  Total beam current " << Isum << " A\n";
 }
 
 
@@ -494,6 +561,9 @@ void ParticleDataBase3D::add_3d_KV_beam_with_emittance( uint32_t N, double I, do
 	std::cout << "Defining a 3d beam using Twiss parameters\n";
 
     _particles.reserve( _particles.size()+N );
+
+    ey *= 4.0; // KV-distributed emittance limited inside 4*e_rms ellipse
+    ez *= 4.0; // KV-distributed emittance limited inside 4*e_rms ellipse
 
     m *= MASS_U;
     q *= CHARGE_E;

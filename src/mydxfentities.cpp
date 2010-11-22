@@ -248,16 +248,16 @@ MyDXFLWPolyline::MyDXFLWPolyline( class MyDXFFile *dxf )
 void MyDXFLWPolyline::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 			    const Transformation *t, const double range[4] ) const
 {
-    if( _p.size == 0 )
+    if( _p.size() == 0 )
 	return;
 
     Vec4D x = t->transform( _p[0] );
     cairo_move_to( cairo, x[0], x[1] );
-    for( uint32_t a = 1; a < lwpline->size(); a++ ) {
+    for( uint32_t a = 1; a < _p.size(); a++ ) {
 	x = t->transform( _p[a] );
 	cairo_line_to( cairo, x[0], x[1] );
     }
-    if( lwpline->closed() ) {
+    if( closed() ) {
 	x = t->transform( _p[0] );
 	cairo_line_to( cairo, x[0], x[1] );
     }
@@ -401,8 +401,9 @@ MyDXFCircle::MyDXFCircle( class MyDXFFile *dxf )
 void MyDXFCircle::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 			const Transformation *t, const double range[4] ) const
 {
-    // Iterative approach has to be taken.
-    
+    std::vector<double> coord;
+
+
 
     /*
     Vec4D x = t->transform( _p[0] );

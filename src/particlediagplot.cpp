@@ -444,13 +444,13 @@ void ParticleDiagPlot::build_plot( void )
 	double a = _emit->rmajor();
 	double b = _emit->rminor();
 	double p = _emit->angle();
-	double sinp = sin(p);	
+	double sinp = sin(p);
 	double cosp = cos(p);
 	std::vector<double> xd, yd;
 	for( size_t i = 0; i < 100; i++ ) {
 	    double t = 2.0*M_PI*i/99.0;
-	    xd.push_back( _emit->xave()  + a*cos(t)*sinp + b*sin(t)*cosp );
-	    yd.push_back( _emit->xpave() + a*cos(t)*cosp - b*sin(t)*sinp );
+	    xd.push_back( _emit->xave()  + a*cos(t)*cosp - b*sin(t)*sinp );
+	    yd.push_back( _emit->xpave() + a*cos(t)*sinp + b*sin(t)*cosp );
 	}
 
 	// Add ellipse xy graph
