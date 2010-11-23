@@ -401,24 +401,92 @@ MyDXFCircle::MyDXFCircle( class MyDXFFile *dxf )
 void MyDXFCircle::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 			const Transformation *t, const double range[4] ) const
 {
-    std::vector<double> coord;
+    std::vector<double> cx;
+    std::vector<double> cy;
 
+    // Divide circle to linear pieces and keep length of linear pieces
+    // to less than 4 px
 
-
-    /*
-    Vec4D x = t->transform( _p[0] );
-    cairo_move_to( cairo, x[0], x[1] );
-    for( uint32_t a = 1; a < lwpline->size(); a++ ) {
-	x = t->transform( _p[a] );
-	cairo_line_to( cairo, x[0], x[1] );
+    // Start with three points
+    double cf = 2.0*M_PI/3.0;
+    for( int i = 0; i < 3; i++ ) {
+	double a = i*cf;
+	Vec4D p = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+	cx.push_back( p[0] );
+	cy.push_back( p[1] );
     }
-    if( lwpline->closed() ) {
-	x = t->transform( _p[0] );
-	cairo_line_to( cairo, x[0], x[1] );
+
+    // Loop until error is small enough
+    while( true ) {
+
+	//std::cout << "LOOP: N = " << cx.size() << "\n";
+	//for( int i = 0; i < (int)cx.size(); i++ )
+	//std::cout << "  " << cx[i] << "\t" << cy[i] << "\n";
+
+	// Calculate maximum step length
+	double mstep = 0.0;
+	for( int i = 0; i < (int)cx.size()-1; i++ ) {
+	    double sx = cx[i+1] - cx[i];
+	    double sy = cy[i+1] - cy[i];
+	    double step = sx*sx + sy*sy;
+	    if( step > mstep )
+		mstep = step;
+	}
+	// last gap
+	double sx = cx[0] - cx[cx.size()-1];
+	double sy = cy[0] - cy[cx.size()-1];
+	double step = sx*sx + sy*sy;
+	if( step > mstep )
+	    mstep = step;
+
+	// Calculate maximum error between most recent points and the
+	// linear interpolation from the last round
+	/*
+	double maxerr = 0.0;
+	for( int i = 1; i < (int)cx.size(); i += 2 ) {
+	    double tx = 0.5*(cx[i-1] + cx[i+1]);
+	    double ty = 0.5*(cy[i-1] + cy[i+1]);
+	    tx -= cx[i];
+	    ty -= cy[i];
+	    double err = tx*tx + ty*ty; // square of error
+	    if( err > maxerr )
+		maxerr = err;
+	}
+	*/
+
+	//std::cout << "mstep = " << mstep << "\n";
+
+	// If step < 4.0
+	if( mstep < 16.0 )
+	    break;
+
+	// Add more points
+	cx.resize( 2*cx.size() );
+	cy.resize( 2*cy.size() );
+	double cf = 2.0*M_PI/cx.size();
+	for( int i = cx.size()-1; i > 0; i-- ) {
+	    
+	    // New point
+	    double a = i*cf;
+	    Vec4D p = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+	    cx[i] = p[0];
+	    cy[i] = p[1];
+	    i--;
+
+	    // Old point
+	    cx[i] = cx[i/2];
+	    cy[i] = cy[i/2];
+	}
+
+	std::cout << "\n";
     }
 
+    // Error small enough -> draw lines
+    cairo_move_to( cairo, cx[0], cy[0] );
+    for( int i = 0; i < (int)cx.size(); i++ )
+	cairo_line_to( cairo, cx[i], cy[i] );
+    cairo_line_to( cairo, cx[0], cy[0] );
     cairo_stroke( cairo );
-    */
 }
 
 
@@ -533,7 +601,104 @@ MyDXFArc::MyDXFArc( class MyDXFFile *dxf )
 void MyDXFArc::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 		     const Transformation *t, const double range[4] ) const
 {
+    std::vector<double> cx;
+    std::vector<double> cy;
 
+    // Divide circle to linear pieces and keep length of linear pieces
+    // to less than 4 px
+
+    // Start with three points: ends and one in between
+    double a = _ang1;
+    Vec4D p = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+    cx.push_back( p[0] );
+    cy.push_back( p[1] );
+
+    if( _ang2 > _ang1 )
+	a = 0.5*(_ang1+_ang2);
+    else {
+	a = 0.5*(_ang1+_ang2) + M_PI;
+	a = a - 2.0*M_PI*floor( a/(2.0*M_PI) );
+    }
+    p = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+    cx.push_back( p[0] );
+    cy.push_back( p[1] );
+
+    a = _ang2;
+    p = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+    cx.push_back( p[0] );
+    cy.push_back( p[1] );
+
+    // Loop until error is small enough
+    while( true ) {
+
+	//std::cout << "LOOP: N = " << cx.size() << "\n";
+	//for( int i = 0; i < (int)cx.size(); i++ )
+	//std::cout << "  " << cx[i] << "\t" << cy[i] << "\n";
+
+	// Calculate maximum step length
+	double mstep = 0.0;
+	for( int i = 0; i < (int)cx.size()-1; i++ ) {
+	    double sx = cx[i+1] - cx[i];
+	    double sy = cy[i+1] - cy[i];
+	    double step = sx*sx + sy*sy;
+	    if( step > mstep )
+		mstep = step;
+	}
+	// last gap
+	double sx = cx[0] - cx[cx.size()-1];
+	double sy = cy[0] - cy[cx.size()-1];
+	double step = sx*sx + sy*sy;
+	if( step > mstep )
+	    mstep = step;
+
+	// Calculate maximum error between most recent points and the
+	// linear interpolation from the last round
+	/*
+	double maxerr = 0.0;
+	for( int i = 1; i < (int)cx.size(); i += 2 ) {
+	    double tx = 0.5*(cx[i-1] + cx[i+1]);
+	    double ty = 0.5*(cy[i-1] + cy[i+1]);
+	    tx -= cx[i];
+	    ty -= cy[i];
+	    double err = tx*tx + ty*ty; // square of error
+	    if( err > maxerr )
+		maxerr = err;
+	}
+	*/
+
+	//std::cout << "mstep = " << mstep << "\n";
+
+	// If step < 4.0
+	if( mstep < 16.0 )
+	    break;
+
+	// Add more points
+	cx.resize( 2*cx.size() );
+	cy.resize( 2*cy.size() );
+	double cf = 2.0*M_PI/cx.size();
+	for( int i = cx.size()-1; i > 0; i-- ) {
+	    
+	    // New point
+	    double a = i*cf;
+	    Vec4D p = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+	    cx[i] = p[0];
+	    cy[i] = p[1];
+	    i--;
+
+	    // Old point
+	    cx[i] = cx[i/2];
+	    cy[i] = cy[i/2];
+	}
+
+	std::cout << "\n";
+    }
+
+    // Error small enough -> draw lines
+    cairo_move_to( cairo, cx[0], cy[0] );
+    for( int i = 0; i < (int)cx.size(); i++ )
+	cairo_line_to( cairo, cx[i], cy[i] );
+    cairo_line_to( cairo, cx[0], cy[0] );
+    cairo_stroke( cairo );
 }
 
 
@@ -892,7 +1057,7 @@ MyDXFInsert::MyDXFInsert( class MyDXFFile *dxf )
 void MyDXFInsert::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 			const Transformation *t, const double range[4] ) const
 {
-
+    
 }
 
 

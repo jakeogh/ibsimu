@@ -358,7 +358,7 @@ public:
 class MyDXFArc : public MyDXFPathEntity
 {
 
-    Vec3D _pc;
+    Vec3D    _pc;
     double   _r;
     double   _ang1; // Must be between 0 and 2 pi.
     double   _ang2; // Must be between 0 and 2 pi.
@@ -491,7 +491,7 @@ public:
 class MyDXFCircle : public MyDXFPathEntity
 {
 
-    Vec3D _pc;
+    Vec3D    _pc;
     double   _r;
 
     virtual void debug_print( std::ostream &os ) const;
