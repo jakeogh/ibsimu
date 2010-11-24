@@ -1,9 +1,57 @@
+/*! \file mydxfentities.cpp
+ *  \brief DXF entities
+ */
+
+/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+ *
+ * You can redistribute this software and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ * 
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this library (file "COPYING" included in the package);
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * 
+ * If you have questions about your rights to use or distribute this
+ * software, please contact Berkeley Lab's Technology Transfer
+ * Department at TTD@lbl.gov. Other questions, comments and bug
+ * reports should be sent directly to the author via email at
+ * taneli.kalvas@jyu.fi.
+ * 
+ * NOTICE. This software was developed under partial funding from the
+ * U.S.  Department of Energy.  As such, the U.S. Government has been
+ * granted for itself and others acting on its behalf a paid-up,
+ * nonexclusive, irrevocable, worldwide license in the Software to
+ * reproduce, prepare derivative works, and perform publicly and
+ * display publicly.  Beginning five (5) years after the date
+ * permission to assert copyright is obtained from the U.S. Department
+ * of Energy, and subject to any subsequent five (5) year renewals,
+ * the U.S. Government is granted for itself and others acting on its
+ * behalf a paid-up, nonexclusive, irrevocable, worldwide license in
+ * the Software to reproduce, prepare derivative works, distribute
+ * copies to the public, perform publicly and display publicly, and to
+ * permit others to do so.
+ */
+
+
 #include <iostream>
 #include <math.h>
 #include <limits>
 #include "mydxfentities.hpp"
 #include "polysolver.hpp"
 #include "error.hpp"
+
+
+#define MAX_ARC_CHOP 4
+
+//#define MYDXF_DEBUG_BBOX
 
 
 /* ************************************************************************** *
@@ -111,21 +159,31 @@ void MyDXFLine::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 }
 
 
-void MyDXFLine::get_bbox( Vec3D &min, Vec3D &max ) const
+void MyDXFLine::get_bbox( Vec3D &min, Vec3D &max, 
+			  const class MyDXFFile *dxf, const Transformation *t ) const
 {
+    Vec4D x1 = t->transform( _p1 );
+    Vec4D x2 = t->transform( _p2 );
+
     for( int a = 0; a < 3; a++ ) {
-	if( _p1[a] < _p2[a] ) {
-	    min[a] = _p1[a];
-	    max[a] = _p2[a];
+	if( x1[a] < x2[a] ) {
+	    min[a] = x1[a];
+	    max[a] = x2[a];
 	} else {
-	    min[a] = _p2[a];
-	    max[a] = _p1[a];
+	    min[a] = x2[a];
+	    max[a] = x1[a];
 	}
     }	
+
+#ifdef MYDXF_DEBUG_BBOX
+    std::cout << "Line bbox\n";
+    std::cout << "min = " << min << "\n";
+    std::cout << "max = " << max << "\n";
+#endif
 }
 
 
-void MyDXFLine::scale( double s  )
+void MyDXFLine::scale( class MyDXFFile *dxf, double s  )
 {
     _p1 *= s;
     _p2 *= s;
@@ -266,21 +324,30 @@ void MyDXFLWPolyline::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 }
 
 
-void MyDXFLWPolyline::get_bbox( Vec3D &min, Vec3D &max ) const
+void MyDXFLWPolyline::get_bbox( Vec3D &min, Vec3D &max, 
+				const class MyDXFFile *dxf, const Transformation *t ) const
 {
     min = Vec3D( std::numeric_limits<double>::infinity(),
-		    std::numeric_limits<double>::infinity(),
-		    std::numeric_limits<double>::infinity() );
+		 std::numeric_limits<double>::infinity(),
+		 std::numeric_limits<double>::infinity() );
     max = Vec3D( -std::numeric_limits<double>::infinity(),
-		    -std::numeric_limits<double>::infinity(),
-		    -std::numeric_limits<double>::infinity() );
+		 -std::numeric_limits<double>::infinity(),
+		 -std::numeric_limits<double>::infinity() );
 
-    for( uint32_t a = 0; a < _p.size(); a++ )
-	bbox_ppoint( min, max, _p[a] );
+    for( uint32_t a = 0; a < _p.size(); a++ ) {
+	Vec4D x = t->transform( _p[a] );
+	bbox_ppoint( min, max, x );
+    }
+
+#ifdef MYDXF_DEBUG_BBOX
+    std::cout << "Polyline bbox\n";
+    std::cout << "min = " << min << "\n";
+    std::cout << "max = " << max << "\n";
+#endif
 }
 
 
-void MyDXFLWPolyline::scale( double s  )
+void MyDXFLWPolyline::scale( class MyDXFFile *dxf, double s  )
 {
     for( uint32_t a = 0; a < _p.size(); a++ )
 	_p[a] *= s;
@@ -417,7 +484,7 @@ void MyDXFCircle::plot( const class MyDXFFile *dxf, cairo_t *cairo,
     }
 
     // Loop until error is small enough
-    while( true ) {
+    for( int iter = 0; iter < MAX_ARC_CHOP; iter++ ) {
 
 	//std::cout << "LOOP: N = " << cx.size() << "\n";
 	//for( int i = 0; i < (int)cx.size(); i++ )
@@ -478,7 +545,7 @@ void MyDXFCircle::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 	    cy[i] = cy[i/2];
 	}
 
-	std::cout << "\n";
+	//std::cout << "\n";
     }
 
     // Error small enough -> draw lines
@@ -490,16 +557,34 @@ void MyDXFCircle::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 }
 
 
-void MyDXFCircle::get_bbox( Vec3D &min, Vec3D &max ) const
+void MyDXFCircle::get_bbox( Vec3D &min, Vec3D &max, 
+			    const class MyDXFFile *dxf, const Transformation *t ) const
 {
-    for( int a = 0; a < 3; a++ ) {
-	min[a] = _pc[a] - _r;
-	max[a] = _pc[a] + _r;
+    min = Vec3D( std::numeric_limits<double>::infinity(),
+		 std::numeric_limits<double>::infinity(),
+		 std::numeric_limits<double>::infinity() );
+    max = Vec3D( -std::numeric_limits<double>::infinity(),
+		 -std::numeric_limits<double>::infinity(),
+		 -std::numeric_limits<double>::infinity() );
+
+    // Chop circle to 8 pieces for bbox
+    double cf = 2.0*M_PI/8.0;
+    for( int i = 0; i < 8; i++ ) {
+	double a = i*cf;
+	Vec3D p( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] );
+	Vec4D x = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+	bbox_ppoint( min, max, x );
     }
+
+#ifdef MYDXF_DEBUG_BBOX
+    std::cout << "Circle bbox\n";
+    std::cout << "min = " << min << "\n";
+    std::cout << "max = " << max << "\n";
+#endif
 }
 
 
-void MyDXFCircle::scale( double s )
+void MyDXFCircle::scale( class MyDXFFile *dxf, double s )
 {
     _pc *= s;
     _r  *= s;
@@ -604,36 +689,36 @@ void MyDXFArc::plot( const class MyDXFFile *dxf, cairo_t *cairo,
     std::vector<double> cx;
     std::vector<double> cy;
 
-    // Divide circle to linear pieces and keep length of linear pieces
+    // Divide arc to linear pieces and keep length of linear pieces
     // to less than 4 px
 
+    //std::cout << "\n\nARC plot\n";
+    //std::cout << "  ang1 = " << _ang1 << "\n";
+    //std::cout << "  ang2 = " << _ang2 << "\n";
+
     // Start with three points: ends and one in between
-    double a = _ang1;
-    Vec4D p = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
-    cx.push_back( p[0] );
-    cy.push_back( p[1] );
+    double adiff = _ang2-_ang1;
+    if( adiff < 0.0 )
+	adiff = 2.0*M_PI + adiff;
+    //std::cout << "  adiff = " << adiff << "\n";
 
-    if( _ang2 > _ang1 )
-	a = 0.5*(_ang1+_ang2);
-    else {
-	a = 0.5*(_ang1+_ang2) + M_PI;
-	a = a - 2.0*M_PI*floor( a/(2.0*M_PI) );
+    for( int i = 0; i < 3; i++ ) {
+	double a = _ang1 + i*adiff/2.0;
+	if( a > 2.0*M_PI )
+	    a -= 2.0*M_PI;
+	Vec4D p = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+	//std::cout << "  a = " << a << "\n";
+	//std::cout << "  p = " << p[0] << "\t" << p[1] << "\n";
+	cx.push_back( p[0] );
+	cy.push_back( p[1] );
     }
-    p = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
-    cx.push_back( p[0] );
-    cy.push_back( p[1] );
-
-    a = _ang2;
-    p = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
-    cx.push_back( p[0] );
-    cy.push_back( p[1] );
 
     // Loop until error is small enough
-    while( true ) {
+    for( int iter = 0; iter < MAX_ARC_CHOP; iter++ ) {
 
 	//std::cout << "LOOP: N = " << cx.size() << "\n";
 	//for( int i = 0; i < (int)cx.size(); i++ )
-	//std::cout << "  " << cx[i] << "\t" << cy[i] << "\n";
+	//    std::cout << "  " << cx[i] << "\t" << cy[i] << "\n";
 
 	// Calculate maximum step length
 	double mstep = 0.0;
@@ -644,118 +729,76 @@ void MyDXFArc::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 	    if( step > mstep )
 		mstep = step;
 	}
-	// last gap
-	double sx = cx[0] - cx[cx.size()-1];
-	double sy = cy[0] - cy[cx.size()-1];
-	double step = sx*sx + sy*sy;
-	if( step > mstep )
-	    mstep = step;
-
-	// Calculate maximum error between most recent points and the
-	// linear interpolation from the last round
-	/*
-	double maxerr = 0.0;
-	for( int i = 1; i < (int)cx.size(); i += 2 ) {
-	    double tx = 0.5*(cx[i-1] + cx[i+1]);
-	    double ty = 0.5*(cy[i-1] + cy[i+1]);
-	    tx -= cx[i];
-	    ty -= cy[i];
-	    double err = tx*tx + ty*ty; // square of error
-	    if( err > maxerr )
-		maxerr = err;
-	}
-	*/
-
 	//std::cout << "mstep = " << mstep << "\n";
+	//std::cout << "\n";
 
 	// If step < 4.0
 	if( mstep < 16.0 )
 	    break;
 
 	// Add more points
-	cx.resize( 2*cx.size() );
-	cy.resize( 2*cy.size() );
-	double cf = 2.0*M_PI/cx.size();
-	for( int i = cx.size()-1; i > 0; i-- ) {
-	    
-	    // New point
-	    double a = i*cf;
-	    Vec4D p = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
-	    cx[i] = p[0];
-	    cy[i] = p[1];
-	    i--;
+	cx.resize( 2*cx.size()-1 );
+	cy.resize( 2*cy.size()-1 );
+	double cf = adiff/(cx.size()-1);
+	for( int i = cx.size()-1; i > 1; i-- ) {
 
 	    // Old point
 	    cx[i] = cx[i/2];
 	    cy[i] = cy[i/2];
-	}
+	    i--;
 
-	std::cout << "\n";
+	    // New point
+	    double a = _ang1 + i*cf;
+	    if( a > 2.0*M_PI )
+		a -= 2.0*M_PI;
+	    Vec4D p = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+	    //std::cout << "  a = " << a << "\n";
+	    //std::cout << "  p = " << p[0] << "\t" << p[1] << "\n";
+	    cx[i] = p[0];
+	    cy[i] = p[1];
+	}
     }
 
     // Error small enough -> draw lines
     cairo_move_to( cairo, cx[0], cy[0] );
     for( int i = 0; i < (int)cx.size(); i++ )
 	cairo_line_to( cairo, cx[i], cy[i] );
-    cairo_line_to( cairo, cx[0], cy[0] );
     cairo_stroke( cairo );
 }
 
 
-void MyDXFArc::get_bbox( Vec3D &min, Vec3D &max ) const
+void MyDXFArc::get_bbox( Vec3D &min, Vec3D &max, 
+			 const class MyDXFFile *dxf, const Transformation *t ) const
 {
     min = Vec3D( std::numeric_limits<double>::infinity(),
-		    std::numeric_limits<double>::infinity(),
-		    std::numeric_limits<double>::infinity() );
+		 std::numeric_limits<double>::infinity(),
+		 std::numeric_limits<double>::infinity() );
     max = Vec3D( -std::numeric_limits<double>::infinity(),
-		    -std::numeric_limits<double>::infinity(),
-		    -std::numeric_limits<double>::infinity() );
+		 -std::numeric_limits<double>::infinity(),
+		 -std::numeric_limits<double>::infinity() );
 
-    // Go through leftmost, rightmost, highest and lowest point of circle
-    double a;
-    Vec3D p( 0.0, 0.0, _pc[2] );
-    for( int b = 0; b < 4; b++ ) {
-	
-	if( b == 0 ) {
-	    a = 0.0;
-	    p[0] = _pc[0] + _r;
-	    p[1] = _pc[1];
-	} else if( b == 1 ) {
-	    a = 0.5*M_PI;
-	    p[0] = _pc[0];
-	    p[1] = _pc[1] + _r;
-	} else if( b == 2 ) {
-	    a = M_PI;
-	    p[0] = _pc[0] - _r;
-	    p[1] = _pc[1];
-	} else {
-	    a = 1.5*M_PI;
-	    p[0] = _pc[0];
-	    p[1] = _pc[1] - _r;
-	}
+    // Chop arc to 8 pieces for bbox
+    double adiff = _ang2-_ang1;
+    if( adiff < 0.0 )
+	adiff = 2.0*M_PI + adiff;
 
-	// Update bbox if angle a belongs to the arc
-	if( _ang1 < _ang2 ) {
-	    if( a > _ang1 && a < _ang2 ) {
-		bbox_ppoint( min, max, p );
-	    }
-	} else {
-	    if( a < _ang2 || a > _ang1 ) {
-		bbox_ppoint( min, max, p );
-	    }
-	}
+    for( int i = 0; i < 8; i++ ) {
+	double a = _ang1 + i*adiff/7.0;
+	if( a > 2.0*M_PI )
+	    a -= 2.0*M_PI;
+	Vec4D x = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+	bbox_ppoint( min, max, x );
     }
 
-    // Process endpoints of arc
-    p = Vec3D(_pc[0] + _r*cos(_ang1), _pc[1] + _r*sin(_ang1), _pc[2] );
-    bbox_ppoint( min, max, p );
-
-    p = Vec3D(_pc[0] + _r*cos(_ang2), _pc[1] + _r*sin(_ang2), _pc[2] );
-    bbox_ppoint( min, max, p );
+#ifdef MYDXF_DEBUG_BBOX
+    std::cout << "Arc bbox\n";
+    std::cout << "min = " << min << "\n";
+    std::cout << "max = " << max << "\n";
+#endif
 }
 
 
-void MyDXFArc::scale( double s )
+void MyDXFArc::scale( class MyDXFFile *dxf, double s )
 {
     _pc *= s;
     _r  *= s;
@@ -951,15 +994,22 @@ void MyDXFMText::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 }
 
 
-void MyDXFMText::get_bbox( Vec3D &min, Vec3D &max ) const
+void MyDXFMText::get_bbox( Vec3D &min, Vec3D &max, 
+			   const class MyDXFFile *dxf, const Transformation *t ) const
 {
     std::cout << "Warning: bounding box for MText entity not implemented\n";
     min = _p;
     max = _p;
+
+#ifdef MYDXF_DEBUG_BBOX
+    std::cout << "MText bbox\n";
+    std::cout << "min = " << min << "\n";
+    std::cout << "max = " << max << "\n";
+#endif
 }
 
 
-void MyDXFMText::scale( double s )
+void MyDXFMText::scale( class MyDXFFile *dxf, double s )
 {
     _p *= s;
     _text_height *= s;
@@ -1057,21 +1107,81 @@ MyDXFInsert::MyDXFInsert( class MyDXFFile *dxf )
 void MyDXFInsert::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 			const Transformation *t, const double range[4] ) const
 {
-    
+    // Fetch block data
+    const MyDXFBlocks *blocks = dxf->get_blocks();
+    const MyDXFBlock *b = blocks->get_by_name( _block_name );
+    if( !b )
+	return;
+
+    Transformation t2 = *t;
+    t2.translate( _p );
+    t2.scale( _scale );
+    t2.rotate_z( _rotation );
+
+    for( int16_t col = 0; col < _col_count; col++ ) {
+	for( int16_t row = 0; row < _row_count; row++ ) {
+	    Transformation t3 = t2;
+	    t3.translate( Vec3D( col*_col_spacing, row*_row_spacing, 0.0 ) );
+	    b->plot( dxf, cairo, &t3, range );
+	}
+    }
 }
 
 
-void MyDXFInsert::get_bbox( Vec3D &min, Vec3D &max ) const
+void MyDXFInsert::get_bbox( Vec3D &min, Vec3D &max, 
+			    const class MyDXFFile *dxf, const Transformation *t ) const
 {
-    std::cout << "Warning: bounding box for INSERT entity not implemented\n";
-    min = _p;
-    max = _p;
+    min = Vec3D( std::numeric_limits<double>::infinity(),
+		 std::numeric_limits<double>::infinity(),
+		 std::numeric_limits<double>::infinity() );
+    max = Vec3D( -std::numeric_limits<double>::infinity(),
+		 -std::numeric_limits<double>::infinity(),
+		 -std::numeric_limits<double>::infinity() );
+
+    // Fetch block data
+    const MyDXFBlocks *blocks = dxf->get_blocks();
+    const MyDXFBlock *b = blocks->get_by_name( _block_name );
+    if( !b )
+	return;
+
+    Transformation t2 = *t;
+    t2.translate( _p );
+    t2.scale( _scale );
+    t2.rotate_z( _rotation );
+
+    for( int16_t col = 0; col < _col_count; col++ ) {
+	for( int16_t row = 0; row < _row_count; row++ ) {
+	    Transformation t3 = t2;
+	    t3.translate( Vec3D( col*_col_spacing, row*_row_spacing, 0.0 ) );
+	    Vec3D mi, ma;
+	    b->get_bbox( mi, ma, dxf, &t3 );
+
+	    for( int b = 0; b < 3; b++ ) {
+		if( mi[b] < min[b] )
+		    min[b] = mi[b];
+		if( ma[b] > max[b] )
+		    max[b] = ma[b];
+	    }
+	}
+    }
+
+#ifdef MYDXF_DEBUG_BBOX
+    std::cout << "Insert bbox\n";
+    std::cout << "min = " << min << "\n";
+    std::cout << "max = " << max << "\n";
+#endif
 }
 
 
-void MyDXFInsert::scale( double s )
+void MyDXFInsert::scale( class MyDXFFile *dxf, double s )
 {
-    std::cout << "Warning: scale for INSERT entity not implemented\n";
+    // Fetch block data
+    MyDXFBlocks *blocks = dxf->get_blocks();
+    MyDXFBlock *b = blocks->get_by_name( _block_name );
+    if( !b )
+	return;
+
+    b->scale( dxf, s );
 }
 
 
@@ -1491,44 +1601,82 @@ MyDXFEntitySelection *MyDXFEntities::selection_path_loop( MyDXFEntitySelection *
 void MyDXFEntities::plot( const MyDXFEntitySelection *selection, const class MyDXFFile *dxf, 
 			  cairo_t *cairo, const Transformation *t, const double range[4] ) const
 {
-    // Go through selection
-    for( uint32_t a = 0; a < selection->size(); a++ ) {
-	MyDXFEntity *e = _entities[(*selection)(a)];
-	e->plot( dxf, cairo, t, range );
+    if( selection ) {
+	// Go through selection
+	for( uint32_t a = 0; a < selection->size(); a++ ) {
+	    MyDXFEntity *e = _entities[(*selection)(a)];
+	    e->plot( dxf, cairo, t, range );
+	}
+    } else {
+	// Plot all entities 
+	for( uint32_t a = 0; a < _entities.size(); a++ ) {
+	    MyDXFEntity *e = _entities[a];
+	    e->plot( dxf, cairo, t, range );
+	}
     }
 }
 
 
-void MyDXFEntities::get_bbox(  const MyDXFEntitySelection *selection, Vec3D &min, Vec3D &max ) const
+void MyDXFEntities::get_bbox( const MyDXFEntitySelection *selection, Vec3D &min, Vec3D &max, 
+			      const class MyDXFFile *dxf, const Transformation *t ) const
 {
     min = Vec3D( std::numeric_limits<double>::infinity(),
-		    std::numeric_limits<double>::infinity(),
-		    std::numeric_limits<double>::infinity() );
+		 std::numeric_limits<double>::infinity(),
+		 std::numeric_limits<double>::infinity() );
     max = Vec3D( -std::numeric_limits<double>::infinity(),
-		    -std::numeric_limits<double>::infinity(),
-		    -std::numeric_limits<double>::infinity() );
+		 -std::numeric_limits<double>::infinity(),
+		 -std::numeric_limits<double>::infinity() );
 
-    Vec3D mi, ma;
+    if( selection ) {
+	for( size_t a = 0; a < selection->size(); a++ ) {
+	    MyDXFEntity *e = _entities[(*selection)(a)];
+	    Vec3D mi, ma;
+	    e->get_bbox( mi, ma, dxf, t );
 
-    for( size_t a = 0; a < selection->size(); a++ ) {
-	MyDXFEntity *e = _entities[(*selection)(a)];
-	e->get_bbox( mi, ma );
-	for( int b = 0; b < 3; b++ ) {
-	    if( mi[b] < min[b] )
-		min[b] = mi[b];
-	    if( ma[b] > max[b] )
-		max[b] = ma[b];
+	    for( int b = 0; b < 3; b++ ) {
+		if( mi[b] < min[b] )
+		    min[b] = mi[b];
+		if( ma[b] > max[b] )
+		    max[b] = ma[b];
+	    }
 	}
-    }    
+    } else {
+	for( size_t a = 0; a < _entities.size(); a++ ) {
+	    MyDXFEntity *e = _entities[a];
+	    Vec3D mi, ma;
+	    e->get_bbox( mi, ma, dxf, t );
+	    for( int b = 0; b < 3; b++ ) {
+		if( mi[b] < min[b] )
+		    min[b] = mi[b];
+		if( ma[b] > max[b] )
+		    max[b] = ma[b];
+	    }
+	}
+    }
+
+#ifdef MYDXF_DEBUG_BBOX
+    std::cout << "Entities bbox\n";
+    std::cout << "min = " << min << "\n";
+    std::cout << "max = " << max << "\n";
+#endif
 }
 
 
-void MyDXFEntities::scale( MyDXFEntitySelection *selection, double s )
+void MyDXFEntities::scale( MyDXFEntitySelection *selection, class MyDXFFile *dxf, double s )
 {
-    for( size_t a = 0; a < selection->size(); a++ ) {
-	MyDXFEntity *e = _entities[(*selection)(a)];
-	e->scale( s );
-    }    
+    if( selection ) {
+	// Go through selection
+	for( size_t a = 0; a < selection->size(); a++ ) {
+	    MyDXFEntity *e = _entities[(*selection)(a)];
+	    e->scale( dxf, s );
+	}    
+    } else {
+	// Scale all entities 
+	for( size_t a = 0; a < _entities.size(); a++ ) {
+	    MyDXFEntity *e = _entities[a];
+	    e->scale( dxf, s );
+	}
+    }
 }
 
 

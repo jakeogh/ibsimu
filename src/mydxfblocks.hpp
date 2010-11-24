@@ -50,6 +50,7 @@
 #include "vec3d.hpp"
 #include "mydxffile.hpp"
 #include "mydxfentities.hpp"
+#include "transformation.hpp"
 
 
 /*! \brief DXF block class.
@@ -61,10 +62,10 @@ class MyDXFBlock
     std::string    _handle;
     std::string    _layer;
     std::string    _owner_handle;
-    std::string    _name;
+    std::string    _name;          // Name reference used by INSERT
 
     int16_t        _type;
-    Vec3D       _p;             // Base point
+    Vec3D          _p;             // Base point
 
     class MyDXFEntities *_entities;
 
@@ -73,15 +74,37 @@ public:
     MyDXFBlock( class MyDXFFile *dxf );
     ~MyDXFBlock();
 
+    /*! \brief Return name of block.
+     */
+    const std::string &name( void ) { return( _name ); }
+
     /*! \brief Get a pointer to the entities of block.
      */
-    class MyDXFEntities *get_entities( void ) { return( _entities ); };
+    class MyDXFEntities *get_entities( void ) { return( _entities ); }
 
     /*! \brief Get a const pointer to the entities of block.
      */
-    const class MyDXFEntities *get_entities( void ) const { return( _entities ); };
+    const class MyDXFEntities *get_entities( void ) const { return( _entities ); }
 
+    /*! \brief Plot block with cairo
+     *
+     *  Plot the entities withing the block using the transformation
+     *  \a t from the object space to cairo coordinates. The
+     *  visible range is specified by \a range (xmin,ymin,xmax,ymax)
+     *  in cairo coordinates.
+     */
+    void plot( const class MyDXFFile *dxf, cairo_t *cairo, 
+	       const Transformation *t, const double range[4] ) const;
 
+    /*! \brief Return bounding box of entities within the block.
+     */
+    void get_bbox( Vec3D &min, Vec3D &max, 
+		   const class MyDXFFile *dxf, const Transformation *t ) const;
+
+    /*! \brief Scale entities within block by factor \a s.
+     */
+    void scale( class MyDXFFile *dxf, double s );
+    
     friend std::ostream &operator<<( std::ostream &os, const MyDXFBlock &blk );
 };
 
@@ -102,6 +125,9 @@ public:
     ~MyDXFBlocks();
 
     uint32_t size( void ) const { return( _blocks.size() ); }
+
+    MyDXFBlock *get_by_name( const std::string &name );
+    const MyDXFBlock *get_by_name( const std::string &name ) const;
 
     MyDXFBlock *operator()( int a ) { return( _blocks[a] ); }
 

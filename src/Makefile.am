@@ -166,7 +166,9 @@ transformation.cpp \
 transformation.hpp \
 types.cpp \
 types.hpp \
+vec3d.cpp \
 vec3d.hpp \
+vec4d.cpp \
 vec4d.hpp \
 vectorfield.cpp \
 vectorfield.hpp \

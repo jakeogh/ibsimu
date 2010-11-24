@@ -92,7 +92,7 @@ public:
 
     /*! \brief Scale entity by factor \a s.
      */
-    virtual void scale( double s ) = 0;
+    virtual void scale( class MyDXFFile *dxf, double s ) = 0;
 
     /*! \brief Set layer.
      */
@@ -122,7 +122,8 @@ public:
 
     /*! \brief Return bounding box of entity
      */
-    virtual void get_bbox( Vec3D &min, Vec3D &max ) const = 0;
+    virtual void get_bbox( Vec3D &min, Vec3D &max, 
+			   const class MyDXFFile *dxf, const Transformation *t ) const = 0;
 
     friend std::ostream &operator<<( std::ostream &os, const MyDXFEntity &ent );
 };
@@ -246,11 +247,12 @@ public:
 
    /*! \brief Return bounding box of entity
      */
-    virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
+    virtual void get_bbox( Vec3D &min, Vec3D &max, 
+			   const class MyDXFFile *dxf, const Transformation *t ) const;
 
     /*! \brief Scale entity by factor \a s.
      */
-    virtual void scale( double s );
+    virtual void scale( class MyDXFFile *dxf, double s );
 };
 
 
@@ -342,11 +344,12 @@ public:
 
     /*! \brief Return bounding box of entity.
      */
-    virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
+    virtual void get_bbox( Vec3D &min, Vec3D &max, 
+			   const class MyDXFFile *dxf, const Transformation *t ) const;
 
     /*! \brief Scale entity by factor \a s.
      */
-    virtual void scale( double s );
+    virtual void scale( class MyDXFFile *dxf, double s );
 };
 
 
@@ -476,11 +479,12 @@ public:
 
     /*! \brief Return bounding box of entity
      */
-    virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
+    virtual void get_bbox( Vec3D &min, Vec3D &max, 
+			   const class MyDXFFile *dxf, const Transformation *t ) const;
 
     /*! \brief Scale entity by factor \a s.
      */
-    virtual void scale( double s );
+    virtual void scale( class MyDXFFile *dxf, double s );
 };
 
 
@@ -567,11 +571,12 @@ public:
 
     /*! \brief Return bounding box of entity
      */
-    virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
+    virtual void get_bbox( Vec3D &min, Vec3D &max, 
+			   const class MyDXFFile *dxf, const Transformation *t ) const;
 
     /*! \brief Scale entity by factor \a s.
      */
-    virtual void scale( double s );
+    virtual void scale( class MyDXFFile *dxf, double s );
 };
 
 
@@ -638,11 +643,12 @@ public:
 
     /*! \brief Return bounding box of entity
      */
-    virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
+    virtual void get_bbox( Vec3D &min, Vec3D &max, 
+			   const class MyDXFFile *dxf, const Transformation *t ) const;
 
     /*! \brief Scale entity by factor \a s.
      */
-    virtual void scale( double s );
+    virtual void scale( class MyDXFFile *dxf, double s );
 };
 
 
@@ -699,11 +705,12 @@ public:
 
     /*! \brief Return bounding box of entity
      */
-    virtual void get_bbox( Vec3D &min, Vec3D &max ) const;
+    virtual void get_bbox( Vec3D &min, Vec3D &max, 
+			   const class MyDXFFile *dxf, const Transformation *t ) const;
 
     /*! \brief Scale entity by factor \a s.
      */
-    virtual void scale( double s );
+    virtual void scale( class MyDXFFile *dxf, double s );
 
    /*! \brief Return name of the block inserted.
      */
@@ -841,17 +848,20 @@ public:
 
     /*! \brief Plot selected entities with cairo
      *
-     *  Plot the entity using the transformation \a from from the
+     *  Plot the entities using the transformation \a t from the
      *  object space to cairo coordinates. The visible range is
      *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
      *  coordinates.
+     *
+     *  Selection can be a NULL pointer to plot all entities.
      */
     void plot( const MyDXFEntitySelection *selection, const class MyDXFFile *dxf, 
 	       cairo_t *cairo, const Transformation *t, const double range[4] ) const;
 
     /*! \brief Get bounding box containing all entities in selection.
      */
-    void get_bbox( const MyDXFEntitySelection *selection, Vec3D &min, Vec3D &max ) const;
+    void get_bbox( const MyDXFEntitySelection *selection, Vec3D &min, Vec3D &max, 
+		   const class MyDXFFile *dxf, const Transformation *t ) const;
 
 
 
@@ -863,8 +873,10 @@ public:
     */
 
     /* ! \brief Scale selected entities by factor s.
+     *
+     *  Selection can be a NULL pointer to plot all entities.
      */
-    void scale( MyDXFEntitySelection *selection, double s );
+    void scale( MyDXFEntitySelection *selection, class MyDXFFile *dxf, double s );
 
 
     /*! \brief Print debugging information to os.

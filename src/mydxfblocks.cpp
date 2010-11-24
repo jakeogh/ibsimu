@@ -1,4 +1,5 @@
 #include <iostream>
+#include <limits>
 #include "mydxfblocks.hpp"
 #include "error.hpp"
 
@@ -61,6 +62,45 @@ MyDXFBlock::~MyDXFBlock()
 	delete _entities;
 }
 
+
+void MyDXFBlock::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
+		       const Transformation *t, const double range[4] ) const
+{
+    if( !_entities )
+	return;
+
+    Transformation t2 = *t;
+    t2.translate( -_p );
+    _entities->plot( NULL, dxf, cairo, &t2, range );
+}
+
+
+void MyDXFBlock::get_bbox( Vec3D &min, Vec3D &max, 
+			   const class MyDXFFile *dxf, const Transformation *t ) const
+{
+    if( !_entities ) {
+	min = Vec3D( std::numeric_limits<double>::infinity(),
+		     std::numeric_limits<double>::infinity(),
+		     std::numeric_limits<double>::infinity() );
+	max = Vec3D( -std::numeric_limits<double>::infinity(),
+		     -std::numeric_limits<double>::infinity(),
+		     -std::numeric_limits<double>::infinity() );
+	return;
+    }
+
+    Transformation t2 = *t;
+    t2.translate( -_p );
+    _entities->get_bbox( NULL, min, max, dxf, &t2 );
+}
+
+
+void MyDXFBlock::scale( class MyDXFFile *dxf, double s )
+{
+    if( !_entities )
+	return;
+
+    _entities->scale( NULL, dxf, s );
+}
 
 std::ostream &operator<<( std::ostream &os, const MyDXFBlock &blk )
 {
@@ -144,4 +184,25 @@ void MyDXFBlocks::debug_print( std::ostream &os ) const
 }
 
 
+MyDXFBlock *MyDXFBlocks::get_by_name( const std::string &name )
+{
+    for( int i = 0; i < (int)_blocks.size(); i++ ) {
+	if( _blocks[i]->name() == name ) {
+	    return( _blocks[i] );
+	}
+    }
 
+    return( 0 );
+}
+
+
+const MyDXFBlock *MyDXFBlocks::get_by_name( const std::string &name ) const
+{
+    for( int i = 0; i < (int)_blocks.size(); i++ ) {
+	if( _blocks[i]->name() == name ) {
+	    return( _blocks[i] );
+	}
+    }
+
+    return( 0 );
+}

@@ -317,7 +317,9 @@ public:
 				     0,       0,  0,  1 ) );
     }
 
-
+    /*! \brief Outputting to stream.
+     */
+    friend std::ostream &operator<<( std::ostream &os, const Transformation &t );
 };
 
 

@@ -49,6 +49,7 @@
 #include <iostream>
 #include <iostream>
 #include <iomanip>
+#include "vec4d.hpp"
 #include "file.hpp"
 
 
@@ -64,6 +65,9 @@ public:
     Vec3D( double x ) { p[0] = x; p[1] = 0.0; p[2] = 0.0; }
     Vec3D( double x, double y ) { p[0] = x; p[1] = y; p[2] = 0.0; }
     Vec3D( double x, double y, double z ) { p[0] = x; p[1] = y; p[2] = z; }
+
+    Vec3D( const class Vec4D &vec );
+
     Vec3D( std::istream &s ) {
 	p[0] = read_double( s );
 	p[1] = read_double( s );
@@ -111,8 +115,14 @@ public:
 
     /*! \brief %Vector scaling.
      */
-    Vec3D operator*( double x ) { 
+    Vec3D operator*( double x ) const { 
 	return( Vec3D( x*p[0], x*p[1], x*p[2] ) );
+    }
+
+    /*! \brief Unary minus.
+     */
+    Vec3D operator-( void ) const { 
+	return( Vec3D( -p[0], -p[1], -p[2] ) );
     }
 
     /*! \brief %Vector scaling.

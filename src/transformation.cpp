@@ -213,3 +213,29 @@ Vec3D Transformation::inv_transform_vector( const Vec3D &xin ) const
 
     return( Vec3D( r[0], r[1], r[2] ) );
 }
+
+
+std::ostream &operator<<( std::ostream &os, const Transformation &t ) 
+{
+    os << std::setw(12) << to_string(t[0]).substr(0,12) << " ";
+    os << std::setw(12) << to_string(t[1]).substr(0,12) << " ";
+    os << std::setw(12) << to_string(t[2]).substr(0,12) << " ";
+    os << std::setw(12) << to_string(t[3]).substr(0,12) << "\n";
+
+    os << std::setw(12) << to_string(t[4]).substr(0,12) << " ";
+    os << std::setw(12) << to_string(t[5]).substr(0,12) << " ";
+    os << std::setw(12) << to_string(t[6]).substr(0,12) << " ";
+    os << std::setw(12) << to_string(t[7]).substr(0,12) << "\n";
+
+    os << std::setw(12) << to_string(t[8]).substr(0,12) << " ";
+    os << std::setw(12) << to_string(t[9]).substr(0,12) << " ";
+    os << std::setw(12) << to_string(t[10]).substr(0,12) << " ";
+    os << std::setw(12) << to_string(t[11]).substr(0,12) << "\n";
+
+    os << std::setw(12) << to_string(t[12]).substr(0,12) << " ";
+    os << std::setw(12) << to_string(t[13]).substr(0,12) << " ";
+    os << std::setw(12) << to_string(t[14]).substr(0,12) << " ";
+    os << std::setw(12) << to_string(t[15]).substr(0,12) << "\n";
+
+    return( os );
+}
