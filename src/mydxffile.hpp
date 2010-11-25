@@ -51,6 +51,7 @@
 
 #include <fstream>
 #include "mydxfheader.hpp"
+#include "mydxftables.hpp"
 #include "mydxfblocks.hpp"
 #include "mydxfentities.hpp"
 
@@ -66,7 +67,8 @@
  */
 class MyDXFFile
 {
-    std::ifstream _fstr;
+    std::ifstream _istr;
+    std::ofstream _ostr;
     bool          _ascii;
     int           _linec;
 
@@ -84,6 +86,7 @@ class MyDXFFile
     int64_t       _group_int64;
 
     class MyDXFHeader    *_header;
+    class MyDXFTables    *_tables;
     class MyDXFBlocks    *_blocks;
     class MyDXFEntities  *_entities;
 
@@ -102,9 +105,13 @@ public:
      */
     ~MyDXFFile();
 
-    /*! \brief Read a DXF file.
+    /*! \brief Read DXF file.
      */
     void read( const std::string &filename );
+
+    /*! \brief Write DXF file.
+     */
+    void write( const std::string &filename );
 
     /*! \brief Set the level of warning messages.
      *
@@ -117,6 +124,38 @@ public:
     /*! \brief Get the level of warning messages.
      */
     int wlevel( void ) { return( _wlevel ); }
+
+
+
+    /*! \brief Write string group to output file.
+     */
+    void write_group( int code, const char *data );
+
+    /*! \brief Write double group to output file.
+     */
+    void write_group( int code, double data );
+
+    /*! \brief Write bool group to output file.
+     */
+    void write_group( int code, bool data );
+
+    /*! \brief Write int8_t group to output file.
+     */
+    void write_group( int code, int8_t data );
+
+    /*! \brief Write int16_t group to output file.
+     */
+    void write_group( int code, int16_t data );
+
+    /*! \brief Write int32_t group to output file.
+     */
+    void write_group( int code, int32_t data );
+
+    /*! \brief Write int64_t group to output file.
+     */
+    void write_group( int code, int64_t data );
+
+
 
     /*! \brief Read next group from open file and return group code.
      *

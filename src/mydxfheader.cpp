@@ -56,6 +56,14 @@ MyDXFHeader::~MyDXFHeader()
 }
 
 
+void MyDXFHeader::write( class MyDXFFile *dxf, std::ofstream &_ostr )
+{
+    dxf->write_group( 0, "SECTION" );
+    dxf->write_group( 2, "HEADER" );
+    dxf->write_group( 0, "ENDSEC" );
+}
+
+
 
 void MyDXFHeader::debug_print( std::ostream &os ) const
 {

@@ -54,6 +54,9 @@
 //#define MYDXF_DEBUG_BBOX
 
 
+
+//#define MYDXF_DEBUG 1
+
 /* ************************************************************************** *
  * DXFEntity                                                                  *
  * ************************************************************************** */
@@ -356,6 +359,13 @@ void MyDXFLWPolyline::scale( class MyDXFFile *dxf, double s  )
 
 int MyDXFLWPolyline::ray_cross( double x, double y ) const
 {
+#ifdef MYDXF_DEBUG
+    std::cout << "ray_cross( x = " << x << ", y = " << y << " )\n";
+    for( uint32_t a = 0; a < _p.size(); a++ )
+	std::cout << "  p[" << a << "] = " << _p[a] << "\n";
+    std::cout << "\n";
+#endif
+
     Vec3D p1 = _p[0];
 
     // Go through all lines 
@@ -363,19 +373,36 @@ int MyDXFLWPolyline::ray_cross( double x, double y ) const
     for( uint32_t a = 1; a < _p.size(); a++ ) {
 	Vec3D p2 = _p[a];
 
-	if( (x > p1[0] && x < p2[0]) || 
-	    (x < p1[0] && x > p2[0]) ) {
+#ifdef MYDXF_DEBUG
+	std::cout << "  Test against:\n";
+	std::cout << "  p1 = " << p1 << "\n";
+	std::cout << "  p2 = " << p2 << "\n";
+#endif
+
+	if( x == p1[0] && y >= p1[1] ) {
+	    // Exact crossing.
+#ifdef MYDXF_DEBUG
+	    std::cout << "  Exact crossing\n";
+#endif
+	    return( 2 );
+	} else if( (x > p1[0] && x < p2[0]) || 
+		   (x < p1[0] && x > p2[0]) ) {
 
 	    // Calculate crossing y-coordinate.
 	    double t = (x-p1[0])/(p2[0]-p1[0]);
 	    double cy = (1.0-t)*p1[1] + t*p2[1];
 	    // Boundary case y == cy is considered crossing.
-	    if( y >= cy )
+	    if( y >= cy ) {
+#ifdef MYDXF_DEBUG
+		std::cout << "  Crossing\n";
+#endif
 		c = !c;
+	    } else {
+#ifdef MYDXF_DEBUG
+		std::cout << "  No crossing\n";
+#endif
+	    }
 	    
-	} else if( x == p1[0] && y >= p1[1] ) {
-	    // Exact crossing.
-	    return( 2 );
 	}
 
 	p1 = p2;
@@ -388,6 +415,7 @@ int MyDXFLWPolyline::ray_cross( double x, double y ) const
 void MyDXFLWPolyline::debug_print( std::ostream &os ) const
 {
     std::cout << "LWPOLYLINE\n";
+    std::cout << "  flags = " << _flags << "\n"; 
     for( uint32_t a = 0; a < _p.size(); a++ ) {
 	std::cout << "  p[" << a << "] = {" 
 		  << _p[a][0] << ", " 
@@ -1272,6 +1300,14 @@ MyDXFEntities::~MyDXFEntities()
 }
 
 
+void MyDXFEntities::write( class MyDXFFile *dxf, std::ofstream &_ostr )
+{
+    dxf->write_group( 0, "SECTION" );
+    dxf->write_group( 2, "ENTITIES" );
+    dxf->write_group( 0, "ENDSEC" );
+}
+
+
 bool MyDXFEntities::inside_loop( MyDXFEntitySelection *selection, double x, double y, double eps )
 {
     for( uint32_t b = 0; b < 2; b++ ) {
@@ -1281,6 +1317,8 @@ bool MyDXFEntities::inside_loop( MyDXFEntitySelection *selection, double x, doub
         for( uint32_t a = 0; a < selection->size(); a++ ) {
 	    MyDXFEntity *e = _entities[(*selection)(a)];
 	    MyDXFPathEntity *pe = dynamic_cast<MyDXFPathEntity *>( e );
+	    if( !pe )
+		throw Error( ERROR_LOCATION, "Not a path entity" );
 	    stat = pe->ray_cross( x, y );
 	    if( stat == 1 ) 
 		par = !par;
@@ -1384,6 +1422,14 @@ MyDXFEntitySelection *MyDXFEntities::selection_path_loop( MyDXFEntitySelection *
 	done[a] = false;
     }
 
+    /*
+    std::cout << "*************************************************************\n";
+    std::cout << "selection = {";
+    for( a = 0; a < selection->size()-1; a++ )
+	std::cout << (*selection)(a) << ", ";
+    std::cout << (*selection)(a) << "}";
+    */
+
     // Remove non-path objects and process self-looped path objects
     for( a = 0; a < selection->size(); a++ ) {
 	MyDXFEntity *e = _entities[(*selection)(a)];
@@ -1392,7 +1438,8 @@ MyDXFEntitySelection *MyDXFEntities::selection_path_loop( MyDXFEntitySelection *
 	    done[a] = true;
 	else if( pe->start() == pe->end() ) {
 	    // Add entity to list and remove duplicates
-	    subsel->add_entity( a );
+	    //std::cout << "Adding " << (*selection)(a) << " to selection";
+	    subsel->add_entity( (*selection)(a) );
 	    done[a] = true;
 	    for( uint32_t b = a+1; b < selection->size(); b++ ) {
 		MyDXFEntity *eb = _entities[(*selection)(b)];

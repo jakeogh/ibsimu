@@ -68,6 +68,10 @@ public:
     MyDXFHeader( class MyDXFFile *dxf );
     ~MyDXFHeader();
 
+    /*! \brief Write dxf file to stream.
+     */
+    void write( class MyDXFFile *dxf, std::ofstream &_ostr );
+
     /*! \brief Print debugging information to os.
      */
     void debug_print( std::ostream &os ) const;
@@ -78,6 +82,5 @@ public:
 
 
 #endif
-
 
 

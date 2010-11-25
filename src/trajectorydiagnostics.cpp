@@ -151,7 +151,7 @@ Emittance::Emittance( const std::vector<double> &x,
     _gamma   = _xp2/_epsilon;
 
     // Calculate axes and angle
-    _angle = 0.5*atan2( (-2.0*_alpha) , (_beta - _gamma) );
+    _angle = 0.5*atan2( -2.0*_alpha, _beta - _gamma );
     double H = 0.5*(_beta+_gamma);
     _rmajor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)+sqrt(H-1.0) );
     _rminor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)-sqrt(H-1.0) );
@@ -209,7 +209,7 @@ Emittance::Emittance( const std::vector<double> &x,
     _gamma   = _xp2/_epsilon;
 
     // Calculate axes and angle
-    _angle = 0.5*atan2( (-2.0*_alpha) , (_beta - _gamma) );
+    _angle = 0.5*atan2( -2.0*_alpha, _beta - _gamma );
     double H = 0.5*(_beta+_gamma);
     _rmajor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)+sqrt(H-1.0) );
     _rminor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)-sqrt(H-1.0) );
@@ -351,37 +351,16 @@ EmittanceConv::EmittanceConv( int n, int m,
     _xxp = _xxp / _Isum;
 
     // Calculate Twiss parameters
-    /*
     _epsilon = sqrt( _xp2*_x2 - _xxp*_xxp );
     _alpha   = -_xxp/_epsilon;
     _beta    = _x2/_epsilon;
     _gamma   = _xp2/_epsilon;
 
     // Calculate axes and angle
-    _angle = 0.5*atan( (2.0*_alpha) / (_beta - _gamma) );
+    _angle = 0.5*atan2( -2.0*_alpha, _beta - _gamma );
     double H = 0.5*(_beta+_gamma);
     _rmajor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)+sqrt(H-1.0) );
     _rminor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)-sqrt(H-1.0) );
-    */
-    long double epsilon = sqrtl( ((long double)_xp2) * ((long double)_x2) - 
-				 ((long double)_xxp) * ((long double)_xxp) );
-    long double alpha   = -_xxp/epsilon;
-    long double beta    = _x2/epsilon;
-    long double gamma   = _xp2/epsilon;
-
-    // Calculate axes and angle
-    long double angle = 0.5L*atan2l( (-2.0L*alpha) , (beta - gamma) );
-    long double H = 0.5L*(beta+gamma);
-    long double rmajor = sqrtl( 0.5L*epsilon ) * ( sqrtl(H+1.0L)+sqrtl(H-1.0L) );
-    long double rminor = sqrtl( 0.5L*epsilon ) * ( sqrtl(H+1.0L)-sqrtl(H-1.0L) );
-
-    _epsilon = epsilon;
-    _alpha = alpha;
-    _beta = beta;
-    _gamma = gamma;
-    _angle = angle;
-    _rmajor = rmajor;
-    _rminor = rminor;
 
 #if DEBUG_EMITTANCECONV >= 1
     std::cout << "xave    = " << _xave << "\n";

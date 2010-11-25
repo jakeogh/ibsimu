@@ -120,6 +120,8 @@ mydxffile.cpp \
 mydxffile.hpp \
 mydxfheader.cpp \
 mydxfheader.hpp \
+mydxftables.cpp \
+mydxftables.hpp \
 palette.cpp \
 palette.hpp \
 particledatabase.cpp \
@@ -223,6 +225,7 @@ mydxfblocks.hpp \
 mydxfentities.hpp \
 mydxffile.hpp \
 mydxfheader.hpp \
+mydxftables.hpp \
 palette.hpp \
 particledatabase.hpp \
 particlediagplot.hpp \

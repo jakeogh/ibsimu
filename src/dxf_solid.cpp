@@ -41,17 +41,35 @@
  */
 
 
+#include <iostream>
 #include "dxf_solid.hpp"
+#include "ibsimu.hpp"
 
 
 DXFSolid::DXFSolid( MyDXFFile *dxffile, const std::string &layername )
 {
+    if( ibsimu.get_verbose_output() )
+	std::cout << "Defining electrode \'" << layername << "\'\n";
+
     MyDXFEntities *ent = dxffile->get_entities();
     MyDXFEntitySelection *layer = ent->selection_layer( layername );
+    if( layer->size() == 0 )
+	throw( Error( ERROR_LOCATION, "No entities in layer" ) );
     MyDXFEntitySelection *loop = ent->selection_path_loop( layer );
+    if( loop->size() == 0 )
+	throw( Error( ERROR_LOCATION, "No loops defined in layer" ) );
 
     _entities = new MyDXFEntities( ent, loop );
     _selection = _entities->selection_all();
+
+    delete layer;
+    delete loop;
+
+    if( ibsimu.get_verbose_output() ) {
+	if( layer->size()-loop->size() > 0 )
+	    std::cout << "  removed " << layer->size()-loop->size() << " entities\n";
+	std::cout << "  solid defined using " << _entities->size() << " entities\n";
+    }
 }
 
 

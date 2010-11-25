@@ -169,7 +169,7 @@ void ParticleDataBase2D::add_2d_gaussian_beam_with_emittance( uint32_t N, double
     double h = 0.5*(b+g);
     double rmaj = sqrt(0.5*e)*(sqrt(h+1.0)+sqrt(h-1.0));
     double rmin = sqrt(0.5*e)*(sqrt(h+1.0)-sqrt(h-1.0));
-    double theta = 0.5*atan( (-2.0*a)/(b-g) );
+    double theta = 0.5*atan2( -2.0*a, b-g );
     double w[2], rn[2];
     double IQ = I/N;
 
@@ -344,9 +344,9 @@ void ParticleDataBaseCyl::add_2d_gaussian_beam_with_emittance( uint32_t N, doubl
 
     double g = (1.0 + a*a)/b;
     double h = 0.5*(b+g);
-    double rmaj = sqrt(0.5*e)*(sqrt(h+1)-sqrt(h-1));
-    double rmin = sqrt(0.5*e)*(sqrt(h+1)+sqrt(h-1));
-    double theta = 0.5*atan( (-2.0*a)/(b-g) );
+    double rmaj = sqrt(0.5*e)*(sqrt(h+1.0)+sqrt(h-1.0));
+    double rmin = sqrt(0.5*e)*(sqrt(h+1.0)-sqrt(h-1.0));
+    double theta = 0.5*atan2( -2.0*a, b-g );
 
     double IQ = I/N;
 
@@ -637,15 +637,15 @@ void ParticleDataBase3D::add_3d_gaussian_beam_with_emittance( uint32_t N, double
 
     double gy = (1.0 + ay*ay)/by;
     double hy = 0.5*(by+gy);
-    double rmajy = sqrt(0.5*ey)*(sqrt(hy+1)-sqrt(hy-1));
-    double rminy = sqrt(0.5*ey)*(sqrt(hy+1)+sqrt(hy-1));
-    double thetay = 0.5*atan( (-2.0*ay)/(by-gy) );
+    double rmajy = sqrt(0.5*ey)*(sqrt(hy+1.0)+sqrt(hy-1.0));
+    double rminy = sqrt(0.5*ey)*(sqrt(hy+1.0)-sqrt(hy-1.0));
+    double thetay = 0.5*atan2( -2.0*ay, by-gy );
 
     double gz = (1.0 + az*az)/bz;
     double hz = 0.5*(bz+gz);
-    double rmajz = sqrt(0.5*ez)*(sqrt(hz+1)-sqrt(hz-1));
-    double rminz = sqrt(0.5*ez)*(sqrt(hz+1)+sqrt(hz-1));
-    double thetaz = 0.5*atan( (-2.0*az)/(bz-gz) );
+    double rmajz = sqrt(0.5*ez)*(sqrt(hz+1.0)+sqrt(hz-1.0));
+    double rminz = sqrt(0.5*ez)*(sqrt(hz+1.0)-sqrt(hz-1.0));
+    double thetaz = 0.5*atan2( -2.0*az, bz-gz );
 
     double IQ = I/N;
 

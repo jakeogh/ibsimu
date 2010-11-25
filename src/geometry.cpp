@@ -296,6 +296,9 @@ void Geometry::build_mesh( void )
     int32_t i, j, k;
     double x, y, z;
 
+    if( ibsimu.get_verbose_output() )
+	std::cout << "Building mesh\n";
+
     _built = true;
 
     // Set solids
@@ -460,21 +463,5 @@ void Geometry::debug_print( void ) const
 	std::cout << "\n";
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

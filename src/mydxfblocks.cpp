@@ -170,6 +170,13 @@ MyDXFBlocks::~MyDXFBlocks()
 }
 
 
+void MyDXFBlocks::write( class MyDXFFile *dxf, std::ofstream &_ostr )
+{
+    dxf->write_group( 0, "SECTION" );
+    dxf->write_group( 2, "BLOCKS" );
+    dxf->write_group( 0, "ENDSEC" );
+}
+
 
 void MyDXFBlocks::debug_print( std::ostream &os ) const
 {

@@ -749,11 +749,19 @@ public:
 
     /*! \brief Get a const reference to entity number in selection at location \a a.
      */
-    const uint32_t &operator()( int a ) const { return( _selection[a] ); }
+    const uint32_t &operator()( int a ) const { 
+	if( a < 0 || a >= (int)_selection.size() )
+	    throw( Error( ERROR_LOCATION, "index out of range" ) );
+	return( _selection[a] ); 
+    }
 
     /*! \brief Get reference to entity number in selection at location \a a.
      */
-    uint32_t &operator()( int a ) { return( _selection[a] ); }
+    uint32_t &operator()( int a ) { 
+	if( a < 0 || a >= (int)_selection.size() )
+	    throw( Error( ERROR_LOCATION, "index out of range" ) );
+	return( _selection[a] ); 
+    }
 
     friend std::ostream &operator<<( std::ostream &os, const MyDXFEntitySelection &sel );
 };
@@ -793,6 +801,9 @@ public:
     ~MyDXFEntities();
 
 
+    /*! \brief Write dxf file to stream.
+     */
+    void write( class MyDXFFile *dxf, std::ofstream &_ostr );
 
     /*! \brief Return number of entities.
      */
@@ -816,7 +827,7 @@ public:
 
     /*! \brief Build complete loops.
      *
-     * Make a subselection of a selection. The new selection will
+     * Make a new subselection of a selection. The new selection will
      * contain only objects, which make up one or several complete
      * loops. Ending point of one entity is ensured to be exactly the
      * starting point of another entity. Errors of the size eps are

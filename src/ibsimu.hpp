@@ -52,7 +52,7 @@
 class IBSimu 
 {
     bool _hello;
-    int _verbose_output;
+    int  _verbose_output;
 
 public:
 
