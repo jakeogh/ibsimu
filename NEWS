@@ -1,7 +1,13 @@
 		NEWS
 		====
 
-IBSimu 1.0.3							10 Non 2010
+IBSimu 1.0.3c							25 Nov 2010
+---------------------------------------------------------------------------
+
+- Fixed a critical bug in solid definition from DXF.
+- Fixed a typo causing compilation problems at MVector
+
+IBSimu 1.0.3							10 Nov 2010
 ---------------------------------------------------------------------------
 
 - Implemented simple negative ion plasma extraction model.
