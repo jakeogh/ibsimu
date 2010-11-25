@@ -1304,6 +1304,10 @@ void MyDXFEntities::write( class MyDXFFile *dxf, std::ofstream &_ostr )
 {
     dxf->write_group( 0, "SECTION" );
     dxf->write_group( 2, "ENTITIES" );
+
+    for( size_t a = 0; a < _entities.size(); a++ )
+	
+
     dxf->write_group( 0, "ENDSEC" );
 }
 
