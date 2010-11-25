@@ -43,6 +43,7 @@
 
 #include <string.h>
 #include <iostream>
+#include <iomanip>
 #include <stdlib.h>
 #include "mydxffile.hpp"
 #include "error.hpp"
@@ -147,7 +148,7 @@ void MyDXFFile::read( const std::string &filename )
 
 	if( group_get_code() == 0 && group_get_string() == "SECTION" ) {
 	    if( read_group() != 2 )
-		throw Error( ERROR_LOCATION, "Error at string of section on line " + 
+		throw Error( ERROR_LOCATION, "Error at start of section on line " + 
 			     to_string(_linec) );	
 
 	    if( group_get_string() == "HEADER" ) {
@@ -494,7 +495,7 @@ void MyDXFFile::write_group( int code, double data )
 	    throw Error( ERROR_LOCATION, "Incorrect code for data type" );
 
 	_ostr << code << "\n";
-	_ostr << data << "\n";
+	_ostr << std::scientific << std::setprecision(9) << data << "\n";
 
     } else {
 

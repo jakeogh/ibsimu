@@ -603,6 +603,10 @@ public:
 	    std::cout << "Calculating particle trajectories\n";
 	_iteration++;
 
+	// Check geometry mode
+	if( g.geom_mode() != PP::geom_mode() )
+	    throw( Error( ERROR_LOCATION, "Differing geometry modes" ) );
+
 	// Clear space charge
 	scharge.clear();
 

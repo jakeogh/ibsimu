@@ -63,6 +63,31 @@ MyDXFBlock::~MyDXFBlock()
 }
 
 
+void MyDXFBlock::write( class MyDXFFile *dxf, std::ofstream &ostr )
+{
+    dxf->write_group( 0, "BLOCK" );
+
+    dxf->write_group( 1, _path.c_str() );
+    dxf->write_group( 2, _name.c_str() );
+    dxf->write_group( 3, _name.c_str() );
+    dxf->write_group( 5, _handle.c_str() );
+    dxf->write_group( 8, _layer.c_str() );
+
+    dxf->write_group( 70, _type );
+    dxf->write_group( 330, _owner_handle.c_str() );
+
+    dxf->write_group( 10, _p[0] );
+    dxf->write_group( 20, _p[0] );
+    dxf->write_group( 30, _p[0] );
+
+    // Write entities within block
+    if( _entities )
+	_entities->write_entities( dxf, ostr );
+
+    dxf->write_group( 0, "ENDBLK" );
+}
+
+
 void MyDXFBlock::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 		       const Transformation *t, const double range[4] ) const
 {
@@ -170,10 +195,14 @@ MyDXFBlocks::~MyDXFBlocks()
 }
 
 
-void MyDXFBlocks::write( class MyDXFFile *dxf, std::ofstream &_ostr )
+void MyDXFBlocks::write( class MyDXFFile *dxf, std::ofstream &ostr )
 {
     dxf->write_group( 0, "SECTION" );
     dxf->write_group( 2, "BLOCKS" );
+
+    for( size_t a = 0; a < _blocks.size(); a++ )
+	_blocks[a]->write( dxf, ostr );
+
     dxf->write_group( 0, "ENDSEC" );
 }
 

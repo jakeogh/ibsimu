@@ -94,6 +94,13 @@ std::ostream &operator<<( std::ostream &os, const MyDXFEntity &ent )
 }
 
 
+void MyDXFEntity::write_common( class MyDXFFile *dxf, std::ofstream &ostr )
+{
+    dxf->write_group( 5, _handle.c_str() );
+    dxf->write_group( 8, _layer.c_str() );
+}
+
+
 void MyDXFEntity::process_group( class MyDXFFile *dxf )
 {
     if( dxf->group_get_code() == 5 ) {
@@ -146,6 +153,21 @@ MyDXFLine::MyDXFLine( class MyDXFFile *dxf )
 #ifdef MYDXF_DEBUG
     std::cout << *this;
 #endif
+}
+
+
+void MyDXFLine::write( class MyDXFFile *dxf, std::ofstream &ostr )
+{
+    dxf->write_group( 0, "LINE" );
+    write_common( dxf, ostr );
+
+    dxf->write_group( 10, _p1[0] );
+    dxf->write_group( 20, _p1[1] );
+    dxf->write_group( 30, _p1[2] );
+
+    dxf->write_group( 11, _p2[0] );
+    dxf->write_group( 21, _p2[1] );
+    dxf->write_group( 31, _p2[2] );
 }
 
 
@@ -303,6 +325,23 @@ MyDXFLWPolyline::MyDXFLWPolyline( class MyDXFFile *dxf )
 #ifdef MYDXF_DEBUG
     std::cout << *this;
 #endif
+}
+
+
+void MyDXFLWPolyline::write( class MyDXFFile *dxf, std::ofstream &ostr )
+{
+    dxf->write_group( 0, "LWPOLYLINE" );
+    write_common( dxf, ostr );
+
+    dxf->write_group( 90, (int32_t)_p.size() );
+
+    for( uint32_t i = 0; i < _p.size(); i++ ) {
+	dxf->write_group( 10, _p[i][0] );
+	dxf->write_group( 20, _p[i][1] );
+	dxf->write_group( 42, _p[i][2] );
+    }
+
+    dxf->write_group( 70, _flags );
 }
 
 
@@ -490,6 +529,19 @@ MyDXFCircle::MyDXFCircle( class MyDXFFile *dxf )
 #ifdef MYDXF_DEBUG
     std::cout << *this;
 #endif
+}
+
+
+void MyDXFCircle::write( class MyDXFFile *dxf, std::ofstream &ostr )
+{
+    dxf->write_group( 0, "CIRCLE" );
+    write_common( dxf, ostr );
+
+    dxf->write_group( 10, _pc[0] );
+    dxf->write_group( 20, _pc[1] );
+    dxf->write_group( 30, _pc[2] );
+
+    dxf->write_group( 40, _r );
 }
 
 
@@ -708,6 +760,21 @@ MyDXFArc::MyDXFArc( class MyDXFFile *dxf )
 #ifdef MYDXF_DEBUG
     std::cout << *this;
 #endif
+}
+
+
+void MyDXFArc::write( class MyDXFFile *dxf, std::ofstream &ostr )
+{
+    dxf->write_group( 0, "ARC" );
+    write_common( dxf, ostr );
+
+    dxf->write_group( 10, _pc[0] );
+    dxf->write_group( 20, _pc[1] );
+    dxf->write_group( 30, _pc[2] );
+
+    dxf->write_group( 40, _r );
+    dxf->write_group( 50, 180*_ang1/M_PI );
+    dxf->write_group( 51, 180*_ang2/M_PI );
 }
 
 
@@ -1015,6 +1082,39 @@ MyDXFMText::MyDXFMText( class MyDXFFile *dxf )
 }
 
 
+void MyDXFMText::write( class MyDXFFile *dxf, std::ofstream &ostr )
+{
+    dxf->write_group( 0, "MTEXT" );
+    write_common( dxf, ostr );
+
+    // Chop into 250 character chunks. Code 1 for last (or only
+    // group), others code 3.
+    int done = 0;
+    int remaining = _text.length();
+    while( remaining ) {
+	int code = 1;
+	if( remaining > 250 )
+	    code = 3;
+	std::string s =_text.substr( done, 250 );
+	done += s.length();
+	remaining -= s.length();
+
+	dxf->write_group( code, s.c_str() );
+    }
+
+    dxf->write_group( 10, _p[0] );
+    dxf->write_group( 20, _p[1] );
+    dxf->write_group( 30, _p[2] );
+
+    dxf->write_group( 40, _text_height );
+    dxf->write_group( 41, _rect_width );
+
+    dxf->write_group( 71, _attachment_point );
+    dxf->write_group( 72, _drawing_direction );
+
+}
+
+
 void MyDXFMText::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 		       const Transformation *t, const double range[4] ) const
 {
@@ -1129,6 +1229,31 @@ MyDXFInsert::MyDXFInsert( class MyDXFFile *dxf )
 #ifdef MYDXF_DEBUG
     std::cout << *this;
 #endif
+}
+
+
+void MyDXFInsert::write( class MyDXFFile *dxf, std::ofstream &ostr )
+{
+    dxf->write_group( 0, "INSERT" );
+    write_common( dxf, ostr );
+
+    dxf->write_group( 2, _block_name.c_str() );
+
+    dxf->write_group( 10, _p[0] );
+    dxf->write_group( 20, _p[1] );
+    dxf->write_group( 30, _p[2] );
+
+    dxf->write_group( 41, _scale[0] );
+    dxf->write_group( 42, _scale[1] );
+    dxf->write_group( 43, _scale[2] );
+
+    dxf->write_group( 44, _col_spacing );
+    dxf->write_group( 45, _row_spacing );
+
+    dxf->write_group( 50, 180*_rotation/M_PI );
+
+    dxf->write_group( 70, _col_count );
+    dxf->write_group( 71, _row_count );
 }
 
 
@@ -1300,15 +1425,21 @@ MyDXFEntities::~MyDXFEntities()
 }
 
 
-void MyDXFEntities::write( class MyDXFFile *dxf, std::ofstream &_ostr )
+void MyDXFEntities::write( class MyDXFFile *dxf, std::ofstream &ostr )
 {
     dxf->write_group( 0, "SECTION" );
     dxf->write_group( 2, "ENTITIES" );
 
-    for( size_t a = 0; a < _entities.size(); a++ )
-	
+    write_entities( dxf, ostr );
 
     dxf->write_group( 0, "ENDSEC" );
+}
+
+
+void MyDXFEntities::write_entities( class MyDXFFile *dxf, std::ofstream &ostr )
+{
+    for( size_t a = 0; a < _entities.size(); a++ )
+	_entities[a]->write( dxf, ostr );
 }
 
 

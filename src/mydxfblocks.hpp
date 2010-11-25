@@ -76,7 +76,7 @@ public:
 
     /*! \brief Write dxf file to stream.
      */
-    void write( class MyDXFFile *dxf, std::ofstream &_ostr );
+    void write( class MyDXFFile *dxf, std::ofstream &ostr );
 
     /*! \brief Return name of block.
      */
@@ -130,7 +130,7 @@ public:
 
     /*! \brief Write dxf file to stream.
      */
-    void write( class MyDXFFile *dxf, std::ofstream &_ostr );
+    void write( class MyDXFFile *dxf, std::ofstream &ostr );
 
     uint32_t size( void ) const { return( _blocks.size() ); }
 

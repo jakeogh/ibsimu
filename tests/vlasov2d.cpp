@@ -49,7 +49,7 @@ void test( int *argc, char ***argv )
     geom.set_solid( 8, s2 );
     Solid *s3 = new FuncSolid( solid3 );
     geom.set_solid( 9, s3 );
-    geom.set_boundary( 1, Bound(BOUND_NEUMANN,    -3.0e3) );
+    geom.set_boundary( 1, Bound(BOUND_DIRICHLET,  -3.0e3) );
     geom.set_boundary( 2, Bound(BOUND_DIRICHLET,  -1.0e3) );
     geom.set_boundary( 3, Bound(BOUND_NEUMANN,     0.0  ) );
     geom.set_boundary( 4, Bound(BOUND_NEUMANN,     0.0  ) );

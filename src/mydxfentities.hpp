@@ -75,11 +75,12 @@ protected:
      */
     static void bbox_ppoint( Vec3D &min, Vec3D &max, const Vec3D &p );
 
+    void write_common( class MyDXFFile *dxf, std::ofstream &ostr );
     void process_group( class MyDXFFile *dxf );
     void constructor_debug_print( void ) const;
     void debug_print_base( std::ostream &os ) const;
     virtual void debug_print( std::ostream &os ) const = 0;
-    
+
 public:
 
     /*! \brief Virtual destructor.
@@ -89,6 +90,10 @@ public:
     /*! \brief Get a new copy of entity.
      */
     virtual MyDXFEntity *copy( void ) const = 0;
+
+    /*! \brief Write dxf file to stream.
+     */
+    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr ) = 0;
 
     /*! \brief Scale entity by factor \a s.
      */
@@ -202,6 +207,10 @@ public:
      */
     virtual MyDXFLine *copy( void ) const { return( new MyDXFLine( *this ) ); }
 
+    /*! \brief Write dxf file to stream.
+     */
+    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
+
     /*! \brief Get start point of path entity.
      */
     virtual Vec3D start( void ) const { return( _p1 ); }
@@ -268,7 +277,8 @@ public:
 class MyDXFLWPolyline : public MyDXFPathEntity
 {
 
-    std::vector<Vec3D> _p;       /*!< \brief Vector with x and y coordinates of vertex and bulge as z coordinate */
+    std::vector<Vec3D> _p;       /*!< \brief Vector with x and y coordinates of 
+				  *   vertex and bulge as z coordinate */
     int16_t            _flags;
 
     virtual void debug_print( std::ostream &os ) const;
@@ -286,6 +296,10 @@ public:
     /*! \brief Get a new copy of entity.
      */
     virtual MyDXFLWPolyline *copy( void ) const { return( new MyDXFLWPolyline( *this ) ); }
+
+    /*! \brief Write dxf file to stream.
+     */
+    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
 
     /*! \brief Get start point of path entity.
      */
@@ -385,6 +399,10 @@ public:
     /*! \brief Get a new copy of entity.
      */
     virtual MyDXFArc *copy( void ) const { return( new MyDXFArc( *this ) ); }
+
+    /*! \brief Write dxf file to stream.
+     */
+    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
 
     /*! \brief Get center point of arc.
      */
@@ -518,6 +536,10 @@ public:
      */
     virtual MyDXFCircle *copy( void ) const { return( new MyDXFCircle( *this ) ); }
 
+    /*! \brief Write dxf file to stream.
+     */
+    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
+
     /*! \brief Get center point of circle.
      */
     Vec3D center( void ) const { return( _pc ); }
@@ -603,7 +625,7 @@ class MyDXFMText : public MyDXFEntity
 {
 
     std::string _text;
-    Vec3D    _p;
+    Vec3D       _p;
     double      _text_height;
     double      _rect_width;
     int16_t     _attachment_point;
@@ -630,6 +652,10 @@ public:
     /*! \brief Get a new copy of entity.
      */
     virtual MyDXFMText *copy( void ) const { return( new MyDXFMText( *this ) ); }
+
+    /*! \brief Write dxf file to stream.
+     */
+    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
 
     /*! \brief Plot entity with cairo
      *
@@ -692,6 +718,10 @@ public:
     /*! \brief Get a new copy of entity.
      */
     virtual MyDXFInsert *copy( void ) const { return( new MyDXFInsert( *this ) ); }
+
+    /*! \brief Write dxf file to stream.
+     */
+    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
 
     /*! \brief Plot entity with cairo
      *
@@ -801,9 +831,16 @@ public:
     ~MyDXFEntities();
 
 
-    /*! \brief Write dxf file to stream.
+    /*! \brief Write entities section of dxf file to stream.
      */
-    void write( class MyDXFFile *dxf, std::ofstream &_ostr );
+    void write( class MyDXFFile *dxf, std::ofstream &ostr );
+
+    /*! \brief Write a list of entities to stream.
+     *
+     *  This function only writes the entities withing the object. It
+     *  can be called for writing the entities section or a block.
+     */
+    void write_entities( class MyDXFFile *dxf, std::ofstream &ostr );
 
     /*! \brief Return number of entities.
      */

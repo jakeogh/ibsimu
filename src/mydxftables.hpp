@@ -44,8 +44,85 @@
 #define MY_DXF_TABLES_HPP 1
 
 
+#include <vector>
+#include <string>
 #include <stdint.h>
 #include "mydxffile.hpp"
+
+
+/*! \brief DXF table entry
+ */
+class MyDXFEntry
+{
+
+    std::string _name;
+    std::string _handle;
+    std::string _handle_to_layout;
+    int16_t     _flags;
+
+protected:
+
+    /*! \brief Constructor.
+     */
+    MyDXFEntry();
+
+public:
+
+    /*! \brief Virtual destructor.
+     */
+    virtual ~MyDXFEntry() {};
+
+    /*! \brief Write dxf file to stream.
+     */
+    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr ) = 0;
+};
+
+
+
+/*! \brief DXF table entry for block record table.
+ */
+class MyDXFEntry_BlockRecord : public MyDXFEntry
+{
+
+public:
+
+    /*! \brief Construct entry by reading from DXF file.
+     */
+    MyDXFEntry_BlockRecord( class MyDXFFile *dxf );
+
+    /*! \brief Virtual destructor.
+     */
+    virtual ~MyDXFEntry_BlockRecord();
+
+    /*! \brief Write dxf file to stream.
+     */
+    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
+};
+
+
+
+/*! \brief DXF table class.
+ */
+class MyDXFTable
+{
+    std::string               _name;
+    std::string               _handle;
+    std::string               _handle_to_owner;
+
+    std::vector<MyDXFEntry *> _entries;
+
+public:
+
+    MyDXFTable( const std::string &name, class MyDXFFile *dxf );
+    ~MyDXFTable();
+
+    /*! \brief Write dxf file to stream.
+     */
+    void write( class MyDXFFile *dxf, std::ofstream &ostr );
+
+    void debug_print( std::ostream &os ) const;
+};
+
 
 
 /*! \brief DXF tables class.
@@ -55,7 +132,7 @@
 class MyDXFTables
 {
 
-
+    MyDXFTable  *_blockrecord;
 
 public:
 
@@ -64,7 +141,7 @@ public:
 
     /*! \brief Write dxf file to stream.
      */
-    void write( class MyDXFFile *dxf, std::ofstream &_ostr );
+    void write( class MyDXFFile *dxf, std::ofstream &ostr );
 
     /*! \brief Print debugging information to os.
      */
