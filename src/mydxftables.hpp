@@ -55,10 +55,8 @@
 class MyDXFEntry
 {
 
-    std::string _name;
-    std::string _handle;
-    std::string _handle_to_layout;
-    int16_t     _flags;
+    std::string _handle;           // 5 (for others) or 105 (for DIMSTYLE)
+    std::string _handle_to_owner;  // 330
 
 protected:
 
@@ -66,6 +64,18 @@ protected:
      */
     MyDXFEntry();
 
+    /*! \brief Process group not belonging to the child entry.
+     */
+    void process_group( class MyDXFFile *dxf );
+	
+    /*! \brief Write common groups.
+     */
+    void write_common( class MyDXFFile *dxf, std::ofstream &ostr );
+
+    /*! \brief Debug print common groups.
+     */
+    void debug_print_common( std::ostream &os ) const;
+    
 public:
 
     /*! \brief Virtual destructor.
@@ -75,6 +85,12 @@ public:
     /*! \brief Write dxf file to stream.
      */
     virtual void write( class MyDXFFile *dxf, std::ofstream &ostr ) = 0;
+
+    /*! \brief Debug print.
+     */
+    virtual void debug_print( std::ostream &os ) const = 0;
+    
+    friend std::ostream &operator<<( std::ostream &os, const MyDXFEntry &e );
 };
 
 
@@ -83,6 +99,12 @@ public:
  */
 class MyDXFEntry_BlockRecord : public MyDXFEntry
 {
+
+    std::string _name;             // 2
+    int16_t     _units;            // 70
+    int8_t      _explodability;    // 280
+    int8_t      _scalability;      // 281
+    std::string _handle_to_layout; // 340
 
 public:
 
@@ -97,6 +119,46 @@ public:
     /*! \brief Write dxf file to stream.
      */
     virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
+
+    /*! \brief Debug print.
+     */
+    virtual void debug_print( std::ostream &os ) const;
+};
+
+
+
+/*! \brief DXF table entry for layer table.
+ */
+class MyDXFEntry_Layer : public MyDXFEntry
+{
+
+    std::string _name;             // 2
+    std::string _linetype;         // 6
+    int16_t     _flags;            // 70
+    int16_t     _color;            // 62 (negative if layer off)
+    bool        _plotting;         // 290
+    int8_t      _lineweight;       // 370
+
+    std::string _handle_to_plot_style_name; // 390
+    std::string _handle_to_material; // 347
+
+public:
+
+    /*! \brief Construct entry by reading from DXF file.
+     */
+    MyDXFEntry_Layer( class MyDXFFile *dxf );
+
+    /*! \brief Virtual destructor.
+     */
+    virtual ~MyDXFEntry_Layer();
+
+    /*! \brief Write dxf file to stream.
+     */
+    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
+
+    /*! \brief Debug print.
+     */
+    virtual void debug_print( std::ostream &os ) const;
 };
 
 
@@ -105,11 +167,11 @@ public:
  */
 class MyDXFTable
 {
-    std::string               _name;
-    std::string               _handle;
-    std::string               _handle_to_owner;
+    std::string               _name;            // 2
+    std::string               _handle;          // 5
+    std::string               _handle_to_owner; // 330
 
-    std::vector<MyDXFEntry *> _entries;
+    std::vector<MyDXFEntry *> _entries;         // 70 (size)
 
 public:
 
@@ -133,6 +195,7 @@ class MyDXFTables
 {
 
     MyDXFTable  *_blockrecord;
+    MyDXFTable  *_layer;
 
 public:
 

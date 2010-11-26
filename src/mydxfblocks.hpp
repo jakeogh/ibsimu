@@ -58,9 +58,13 @@
 class MyDXFBlock
 {
 
+    std::string    _block_handle;
+    std::string    _block_layer;
+
+    std::string    _endblk_handle;
+    std::string    _endblk_layer;
+
     std::string    _path;
-    std::string    _handle;
-    std::string    _layer;
     std::string    _owner_handle;
     std::string    _name;          // Name reference used by INSERT
 

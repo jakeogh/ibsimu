@@ -17,26 +17,37 @@ MyDXFBlock::MyDXFBlock( class MyDXFFile *dxf )
 
     while( dxf->read_group() != -1 ) {
 
-	if( dxf->group_get_code() == 0 ) {
+	while( dxf->group_get_code() == 0 ) {
 
-	    // Check if done with block
-	    if( dxf->group_get_string() == "ENDBLK" ||
-		dxf->group_get_string() == "ENDSEC" )
+	    if( dxf->group_get_string() == "ENDBLK" ) {
+		// Read end of block
+		while( dxf->read_group() != -1 ) {
+		    if( dxf->group_get_code() == 5 )
+			_endblk_handle = dxf->group_get_string();
+		    else if( dxf->group_get_code() == 8 )
+			_endblk_layer = dxf->group_get_string();
+		    else if( dxf->group_get_code() == 0 )
+			break; // Done with end of block
+		}
 		break;
+		
+	    } else if( dxf->group_get_string() == "ENDSEC" ) {
+		// Done with block
+		break; 
+	    }
 
 	    // Read entities
 	    _entities = new MyDXFEntities( dxf, true );
-	    break;
 	}
 
-	else if( dxf->group_get_code() == 1 )
+	if( dxf->group_get_code() == 1 )
 	    _path = dxf->group_get_string();
 	else if( dxf->group_get_code() == 2 || dxf->group_get_code() == 3 )
 	    _name = dxf->group_get_string();
 	else if( dxf->group_get_code() == 5 )
-	    _handle = dxf->group_get_string();
+	    _block_handle = dxf->group_get_string();
 	else if( dxf->group_get_code() == 8 )
-	    _layer = dxf->group_get_string();
+	    _block_layer = dxf->group_get_string();
 	else if( dxf->group_get_code() == 70 )
 	    _type = dxf->group_get_int16();
 	else if( dxf->group_get_code() == 330 )
@@ -70,8 +81,8 @@ void MyDXFBlock::write( class MyDXFFile *dxf, std::ofstream &ostr )
     dxf->write_group( 1, _path.c_str() );
     dxf->write_group( 2, _name.c_str() );
     dxf->write_group( 3, _name.c_str() );
-    dxf->write_group( 5, _handle.c_str() );
-    dxf->write_group( 8, _layer.c_str() );
+    dxf->write_group( 5, _block_handle.c_str() );
+    dxf->write_group( 8, _block_layer.c_str() );
 
     dxf->write_group( 70, _type );
     dxf->write_group( 330, _owner_handle.c_str() );
@@ -85,6 +96,8 @@ void MyDXFBlock::write( class MyDXFFile *dxf, std::ofstream &ostr )
 	_entities->write_entities( dxf, ostr );
 
     dxf->write_group( 0, "ENDBLK" );
+    dxf->write_group( 5, _endblk_handle.c_str() );
+    dxf->write_group( 8, _endblk_layer.c_str() );
 }
 
 
@@ -131,8 +144,8 @@ std::ostream &operator<<( std::ostream &os, const MyDXFBlock &blk )
 {
     os << "BLOCK\n";
     os << "  path = \'" << blk._path << "\'\n";
-    os << "  handle = \'" << blk._handle << "\'\n";
-    os << "  layer = \'" << blk._layer << "\'\n";
+    os << "  block_handle = \'" << blk._block_handle << "\'\n";
+    os << "  block_layer = \'" << blk._block_layer << "\'\n";
     os << "  owner_handle = \'" << blk._owner_handle << "\'\n";
     os << "  name = \'" << blk._name << "\'\n";
     os << "  type = " << blk._type << "\n";
@@ -145,7 +158,10 @@ std::ostream &operator<<( std::ostream &os, const MyDXFBlock &blk )
 	}
     }
 
-    os << "ENDBLK\n\n";
+    os << "ENDBLK\n";
+    os << "  endblk_handle = \'" << blk._endblk_handle << "\'\n";
+    os << "  endblk_layer = \'" << blk._endblk_layer << "\'\n";
+    os << "\n";
 
     return( os );
 }

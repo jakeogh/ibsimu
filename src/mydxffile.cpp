@@ -251,6 +251,15 @@ double MyDXFFile::group_get_double( void ) const
 }
 
 
+bool MyDXFFile::group_get_bool( void ) const
+{
+    if( _group_type != GROUP_TYPE_BOOL )
+	throw Error( ERROR_LOCATION, "Wrong group type on line " + 
+		     to_string(_linec) );	
+    return( _group_bool );
+}
+
+
 int8_t MyDXFFile::group_get_int8( void ) const
 {
     if( _group_type != GROUP_TYPE_INT8 )
@@ -537,7 +546,7 @@ void MyDXFFile::write_group( int code, int8_t data )
 	    throw Error( ERROR_LOCATION, "Incorrect code for data type" );
 
 	_ostr << code << "\n";
-	_ostr << data << "\n";
+	_ostr << (int)data << "\n";
 
     } else {
 
