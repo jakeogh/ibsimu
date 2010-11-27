@@ -156,6 +156,20 @@ MyDXFLine::MyDXFLine( class MyDXFFile *dxf )
 }
 
 
+void MyDXFLine::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transformation *t ) const
+{
+    MyDXFLine *line = new MyDXFLine( *this );
+
+    Vec4D x1 = t->transform( _p1 );
+    Vec4D x2 = t->transform( _p2 );
+
+    line->_p1 = x1;
+    line->_p2 = x2;
+
+    ent->add_entity( line );
+}
+
+
 void MyDXFLine::write( class MyDXFFile *dxf, std::ofstream &ostr )
 {
     dxf->write_group( 0, "LINE" );
@@ -325,6 +339,12 @@ MyDXFLWPolyline::MyDXFLWPolyline( class MyDXFFile *dxf )
 #ifdef MYDXF_DEBUG
     std::cout << *this;
 #endif
+}
+
+
+void MyDXFLWPolyline::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transformation *t ) const
+{
+
 }
 
 
@@ -529,6 +549,12 @@ MyDXFCircle::MyDXFCircle( class MyDXFFile *dxf )
 #ifdef MYDXF_DEBUG
     std::cout << *this;
 #endif
+}
+
+
+void MyDXFCircle::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transformation *t ) const
+{
+
 }
 
 
@@ -763,6 +789,45 @@ MyDXFArc::MyDXFArc( class MyDXFFile *dxf )
 }
 
 
+void MyDXFArc::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transformation *t ) const
+{
+    if( (*t)[0] == (*t)[5] && (*t)[0] == (*t)[10] ) {
+	// Representable as an arc
+	MyDXFArc *arc = new MyDXFArc( *this );
+	
+	Vec4D s = t->transform( start() );
+	Vec4D e = t->transform( end() );
+	Vec4D c = t->transform( center() );
+	
+	arc->set_center_and_ends( c, s, e );
+	ent->add_entity( arc );
+    } else {
+	// Not representable as arc
+
+	// Chop arc to 8 pieces
+	double adiff = _ang2-_ang1;
+	if( adiff < 0.0 )
+	    adiff = 2.0*M_PI + adiff;
+	
+	Vec4D old;
+	for( int i = 0; i < 8; i++ ) {
+	    double a = _ang1 + i*adiff/7.0;
+	    if( a > 2.0*M_PI )
+		a -= 2.0*M_PI;
+	    Vec4D x = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+
+	    if( i > 0 ) {
+		MyDXFLine *line = new MyDXFLine( *this );
+		line->set_start( old );
+		line->set_end( x );
+		ent->add_entity( line );
+	    }
+	    old = x;
+	}
+    }
+}
+
+
 void MyDXFArc::write( class MyDXFFile *dxf, std::ofstream &ostr )
 {
     dxf->write_group( 0, "ARC" );
@@ -989,6 +1054,23 @@ void MyDXFArc::set_end( const Vec3D &e )
 }
 
 
+void MyDXFArc::set_center_and_ends( const Vec3D &c, const Vec3D &s, const Vec3D &e )
+{
+    _pc = c;
+    _r = norm2(c-s);
+    double dx = s[0]-c[0];
+    double dy = s[1]-c[1];
+    _ang1 = atan2( dy, dx );
+    if( _ang1 < 0.0 )
+	_ang1 += 2.0*M_PI;
+    dx = e[0]-c[0];
+    dy = e[1]-c[1];
+    _ang2 = atan2( dy, dx );
+    if( _ang2 < 0.0 )
+	_ang2 += 2.0*M_PI;
+}
+
+
 void MyDXFArc::set_center_point( const Vec3D &s, const Vec3D &e )
 {
     if( norm2( e-s ) < 2.0*_r ) {
@@ -1079,6 +1161,12 @@ MyDXFMText::MyDXFMText( class MyDXFFile *dxf )
 #ifdef MYDXF_DEBUG
     std::cout << *this;
 #endif
+}
+
+
+void MyDXFMText::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transformation *t ) const
+{
+
 }
 
 
@@ -1338,6 +1426,29 @@ void MyDXFInsert::scale( class MyDXFFile *dxf, double s )
 }
 
 
+void MyDXFInsert::explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const
+{
+    // Fetch block data
+    const MyDXFBlocks *blocks = dxf->get_blocks();
+    const MyDXFBlock *b = blocks->get_by_name( _block_name );
+    if( !b )
+	return;
+
+    Transformation t2 = *t;
+    t2.translate( _p );
+    t2.scale( _scale );
+    t2.rotate_z( _rotation );
+
+    for( int16_t col = 0; col < _col_count; col++ ) {
+	for( int16_t row = 0; row < _row_count; row++ ) {
+	    Transformation t3 = t2;
+	    t3.translate( Vec3D( col*_col_spacing, row*_row_spacing, 0.0 ) );
+	    b->explode( ent, dxf, &t3 );
+	}
+    }    
+}
+
+
 void MyDXFInsert::debug_print( std::ostream &os ) const
 {
     std::cout << "INSERT\n";
@@ -1482,6 +1593,19 @@ MyDXFEntitySelection *MyDXFEntities::selection_layer( const std::string &layerna
 
     for( size_t a = 0; a < _entities.size(); a++ ) {
 	if( _entities[a]->get_layer() == layername )
+	    selection->add_entity( a );
+    }
+
+    return( selection );
+}
+
+
+MyDXFEntitySelection *MyDXFEntities::selection_type( EntityType type ) const
+{
+    MyDXFEntitySelection *selection = new MyDXFEntitySelection();
+
+    for( size_t a = 0; a < _entities.size(); a++ ) {
+	if( _entities[a]->get_type() == type )
 	    selection->add_entity( a );
     }
 
@@ -1863,6 +1987,72 @@ void MyDXFEntities::scale( MyDXFEntitySelection *selection, class MyDXFFile *dxf
 	    e->scale( dxf, s );
 	}
     }
+}
+
+
+void MyDXFEntities::remove( MyDXFEntitySelection *selection )
+{
+    if( selection ) {
+	// Go through selection, remove and mark as NULL
+	for( size_t a = 0; a < selection->size(); a++ ) {
+	    delete _entities[(*selection)(a)];
+	    _entities[(*selection)(a)] = NULL;
+	}
+	// Move entities to fill gaps
+	size_t a, b = 0;
+	for( a = 0; a < _entities.size(); a++ ) {
+	    if( !_entities[a] ) {
+		// Search for entity to move to location a
+		if( b < a ) b = a+1;
+		for( ; b < _entities.size(); b++ )
+		    if( _entities[b] )
+			break;
+		if( b == _entities.size() ) {
+		    // No more entities to move
+		    break;
+		}
+		_entities[a] = _entities[b];
+		_entities[b] = NULL;
+	    }
+	}
+	// Resize vector
+	_entities.resize( a );
+    } else {
+	// Remove all entities
+	for( size_t a = 0; a < _entities.size(); a++ )
+	    delete _entities[a];
+	_entities.resize( 0 );
+    }
+}
+
+
+void MyDXFEntities::explode( MyDXFEntitySelection *selection, class MyDXFFile *dxf )
+{
+    Transformation t;
+
+    if( selection ) {
+	// Go through selection
+	for( size_t a = 0; a < selection->size(); a++ ) {
+	    MyDXFInsert *ei = dynamic_cast<MyDXFInsert *>( _entities[(*selection)(a)] );
+	    if( ei )
+		ei->explode( this, dxf, &t );
+	}
+
+    } else {
+	// Explode all
+	for( size_t a = 0; a < _entities.size(); a++ ) {
+	    MyDXFInsert *ei = dynamic_cast<MyDXFInsert *>( _entities[a] );
+	    if( ei )
+		ei->explode( this, dxf, &t );
+	}
+    }
+}
+
+
+void MyDXFEntities::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transformation *t ) const
+{
+    for( size_t a = 0; a < _entities.size(); a++ )
+	_entities[a]->explode( ent, dxf, t );
 }
 
 

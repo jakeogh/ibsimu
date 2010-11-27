@@ -94,6 +94,13 @@ public:
      */
     const class MyDXFEntities *get_entities( void ) const { return( _entities ); }
 
+    /*! \brief Explode block into entities.
+     *
+     *  Tranform entities in the block with tranformation \a t and add
+     *  the tranformed entities to the database \a ent.
+     */
+    void explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const;
+
     /*! \brief Plot block with cairo
      *
      *  Plot the entities withing the block using the transformation
@@ -144,6 +151,8 @@ public:
     MyDXFBlock *operator()( int a ) { return( _blocks[a] ); }
 
     const MyDXFBlock *operator()( int a ) const { return( _blocks[a] ); }
+
+    void clear( void );
 
     /*! \brief Print debugging information to os.
      */

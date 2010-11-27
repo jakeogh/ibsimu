@@ -52,6 +52,19 @@
 #include "transformation.hpp"
 
 
+/*! \brief Entity type.
+ */
+enum EntityType {
+    ENTITY_UNKNOWN = 0,
+    ENTITY_LINE,
+    ENTITY_LWPOLYLINE,
+    ENTITY_ARC,
+    ENTITY_CIRCLE,
+    ENTITY_MTEXT,
+    ENTITY_INSERT
+};
+
+
 /*! \brief DXF entity base class.
  *
  *  A general base class for all DXF entities. Contains data fields
@@ -67,6 +80,7 @@ protected:
 
     MyDXFEntity();
 
+    //MyDXFEntity( const MyDXFEntity &ent );
 
     /*! \brief Propose a point to bounding box.
      *
@@ -91,6 +105,14 @@ public:
      */
     virtual MyDXFEntity *copy( void ) const = 0;
 
+    /*! \brief Explode into entities.
+     *
+     *  Break entity into atomic entities and tranform entities them
+     *  with tranformation \a t. Add the tranformed entities to the
+     *  database \a ent.
+     */
+    virtual void explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const = 0;
+
     /*! \brief Write dxf file to stream.
      */
     virtual void write( class MyDXFFile *dxf, std::ofstream &ostr ) = 0;
@@ -106,6 +128,10 @@ public:
     /*! \brief Get layer.
      */
     std::string get_layer( void ) const { return( _layer ); }
+
+    /*! \brief Get entity type.
+     */
+    virtual EntityType get_type( void ) const = 0;
 
     /*! \brief Set entity handle.
      */
@@ -146,6 +172,8 @@ class MyDXFPathEntity : public MyDXFEntity
 protected: 
 
     MyDXFPathEntity() {}
+
+    MyDXFPathEntity( const MyDXFEntity &ent ) : MyDXFEntity(ent) {}
 
 public:
 
@@ -195,6 +223,14 @@ class MyDXFLine : public MyDXFPathEntity
 
 public:
 
+    /*! \brief Default constructor.
+     */
+    MyDXFLine() {}
+
+    /*! \brief Constructor for copying MyDXFEntity properties.
+     */
+    MyDXFLine( const MyDXFEntity &ent ) : MyDXFPathEntity(ent) {}
+
     /*! \brief Construct line entity by reading from DXF file.
      */
     MyDXFLine( class MyDXFFile *dxf );
@@ -207,9 +243,21 @@ public:
      */
     virtual MyDXFLine *copy( void ) const { return( new MyDXFLine( *this ) ); }
 
+    /*! \brief Explode into entities.
+     *
+     *  Break entity into atomic entities and tranform entities them
+     *  with tranformation \a t. Add the tranformed entities to the
+     *  database \a ent.
+     */
+    virtual void explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const;
+
     /*! \brief Write dxf file to stream.
      */
     virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
+
+    /*! \brief Get entity type.
+     */
+    virtual EntityType get_type( void ) const { return( ENTITY_LINE ); }
 
     /*! \brief Get start point of path entity.
      */
@@ -297,9 +345,21 @@ public:
      */
     virtual MyDXFLWPolyline *copy( void ) const { return( new MyDXFLWPolyline( *this ) ); }
 
+    /*! \brief Explode into entities.
+     *
+     *  Break entity into atomic entities and tranform entities them
+     *  with tranformation \a t. Add the tranformed entities to the
+     *  database \a ent.
+     */
+    virtual void explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const;
+
     /*! \brief Write dxf file to stream.
      */
     virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
+
+    /*! \brief Get entity type.
+     */
+    virtual EntityType get_type( void ) const { return( ENTITY_LWPOLYLINE ); }
 
     /*! \brief Get start point of path entity.
      */
@@ -400,9 +460,21 @@ public:
      */
     virtual MyDXFArc *copy( void ) const { return( new MyDXFArc( *this ) ); }
 
+    /*! \brief Explode into entities.
+     *
+     *  Break entity into atomic entities and tranform entities them
+     *  with tranformation \a t. Add the tranformed entities to the
+     *  database \a ent.
+     */
+    virtual void explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const;
+
     /*! \brief Write dxf file to stream.
      */
     virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
+
+    /*! \brief Get entity type.
+     */
+    virtual EntityType get_type( void ) const { return( ENTITY_ARC ); }
 
     /*! \brief Get center point of arc.
      */
@@ -448,7 +520,13 @@ public:
      */
     double get_ang2( void ) const { return( _ang2 ); }
 
-    /*! \brief Reset arc according to end points.
+    /*! \brief Set arc according to center and end points.
+     *
+     *  End point is only used for the angle.
+     */
+    void set_center_and_ends( const Vec3D &c, const Vec3D &s, const Vec3D &e );
+
+    /*! \brief Set arc according to end points.
      *
      *  Resets the center point and angles according to starting point
      *  \a s and ending point \a e.  Arc is assumed to go in
@@ -536,9 +614,21 @@ public:
      */
     virtual MyDXFCircle *copy( void ) const { return( new MyDXFCircle( *this ) ); }
 
+    /*! \brief Explode into entities.
+     *
+     *  Break entity into atomic entities and tranform entities them
+     *  with tranformation \a t. Add the tranformed entities to the
+     *  database \a ent.
+     */
+    virtual void explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const;
+
     /*! \brief Write dxf file to stream.
      */
     virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
+
+    /*! \brief Get entity type.
+     */
+    virtual EntityType get_type( void ) const { return( ENTITY_CIRCLE ); }
 
     /*! \brief Get center point of circle.
      */
@@ -653,9 +743,21 @@ public:
      */
     virtual MyDXFMText *copy( void ) const { return( new MyDXFMText( *this ) ); }
 
+    /*! \brief Explode into entities.
+     *
+     *  Break entity into atomic entities and tranform entities them
+     *  with tranformation \a t. Add the tranformed entities to the
+     *  database \a ent.
+     */
+    virtual void explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const;
+
     /*! \brief Write dxf file to stream.
      */
     virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
+
+    /*! \brief Get entity type.
+     */
+    virtual EntityType get_type( void ) const { return( ENTITY_MTEXT ); }
 
     /*! \brief Plot entity with cairo
      *
@@ -719,9 +821,21 @@ public:
      */
     virtual MyDXFInsert *copy( void ) const { return( new MyDXFInsert( *this ) ); }
 
+    /*! \brief Explode into entities.
+     *
+     *  Break entity into atomic entities and tranform entities them
+     *  with tranformation \a t. Add the tranformed entities to the
+     *  database \a ent.
+     */
+    virtual void explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const;
+
     /*! \brief Write dxf file to stream.
      */
     virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
+
+    /*! \brief Get entity type.
+     */
+    virtual EntityType get_type( void ) const { return( ENTITY_INSERT ); }
 
     /*! \brief Plot entity with cairo
      *
@@ -854,6 +968,16 @@ public:
      */
     MyDXFEntity *get_entity( uint32_t a ) { return( _entities[a] ); }
 
+
+
+    
+    /*! \brief Add entity to list.
+     *
+     *  No copy of entity is made. The pointer is saved to the database.
+     */
+    void add_entity( MyDXFEntity *e ) { _entities.push_back( e ); }
+
+
     /*! \brief Make a new selection containg all entities from database.
      */
     MyDXFEntitySelection *selection_all( void ) const;
@@ -861,6 +985,10 @@ public:
     /*! \brief Make a new selection containg entities from named layer.
      */
     MyDXFEntitySelection *selection_layer( const std::string &layername ) const;
+
+    /*! \brief Make a new selection containg entities of given type.
+     */
+    MyDXFEntitySelection *selection_type( EntityType type ) const;
 
     /*! \brief Build complete loops.
      *
@@ -920,11 +1048,36 @@ public:
     void rotate_z( MyDXFEntitySelection *selection, double x, double y, double ang );
     */
 
-    /* ! \brief Scale selected entities by factor s.
+    /*! \brief Scale selected entities by factor s.
      *
      *  Selection can be a NULL pointer to plot all entities.
      */
     void scale( MyDXFEntitySelection *selection, class MyDXFFile *dxf, double s );
+
+
+    /*! \brief Remove selected entities.
+     *
+     *  Selection can be a NULL pointer to remove all entities. The
+     *  selection is invalid after this operation and should not be
+     *  used further. Also all other selections are invalidated by
+     *  this operation because entity indices change.
+     */
+    void remove( MyDXFEntitySelection *selection );
+
+
+    /*! \brief Explode selected insert entities.
+     *
+     *  The insert entities are expoded to contain just primitive
+     *  entities with no dependencies to blocks. Selection can be a
+     *  NULL pointer to explode all entities.
+     */
+    void explode( MyDXFEntitySelection *selection, class MyDXFFile *dxf );
+
+    /*! \brief Explode all entities to \a ent.
+     *
+     *  Explode and add all entities into ent using transformation t.
+     */
+    void explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transformation *t ) const;
 
 
     /*! \brief Print debugging information to os.

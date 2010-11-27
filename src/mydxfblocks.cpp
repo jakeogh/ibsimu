@@ -99,6 +99,17 @@ void MyDXFBlock::write( class MyDXFFile *dxf, std::ofstream &ostr )
 }
 
 
+void MyDXFBlock::explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const
+{
+    if( !_entities )
+	return;
+
+    Transformation t2 = *t;
+    t2.translate( -_p );
+    _entities->explode( ent, dxf, &t2 );
+}
+
+
 void MyDXFBlock::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 		       const Transformation *t, const double range[4] ) const
 {
@@ -205,7 +216,8 @@ MyDXFBlocks::MyDXFBlocks( class MyDXFFile *dxf )
 
 MyDXFBlocks::~MyDXFBlocks()
 {
-
+    for( size_t i = 0; i < _blocks.size(); i++ )
+	delete _blocks[i];
 }
 
 
@@ -255,4 +267,12 @@ const MyDXFBlock *MyDXFBlocks::get_by_name( const std::string &name ) const
     }
 
     return( 0 );
+}
+
+
+void MyDXFBlocks::clear( void )
+{
+    for( size_t i = 0; i < _blocks.size(); i++ )
+	delete _blocks[i];
+    _blocks.resize( 0 );
 }
