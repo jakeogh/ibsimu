@@ -45,6 +45,7 @@
 
 
 #include <stdint.h>
+#include "vec3d.hpp"
 #include "mydxffile.hpp"
 
 
@@ -61,9 +62,19 @@ class MyDXFHeader
 
 public:
 
-    std::string acadver;
-    double angbase;
-    int16_t angdir;
+    std::string acadver;      // 1
+    double      angbase;      // 50
+    int16_t     angdir;       // 70
+    
+    std::string handseed;     // 5
+    double      dimasz;       // 40
+    double      dimgap;       // 40
+    double      dimexo;       // 40
+    double      dimexe;       // 40
+    double      dimtxt;       // 40
+    int16_t     insunits;     // 70
+    Vec3D       plimmax;      // 10, 20
+    Vec3D       plimmin;      // 10, 20
 
     MyDXFHeader( class MyDXFFile *dxf );
     ~MyDXFHeader();

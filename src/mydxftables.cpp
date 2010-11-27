@@ -134,10 +134,13 @@ void MyDXFEntry_BlockRecord::write( class MyDXFFile *dxf, std::ofstream &ostr )
     dxf->write_group( 0, "BLOCK_RECORD" );
     write_common( dxf, ostr );
 
+    dxf->write_group( 100, "AcDbSymbolTableRecord" );
+    dxf->write_group( 100, "AcDbBlockTableRecord" );
+
     dxf->write_group( 2, _name.c_str() );
-    dxf->write_group( 70, _units );
-    dxf->write_group( 280, _explodability );
-    dxf->write_group( 281, _scalability );
+    //dxf->write_group( 70, _units );
+    //dxf->write_group( 280, _explodability );
+    //dxf->write_group( 281, _scalability );
     dxf->write_group( 340, _handle_to_layout.c_str() );
 }
 
@@ -198,6 +201,9 @@ void MyDXFEntry_Layer::write( class MyDXFFile *dxf, std::ofstream &ostr )
 {
     dxf->write_group( 0, "LAYER" );
     write_common( dxf, ostr );
+
+    dxf->write_group( 100, "AcDbSymbolTableRecord" );
+    dxf->write_group( 100, "AcDbLayerTableRecord" );
 
     dxf->write_group( 2, _name.c_str() );
     dxf->write_group( 6, _linetype.c_str() );
@@ -275,6 +281,9 @@ void MyDXFTable::write( class MyDXFFile *dxf, std::ofstream &ostr )
     dxf->write_group( 2, _name.c_str() );
 
     dxf->write_group( 5, _handle.c_str() );
+
+    dxf->write_group( 100, "AcDbSymbolTable" );
+
     //dxf->write_group( 330, _handle_to_owner.c_str() );
     dxf->write_group( 70, (int16_t)_entries.size() );
 
@@ -360,10 +369,10 @@ MyDXFTables::MyDXFTables( class MyDXFFile *dxf )
 
 MyDXFTables::~MyDXFTables()
 {
-    if( _blockrecord ) 
-	delete _blockrecord;
     if( _layer ) 
 	delete _layer;
+    if( _blockrecord ) 
+	delete _blockrecord;
 }
 
 

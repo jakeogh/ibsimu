@@ -6,41 +6,21 @@
 
 
 MyDXFBlock::MyDXFBlock( class MyDXFFile *dxf )
-    : _entities(0)
+    : _type(0), _entities(0)
 {
 #ifdef MYDXF_DEBUG
-    std::cout << "*** Reading BLOCK ***\n";
+    std::cout << "\n*** Reading BLOCK ***\n";
 #endif
-
-    // Load default values
-    _type = 0;
 
     while( dxf->read_group() != -1 ) {
 
-	while( dxf->group_get_code() == 0 ) {
-
-	    if( dxf->group_get_string() == "ENDBLK" ) {
-		// Read end of block
-		while( dxf->read_group() != -1 ) {
-		    if( dxf->group_get_code() == 5 )
-			_endblk_handle = dxf->group_get_string();
-		    else if( dxf->group_get_code() == 8 )
-			_endblk_layer = dxf->group_get_string();
-		    else if( dxf->group_get_code() == 0 )
-			break; // Done with end of block
-		}
-		break;
-		
-	    } else if( dxf->group_get_string() == "ENDSEC" ) {
-		// Done with block
-		break; 
-	    }
-
-	    // Read entities
-	    _entities = new MyDXFEntities( dxf, true );
+	if( dxf->group_get_code() == 0 ) {
+	    if( dxf->group_get_string() != "ENDBLK" && dxf->group_get_string() != "ENDSEC" )
+		_entities = new MyDXFEntities( dxf, true );
+	    break; // Done with block
 	}
 
-	if( dxf->group_get_code() == 1 )
+	else if( dxf->group_get_code() == 1 )
 	    _path = dxf->group_get_string();
 	else if( dxf->group_get_code() == 2 || dxf->group_get_code() == 3 )
 	    _name = dxf->group_get_string();
@@ -48,6 +28,7 @@ MyDXFBlock::MyDXFBlock( class MyDXFFile *dxf )
 	    _block_handle = dxf->group_get_string();
 	else if( dxf->group_get_code() == 8 )
 	    _block_layer = dxf->group_get_string();
+
 	else if( dxf->group_get_code() == 70 )
 	    _type = dxf->group_get_int16();
 	else if( dxf->group_get_code() == 330 )
@@ -61,8 +42,25 @@ MyDXFBlock::MyDXFBlock( class MyDXFFile *dxf )
 	    _p[2] = dxf->group_get_double();
     }
 
+
+    if( dxf->group_get_string() == "ENDBLK" ) {
+	// Read end of block
+	std::cout << "processing endblk\n";
+	while( dxf->read_group() != -1 ) {
+	    std::cout << "looping, code = " << dxf->group_get_code() << "\n";
+	    if( dxf->group_get_code() == 5 )
+		_endblk_handle = dxf->group_get_string();
+	    else if( dxf->group_get_code() == 8 )
+		_endblk_layer = dxf->group_get_string();
+	    else if( dxf->group_get_code() == 0 )
+		break; // Done with end of block
+	}
+	std::cout << "done with endblk\n";
+    }
+
 #ifdef MYDXF_DEBUG
-    std::cout << *this;
+    std::cout << "\n*** Done with BLOCK ***\n";
+    //std::cout << *this;
 #endif
 }
 

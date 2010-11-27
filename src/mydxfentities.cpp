@@ -1414,6 +1414,10 @@ MyDXFEntities::MyDXFEntities( class MyDXFFile *dxf, bool reading_blocks )
 	    dxf->read_group();
 	}
     }
+
+#ifdef MYDXF_DEBUG
+    std::cout << "Done with ENTITIES\n";
+#endif
 }
 
 
