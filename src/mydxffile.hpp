@@ -45,7 +45,7 @@
 
 
 
-#define MYDXF_DEBUG 1
+//#define MYDXF_DEBUG 1
 
 
 
@@ -117,7 +117,8 @@ public:
      *
      *  If \a wlevel is set to zero, no warnings will be printed. With
      *  increasing \a wlevel more warning messages are printed to
-     *  standard output.
+     *  standard output. With \a wlevel = 1 all unsupported features
+     *  are reported.
      */
     void set_warning_level( int wlevel ) { _wlevel = wlevel; }
 

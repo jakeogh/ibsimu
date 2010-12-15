@@ -2,7 +2,7 @@
  *  \brief Source code for trajectory.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -67,14 +67,14 @@ void TrajectoryRep1D::construct( double dt, double x1, double v1,
 		_C = v2-v1;
 		_D = v1;
 		_rep = TRAJ_LINEAR;
-		return;
+		break;
 	    }
 	    _B = v1*dt;
 	    _C = x1;
 	    _D = v2-v1;
 	    _E = v1;
 	    _rep = TRAJ_QUADRATIC;
-	    return;
+	    break;
 	}
 	_B = 3.0*(x2-x1) - (2.0*v1+v2)*dt;
 	_C = v1*dt;
@@ -106,6 +106,38 @@ void TrajectoryRep1D::construct( double dt, double x1, double v1,
 	_rep = TRAJ_CUBIC;
 	break;
     };
+
+#ifdef DEBUG_TRAJECTORY
+    std::cout << "Constructing trajectory representation\n";
+    switch( _rep ) {
+    case TRAJ_EMPTY:
+	std::cout << "  rep = TRAJ_EMPTY\n";
+	break;
+    case TRAJ_LINEAR:
+	std::cout << "  rep = TRAJ_LINEAR\n";
+	std::cout << "  A = " << _A << "\n";
+	std::cout << "  B = " << _B << "\n";
+	std::cout << "  C = " << _C << "\n";
+	std::cout << "  D = " << _D << "\n";
+	break;
+    case TRAJ_QUADRATIC:
+	std::cout << "  rep = TRAJ_QUADRATIC\n";
+	std::cout << "  A = " << _A << "\n";
+	std::cout << "  B = " << _B << "\n";
+	std::cout << "  C = " << _C << "\n";
+	std::cout << "  D = " << _D << "\n";
+	std::cout << "  E = " << _E << "\n";
+	break;
+    case TRAJ_CUBIC:
+	std::cout << "  rep = TRAJ_CUBIC\n";
+	std::cout << "  A = " << _A << "\n";
+	std::cout << "  B = " << _B << "\n";
+	std::cout << "  C = " << _C << "\n";
+	std::cout << "  D = " << _D << "\n";
+	std::cout << "  E = " << _E << "\n";
+	break;
+    };    
+#endif
 }
 
 

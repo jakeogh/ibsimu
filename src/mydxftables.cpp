@@ -46,8 +46,6 @@
 #include "error.hpp"
 
 
-#define MYDXF_DEBUG 1
-
 
 /* ************************************************************************** *
  * DXF Entry                                                                  *
@@ -350,9 +348,9 @@ MyDXFTables::MyDXFTables( class MyDXFFile *dxf )
 		_layer = new MyDXFTable( "LAYER", dxf );
 	    else {
 		// Unknown table
-#ifdef MYDXF_DEBUG
-		std::cout << "Skipping unknown table " << dxf->group_get_string() << "\n";
-#endif
+		if( dxf->wlevel() )
+		    std::cout << "Skipping unknown table \'" << dxf->group_get_string() << "\'\n";
+
 		while( dxf->read_group() != -1 ) {
 		    if( dxf->group_get_code() == 0 && dxf->group_get_string() == "ENDTAB" )
 			break;

@@ -45,9 +45,7 @@ MyDXFBlock::MyDXFBlock( class MyDXFFile *dxf )
 
     if( dxf->group_get_string() == "ENDBLK" ) {
 	// Read end of block
-	std::cout << "processing endblk\n";
 	while( dxf->read_group() != -1 ) {
-	    std::cout << "looping, code = " << dxf->group_get_code() << "\n";
 	    if( dxf->group_get_code() == 5 )
 		_endblk_handle = dxf->group_get_string();
 	    else if( dxf->group_get_code() == 8 )
@@ -55,7 +53,6 @@ MyDXFBlock::MyDXFBlock( class MyDXFFile *dxf )
 	    else if( dxf->group_get_code() == 0 )
 		break; // Done with end of block
 	}
-	std::cout << "done with endblk\n";
     }
 
 #ifdef MYDXF_DEBUG

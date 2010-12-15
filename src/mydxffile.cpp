@@ -161,9 +161,9 @@ void MyDXFFile::read( const std::string &filename )
 		_entities = new MyDXFEntities( this );
 	    } else {
 		// Unknown section
-#ifdef MYDXF_DEBUG
-		std::cout << "Skipping unknown section " << group_get_string() << "\n";
-#endif
+		if( wlevel() )
+		    std::cout << "Skipping unknown section \'" << group_get_string() << "\'\n";
+
 		while( read_group() != -1 ) {
 		    if( group_get_code() == 0 && group_get_string() == "ENDSEC" )
 			break;

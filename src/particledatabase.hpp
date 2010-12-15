@@ -158,6 +158,15 @@ public:
 	_polyint = polyint;
     }
     
+    /*! \brief Get current interpolation type.
+     *
+     *  True is returned if polynomial interpolation is enabled and
+     *  false if disabled.
+     */
+    bool get_polyint( void ) const {
+	return( _polyint );
+    }
+    
     /*! \brief Set maximum number of steps to iterate.
      *
      *  One thousand (1000) steps is the default
@@ -579,6 +588,14 @@ public:
      */
     void add_particle( double IQ, double q, double m, const PP &x ) {
 	_particles.push_back( Particle<PP>( IQ, CHARGE_E*q, MASS_U*m, x ) );
+    }
+
+    /*! \brief Add one particle.
+     *
+     *  Adds one particle to database.
+     */
+    void add_particle( const Particle<PP> &pp ) {
+	_particles.push_back( pp );
     }
 
 /* ************************************** *

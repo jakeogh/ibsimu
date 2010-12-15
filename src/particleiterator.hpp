@@ -96,7 +96,7 @@ template <class PP> class ParticleIterator {
     gsl_odeiv_control    *_control;   /**< \brief GSL ODE integrator constrol. */
     gsl_odeiv_evolve     *_evolve;    /**< \brief GSL ODE integrator integrator. */
 
-   particle_iterator_type_e _type;    /**< \brief Iteratory type. */
+    particle_iterator_type_e _type;   /**< \brief Iteratory type. */
 
     bool                  _polyint;   /*!< \brief Interpolation type to use. True means use polynomial */
     double                _epsabs;    /*!< \brief Absolute error limit. */
@@ -851,7 +851,7 @@ public:
 	// Cyl: x vx r vr omega
 	// 3D:  x vx y vy z vz
 	double scale_abs[PP::size()-1];
-	for( uint32_t a = 0.0; a < (uint32_t)PP::size()-2; a+=2 ) {
+	for( uint32_t a = 0; a < (uint32_t)PP::size()-2; a+=2 ) {
 	    scale_abs[a+0] = 1.0;
 	    scale_abs[a+1] = 1.0e6;
 	}

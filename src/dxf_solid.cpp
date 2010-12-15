@@ -62,14 +62,14 @@ DXFSolid::DXFSolid( MyDXFFile *dxffile, const std::string &layername )
     _entities = new MyDXFEntities( ent, loop );
     _selection = _entities->selection_all();
 
-    delete layer;
-    delete loop;
-
     if( ibsimu.get_verbose_output() ) {
-	if( layer->size()-loop->size() > 0 )
-	    std::cout << "  removed " << layer->size()-loop->size() << " entities\n";
+	if( (int)layer->size()-(int)loop->size() > 0 )
+	    std::cout << "  removed " << (int)layer->size()-(int)loop->size() << " entities\n";
 	std::cout << "  solid defined using " << _entities->size() << " entities\n";
     }
+
+    delete layer;
+    delete loop;
 }
 
 

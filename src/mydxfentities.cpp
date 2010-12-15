@@ -2059,6 +2059,9 @@ void MyDXFEntities::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Tra
 void MyDXFEntities::debug_print( std::ostream &os ) const
 {
     os << "*** Section ENTITIES **************************************\n";
+
+    os << "Number of entities = " << _entities.size() << "\n";
+    os << "\n";
     
     for( size_t a = 0; a < _entities.size(); a++ ) {
 	MyDXFEntity *e = _entities[a];
