@@ -146,8 +146,10 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
     }
 
     t.stop();
-    if( ibsimu.get_verbose_output() )
+    if( ibsimu.get_verbose_output() ) {
 	std::cout << "  time used = " << t << "\n";
+	std::cout << std::flush;
+    }
 }
 
 
