@@ -5,6 +5,12 @@ This document describes those library changes that break end-user
 programs, that is removal or changes of old features or
 functions. This list was started from version 1.0.3.
 
+IBSimu 1.0.4							
+---------------------------------------------------------------------------
+
+Changed enum efield_extrpl_e to enum field_extrpl_e for making
+extrapolations more general (also to be used with bfields).
+
 IBSimu 1.0.3							
 ---------------------------------------------------------------------------
 

@@ -2,7 +2,7 @@
  *  \brief Header file for vectorfield.hpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -46,6 +46,7 @@
 
 #include "geometry.hpp"
 #include "vec3d.hpp"
+#include "types.hpp"
 
 
 /*! \brief %Vector field class.
@@ -70,6 +71,7 @@ class VectorField {
     geom_mode_e _geom_mode; /*!< \brief Geometry mode */
     Int3D       _size;      /*!< \brief Size of mesh */
     Vec3D       _origo;     /*!< \brief Location of mesh point (0,0,0) [m] */
+    Vec3D       _max;       /*!< \brief Max coordinates of mesh [m] */
     double      _h;         /*!< \brief Length of mesh step [m] */
     double      _div_h;     /*!< \brief One over length of mesh step [1/m] */
     double     *_F[3];      /*!< \brief Vector field data in three components
@@ -77,6 +79,7 @@ class VectorField {
 			     *   If pointer in array is NULL the component 
 			     *   is not stored.
 			     */
+    field_extrpl_e   _extrpl[6];   /*!< \brief What to return outside geometry. */
 
     bool parse_line( const std::string &str, double c[6], double xscale, double fscale, 
 		     size_t cdim, size_t fdim, const std::string &filename, size_t linec );
@@ -88,9 +91,7 @@ public:
 
     /*! \brief Default constructor.
      */
-    VectorField() : _geom_mode(MODE_3D), _h(1.0), _div_h(1.0) {
-	_F[0] = _F[1] = _F[2] = 0;
-    }
+    VectorField();
 
     /*! \brief Constructor for geometry from \a g.
      *
@@ -180,6 +181,28 @@ public:
     /*! \brief Returns inverse mesh cell size.
      */
     inline double div_h( void ) const { return( _div_h ); }
+
+    /*! \brief Set the behaviour of field interpolation outside mesh
+     *  points (extrapolation).
+     *
+     *  The interpolation function behaviour can be set separately for
+     *  each boundary. This is done by setting the desired properties
+     *  to the \a extrpl array. The interpolation function can use an
+     *  extrapolation of the last two field values
+     *  (FIELD_EXTRAPOLATE) or it can return the mirror of the
+     *  field across the mesh boundary (FIELD_MIRROR) or it
+     *  can return a zero field outside the mesh (FIELD_ZERO).
+     *
+     *  The use of FIELD_MIRROR in case of symmetric cases, where
+     *  beam is traversing next to the geometry boundary, is necessary
+     *  to get physical results.
+     *
+     *  Very far (double the size of the simulation box) the field
+     *  evaluator will always return zero.
+     */
+    void set_extrapolation( field_extrpl_e extrpl[6] ) {
+	memcpy( _extrpl, extrpl, 6*sizeof(field_extrpl_e) );
+    }
 
     /*! \brief Translate field in coordinate system.
      */

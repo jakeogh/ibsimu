@@ -47,12 +47,12 @@
 EpotEfield::EpotEfield( const Geometry &g, const ScalarField &epot )
   : _g(g), _epot(epot)
 {
-    _extrpl[0] = EFIELD_EXTRAPOLATE;
-    _extrpl[1] = EFIELD_EXTRAPOLATE;
-    _extrpl[2] = EFIELD_EXTRAPOLATE;
-    _extrpl[3] = EFIELD_EXTRAPOLATE;
-    _extrpl[4] = EFIELD_EXTRAPOLATE;
-    _extrpl[5] = EFIELD_EXTRAPOLATE;
+    _extrpl[0] = FIELD_EXTRAPOLATE;
+    _extrpl[1] = FIELD_EXTRAPOLATE;
+    _extrpl[2] = FIELD_EXTRAPOLATE;
+    _extrpl[3] = FIELD_EXTRAPOLATE;
+    _extrpl[4] = FIELD_EXTRAPOLATE;
+    _extrpl[5] = FIELD_EXTRAPOLATE;
 }    
 
 
@@ -119,10 +119,10 @@ Vec3D EpotEfield::operator()( Vec3D x ) const
 	    // Outside double the simulation box: return zero
 	    return( E );
 	} else if( x[0] < _g.origo(0) ) {
-	    if( _extrpl[0] == EFIELD_MIRROR ) {
+	    if( _extrpl[0] == FIELD_MIRROR ) {
 		sign *= -1.0;
 		x[0]  = 2.0*_g.origo(0) - x[0];
-	    } else if( _extrpl[0] == EFIELD_ZERO ) {
+	    } else if( _extrpl[0] == FIELD_ZERO ) {
 		// return zero
 		return( E );
 	    }
@@ -130,10 +130,10 @@ Vec3D EpotEfield::operator()( Vec3D x ) const
 	    // Outside double the simulation box: return zero
 	    return( E );
 	} else if( x[0] > _g.max(0) ) {
-	    if( _extrpl[1] == EFIELD_MIRROR ) {
+	    if( _extrpl[1] == FIELD_MIRROR ) {
 		sign *= -1.0;
 		x[0]  = 2.0*_g.max(0) - x[0];
-	    } else if( _extrpl[1] == EFIELD_ZERO ) {
+	    } else if( _extrpl[1] == FIELD_ZERO ) {
 		// return zero
 		return( E );
 	    }
@@ -168,10 +168,10 @@ Vec3D EpotEfield::operator()( Vec3D x ) const
 		// Outside double the simulation box: return zero
 		return( E );
 	    } else if( x[a] < _g.origo(a) ) {
-		if( _extrpl[2*a] == EFIELD_MIRROR ) {
+		if( _extrpl[2*a] == FIELD_MIRROR ) {
 		    sign[a] *= -1.0;
 		    x[a]     = 2.0*_g.origo(a) - x[a];
-		} else if( _extrpl[2*a] == EFIELD_ZERO ) {
+		} else if( _extrpl[2*a] == FIELD_ZERO ) {
 		    // return zero
 		    return( E );
 		}
@@ -179,10 +179,10 @@ Vec3D EpotEfield::operator()( Vec3D x ) const
 		// Outside double the simulation box: return zero
 		return( E );
 	    } else if( x[0] > _g.max(0) ) {
-		if( _extrpl[2*a+1] == EFIELD_MIRROR ) {
+		if( _extrpl[2*a+1] == FIELD_MIRROR ) {
 		    sign[a] *= -1.0;
 		    x[a]     = 2.0*_g.max(a) - x[a];
-		} else if( _extrpl[2*a+1] == EFIELD_ZERO ) {
+		} else if( _extrpl[2*a+1] == FIELD_ZERO ) {
 		    // return zero
 		    return( E );
 		}
@@ -262,10 +262,10 @@ Vec3D EpotEfield::operator()( Vec3D x ) const
 		// Outside double the simulation box: return zero
 		return( E );
 	    } else if( x[a] < _g.origo(a) ) {
-		if( _extrpl[2*a] == EFIELD_MIRROR ) {
+		if( _extrpl[2*a] == FIELD_MIRROR ) {
 		    sign[a] *= -1.0;
 		    x[a]     = 2.0*_g.origo(a) - x[a];
-		} else if( _extrpl[2*a] == EFIELD_ZERO ) {
+		} else if( _extrpl[2*a] == FIELD_ZERO ) {
 		    // return zero
 		    return( E );
 		}
@@ -273,10 +273,10 @@ Vec3D EpotEfield::operator()( Vec3D x ) const
 		// Outside double the simulation box: return zero
 		return( E );
 	    } else if( x[0] > _g.max(0) ) {
-		if( _extrpl[2*a+1] == EFIELD_MIRROR ) {
+		if( _extrpl[2*a+1] == FIELD_MIRROR ) {
 		    sign[a] *= -1.0;
 		    x[a]     = 2.0*_g.max(a) - x[a];
-		} else if( _extrpl[2*a+1] == EFIELD_ZERO ) {
+		} else if( _extrpl[2*a+1] == FIELD_ZERO ) {
 		    // return zero
 		    return( E );
 		}

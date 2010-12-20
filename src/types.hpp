@@ -58,6 +58,21 @@ enum geom_mode_e {
 };
 
 
+/*! \brief Field extrapolation mode
+ *
+ *  This parameter is used to control the behaviour of the field
+ *  evaluators outside the defined area. The field value can be
+ *  extrapolated from the closest defined points (\a
+ *  FIELD_EXTRAPOLATE), the field can be mirrored (\a FIELD_MIRROR) or
+ *  the field evaluator can simply return zero (\a FIELD_ZERO).
+ */
+enum field_extrpl_e {
+    FIELD_EXTRAPOLATE = 0,
+    FIELD_MIRROR,
+    FIELD_ZERO
+};
+
+
 /*! \brief Boundary type enum.
  *
  *  %Solid boundary may have either essential, Dirichlet boundary

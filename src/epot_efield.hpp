@@ -48,13 +48,7 @@
 #include "geometry.hpp"
 #include "scalarfield.hpp"
 #include "vec3d.hpp"
-
-
-enum efield_extrpl_e {
-    EFIELD_EXTRAPOLATE = 0,
-    EFIELD_MIRROR,
-    EFIELD_ZERO
-};
+#include "types.hpp"
 
 
 /*! \brief Electric field class implementation based on on-line
@@ -75,7 +69,7 @@ enum efield_extrpl_e {
  */
 class EpotEfield : public Efield {
 
-    efield_extrpl_e      _extrpl[6];   /*!< \brief What to return outside geometry. */
+    field_extrpl_e       _extrpl[6];   /*!< \brief What to return outside geometry. */
 
     const Geometry      &_g;           /*!< \brief Reference to geometry. */
     const ScalarField   &_epot;        /*!< \brief Reference to electric potential. */
@@ -109,8 +103,8 @@ public:
      *  Very far (double the size of the simulation box) the field
      *  evaluator will always return zero.
      */
-    void set_extrapolation( efield_extrpl_e extrpl[6] ) {
-	memcpy( _extrpl, extrpl, 6*sizeof(efield_extrpl_e) );
+    void set_extrapolation( field_extrpl_e extrpl[6] ) {
+	memcpy( _extrpl, extrpl, 6*sizeof(field_extrpl_e) );
     }
 
     /*! \brief Operator for getting interpolated electric field value

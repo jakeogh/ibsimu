@@ -43,9 +43,9 @@ void test( void )
     p.solve( epot, scharge );
 
     EpotEfield ef( g, epot );
-    efield_extrpl_e extrpl[6] = { EFIELD_MIRROR, EFIELD_MIRROR,
-				  EFIELD_MIRROR, EFIELD_MIRROR,
-				  EFIELD_MIRROR, EFIELD_MIRROR };
+    field_extrpl_e extrpl[6] = { FIELD_MIRROR, FIELD_MIRROR,
+				 FIELD_MIRROR, FIELD_MIRROR,
+				 FIELD_MIRROR, FIELD_MIRROR };
     ef.set_extrapolation( extrpl );
 
     ofstream ostr( "efield_extrpl.dat" );
@@ -62,9 +62,9 @@ void test( void )
     ostr << "\n\n";
 
 
-    efield_extrpl_e extrpl2[6] = { EFIELD_ZERO, EFIELD_ZERO,
-				   EFIELD_ZERO, EFIELD_ZERO,
-				   EFIELD_ZERO, EFIELD_ZERO };
+    field_extrpl_e extrpl2[6] = { FIELD_ZERO, FIELD_ZERO,
+				  FIELD_ZERO, FIELD_ZERO,
+				  FIELD_ZERO, FIELD_ZERO };
     ef.set_extrapolation( extrpl2 );
 
     for( int a = -30; a < 50; a++ ) {
@@ -76,9 +76,9 @@ void test( void )
     ostr << "\n\n";
 
 
-    efield_extrpl_e extrpl3[6] = { EFIELD_EXTRAPOLATE, EFIELD_EXTRAPOLATE,
-				   EFIELD_EXTRAPOLATE, EFIELD_EXTRAPOLATE,
-				   EFIELD_EXTRAPOLATE, EFIELD_EXTRAPOLATE };
+    field_extrpl_e extrpl3[6] = { FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE,
+				  FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE,
+				  FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE };
     ef.set_extrapolation( extrpl3 );
 
     for( int a = -30; a < 50; a++ ) {

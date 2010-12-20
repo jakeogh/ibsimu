@@ -49,9 +49,19 @@
 #include "ibsimu.hpp"
 
 
+VectorField::VectorField()
+    : _geom_mode(MODE_3D), _h(1.0), _div_h(1.0) 
+{
+    _F[0] = _F[1] = _F[2] = 0;
+    _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
+}
+
+
 VectorField::VectorField( const Geometry &g, bool fout[3] )
     : _geom_mode(g.geom_mode()), _size(g.size()), _origo(g.origo()), _h(g.h())
 {
+    _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
+
     // Check mesh size legality
     if( _size[0] < 1 || _size[1] < 1 || _size[2] < 1 )
 	throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
@@ -72,6 +82,8 @@ VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], Int3D size,
 			  Vec3D origo, double h )
     : _geom_mode(geom_mode), _size(size), _origo(origo), _h(h)
 {
+    _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
+
     // Check mesh size legality
     if( _size[0] < 1 || _size[1] < 1 || _size[2] < 1 )
 	throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
@@ -135,6 +147,8 @@ bool VectorField::parse_line( const std::string &str, double c[6], double xscale
 VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], double xscale, 
 			  double fscale, std::string filename )
 {
+    _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
+
     if( ibsimu.get_verbose_output() )
 	std::cout << "Reading vector field from " << filename << "\n";
     
@@ -302,6 +316,9 @@ VectorField::VectorField( const VectorField &f )
     : _geom_mode(f._geom_mode), _size(f._size), _origo(f._origo), _h(f._h), 
       _div_h(f._div_h)
 {
+    for( size_t i = 0; i < 6; i++ )
+	_extrpl[i] = f._extrpl[i];
+
     for( size_t i = 0; i < 3; i++ ) {
 	if( f._F[i] != NULL ) {
 	    _F[i] = new double[_size[0]*_size[1]*_size[2]];
@@ -692,7 +709,8 @@ void VectorField::set( int32_t i, int32_t j, int32_t k, const Vec3D &v )
 
 Vec3D VectorField::operator()( Vec3D x ) const
 {
-    Vec3D ret;
+    Vec3D R;
+    Vec3D sign( 1.0, 1.0, 1.0 );
 
     switch( _geom_mode ) {
     case MODE_1D:
@@ -701,17 +719,34 @@ Vec3D VectorField::operator()( Vec3D x ) const
 	if( _size[0] == 1 ) {
 	    for( size_t b = 0; b < 3; b++ ) {
 		if( _F[b] != NULL ) {
-		    ret[b] = _F[b][0];
+		    R[b] = _F[b][0];
 		}
 	    }
 	    break;
 	}
 
-	// Limit to double the simulation box -> return zero
 	if( x[0] < _origo[0]-_size[0]*_h ) {
+	    // Outside double the simulation box: return zero
 	    break;
+	} else if( x[0] < _origo[0] ) {
+	    if( _extrpl[0] == FIELD_MIRROR ) {
+		sign[0] *= -1.0;
+		x[0]  = 2.0*_origo[0] - x[0];
+	    } else if( _extrpl[0] == FIELD_ZERO ) {
+		// return zero
+		return( R );
+	    }
 	} else if( x[0] > _origo[0]+2.0*_size[0]*_h ) {
+	    // Outside double the simulation box: return zero
 	    break;
+	} else if( x[0] > _max[0] ) {
+	    if( _extrpl[1] == FIELD_MIRROR ) {
+		sign[0] *= -1.0;
+		x[0]  = 2.0*_max[0] - x[0];
+	    } else if( _extrpl[1] == FIELD_ZERO ) {
+		// return zero
+		return( R );
+	    }
 	}
 
 	// Linear approximation
@@ -725,7 +760,7 @@ Vec3D VectorField::operator()( Vec3D x ) const
 	
 	for( size_t b = 0; b < 3; b++ ) {
 	    if( _F[b] != NULL ) {
-		ret[b] = (1.0-t)*_F[b][i] + t*_F[b][i+1];
+		R[b] = sign[b]*( (1.0-t)*_F[b][i] + t*_F[b][i+1] );
 	    }
 	}
 	break;
@@ -736,18 +771,34 @@ Vec3D VectorField::operator()( Vec3D x ) const
 	int32_t i, j, di, dj;
 	double t, u;
 
-	// Limit to double the simulation box -> return zero
-	if( x[0] < _origo[0]-_size[0]*_h ) {
-	    break;
-	} else if( x[0] > _origo[0]+2.0*_size[0]*_h ) {
-	    break;
-	} else if( x[1] < _origo[1]-_size[1]*_h ) {
-	    break;
-	} else if( x[1] > _origo[1]+2.0*_size[1]*_h ) {
-	    break;
+	for( int a = 0; a < 2; a++ ) {
+	    if( x[a] < _origo[a]-_size[a]*_h ) {
+		// Limit to double the simulation box -> return zero
+		break;
+	    } else if( x[a] < _origo[a] ) {
+		if( _extrpl[2*a] == FIELD_MIRROR ) {
+                    sign[a] *= -1.0;
+                    x[a]     = 2.0*_origo[a] - x[a];
+                } else if( _extrpl[2*a] == FIELD_ZERO ) {
+                    // return zero
+                    return( R );
+                }
+	    } else if( x[a] > _origo[a]+2.0*_size[a]*_h ) {
+		// Limit to double the simulation box -> return zero
+		break;
+	    } else if( x[0] > _max[0] ) {
+                if( _extrpl[2*a+1] == FIELD_MIRROR ) {
+                    sign[a] *= -1.0;
+                    x[a]     = 2.0*_max[a] - x[a];
+                } else if( _extrpl[2*a+1] == FIELD_ZERO ) {
+                    // return zero
+                    return( R );
+                }
+            }
 	}
 
 	if( _size[0] == 1 ) {
+	    // Field constant in x-direction
 	    i  = 0;
 	    di = 0;
 	    t  = 0.0;
@@ -762,6 +813,7 @@ Vec3D VectorField::operator()( Vec3D x ) const
 	}
 
 	if( _size[1] == 1 ) {
+	    // Field constant in y-direction
 	    j  = 0;
 	    dj = 0;
 	    u  = 0.0;
@@ -778,10 +830,10 @@ Vec3D VectorField::operator()( Vec3D x ) const
 	int32_t base = _size[0]*j + i;
 	for( size_t b = 0; b < 3; b++ ) {
 	    if( _F[b] != NULL ) {
-		ret[b] = (1.0-t)*(1.0-u)*_F[b][base] +
-		         (    t)*(1.0-u)*_F[b][base+di] +
-		         (1.0-t)*(    u)*_F[b][base+dj] +
-		         (    t)*(    u)*_F[b][base+di+dj];
+		R[b] = sign[b]*( (1.0-t)*(1.0-u)*_F[b][base] +
+				 (    t)*(1.0-u)*_F[b][base+di] +
+				 (1.0-t)*(    u)*_F[b][base+dj] +
+				 (    t)*(    u)*_F[b][base+di+dj] );
 	    }
 	}
 	break;
@@ -791,19 +843,30 @@ Vec3D VectorField::operator()( Vec3D x ) const
 	int32_t i, j, k, di, dj, dk;
 	double t, u, v;
 
-	// Limit to double the simulation box -> return zero
-	if( x[0] < _origo[0]-_size[0]*_h ) {
-	    break;
-	} else if( x[0] > _origo[0]+2.0*_size[0]*_h ) {
-	    break;
-	} else if( x[1] < _origo[1]-_size[1]*_h ) {
-	    break;
-	} else if( x[1] > _origo[1]+2.0*_size[1]*_h ) {
-	    break;
-	} else if( x[2] < _origo[2]-_size[2]*_h ) {
-	    break;
-	} else if( x[2] > _origo[2]+2.0*_size[2]*_h ) {
-	    break;
+	for( int a = 0; a < 3; a++ ) {
+	    if( x[a] < _origo[a]-_size[a]*_h ) {
+		// Limit to double the simulation box -> return zero
+		break;
+	    } else if( x[a] < _origo[a] ) {
+		if( _extrpl[2*a] == FIELD_MIRROR ) {
+                    sign[a] *= -1.0;
+                    x[a]     = 2.0*_origo[a] - x[a];
+                } else if( _extrpl[2*a] == FIELD_ZERO ) {
+                    // return zero
+                    return( R );
+                }
+	    } else if( x[a] > _origo[a]+2.0*_size[a]*_h ) {
+		// Limit to double the simulation box -> return zero
+		break;
+	    } else if( x[0] > _max[0] ) {
+                if( _extrpl[2*a+1] == FIELD_MIRROR ) {
+                    sign[a] *= -1.0;
+                    x[a]     = 2.0*_max[a] - x[a];
+                } else if( _extrpl[2*a+1] == FIELD_ZERO ) {
+                    // return zero
+                    return( R );
+                }
+            }
 	}
 
 	if( _size[0] == 1 ) {
@@ -851,21 +914,21 @@ Vec3D VectorField::operator()( Vec3D x ) const
 	int32_t base = (k*_size[1] + j)*_size[0] + i;
 	for( size_t b = 0; b < 3; b++ ) {
 	    if( _F[b] != NULL ) {
-		ret[b] = (1.0-t)*(1.0-u)*(1.0-v)*_F[b][base] +
-		         (    t)*(1.0-u)*(1.0-v)*_F[b][base+di] +
-		         (1.0-t)*(    u)*(1.0-v)*_F[b][base+dj] +
-		         (    t)*(    u)*(1.0-v)*_F[b][base+di+dj] +
-		         (1.0-t)*(1.0-u)*(    v)*_F[b][base+dk] +
-		         (    t)*(1.0-u)*(    v)*_F[b][base+di+dk] +
-		         (1.0-t)*(    u)*(    v)*_F[b][base+dj+dk] +
-		         (    t)*(    u)*(    v)*_F[b][base+di+dj+dk];
+		R[b] = sign[b]*( (1.0-t)*(1.0-u)*(1.0-v)*_F[b][base] +
+				 (    t)*(1.0-u)*(1.0-v)*_F[b][base+di] +
+				 (1.0-t)*(    u)*(1.0-v)*_F[b][base+dj] +
+				 (    t)*(    u)*(1.0-v)*_F[b][base+di+dj] +
+				 (1.0-t)*(1.0-u)*(    v)*_F[b][base+dk] +
+				 (    t)*(1.0-u)*(    v)*_F[b][base+di+dk] +
+				 (1.0-t)*(    u)*(    v)*_F[b][base+dj+dk] +
+				 (    t)*(    u)*(    v)*_F[b][base+di+dj+dk] );
 	    }
 	}
 	break;
     }
     }
 
-    return( ret );
+    return( R );
 }
 
 
@@ -893,6 +956,13 @@ void VectorField::debug_print( void ) const
 	      << _origo[2] << ")\n";
     std::cout << "h = " << _h << "\n";
     std::cout << "div_h = " << _div_h << "\n";
+    std::cout << "extrpl = (" 
+	      << _extrpl[0] << ", "
+	      << _extrpl[1] << ", "
+	      << _extrpl[2] << ", "
+	      << _extrpl[3] << ", "
+	      << _extrpl[4] << ", "
+	      << _extrpl[5] << ")\n";
     for( size_t i = 0; i < 3; i++ ) {
 	std::cout << "F[" << i << "] = ";
 	if( _F[i] == NULL ) {
@@ -907,21 +977,4 @@ void VectorField::debug_print( void ) const
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
