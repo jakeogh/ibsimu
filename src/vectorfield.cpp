@@ -54,6 +54,9 @@ VectorField::VectorField()
 {
     _F[0] = _F[1] = _F[2] = 0;
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
+    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
+		  _origo(1)+_h*(_size[1]-1),
+		  _origo(2)+_h*(_size[2]-1) );
 }
 
 
@@ -61,6 +64,9 @@ VectorField::VectorField( const Geometry &g, bool fout[3] )
     : _geom_mode(g.geom_mode()), _size(g.size()), _origo(g.origo()), _h(g.h())
 {
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
+    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
+		  _origo(1)+_h*(_size[1]-1),
+		  _origo(2)+_h*(_size[2]-1) );
 
     // Check mesh size legality
     if( _size[0] < 1 || _size[1] < 1 || _size[2] < 1 )
@@ -83,6 +89,9 @@ VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], Int3D size,
     : _geom_mode(geom_mode), _size(size), _origo(origo), _h(h)
 {
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
+    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
+		  _origo(1)+_h*(_size[1]-1),
+		  _origo(2)+_h*(_size[2]-1) );
 
     // Check mesh size legality
     if( _size[0] < 1 || _size[1] < 1 || _size[2] < 1 )
@@ -145,7 +154,7 @@ bool VectorField::parse_line( const std::string &str, double c[6], double xscale
 
 
 VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], double xscale, 
-			  double fscale, std::string filename )
+			  double fscale, const std::string &filename )
 {
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
 
@@ -261,7 +270,7 @@ VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], double xscale,
 	Int3D one(1,1,1);
 	std::cout << "  origo = " << origo << "\n";
 	std::cout << "  size  = " << size << "\n";
-	std::cout << "  max   = " << origo+h*(size-one) << "\n";
+	std::cout << "  max   = " << max << "\n";
 	std::cout << "  h     = " << h << "\n";
     }
 
@@ -269,6 +278,9 @@ VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], double xscale,
     _geom_mode = geom_mode;
     _size = size;
     _origo = origo;
+    _max = Vec3D( origo(0)+h*(size[0]-1),
+		  origo(1)+h*(size[1]-1),
+		  origo(2)+h*(size[2]-1) );
     _h = h;
     _div_h = 1.0/_h;
     for( i = 0; i < 3; i++ ) {
@@ -313,7 +325,7 @@ VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], double xscale,
 
 
 VectorField::VectorField( const VectorField &f )
-    : _geom_mode(f._geom_mode), _size(f._size), _origo(f._origo), _h(f._h), 
+    : _geom_mode(f._geom_mode), _size(f._size), _origo(f._origo), _max(f._max), _h(f._h), 
       _div_h(f._div_h)
 {
     for( size_t i = 0; i < 6; i++ )
@@ -343,18 +355,22 @@ void VectorField::translate( Vec3D x )
 {
     // Translate origo
     _origo += x;
+
+    // Translate max
+    _max += x;
 }
 
 
 void VectorField::transform( int ind[3] )
 {
     Vec3D norigo;
+    Vec3D nmax;
     Int3D nsize;
     int p[3] = { abs(-ind[0])-1,
 		 abs(-ind[1])-1,
 		 abs(-ind[2])-1 };
 
-    // Transform origo and size
+    // Transform origo, size and max
     double *t[3];
     for( int32_t a = 0; a < 3; a++ ) {
 	if( ind[a] < 0 )
@@ -362,6 +378,7 @@ void VectorField::transform( int ind[3] )
 	else
 	    norigo[a] = _origo[p[a]];
 	nsize[a] = _size[p[a]];
+	nmax[a] = _origo[a]+_h*(_size[a]-1);
     }
 
     // Transform mesh
@@ -411,6 +428,7 @@ void VectorField::transform( int ind[3] )
 
     // Set origo and size
     _size = nsize;
+    _max = nmax;
     _origo = norigo;
 }
 
@@ -517,6 +535,9 @@ void VectorField::reset( geom_mode_e geom_mode, bool fout[3], Int3D size,
     _geom_mode = geom_mode;
     _size      = size;
     _origo     = origo;
+    _max       = Vec3D( origo(0)+h*(size[0]-1),
+			origo(1)+h*(size[1]-1),
+			origo(2)+h*(size[2]-1) );
     _h         = h;
     _div_h     = 1.0/h;
 
@@ -572,6 +593,7 @@ VectorField &VectorField::operator=( const VectorField &f )
     _geom_mode = f._geom_mode;
     _size      = f._size;
     _origo     = f._origo;
+    _max       = f._max;
     _h         = f._h;
     _div_h     = f._div_h;
     for( size_t i = 0; i < 3; i++ ) {
@@ -727,7 +749,7 @@ Vec3D VectorField::operator()( Vec3D x ) const
 
 	if( x[0] < _origo[0]-_size[0]*_h ) {
 	    // Outside double the simulation box: return zero
-	    break;
+	    return( R );
 	} else if( x[0] < _origo[0] ) {
 	    if( _extrpl[0] == FIELD_MIRROR ) {
 		sign[0] *= -1.0;
@@ -738,7 +760,7 @@ Vec3D VectorField::operator()( Vec3D x ) const
 	    }
 	} else if( x[0] > _origo[0]+2.0*_size[0]*_h ) {
 	    // Outside double the simulation box: return zero
-	    break;
+	    return( R );
 	} else if( x[0] > _max[0] ) {
 	    if( _extrpl[1] == FIELD_MIRROR ) {
 		sign[0] *= -1.0;
@@ -774,7 +796,7 @@ Vec3D VectorField::operator()( Vec3D x ) const
 	for( int a = 0; a < 2; a++ ) {
 	    if( x[a] < _origo[a]-_size[a]*_h ) {
 		// Limit to double the simulation box -> return zero
-		break;
+		return( R );
 	    } else if( x[a] < _origo[a] ) {
 		if( _extrpl[2*a] == FIELD_MIRROR ) {
                     sign[a] *= -1.0;
@@ -785,7 +807,7 @@ Vec3D VectorField::operator()( Vec3D x ) const
                 }
 	    } else if( x[a] > _origo[a]+2.0*_size[a]*_h ) {
 		// Limit to double the simulation box -> return zero
-		break;
+		return( R );
 	    } else if( x[0] > _max[0] ) {
                 if( _extrpl[2*a+1] == FIELD_MIRROR ) {
                     sign[a] *= -1.0;
@@ -846,7 +868,7 @@ Vec3D VectorField::operator()( Vec3D x ) const
 	for( int a = 0; a < 3; a++ ) {
 	    if( x[a] < _origo[a]-_size[a]*_h ) {
 		// Limit to double the simulation box -> return zero
-		break;
+		return( R );
 	    } else if( x[a] < _origo[a] ) {
 		if( _extrpl[2*a] == FIELD_MIRROR ) {
                     sign[a] *= -1.0;
@@ -857,7 +879,7 @@ Vec3D VectorField::operator()( Vec3D x ) const
                 }
 	    } else if( x[a] > _origo[a]+2.0*_size[a]*_h ) {
 		// Limit to double the simulation box -> return zero
-		break;
+		return( R );
 	    } else if( x[0] > _max[0] ) {
                 if( _extrpl[2*a+1] == FIELD_MIRROR ) {
                     sign[a] *= -1.0;
@@ -946,14 +968,9 @@ void VectorField::debug_print( void ) const
 	std::cout << "geom_mode = MODE_3D\n";
     else
 	std::cout << "geom_mode = Unknown\n";
-    std::cout << "size = (" 
-	      << _size[0] << ", "
-	      << _size[1] << ", "
-	      << _size[2] << ")\n";
-    std::cout << "origo = (" 
-	      << _origo[0] << ", "
-	      << _origo[1] << ", "
-	      << _origo[2] << ")\n";
+    std::cout << "size = " << _size << "\n";
+    std::cout << "origo = " << _origo << "\n";
+    std::cout << "max = " << _max << "\n";
     std::cout << "h = " << _h << "\n";
     std::cout << "div_h = " << _div_h << "\n";
     std::cout << "extrpl = (" 
@@ -966,14 +983,21 @@ void VectorField::debug_print( void ) const
     for( size_t i = 0; i < 3; i++ ) {
 	std::cout << "F[" << i << "] = ";
 	if( _F[i] == NULL ) {
-	    std::cout << "0\n";
+	    std::cout << "NULL\n";
 	    continue;
 	}
 	std::cout << "(";
-	for( a = 0; a < _size[0]*_size[1]*_size[2]-1; a++ )
-	    std::cout << _F[i][a] << ", ";
-	if( a < _size[0]*_size[1]*_size[2] )
-	    std::cout << _F[i][a] << ")\n";
+	if( _size[0]*_size[1]*_size[2] < 10 ) {
+	    for( a = 0; a < _size[0]*_size[1]*_size[2]-1; a++ )
+		std::cout << _F[i][a] << ", ";
+	    if( a < _size[0]*_size[1]*_size[2] )
+		std::cout << _F[i][a] << ")\n";
+	} else {
+	    // Print only 10 first nodes
+	    for( a = 0; a < 10; a++ )
+		std::cout << _F[i][a] << ", ";
+	    std::cout << "... )\n";
+	}
     }
 
 }

@@ -1,7 +1,7 @@
-AC_INIT([libibsimu], [1.0.3d], [taneli.kalvas@jyu.fi])
+AC_INIT([libibsimu], [1.0.3e], [taneli.kalvas@jyu.fi])
 AM_CONFIG_HEADER(src/config.h)
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([1.0.3d])
+AM_INIT_AUTOMAKE([1.0.3e])
 
 dnl ---------------------------------
 dnl Check for programs

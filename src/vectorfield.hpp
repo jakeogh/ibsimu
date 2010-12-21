@@ -140,7 +140,7 @@ public:
      *
      */
     VectorField( geom_mode_e geom_mode, bool fout[3], double xscale, 
-		 double fscale, std::string filename );
+		 double fscale, const std::string &filename );
 
     /*! \brief Copy constructor.
      */
