@@ -18,6 +18,7 @@
 #include "vectorfield.hpp"
 #include "ibsimu.hpp"
 #include "error.hpp"
+#include "gtkplotter.hpp"
 #include "geomplotter.hpp"
 #include "particlediagplotter.hpp"
 #include "fielddiagplotter.hpp"
@@ -69,9 +70,9 @@ void test( int *argc, char ***argv )
 
     VectorField bfield;
     EpotEfield efield( geom, epot );
-    efield_extrpl_e efldextrpl[6] = {EFIELD_EXTRAPOLATE, EFIELD_EXTRAPOLATE, 
-				     EFIELD_MIRROR,EFIELD_EXTRAPOLATE,
-				     EFIELD_EXTRAPOLATE, EFIELD_EXTRAPOLATE };
+    field_extrpl_e efldextrpl[6] = {FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE, 
+				    FIELD_MIRROR,FIELD_EXTRAPOLATE,
+				    FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE };
     efield.set_extrapolation( efldextrpl );
 
     ParticleDataBase2D pdb;
@@ -97,7 +98,6 @@ void test( int *argc, char ***argv )
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
     }
 
-    /*
     GTKPlotter plotter( argc, argv );
     plotter.set_geometry( &geom );
     plotter.set_scharge( &scharge );
@@ -105,7 +105,6 @@ void test( int *argc, char ***argv )
     plotter.set_particledatabase( &pdb );
     plotter.new_geometry_plot_window();
     plotter.run();
-    */
 
     GeomPlotter gplotter( &geom );
     gplotter.set_scharge( &scharge );

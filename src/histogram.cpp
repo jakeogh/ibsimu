@@ -2,7 +2,7 @@
  *  \brief Source code for histogram.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -201,6 +201,14 @@ Histogram2D::Histogram2D( size_t n, size_t m,
 	throw( Error( ERROR_LOCATION, "too small histogram size" ) );
 
     size_t N = xdata.size() < ydata.size() ? xdata.size() : ydata.size();
+    if( N == 0 ) {
+	// No input data -> return empty histogram
+	_range[0] = _range[1] = -1.0;
+	_range[2] = _range[3] = +1.0;
+	_nstep = (_range[2]-_range[0]) / (_n-1.0);
+	_mstep = (_range[3]-_range[1]) / (_m-1.0);
+	return;
+    }
 
     // Find range limits so that the furthest points will receive no
     // contribution from data.
@@ -221,7 +229,7 @@ Histogram2D::Histogram2D( size_t n, size_t m,
 	    bbox[3] = ydata[a];
     }
 
-    // Increase ranges by one
+    // Increase ranges by one bin
     _range[0] = bbox[0] - (bbox[2]-bbox[0])/(_n-3.0);
     _range[1] = bbox[1] - (bbox[3]-bbox[1])/(_n-3.0);
     _range[2] = bbox[2] + (bbox[2]-bbox[0])/(_n-3.0);
