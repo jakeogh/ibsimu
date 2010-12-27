@@ -1,6 +1,9 @@
 		TODO list
 		=========
 
+Export for particle plotter
+ - colormap and scatter
+
 Tracking for field plotter
  - x1, x2, y1, y2 axes
 
