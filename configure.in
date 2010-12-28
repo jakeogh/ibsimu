@@ -1,7 +1,7 @@
-AC_INIT([libibsimu], [1.0.3e], [taneli.kalvas@jyu.fi])
+AC_INIT([libibsimu], [1.0.4], [taneli.kalvas@jyu.fi])
 AM_CONFIG_HEADER(src/config.h)
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([1.0.3e])
+AM_INIT_AUTOMAKE([1.0.4])
 
 dnl ---------------------------------
 dnl Check for programs
@@ -183,7 +183,7 @@ dnl ---------------------------------
 dnl Output
 dnl ---------------------------------
 
-AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile doc/Doxyfile ibsimu.pc])
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile doc/Doxyfile doc/Doxyfile_web ibsimu.pc])
 AC_OUTPUT
 
 	
