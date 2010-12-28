@@ -1,8 +1,6 @@
-/*! \file particles_mirror.cpp 
+/*! \file Test particle mirroring
  *  \test Test particle mirroring
- */
-
-/*
+ *
  *  The test case has a 1000 V potential difference between
  *  x=-0.05 m and x=0.05 m planes. The electric field is therefore
  *  -1000 V / 0.1 m = -10000 V/m. The particle trajectories should
@@ -92,8 +90,9 @@ void test( void )
     p.solve( epot, scharge );
 
     EpotEfield efield( geom, epot );
-    efield_extrpl_e efldextrpl[6] = {EFIELD_MIRROR, EFIELD_MIRROR, EFIELD_MIRROR,
-				     EFIELD_MIRROR, EFIELD_MIRROR, EFIELD_MIRROR };
+    field_extrpl_e efldextrpl[6] = { FIELD_MIRROR, FIELD_MIRROR, 
+				     FIELD_MIRROR, FIELD_MIRROR, 
+				     FIELD_MIRROR, FIELD_MIRROR };
     efield.set_extrapolation( efldextrpl );
 
     ParticleDataBase2D pdb;

@@ -1,4 +1,4 @@
-/*! \file solver1d_scharge.cpp 
+/*! \file Test solver with a 1d problem with space charge.
  *  \brief Test solver with a 1d problem with space charge.
  *
  *  \test The simple 1d problems with constant space charge are easily

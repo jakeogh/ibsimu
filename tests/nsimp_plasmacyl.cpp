@@ -1,4 +1,5 @@
-/*! \file nsimp_plasmacyl.cpp 
+/*! \file Test with a simple negative ion plasma in cylindrical 
+ *  electrode configuration.
  *  \test Test with a simple negative ion plasma in cylindrical 
  *  electrode configuration.
  */
@@ -38,10 +39,12 @@ bool solid2( double x, double y, double z )
 	    x >= 0.0231 && y >= 0.0055 );
 }
 
+
 bool initial_plasma( double x, double y, double z )
 {
     return( x <= 0.00055 );
 }
+
 
 void test( int *argc, char ***argv )
 {
@@ -72,9 +75,9 @@ void test( int *argc, char ***argv )
 
     VectorField bfield;
     EpotEfield efield( geom, epot );
-    efield_extrpl_e efldextrpl[6] = {EFIELD_EXTRAPOLATE, EFIELD_EXTRAPOLATE, 
-				     EFIELD_MIRROR,EFIELD_EXTRAPOLATE,
-				     EFIELD_EXTRAPOLATE, EFIELD_EXTRAPOLATE };
+    field_extrpl_e efldextrpl[6] = {FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE, 
+				    FIELD_MIRROR,      FIELD_EXTRAPOLATE,
+				    FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE };
     efield.set_extrapolation( efldextrpl );
 
     ParticleDataBaseCyl pdb;

@@ -1,4 +1,4 @@
-/*! \file tests/vlasov2d.cpp 
+/*! \file Test with vlasov iteration in 2d electrode configuration.
  *  \test Test with vlasov iteration in 2d electrode configuration.
  */
 
@@ -69,9 +69,9 @@ void test( int *argc, char ***argv )
 
     VectorField bfield;
     EpotEfield efield( geom, epot );
-    efield_extrpl_e efldextrpl[6] = {EFIELD_EXTRAPOLATE, EFIELD_EXTRAPOLATE, 
-				     EFIELD_MIRROR,EFIELD_EXTRAPOLATE,
-				     EFIELD_EXTRAPOLATE, EFIELD_EXTRAPOLATE };
+    field_extrpl_e efldextrpl[6] = { FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE, 
+				     FIELD_MIRROR,      FIELD_EXTRAPOLATE,
+				     FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE };
     efield.set_extrapolation( efldextrpl );
 
     ParticleDataBase2D pdb;

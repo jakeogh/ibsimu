@@ -1,4 +1,4 @@
-/*! \file scharge_out_of_range.cpp 
+/*! \file Test for scharge out of range error
  *  \test Test for scharge out of range error
  *
  */
@@ -41,9 +41,9 @@ void test( int *argc, char ***argv )
     p.solve( epot, scharge );
 
     EpotEfield efield( g, epot );
-    efield_extrpl_e extrpl[6] = { EFIELD_MIRROR, EFIELD_MIRROR,
-				  EFIELD_MIRROR, EFIELD_MIRROR,
-				  EFIELD_MIRROR, EFIELD_MIRROR };
+    field_extrpl_e extrpl[6] = { FIELD_MIRROR, FIELD_MIRROR,
+				 FIELD_MIRROR, FIELD_MIRROR,
+				 FIELD_MIRROR, FIELD_MIRROR };
     efield.set_extrapolation( extrpl );
 
     ParticleDataBase2D pdb;
