@@ -3,7 +3,7 @@
 
 
 Ion Beam Simulator (IBSimu) library is made by Taneli Kalvas
-<taneli.kalvas@jyu.fi>. All source code copyright (c) 2004-2009 Taneli
+<taneli.kalvas@jyu.fi>. All source code copyright (c) 2004-2010 Taneli
 Kalvas and The Regents of the University of California, through
 Lawrence Berkeley National Laboratory (subject to receipt of any
 required approvals from the U.S. Dept. of Energy). All rights
@@ -50,9 +50,8 @@ Introduction
 ------------
 
 IBSimu is an ion optics simulation library with several capabilities
-for solving electric fields in a geometry and tracing particles in the
-
-electric fields. The code currently has following features:
+for solving electric fields in a geometry and tracing particles in 
+electric and magnetic fields. The code currently has following features:
 
 1. Finite Difference Method (FDM) for solving Poisson's equation 1D, 2D 
    and 3D spaces and in the special case of cylindrical symmetry (3D 
@@ -83,9 +82,9 @@ reference manual from documentation blocks included in the source
 code. See directory doc/html and for built HTML documentation or do
 'make doc' for generating the docs.
 
-In the IBSimu website http://users.jyu.fi/~tvkalvas/ibsimu/ there are
-also installation instructions and a tutorial for first time users in
-html format.
+In the IBSimu website http://ibsimu.sourceforge.net/ there are also
+installation instructions and a tutorial for first time users in html
+format.
 
 
 Acknowledgements
@@ -99,4 +98,4 @@ C++ version of the code with me.
 
 
 
--- Taneli Kalvas <taneli.kalvas@jyu.fi>, 18 Sep 2009
+-- Taneli Kalvas <taneli.kalvas@jyu.fi>, 28 Dec 2010

@@ -1,11 +1,12 @@
 		NEWS
 		====
 
-IBSimu 1.0.3d (unofficial release)				30 Nov 2010
+IBSimu 1.0.4                     				28 Dec 2010
 ---------------------------------------------------------------------------
 
-- Fixed bugs with DXF features.
-
+- Changed to SourceForge hosting and git code management tool
+- Added features and fixed bugs with DXF features.
+- Extrapolation setting for VectorField.
 
 IBSimu 1.0.3c							25 Nov 2010
 ---------------------------------------------------------------------------
