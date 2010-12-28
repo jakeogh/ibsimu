@@ -1,5 +1,5 @@
 /*! \file ibsimu.hpp
- *  \brief Header file ibsimu.hpp
+ *  \brief Ion Beam Simulator global settings
  */
 
 /* Copyright (c) 2010 Taneli Kalvas. All rights reserved.

@@ -1,5 +1,5 @@
 /*! \file dxf_solid.hpp
- *  \brief Header file for dxf_solid.hpp
+ *  \brief Solid definition using MyDXF
  */
 
 /* Copyright (c) 2010 Taneli Kalvas. All rights reserved.

@@ -1,5 +1,5 @@
-/*! \file icon_move.cpp
- *  \brief Source code for icon_move.cpp
+/*! \file icon_move.hpp
+ *  \brief Move icon
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
@@ -186,23 +186,3 @@ const guint8 icon_move_inline[] =
   "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
   "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
   "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

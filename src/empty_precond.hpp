@@ -1,5 +1,5 @@
 /*! \file empty_precond.hpp
- *  \brief Header file for empty_precond.hpp
+ *  \brief Dummy preconditioner
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

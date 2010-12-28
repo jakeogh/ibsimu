@@ -1,5 +1,5 @@
 /*! \file gtkplotter.cpp
- *  \brief Source code for gtkplotter.cpp
+ *  \brief 
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

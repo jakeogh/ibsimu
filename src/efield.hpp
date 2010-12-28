@@ -1,5 +1,5 @@
 /*! \file efield.hpp
- *  \brief Header file for efield.hpp
+ *  \brief Electric field
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

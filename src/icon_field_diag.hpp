@@ -1,8 +1,8 @@
-/*! \file icon_field_diag.cpp
- *  \brief Source code for icon_field_diag.cpp
+/*! \file icon_field_diag.hpp
+ *  \brief Field diagnostic icon
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -126,23 +126,3 @@ const guint8 icon_field_diag_inline[] =
   "\377\0\377\0\377\0\6\220\0\0\0\0\1\0\377\0\377\204\0\0\0\0\1\0\377\0"
   "\377\203\0\0\0\0\3\0\377\0\377\0\0\0\0\0\377\0\377\202\0\0\0\0\1\0\377"
   "\0\377\210\0\0\0\0"};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

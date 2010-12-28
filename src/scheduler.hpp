@@ -1,5 +1,5 @@
 /*! \file scheduler.hpp
- *  \brief Header file for scheduler.hpp
+ *  \brief Job scheduler for parallel processing
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

@@ -1,5 +1,5 @@
 /*! \file geomplot.hpp
- *  \brief Header file for geomplot.hpp
+ *  \brief Geometry plotting
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

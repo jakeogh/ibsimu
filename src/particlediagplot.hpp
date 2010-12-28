@@ -1,5 +1,5 @@
 /*! \file particlediagplot.hpp
- *  \brief Header file for particlediagplot.hpp
+ *  \brief Particle diagnostic plot
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

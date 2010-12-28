@@ -1,5 +1,5 @@
 /*! \file fielddiagplotter.hpp
- *  \brief Header file for fielddiagplotter.hpp
+ *  \brief Non-interactive field diagnostic plotter
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

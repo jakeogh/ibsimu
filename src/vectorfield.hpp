@@ -1,5 +1,5 @@
 /*! \file vectorfield.hpp
- *  \brief Header file for vectorfield.hpp
+ *  \brief Vector fields
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

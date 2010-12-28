@@ -1,5 +1,5 @@
 /*! \file trajectory.hpp
- *  \brief Header file for trajectory.hpp
+ *  \brief Trajectory interpolation solver
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

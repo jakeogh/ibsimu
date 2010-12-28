@@ -1,5 +1,5 @@
 /*! \file geomplotter.hpp
- *  \brief Header file for geomplotter.hpp
+ *  \brief Non-interactive plotter for geometries
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

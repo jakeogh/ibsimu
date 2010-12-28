@@ -1,5 +1,5 @@
 /*! \file lineclip.hpp
- *  \brief Header file for lineclip.hpp
+ *  \brief Floating point line clipping for cairo
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

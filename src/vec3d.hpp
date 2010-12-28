@@ -1,5 +1,5 @@
 /*! \file vec3d.hpp
- *  \brief Header file for three dimensional vectors.
+ *  \brief Three dimensional vectors.
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

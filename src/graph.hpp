@@ -1,5 +1,5 @@
 /*! \file graph.hpp
- *  \brief Header file for graph.hpp
+ *  \brief Base for plottable graphs
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

@@ -1,5 +1,5 @@
 /*! \file gtkpreferences.hpp
- *  \brief Header file for gtkpreferences.hpp
+ *  \brief Preferences for plot windows
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

@@ -1,5 +1,5 @@
 /*! \file gtkfielddiagwindow.hpp
- *  \brief Header file for gtkfielddiagwindow.hpp
+ *  \brief Field diagnostic window
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

@@ -1,5 +1,5 @@
 /*! \file mydxftables.hpp
- *  \brief Tables file for mydxftables.hpp
+ *  \brief DXF Tables
  */
 
 /* Copyright (c) 2010 Taneli Kalvas. All rights reserved.

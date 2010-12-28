@@ -1,5 +1,5 @@
 /*! \file vec4d.hpp
- *  \brief Header file for homogenous vectors for three dimensional space.
+ *  \brief Homogenous vectors for three dimensional space.
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

@@ -1,5 +1,5 @@
 /*! \file error.hpp
- *  \brief Header file for error.hpp
+ *  \brief Error classes and handling
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

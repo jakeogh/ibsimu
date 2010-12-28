@@ -1,5 +1,5 @@
 /*! \file particles.hpp
- *  \brief Header file for particles.hpp
+ *  \brief Particle and particle point objects
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

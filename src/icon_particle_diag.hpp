@@ -1,5 +1,5 @@
-/*! \file icon_particle_diag.cpp
- *  \brief Source code for icon_particle_diag.cpp
+/*! \file icon_particle_diag.hpp
+ *  \brief Particle diagnostics icon
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
@@ -95,23 +95,3 @@ const guint8 icon_particle_diag_inline[] =
   "\377\0\0\177\230\0\0\0\0\1\0\0\0\377\206\0\0\0\0\3\377\0\0\200\377\0"
   "\0\315\377\0\0\3\226\0\0\0\0\1\0\0\0\377\210\0\0\0\0\1\377\0\0\0\226"
   "\0\0\0\0\1\0\0\0\377\237\0\0\0\0\1\0\0\0\377\377\0\0\0\0\212\0\0\0\0"};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

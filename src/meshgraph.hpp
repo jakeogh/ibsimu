@@ -1,5 +1,5 @@
 /*! \file meshgraph.hpp
- *  \brief Header file for meshgraph.hpp
+ *  \brief Graph of rectangular mesh for geometry plots
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

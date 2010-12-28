@@ -1,5 +1,5 @@
 /*! \file epot_efield.hpp
- *  \brief Header file for epot_efield.hpp
+ *  \brief Electric potential base electric field
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

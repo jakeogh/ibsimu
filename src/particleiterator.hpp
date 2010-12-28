@@ -1,5 +1,5 @@
 /*! \file particleiterator.hpp
- *  \brief Header file for particleiterator.hpp
+ *  \brief Particle iterator
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

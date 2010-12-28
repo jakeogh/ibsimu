@@ -1,5 +1,5 @@
 /*! \file compmath.hpp
- *  \brief Header file for compatibility math
+ *  \brief Compatibility math
  */
 
 /* Copyright (c) 2010 Taneli Kalvas. All rights reserved.

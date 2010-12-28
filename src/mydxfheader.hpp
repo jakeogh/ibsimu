@@ -1,5 +1,5 @@
 /*! \file mydxfheader.hpp
- *  \brief Header file for mydxfheader.hpp
+ *  \brief DXF Header
  */
 
 /* Copyright (c) 2010 Taneli Kalvas. All rights reserved.

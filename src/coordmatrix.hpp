@@ -1,5 +1,5 @@
 /*! \file coordmatrix.hpp
- *  \brief Header file for coordmatrix.hpp
+ *  \brief Sparse coordinate-based sparse matrices.
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

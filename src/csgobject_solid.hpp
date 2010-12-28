@@ -1,5 +1,5 @@
 /*! \file csgobject_solid.hpp
- *  \brief Header file for csgobject_solid.hpp
+ *  \brief Solid definition using CSGObject
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

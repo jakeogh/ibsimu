@@ -1,5 +1,5 @@
 /*! \file particlegraph.hpp
- *  \brief Header file for particlegraph.hpp
+ *  \brief Graph for particle plots
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

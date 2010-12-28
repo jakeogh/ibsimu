@@ -1,5 +1,5 @@
-/*! \file icon_track.cpp
- *  \brief Source code for icon_track.cpp
+/*! \file icon_track.hpp
+ *  \brief Track icon
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

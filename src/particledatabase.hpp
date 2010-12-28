@@ -1,5 +1,5 @@
 /*! \file particledatabase.hpp
- *  \brief Header file for particledatabase.hpp
+ *  \brief Particle databases
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

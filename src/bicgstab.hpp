@@ -1,5 +1,5 @@
 /*! \file bicgstab.hpp
- *  \brief Header file for bicgstab.hpp
+ *  \brief Stabilized Biconjugate Gradient solver
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

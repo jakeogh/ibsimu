@@ -1,5 +1,5 @@
-/*! \file icon_hardcopy.cpp
- *  \brief Source code for icon_hardcopy.cpp
+/*! \file icon_hardcopy.hpp
+ *  \brief Hardcopy icon
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
@@ -161,23 +161,3 @@ const guint8 icon_hardcopy_inline[] =
   "\377\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
   "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
   "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

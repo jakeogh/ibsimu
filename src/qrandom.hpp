@@ -1,5 +1,5 @@
 /*! \file qrandom.hpp
- *  \brief Header file for qrandom.hpp
+ *  \brief Random number generators
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

@@ -1,5 +1,5 @@
 /*! \file gtkhardcopy.hpp
- *  \brief Header file for gtkhardcopy.hpp
+ *  \brief Dialog window for producing hard copies
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

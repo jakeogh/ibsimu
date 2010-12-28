@@ -1,5 +1,5 @@
 /*! \file plotter.hpp
- *  \brief Header file for plotter.hpp
+ *  \brief Base for plotters
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

@@ -1,5 +1,5 @@
 /*! \file umfpack_solver.hpp
- *  \brief Header file for umfpack_solver.hpp
+ *  \brief UMFPack solver
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

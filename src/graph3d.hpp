@@ -1,5 +1,5 @@
 /*! \file graph3d.hpp
- *  \brief Header file for graph3d.hpp
+ *  \brief Base for three dimensional plottable graphs
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

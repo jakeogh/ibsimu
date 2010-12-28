@@ -1,5 +1,5 @@
 /*! \file ruler.hpp
- *  \brief Header file for ruler.hpp
+ *  \brief Rulers for plot frames
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.

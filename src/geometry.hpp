@@ -1,5 +1,5 @@
 /*! \file geometry.hpp
- *  \brief Header file for geometry.hpp
+ *  \brief Geometry definition
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

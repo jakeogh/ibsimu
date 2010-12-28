@@ -1,5 +1,5 @@
 /*! \file mydxfblocks.hpp
- *  \brief Blocks file for mydxfblocks.hpp
+ *  \brief DXF Blocks
  */
 
 /* Copyright (c) 2010 Taneli Kalvas. All rights reserved.

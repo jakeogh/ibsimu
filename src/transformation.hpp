@@ -1,5 +1,5 @@
 /*! \file transformation.hpp
- *  \brief Header file for affine transformation
+ *  \brief Full transformation for three dimensional homogenous space
  */
 
 /* Copyright (c) 2010 Taneli Kalvas. All rights reserved.

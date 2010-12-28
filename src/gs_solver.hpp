@@ -1,5 +1,5 @@
 /*! \file gs_solver.hpp
- *  \brief Header file for gs_solver.hpp
+ *  \brief Gauss-Seidel solver
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

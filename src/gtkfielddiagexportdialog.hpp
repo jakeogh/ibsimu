@@ -1,5 +1,5 @@
 /*! \file gtkfielddiagexportdialog.hpp
- *  \brief Header file for gtkfielddiagexportdialog.hpp
+ *  \brief Dialog for exporting field diagnostic data
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

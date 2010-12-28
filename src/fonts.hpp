@@ -1,5 +1,5 @@
 /*! \file fonts.hpp
- *  \brief Header file for fonts.hpp
+ *  \brief Font handling
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
