@@ -13,10 +13,11 @@ This is a list of procedures to follow when making a release of IBSimu.
    the release tarball.
  - Commit changes: Run 'git commit -a' and
    'git push origin master'
- - Tag all files in cvs with version string with 'git tag release-1-0-4 .',
+ - Tag all files in cvs with version string with 'git tag release-1-0-4',
    where the release version number is the current version.
  - Push tags to server: 'git push --tags origin'
- - Edit version number in configure.in to '1.0.4git'.
+ - Edit version number in configure.in to '1.0.4dev' to indicate 
+   after-release version of code.
 
 
 -- Taneli Kalvas <taneli.kalvas@jyu.fi>, 28 Dec 2010
