@@ -50,7 +50,7 @@
 
 /*! \brief Class for palette definition.
  *
- *  Palette is an object that contains a list of colors and
+ *  %Palette is an object that contains a list of colors and
  *  corresponding values. The colors are interpolated linearly between
  *  the defined points for a smooth color palette. The palette values
  *  are normed so that the end points of palette have values 0.0 and
@@ -60,7 +60,7 @@ class Palette {
 
 public:
 
-    /*! \brief Palette defining entry.
+    /*! \brief %Palette defining entry.
      *
      *  An entry containing color-value pair, which are used for
      *  defining palettes.

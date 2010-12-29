@@ -49,7 +49,7 @@
 #include "vec4d.hpp"
 
 
-/*! \brief Transformation for homogenous three dimensional space.
+/*! \brief %Transformation for homogenous three dimensional space.
  *
  *  Transformation for homogenous three dimensional space operates of
  *  4-vectors of type Vec4D. The transformation contains convenience

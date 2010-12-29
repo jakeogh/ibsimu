@@ -49,7 +49,7 @@
 #include <gsl/gsl_roots.h>
 
 
-/*! \brief Random number generator for N dimensions.
+/*! \brief %Random number generator for N dimensions.
  *
  *  This RNG can produce random numbers in N independent
  *  dimensions. RNG includes functions to return uniformly
@@ -161,12 +161,12 @@ public:
 };
 
 
-/*! \brief Quasi random number generator for N dimensions.
+/*! \brief Mersenne Twister random number generator for N dimensions.
  *
- *  This QRNG can produce quasi random numbers in N independent
- *  dimensions. QRNG includes functions to return uniformly
- *  distributed numbers between 0 and 1 and numbers from a gaussian
- *  distribution.
+ *  This RNG can produce random numbers in N independent
+ *  dimensions. RNG includes functions to return uniformly distributed
+ *  numbers between 0 and 1 and numbers from a gaussian distribution.
+ *  Based on MT19937 generator from gsl.
  */
 class MTRandom : public Random {
     gsl_rng           *_rng;     /*!< \brief Random number generator from gsl. */
@@ -177,7 +177,7 @@ class MTRandom : public Random {
 
 public:
 
-    /*! \brief Constructor for QRNG in \a N independent dimensions.
+    /*! \brief Constructor for RNG in \a N independent dimensions.
      */
     MTRandom( int n );
 

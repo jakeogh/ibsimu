@@ -50,6 +50,12 @@
 
 
 /*! \brief Class for trajectory diagnostic data column.
+ *
+ *  Contains one specified (trajectory_diagnostic_e) type of
+ *  diagnostic data for N trajectories as a
+ *  vector. %TrajectoryDiagnosticColumns are used in class
+ *  TrajectoryDiagnosticData to store different types of diagnostic
+ *  data and type information.
  */
 class TrajectoryDiagnosticColumn 
 {
@@ -59,6 +65,8 @@ class TrajectoryDiagnosticColumn
 
 public:
 
+    /*! \brief Create new diagnostic data column with type \a diag.
+     */
     TrajectoryDiagnosticColumn( trajectory_diagnostic_e diag ) 
 	: _diag(diag) {}
 
@@ -71,30 +79,49 @@ public:
      */
     void mirror( coordinate_axis_e axis, double level );
 
+    /*! \brief Add diagnostic data point to column.
+     */
     void add_data( double x ) {
 	_data.push_back( x );
     }
 
+    /*! \brief Get a reference to diagnostic data vector.
+     */
     std::vector<double> &data( void ) { return( _data ); }
 
+    /*! \brief Get a const reference to diagnostic data vector.
+     */
     const std::vector<double> &data( void ) const { return( _data ); }
 
+    /*! \brief Get size of diagnostic data vector.
+     */
     size_t size( void ) const { return( _data.size() ); }
 
+    /*! \brief Get diagnostic type.
+     */
     trajectory_diagnostic_e diagnostic( void ) const { return( _diag ); }
 
+    /*! \brief Get const reference to data element \a i.
+     */
     const double &operator()( size_t i ) const { return( _data[i] ); }
 
+    /*! \brief Get reference to data element \a i.
+     */
     double &operator()( size_t i ) { return( _data[i] ); }
 
+    /*! \brief Get const reference to data element \a i.
+     */
     const double &operator[]( size_t i ) const { return( _data[i] ); }
 
+    /*! \brief Get reference to data element \a i.
+     */
     double &operator[]( size_t i ) { return( _data[i] ); }
-
 };
 
 
 /*! \brief Class for trajectory diagnostic data.
+ *
+ *  Contains a vector of diagnostic columns (TrajectoryDiagnosticColumn).
  */
 class TrajectoryDiagnosticData 
 {
@@ -103,58 +130,86 @@ class TrajectoryDiagnosticData
 
 public:
 
+    /*! \brief Create new empty diagnostic data object.
+     */
     TrajectoryDiagnosticData() {}
 
+    /*! \brief Create diagnostic data object with diagnostic types defined in vector \a diag.
+     */
     TrajectoryDiagnosticData( std::vector<trajectory_diagnostic_e> diag ) {
 	for( size_t a = 0; a < diag.size(); a++ )
 	    _column.push_back( TrajectoryDiagnosticColumn( diag[a] ) );
     }
 
+    /*! \brief Mirror data columns along plane at \a axis = \a level.
+     */
     void mirror( coordinate_axis_e axis, double level ) {
 	for( size_t a = 0; a < _column.size(); a++ )
 	    _column[a].mirror( axis, level );
     }
 
+    /*! \brief Clear all data and diagnostic types.
+     */
     void clear() {
 	_column.clear();
     }
     
+    /*! \brief Add data column with type \a diag.
+     */
     void add_data_column( trajectory_diagnostic_e diag ) {
 	_column.push_back( TrajectoryDiagnosticColumn( diag ) );
     }
 
+    /*! \brief Return number of data columns.
+     */
     size_t diag_size() const {
 	return( _column.size() );
     }
 
+    /*! \brief Return number of trajectories in data.
+     */
     size_t traj_size() const {
 	if( _column.size() > 0 )
 	    return( _column[0].size() );
 	return( 0 );
     }
 
-    trajectory_diagnostic_e diagnostic( size_t diag ) const {
-	return( _column[diag].diagnostic() ); 
+    /*! \brief Return \a i:th diagnostic type.
+     */
+    trajectory_diagnostic_e diagnostic( size_t i ) const {
+	return( _column[i].diagnostic() ); 
     }
 
-    const TrajectoryDiagnosticColumn &operator()( size_t diag ) const {
-	return( _column[diag] );
+    /*! \brief Return \a i:th diagnostic type.
+     */
+    const TrajectoryDiagnosticColumn &operator()( size_t i ) const {
+	return( _column[i] );
     }
 
-    TrajectoryDiagnosticColumn &operator()( size_t diag ) {
-	return( _column[diag] );
+    /*! \brief Return \a i:th diagnostic column.
+     */
+    TrajectoryDiagnosticColumn &operator()( size_t i ) {
+	return( _column[i] );
     }
 
-    const double &operator()( size_t traj, size_t diag ) const {
-	return( _column[diag](traj) );
+    /*! \brief Return const reference to \a j:th trajectory data in \a
+     *  i:th diagnostic column.
+     */
+    const double &operator()( size_t j, size_t i ) const {
+	return( _column[i](j) );
     }
 
-    double &operator()( size_t traj, size_t diag ) {
-	return( _column[diag](traj) );
+    /*! \brief Return reference to \a j:th trajectory data in \a i:th
+     *  diagnostic column.
+     */
+    double &operator()( size_t j, size_t i ) {
+	return( _column[i](j) );
     }
 
-    void add_data( size_t diag, double x ) {
-	_column[diag].add_data( x );
+    /*! \brief Add data point to \a i:th diagnostic column.
+     */
+    void add_data( size_t i, double x ) {
+	_column[i].add_data( x );
     }
 };
 
@@ -170,7 +225,7 @@ public:
  *  and the Twiss parameters
  *  \f[ \alpha = \frac{-<x x'>}{\epsilon}, \beta = \frac{<x^2>}{\epsilon}, \gamma = \frac{<x'^2>}{\epsilon} \f]
  *  In addition to these physical values, the class calculates the angle of the ellipse
- *  \f[ \theta = \frac{1}{2} \arctan{\left( \frac{2\alpha}{\beta - \gamma} \right)} \f]
+ *  \f[ \theta = \frac{1}{2} \arctan2{\left( 2\alpha, \beta - \gamma \right)} \f]
  *  and the half-axis lengths
  *  \f[ r_1 = \sqrt{\frac{\epsilon}{2}} ( \sqrt{H+1} + \sqrt{H-1} ) \f]
  *  \f[ r_2 = \sqrt{\frac{\epsilon}{2}} ( \sqrt{H+1} - \sqrt{H-1} ), \f]
@@ -219,16 +274,40 @@ public:
     Emittance( const std::vector<double> &x,
 	       const std::vector<double> &xp );
 
+    /*! \brief Return average position (center location) of emittance distribution.
+     */
     double xave( void ) { return( _xave ); }
+
+    /*! \brief Return average angle (center location) of emittance distribution.
+     */
     double xpave( void ) { return( _xpave ); }
 
+    /*! \brief Return \f$\alpha\f$ of emittance distribution.
+     */
     double alpha( void ) { return( _alpha ); }
+
+    /*! \brief Return \f$\beta\f$ of emittance distribution.
+     */
     double beta( void ) { return( _beta ); }
+
+    /*! \brief Return \f$\gamma\f$ of emittance distribution.
+     */
     double gamma( void ) { return( _gamma ); }
+
+    /*! \brief Return rms emittance.
+     */
     double epsilon( void ) { return( _epsilon ); }
 
+    /*! \brief Return angle of fitted rms ellipse.
+     */
     double angle( void ) { return( _angle ); }
+
+    /*! \brief Return major radius of fitted rms ellipse.
+     */
     double rmajor( void ) { return( _rmajor ); }
+
+    /*! \brief Return minor radius of fitted rms ellipse.
+     */
     double rminor( void ) { return( _rminor ); } 
 };
 
@@ -281,21 +360,3 @@ public:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
