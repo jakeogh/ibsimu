@@ -106,6 +106,8 @@ legend.cpp \
 legend.hpp \
 lineclip.cpp \
 lineclip.hpp \
+mat3d.cpp \
+mat3d.hpp \
 matrix.cpp \
 matrix.hpp \
 meshgraph.cpp \
@@ -218,6 +220,7 @@ interpolation.hpp \
 label.hpp \
 legend.hpp \
 lineclip.hpp \
+mat3d.hpp \
 matrix.hpp \
 meshgraph.hpp \
 mvector.hpp \

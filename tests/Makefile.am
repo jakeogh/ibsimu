@@ -25,6 +25,7 @@ hbio_SOURCES = hbio.cpp
 histogram_SOURCES = histogram.cpp
 label_SOURCES = label.cpp
 lu_test_SOURCES = lu_test.cpp
+matvec3dtest_SOURCES = matvec3dtest.cpp
 matrixconv_SOURCES = matrixconv.cpp
 matrixsolver_SOURCES = matrixsolver.cpp
 mvector_SOURCES = mvector.cpp
@@ -101,6 +102,7 @@ hbio \
 histogram \
 label \
 lu_test \
+matvec3dtest \
 matrixconv \
 matrixsolver \
 mvector \
