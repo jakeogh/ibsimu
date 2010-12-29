@@ -682,6 +682,13 @@ void ParticleDataBase3D::add_3d_gaussian_beam_with_emittance( uint32_t N, double
 }
 
 
+void ParticleDataBase3D::
+trajectories_at_plane( TrajectoryDiagnosticData &tdata, 
+		       Vec3D c, Vec3D o, Vec3D p,
+		       const std::vector<trajectory_diagnostic_e> &diagnostics ) const
+{
+    
+}
 
 
 

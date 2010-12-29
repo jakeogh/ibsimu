@@ -93,9 +93,10 @@ protected:
 
     int            _iteration;   /*!< \brief Iteration number. */
 
-    bool           _nsimp;
-    const ScalarField *_epot;
-    double         _phi_plasma;
+    bool           _nsimp;       /*!< \brief Plasma threshold for negative simple 
+				  *   extraction model. */
+    const ScalarField *_epot;    /*!< \brief Scalarfield for plasma threshold. */
+    double         _phi_plasma;  /*!< \brief Potential limit for plasma threshold. */
 
     /*! \brief Constructor.
      */
@@ -389,8 +390,13 @@ template<class PP> class ParticleDataBasePP : public ParticleDataBase {
 		data = p.qm();
 		break;
 	    case DIAG_EK:
-		Vec3D velocity = x.velocity();
-		data = velocity.norm2();
+		// This is wrong - no mass dependence
+		// Vec3D velocity = x.velocity();
+		//data = velocity.norm2();
+		data = 0.0;
+		break;
+	    default:
+		throw( ErrorUnimplemented( ERROR_LOCATION ) );
 		break;
 	    }
 	    //std::cout << "  adding data = " << data << "\n";
@@ -1121,29 +1127,20 @@ public:
 					      double ay, double by, double ey,
 					      double az, double bz, double ez,
 					      double Ex, double x0, double y0, double z0 );
+
+
+    /*! \brief Get trajectory diagnostic on a plane.
+     *
+     *  Builds trajectory diagnostics on a plane defined in three
+     *  dimensional space by center point vector \a c and two basis
+     *  vectors \a o and \a p. The vectors \a o and \a p are
+     *  normalized and p adjusted to be orthogonal to \a o. The
+     *  diagnostic gathered is defined by \a diagnostics. Data is
+     *  returned in \a tdata.
+     */
+    void trajectories_at_plane( TrajectoryDiagnosticData &tdata, 
+				Vec3D c, Vec3D o, Vec3D p,
+				const std::vector<trajectory_diagnostic_e> &diagnostics ) const;
 };
 
-
-
-
-
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

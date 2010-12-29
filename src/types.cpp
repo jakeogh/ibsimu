@@ -1,8 +1,8 @@
 /*! \file types.cpp
- *  \brief Source code for types.cpp
+ *  \brief Base types
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -61,7 +61,7 @@ const char *coordinate_axis_string_with_unit[] = {
 
 const char *trajectory_diagnostic_string[] = {
     "none",
-    "time",
+    "t",
     "x",
     "v_x",
     "y",
@@ -72,12 +72,20 @@ const char *trajectory_diagnostic_string[] = {
     "v_\\theta",
     "z",
     "v_z",
-    "I",
+    "o",
+    "v_o",
+    "p",
+    "v_p",
+    "q",
+    "v_q",
     "x\'",
     "y\'",
     "r\'",
     "\\alpha\'",
     "z\'",
+    "o\'",
+    "p\'",
+    "I",
     "E_k",
     "q/m"
 };
@@ -85,7 +93,7 @@ const char *trajectory_diagnostic_string[] = {
 
 const char *trajectory_diagnostic_string_with_unit[] = {
     "none ()",
-    "time (s)",
+    "t (s)",
     "x (m)",
     "v_x (m/s)",
     "y (m)",
@@ -96,12 +104,20 @@ const char *trajectory_diagnostic_string_with_unit[] = {
     "v_\\theta (m/s)",
     "z (m)",
     "v_z (m/s)",
-    "I (A)",
+    "o (m)",
+    "v_o (m/s)",
+    "p (m)",
+    "v_p (m/s)",
+    "q (m)",
+    "v_q (m/s)",
     "x\' (rad)",
     "y\' (rad)",
     "r\' (rad)",
     "\\alpha\' (rad)",
     "z\' (rad)",
+    "o\' (rad)",
+    "p\' (rad)",
+    "I (A)",
     "E_k (J)",
     "q/m (C/kg)"
 };

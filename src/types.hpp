@@ -73,82 +73,90 @@ enum field_extrpl_e {
 };
 
 
-/*! \brief Boundary type enum.
+/*! \brief Boundary type.
  *
- *  %Solid boundary may have either essential, Dirichlet boundary
- *  condition \a BOUND_DIRICHLET or natural, Neumann boundary
- *  condition \a BOUND_NEUMANN.
+ *  Boundary conditions for solids and simulation box boundaries. See
+ *  class Bound for more information.
  */
 enum bound_e {
-    BOUND_DIRICHLET = 0,
-    BOUND_NEUMANN
+    BOUND_DIRICHLET = 0, /*!< \brief Dirichlet boundary condition */
+    BOUND_NEUMANN        /*!< \brief Neumann (or natural) boundary condition */
 };
 
 
 /*! \brief Coordinate axis identifier.
  */
 enum coordinate_axis_e {
-    AXIS_X = 0,
-    AXIS_Y,
-    AXIS_R,
-    AXIS_Z
+    AXIS_X = 0, /*!< \brief X axis */
+    AXIS_Y,     /*!< \brief Y axis */
+    AXIS_R,     /*!< \brief R axis */
+    AXIS_Z      /*!< \brief Z axis */
 };
 
 
+/*! \brief String describing axis names without unit.
+ *
+ *  Contains strings: "x", "y", "r" and "z".
+ */
 extern const char *coordinate_axis_string[];
+
+
+/*! \brief String describing axis names with unit.
+ *
+ *  Contains strings: "x (m)", "y (m)", "r (m)" and "z (m)".
+ */
 extern const char *coordinate_axis_string_with_unit[];
 
 
 /*! \brief Type of diagnostic for trajectories.
  */
 enum trajectory_diagnostic_e {
-    DIAG_NONE = 0,
-    DIAG_T,
-    DIAG_X,
-    DIAG_VX,
-    DIAG_Y,
-    DIAG_R,
-    DIAG_VY,
-    DIAG_VR,
-    DIAG_W,
-    DIAG_VTHETA,
-    DIAG_Z,
-    DIAG_VZ,
-    DIAG_CURR,
-    DIAG_XP,
-    DIAG_YP,
-    DIAG_RP,
-    DIAG_AP,
-    DIAG_ZP,
-    DIAG_EK,
-    DIAG_QM
+    DIAG_NONE = 0, /*!< \brief Dummy diagnostic. Does nothing. */
+    DIAG_T,        /*!< \brief Time (s) */
+    DIAG_X,        /*!< \brief X-axis position (m) */
+    DIAG_VX,       /*!< \brief X-axis velocity (m/s) */
+    DIAG_Y,        /*!< \brief Y-axis position (m) */
+    DIAG_R,        /*!< \brief Radial position (m) */
+    DIAG_VY,       /*!< \brief Y-axis velocity (m/s) */
+    DIAG_VR,       /*!< \brief Radial velocity (m/s) */
+    DIAG_W,        /*!< \brief Angular velocity (rad/s) */
+    DIAG_VTHETA,   /*!< \brief Tangential velocity (m/s) */
+    DIAG_Z,        /*!< \brief Z-axis position (m) */
+    DIAG_VZ,       /*!< \brief Z-axis velocity (m/s) */
+    DIAG_O,        /*!< \brief O-axis position (m) */
+    DIAG_VO,       /*!< \brief O-axis velocity (m/s) */
+    DIAG_P,        /*!< \brief P-axis position (m) */
+    DIAG_VP,       /*!< \brief P-axis velocity (m/s) */
+    DIAG_Q,        /*!< \brief Q-axis position (m) */
+    DIAG_VQ,       /*!< \brief Q-axis velocity (m/s) */
+    DIAG_XP,       /*!< \brief \f$v_x/v_q\f$, where direction q is normal to diagnostic plane (rad) */
+    DIAG_YP,       /*!< \brief \f$v_y/v_q\f$, where direction q is normal to diagnostic plane (rad) */
+    DIAG_RP,       /*!< \brief \f$v_r/v_q\f$, where direction q is normal to diagnostic plane (rad) */
+    DIAG_AP,       /*!< \brief \f$v_{\theta}/v_q\f$, where direction q is normal to diagnostic plane (rad) */
+    DIAG_ZP,       /*!< \brief \f$v_z/v_q\f$, where direction q is normal to diagnostic plane (rad) */
+    DIAG_OP,       /*!< \brief \f$v_o/v_q\f$, where direction q is normal to diagnostic plane (rad) */
+    DIAG_PP,       /*!< \brief \f$v_p/v_q\f$, where direction q is normal to diagnostic plane (rad) */
+    DIAG_CURR,     /*!< \brief Current (I) */
+    DIAG_EK,       /*!< \brief Kinetic energy (J) */
+    DIAG_QM        /*!< \brief Charge per mass (C/g) */
 };
 
 
+/*! \brief String describing diagnostic without unit.
+ *
+ *  Contains strings: "none", "t", "x", "v_x", "y", ... Greek letters
+ *  are typed with LaTeX notation for correct output in plots.
+ */
 extern const char *trajectory_diagnostic_string[];
+
+
+/*! \brief String describing diagnostic with unit.
+ *
+ *  Contains strings: "none ()", "t (s)", "x (m)", "v_x (m/2)", "y
+ *  (m)", ... Greek letters are typed with LaTeX notation for correct
+ *  output in plots.
+ */
 extern const char *trajectory_diagnostic_string_with_unit[];
 
 
-
-
-
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
