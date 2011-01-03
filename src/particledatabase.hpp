@@ -528,12 +528,10 @@ public:
 	    if( N < 2 )
 		continue;
 	    PP x1 = _particles[a].traj(0);
-	    size_t nintsum = 0;
 	    for( size_t b = 1; b < N; b++ ) {
 		PP x2 = _particles[a].traj(b);
 		intsc.clear();
 		size_t nintsc = PP::trajectory_intersections_at_plane( intsc, crd, val, x1, x2 );
-		nintsum += nintsc;
 		for( size_t c = 0; c < nintsc; c++ ) {
 		    Isum += _particles[a].IQ();
 		    add_diagnostics( tdata, intsc[c], _particles[a], crd );
@@ -1134,13 +1132,19 @@ public:
      *  Builds trajectory diagnostics on a plane defined in three
      *  dimensional space by center point vector \a c and two basis
      *  vectors \a o and \a p. The vectors \a o and \a p are
-     *  normalized and p adjusted to be orthogonal to \a o. The
-     *  diagnostic gathered is defined by \a diagnostics. Data is
-     *  returned in \a tdata.
+     *  normalized and p is adjusted to be orthogonal to \a o. This is
+     *  done by calculating \a q = \a cross(o,p) and \a p = \a
+     *  cross(q,o). The diagnostic gathered is defined by \a
+     *  diagnostics. Data is returned in \a tdata.
+     *
+     *  Valid diagnostic types are DIAG_T, DIAG_X, DIAG_VX, DIAG_Y,
+     *  DIAG_VY, DIAG_Z, DIAG_VZ, DIAG_O, DIAG_VO, DIAG_P, DIAG_VP,
+     *  DIAG_Q, DIAG_VQ, DIAG_OP, DIAG_PP, DIAG_CURR, DIAG_EK and
+     *  DIAG_QM.
      */
-    void trajectories_at_plane( TrajectoryDiagnosticData &tdata, 
-				Vec3D c, Vec3D o, Vec3D p,
-				const std::vector<trajectory_diagnostic_e> &diagnostics ) const;
+    void trajectories_at_free_plane( TrajectoryDiagnosticData &tdata, 
+				     Vec3D c, Vec3D o, Vec3D p,
+				     const std::vector<trajectory_diagnostic_e> &diagnostics ) const;
 };
 
 #endif

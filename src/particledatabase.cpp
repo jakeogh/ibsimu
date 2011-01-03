@@ -43,6 +43,7 @@
 #include "particledatabase.hpp"
 #include "polysolver.hpp"
 #include "qrandom.hpp"
+#include "mat3d.hpp"
 
 
 void ParticleDataBase2D::add_2d_beam_with_velocity( uint32_t N, double J, double q, double m, 
@@ -683,11 +684,169 @@ void ParticleDataBase3D::add_3d_gaussian_beam_with_emittance( uint32_t N, double
 
 
 void ParticleDataBase3D::
-trajectories_at_plane( TrajectoryDiagnosticData &tdata, 
-		       Vec3D c, Vec3D o, Vec3D p,
-		       const std::vector<trajectory_diagnostic_e> &diagnostics ) const
+trajectories_at_free_plane( TrajectoryDiagnosticData &tdata, 
+			    Vec3D c, Vec3D o, Vec3D p,
+			    const std::vector<trajectory_diagnostic_e> &diagnostics ) const
 {
-    
+    // Check input
+    for( size_t a = 0; a < diagnostics.size(); a++ ) {
+	if( diagnostics[a] != DIAG_T && 
+	    diagnostics[a] != DIAG_X && diagnostics[a] != DIAG_VX && 
+	    diagnostics[a] != DIAG_Y && diagnostics[a] != DIAG_VY && 
+	    diagnostics[a] != DIAG_Z && diagnostics[a] != DIAG_VZ && 
+	    diagnostics[a] != DIAG_O && diagnostics[a] != DIAG_VO && 
+	    diagnostics[a] != DIAG_P && diagnostics[a] != DIAG_VP && 
+	    diagnostics[a] != DIAG_Q && diagnostics[a] != DIAG_VQ && 
+	    diagnostics[a] != DIAG_OP && diagnostics[a] != DIAG_PP && 
+	    diagnostics[a] != DIAG_CURR && diagnostics[a] != DIAG_EK && 
+	    diagnostics[a] != DIAG_QM )
+	    throw( Error( ERROR_LOCATION, "invalid diagnostic type " + to_string(diagnostics[a]) ) );
+    }
+
+    // Forward vector (normal to plane)
+    Vec3D q = cross(o,p);
+    if( q.norm2() == 0.0 )
+	throw( Error( ERROR_LOCATION, "invalid vectors defining plane" ) );
+
+    // Orthogonalize vector p
+    p = cross(q,o);
+
+    // Normalize vectors
+    o.normalize();
+    p.normalize();
+    q.normalize();
+
+    if( ibsimu.get_verbose_output() )
+	std::cout << "Making trajectory diagnostics at plane\n" 
+		  << "  c = " << c << "\n"
+		  << "  o = " << o << "\n"
+		  << "  p = " << p << "\n"
+		  << "  q = " << q << "\n";
+
+
+    // Prepare output vector
+    tdata.clear();
+    for( size_t a = 0; a < diagnostics.size(); a++ ) {
+	tdata.add_data_column( diagnostics[a] );
+    }
+
+    // Scan through particle trajectory points
+    double Isum = 0.0;
+    for( size_t a = 0; a < _particles.size(); a++ ) {
+	size_t N = _particles[a].traj_size();
+	if( N < 2 )
+	    continue;
+	ParticleP3D x1 = _particles[a].traj(0);
+	for( size_t b = 1; b < N; b++ ) {
+	    ParticleP3D x2 = _particles[a].traj(b);
+
+	    // Solve trajectory crossing point using linear interpolation of position
+	    // K[0]: parametric distance from x1 to x2
+ 	    // K[1]: distance in direction o
+	    // K[2]: distance in direction p
+	    Vec3D K;
+	    try {
+		Mat3D m( x2[1]-x1[1], -o[0], -p[0],
+			 x2[3]-x1[3], -o[1], -p[1],
+			 x2[5]-x1[5], -o[2], -p[2] );
+		Mat3D minv = m.inverse();
+		Vec3D off( c[0]-x1[1], c[1]-x1[3], c[2]-x1[5] );
+		K = minv*off;
+	    } catch(...) {
+		continue;
+	    }
+	    
+	    if( K[0] >= 0.0 && K[0] < 1.0 ) {
+		// Crossing found between x1 and x2, accumulate total current
+		Isum += _particles[a].IQ();
+
+		// Position and velocity in xyz coordinates
+		double t = K[0];
+		double nt = 1.0-K[0];
+		Vec3D pos( nt*x1[1]+t*x2[1], nt*x1[3]+t*x2[3], nt*x1[5]+t*x2[5] );
+		Vec3D vel( nt*x1[2]+t*x2[2], nt*x1[4]+t*x2[4], nt*x1[6]+t*x2[6] );
+
+		// Position and velocity in opq coordinates
+		Vec3D pos_opq( K[1], K[2], 0.0 );
+		Vec3D vel_opq( vel*o, vel*p, vel*q );
+
+		// Fill diagnostic data
+		for( size_t a = 0; a < tdata.diag_size(); a++ ) {
+
+		    switch( tdata.diagnostic( a ) ) {
+		    case DIAG_T:
+			tdata.add_data( a, nt*x1[0]+t*x2[0] );
+			break;
+
+		    case DIAG_X:
+			tdata.add_data( a, pos[0] );
+			break;
+		    case DIAG_VX:
+			tdata.add_data( a, vel[0] );
+			break;
+		    case DIAG_Y:
+			tdata.add_data( a, pos[1] );
+			break;
+		    case DIAG_VY:
+			tdata.add_data( a, vel[1] );
+			break;
+		    case DIAG_Z:
+			tdata.add_data( a, pos[2] );
+			break;
+		    case DIAG_VZ:
+			tdata.add_data( a, vel[2] );
+			break;
+
+		    case DIAG_O:
+			tdata.add_data( a, pos_opq[0] );
+			break;
+		    case DIAG_VO:
+			tdata.add_data( a, vel_opq[0] );
+			break;
+		    case DIAG_P:
+			tdata.add_data( a, pos_opq[1] );
+			break;
+		    case DIAG_VP:
+			tdata.add_data( a, vel_opq[1] );
+			break;
+		    case DIAG_Q:
+			tdata.add_data( a, pos_opq[2] );
+			break;
+		    case DIAG_VQ:
+			tdata.add_data( a, vel_opq[2] );
+			break;
+
+		    case DIAG_OP:
+			tdata.add_data( a, vel_opq[0]/vel_opq[2] );
+			break;
+		    case DIAG_PP:
+			tdata.add_data( a, vel_opq[1]/vel_opq[2] );
+			break;
+
+		    case DIAG_CURR:
+			tdata.add_data( a, _particles[a].IQ() );
+			break;
+		    case DIAG_EK:
+			tdata.add_data( a, 0.5*_particles[a].m()*vel.ssqr() );
+			break;
+		    case DIAG_QM:
+			tdata.add_data( a, _particles[a].qm() );
+			break;
+
+		    default:
+			throw( ErrorUnimplemented( ERROR_LOCATION ) );
+			break;
+		    }
+		}
+	    }
+	    x1 = x2;
+	}
+    }
+
+    if( ibsimu.get_verbose_output() ) {
+	std::cout << "  number of trajectories = " << tdata.traj_size() << "\n";
+	std::cout << "  total current = " << Isum << " A\n";
+    }
 }
 
 
