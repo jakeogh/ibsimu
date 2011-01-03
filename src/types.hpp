@@ -109,6 +109,8 @@ extern const char *coordinate_axis_string_with_unit[];
 
 
 /*! \brief Type of diagnostic for trajectories.
+ *
+ *  O-, P- and Q-axes are diagnostic axes defined by user.
  */
 enum trajectory_diagnostic_e {
     DIAG_NONE = 0, /*!< \brief Dummy diagnostic. Does nothing. */
