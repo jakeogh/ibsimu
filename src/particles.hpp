@@ -2,7 +2,7 @@
  *  \brief Particle and particle point objects
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -567,11 +567,13 @@ protected:
 					*   In 3D and cylindrically symmetric simulations 
 					*   unit is A or C.
 					*/
-    double              _qm;           /*!< \brief Ratio q/m [C/kg] */
+    double              _q;            /*!< \brief Charge q [C] */
+    double              _m;            /*!< \brief Mass m [kg] */
 
     ParticleBase( double IQ, double q, double m ) 
-	: _status(PARTICLE_OK), _qm(q/m) {
-	if( _qm < 0 )
+	: _status(PARTICLE_OK), _q(q) {
+	_m = fabs(m);
+	if( _q/_m < 0 )
 	    _IQ = -fabs(IQ);
 	else
 	    _IQ = fabs(IQ);
@@ -589,14 +591,21 @@ public:
      */
     void set_status( particle_status_e status ) { _status = status; }
 
-    /*! \brief Return current or charge of particle [A/C].
+    /*! \brief Return current or charge carried by trajectory or particle cloud [A/C].
      */
     double IQ() const { return( _IQ ); }
 
-    /*! \brief Return q/m ratio [C/kg].
+    /*! \brief Return particle charge (q) [C].
      */
-    double qm() const { return( _qm ); }
+    double q() const { return( _q ); }
 
+    /*! \brief Return particle mass (m) [kg].
+     */
+    double m() const { return( _m ); }
+
+    /*! \brief Return charge per mass ratio (q/m) [C/kg].
+     */
+    double qm() const { return( _q/_m ); }
 };
 
 
@@ -698,7 +707,8 @@ public:
 	else
 	    std::cout << "status = Unknown\n";
 	std::cout << "IQ   = " << _IQ << "\n";
-	std::cout << "q/m  = " << _qm << "\n";
+	std::cout << "q    = " << _q << "\n";
+	std::cout << "m    = " << _m << "\n";
 	std::cout << "x    = " << _x << "\n";
 	std::cout << "Trajectory:\n";
 	for( a = 0; a < _trajectory.size(); a++ )
