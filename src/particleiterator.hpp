@@ -2,7 +2,7 @@
  *  \brief Particle iterator
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -451,7 +451,7 @@ template <class PP> class ParticleIterator {
 	    // Mesh number of x1 (start point)
 	    int i = (int)floor( (x1[2*a+1]-_pidata._g->origo(a))/_pidata._g->h() );
 	    
-	    // Search to negative(dj = -1) and positive (dj = +1) mesh directions
+	    // Search to negative (dj = -1) and positive (dj = +1) mesh directions
 	    for( int dj = -1; dj <= 1; dj += 2 ) {
 		int j = i;
 		if( dj == +1 )
@@ -459,7 +459,14 @@ template <class PP> class ParticleIterator {
 		int Kcount;  // Solution counter
 		double K[3]; // Solution array
 		while( 1 ) {
+
+		    // Intersection point
 		    double val = _pidata._g->origo(a) + _pidata._g->h() * j;
+		    if( val < _pidata._g->origo(a) )
+			break;
+		    else if( val > _pidata._g->max(a) )
+			break;
+
 #ifdef DEBUG_PARTICLE_ITERATOR
 		    std::cout << "  Searching intersections at coord(" << a << ") = " << val << "\n";
 #endif
