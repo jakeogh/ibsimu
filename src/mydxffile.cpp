@@ -158,7 +158,7 @@ void MyDXFFile::read( const std::string &filename )
 	    } else if( group_get_string() == "BLOCKS" ) {
 		_blocks = new MyDXFBlocks( this );
 	    } else if( group_get_string() == "ENTITIES" ) {
-		_entities = new MyDXFEntities( this );
+		_entities = new MyDXFEntities( this, false );
 	    } else {
 		// Unknown section
 		if( wlevel() )

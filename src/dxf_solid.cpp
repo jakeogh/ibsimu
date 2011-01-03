@@ -59,7 +59,7 @@ DXFSolid::DXFSolid( MyDXFFile *dxffile, const std::string &layername )
     if( loop->size() == 0 )
 	throw( Error( ERROR_LOCATION, "No loops defined in layer" ) );
 
-    _entities = new MyDXFEntities( ent, loop );
+    _entities = new MyDXFEntities( dxffile, ent, loop );
     _selection = _entities->selection_all();
 
     if( ibsimu.get_verbose_output() ) {

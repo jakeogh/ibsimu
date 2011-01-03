@@ -915,30 +915,31 @@ public:
  *
  *  A database of entities. Also responsible for reading entities from
  *  a DXF file. All supported entities are saved to database. All
- *  others are silently ignored.
+ *  others are ignored.
  */
 class MyDXFEntities
 {
 
-    std::vector<MyDXFEntity *> _entities;
+    MyDXFFile                  *_dxf;      /*!< \brief Pointer to parent dxffile */
+    std::vector<MyDXFEntity *>  _entities; /*!< \brief Entities */
 
 public:
 
 
     /*! \brief Construct empty entities database.
      */
-    MyDXFEntities() {}
+    MyDXFEntities( class MyDXFFile *dxf );
 
     /*! \brief Construct new entities containing copies of selected intities in \a ent.
      */
-    MyDXFEntities( MyDXFEntities *ent, MyDXFEntitySelection *sel );
+    MyDXFEntities( class MyDXFFile *dxf, MyDXFEntities *ent, MyDXFEntitySelection *sel );
 
     /*! \brief Construct entities database by reading from DXF file.
      *
      *  Called with reading_block = true if called from inside BLOCKS
-     *  section.
+     *  section and reading_block = false if called inside ENTITIES section.
      */
-    MyDXFEntities( class MyDXFFile *dxf, bool reading_blocks = false );
+    MyDXFEntities( class MyDXFFile *dxf, bool reading_blocks );
 
     /*! \brief Destructor.
      */

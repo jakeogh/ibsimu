@@ -5,6 +5,13 @@ This document describes those library changes that break end-user
 programs, that is removal or changes of old features or
 functions. This list was started from version 1.0.3.
 
+IBSimu 1.0.4dev
+---------------------------------------------------------------------------
+
+All MyDXFEntities constructors need a pointer to MyDXFFile. This
+change is made to give MyDXFEntities access to warning level setting
+at MyDXFFile.
+
 IBSimu 1.0.4							
 ---------------------------------------------------------------------------
 
