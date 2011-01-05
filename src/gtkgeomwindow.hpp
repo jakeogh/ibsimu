@@ -56,7 +56,7 @@
  */
 class GTKGeomWindow : public GTKWindow {
 
-    GeomPlot                _geomplot;
+    GeomPlot                 _geomplot;
 
     const Geometry          *_geom;
     const ScalarField       *_epot;
