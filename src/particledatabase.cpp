@@ -393,6 +393,64 @@ void ParticleDataBaseCyl::add_2d_gaussian_beam_with_emittance( uint32_t N, doubl
 }
 
 
+void ParticleDataBaseCyl::build_trajectory_density_field( ScalarField &tdens ) const
+{
+    tdens.clear();
+
+    // Go through all particle trajectories
+    for( size_t a = 0; a < _particles.size(); a++ ) {
+	size_t N = _particles[a].traj_size();
+	if( N < 2 )
+	    continue;
+	ParticlePCyl x1 = _particles[a].traj(0);
+	double IQ = _particles[a].IQ();
+	for( size_t b = 1; b < N; b++ ) {
+	    ParticlePCyl x2 = _particles[a].traj(b);
+
+	    // Process trajectory from x1 to x2
+	    double x[2];
+	    double t[2];
+	    int i[2];
+
+	    // x-direction
+	    x[0] = 0.5*( x1[1] + x2[1] );
+	    i[0] = (int)floor( ( x[0]-tdens.origo(0) ) * tdens.div_h() );
+	    t[0] = ( x[0]-(i[0]*tdens.h()+tdens.origo(0)) ) * tdens.div_h();
+
+	    // r-direction
+	    x[1] = 0.5*( x1[3] + x2[3] );
+	    i[1] = (int)floor( ( x[1]-tdens.origo(1) ) * tdens.div_h() );
+	    double rj1 = i[1]*tdens.h()+tdens.origo(1);
+	    double rj2 = rj1+tdens.h();
+	    rj1 = rj1*rj1;
+	    rj2 = rj2*rj2;
+	    t[1] = (x[1]*x[1]-rj1) / (rj2-rj1);
+	    
+	    for( size_t a = 0; a < 2; a++ ) {
+		// Add charge to boundaries when over simulation area
+		if( i[a] < 0 ) {
+		    i[a] = 0;
+		    t[a] = 0.0;
+		} else if( i[a] >= tdens.size(a)-1 ) {
+		    i[a] = tdens.size(a)-2;
+		    t[a] = 1.0;
+		}
+	    }
+	    
+	    double J = IQ/(M_PI*(rj2-rj1)); // J = I/area
+	    int p = tdens.size(0)*i[1] + i[0];
+	    tdens( p )                 += (1.0-t[0])*(1.0-t[1])*J;
+	    tdens( p+tdens.size(0) )   += (1.0-t[0])*t[1]*J;
+	    tdens( p+1 )               += t[0]*(1.0-t[1])*J;
+	    tdens( p+1+tdens.size(0) ) += t[0]*t[1]*J;
+	    
+	    // Next trajectory line
+	    x1 = x2;
+	}
+    }    
+}
+
+
 void ParticleDataBase3D::add_cylindrical_beam_with_velocity( uint32_t N, double J, double q, double m, 
 							     double v, double dvp, double dvt, Vec3D c, 
 							     Vec3D dir1, Vec3D dir2, double r )
@@ -850,4 +908,50 @@ trajectories_at_free_plane( TrajectoryDiagnosticData &tdata,
 }
 
 
+void ParticleDataBase3D::build_trajectory_density_field( ScalarField &tdens ) const
+{
+    double h2 = tdens.h()*tdens.h();
+    tdens.clear();
 
+    // Go through all particle trajectories
+    for( size_t a = 0; a < _particles.size(); a++ ) {
+	size_t N = _particles[a].traj_size();
+	if( N < 2 )
+	    continue;
+	ParticleP3D x1 = _particles[a].traj(0);
+	double IQ = _particles[a].IQ();
+	for( size_t b = 1; b < N; b++ ) {
+	    ParticleP3D x2 = _particles[a].traj(b);
+
+	    // Process trajectory from x1 to x2
+	    double x[3];
+	    double t[3];
+	    int i[3];
+
+	    for( size_t a = 0; a < 3; a++ ) {
+		x[a] = 0.5*( x1[2*a+1] + x2[2*a+1] );
+		i[a] = (int)floor( ( x[a]-tdens.origo(a) ) * tdens.div_h() );
+		t[a] = ( x[a]-(i[a]*tdens.h()+tdens.origo(a)) ) * tdens.div_h();
+
+		if( i[a] < 0 || i[a] >= tdens.size(a)-1 )
+		    continue;
+	    }
+
+	    double J = IQ/h2; // J = I/area
+	    int p = tdens.size(0)*tdens.size(1)*i[2] + tdens.size(0)*i[1] + i[0];
+	    tdens( p )                 += (1.0-t[0])*(1.0-t[1])*(1.0-t[2])*J;
+	    tdens( p+tdens.size(0) )   += (1.0-t[0])*t[1]*(1.0-t[2])*J;
+	    tdens( p+1 )               += t[0]*(1.0-t[1])*(1.0-t[2])*J;
+	    tdens( p+1+tdens.size(0) ) += t[0]*t[1]*(1.0-t[2])*J;
+	    
+	    p += tdens.size(0)*tdens.size(1);
+	    tdens( p )                 += (1.0-t[0])*(1.0-t[1])*t[2]*J;
+	    tdens( p+tdens.size(0) )   += (1.0-t[0])*t[1]*t[2]*J;
+	    tdens( p+1 )               += t[0]*(1.0-t[1])*t[2]*J;
+	    tdens( p+1+tdens.size(0) ) += t[0]*t[1]*t[2]*J;
+	    
+	    // Next trajectory line
+	    x1 = x2;
+	}
+    }    
+}

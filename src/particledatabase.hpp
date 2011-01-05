@@ -2,7 +2,7 @@
  *  \brief Particle databases
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -968,6 +968,12 @@ public:
     void add_2d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
 					      double a, double b, double e,
 					      double Ex, double x0 );
+
+    /*! \brief Build trajectory density field.
+     *
+     *  The scalar field \a tdens can differ from geometry.
+     */
+    void build_trajectory_density_field( ScalarField &tdens ) const;
 };
 
 
@@ -1145,6 +1151,12 @@ public:
     void trajectories_at_free_plane( TrajectoryDiagnosticData &tdata, 
 				     Vec3D c, Vec3D o, Vec3D p,
 				     const std::vector<trajectory_diagnostic_e> &diagnostics ) const;
+
+    /*! \brief Build trajectory density field.
+     *
+     *  The scalar field \a tdens can differ from geometry.
+     */
+    void build_trajectory_density_field( ScalarField &tdens ) const;
 };
 
 #endif
