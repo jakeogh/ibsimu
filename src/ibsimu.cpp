@@ -42,14 +42,23 @@
 
 
 #include <iostream>
+#ifndef _POSIX_SOURCE
+#define _POSIX_SOURCE
+#endif
+#include <signal.h>
 #include "ibsimu.hpp"
+#include "error.hpp"
 #include "config.h"
 
 
 IBSimu::IBSimu()
-    : _hello(false), _verbose_output(0)
+    : _hello(false), _verbose_output(0), _threadcount(1)
 {
-    
+    struct sigaction act;
+    act.sa_sigaction = SignalHandler::signal_handler_SIGSEGV;
+    sigemptyset( &act.sa_mask );
+    act.sa_flags = SA_SIGINFO;
+    sigaction( SIGSEGV, &act, NULL );
 }
 
 
@@ -63,9 +72,10 @@ void IBSimu::set_verbose_output( int level )
 }
 
 
-int IBSimu::get_verbose_output( void )
-{
-    return( _verbose_output );
+void IBSimu::set_thread_count( int threadcount ) {
+    if( threadcount <= 0 )
+	throw( Error( ERROR_LOCATION, "invalid parameter" ) );
+    _threadcount = threadcount;
 }
 
 

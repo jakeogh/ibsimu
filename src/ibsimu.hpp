@@ -2,7 +2,7 @@
  *  \brief Ion Beam Simulator global settings
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,12 +47,14 @@
 
 /*! \brief Main class for %IBSimu.
  *
- *  Used to store global settings.
+ *  Used to store global settings. One instance of the class is
+ *  initialized globally with the name \a ibsimu.
  */
 class IBSimu 
 {
-    bool _hello;
-    int  _verbose_output;
+    bool     _hello;
+    int      _verbose_output;
+    int      _threadcount;
 
 public:
 
@@ -66,17 +68,21 @@ public:
 
     /*! \brief Get verbosity level.
      */
-    int get_verbose_output( void );
+    int get_verbose_output( void ) { return( _verbose_output ); }
 
+    /*! \brief Set the number of threads used for calculation.
+     */
+    void set_thread_count( int threadcount );
+
+    /*! \brief Get the number of threads used for calculation.
+     */
+    int get_thread_count( void ) { return( _threadcount ); }
 };
 
 
-#endif
-
-/* Global instance */
+/*! \brief Global instance of class %IBSimu.
+ */
 extern IBSimu ibsimu;
 
 
-
-
-
+#endif
