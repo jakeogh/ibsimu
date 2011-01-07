@@ -2,7 +2,7 @@
  *  \brief Source code for func_solid.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -59,10 +59,10 @@ FuncSolid::FuncSolid( std::istream &s )
 }
 
 
-void FuncSolid::debug_print( void ) const
+void FuncSolid::debug_print( std::ostream &os ) const
 {
-    std::cout << "**FuncSolid\n";
-    std::cout << "func = " << _func << "\n";
+    os << "**FuncSolid\n";
+    os << "func = " << _func << "\n";
 }
 
 

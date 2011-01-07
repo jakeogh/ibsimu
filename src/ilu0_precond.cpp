@@ -1,8 +1,8 @@
 /*! \file ilu0_precond.cpp
- *  \brief Source code for ilu0_precond.cpp
+ *  \brief ILU0 preconditioner for sparse matrices
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -258,10 +258,10 @@ ILU0_Precond::~ILU0_Precond()
 }
 
 
-void ILU0_Precond::debug_print( void ) const
+void ILU0_Precond::debug_print( std::ostream &os ) const
 {
-    std::cout << "U = \n" << *_U << "\n\n";
-    std::cout << "L = \n" << *_L << "\n\n";
+    os << "U = \n" << *_U << "\n\n";
+    os << "L = \n" << *_L << "\n\n";
 }
 
 

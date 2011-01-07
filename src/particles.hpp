@@ -1,8 +1,8 @@
 /*! \file particles.hpp
- *  \brief Particle and particle point objects
+ *  \brief %Particle and particle point objects
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -687,32 +687,38 @@ public:
      */
     void clear_trajectory( void ) { _trajectory.clear(); }
 
-    /*! \brief Prints internal data to std::cout.
+    /*! \brief Print debugging information to os.
      */
-    void debug_print( void ) const {
+    void debug_print( std::ostream &os ) const {
 	size_t a;
-	std::cout << "**Particle\n";
-	if( _status == PARTICLE_OK )
-	    std::cout << "stat = PARTICLE_OK\n";
-	else if( _status == PARTICLE_OUT )
-	    std::cout << "stat = PARTICLE_OUT\n";
-	else if( _status == PARTICLE_COLL )
-	    std::cout << "stat = PARTICLE_COLL\n";
-	else if( _status == PARTICLE_BADDEF )
-	    std::cout << "stat = PARTICLE_BADDEF\n";
-	else if( _status == PARTICLE_TIME )
-	    std::cout << "stat = PARTICLE_TIME\n";
-	else if( _status == PARTICLE_NSTP )
-	    std::cout << "stat = PARTICLE_NSTP\n";
-	else
-	    std::cout << "status = Unknown\n";
-	std::cout << "IQ   = " << _IQ << "\n";
-	std::cout << "q    = " << _q << "\n";
-	std::cout << "m    = " << _m << "\n";
-	std::cout << "x    = " << _x << "\n";
-	std::cout << "Trajectory:\n";
+        os << "**Particle\n";
+	switch( _status ) {
+	case PARTICLE_OK:
+	    os << "stat = PARTICLE_OK\n";
+	    break;
+	case PARTICLE_OUT:
+	    os << "stat = PARTICLE_OUT\n";
+	    break;
+	case PARTICLE_COLL:
+	    os << "stat = PARTICLE_COLL\n";
+	    break;
+	case PARTICLE_BADDEF:
+	    os << "stat = PARTICLE_BADDEF\n";
+	    break;
+	case PARTICLE_TIME:
+	    os << "stat = PARTICLE_TIME\n";
+	    break;
+	case PARTICLE_NSTP:
+	    os << "stat = PARTICLE_NSTP\n";
+	    break;
+	}
+	os << "IQ   = " << _IQ << "\n";
+	os << "q    = " << _q << "\n";
+	os << "m    = " << _m << "\n";
+	os << "x    = " << _x << "\n";
+	os << "Trajectory:\n";
 	for( a = 0; a < _trajectory.size(); a++ )
-	    std::cout << "x[" << a << "] = " << _trajectory[a] << "\n";
+	    os << "x[" << a << "] = " << _trajectory[a] << "\n";
 
 	/*
 	std::cout << "Trajectory:\n";

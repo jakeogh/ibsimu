@@ -2,7 +2,7 @@
  *  \brief Three dimensional vectors.
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -146,7 +146,7 @@ public:
 
     /*! \brief Inequality test.
      */
-    bool operator!=( const Vec3D &x ) { 
+    bool operator!=( const Vec3D &x ) const { 
 	if( p[0] != x.p[0] || p[1] != x.p[1] || p[2] != x.p[2] )
 	    return( true );
 	return( false ); 
@@ -154,7 +154,7 @@ public:
 
     /*! \brief Equality test.
      */
-    bool operator==( const Vec3D &x ) { 
+    bool operator==( const Vec3D &x ) const { 
 	if( p[0] == x.p[0] && p[1] == x.p[1] && p[2] == x.p[2] )
 	    return( true );
 	return( false ); 
@@ -290,8 +290,18 @@ public:
 	return( Vec3D( x*l[0], x*l[1], x*l[2] ) );
     }
 
-    bool operator!=( const Int3D &i ) { 
+    /*! \brief Inequality test.
+     */
+    bool operator!=( const Int3D &i ) const { 
 	if( l[0] != i.l[0] || l[1] != i.l[1] || l[2] != i.l[2] )
+	    return( true );
+	return( false ); 
+    }
+
+    /*! \brief Equality test.
+     */
+    bool operator==( const Int3D &i ) const { 
+	if( l[0] == i.l[0] && l[1] == i.l[1] && l[2] == i.l[2] )
 	    return( true );
 	return( false ); 
     }

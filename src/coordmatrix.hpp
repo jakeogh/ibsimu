@@ -2,7 +2,7 @@
  *  \brief Sparse coordinate-based sparse matrices.
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -204,9 +204,9 @@ public:
      */
     void order_ascending_column_row( void );
 
-    /*! \brief Prints the values of all internal data to std::cout.
+    /*! \brief Print debugging information to os.
      */
-    void debug_print( void ) const;
+    void debug_print( std::ostream &os ) const;
 
 /* ************************************** *
  * User level matrix element access       *

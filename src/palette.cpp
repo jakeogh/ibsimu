@@ -1,8 +1,8 @@
 /*! \file palette.cpp
- *  \brief Source code for palette.cpp
+ *  \brief Palette for colormaps
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -174,17 +174,17 @@ Color Palette::operator()( double x ) const
 }
 
 
-void Palette::debug_print( void ) const
+void Palette::debug_print( std::ostream &os ) const
 {
-    std::cout << "**Palette\n";
-    std::cout << "size = " << _entries.size() << "\n";
+    os << "**Palette\n";
+    os << "size = " << _entries.size() << "\n";
     for( size_t a = 0; a < _entries.size(); a++ ) {
-	std::cout << "entries[" << a << "] = " 
-		  << _entries[a]._val << " "
-		  << _entries[a]._color[0] << " "
-		  << _entries[a]._color[1] << " "
-		  << _entries[a]._color[2] << " "
-		  << _entries[a]._color[3] << "\n";
+	os << "entries[" << a << "] = " 
+	   << _entries[a]._val << " "
+	   << _entries[a]._color[0] << " "
+	   << _entries[a]._color[1] << " "
+	   << _entries[a]._color[2] << " "
+	   << _entries[a]._color[3] << "\n";
     }
 }
 

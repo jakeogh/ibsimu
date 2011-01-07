@@ -1,8 +1,8 @@
 /*! \file trajectory.cpp
- *  \brief Source code for trajectory.cpp
+ *  \brief Trajectory interpolation solver
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -310,40 +310,40 @@ int TrajectoryRep1D::solve( double K[3], double x )
 }
 
 
-void TrajectoryRep1D::debug_print( void ) const
+void TrajectoryRep1D::debug_print( std::ostream &os ) const
 {
     switch( _rep ) {
     case TRAJ_EMPTY:
-	std::cout << "rep = EMPTY\n";
+	os << "rep = EMPTY\n";
 	break;
     case TRAJ_LINEAR:
-	std::cout << "rep = LINEAR\n";
-	std::cout << "x   = A*K + B\n";
-	std::cout << "v   = C*K + D\n";
-	std::cout << "A   = " << _A << "\n";
-	std::cout << "B   = " << _B << "\n";
-	std::cout << "C   = " << _C << "\n";
-	std::cout << "D   = " << _D << "\n";
+	os << "rep = LINEAR\n";
+	os << "x   = A*K + B\n";
+	os << "v   = C*K + D\n";
+	os << "A   = " << _A << "\n";
+	os << "B   = " << _B << "\n";
+	os << "C   = " << _C << "\n";
+	os << "D   = " << _D << "\n";
 	break;
     case TRAJ_QUADRATIC:
-	std::cout << "rep = QUADRATIC\n";
-	std::cout << "x   = A*K^2 + B*K + C\n";
-	std::cout << "v   = D*K + E\n";
-	std::cout << "A   = " << _A << "\n";
-	std::cout << "B   = " << _B << "\n";
-	std::cout << "C   = " << _C << "\n";
-	std::cout << "D   = " << _D << "\n";
-	std::cout << "E   = " << _E << "\n";
+	os << "rep = QUADRATIC\n";
+	os << "x   = A*K^2 + B*K + C\n";
+	os << "v   = D*K + E\n";
+	os << "A   = " << _A << "\n";
+	os << "B   = " << _B << "\n";
+	os << "C   = " << _C << "\n";
+	os << "D   = " << _D << "\n";
+	os << "E   = " << _E << "\n";
 	break;
     case TRAJ_CUBIC:
-	std::cout << "rep = CUBIC\n";
-	std::cout << "x   = A*K^3 + B*K^2 + C*K + D\n";
-	std::cout << "v   = (3*A*K^2 + 2*B*K + C)/E\n";
-	std::cout << "A   = " << _A << "\n";
-	std::cout << "B   = " << _B << "\n";
-	std::cout << "C   = " << _C << "\n";
-	std::cout << "D   = " << _D << "\n";
-	std::cout << "E   = " << _E << "\n";
+	os << "rep = CUBIC\n";
+	os << "x   = A*K^3 + B*K^2 + C*K + D\n";
+	os << "v   = (3*A*K^2 + 2*B*K + C)/E\n";
+	os << "A   = " << _A << "\n";
+	os << "B   = " << _B << "\n";
+	os << "C   = " << _C << "\n";
+	os << "D   = " << _D << "\n";
+	os << "E   = " << _E << "\n";
 	break;
     }
 }

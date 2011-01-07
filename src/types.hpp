@@ -49,6 +49,12 @@
  *  Simulation geometry can be either 1D (\a MODE_1D), planar 2D (\a
  *  MODE_2D), planar 3D (\a MODE_3D) or it can be defined as cylindrical
  *  symmetrical 2D with coordinates \a x and \a r (\a MODE_CYL).
+ *
+ *  The geometry mode selects the active axes for calculation and
+ *  fields. For MODE_1D only x-axis (axis 0) is active. For MODE_2D
+ *  the x- and y-axes are active (axes 0 and 1). For MODE_CYL
+ *  the x- and r-axes are active (axes 0 and 1). For MODE_3D
+ *  the x- and y- and z-axes are active (axes 0, 1 and 2).
  */
 enum geom_mode_e {
     MODE_1D = 0,

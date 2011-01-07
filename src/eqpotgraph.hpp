@@ -1,5 +1,5 @@
 /*! \file eqpotgraph.hpp
- *  \brief Graph for plotting equipotential lines
+ *  \brief %Graph for plotting equipotential lines
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

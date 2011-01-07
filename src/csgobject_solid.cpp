@@ -1,8 +1,8 @@
 /*! \file csgobject_solid.cpp
- *  \brief Source code for csgobject_solid.cpp
+ *  \brief Solid definition using CSGObject
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -57,9 +57,9 @@ bool CSGObjectSolid::inside( const Vec3D &x ) const
 }
 
 
-void CSGObjectSolid::debug_print( void ) const
+void CSGObjectSolid::debug_print( std::ostream &os ) const
 {
-
+    os << "**CSGObjectSolid\n";
 }
 
 

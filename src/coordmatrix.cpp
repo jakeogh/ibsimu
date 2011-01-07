@@ -1,8 +1,8 @@
 /*! \file coordmatrix.cpp
- *  \brief Source code for coordmatrix.cpp
+ *  \brief Sparse coordinate-based sparse matrices.
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -390,38 +390,38 @@ void CoordMatrix::order_ascending_column_row( void )
 }
 
 
-void CoordMatrix::debug_print( void ) const
+void CoordMatrix::debug_print( std::ostream &os ) const
 {
-    std::cout << "n     = " << _n << "\n";
-    std::cout << "m     = " << _m << "\n";
-    std::cout << "nz    = " << _nz << "\n";
-    std::cout << "asize = " << _asize << "\n";
+    os << "n     = " << _n << "\n";
+    os << "m     = " << _m << "\n";
+    os << "nz    = " << _nz << "\n";
+    os << "asize = " << _asize << "\n";
 
-    std::cout << "row[] = {";
+    os << "row[] = {";
     if( _nz <= 0 ) {
-	std::cout << "}\n";
+	os << "}\n";
     } else {
 	for( int i = 0; i < _nz-1; i++ )
-	    std::cout << _row[i] << ", ";
-	std::cout << _row[_nz-1] << "}\n";
+	    os << _row[i] << ", ";
+	os << _row[_nz-1] << "}\n";
     }
 
-    std::cout << "col[] = {";
+    os << "col[] = {";
     if( _nz <= 0 ) {
-	std::cout << "}\n";
+	os << "}\n";
     } else {
 	for( int i = 0; i < _nz-1; i++ )
-	    std::cout << _col[i] << ", ";
-	std::cout << _col[_nz-1] << "}\n";
+	    os << _col[i] << ", ";
+	os << _col[_nz-1] << "}\n";
     }
 
-    std::cout << "val[] = {";
+    os << "val[] = {";
     if( _nz <= 0 ) {
-	std::cout << "}\n";
+	os << "}\n";
     } else {
 	for( int i = 0; i < _nz-1; i++ )
-	    std::cout << _val[i] << ", ";
-	std::cout << _val[_nz-1] << "}\n";
+	    os << _val[i] << ", ";
+	os << _val[_nz-1] << "}\n";
     }
 }
 

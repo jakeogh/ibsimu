@@ -2,7 +2,7 @@
  *  \brief Source code for dxf_solid.hpp
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -88,10 +88,10 @@ bool DXFSolid::inside( const Vec3D &x ) const
 }
 
 
-void DXFSolid::debug_print( void ) const
+void DXFSolid::debug_print( std::ostream &os ) const
 {
     for( size_t a = 0; a < _entities->size(); a++ ) {
-	std::cout << _entities->get_entity( a );
+	os << _entities->get_entity( a );
     }
 }
 
