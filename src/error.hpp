@@ -1,5 +1,5 @@
 /*! \file error.hpp
- *  \brief Error classes and handling
+ *  \brief %Error classes and handling
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -48,11 +48,36 @@
 #include <cstring>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <sstream>
 #include <errno.h>
 
 #ifdef _GNU_SOURCE
 #include <execinfo.h>
+
+#include <memory.h>
+#include <unistd.h>
+#include <ucontext.h>
+#include <dlfcn.h>
+#ifndef NO_CPP_DEMANGLE
+#include <cxxabi.h>
+#ifdef __cplusplus
+using __cxxabiv1::__cxa_demangle;
+#endif
+#endif
+
+#define sigsegv_outp(x, ...)    fprintf(stderr, x "\n", ##__VA_ARGS__)
+
+#if defined(REG_RIP)
+# define SIGSEGV_STACK_IA64
+# define REGFORMAT "%016lx"
+#elif defined(REG_EIP)
+# define SIGSEGV_STACK_X86
+# define REGFORMAT "%08x"
+#else
+# define SIGSEGV_STACK_GENERIC
+# define REGFORMAT "%x"
 #endif
 
 
@@ -123,6 +148,8 @@ struct Error : public ExceptionTracer {
     ErrorLocation  _loc;
     std::string    _error_str;
     Error() {}
+    Error( const std::string &str ) 
+	: _error_str(str) {}
     Error( ErrorLocation loc, const std::string &str ) 
 	: _loc(loc), _error_str(str) {}
 };
@@ -192,23 +219,85 @@ struct ErrorRange : public Error {
 };
 
 
+/*! \brief Signal handler
+ */
+struct SignalHandler {
+
+    static void signal_handler_SIGSEGV(int signum, siginfo_t* info, void*ptr) {
+	static const char *si_codes[3] = {"", "SEGV_MAPERR", "SEGV_ACCERR"};
+
+	int i, f = 0;
+	ucontext_t *ucontext = (ucontext_t*)ptr;
+	Dl_info dlinfo;
+	void **bp = 0;
+	void *ip = 0;
+
+	sigsegv_outp("Segmentation Fault!");
+	sigsegv_outp("info.si_signo = %d", signum);
+	sigsegv_outp("info.si_errno = %d", info->si_errno);
+	sigsegv_outp("info.si_code  = %d (%s)", info->si_code, si_codes[info->si_code]);
+	sigsegv_outp("info.si_addr  = %p", info->si_addr);
+	for(i = 0; i < NGREG; i++)
+		sigsegv_outp("reg[%02d]       = 0x" REGFORMAT, i, ucontext->uc_mcontext.gregs[i]);
+
+#ifndef SIGSEGV_NOSTACK
+#if defined(SIGSEGV_STACK_IA64) || defined(SIGSEGV_STACK_X86)
+#if defined(SIGSEGV_STACK_IA64)
+	ip = (void*)ucontext->uc_mcontext.gregs[REG_RIP];
+	bp = (void**)ucontext->uc_mcontext.gregs[REG_RBP];
+#elif defined(SIGSEGV_STACK_X86)
+	ip = (void*)ucontext->uc_mcontext.gregs[REG_EIP];
+	bp = (void**)ucontext->uc_mcontext.gregs[REG_EBP];
 #endif
 
+	sigsegv_outp( "Stack trace:" );
+	while( bp && ip ) {
+	    if( !dladdr( ip, &dlinfo ) )
+		break;
+	    
+	    const char *symname = dlinfo.dli_sname;
+	    
+#ifndef NO_CPP_DEMANGLE
+	    int status;
+	    char *tmp = __cxa_demangle( symname, NULL, 0, &status );
+
+	    if( status == 0 && tmp )
+		symname = tmp;
+#endif
+
+	    sigsegv_outp( "% 2d: %p <%s+%lu> (%s)",
+			  ++f,
+			  ip,
+			  symname,
+			  (unsigned long)ip - (unsigned long)dlinfo.dli_saddr,
+			  dlinfo.dli_fname );
+	    
+#ifndef NO_CPP_DEMANGLE
+	    if( tmp )
+		free( tmp );
+#endif
+
+	    if( dlinfo.dli_sname && !strcmp( dlinfo.dli_sname, "main" ) )
+		break;
+
+	    ip = bp[1];
+	    bp = (void**)bp[0];
+	}
+#else
+	sigsegv_outp( "Stack trace (non-dedicated):" );
+	sz = backtrace( bt, 20 );
+	strings = backtrace_symbols( bt, sz );
+	for( i = 0; i < sz; ++i )
+	    sigsegv_outp( "%s", strings[i] );
+#endif
+	sigsegv_outp( "End of stack trace." );
+#else
+	sigsegv_outp( "Not printing stack strace." );
+#endif
+	_exit( -1 );
+    }
+
+};
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#endif
