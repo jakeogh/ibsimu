@@ -4,7 +4,7 @@ libibsimu_la_LDFLAGS = -version-info 0:1:0
 #AM_LDFLAGS = -Wall -O3 -march=athlon64
 #AM_CPPFLAGS = -Wall -O3 -march=athlon64
 
-AM_LDFLAGS = -Wall
+AM_LDFLAGS = -Wall @rdynamic_flag@
 AM_CPPFLAGS = -Wall
 
 libibsimu_la_SOURCES = \

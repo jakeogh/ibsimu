@@ -2,7 +2,7 @@
  *  \brief Error classes and handling
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -46,9 +46,14 @@
 
 #include <string>
 #include <cstring>
+#include <stdlib.h>
 #include <stdint.h>
 #include <sstream>
 #include <errno.h>
+
+#ifdef _GNU_SOURCE
+#include <execinfo.h>
+#endif
 
 
 template <class T>
@@ -69,21 +74,52 @@ inline std::string to_string( const T& t )
  *
  *  Container to store the location (source file name, line number and
  *  function name) where the error happened. Used for debugging
- *  purposes.
+ *  purposes. Macro ERROR_LOCATION is defined for convenient use of
+ *  class.
  */
 struct ErrorLocation {
-    ErrorLocation() {}
-    ErrorLocation( const char *file, int line, const char *func ) :
-	_file(file), _line(line), _func(func) {}
+    ErrorLocation() 
+	: _file(NULL), _line(0), _func(NULL) {}
+    ErrorLocation( const char *file, int line, const char *func )
+	: _file(file), _line(line), _func(func) {}
     const char *_file;
     int         _line;
     const char *_func;
 };
 
 
-/*! \brief Base error class.
+/*! \brief Exception backtrace.
+ *
+ *  Saves the backtrace when constructed. Uses GNU extensions and
+ *  therefore only works when compiled with GNU system.
  */
-struct Error {
+struct ExceptionTracer {
+    void  *_traceaddress[25];
+    int    _tracecount;
+    ExceptionTracer() {
+#ifdef _GNU_SOURCE
+	_tracecount = backtrace( _traceaddress, 25 );
+#else
+	_tracecount = 0;
+#endif
+    }
+    void print_trace( std::ostream &os ) {
+#ifdef _GNU_SOURCE
+	char **symbols = backtrace_symbols( _traceaddress, _tracecount );
+	os << "Backtrace:\n";
+	for( int i = 0; i < _tracecount; i++ )
+	    os << symbols[i] << "\n";
+	free( symbols );
+#else
+	os << "No backtrace capability\n";
+#endif
+    }
+};
+
+
+/*! \brief Basic error class.
+ */
+struct Error : public ExceptionTracer {
     ErrorLocation  _loc;
     std::string    _error_str;
     Error() {}

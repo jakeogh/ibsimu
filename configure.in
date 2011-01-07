@@ -3,6 +3,30 @@ AM_CONFIG_HEADER(src/config.h)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE
 
+AC_USE_SYSTEM_EXTENSIONS
+
+AC_DEFUN(
+	AC_GCC_SUPPORTS_RDYNAMIC,
+	[
+		AC_PATH_PROG([grep], [grep])
+                echo -n "checking if the compiler supports -rdynamic... "
+                if test "X${ac_compiler_gnu}X" = "XyesX"; then
+                        if test "X`${CC} -dumpspecs | ${grep} rdynamic`X" != "XX"; then
+                                echo "yes"
+                                AC_SUBST([rdynamic_flag], ["-rdynamic"])
+                        else
+                                echo "no"
+                                AC_SUBST([rdynamic_flag], [])
+                        fi
+                else
+                        echo "no"
+                        AC_SUBST([rdynamic_flag], [])
+                fi
+        ]
+)
+AC_GCC_SUPPORTS_RDYNAMIC([rdynamic_flag])
+
+
 dnl ---------------------------------
 dnl Check for programs
 dnl ---------------------------------

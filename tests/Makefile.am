@@ -12,6 +12,7 @@ emittanceconv_SOURCES = emittanceconv.cpp
 emittancedef2d_SOURCES = emittancedef2d.cpp
 emittancedef3d_SOURCES = emittancedef3d.cpp
 emittancedefcyl_SOURCES = emittancedefcyl.cpp
+errortest_SOURCES = errortest.cpp
 fileplot_SOURCES = fileplot.cpp
 fonts_SOURCES = fonts.cpp
 fielddiagplot_SOURCES = fielddiagplot.cpp
@@ -89,6 +90,7 @@ emittanceconv \
 emittancedef2d \
 emittancedef3d \
 emittancedefcyl \
+errortest \
 fileplot \
 fielddiagplot \
 fonts \
@@ -154,7 +156,7 @@ endif
 TESTS = $(check_PROGRAMS)
 
 AM_CPPFLAGS = $(CPPFLAGS) -Wall -g -I$(top_srcdir)/src
-AM_LDFLAGS = $(LIBS) -L$(top_srcdir)/src 
+AM_LDFLAGS = $(LIBS) -L$(top_srcdir)/src @rdynamic_flag@
 # `gsl-config --libs`
 LDADD = $(top_builddir)/src/libibsimu.la -lm
 if UMFPACK
