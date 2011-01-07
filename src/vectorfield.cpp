@@ -2,7 +2,7 @@
  *  \brief Source code for vectorfield.cpp
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -50,29 +50,19 @@
 
 
 VectorField::VectorField()
-    : _geom_mode(MODE_3D), _h(1.0), _div_h(1.0) 
 {
-    _F[0] = _F[1] = _F[2] = 0;
+    _F[0] = _F[1] = _F[2] = NULL;
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
-    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
-		  _origo(1)+_h*(_size[1]-1),
-		  _origo(2)+_h*(_size[2]-1) );
 }
 
 
 VectorField::VectorField( const Geometry &g, bool fout[3] )
-    : _geom_mode(g.geom_mode()), _size(g.size()), _origo(g.origo()), _h(g.h())
+    : Mesh(g)
 {
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
-    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
-		  _origo(1)+_h*(_size[1]-1),
-		  _origo(2)+_h*(_size[2]-1) );
 
-    // Check mesh size legality
-    if( _size[0] < 1 || _size[1] < 1 || _size[2] < 1 )
-	throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
+    check_definition();
 
-    _div_h = 1.0/_h;
     for( size_t i = 0; i < 3; i++ ) {
 	if( fout[i] ) {
 	    _F[i] = new double[_size[0]*_size[1]*_size[2]];
@@ -86,18 +76,12 @@ VectorField::VectorField( const Geometry &g, bool fout[3] )
 
 VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], Int3D size, 
 			  Vec3D origo, double h )
-    : _geom_mode(geom_mode), _size(size), _origo(origo), _h(h)
+    : Mesh(geom_mode,size,origo,h)
 {
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
-    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
-		  _origo(1)+_h*(_size[1]-1),
-		  _origo(2)+_h*(_size[2]-1) );
 
-    // Check mesh size legality
-    if( _size[0] < 1 || _size[1] < 1 || _size[2] < 1 )
-	throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
+    check_definition();
 
-    _div_h = 1.0/_h;
     for( size_t i = 0; i < 3; i++ ) {
 	if( fout[i] ) {
 	    _F[i] = new double[_size[0]*_size[1]*_size[2]];
@@ -106,6 +90,33 @@ VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], Int3D size,
 	    _F[i] = NULL;
 	}
     }
+}
+
+
+VectorField::VectorField( std::istream &s )
+    : Mesh(s)
+{
+    check_definition();
+
+    for( int i = 0; i < 6; i++ )
+	_extrpl[i] = (field_extrpl_e)read_int32( s );
+
+    for( int i = 0; i < 3; i++ ) {
+	if( read_int8( s ) ) {
+	    _F[i] = new double[_size[0]*_size[1]*_size[2]];
+	    read_compressed_block( s, _size[0]*_size[1]*_size[2]*sizeof(double), (int8_t *)_F[i] );
+	} else {
+	    _F[i] = NULL;
+	}
+    }
+}
+
+
+void VectorField::check_definition()
+{
+    // Check mesh size legality
+    if( _size[0] < 1 || _size[1] < 1 || _size[2] < 1 )
+	throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
 }
 
 
@@ -158,6 +169,8 @@ VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], double xscale,
 {
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
 
+    check_definition();
+
     if( ibsimu.get_verbose_output() )
 	std::cout << "Reading vector field from " << filename << "\n";
     
@@ -186,9 +199,6 @@ VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], double xscale,
 	break;
     case MODE_1D:
 	cdim = 1;
-	break;
-    default:
-	throw( Error( ERROR_LOCATION, "unsupported geometry mode" ) );
 	break;
     }
 
@@ -275,20 +285,14 @@ VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], double xscale,
     }
 
     // Prepare VectorField
-    _geom_mode = geom_mode;
-    _size = size;
-    _origo = origo;
-    _max = Vec3D( origo(0)+h*(size[0]-1),
-		  origo(1)+h*(size[1]-1),
-		  origo(2)+h*(size[2]-1) );
-    _h = h;
-    _div_h = 1.0/_h;
+    Mesh::reset( geom_mode, size, origo, h );
+    check_definition();
     for( i = 0; i < 3; i++ ) {
 	if( fout[i] )
 	    _F[i] = new double[_size[0]*_size[1]*_size[2]];
 	else
 	    _F[i] = NULL;
-     }
+    }
 
     // Read data to fill mesh
     int ind[3] = {0, 0, 0};
@@ -325,8 +329,7 @@ VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], double xscale,
 
 
 VectorField::VectorField( const VectorField &f )
-    : _geom_mode(f._geom_mode), _size(f._size), _origo(f._origo), _max(f._max), _h(f._h), 
-      _div_h(f._div_h)
+    : Mesh(f)
 {
     for( size_t i = 0; i < 6; i++ )
 	_extrpl[i] = f._extrpl[i];
@@ -532,18 +535,8 @@ void VectorField::clear()
 void VectorField::reset( geom_mode_e geom_mode, bool fout[3], Int3D size, 
 			 Vec3D origo, double h )
 {
-    _geom_mode = geom_mode;
-    _size      = size;
-    _origo     = origo;
-    _max       = Vec3D( origo(0)+h*(size[0]-1),
-			origo(1)+h*(size[1]-1),
-			origo(2)+h*(size[2]-1) );
-    _h         = h;
-    _div_h     = 1.0/h;
-
-    // Check mesh size legality
-    if( _size[0] < 1 || _size[1] < 1 || _size[2] < 1 )
-	throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
+    Mesh::reset( geom_mode, size, origo, h );
+    check_definition();
 
     for( size_t i = 0; i < 3; i++ ) {
 	if( _F[i] != NULL )
@@ -590,12 +583,8 @@ void VectorField::get_defined_components( bool fout[3] ) const
 
 VectorField &VectorField::operator=( const VectorField &f )
 {
-    _geom_mode = f._geom_mode;
-    _size      = f._size;
-    _origo     = f._origo;
-    _max       = f._max;
-    _h         = f._h;
-    _div_h     = f._div_h;
+    (Mesh)(*this) = (Mesh)f;
+
     for( size_t i = 0; i < 3; i++ ) {
 	if( _F[i] != NULL )
 	    delete [] _F[i];
@@ -612,8 +601,7 @@ VectorField &VectorField::operator=( const VectorField &f )
 
 VectorField &VectorField::operator+=( const VectorField &f )
 {
-    if( _geom_mode != f._geom_mode || _size != f._size ||
-	_origo != f._origo || _h != f._h )
+    if( (Mesh)(*this) == (Mesh)f )
 	throw( Error( ERROR_LOCATION, "non-matching fields" ) );
     for( size_t i = 0; i < 3; i++ ) {
 	if( (_F[i] == NULL) != (f._F[i] == NULL) )
@@ -733,6 +721,9 @@ Vec3D VectorField::operator()( Vec3D x ) const
 {
     Vec3D R;
     Vec3D sign( 1.0, 1.0, 1.0 );
+
+    if( _size[0] == 0 )
+	return( R );
 
     switch( _geom_mode ) {
     case MODE_1D:
@@ -954,25 +945,29 @@ Vec3D VectorField::operator()( Vec3D x ) const
 }
 
 
-void VectorField::debug_print( void ) const
+void VectorField::save( std::ostream &s ) const
 {
-    int32_t a;
+    Mesh::save( s );
+
+    for( int i = 0; i < 6; i++ )
+	write_int32( s, _extrpl[i] );
+
+    for( int i = 0; i < 3; i++ ) {
+	if( _F[i] ) {
+	    write_int8( s, 1 );
+	    write_compressed_block( s, _size[0]*_size[1]*_size[2]*sizeof(double), (int8_t *)_F );
+	} else {
+	    write_int8( s, 0 );
+	}
+    }
+}
+
+
+void VectorField::debug_print( std::ostream &os ) const
+{
+    Mesh::debug_print( os );
+
     std::cout << "**VectorField\n";
-    if( _geom_mode == MODE_1D )
-	std::cout << "geom_mode = MODE_1D\n";
-    else if( _geom_mode == MODE_2D )
-	std::cout << "geom_mode = MODE_2D\n";
-    else if( _geom_mode == MODE_CYL )
-	std::cout << "geom_mode = MODE_CYL\n";
-    else if( _geom_mode == MODE_3D )
-	std::cout << "geom_mode = MODE_3D\n";
-    else
-	std::cout << "geom_mode = Unknown\n";
-    std::cout << "size = " << _size << "\n";
-    std::cout << "origo = " << _origo << "\n";
-    std::cout << "max = " << _max << "\n";
-    std::cout << "h = " << _h << "\n";
-    std::cout << "div_h = " << _div_h << "\n";
     std::cout << "extrpl = (" 
 	      << _extrpl[0] << ", "
 	      << _extrpl[1] << ", "
@@ -988,17 +983,17 @@ void VectorField::debug_print( void ) const
 	}
 	std::cout << "(";
 	if( _size[0]*_size[1]*_size[2] < 10 ) {
+	    int a;
 	    for( a = 0; a < _size[0]*_size[1]*_size[2]-1; a++ )
 		std::cout << _F[i][a] << ", ";
 	    if( a < _size[0]*_size[1]*_size[2] )
 		std::cout << _F[i][a] << ")\n";
 	} else {
 	    // Print only 10 first nodes
-	    for( a = 0; a < 10; a++ )
+	    for( int a = 0; a < 10; a++ )
 		std::cout << _F[i][a] << ", ";
 	    std::cout << "... )\n";
 	}
     }
-
 }
 

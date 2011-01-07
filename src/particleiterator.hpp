@@ -1,5 +1,5 @@
 /*! \file particleiterator.hpp
- *  \brief Particle iterator
+ *  \brief %Particle iterator
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -70,26 +70,169 @@ enum particle_iterator_type_e {
 };
 
 
+/*! \brief %Mesh intersection (collision) coordinate data
+ *
+ * Contains one coordinate data and the direction of particle for one
+ * intersection between particle trajectory and mesh plane. Templated
+ * for particle point type (see ParticlePBase).
+ *
+ * Templated for particle point type (see ParticlePBase).
+ */
+template <class PP> class ColData {
+public:
+    PP                _x;         /*!< \brief %Mesh intersection coordinates. */
+    int               _dir;       /*!< \brief Direction of particle at intersection.
+				   *  i: -1/+1, j: -2/+2, k: -3:/+3. */
+    
+    /*! \brief Constructor for collision at \a x into direction \a dir.
+     */
+    ColData( PP x, int dir ) : _x(x), _dir(dir) {}
+    
+    /*! \brief Compare coldata entry times.
+     *
+     *  Used for sorting coldata entries.
+     */
+    bool operator<( const ColData &cd ) const {
+	return( _x[0] < cd._x[0] );
+    }
+
+    /*! \brief Find mesh intersections of linearly interpolated
+     *  particle trajectory segment.
+     *
+     *  Makes a linear interpolation between points \a x1 and \a x2
+     *  and searches intersection points of this line and \a
+     *  mesh. Intersection points are appended to vector \a coldata.
+     */
+    static void build_coldata_linear( std::vector<ColData> coldata, const Mesh &mesh,
+				      const PP &x1, const PP &x2 ) {
+
+	for( size_t a = 0; a < PP::dim(); a++ ) {
+	    
+            int a1 = (int)floor( (x1[2*a+1]-mesh.origo(a))/mesh.h() );
+            int a2 = (int)floor( (x2[2*a+1]-mesh.origo(a))/mesh.h() );
+            if( a1 > a2 ) {
+                int a = a2;
+                a2 = a1;
+                a1 = a;
+            }
+	    
+            for( int b = a1+1; b <= a2; b++ ) {
+        
+                // Save intersection coordinates
+                double K = (b*mesh.h() + mesh.origo(a) - x1[2*a+1]) / 
+                    (x2[2*a+1] - x1[2*a+1]);
+                if( K < 0.0 ) K = 0.0;
+                else if( K > 1.0 ) K = 1.0;
+                //std::cout << "Found valid root: " << K << "\n";
+
+                if( x2[2*a+1] > x1[2*a+1] )
+                    coldata.push_back( ColData( x1 + (x2-x1)*K, a+1 ) );
+                else
+                    coldata.push_back( ColData( x1 + (x2-x1)*K, -a-1 ) );
+            }
+        }
+    }
+
+    /*! \brief Find mesh intersections of polynomially interpolated
+        particle trajectory segment.
+     *
+     *  Makes a polynomial interpolation between points \ə x1 and \a
+     *  x2 and searches intersection points of this line and \a
+     *  mesh. Intersection points are appended to vector \a coldata.
+     */
+    static void build_coldata_poly( std::vector<ColData> coldata, const Mesh &mesh,
+				    const PP &x1, const PP &x2 ) {
+	
+#ifdef DEBUG_PARTICLE_ITERATOR
+	std::cout << "Building coldata using polynomial interpolation\n";
+#endif
+
+	// Construct trajectory representation
+	TrajectoryRep1D traj[PP::dim()];
+	for( size_t a = 0; a < PP::dim(); a++ ) {
+	    traj[a].construct( x2[0]-x1[0], 
+			       x1[2*a+1], x1[2*a+2], 
+			       x2[2*a+1], x2[2*a+2] );
+	}
+
+	// Solve trajectory intersections
+	for( size_t a = 0; a < PP::dim(); a++ ) {
+
+	    // Mesh number of x1 (start point)
+	    int i = (int)floor( (x1[2*a+1]-mesh.origo(a))/mesh.h() );
+	    
+	    // Search to negative (dj = -1) and positive (dj = +1) mesh directions
+	    for( int dj = -1; dj <= 1; dj += 2 ) {
+		int j = i;
+		if( dj == +1 )
+		    j = i+1;
+		int Kcount;  // Solution counter
+		double K[3]; // Solution array
+		while( 1 ) {
+
+		    // Intersection point
+		    double val = mesh.origo(a) + mesh.h() * j;
+		    if( val < mesh.origo(a) )
+			break;
+		    else if( val > mesh.max(a) )
+			break;
+
+#ifdef DEBUG_PARTICLE_ITERATOR
+		    std::cout << "  Searching intersections at coord(" << a << ") = " << val << "\n";
+#endif
+		    Kcount = traj[a].solve( K, val );
+		    if( Kcount == 0 )
+			break; // No valid roots
+
+#ifdef DEBUG_PARTICLE_ITERATOR
+		    std::cout << "  Found " << Kcount << " valid roots: ";
+		    for( int p = 0; p < Kcount; p++ )
+			std::cout << K[p] << " ";
+		    std::cout << "\n";
+#endif
+
+		    // Save roots to coldata
+		    for( int b = 0; b < Kcount; b++ ) {
+			PP xcol;
+			double x, v;
+			xcol(0) = x1[0] + K[b]*(x2[0]-x1[0]);
+			for( size_t c = 0; c < PP::dim(); c++ ) {
+			    traj[c].coord( x, v, K[b] );
+			    if( a == c )
+				xcol[2*c+1] = val; // limit numerical inaccuracy
+			    else
+				xcol[2*c+1] = x;
+			    xcol[2*c+2] = v;
+			}
+			if( mesh.geom_mode() == MODE_CYL )
+			    xcol[5] = x1[5] + K[b]*(x2[5]-x1[5]);
+			if( xcol[2*a+2] >= 0.0 )
+			    coldata.push_back( ColData( xcol, a+1 ) );
+			else
+			    coldata.push_back( ColData( xcol, -a-1 ) );
+		    }
+
+		    j += dj;
+		}
+	    }
+	}
+
+#ifdef DEBUG_PARTICLE_ITERATOR
+	std::cout << "  Coldata built\n";
+#endif
+    }
+
+};
+
+
 /*! \brief %Particle iterator class for continuous Vlasov-type iteration.
+ *
+ * Templated for particle point type (see ParticlePBase).
  *
  *  \todo Detailed documentation needed.
  *  \todo PIC style iterator needed.
  */
 template <class PP> class ParticleIterator {
-
-    /*! \brief Mesh intersection (collision) coordinate data
-     */
-    struct ColData {
-	PP                _x;         /*!< \brief Mesh intersection coordinates. */
-	int               _dir;       /*!< \brief Direction of particle at intersection.
-				       *  i: -1/+1, j: -2/+2, k: -3:/+3. */
-
-	ColData( PP x, int dir ) : _x(x), _dir(dir) {}
-
-	bool operator<( const ColData &cd ) const {
-	    return( _x[0] < cd._x[0] );
-	}
-    };
 
     gsl_odeiv_system      _system;    /**< \brief GSL ODE integrator system. */
     gsl_odeiv_step       *_step;      /**< \brief GSL ODE integrator stepper. */
@@ -113,7 +256,7 @@ template <class PP> class ParticleIterator {
     PP                    _xi;        /*!< \brief Previous mesh intersection coordinates 
 				       *   or starting point. */
     std::vector<PP>       _traj;      /*!< \brief %Particle trajectory data for current trajectory. */
-    std::vector<ColData>  _coldata;   /*!< \brief Mesh intersection coordinate data. */
+    std::vector<ColData<PP> >  _coldata;   /*!< \brief Mesh intersection coordinate data. */
 
     uint32_t              _end_time;  /*!< \brief Number of time limited particle iterations. */
     uint32_t              _end_step;  /*!< \brief Number of step count limited particle iterations. */
@@ -380,138 +523,6 @@ template <class PP> class ParticleIterator {
 	return( true );
     }
 
-    /*! \brief Find all intersections of one particle iteration with
-     *  the mesh with a linear interpolation.
-     *
-     *  Makes a linear interpolation between points x1 and x2 and
-     *  searches intersection points of this line and the
-     *  mesh. Intersection points are saved to ColData structure
-     *  _coldata.
-     */
-    void build_coldata_linear( Particle<PP> &particle, const PP &x1, const PP &x2 ) {
-
-	int a1, a2;
-	
-	for( size_t a = 0; a < PP::dim(); a++ ) {
-	    
-            a1 = (int)floor( (x1[2*a+1]-_pidata._g->origo(a))/_pidata._g->h() );
-            a2 = (int)floor( (x2[2*a+1]-_pidata._g->origo(a))/_pidata._g->h() );
-            if( a1 > a2 ) {
-                int a = a2;
-                a2 = a1;
-                a1 = a;
-            }
-	    
-            for( int b = a1+1; b <= a2; b++ ) {
-        
-                // Save intersection coordinates
-                double K = (b*_pidata._g->h() + _pidata._g->origo(a) - x1[2*a+1]) / 
-                    (x2[2*a+1] - x1[2*a+1]);
-                if( K < 0.0 ) K = 0.0;
-                else if( K > 1.0 ) K = 1.0;
-                //std::cout << "Found valid root: " << K << "\n";
-
-                if( x2[2*a+1] > x1[2*a+1] )
-                    _coldata.push_back( ColData( x1 + (x2-x1)*K, a+1 ) );
-                else
-                    _coldata.push_back( ColData( x1 + (x2-x1)*K, -a-1 ) );
-            }
-        }
-
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "  Coldata linear built\n";
-#endif
-    }
-
-    /*! \brief Find all intersections of one particle iteration with
-     *  the mesh with a polynomial interpolation.
-     *
-     *  Makes a polynomial interpolation between points x1 and x2 and
-     *  searches intersection points of this curve and the
-     *  mesh. Intersection points are saved to ColData structure
-     *  _coldata.
-     */
-    void build_coldata_poly( Particle<PP> &particle, const PP &x1, const PP &x2 ) {
-	
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "Building coldata using polynomial interpolation\n";
-#endif
-
-	// Construct trajectory representation
-	TrajectoryRep1D traj[PP::dim()];
-	for( size_t a = 0; a < PP::dim(); a++ ) {
-	    traj[a].construct( x2[0]-x1[0], 
-			       x1[2*a+1], x1[2*a+2], 
-			       x2[2*a+1], x2[2*a+2] );
-	}
-
-	// Solve trajectory intersections
-	for( size_t a = 0; a < PP::dim(); a++ ) {
-
-	    // Mesh number of x1 (start point)
-	    int i = (int)floor( (x1[2*a+1]-_pidata._g->origo(a))/_pidata._g->h() );
-	    
-	    // Search to negative (dj = -1) and positive (dj = +1) mesh directions
-	    for( int dj = -1; dj <= 1; dj += 2 ) {
-		int j = i;
-		if( dj == +1 )
-		    j = i+1;
-		int Kcount;  // Solution counter
-		double K[3]; // Solution array
-		while( 1 ) {
-
-		    // Intersection point
-		    double val = _pidata._g->origo(a) + _pidata._g->h() * j;
-		    if( val < _pidata._g->origo(a) )
-			break;
-		    else if( val > _pidata._g->max(a) )
-			break;
-
-#ifdef DEBUG_PARTICLE_ITERATOR
-		    std::cout << "  Searching intersections at coord(" << a << ") = " << val << "\n";
-#endif
-		    Kcount = traj[a].solve( K, val );
-		    if( Kcount == 0 )
-			break; // No valid roots
-
-#ifdef DEBUG_PARTICLE_ITERATOR
-		    std::cout << "  Found " << Kcount << " valid roots: ";
-		    for( int p = 0; p < Kcount; p++ )
-			std::cout << K[p] << " ";
-		    std::cout << "\n";
-#endif
-
-		    // Save roots to coldata
-		    for( int b = 0; b < Kcount; b++ ) {
-			PP xcol;
-			double x, v;
-			xcol(0) = x1[0] + K[b]*(x2[0]-x1[0]);
-			for( size_t c = 0; c < PP::dim(); c++ ) {
-			    traj[c].coord( x, v, K[b] );
-			    if( a == c )
-				xcol[2*c+1] = val; // limit numerical inaccuracy
-			    else
-				xcol[2*c+1] = x;
-			    xcol[2*c+2] = v;
-			}
-			if( _pidata._g->geom_mode() == MODE_CYL )
-			    xcol[5] = x1[5] + K[b]*(x2[5]-x1[5]);
-			if( xcol[2*a+2] >= 0.0 )
-			    _coldata.push_back( ColData( xcol, a+1 ) );
-			else
-			    _coldata.push_back( ColData( xcol, -a-1 ) );
-		    }
-
-		    j += dj;
-		}
-	    }
-	}
-
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "  Coldata built\n";
-#endif
-    }
-
     /*! \brief Limit trajectory advance from \a x1 to \a x2 to double
      *  the simulation box.
      *
@@ -583,9 +594,9 @@ template <class PP> class ParticleIterator {
 
 	// Make coldata
 	if( _polyint && !force_linear )
-	    build_coldata_poly( particle, x1, x2 );
+	    ColData<PP>::build_coldata_poly( _coldata, *_pidata._g, x1, x2 );
 	else
-	    build_coldata_linear( particle, x1, x2 );
+	    ColData<PP>::build_coldata_linear( _coldata, *_pidata._g, x1, x2 );
 
 	// No intersections, nothing to do
 	if( _coldata.size() == 0 ) {
@@ -1066,21 +1077,4 @@ public:
 };
 
 
-
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

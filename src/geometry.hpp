@@ -1,8 +1,8 @@
 /*! \file geometry.hpp
- *  \brief Geometry definition
+ *  \brief %Geometry definition
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -87,6 +87,10 @@ struct Bound
 	write_int32( fout, type );
 	write_double( fout, val );
     }
+
+    /*! \brief Outputting to stream.
+     */
+    friend std::ostream &operator<<( std::ostream &os, const Bound &b );
 };
 
 
@@ -110,8 +114,16 @@ protected:
     Vec3D                      _origo;     /*!< \brief Location of mesh point (0,0,0) [m] */
     Vec3D                      _max;       /*!< \brief Location of mesh point (size[0]-1,size[1]-1,size[2]-1) [m] */
     double                     _h;         /*!< \brief Length of mesh step [m] */
+    double                     _div_h;     /*!< \brief Reciprocal of length of mesh step [1/m] */
 
 public:
+
+    /*! \brief Default constructor for mesh definition.
+     *
+     *  Sets geometry mode to MODE3D, mesh cell size \a h to 1, mesh
+     *  size \a size to (0,0,0) and origo \a origo to (0,0,0).
+     */
+    Mesh();
 
     /*! \brief Constructor for mesh definition.
      *
@@ -127,6 +139,10 @@ public:
     /*! \brief Destructor.
      */
     ~Mesh() {}
+
+    /*! \brief Reset mesh definition.
+     */
+    void reset( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h );
 
     /*! \brief Returns geometry mode.
      */
@@ -170,9 +186,21 @@ public:
      */
     double h( void ) const { return( _h ); }
 
+    /*! \brief Returns reciprocal of mesh cell size (1/h).
+     */
+    double div_h( void ) const { return( _div_h ); }
+
     /*! \brief Saves geometry data to stream.
      */
     void save( std::ostream &s ) const;
+
+    /*! \brief Comparison
+     */
+    bool operator==( const Mesh &m ) const;
+
+    /*! \brief Print debugging information to os.
+     */
+    void debug_print( std::ostream &os ) const;
 };
 
 
@@ -224,6 +252,10 @@ class Geometry : public Mesh
     /*! \brief Check if node is vacuum or Neumann.
      */
     bool vac_or_neu( int32_t i, int32_t j, int32_t k );
+
+    /*! \brief Check mesh definition validity.
+     */
+    void check_definition();
 
 public:
 
@@ -376,28 +408,10 @@ public:
      */
     void save( std::ostream &s ) const;
 
-    /*! \brief Prints internal data to std::cout.
+    /*! \brief Print debugging information to os.
      */
-    void debug_print( void ) const;
+    void debug_print( std::ostream &os ) const;
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
