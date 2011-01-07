@@ -1,5 +1,5 @@
 /*! \file particledatabase.hpp
- *  \brief Particle databases
+ *  \brief %Particle databases
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -70,7 +70,6 @@ class ParticleDataBase {
 
 protected:
 
-    uint32_t       _threadcount; /*!< \brief Number of threads used for calculation. */
     double         _epsabs;      /*!< \brief Absolute error limit for calculation. */
     double         _epsrel;      /*!< \brief Relative error limit for calculation. */
     bool           _polyint;     /*!< \brief Use polynomial(true)/linear(false) interpolation. */
@@ -101,7 +100,7 @@ protected:
     /*! \brief Constructor.
      */
     ParticleDataBase()
-	: _threadcount(1), _epsabs(1e-6), _epsrel(1e-6), _polyint(true), _maxsteps(1000), 
+	: _epsabs(1e-6), _epsrel(1e-6), _polyint(true), _maxsteps(1000), 
 	  _maxt(1e-3), _trajdiv(1), _rhosum(0.0), _end_time(0), _end_step(0), _end_out(0), 
 	  _end_coll(0), _end_baddef(0), _sum_steps(0), _iteration(-1), _nsimp(false), 
 	  _epot(NULL), _phi_plasma(0.0) {
@@ -128,12 +127,11 @@ public:
  * ****************************************** */
 
     /*! \brief Set the number of threads used for calculation.
+     *
+     *  \deprecated This function is deprecated (it does nothing) and
+     *  is replaced by global IBSimu::set_thread_count().
      */
-    void set_thread_count( uint32_t threadcount ) {
-	if( threadcount <= 0 )
-	    throw( Error( ERROR_LOCATION, "invalid parameter" ) );
-	_threadcount = threadcount;
-    }
+    void set_thread_count( uint32_t threadcount ) {}
 
     /*! \brief Set the accuracy requirement for calculation.
      *
@@ -307,8 +305,9 @@ public:
  * Debugging, plotting and saving         *
  * ************************************** */
 
-    virtual void debug_print( void ) const = 0;
-
+    /*! \brief Print debugging information to os.
+     */
+    virtual void debug_print( std::ostream &os ) const = 0;
 };
 
 
@@ -616,7 +615,7 @@ public:
     virtual void iterate_trajectories( ScalarField &scharge, const Efield &efield, 
 				       const VectorField &bfield, const Geometry &g ) {
 
-	ScalarField                         *schmap[_threadcount];
+	ScalarField                         *schmap[ibsimu.get_thread_count()];
 	std::vector<ParticleIterator<PP> *>  iterators;
 
 	Timer t;
@@ -646,7 +645,7 @@ public:
 	}
 
 	// Make separate space charge maps for all threads and build iterators
-	for( uint32_t a = 0; a < _threadcount; a++ ) {
+	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
 	    if( a == 0 ) schmap[a] = &scharge;
 	    else schmap[a] = new ScalarField( g );
 	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
@@ -678,7 +677,7 @@ public:
 
 	// Combine separate space charge maps and collect
 	// statistics. Free all allocated memory.
-	for( uint32_t a = 0; a < _threadcount; a++ ) {
+	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
 	    if( a != 0 ) {
 		scharge += *schmap[a];
 		delete schmap[a];
@@ -725,23 +724,22 @@ public:
  * Debugging, plotting and saving         *
  * ************************************** */
 
-    /*! \brief Prints internal data to std::cout.
+    /*! \brief Print debugging information to os.
      */
-    virtual void debug_print( void ) const {
-	std::cout << "threadcount = " << _threadcount << "\n";
-	std::cout << "epsabs = "      << _epsabs << "\n";
-	std::cout << "epsrel = "      << _epsrel << "\n";
-	std::cout << "maxsteps = "    << _maxsteps << "\n";
-	std::cout << "maxt = "        << _maxt << "\n";
-	std::cout << "trajdiv = "     << _trajdiv << "\n";
-	std::cout << "mirror = (";
+    virtual void debug_print( std::ostream &os ) const {
+	os << "epsabs = "      << _epsabs << "\n";
+	os << "epsrel = "      << _epsrel << "\n";
+	os << "maxsteps = "    << _maxsteps << "\n";
+	os << "maxt = "        << _maxt << "\n";
+	os << "trajdiv = "     << _trajdiv << "\n";
+	os << "mirror = (";
 	for( uint32_t a = 0; a < 5; a++ )
-	    std::cout << _mirror[a] << ", ";
-	std::cout << _mirror[5] << ")\n";
+	    os << _mirror[a] << ", ";
+	os << _mirror[5] << ")\n";
 	
 	for( uint32_t a = 0; a < _particles.size(); a++ ) {
-	    std::cout << "Particle " << a << ":\n";
-	    _particles[a].debug_print();
+	    os << "Particle " << a << ":\n";
+	    _particles[a].debug_print( os );
 	}
     }
 
