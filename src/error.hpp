@@ -55,7 +55,6 @@
 
 #ifdef _GNU_SOURCE
 #include <execinfo.h>
-
 #include <memory.h>
 #include <unistd.h>
 #include <ucontext.h>
@@ -78,6 +77,7 @@ using __cxxabiv1::__cxa_demangle;
 #else
 # define SIGSEGV_STACK_GENERIC
 # define REGFORMAT "%x"
+#endif
 #endif
 
 
@@ -219,11 +219,12 @@ struct ErrorRange : public Error {
 };
 
 
+#ifdef _GNU_SOURCE
 /*! \brief Signal handler
  */
 struct SignalHandler {
 
-    static void signal_handler_SIGSEGV(int signum, siginfo_t* info, void*ptr) {
+    static void signal_handler_SIGSEGV( int signum, siginfo_t *info, void *ptr ) {
 	static const char *si_codes[3] = {"", "SEGV_MAPERR", "SEGV_ACCERR"};
 
 	int i, f = 0;
@@ -232,13 +233,13 @@ struct SignalHandler {
 	void **bp = 0;
 	void *ip = 0;
 
-	sigsegv_outp("Segmentation Fault!");
-	sigsegv_outp("info.si_signo = %d", signum);
-	sigsegv_outp("info.si_errno = %d", info->si_errno);
-	sigsegv_outp("info.si_code  = %d (%s)", info->si_code, si_codes[info->si_code]);
-	sigsegv_outp("info.si_addr  = %p", info->si_addr);
-	for(i = 0; i < NGREG; i++)
-		sigsegv_outp("reg[%02d]       = 0x" REGFORMAT, i, ucontext->uc_mcontext.gregs[i]);
+	sigsegv_outp( "Segmentation Fault!" );
+	sigsegv_outp( "info.si_signo = %d", signum );
+	sigsegv_outp( "info.si_errno = %d", info->si_errno );
+	sigsegv_outp( "info.si_code  = %d (%s)", info->si_code, si_codes[info->si_code] );
+	sigsegv_outp( "info.si_addr  = %p", info->si_addr );
+	for( i = 0; i < NGREG; i++ )
+	    sigsegv_outp( "reg[%02d]       = 0x" REGFORMAT, i, ucontext->uc_mcontext.gregs[i] );
 
 #ifndef SIGSEGV_NOSTACK
 #if defined(SIGSEGV_STACK_IA64) || defined(SIGSEGV_STACK_X86)
@@ -298,6 +299,7 @@ struct SignalHandler {
     }
 
 };
+#endif
 
 
 #endif

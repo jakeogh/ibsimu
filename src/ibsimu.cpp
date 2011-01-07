@@ -54,11 +54,13 @@
 IBSimu::IBSimu()
     : _hello(false), _verbose_output(0), _threadcount(1)
 {
+#ifdef _GNU_SOURCE
     struct sigaction act;
     act.sa_sigaction = SignalHandler::signal_handler_SIGSEGV;
     sigemptyset( &act.sa_mask );
     act.sa_flags = SA_SIGINFO;
     sigaction( SIGSEGV, &act, NULL );
+#endif
 }
 
 
