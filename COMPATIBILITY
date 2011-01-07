@@ -5,6 +5,20 @@ This document describes those library changes that break end-user
 programs, that is removal or changes of old features or
 functions. This list was started from version 1.0.3.
 
+IBSimu 1.0.4dev
+---------------------------------------------------------------------------
+
+All MyDXFEntities constructors need a pointer to MyDXFFile. This
+change is made to give MyDXFEntities access to warning level setting
+at MyDXFFile.
+
+All debug_print() commands now require a reference to the output
+stream where debugging information is printed to.
+
+ParticleDataBase::set_thread_count() is deprecated by introducing
+global setting for thread count in IBSimu class. The set_thread_count
+function still remains for compatibility reasons but has no effect.
+
 IBSimu 1.0.4							
 ---------------------------------------------------------------------------
 

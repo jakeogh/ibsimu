@@ -2,7 +2,7 @@
  *  \brief Base for three dimensional plottable graphs
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009, 2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,24 +45,41 @@
 
 
 #include "graph.hpp"
+#include "error.hpp"
 
 
+/*! \brief View types.
+ */
 enum view_e {
     VIEW_XY = 0,
     VIEW_XZ,
-    VIEW_YZ
+    VIEW_YX,
+    VIEW_YZ,
+    VIEW_ZX,
+    VIEW_ZY
 };
 
 
-/*! \brief Abstract base class for drawable3d plots.
+/*! \brief Abstract base class for geometry slice plots.
+ *
+ *  Provides functionality to select a slice of geometry along axes at
+ *  any mesh level in any direction. The direction is selected with \a
+ *  view and level in integer (mesh count) \a level. Provides the
+ *  child class with permutated coordinate indexes. The first
+ *  coordinate (index \a vb[0]) will be used for the horizontal axis
+ *  of the plot, the second coordinate (index \a vb[1]) for the
+ *  vertical axis and the third coordinate (index \a vb[2]) for the
+ *  level.  In three dimensions all the views are possible. In two
+ *  dimensions, only \a VIEW_XY and \a VIEW_YX are possible. Here
+ *  there is no separate redial index, Y is used instead.
  */
 class Graph3D : public Graph {
 
 protected:
 
-    view_e     _view;
-    int        _vb[3];
-    int        _level;
+    view_e     _view;    /*!< \brief Geometry view direction. */
+    int        _vb[3];   /*!< \brief Coordinate index for first, second and third axes. */
+    int        _level;   /*!< \brief Level of slice in mesh units. */
 
 public:
 
@@ -100,18 +117,40 @@ public:
      *  Sets view direction to \a view and the view level to \a level.
      */
     void set_view( view_e view, int level ) {
-        if( view == VIEW_XY ) {
+	switch( view ) {
+	case VIEW_XY:
 	    _vb[0] = 0;
 	    _vb[1] = 1;
 	    _vb[2] = 2;
-	} else if( view == VIEW_XZ ) {
+	    break;
+	case VIEW_XZ:
 	    _vb[0] = 0;
 	    _vb[1] = 2;
 	    _vb[2] = 1;
-	} else if( view == VIEW_YZ ) {
+	    break;
+	case VIEW_YX:
+	    _vb[0] = 1;
+	    _vb[1] = 0;
+	    _vb[2] = 2;
+	    break;
+	case VIEW_YZ:
 	    _vb[0] = 1;
 	    _vb[1] = 2;
 	    _vb[2] = 0;
+	    break;
+	case VIEW_ZX:
+	    _vb[0] = 2;
+	    _vb[1] = 0;
+	    _vb[2] = 1;
+	    break;
+	case VIEW_ZY:
+	    _vb[0] = 2;
+	    _vb[1] = 1;
+	    _vb[2] = 0;
+	    break;
+	default:
+	    throw( ErrorUnimplemented( ERROR_LOCATION ) );
+	    break;
 	}
 	_view = view;
 	_level = level;

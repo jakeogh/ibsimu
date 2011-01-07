@@ -1,8 +1,8 @@
 /*! \file vectorfield.hpp
- *  \brief Vector fields
+ *  \brief %Vector fields
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -52,7 +52,7 @@
 /*! \brief %Vector field class.
  *
  *  %VectorField is intended to be used as a container for vector
- *  field data. The IBSimu Package uses vector fields for storing
+ *  field data. The %IBSimu Package uses vector fields for storing
  *  magnetic field. The vector field class provides a subset of vector
  *  operations to copy, sum and scale vector fields. The class also
  *  includes operators for indexed access to mesh elements and
@@ -67,29 +67,31 @@
  *  used.
  *
  */
-class VectorField {
-    geom_mode_e _geom_mode; /*!< \brief Geometry mode */
-    Int3D       _size;      /*!< \brief Size of mesh */
-    Vec3D       _origo;     /*!< \brief Location of mesh point (0,0,0) [m] */
-    Vec3D       _max;       /*!< \brief Max coordinates of mesh [m] */
-    double      _h;         /*!< \brief Length of mesh step [m] */
-    double      _div_h;     /*!< \brief One over length of mesh step [1/m] */
-    double     *_F[3];      /*!< \brief Vector field data in three components
-			     *
-			     *   If pointer in array is NULL the component 
-			     *   is not stored.
-			     */
-    field_extrpl_e   _extrpl[6];   /*!< \brief What to return outside geometry. */
+class VectorField : public Mesh {
+
+    field_extrpl_e   _extrpl[6]; /*!< \brief What to return outside geometry. */
+    double          *_F[3];      /*!< \brief Vector field data in three components
+				  *
+				  *   If pointer in array is NULL the component 
+				  *   is not stored.
+				  */
 
     bool parse_line( const std::string &str, double c[6], double xscale, double fscale, 
 		     size_t cdim, size_t fdim, const std::string &filename, size_t linec );
 
     void transform( int ind[3] );
+    
+    void check_definition();
 
 public:
 
 
     /*! \brief Default constructor.
+     *
+     *  The field made with the default constructor sets geometry mode
+     *  to MODE3D, mesh cell size \a h to 1, mesh size \a size to
+     *  (0,0,0) and origo \a origo to (0,0,0). The field evaluator
+     *  returns always zero.
      */
     VectorField();
 
@@ -146,41 +148,13 @@ public:
      */
     VectorField( const VectorField &f );
 
+    /*! \brief Constructor for loading vector field from a file.
+     */
+    VectorField( std::istream &s );
+
     /*! \brief Destructor.
      */
     ~VectorField();
-
-    /*! \brief Returns geometry mode.
-     */
-    inline geom_mode_e geom_mode( void ) const { return( _geom_mode ); }
-
-    /*! \brief Returns size array of geometry.
-     */
-    inline Int3D size( void ) const { return( _size ); }
-
-    /*! \brief Returns size of solid mesh in direction \a i.
-     */
-    inline int32_t size( int i ) const { return( _size[i] ); }
-   
-    /*! \brief Returns number of nodes in the mesh.
-     */
-    inline int32_t nodecount( void ) const { return( _size[0]*_size[1]*_size[2] ); }
-
-    /*! \brief Returns origo vector of geometry.
-     */
-    inline Vec3D origo( void ) const { return( _origo ); }
-
-    /*! \brief Returns \a i-th component of vector origo.
-     */
-    inline double origo( int i ) const { return( _origo[i] ); }
-
-    /*! \brief Returns mesh cell size.
-     */
-    inline double h( void ) const { return( _h ); }
-
-    /*! \brief Returns inverse mesh cell size.
-     */
-    inline double div_h( void ) const { return( _div_h ); }
 
     /*! \brief Set the behaviour of field interpolation outside mesh
      *  points (extrapolation).
@@ -290,28 +264,14 @@ public:
      */
     Vec3D operator()( Vec3D x ) const;
 
-    /*! \brief Prints internal data to std::cout.
+    /*! \brief Saves vector field data to stream.
      */
-    void debug_print( void ) const;
+    void save( std::ostream &s ) const;
+
+    /*! \brief Print debugging information to os.
+     */
+    void debug_print( std::ostream &os ) const;
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

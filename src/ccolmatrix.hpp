@@ -2,7 +2,7 @@
  *  \brief Compressed column sparse matrix algebra
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -210,9 +210,9 @@ public:
      */
     bool check_ascending( void );
 
-    /*! \brief Prints the values of all internal data to std::cout.
+    /*! \brief Print debugging information to os.
      */
-    void debug_print( void ) const;
+    void debug_print( std::ostream &os ) const;
 
 /* ************************************** *
  * User level matrix element access       *

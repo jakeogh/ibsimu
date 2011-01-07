@@ -1,8 +1,8 @@
 /*! \file particles.hpp
- *  \brief Particle and particle point objects
+ *  \brief %Particle and particle point objects
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -567,11 +567,13 @@ protected:
 					*   In 3D and cylindrically symmetric simulations 
 					*   unit is A or C.
 					*/
-    double              _qm;           /*!< \brief Ratio q/m [C/kg] */
+    double              _q;            /*!< \brief Charge q [C] */
+    double              _m;            /*!< \brief Mass m [kg] */
 
     ParticleBase( double IQ, double q, double m ) 
-	: _status(PARTICLE_OK), _qm(q/m) {
-	if( _qm < 0 )
+	: _status(PARTICLE_OK), _q(q) {
+	_m = fabs(m);
+	if( _q/_m < 0 )
 	    _IQ = -fabs(IQ);
 	else
 	    _IQ = fabs(IQ);
@@ -589,14 +591,21 @@ public:
      */
     void set_status( particle_status_e status ) { _status = status; }
 
-    /*! \brief Return current or charge of particle [A/C].
+    /*! \brief Return current or charge carried by trajectory or particle cloud [A/C].
      */
     double IQ() const { return( _IQ ); }
 
-    /*! \brief Return q/m ratio [C/kg].
+    /*! \brief Return particle charge (q) [C].
      */
-    double qm() const { return( _qm ); }
+    double q() const { return( _q ); }
 
+    /*! \brief Return particle mass (m) [kg].
+     */
+    double m() const { return( _m ); }
+
+    /*! \brief Return charge per mass ratio (q/m) [C/kg].
+     */
+    double qm() const { return( _q/_m ); }
 };
 
 
@@ -678,31 +687,38 @@ public:
      */
     void clear_trajectory( void ) { _trajectory.clear(); }
 
-    /*! \brief Prints internal data to std::cout.
+    /*! \brief Print debugging information to os.
      */
-    void debug_print( void ) const {
+    void debug_print( std::ostream &os ) const {
 	size_t a;
-	std::cout << "**Particle\n";
-	if( _status == PARTICLE_OK )
-	    std::cout << "stat = PARTICLE_OK\n";
-	else if( _status == PARTICLE_OUT )
-	    std::cout << "stat = PARTICLE_OUT\n";
-	else if( _status == PARTICLE_COLL )
-	    std::cout << "stat = PARTICLE_COLL\n";
-	else if( _status == PARTICLE_BADDEF )
-	    std::cout << "stat = PARTICLE_BADDEF\n";
-	else if( _status == PARTICLE_TIME )
-	    std::cout << "stat = PARTICLE_TIME\n";
-	else if( _status == PARTICLE_NSTP )
-	    std::cout << "stat = PARTICLE_NSTP\n";
-	else
-	    std::cout << "status = Unknown\n";
-	std::cout << "IQ   = " << _IQ << "\n";
-	std::cout << "q/m  = " << _qm << "\n";
-	std::cout << "x    = " << _x << "\n";
-	std::cout << "Trajectory:\n";
+        os << "**Particle\n";
+	switch( _status ) {
+	case PARTICLE_OK:
+	    os << "stat = PARTICLE_OK\n";
+	    break;
+	case PARTICLE_OUT:
+	    os << "stat = PARTICLE_OUT\n";
+	    break;
+	case PARTICLE_COLL:
+	    os << "stat = PARTICLE_COLL\n";
+	    break;
+	case PARTICLE_BADDEF:
+	    os << "stat = PARTICLE_BADDEF\n";
+	    break;
+	case PARTICLE_TIME:
+	    os << "stat = PARTICLE_TIME\n";
+	    break;
+	case PARTICLE_NSTP:
+	    os << "stat = PARTICLE_NSTP\n";
+	    break;
+	}
+	os << "IQ   = " << _IQ << "\n";
+	os << "q    = " << _q << "\n";
+	os << "m    = " << _m << "\n";
+	os << "x    = " << _x << "\n";
+	os << "Trajectory:\n";
 	for( a = 0; a < _trajectory.size(); a++ )
-	    std::cout << "x[" << a << "] = " << _trajectory[a] << "\n";
+	    os << "x[" << a << "] = " << _trajectory[a] << "\n";
 
 	/*
 	std::cout << "Trajectory:\n";

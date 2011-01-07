@@ -1,5 +1,5 @@
 /*! \file colormap.hpp
- *  \brief Colormap graph for plotting
+ *  \brief %Colormap graph for plotting
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.

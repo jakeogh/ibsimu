@@ -2,7 +2,7 @@
  *  \brief Poisson equation problem for solving electric potential
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -183,7 +183,9 @@ class EpotProblem : public Problem {
 	const int32_t &operator()( int i, int j, int k ) const 
 	    { return( _n2d[i+j*_size[0]+k*_size[0]*_size[1]] ); }
 	
-	void debug_print( void ) const; 
+	/*! \brief Print debugging information to os.
+	 */
+	void debug_print( std::ostream &os ) const;
     };
 
     int32_t             _nodecount;     /*!< \brief Number of nodes. */
@@ -370,9 +372,9 @@ public:
      */
     int get_dof( void ) const { return( _dof ); }
 
-    /*! \brief Prints internal data to std::cout.
+    /*! \brief Print debugging information to os.
      */
-    void debug_print( void ) const;
+    void debug_print( std::ostream &os ) const;
 
     /*! \brief Saves problem data to stream.
      */

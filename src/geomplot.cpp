@@ -1,8 +1,8 @@
 /*! \file geomplot.cpp
- *  \brief Source code for geomplot.cpp
+ *  \brief Geometry plotting
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -168,6 +168,13 @@ void GeomPlot::set_scharge( const ScalarField *scharge )
 }
 
 
+void GeomPlot::set_tdens( const ScalarField *tdens ) 
+{
+    _tdens = tdens;
+    // trajectory density field graph is disabled by default
+}
+
+
 void GeomPlot::set_scharge_field( bool enable ) 
 {
     _scharge_field = enable;
@@ -246,7 +253,8 @@ void GeomPlot::set_view( view_e view, int level )
 {
     //std::cout << "set_view( " << view << ", " << level << " )\n";
 
-    if( view == VIEW_XY ) {
+    switch( view ) {
+    case VIEW_XY:
 	_vb[0] = 0;
 	_vb[1] = 1;
 	_vb[2] = 2;
@@ -257,8 +265,9 @@ void GeomPlot::set_view( view_e view, int level )
 	    _frame->set_axis_label( PLOT_AXIS_Y1, "r (m)" );
 	else
 	    _frame->set_axis_label( PLOT_AXIS_Y1, "y (m)" );
+	break;
 
-    } else if( view == VIEW_XZ ) {
+    case VIEW_XZ:
 	_vb[0] = 0;
 	_vb[1] = 2;
 	_vb[2] = 1;
@@ -266,21 +275,51 @@ void GeomPlot::set_view( view_e view, int level )
 	// Set axis labels
 	_frame->set_axis_label( PLOT_AXIS_X1, "x (m)" );
 	_frame->set_axis_label( PLOT_AXIS_Y1, "z (m)" );
+	break;
 
-    } else if( view == VIEW_YZ ) {
+    case VIEW_YX:
+	_vb[0] = 1;
+	_vb[1] = 0;
+	_vb[2] = 2;
+
+	// Set axis labels
+	_frame->set_axis_label( PLOT_AXIS_X1, "y (m)" );
+	_frame->set_axis_label( PLOT_AXIS_Y1, "x (m)" );
+	break;
+
+    case VIEW_YZ:
 	_vb[0] = 1;
 	_vb[1] = 2;
 	_vb[2] = 0;
 
 	// Set axis labels
-	if( _geom->geom_mode() == MODE_CYL )
-	    _frame->set_axis_label( PLOT_AXIS_X1, "r (m)" );
-	else
-	    _frame->set_axis_label( PLOT_AXIS_X1, "y (m)" );
+	_frame->set_axis_label( PLOT_AXIS_X1, "y (m)" );
 	_frame->set_axis_label( PLOT_AXIS_Y1, "z (m)" );
+	break;
 
-    } else {
-	throw( Error( ERROR_LOCATION, "unknown view" ) );
+    case VIEW_ZX:
+	_vb[0] = 2;
+	_vb[1] = 0;
+	_vb[2] = 1;
+
+	// Set axis labels
+	_frame->set_axis_label( PLOT_AXIS_X1, "z (m)" );
+	_frame->set_axis_label( PLOT_AXIS_Y1, "x (m)" );
+	break;
+
+    case VIEW_ZY:
+	_vb[0] = 2;
+	_vb[1] = 1;
+	_vb[2] = 0;
+
+	// Set axis labels
+	_frame->set_axis_label( PLOT_AXIS_X1, "z (m)" );
+	_frame->set_axis_label( PLOT_AXIS_Y1, "y (m)" );
+	break;
+
+    default:
+	throw( ErrorUnimplemented( ERROR_LOCATION ) );
+	break;
     }
 
     // Set view

@@ -1,8 +1,8 @@
 /*! \file dxf_solid.hpp
- *  \brief Solid definition using MyDXF
+ *  \brief %Solid definition using MyDXF
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -78,9 +78,9 @@ public:
      */
     virtual bool inside( const Vec3D &x ) const;
 
-    /*! \brief Prints internal data to std::cout.
+    /*! \brief Print debugging information to os.
      */
-    virtual void debug_print( void ) const;
+    void debug_print( std::ostream &os ) const;
 
     /*! \brief Saves solid data to stream.
      */
@@ -89,21 +89,3 @@ public:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

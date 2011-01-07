@@ -1,8 +1,8 @@
 /*! \file palette.hpp
- *  \brief Palette for colormaps
+ *  \brief %Palette for colormaps
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -120,7 +120,9 @@ public:
      */
     void norm( void );
 
-    void debug_print( void ) const;
+    /*! \brief Print debugging information to os.
+     */
+    void debug_print( std::ostream &os ) const;
 };
 
 

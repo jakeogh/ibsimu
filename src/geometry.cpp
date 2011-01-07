@@ -1,8 +1,8 @@
 /*! \file geometry.cpp
- *  \brief Source code for geometry.cpp
+ *  \brief %Geometry definition.
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -50,42 +50,164 @@
 #include "file.hpp"
 
 
-Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
+std::ostream &operator<<( std::ostream &os, const Bound &b )
+{
+    if( b.type == BOUND_NEUMANN )
+	os << "(BOUND_NEUMANN, ";
+    else 
+	os << "(BOUND_DIRICHLET, ";
+    os << b.val << ")";
+    return( os );
+}
+
+
+Mesh::Mesh()
+    : _geom_mode(MODE_3D), _h(1.0)
+{
+    _div_h = 1.0/_h;
+}
+
+
+Mesh::Mesh( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
     : _geom_mode(geom_mode), _size(size), _origo(origo)
 {
     _h = fabs(h);
-    if( _h == 0.0 )
-	throw( Error( ERROR_LOCATION, "zero mesh step size" ) );
-
-    if( ibsimu.get_verbose_output() ) {
-	Int3D one(1,1,1);
-	std::cout << "Constructing geometry\n";
-	std::cout << "  origo = " << origo << "\n";
-	std::cout << "  size  = " << size << "\n";
-	std::cout << "  max   = " << origo+_h*(size-one) << "\n";
-	std::cout << "  h     = " << _h << "\n";
-    }
-
-    if( _geom_mode == MODE_CYL ) {
-	if( _origo[1] < 0.0 )
-	    throw( Error( ERROR_LOCATION, "negative origo in r-direction" ) );
-    }
-    
-    if( _geom_mode == MODE_3D ) {
-	if( _size[0] < 3 || _size[1] < 3 || _size[2] < 3 )
-	    throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
-    } else if( _geom_mode == MODE_2D || _geom_mode == MODE_CYL ) {
-	if( _size[0] < 3 || _size[1] < 3 || _size[2] != 1 )
-	    throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
-    } else {
-	if( _size[0] < 3 || _size[1] != 1 || _size[2] != 1 )
-	    throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
-    }
-
-    // Calculate vector max
+    _div_h = 1.0/_h;
     _max = Vec3D( _origo(0)+_h*(_size[0]-1),
 		  _origo(1)+_h*(_size[1]-1),
 		  _origo(2)+_h*(_size[2]-1) );
+
+    // Checks
+    if( _h == 0.0 )
+	throw( Error( ERROR_LOCATION, "zero mesh step size" ) );
+    else if( _geom_mode == MODE_CYL && _origo[1] < 0.0 )
+	throw( Error( ERROR_LOCATION, "negative origo in r-direction" ) );
+    else if( _size[0] <= 0 || _size[1] <= 0 || _size[2] <= 0 )
+    	throw( Error( ERROR_LOCATION, "zero mesh size" ) );
+}
+
+
+void Mesh::reset( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
+{
+    _geom_mode = geom_mode;
+    _size = size;
+    _origo = origo;
+    _h = fabs(h);
+    _div_h = 1.0/_h;
+    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
+		  _origo(1)+_h*(_size[1]-1),
+		  _origo(2)+_h*(_size[2]-1) );
+
+    // Checks
+    if( _h == 0.0 )
+	throw( Error( ERROR_LOCATION, "zero mesh step size" ) );
+    else if( _geom_mode == MODE_CYL && _origo[1] < 0.0 )
+	throw( Error( ERROR_LOCATION, "negative origo in r-direction" ) );
+    else if( _size[0] <= 0 || _size[1] <= 0 || _size[2] <= 0 )
+    	throw( Error( ERROR_LOCATION, "zero mesh size" ) );
+}
+
+
+Mesh::Mesh( std::istream &s )
+{
+    _geom_mode = (geom_mode_e)read_int32( s );
+    _size      = Int3D( s );
+    _origo     = Vec3D( s );
+    _h         = read_double( s );
+
+    // Calculate vector max and reciprocal of h
+    _div_h = 1.0/_h;
+    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
+		  _origo(1)+_h*(_size[1]-1),
+		  _origo(2)+_h*(_size[2]-1) );
+}
+
+
+int32_t Mesh::dim( void ) const
+{
+    switch( _geom_mode ) {
+    case MODE_1D:
+	return( 1 );
+	break;
+    case MODE_2D:
+	return( 2 );
+	break;
+    case MODE_CYL:
+	return( 2 );
+	break;
+    default:
+	return( 3 );
+	break;
+    }
+}
+
+
+void Mesh::save( std::ostream &s ) const
+{
+    write_int32( s, _geom_mode );
+    _size.save( s );
+    _origo.save( s );
+    write_double( s, _h );
+}
+
+
+bool Mesh::operator==( const Mesh &m ) const
+{
+    if( _geom_mode == m._geom_mode && 
+	_size == m._size && 
+	_origo == m._origo &&
+	_h == m._h )
+	return( true );
+    return( false );
+}
+
+
+void Mesh::debug_print( std::ostream &os ) const
+{
+    os << "**Mesh\n";
+
+    switch( _geom_mode ) {
+    case MODE_1D:
+	os << "geom_mode = MODE_1D\n";
+	break;
+    case MODE_2D:
+	os << "geom_mode = MODE_2D\n";
+	break;
+    case MODE_CYL:
+	os << "geom_mode = MODE_CYL\n";
+	break;
+    case MODE_3D:
+	os << "geom_mode = MODE_3D\n";
+	break;
+    }
+    os << "size = (" 
+       << _size[0] << ", "
+       << _size[1] << ", "
+       << _size[2] << ")\n";
+    os << "origo = (" 
+       << _origo[0] << ", "
+       << _origo[1] << ", "
+       << _origo[2] << ")\n";
+    os << "max = (" 
+       << _max[0] << ", "
+       << _max[1] << ", "
+       << _max[2] << ")\n";
+    os << "h = " << _h << "\n";
+}
+
+
+Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
+    : Mesh(geom_mode,size,origo,h)
+{
+    check_definition();
+
+    if( ibsimu.get_verbose_output() ) {
+	std::cout << "Constructing geometry\n";
+	std::cout << "  origo = " << _origo << "\n";
+	std::cout << "  size  = " << _size << "\n";
+	std::cout << "  max   = " << _max << "\n";
+	std::cout << "  h     = " << _h << "\n";
+    }
 
     _n = 0;
     _bound.push_back( Bound(BOUND_NEUMANN,0.0) );
@@ -101,18 +223,11 @@ Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
 
 
 Geometry::Geometry( std::istream &s )
+    : Mesh(s)
 {
-    _geom_mode = (geom_mode_e)read_int32( s );
-    _size      = Int3D( s );
-    _origo     = Vec3D( s );
-    _h         = read_double( s );
-    _n         = read_int32( s );
+    check_definition();
 
-    // Calculate vector max
-    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
-		  _origo(1)+_h*(_size[1]-1),
-		  _origo(2)+_h*(_size[2]-1) );
-
+    _n = read_int32( s );
     for( int32_t a = 0; a < _n; a++ ) {
 	int32_t fileid = read_int32( s );
 	if( fileid == FILEID_FUNCSOLID )
@@ -138,21 +253,18 @@ Geometry::~Geometry()
 }
 
 
-int32_t Geometry::dim( void ) const
+void Geometry::check_definition()
 {
-    switch( _geom_mode ) {
-    case MODE_1D:
-	return( 1 );
-	break;
-    case MODE_2D:
-	return( 2 );
-	break;
-    case MODE_CYL:
-	return( 2 );
-	break;
-    default:
-	return( 3 );
-	break;
+    // Geometry specific checks
+    if( _geom_mode == MODE_3D ) {
+	if( _size[0] < 3 || _size[1] < 3 || _size[2] < 3 )
+	    throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
+    } else if( _geom_mode == MODE_2D || _geom_mode == MODE_CYL ) {
+	if( _size[0] < 3 || _size[1] < 3 || _size[2] != 1 )
+	    throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
+    } else {
+	if( _size[0] < 3 || _size[1] != 1 || _size[2] != 1 )
+	    throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
     }
 }
 
@@ -398,10 +510,7 @@ void Geometry::build_mesh( void )
 
 void Geometry::save( std::ostream &s ) const
 {
-    write_int32( s, _geom_mode );
-    _size.save( s );
-    _origo.save( s );
-    write_double( s, _h );
+    Mesh::save( s );
     write_int32( s, _n );
     for( int32_t a = 0; a < _n; a++ )
 	_sdata[a]->save( s );
@@ -413,54 +522,28 @@ void Geometry::save( std::ostream &s ) const
 }
 
 
-void Geometry::debug_print( void ) const
+void Geometry::debug_print( std::ostream &os ) const
 {
-    std::cout << "**Geometry\n";
+    Mesh::debug_print( os );
 
-    if( _geom_mode == MODE_1D )
-	std::cout << "geom_mode = MODE_1D\n";
-    else if( _geom_mode == MODE_2D )
-	std::cout << "geom_mode = MODE_2D\n";
-    else if( _geom_mode == MODE_CYL )
-	std::cout << "geom_mode = MODE_CYL\n";
-    else if( _geom_mode == MODE_3D )
-	std::cout << "geom_mode = MODE_3D\n";
-    else
-	std::cout << "geom_mode = Unknown\n";
-    std::cout << "size = (" 
-	      << _size[0] << ", "
-	      << _size[1] << ", "
-	      << _size[2] << ")\n";
-    std::cout << "origo = (" 
-	      << _origo[0] << ", "
-	      << _origo[1] << ", "
-	      << _origo[2] << ")\n";
-    std::cout << "max = (" 
-	      << _max[0] << ", "
-	      << _max[1] << ", "
-	      << _max[2] << ")\n";
-    std::cout << "h = " << _h << "\n";
-    std::cout << "n = " << _n << "\n";
+    os << "**Geometry\n";
+
+    os << "n = " << _n << "\n";
     if( _n == 0 )
-	std::cout << "no sdata\n";
+	os << "no sdata\n";
     for( int32_t a = 0; a < _n; a++ ) {
-	std::cout << "sdata[" << a << "]:\n";
-	_sdata[a]->debug_print();
+	os << "sdata[" << a << "]:\n";
+	_sdata[a]->debug_print( os );
     }
     for( int32_t a = 0; a < _n+6; a++ ) {
-	std::cout << "bound[" << a << "] = (";
-	if( _bound[a].type == BOUND_NEUMANN )
-	    std::cout << "BOUND_NEUMANN, ";
-	else 
-	    std::cout << "BOUND_DIRICHLET, ";
-	std::cout << _bound[a].val << ")\n";
+	os << "bound[" << a << "] = " << _bound[a] << "\n";
     }
-    std::cout << "built = " << _built << "\n";
-    std::cout << "smesh = \n";
+    os << "built = " << _built << "\n";
+    os << "smesh = \n";
     for( int32_t j = 0; j < _size[1]; j++ ) {
 	for( int32_t i = 0; i < _size[0]; i++ )
-	    std::cout << std::setw(2) << (int)mesh(i,j,0) << " ";
-	std::cout << "\n";
+	    os << std::setw(2) << (int)mesh(i,j,0) << " ";
+	os << "\n";
     }
 }
 

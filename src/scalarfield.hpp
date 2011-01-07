@@ -2,7 +2,7 @@
  *  \brief Scalar fields
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -62,22 +62,29 @@
  *  linear extrapolation of field outside the defined mesh. This way
  *  it can be ensured that %ScalarField returns sensible values even
  *  close by to the edges of the geometry.
+ *
+ *  The scalar field mesh size has to be at least 2 nodes in active
+ *  directions for the selected geometry mode. The mesh size has to be
+ *  1 in the other (inactive) directions.
  */
-class ScalarField {
-    geom_mode_e _geom_mode; /*!< \brief Geometry mode */
-    Int3D       _size;      /*!< \brief Size of mesh */
-    Vec3D       _origo;     /*!< \brief Location of mesh point (0,0,0) [m] */
-    Vec3D       _max;       /*!< \brief Location of mesh point (size[0]-1,size[1]-1,size[2]-1) [m] */
-    double      _h;         /*!< \brief Length of mesh step [m] */
-    double      _div_h;     /*!< \brief One over length of mesh step [1/m] */
+class ScalarField : public Mesh {
     double     *_F;         /*!< \brief Scalar field data */
+
+    /*! \brief Check mesh definition validity.
+     */
+    void check_definition();
 
 public:
 
 
     /*! \brief Default constructor.
+     *
+     *  The field made with the default constructor sets geometry mode
+     *  to MODE3D, mesh cell size \a h to 1, mesh size \a size to
+     *  (0,0,0) and origo \a origo to (0,0,0). The field evaluator
+     *  returns always zero.
      */
-    ScalarField() : _geom_mode(MODE_3D), _h(1.0), _div_h(1.0), _F(0) {}
+    ScalarField();
 
     /*! \brief Constructor for geometry from \a g.
      *
@@ -105,48 +112,6 @@ public:
     /*! \brief Destructor.
      */
     ~ScalarField();
-
-    /*! \brief Returns geometry mode.
-     */
-    inline geom_mode_e geom_mode( void ) const { return( _geom_mode ); }
-
-    /*! \brief Returns size array of geometry.
-     */
-    inline Int3D size( void ) const { return( _size ); }
-
-    /*! \brief Returns size of solid mesh in direction \a i.
-     */
-    inline int32_t size( int i ) const { return( _size[i] ); }
-   
-    /*! \brief Returns number of nodes in the mesh.
-     */
-    inline int32_t nodecount( void ) const { return( _size[0]*_size[1]*_size[2] ); }
-
-    /*! \brief Returns origo vector of geometry.
-     */
-    inline Vec3D origo( void ) const { return( _origo ); }
-
-    /*! \brief Returns \a i-th component of vector origo.
-     */
-    inline double origo( int i ) const { return( _origo[i] ); }
-
-    /*! \brief Returns vector pointing to the last mesh point opposite
-     *  of origo.
-     */
-    Vec3D max( void ) const { return( _max ); }
-
-    /*! \brief Returns \a i-th component of vector pointing to the
-     *  last mesh point opposite of origo.
-     */
-    double max( int i ) const { return( _max[i] ); }
-
-    /*! \brief Returns mesh cell size.
-     */
-    inline double h( void ) const { return( _h ); }
-
-    /*! \brief Returns inverse mesh cell size.
-     */
-    inline double div_h( void ) const { return( _div_h ); }
 
     /*! \brief Clears the field.
      */
@@ -237,28 +202,10 @@ public:
      */
     void save( std::ostream &s ) const;
 
-    /*! \brief Prints internal data to std::cout.
+    /*! \brief Print debugging information to os.
      */
-    void debug_print( void ) const;
+    void debug_print( std::ostream &os ) const;
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

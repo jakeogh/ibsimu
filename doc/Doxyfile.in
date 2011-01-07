@@ -825,13 +825,13 @@ HTML_FILE_EXTENSION    = .html
 # each generated HTML page. If it is left blank doxygen will generate a
 # standard header.
 
-HTML_HEADER            = 
+HTML_HEADER            = docheader.html
 
 # The HTML_FOOTER tag can be used to specify a personal HTML footer for
 # each generated HTML page. If it is left blank doxygen will generate a
 # standard footer.
 
-HTML_FOOTER            = 
+HTML_FOOTER            = docfooter.html
 
 # The HTML_STYLESHEET tag can be used to specify a user-defined cascading
 # style sheet that is used by each HTML page. It can be used to
@@ -840,7 +840,7 @@ HTML_FOOTER            =
 # the style sheet file to the HTML output directory, so don't put your own
 # stylesheet in the HTML output directory as well, or it will be erased!
 
-HTML_STYLESHEET        =
+HTML_STYLESHEET        = docstyle.css
 
 # If the HTML_TIMESTAMP tag is set to YES then the footer of each
 # generated HTML page will contain the date and time when the page was
@@ -1154,9 +1154,9 @@ LATEX_BATCHMODE        = NO
 LATEX_HIDE_INDICES     = NO
 
 # If LATEX_SOURCE_CODE is set to YES then doxygen will include source
-  code with syntax highlighting in the LaTeX output. Note that which
-  sources are shown also depends on other settings such as
-  SOURCE_BROWSER.
+# code with syntax highlighting in the LaTeX output. Note that which
+# sources are shown also depends on other settings such as
+# SOURCE_BROWSER.
 
 LATEX_SOURCE_CODE      = NO
 

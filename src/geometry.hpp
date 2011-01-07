@@ -1,8 +1,8 @@
 /*! \file geometry.hpp
- *  \brief Geometry definition
+ *  \brief %Geometry definition
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -87,80 +87,62 @@ struct Bound
 	write_int32( fout, type );
 	write_double( fout, val );
     }
+
+    /*! \brief Outputting to stream.
+     */
+    friend std::ostream &operator<<( std::ostream &os, const Bound &b );
 };
 
 
-/*! \brief %Geometry defining class.
+/*! \brief %Mesh geometry definion.
  *
- *  %Geometry class holds the definitions of the geometry
- *  dimensionality, mesh size and electrode configuration. Also it
- *  contains a signed char array for information about the type of
- *  each node. This array is known as the solid mesh.
+ *  Class contains mesh geometry definition. It stores geometry mode (\a
+ *  geom_mode), number of mesh nodes in each direction (\a size), the
+ *  mesh cell size (\a h) and the locations of mesh node \a (0,0,0) and
+ *  \a (size[0]-1,size[1]-1,size[2]-1) (known as \a origo and \a max).
+ *  The \a max point is internally calculated. Other parameters are
+ *  given when %Mesh is constructed.
  *
- *  The integer numbers in the solid mesh have the following meanings:
- *  The solid number 0 is reserved for vacuum and solid numbers from 1
- *  to 6 are reserved for Dirichlet type boundaries of the bounding
- *  box. %Solid numbers from -1 to -6 are reserved for Neumann type
- *  boundaries of the bounding box. Negative solid numbers starting
- *  from -7 are used for marking electrode edges and the positive
- *  numbers starting from 7 are used to mark the interior points of
- *  the electrodes.
- *
- *  The mesh nodes are marked using the following logic: First nodes,
- *  which are inside electrodes are marked solid (>=7). If a point is
- *  inside several solids, the highest solid number is marked. Other
- *  points are left as vacuum nodes (0). As the next step the solid
- *  nodes are mapped to find nodes which have vacuum as closest
- *  neighbour along any of the axes (not diagonal). These nodes are
- *  marked as solid edges (<=-7). As the last step, the vacuum nodes
- *  at the simulation box boundary are marked either as Neumann (<0
- *  and >-7) or Dirichlet (>0 and <7).
- *
- *  Starting from 1.0.3: A. Mark solids, B. Mark Neumann and Dirichlet
- *  boundaries, C. Mark edges taking in account that Neumann = Vacuum
- *  and Dirichlet != Vacuum.
- *
- *  Bounding box edges are numbered in order xmin, xmax, ymin, ymax,
- *  zmin, xmax.
+ *  %Mesh is to be used as a base class in all classes, which store or
+ *  process some kind of mesh data.
  */
-class Geometry 
+class Mesh
 {
-    geom_mode_e                _geom_mode; /*!< \brief Geometry mode */
+protected:
+    geom_mode_e                _geom_mode; /*!< \brief %Geometry mode */
     Int3D                      _size;      /*!< \brief Size of mesh */
     Vec3D                      _origo;     /*!< \brief Location of mesh point (0,0,0) [m] */
     Vec3D                      _max;       /*!< \brief Location of mesh point (size[0]-1,size[1]-1,size[2]-1) [m] */
     double                     _h;         /*!< \brief Length of mesh step [m] */
-
-    int32_t                    _n;         /*!< \brief Number of solids */
-    std::vector<const Solid*>  _sdata;     /*!< \brief Array of solid definitions, size \a _n */
-    std::vector<Bound>         _bound;     /*!< \brief Array of boundary conditions, size \a _n+6 */
-
-    bool                       _built;     /*!< \brief Is solid mesh array built? */
-    signed char               *_smesh;     /*!< \brief Solid mesh array */
-
-    int32_t                    _brktc;     /*!< \brief Bracket count (accuracy) */
-
-    
-    /*! \brief Check if node is vacuum or Neumann.
-     */
-    bool vac_or_neu( int32_t i, int32_t j, int32_t k );
+    double                     _div_h;     /*!< \brief Reciprocal of length of mesh step [1/m] */
 
 public:
 
-    /*! \brief Constructor for geometry class.
+    /*! \brief Default constructor for mesh definition.
+     *
+     *  Sets geometry mode to MODE3D, mesh cell size \a h to 1, mesh
+     *  size \a size to (0,0,0) and origo \a origo to (0,0,0).
+     */
+    Mesh();
+
+    /*! \brief Constructor for mesh definition.
      *
      *  Sets geometry mode, mesh cell size \a h, mesh size \a size and
      *  origo \a origo.
      */
-    Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h );
+    Mesh( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h );
 
-    /*! \brief Constructor for loading geometry from a file.
+    /*! \brief Constructor for loading mesh from a file.
      */
-    Geometry( std::istream &s );
+    Mesh( std::istream &s );
 
-    /*! \brief Destructor for geometry.
+    /*! \brief Destructor.
      */
-    ~Geometry();
+    ~Mesh() {}
+
+    /*! \brief Reset mesh definition.
+     */
+    void reset( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h );
 
     /*! \brief Returns geometry mode.
      */
@@ -203,6 +185,94 @@ public:
     /*! \brief Returns mesh cell size.
      */
     double h( void ) const { return( _h ); }
+
+    /*! \brief Returns reciprocal of mesh cell size (1/h).
+     */
+    double div_h( void ) const { return( _div_h ); }
+
+    /*! \brief Saves geometry data to stream.
+     */
+    void save( std::ostream &s ) const;
+
+    /*! \brief Comparison
+     */
+    bool operator==( const Mesh &m ) const;
+
+    /*! \brief Print debugging information to os.
+     */
+    void debug_print( std::ostream &os ) const;
+};
+
+
+/*! \brief %Geometry defining class.
+ *
+ *  %Geometry class holds the definitions of the geometry
+ *  dimensionality, mesh size and electrode configuration. Also it
+ *  contains a signed char array for information about the type of
+ *  each node. This array is known as the solid mesh.
+ *
+ *  The integer numbers in the solid mesh have the following meanings:
+ *  The solid number 0 is reserved for vacuum and solid numbers from 1
+ *  to 6 are reserved for Dirichlet type boundaries of the bounding
+ *  box. %Solid numbers from -1 to -6 are reserved for Neumann type
+ *  boundaries of the bounding box. Negative solid numbers starting
+ *  from -7 are used for marking electrode edges and the positive
+ *  numbers starting from 7 are used to mark the interior points of
+ *  the electrodes.
+ *
+ *  The mesh nodes are marked using the following logic: First nodes,
+ *  which are inside electrodes are marked solid (>=7). If a point is
+ *  inside several solids, the highest solid number is marked. Other
+ *  points are left as vacuum nodes (0). As the next step the solid
+ *  nodes are mapped to find nodes which have vacuum as closest
+ *  neighbour along any of the axes (not diagonal). These nodes are
+ *  marked as solid edges (<=-7). As the last step, the vacuum nodes
+ *  at the simulation box boundary are marked either as Neumann (<0
+ *  and >-7) or Dirichlet (>0 and <7).
+ *
+ *  Starting from 1.0.3: A. Mark solids, B. Mark Neumann and Dirichlet
+ *  boundaries, C. Mark edges taking in account that Neumann = Vacuum
+ *  and Dirichlet != Vacuum.
+ *
+ *  Bounding box edges are numbered in order xmin, xmax, ymin, ymax,
+ *  zmin, xmax.
+ */
+class Geometry : public Mesh
+{
+    int32_t                    _n;         /*!< \brief Number of solids */
+    std::vector<const Solid*>  _sdata;     /*!< \brief Array of solid definitions, size \a _n */
+    std::vector<Bound>         _bound;     /*!< \brief Array of boundary conditions, size \a _n+6 */
+
+    bool                       _built;     /*!< \brief Is solid mesh array built? */
+    signed char               *_smesh;     /*!< \brief Solid mesh array */
+
+    int32_t                    _brktc;     /*!< \brief Bracket count (accuracy) */
+
+    
+    /*! \brief Check if node is vacuum or Neumann.
+     */
+    bool vac_or_neu( int32_t i, int32_t j, int32_t k );
+
+    /*! \brief Check mesh definition validity.
+     */
+    void check_definition();
+
+public:
+
+    /*! \brief Constructor for geometry class.
+     *
+     *  Sets geometry mode, mesh cell size \a h, mesh size \a size and
+     *  origo \a origo.
+     */
+    Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h );
+
+    /*! \brief Constructor for loading geometry from a file.
+     */
+    Geometry( std::istream &s );
+
+    /*! \brief Destructor for geometry.
+     */
+    ~Geometry();
 
     /*! \brief Sets solid number \a n to \a s.
      *
@@ -338,28 +408,10 @@ public:
      */
     void save( std::ostream &s ) const;
 
-    /*! \brief Prints internal data to std::cout.
+    /*! \brief Print debugging information to os.
      */
-    void debug_print( void ) const;
+    void debug_print( std::ostream &os ) const;
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

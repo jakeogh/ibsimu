@@ -1476,7 +1476,15 @@ void MyDXFInsert::debug_print( std::ostream &os ) const
  * ************************************************************************** */
 
 
-MyDXFEntities::MyDXFEntities( MyDXFEntities *ent, MyDXFEntitySelection *sel )
+MyDXFEntities::MyDXFEntities( class MyDXFFile *dxf )
+    : _dxf(dxf)
+{
+
+}
+
+
+MyDXFEntities::MyDXFEntities( class MyDXFFile *dxf, MyDXFEntities *ent, MyDXFEntitySelection *sel )
+    : _dxf(dxf)
 {
     for( size_t a = 0; a < sel->size(); a++ ) {
 	MyDXFEntity *e = ent->get_entity( (*sel)(a) );
@@ -1486,6 +1494,7 @@ MyDXFEntities::MyDXFEntities( MyDXFEntities *ent, MyDXFEntitySelection *sel )
 
 
 MyDXFEntities::MyDXFEntities( class MyDXFFile *dxf, bool reading_blocks )
+    : _dxf(dxf)
 {
 #ifdef MYDXF_DEBUG
     std::cout << "Reading ENTITIES\n";
@@ -1895,6 +1904,9 @@ MyDXFEntitySelection *MyDXFEntities::selection_path_loop( MyDXFEntitySelection *
 #ifdef MYDXF_DEBUG
 	    std::cout << "  No matching entity found, removing last of stack\n";
 #endif
+	    if( _dxf->wlevel() ) {
+		std::cout << "No match at " << end << ", removing entity\n";
+	    }
 
 	    // No matching entity found. Remove last entity of stack
 	    // and mark it done

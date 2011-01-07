@@ -1,8 +1,8 @@
 /*! \file geomplot.hpp
- *  \brief Geometry plotting
+ *  \brief %Geometry plotting
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -59,6 +59,9 @@
 
 /*! \brief %Geometry plotter class.
  *
+ *  Collection of graphs for building Geometry plots containing
+ *  solids, equipotential lines, space charge field, particle
+ *  trajectories and mesh lines.
  */
 class GeomPlot {
 
@@ -67,6 +70,7 @@ class GeomPlot {
     const Geometry          *_geom;
     const ScalarField       *_epot;
     const ScalarField       *_scharge;
+    const ScalarField       *_tdens;
     const VectorField       *_bfield;
     const ParticleDataBase  *_pdb;
 
@@ -127,6 +131,8 @@ public:
      *  default. NOTE: Plotting of the magnetic field is not implemented yet.
      */
     void set_bfield( const VectorField *bfield );
+
+    void set_tdens( const ScalarField *tdens );
 
     void set_scharge( const ScalarField *scharge );
 

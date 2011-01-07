@@ -2,7 +2,7 @@
  *  \brief Source code for scalarfield.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,62 +47,44 @@
 #include <limits>
 
 
-ScalarField::ScalarField( const Geometry &g )
-    : _geom_mode(g.geom_mode()), _size(g.size()), _origo(g.origo()), _h(g.h())
+ScalarField::ScalarField()
+    : _F(NULL)
 {
-    // Calculate vector max
-    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
-		  _origo(1)+_h*(_size[1]-1),
-		  _origo(2)+_h*(_size[2]-1) );
-    _div_h = 1.0/_h;
+}
+
+
+ScalarField::ScalarField( const Geometry &g )
+    : Mesh(g.geom_mode(),g.size(),g.origo(),g.h())
+{
+    check_definition();
+
     _F = new double[_size[0]*_size[1]*_size[2]];
     memset( _F, 0, _size[0]*_size[1]*_size[2]*sizeof(double) );
 }
 
 
 ScalarField::ScalarField( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
-    : _geom_mode(geom_mode), _size(size), _origo(origo), _h(h)
+    : Mesh(geom_mode,size,origo,h)
 {
-    if( _geom_mode == MODE_3D ) {
-	if( _size[0] < 3 || _size[1] < 3 || _size[2] < 3 )
-	    throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
-    } else if( _geom_mode == MODE_2D || _geom_mode == MODE_CYL ) {
-	if( _size[0] < 3 || _size[1] < 3 || _size[2] != 1 )
-	    throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
-    } else {
-	if( _size[0] < 3 || _size[1] != 1 || _size[2] != 1 )
-	    throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
-    }
+    check_definition();
 
-    // Calculate vector max
-    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
-		  _origo(1)+_h*(_size[1]-1),
-		  _origo(2)+_h*(_size[2]-1) );
-    _div_h = 1.0/_h;
     _F = new double[_size[0]*_size[1]*_size[2]];
     memset( _F, 0, _size[0]*_size[1]*_size[2]*sizeof(double) );
 }
 
 
 ScalarField::ScalarField( std::istream &s )
+    : Mesh(s)
 {
-    _geom_mode = (geom_mode_e)read_int32( s );
-    _size      = Int3D( s );
-    _origo     = Vec3D( s );
-    _h         = read_double( s );
-    // Calculate vector max
-    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
-		  _origo(1)+_h*(_size[1]-1),
-		  _origo(2)+_h*(_size[2]-1) );
-    _div_h     = 1.0/_h;
+    check_definition();
+
     _F = new double[_size[0]*_size[1]*_size[2]];
     read_compressed_block( s, _size[0]*_size[1]*_size[2]*sizeof(double), (int8_t *)_F );
 }
 
 
 ScalarField::ScalarField( const ScalarField &f )
-    : _geom_mode(f._geom_mode), _size(f._size), _origo(f._origo), _max(f._max), _h(f._h), 
-      _div_h(f._div_h)
+    : Mesh(f)
 {
     _F = new double[_size[0]*_size[1]*_size[2]];
     memcpy( _F, f._F, _size[0]*_size[1]*_size[2]*sizeof(double) );
@@ -111,7 +93,24 @@ ScalarField::ScalarField( const ScalarField &f )
 
 ScalarField::~ScalarField()
 {
-    delete [] _F;
+    if( _F )
+	delete [] _F;
+}
+
+
+void ScalarField::check_definition()
+{
+    // Check that mesh size need for ScalarField are fullfilled
+    if( _geom_mode == MODE_3D ) {
+	if( _size[0] < 2 || _size[1] < 2 || _size[2] < 2 )
+	    throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
+    } else if( _geom_mode == MODE_2D || _geom_mode == MODE_CYL ) {
+	if( _size[0] < 2 || _size[1] < 2 || _size[2] != 1 )
+	    throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
+    } else {
+	if( _size[0] < 2 || _size[1] != 1 || _size[2] != 1 )
+	    throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
+    }
 }
 
 
@@ -121,18 +120,13 @@ void ScalarField::clear()
 }
 
 
-void ScalarField::reset( geom_mode_e geom_mode, Int3D size, 
-			 Vec3D origo, double h )
+void ScalarField::reset( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
 {
-    _geom_mode = geom_mode;
-    _size      = size;
-    _origo     = origo;
-    _h         = h;
-    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
-		  _origo(1)+_h*(_size[1]-1),
-		  _origo(2)+_h*(_size[2]-1) );
-    _div_h     = 1.0/h;
-    delete [] _F;
+    Mesh::reset( geom_mode, size, origo, h );
+    check_definition();
+
+    if( _F )
+	delete [] _F;
     _F = new double[_size[0]*_size[1]*_size[2]];
     memset( _F, 0, _size[0]*_size[1]*_size[2]*sizeof(double) );
 }
@@ -177,12 +171,10 @@ void ScalarField::epot_get_minmax( const Geometry &g, double &min, double &max )
 
 ScalarField &ScalarField::operator=( const ScalarField &f )
 {
-    _geom_mode = f._geom_mode;
-    _size      = f._size;
-    _origo     = f._origo;
-    _h         = f._h;
-    _div_h     = f._div_h;
-    delete [] _F;
+    (Mesh)(*this) = (Mesh)f;
+
+    if( _F )
+	delete [] _F;
     _F = new double[_size[0]*_size[1]*_size[2]];
     memcpy( _F, f._F, _size[0]*_size[1]*_size[2]*sizeof(double) );
     return( *this );
@@ -191,8 +183,7 @@ ScalarField &ScalarField::operator=( const ScalarField &f )
 
 ScalarField &ScalarField::operator+=( const ScalarField &f )
 {
-    if( _geom_mode != f._geom_mode || _size != f._size ||
-	_origo != f._origo || _h != f._h )
+    if( (Mesh)(*this) == (Mesh)f )
 	throw( Error( ERROR_LOCATION, "non-matching fields" ) );
     size_t ncount = _size[0]*_size[1]*_size[2];
     for( size_t a = 0; a < ncount; a++ )
@@ -222,6 +213,9 @@ ScalarField &ScalarField::operator/=( double x )
 
 double ScalarField::operator()( Vec3D x ) const
 {
+    if( !_F )
+	return( 0.0 );
+
     switch( _geom_mode ) {
     case MODE_1D:
     {
@@ -301,62 +295,30 @@ double ScalarField::operator()( Vec3D x ) const
 
 void ScalarField::save( std::ostream &s ) const
 {
-    write_int32( s, _geom_mode );
-    _size.save( s );
-    _origo.save( s );
-    write_double( s, _h );
+    Mesh::save( s );
     write_compressed_block( s, _size[0]*_size[1]*_size[2]*sizeof(double), (int8_t *)_F );
 }
 
 
-void ScalarField::debug_print( void ) const
+void ScalarField::debug_print( std::ostream &os ) const
 {
-    int32_t a;
-    std::cout << "**ScalarField\n";
-    if( _geom_mode == MODE_1D )
-	std::cout << "geom_mode = MODE_1D\n";
-    else if( _geom_mode == MODE_2D )
-	std::cout << "geom_mode = MODE_2D\n";
-    else if( _geom_mode == MODE_CYL )
-	std::cout << "geom_mode = MODE_CYL\n";
-    else if( _geom_mode == MODE_3D )
-	std::cout << "geom_mode = MODE_3D\n";
-    else
-	std::cout << "geom_mode = Unknown\n";
-    std::cout << "size = (" 
-	      << _size[0] << ", "
-	      << _size[1] << ", "
-	      << _size[2] << ")\n";
-    std::cout << "origo = (" 
-	      << _origo[0] << ", "
-	      << _origo[1] << ", "
-	      << _origo[2] << ")\n";
-    std::cout << "h = " << _h << "\n";
-    std::cout << "div_h = " << _div_h << "\n";
-    std::cout << "F = (";
-    for( a = 0; a < _size[0]*_size[1]*_size[2]-1; a++ )
-	std::cout << _F[a] << ", ";
-    if( a < _size[0]*_size[1]*_size[2] )
-	std::cout << _F[a] << ")\n";
+    Mesh::debug_print( os );
+
+    os << "**ScalarField\n";
+    os << "F = (";
+    if( _size[0]*_size[1]*_size[2] < 10 ) {
+	int a;
+	for( a = 0; a < _size[0]*_size[1]*_size[2]-1; a++ )
+	    os << _F[a] << ", ";
+	if( a < _size[0]*_size[1]*_size[2] )
+	    os << _F[a] << ")\n";
+    } else {
+	// Print only 10 first nodes
+	for( int a = 0; a < 10; a++ )
+	    os << _F[a] << ", ";
+	os << "... )\n";
+    }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

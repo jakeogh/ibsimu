@@ -2,7 +2,7 @@
  *  \brief Source code for gtkgeomwindow.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009, 2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -107,15 +107,20 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       *plotter,
 
     // Creating view combobox and level spinbutton
     _combobox = gtk_combo_box_new_text();
-    gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "XY" );
     if( geom->geom_mode() == MODE_3D ) {
+	gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "XY" );
 	gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "XZ" );
+        gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "YX" );
         gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "YZ" );
+        gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "ZX" );
+        gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "ZY" );
 	gtk_combo_box_set_active( GTK_COMBO_BOX(_combobox), 0 );
 	_spinbutton = gtk_spin_button_new_with_range( 0, geom->size(2)-1, 1 );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON(_spinbutton), geom->size(2)/2 );
 	_geomplot.set_view( VIEW_XY, geom->size(2)/2 );
     } else {
+	gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "XY" );
+	gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "YX" );
         gtk_combo_box_set_active( GTK_COMBO_BOX(_combobox), 0 );
         _spinbutton = gtk_spin_button_new_with_range( 0, 0, 1 );
         gtk_spin_button_set_value( GTK_SPIN_BUTTON(_spinbutton), 0 );
@@ -517,30 +522,47 @@ void GTKGeomWindow::read_preferences( GtkWidget *notebook, void *_pdata )
 
 void GTKGeomWindow::combobox( GtkComboBox *combobox )
 {
-    std::cout << "Combobox\n";
+    //std::cout << "Combobox\n";
 
     int level;
     int levelmax;
     view_e view;
+    if( _geom->geom_mode() == MODE_3D )
+	view = (view_e)gtk_combo_box_get_active( GTK_COMBO_BOX(_combobox) );
+    else {
+	if( gtk_combo_box_get_active( GTK_COMBO_BOX(_combobox) ) == 0 )
+	    view = VIEW_XY;
+	else
+	    view = VIEW_YX;
+    }
 
-    switch( gtk_combo_box_get_active( GTK_COMBO_BOX(_combobox) ) ) {
-    case 0:
-        view = VIEW_XY;
+    switch( view ) {
+    case VIEW_XY:
 	levelmax = _geom->size(2);
 	level = levelmax/2;
         break;
-    case 1:
-        view = VIEW_XZ;
+    case VIEW_XZ:
 	levelmax = _geom->size(1);
 	level = levelmax/2;
         break;
-    case 2:
-        view = VIEW_YZ;
+    case VIEW_YX:
+	levelmax = _geom->size(2);
+	level = levelmax/2;
+        break;
+    case VIEW_YZ:
+	levelmax = _geom->size(0);
+	level = levelmax/2;
+        break;
+    case VIEW_ZX:
+	levelmax = _geom->size(1);
+	level = levelmax/2;
+        break;
+    case VIEW_ZY:
 	levelmax = _geom->size(0);
 	level = levelmax/2;
         break;
     default:
-	throw( Error( ERROR_LOCATION, "illegal combo box tag" ) );
+	throw( ErrorUnimplemented( ERROR_LOCATION ) );
 	break;
     }
 
@@ -583,7 +605,7 @@ void GTKGeomWindow::combobox( GtkComboBox *combobox )
 
 void GTKGeomWindow::spinbutton( GtkSpinButton *spinbutton )
 {
-    std::cout << "Spinbutton\n";
+    //std::cout << "Spinbutton\n";
     //g_signal_stop_emission_by_name( G_OBJECT(_spinbutton), "value-changed" );
 
     int level = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(_spinbutton) );
@@ -598,6 +620,18 @@ void GTKGeomWindow::spinbutton( GtkSpinButton *spinbutton )
 	break;
     case VIEW_YZ:
 	ss << "x = "<< _geom->origo(0)+level*_geom->h() << " m";
+	break;
+    case VIEW_ZX:
+	ss << "y = "<< _geom->origo(1)+level*_geom->h() << " m";
+	break;
+    case VIEW_ZY:
+	ss << "x = "<< _geom->origo(0)+level*_geom->h() << " m";
+	break;
+    case VIEW_YX:
+	ss << "z = "<< _geom->origo(2)+level*_geom->h() << " m";
+	break;
+    default:
+	throw( ErrorUnimplemented( ERROR_LOCATION ) );
 	break;
     }
     gtk_statusbar_pop( GTK_STATUSBAR(_statusbar), 0 );

@@ -1,4 +1,6 @@
 /*! \file beam3d.cpp 
+ *  \brief Test with a beam in 3d system.
+ *
  *  \test Test with a beam in 3d system.
  *
  */

@@ -1,8 +1,8 @@
 /*! \file gtkgeomwindow.hpp
- *  \brief Geometry view window
+ *  \brief %Geometry view window
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -56,7 +56,7 @@
  */
 class GTKGeomWindow : public GTKWindow {
 
-    GeomPlot                _geomplot;
+    GeomPlot                 _geomplot;
 
     const Geometry          *_geom;
     const ScalarField       *_epot;

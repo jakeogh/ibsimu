@@ -1,8 +1,8 @@
 /*! \file epot_problem.cpp
- *  \brief Source code for epot_problem.cpp
+ *  \brief Poisson equation problem for solving electric potential
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -56,19 +56,19 @@
  * Node2DoF                               *
  * ************************************** */
 
-void EpotProblem::Node2DoF::debug_print( void ) const
+void EpotProblem::Node2DoF::debug_print( std::ostream &os ) const
 {
     int a;
-    std::cout << "**Node2DoF\n";
-    std::cout << "size = ("
+    os << "**Node2DoF\n";
+    os << "size = ("
        	<< _size[0] << ", "
 	<< _size[1] << ", "
 	<< _size[2] << ")\n";
-    std::cout << "n2d = (";
+    os << "n2d = (";
     for( a = 0; a < _size[0]*_size[1]*_size[2]-1; a++ )
-	std::cout << _n2d[a] << ", ";
+	os << _n2d[a] << ", ";
     if( a < _size[0]*_size[1]*_size[2] )
-	std::cout << _n2d[a] << ")\n";
+	os << _n2d[a] << ")\n";
 }
 
 
@@ -1322,19 +1322,19 @@ bool EpotProblem::linear( void ) const
  * ************************************** */
 
 
-void EpotProblem::debug_print( void ) const 
+void EpotProblem::debug_print( std::ostream &os ) const 
 {
-    std::cout << "**EpotProblem\n";
-    std::cout << "dof = " << _dof << "\n";
-    std::cout << "n2d:\n";
-    _n2d.debug_print();
-    std::cout << "fd_mat = \n" << *_fd_mat << "\n";
-    std::cout << "fd_vec = \n" << *_fd_vec << "\n";
-    std::cout << "neumann_order = " << _neumann_order << "\n";
-    std::cout << "plasma = " << _plasma << "\n";
-    std::cout << "rhoe = " << _rhoe << "\n";
-    std::cout << "Tc = " << _Te << "\n";
-    std::cout << "Up = " << _Up << "\n";
+    os << "**EpotProblem\n";
+    os << "dof = " << _dof << "\n";
+    os << "n2d:\n";
+    _n2d.debug_print( os );
+    os << "fd_mat = \n" << *_fd_mat << "\n";
+    os << "fd_vec = \n" << *_fd_vec << "\n";
+    os << "neumann_order = " << _neumann_order << "\n";
+    os << "plasma = " << _plasma << "\n";
+    os << "rhoe = " << _rhoe << "\n";
+    os << "Tc = " << _Te << "\n";
+    os << "Up = " << _Up << "\n";
 }
 
 
