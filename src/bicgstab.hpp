@@ -2,7 +2,7 @@
  *  \brief Stabilized Biconjugate Gradient solver
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -52,7 +52,6 @@
  *
  *  Solves linear matrix equations of form A*X=B.
  *
- *  \return True on success, false on errors
  *  \param mat Matrix on the linear equation
  *  \param rhs Right hand side vector on the linear equation
  *  \param sol Solution vector on the linear equation
@@ -62,7 +61,7 @@
  *  \param eps Accuracy request for iteration on input, 
  *   estimated error achieved on output
  */
-bool bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
+void bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
 	       const Precond &pc, uint32_t &imax, double &eps );
 
 

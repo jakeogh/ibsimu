@@ -103,10 +103,10 @@ void GeomPlot::reset_graphs()
     _frame->clear_graphs();
 
     // Ensure correct order of graphs
-    if( _particlegraph )
-	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _particlegraph );
     if( _fieldgraph )
 	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _fieldgraph );
+    if( _particlegraph )
+	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _particlegraph );
     if( _solidgraph )
 	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _solidgraph );
     if( _eqpotgraph )
@@ -154,38 +154,36 @@ void GeomPlot::set_eqlines_auto( size_t N )
 }
 
 
-void GeomPlot::set_bfield( const VectorField *bfield )
+void GeomPlot::set_fieldgraph_plot( field_type_e fieldplot )
 {
-    _bfield = bfield;
-    // magnetic field graph is disabled by default (and is not implemented yet)
-}
+    _fieldplot_sel = fieldplot;
 
-
-void GeomPlot::set_scharge( const ScalarField *scharge ) 
-{
-    _scharge = scharge;
-    // space charge field graph is disabled by default
-}
-
-
-void GeomPlot::set_tdens( const ScalarField *tdens ) 
-{
-    _tdens = tdens;
-    // trajectory density field graph is disabled by default
-}
-
-
-void GeomPlot::set_scharge_field( bool enable ) 
-{
-    _scharge_field = enable;
-
+    // Remove old field graph.
     if( _fieldgraph ) {
 	delete _fieldgraph;
 	_fieldgraph = NULL;
     }
 
-    if( _scharge && _scharge_field ) {
-	_fieldgraph = new FieldGraph( _scharge );
+    // Define new field graph.
+    switch( _fieldplot_sel ) {
+    case FIELD_EPOT:
+	if( _epot )
+	    _fieldgraph = new FieldGraph( _epot );
+	break;
+    case FIELD_SCHARGE:
+	if( _scharge )
+	    _fieldgraph = new FieldGraph( _scharge );
+	break;
+    case FIELD_TRAJDENS:
+	if( _tdens )
+	    _fieldgraph = new FieldGraph( _tdens );
+	break;
+    default:
+	throw( ErrorUnimplemented( ERROR_LOCATION, "VectorField plotting unimplemented" ) );
+	break;
+    }
+    
+    if( _fieldgraph ) {
 	_fieldgraph->set_view( _view, _level );
     }
 

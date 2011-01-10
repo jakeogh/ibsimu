@@ -101,10 +101,13 @@ public:
      *
      *  Makes a linear interpolation between points \a x1 and \a x2
      *  and searches intersection points of this line and \a
-     *  mesh. Intersection points are appended to vector \a coldata.
+     *  mesh. Intersection points are saved to vector \a coldata in
+     *  increasing time order.
      */
-    static void build_coldata_linear( std::vector<ColData> coldata, const Mesh &mesh,
+    static void build_coldata_linear( std::vector<ColData> &coldata, const Mesh &mesh,
 				      const PP &x1, const PP &x2 ) {
+	
+	coldata.clear();
 
 	for( size_t a = 0; a < PP::dim(); a++ ) {
 	    
@@ -131,6 +134,9 @@ public:
                     coldata.push_back( ColData( x1 + (x2-x1)*K, -a-1 ) );
             }
         }
+
+	// Sort intersections in increasing time order
+	sort( coldata.begin(), coldata.end() );
     }
 
     /*! \brief Find mesh intersections of polynomially interpolated
@@ -138,14 +144,17 @@ public:
      *
      *  Makes a polynomial interpolation between points \ə x1 and \a
      *  x2 and searches intersection points of this line and \a
-     *  mesh. Intersection points are appended to vector \a coldata.
+     *  mesh. Intersection points are saved to vector \a coldata in
+     *  increasing time order.
      */
-    static void build_coldata_poly( std::vector<ColData> coldata, const Mesh &mesh,
+    static void build_coldata_poly( std::vector<ColData> &coldata, const Mesh &mesh,
 				    const PP &x1, const PP &x2 ) {
 	
 #ifdef DEBUG_PARTICLE_ITERATOR
 	std::cout << "Building coldata using polynomial interpolation\n";
 #endif
+
+	coldata.clear();
 
 	// Construct trajectory representation
 	TrajectoryRep1D traj[PP::dim()];
@@ -216,6 +225,9 @@ public:
 		}
 	    }
 	}
+
+	// Sort intersections in increasing time order
+	sort( coldata.begin(), coldata.end() );
 
 #ifdef DEBUG_PARTICLE_ITERATOR
 	std::cout << "  Coldata built\n";
@@ -606,9 +618,6 @@ template <class PP> class ParticleIterator {
 	    return( true );
 	}
 
-	// Sort intersections in increasing time order
-	sort( _coldata.begin(), _coldata.end() );
-
 	// Starting mesh index
 	int i[3] = {0, 0, 0};
 	for( size_t cdir = 0; cdir < PP::dim(); cdir++ )
@@ -844,8 +853,9 @@ public:
      */
     ParticleIterator( particle_iterator_type_e type, double epsabs, double epsrel, 
 		      bool polyint, uint32_t maxsteps, double maxt, 
-		      uint32_t trajdiv, bool mirror[6], ScalarField *scharge, const Efield *efield, 
-		      const VectorField *bfield, const Geometry *g, Particle<PP> *first )
+		      uint32_t trajdiv, bool mirror[6], ScalarField *scharge, 
+		      const Efield *efield, const VectorField *bfield, 
+		      const Geometry *g, Particle<PP> *first )
 	: _type(type), _polyint(polyint), _epsabs(epsabs), _epsrel(epsrel), _maxsteps(maxsteps), _maxt(maxt), 
 	  _trajdiv(trajdiv), _first(first), _pidata(scharge,efield,bfield,g), _end_time(0), 
 	  _end_step(0), _end_out(0), _end_coll(0), _end_baddef(0), _sum_steps(0) {

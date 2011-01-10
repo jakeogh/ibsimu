@@ -61,6 +61,7 @@ class GTKGeomWindow : public GTKWindow {
     const Geometry          *_geom;
     const ScalarField       *_epot;
     const ScalarField       *_scharge;
+    const ScalarField       *_tdens;
     const VectorField       *_bfield;
     const ParticleDataBase  *_pdb;
 
@@ -108,6 +109,7 @@ public:
 		   const Geometry *geom,
 		   const ScalarField *epot,
 		   const ScalarField *scharge,
+		   const ScalarField *tdens,
 		   const VectorField *bfield,
 		   const ParticleDataBase *pdb );
     

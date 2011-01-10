@@ -79,6 +79,34 @@ enum field_extrpl_e {
 };
 
 
+/*! \brief Field type.
+ *
+ *  Indicator for field type.
+ */
+enum field_type_e {
+    FIELD_NONE = 0,
+    FIELD_EPOT,
+    FIELD_SCHARGE,
+    FIELD_TRAJDENS,
+    FIELD_EFIELD,
+    FIELD_EFIELD_X,
+    FIELD_EFIELD_Y,
+    FIELD_EFIELD_Z,
+    FIELD_BFIELD,
+    FIELD_BFIELD_X,
+    FIELD_BFIELD_Y,
+    FIELD_BFIELD_Z
+};
+
+
+/*! \brief Field diagnostic type.
+ *
+ *  \deprecated Provided for compatibility only. Replaced by
+ *  multipurpose field type selector field_type_e.
+ */
+typedef field_type_e field_diag_type_e;
+
+
 /*! \brief Boundary type.
  *
  *  Boundary conditions for solids and simulation box boundaries. See

@@ -1,8 +1,8 @@
 /*! \file bicgstab.cpp
- *  \brief Source code for bicgstab.cpp
+ *  \brief Stabilized Biconjugate Gradient solver
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -44,12 +44,13 @@
 #include <iomanip>
 #include <sstream>
 
+#include "compmath.hpp"
 #include "bicgstab.hpp"
 #include "ibsimu.hpp"
 #include "statusprint.hpp"
 
 
-bool bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
+void bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
 	       const Precond &pc, uint32_t &imax, double &eps )
 {
     // Checks
@@ -76,7 +77,7 @@ bool bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
     if( (resid = norm2(r) / norm_rhs) <= eps ) {
 	eps = resid;
 	imax = 0;
-	return( true );
+	return;
     }
 
     StatusPrint sp;
@@ -87,7 +88,6 @@ bool bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
     }
 
     uint32_t i;
-    bool retval = false;
     for( i = 1; i <= imax; i++ ) {
 	rho_1 = dot_prod( rtilde, r );
 	if( rho_1 == 0 ) {
@@ -109,7 +109,6 @@ bool bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
 	    sol += alpha * phat;
 	    eps = resid;
 	    imax = i;
-	    retval = true;
 	    break;
 	}
 	pc.solve( shat, s );
@@ -122,14 +121,10 @@ bool bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
 	if( (resid = norm2(r) / norm_rhs) < eps ) {
 	    eps = resid;
 	    imax = i;
-	    retval = true;
 	    break;
 	}
-	if( omega == 0 ) {
-	    eps = norm2(r) / norm_rhs;
-	    imax = i;
-	    retval = false;
-	    break;
+	if( comp_isnan( resid ) || omega == 0 ) {
+	    throw( Error( ERROR_LOCATION, "convergence failure" ) );
 	}
 
 	if( ibsimu.get_verbose_output() ) {
@@ -144,7 +139,7 @@ bool bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
 	imax = i;
     }
     
-    return( retval );
+    return;
 }
 
 

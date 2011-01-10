@@ -77,12 +77,11 @@ void test( int *argc, char ***argv )
     efield.set_extrapolation( efldextrpl );
 
     ParticleDataBaseCyl pdb;
-    pdb.set_thread_count( 4 );
     bool pmirror[6] = { false, false, true, false, false, false };
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
 
-    for( size_t i = 0; i < 3; i++ ) {
+    for( size_t i = 0; i < 20; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
@@ -148,22 +147,25 @@ void test( int *argc, char ***argv )
 				   DIAG_RP, DIAG_AP );
     pplotter3b.plot_png( "plasmacyl2_rp_ap.png" );
 
-    /*
+    ScalarField tdens( geom );
+    pdb.build_trajectory_density_field( tdens );
+
     GTKPlotter plotter( argc, argv );
     plotter.set_geometry( &geom );
     plotter.set_epot( &epot );
     plotter.set_scharge( &scharge );
+    plotter.set_trajdens( &tdens );
     plotter.set_particledatabase( &pdb );
     plotter.new_geometry_plot_window();
     plotter.run();
-    */
 }
 
 
 int main( int argc, char **argv )
 {
     try {
-	ibsimu.set_verbose_output( 0 );
+	ibsimu.set_verbose_output( 1 );
+	ibsimu.set_thread_count( 4 );
     	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 

@@ -1,8 +1,8 @@
 /*! \file gtkplotter.cpp
- *  \brief 
+ *  \brief GTK based plotters.
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -59,7 +59,7 @@ bool GTKPlotter::_gtk_initialized = false;
 
 GTKPlotter::GTKPlotter( int *argc, char ***argv )
     : _geom(NULL), _epot(NULL), _efield(NULL), 
-      _scharge(NULL), _bfield(NULL), _pdb(NULL)
+      _scharge(NULL), _tdens(NULL), _bfield(NULL), _pdb(NULL)
 {
     if( !_gtk_initialized ) {
 	if( gtk_init_check( argc, argv ) == FALSE )
@@ -83,7 +83,7 @@ void GTKPlotter::run()
 
 GTKWindow *GTKPlotter::new_geometry_plot_window( void )
 {
-    GTKWindow *window = new GTKGeomWindow( this, _geom, _epot, _scharge, _bfield, _pdb );
+    GTKWindow *window = new GTKGeomWindow( this, _geom, _epot, _scharge, _tdens, _bfield, _pdb );
     _windows.push_back( window );
 
     return( window );
@@ -157,6 +157,12 @@ const ScalarField *GTKPlotter::get_scharge( void ) const
 }
 
 
+const ScalarField *GTKPlotter::get_trajdens( void ) const
+{
+    return( _tdens );
+}
+
+
 const VectorField *GTKPlotter::get_bfield( void ) const
 {
     return( _bfield );
@@ -188,6 +194,12 @@ void GTKPlotter::set_efield( const Efield *efield )
 void GTKPlotter::set_scharge( const ScalarField *scharge )
 {
     _scharge = scharge;
+}
+
+
+void GTKPlotter::set_trajdens( const ScalarField *tdens )
+{
+    _tdens = tdens;
 }
 
 

@@ -56,7 +56,6 @@
 #include <signal.h>
 
 
-
 template <class T>
 inline std::string to_string( const T& t )
 {

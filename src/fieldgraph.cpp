@@ -2,7 +2,7 @@
  *  \brief Source code for fieldgraph.cpp
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -94,7 +94,7 @@ void FieldGraph::build_scalarfield_plot( void )
 	pentry.push_back( Palette::Entry( Color(0,0,0), 3 ) );
 	Palette p( pentry );
 	_colormap->set_palette( p );
-	_colormap->set_zscale( ZSCALE_RELLOG );
+	//_colormap->set_zscale( ZSCALE_RELLOG );
     }
 }
 
@@ -105,7 +105,7 @@ void FieldGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
 	std::cout << "  Plotting field\n";
 
     if( _colormap == NULL || _oview != _view || _olevel != _level ) {
-	// First plot or changed happened
+	// First plot or changed view happened
 	if( _scalarfield && _enabled )
 	    build_scalarfield_plot();
     }

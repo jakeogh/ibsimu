@@ -525,50 +525,50 @@ void GTKFieldDiagDialog::run( void )
 	// Read plots to be made
 	field_diag_type_e diag[2];
 	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_epot) ) )
-	    diag[0] = FIELDD_DIAG_EPOT;
+	    diag[0] = FIELD_EPOT;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_e) ) )
-	    diag[0] = FIELDD_DIAG_EFIELD;
+	    diag[0] = FIELD_EFIELD;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_ex) ) )
-	    diag[0] = FIELDD_DIAG_EFIELD_X;
+	    diag[0] = FIELD_EFIELD_X;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_ey) ) )
-	    diag[0] = FIELDD_DIAG_EFIELD_Y;
+	    diag[0] = FIELD_EFIELD_Y;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_ez) ) )
-	    diag[0] = FIELDD_DIAG_EFIELD_Z;
+	    diag[0] = FIELD_EFIELD_Z;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_scharge) ) )
-	    diag[0] = FIELDD_DIAG_SCHARGE;
+	    diag[0] = FIELD_SCHARGE;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_b) ) )
-	    diag[0] = FIELDD_DIAG_BFIELD;
+	    diag[0] = FIELD_BFIELD;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_bx) ) )
-	    diag[0] = FIELDD_DIAG_BFIELD_X;
+	    diag[0] = FIELD_BFIELD_X;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_by) ) )
-	    diag[0] = FIELDD_DIAG_BFIELD_Y;
+	    diag[0] = FIELD_BFIELD_Y;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g1_bz) ) )
-	    diag[0] = FIELDD_DIAG_BFIELD_Z;
+	    diag[0] = FIELD_BFIELD_Z;
 	else
-	    diag[0] = FIELDD_DIAG_NONE;
+	    diag[0] = FIELD_NONE;
 	
 	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_epot) ) )
-	    diag[1] = FIELDD_DIAG_EPOT;
+	    diag[1] = FIELD_EPOT;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_e) ) )
-	    diag[1] = FIELDD_DIAG_EFIELD;
+	    diag[1] = FIELD_EFIELD;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_ex) ) )
-	    diag[1] = FIELDD_DIAG_EFIELD_X;
+	    diag[1] = FIELD_EFIELD_X;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_ey) ) )
-	    diag[1] = FIELDD_DIAG_EFIELD_Y;
+	    diag[1] = FIELD_EFIELD_Y;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_ez) ) )
-	    diag[1] = FIELDD_DIAG_EFIELD_Z;
+	    diag[1] = FIELD_EFIELD_Z;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_scharge) ) )
-	    diag[1] = FIELDD_DIAG_SCHARGE;
+	    diag[1] = FIELD_SCHARGE;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_b) ) )
-	    diag[1] = FIELDD_DIAG_BFIELD;
+	    diag[1] = FIELD_BFIELD;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_bx) ) )
-	    diag[1] = FIELDD_DIAG_BFIELD_X;
+	    diag[1] = FIELD_BFIELD_X;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_by) ) )
-	    diag[1] = FIELDD_DIAG_BFIELD_Y;
+	    diag[1] = FIELD_BFIELD_Y;
 	else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(radio_g2_bz) ) )
-	    diag[1] = FIELDD_DIAG_BFIELD_Z;
+	    diag[1] = FIELD_BFIELD_Z;
 	else
-	    diag[1] = FIELDD_DIAG_NONE;
+	    diag[1] = FIELD_NONE;
 
 	//std::cout << "x1 = " << x1[0] << "\n";
 	//std::cout << "y1 = " << x1[1] << "\n";
