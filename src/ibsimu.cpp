@@ -1,8 +1,8 @@
 /*! \file ibsimu.cpp
- *  \brief Source code for ibsimu.cpp
+ *  \brief Ion Beam Simulator global settings
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -41,24 +41,24 @@
  */
 
 
+#include "config.h"
 #include <iostream>
-#ifndef _POSIX_SOURCE
-#define _POSIX_SOURCE
-#endif
 #include <signal.h>
 #include "ibsimu.hpp"
 #include "error.hpp"
-#include "config.h"
+
 
 
 IBSimu::IBSimu()
     : _hello(false), _verbose_output(0), _threadcount(1)
 {
+#ifdef _GNU_SOURCE
     struct sigaction act;
     act.sa_sigaction = SignalHandler::signal_handler_SIGSEGV;
     sigemptyset( &act.sa_mask );
     act.sa_flags = SA_SIGINFO;
     sigaction( SIGSEGV, &act, NULL );
+#endif
 }
 
 

@@ -19,6 +19,7 @@ colormap.cpp \
 colormap.hpp \
 compmath.cpp \
 compmath.hpp \
+config.h \
 config.hpp \
 coordmapper.hpp \
 coordmatrix.cpp \
@@ -37,6 +38,7 @@ epot_problem.cpp \
 epot_problem.hpp \
 eqpotgraph.cpp \
 eqpotgraph.hpp \
+error.cpp \
 error.hpp \
 fielddiagplot.cpp \
 fielddiagplot.hpp \
@@ -186,6 +188,7 @@ bicgstab_solver.hpp \
 ccolmatrix.hpp \
 color.hpp \
 colormap.hpp \
+config.h \
 coordmapper.hpp \
 coordmatrix.hpp \
 crowmatrix.hpp \
