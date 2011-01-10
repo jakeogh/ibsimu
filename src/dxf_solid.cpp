@@ -43,10 +43,12 @@
 
 #include <iostream>
 #include "dxf_solid.hpp"
+#include "compmath.hpp"
 #include "ibsimu.hpp"
 
 
 DXFSolid::DXFSolid( MyDXFFile *dxffile, const std::string &layername )
+    : _func(&unity)
 {
     if( ibsimu.get_verbose_output() )
 	std::cout << "Defining electrode \'" << layername << "\'\n";
@@ -82,9 +84,49 @@ DXFSolid::~DXFSolid()
 }
 
 
+Vec3D DXFSolid::unity( const Vec3D &x )
+{
+    return( x );
+}
+
+
+Vec3D DXFSolid::rotx( const Vec3D &x )
+{
+    return( Vec3D( x[0], sqrt( x[1]*x[1] + x[2]*x[2] ) ) );
+}
+
+
+Vec3D DXFSolid::roty( const Vec3D &x )
+{
+    return( Vec3D( x[1], sqrt( x[0]*x[0] + x[2]*x[2] ) ) );
+}
+
+
+Vec3D DXFSolid::rotz( const Vec3D &x )
+{
+    return( Vec3D( x[2], sqrt( x[0]*x[0] + x[1]*x[1] ) ) );
+}
+
+
+void DXFSolid::define_2x3_mapping( Vec3D (*func)(const Vec3D &) )
+{
+    _func = func;
+}
+
 bool DXFSolid::inside( const Vec3D &x ) const
 {
-    return( _entities->inside_loop( _selection, x(0), x(1) ) );
+    // Transform 3D -> 3D
+    Vec3D y = _T.transform_point( x );
+
+    // Transform 3D -> 2D
+    Vec3D z = _func( y );
+
+    if( isnan(z[0]) || isnan(z[1]) )
+	return( true );
+    else if( isinf(z[0]) || isinf(z[1]) )
+	return( false );
+
+    return( _entities->inside_loop( _selection, z[0], z[1] ) );
 }
 
 

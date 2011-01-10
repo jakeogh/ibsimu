@@ -47,16 +47,27 @@
 #include <iostream>
 #include "solid.hpp"
 #include "mydxffile.hpp"
+#include "transformation.hpp"
 
 
 /*! \brief %MyDXFFile solid class.
  *
  *  %DXFSolid is an implementation of %Solid using MyDXFFile
- *  entities. The %DXFSolid class is limited to 2D (planar and
- *  cylindrical) geometries.
+ *  entities. The solid is built from a two dimensional area defined
+ *  by enclosing the area with dxf path objects in one layer. The
+ *  solid volume in (three dimensional) simulation space is defined
+ *  using a combination of two transformations. The first
+ *  transformation is from simulation space to intermediate 3D space
+ *  and it is made using the Transformation class. These intermediate
+ *  3D space points are then mapped to two dimensional dxf space using
+ *  an optional user defined function. The Transformation defaults to
+ *  unity matrix and if the user defined function is left undefined it
+ *  defaults to \f$ (x,y,z) \Rightarrow (x,y) \f$.
  */
 class DXFSolid : public Solid {
 
+    Transformation         _T;
+    Vec3D                (*_func)(const Vec3D &);
     MyDXFEntities         *_entities;
     MyDXFEntitySelection  *_selection;
     
@@ -64,9 +75,10 @@ public:
 
     /*! \brief Constructor for making a solid from a DXF-file layer.
      *
-     *  The entities from the DXF-filel are copied to DXFSolid
-     *  object. No dependency stays between dxffile and the object
-     *  constructed.
+     *  The entities from the DXF-file layer \a layername are copied
+     *  to DXFSolid object. No dependency stays between dxffile and
+     *  the object constructed. The transformations are initialized to
+     *  unity.
      */
     DXFSolid( MyDXFFile *dxffile, const std::string &layername );
 
@@ -74,13 +86,78 @@ public:
      */
     virtual ~DXFSolid();
 
-    /*! \brief Return if point x is inside solid.
+    /*! \brief Return if 3D point \a x in simulation space is inside
+     *  solid.
      */
     virtual bool inside( const Vec3D &x ) const;
 
     /*! \brief Print debugging information to os.
      */
     void debug_print( std::ostream &os ) const;
+
+    /*! \brief Unity transformation.
+     *
+     *  Default tranformation: \f$ (x,y,z) \Rightarrow (x,y) \f$.
+     */
+    static Vec3D unity( const Vec3D &x );
+
+    /*! \brief %Solid of revolution around x-axis.
+     *
+     *  Tranformation: \f$ (x,y,z) \Rightarrow (x,\sqrt(y^2+z^2)) \f$.
+     */
+    static Vec3D rotx( const Vec3D &x );
+
+    /*! \brief %Solid of revolution around y-axis.
+     *
+     *  Tranformation: \f$ (x,y,z) \Rightarrow (y,\sqrt(x^2+z^2)) \f$.
+     */
+    static Vec3D roty( const Vec3D &x );
+
+    /*! \brief %Solid of revolution around z-axis.
+     *
+     *  Tranformation: \f$ (x,y,z) \Rightarrow (z,\sqrt(x^2+y^2)) \f$.
+     */
+    static Vec3D rotz( const Vec3D &x );
+
+    /*! \brief Define mapping from 3D space to 2D space.
+     *
+     *  The mapping function can be user defined or one of the
+     *  predefined functions: unity() or rotx(). The mapping function
+     *  can return a vector with NaN components for guaranteed inside
+     *  solid result. Similarly infinity is guaranteed to give free
+     *  space result.
+     */
+    void define_2x3_mapping( Vec3D (*func)(const Vec3D &) );
+
+    /*! \brief Translate solid.
+     */
+    void translate( const Vec3D &dx ) {
+        _T.translate( -1.0*dx );
+    }
+
+    /*! \brief Scale solid.
+     */
+    void scale( const Vec3D &sx ) {
+        _T.scale( Vec3D(1.0/sx[0], 1.0/sx[1], 1.0/sx[2]) );
+    }
+
+    /*! \brief Rotate solid around x-axis.
+     */
+    void rotate_x( double a ) {
+        _T.rotate_x( -a );
+    }
+
+    /*! \brief Rotate solid around y-axis.
+     */
+    void rotate_y( double a ) {
+        _T.rotate_y( -a );
+    }
+
+    /*! \brief Rotate solid around z-axis.
+     */
+    void rotate_z( double a ) {
+        _T.rotate_z( -a );
+    }
 
     /*! \brief Saves solid data to stream.
      */
