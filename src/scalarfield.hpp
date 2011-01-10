@@ -86,13 +86,13 @@ public:
      */
     ScalarField();
 
-    /*! \brief Constructor for geometry from \a g.
+    /*! \brief Constructor for scalarfield from \a mesh.
      *
      *  Returns a new scalar field with geometry parameters (including
-     *  mesh size) set from \a g. The field is set to zero in all
+     *  mesh size) set from \a m. The field is set to zero in all
      *  locations.
      */
-    ScalarField( const Geometry &g );
+    ScalarField( const Mesh &m );
 
     /*! \brief Constructor for set geometry.
      *

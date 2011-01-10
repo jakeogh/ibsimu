@@ -56,8 +56,8 @@ VectorField::VectorField()
 }
 
 
-VectorField::VectorField( const Geometry &g, bool fout[3] )
-    : Mesh(g)
+VectorField::VectorField( const Mesh &m, bool fout[3] )
+    : Mesh(m)
 {
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
 
@@ -168,8 +168,6 @@ VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], double xscale,
 			  double fscale, const std::string &filename )
 {
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
-
-    check_definition();
 
     if( ibsimu.get_verbose_output() )
 	std::cout << "Reading vector field from " << filename << "\n";

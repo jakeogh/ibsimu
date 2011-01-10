@@ -53,8 +53,8 @@ ScalarField::ScalarField()
 }
 
 
-ScalarField::ScalarField( const Geometry &g )
-    : Mesh(g.geom_mode(),g.size(),g.origo(),g.h())
+ScalarField::ScalarField( const Mesh &m )
+    : Mesh(m)
 {
     check_definition();
 
@@ -183,8 +183,9 @@ ScalarField &ScalarField::operator=( const ScalarField &f )
 
 ScalarField &ScalarField::operator+=( const ScalarField &f )
 {
-    if( (Mesh)(*this) == (Mesh)f )
+    if( (Mesh)(*this) != (Mesh)f )
 	throw( Error( ERROR_LOCATION, "non-matching fields" ) );
+
     size_t ncount = _size[0]*_size[1]*_size[2];
     for( size_t a = 0; a < ncount; a++ )
 	_F[a] += f._F[a];

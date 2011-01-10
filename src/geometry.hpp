@@ -194,9 +194,13 @@ public:
      */
     void save( std::ostream &s ) const;
 
-    /*! \brief Comparison
+    /*! \brief Equality.
      */
     bool operator==( const Mesh &m ) const;
+
+    /*! \brief Non-equality.
+     */
+    bool operator!=( const Mesh &m ) const;
 
     /*! \brief Print debugging information to os.
      */

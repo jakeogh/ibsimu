@@ -155,8 +155,19 @@ bool Mesh::operator==( const Mesh &m ) const
 {
     if( _geom_mode == m._geom_mode && 
 	_size == m._size && 
-	_origo == m._origo &&
+	_origo == m._origo && 
 	_h == m._h )
+	return( true );
+    return( false );
+}
+
+
+bool Mesh::operator!=( const Mesh &m ) const
+{
+    if( _geom_mode != m._geom_mode ||
+	_size != m._size || 
+	_origo != m._origo || 
+	_h != m._h )
 	return( true );
     return( false );
 }

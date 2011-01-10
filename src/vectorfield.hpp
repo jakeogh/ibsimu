@@ -95,13 +95,13 @@ public:
      */
     VectorField();
 
-    /*! \brief Constructor for geometry from \a g.
+    /*! \brief Constructor for vector field from \a m.
      *
      *  Returns a new vector field with geometry parameters (including
-     *  mesh size) set from \a g. The field is set to zero in all
+     *  mesh size) set from \a m. The field is set to zero in all
      *  locations.
      */
-    VectorField( const Geometry &g, bool fout[3] );
+    VectorField( const Mesh &m, bool fout[3] );
 
     /*! \brief Constructor for set geometry.
      *

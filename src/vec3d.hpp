@@ -146,19 +146,14 @@ public:
 
     /*! \brief Inequality test.
      */
-    bool operator!=( const Vec3D &x ) const { 
-	if( p[0] != x.p[0] || p[1] != x.p[1] || p[2] != x.p[2] )
-	    return( true );
-	return( false ); 
-    }
+    bool operator!=( const Vec3D &x ) const;
 
     /*! \brief Equality test.
+     *
+     *  Does not require exact equality, but absolute or relative
+     *  error less than 1.0e-6.
      */
-    bool operator==( const Vec3D &x ) const { 
-	if( p[0] == x.p[0] && p[1] == x.p[1] && p[2] == x.p[2] )
-	    return( true );
-	return( false ); 
-    }
+    bool operator==( const Vec3D &x ) const;
 
     /*! \brief Assignment.
      */

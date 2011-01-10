@@ -44,8 +44,38 @@
 #include "vec3d.hpp"
 
 
-Vec3D::Vec3D( const class Vec4D &vec ) { 
+Vec3D::Vec3D( const class Vec4D &vec ) 
+{ 
     p[0] = vec[0];
     p[1] = vec[1];
     p[2] = vec[2];
 }
+
+
+bool Vec3D::operator!=( const Vec3D &x ) const 
+{ 
+    if( p[0] != x.p[0] || p[1] != x.p[1] || p[2] != x.p[2] )
+	return( true );
+    return( false ); 
+}
+
+bool Vec3D::operator==( const Vec3D &x ) const
+{
+    if( p[0] == x.p[0] && p[1] == x.p[1] && p[2] == x.p[2] )
+	return( true );
+    return( false ); 
+}
+
+/*
+    for( int a = 0; a < 3; a++ ) {
+	double df = p[a]-x.p[a];
+	if( fabs(df) < 1.0e-6 )
+	    continue;
+	else if( fabs(df/p[a]) < 1.0e-6 )
+	    continue;
+	else
+	    return( false );
+    }
+    return( true ); 
+}
+*/
