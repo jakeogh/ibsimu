@@ -112,7 +112,8 @@ protected:
     geom_mode_e                _geom_mode; /*!< \brief %Geometry mode */
     Int3D                      _size;      /*!< \brief Size of mesh */
     Vec3D                      _origo;     /*!< \brief Location of mesh point (0,0,0) [m] */
-    Vec3D                      _max;       /*!< \brief Location of mesh point (size[0]-1,size[1]-1,size[2]-1) [m] */
+    Vec3D                      _max;       /*!< \brief Location of mesh point 
+					    * (size[0]-1,size[1]-1,size[2]-1) [m] */
     double                     _h;         /*!< \brief Length of mesh step [m] */
     double                     _div_h;     /*!< \brief Reciprocal of length of mesh step [1/m] */
 

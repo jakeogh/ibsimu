@@ -44,6 +44,7 @@
 #define GEOMPLOT_HPP 1
 
 
+#include "types.hpp"
 #include "frame.hpp"
 #include "geometry.hpp"
 #include "scalarfield.hpp"
@@ -55,6 +56,8 @@
 #include "particlegraph.hpp"
 #include "meshgraph.hpp"
 #include "fieldgraph.hpp"
+
+
 
 
 /*! \brief %Geometry plotter class.
@@ -91,6 +94,8 @@ class GeomPlot {
     bool                    _qm_discretation;
     bool                    _mesh;
 
+    field_type_e            _fieldplot_sel; /*!< \brief Selector for fieldgraph */
+
     bool                    _cache;
 
     void reset_graphs( void );
@@ -125,23 +130,51 @@ public:
     }
 
     /*! \brief Set magnetic field.
-     *
-     *  Saves a pointer to the magnetic field data in the geometry
-     *  plot. Does not enable plotting of the magnetic field by
-     *  default. NOTE: Plotting of the magnetic field is not implemented yet.
      */
-    void set_bfield( const VectorField *bfield );
-
-    void set_tdens( const ScalarField *tdens );
-
-    void set_scharge( const ScalarField *scharge );
-
-    void set_scharge_field( bool enable );
-    
-    bool get_scharge_field( void ) {
-	return( _scharge_field );
+    void set_bfield( const VectorField *bfield ) {
+	_bfield = bfield;
     }
-    
+
+    /*! \brief Get magnetic field.
+     */
+    const VectorField *get_bfield( void ) {
+	return( _bfield );
+    }
+
+    /*! \brief Set trajectory density field.
+     */
+    void set_trajdens( const ScalarField *tdens ) {
+	_tdens = tdens;
+    }
+
+    /*! \brief Get trajectory density field.
+     */
+    const ScalarField *get_trajdens( void ) {
+	return( _tdens );
+    }
+
+    /*! \brief Set space charge density field.
+     */
+    void set_scharge( const ScalarField *scharge ) {
+	_scharge = scharge;
+    }
+
+    /*! \brief Get space charge density field.
+     */
+    const ScalarField *get_scharge( void ) {
+	return( _scharge );
+    }
+
+    /*! \brief Set field graph plotting type.
+     */
+    void set_fieldgraph_plot( field_type_e fieldplot );
+
+    /*! \brief Get field graph plotting type.
+     */
+    field_type_e get_fieldgraph_plot( void ) {
+	return( _fieldplot_sel );
+    }
+
     void set_particle_database( const ParticleDataBase *pdb ) {
 	set_particledatabase( pdb );
     }

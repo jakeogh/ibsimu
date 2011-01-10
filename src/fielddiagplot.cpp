@@ -49,8 +49,8 @@ FieldDiagPlot::FieldDiagPlot( Frame *frame, const Geometry *geom )
     : _frame(frame), _geom(geom), _epot(NULL), _efield(NULL), _scharge(NULL), _bfield(NULL), 
       _N(100)
 {
-    _diag[0] = FIELDD_DIAG_EPOT;
-    _diag[1] = FIELDD_DIAG_NONE;
+    _diag[0] = FIELD_EPOT;
+    _diag[1] = FIELD_NONE;
     _loc[0] = FIELDD_LOC_DIST;
     _loc[1] = FIELDD_LOC_NONE;
 
@@ -93,7 +93,7 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 	fielddata[a].reserve( _N );
 	switch( _diag[a] ) {
 
-	case FIELDD_DIAG_EPOT:
+	case FIELD_EPOT:
 	    if( _epot == NULL )
 		throw( Error( ERROR_LOCATION, "epot undefined" ) );		
 	    for( size_t b = 0; b < _N; b++ ) {
@@ -101,7 +101,7 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 	    }
 	    break;
 
-	case FIELDD_DIAG_EFIELD:
+	case FIELD_EFIELD:
 	    if( _efield == NULL )
 		throw( Error( ERROR_LOCATION, "efield undefined" ) );		
 	    for( size_t b = 0; b < _N; b++ ) {
@@ -110,7 +110,7 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 	    }
 	    break;
 
-	case FIELDD_DIAG_EFIELD_X:
+	case FIELD_EFIELD_X:
 	    if( _efield == NULL )
 		throw( Error( ERROR_LOCATION, "efield undefined" ) );		
 	    for( size_t b = 0; b < _N; b++ ) {
@@ -119,7 +119,7 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 	    }
 	    break;
 
-	case FIELDD_DIAG_EFIELD_Y:
+	case FIELD_EFIELD_Y:
 	    if( _efield == NULL )
 		throw( Error( ERROR_LOCATION, "efield undefined" ) );		
 	    for( size_t b = 0; b < _N; b++ ) {
@@ -128,7 +128,7 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 	    }
 	    break;
 
-	case FIELDD_DIAG_EFIELD_Z:
+	case FIELD_EFIELD_Z:
 	    if( _efield == NULL )
 		throw( Error( ERROR_LOCATION, "efield undefined" ) );		
 	    for( size_t b = 0; b < _N; b++ ) {
@@ -137,7 +137,7 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 	    }
 	    break;
 
-	case FIELDD_DIAG_SCHARGE:
+	case FIELD_SCHARGE:
 	    if( _scharge == NULL )
 		throw( Error( ERROR_LOCATION, "scharge undefined" ) );
 	    for( size_t b = 0; b < _N; b++ ) {
@@ -145,7 +145,7 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 	    }
 	    break;
 
-	case FIELDD_DIAG_BFIELD:
+	case FIELD_BFIELD:
 	    if( _bfield == NULL )
 		throw( Error( ERROR_LOCATION, "bfield undefined" ) );
 	    for( size_t b = 0; b < _N; b++ ) {
@@ -154,7 +154,7 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 	    }
 	    break;
 
-	case FIELDD_DIAG_BFIELD_X:
+	case FIELD_BFIELD_X:
 	    if( _bfield == NULL )
 		throw( Error( ERROR_LOCATION, "bfield undefined" ) );
 	    for( size_t b = 0; b < _N; b++ ) {
@@ -163,7 +163,7 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 	    }
 	    break;
 
-	case FIELDD_DIAG_BFIELD_Y:
+	case FIELD_BFIELD_Y:
 	    if( _bfield == NULL )
 		throw( Error( ERROR_LOCATION, "bfield undefined" ) );
 	    for( size_t b = 0; b < _N; b++ ) {
@@ -172,7 +172,7 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 	    }
 	    break;
 
-	case FIELDD_DIAG_BFIELD_Z:
+	case FIELD_BFIELD_Z:
 	    if( _bfield == NULL )
 		throw( Error( ERROR_LOCATION, "bfield undefined" ) );
 	    for( size_t b = 0; b < _N; b++ ) {
@@ -181,7 +181,7 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 	    }
 	    break;
 
-	case FIELDD_DIAG_NONE:
+	case FIELD_NONE:
 	default:
 	    // Nothing to do
 	    break;
@@ -196,56 +196,56 @@ std::string FieldDiagPlot::diagnostic_label( field_diag_type_e diag ) const
 {
     switch( diag ) {
 	
-    case FIELDD_DIAG_EPOT:
+    case FIELD_EPOT:
 	return( "\\phi  (V)" );
 	break;
 	
-    case FIELDD_DIAG_EFIELD:
+    case FIELD_EFIELD:
 	return( "|E| (V/m)" );
 	break;
 	
-    case FIELDD_DIAG_EFIELD_X:
+    case FIELD_EFIELD_X:
 	return( "E_x (V/m)" );
 	break;
 	
-    case FIELDD_DIAG_EFIELD_Y:
+    case FIELD_EFIELD_Y:
 	if( _geom->geom_mode() == MODE_CYL )
 	    return( "E_r (V/m)" );
 	else
 	    return( "E_y (V/m)" );
 	break;
 	
-    case FIELDD_DIAG_EFIELD_Z:
+    case FIELD_EFIELD_Z:
 	return( "E_z (V/m)" );
 	break;
 	
-    case FIELDD_DIAG_SCHARGE:
+    case FIELD_SCHARGE:
 	return( "\\rho  (C/m^3)" );
 	break;
 	
-    case FIELDD_DIAG_BFIELD:
+    case FIELD_BFIELD:
 	return( "B (T)" );
 	break;
 	
-    case FIELDD_DIAG_BFIELD_X:
+    case FIELD_BFIELD_X:
 	return( "B_x (T)" );
 	break;
 	
-    case FIELDD_DIAG_BFIELD_Y:
+    case FIELD_BFIELD_Y:
 	if( _geom->geom_mode() == MODE_CYL )
 	    return( "B_r (T)" );
 	else
 	    return( "B_y (T)" );
 	break;
 	
-    case FIELDD_DIAG_BFIELD_Z:
+    case FIELD_BFIELD_Z:
 	if( _geom->geom_mode() == MODE_CYL )
 	    return( "B_\\theta  (T)" );
 	else
 	    return( "B_z (T)" );
 	break;
 
-    case FIELDD_DIAG_NONE:
+    case FIELD_NONE:
     default:
 	return( "" );
 	break;
@@ -277,9 +277,9 @@ void FieldDiagPlot::build_plot( void )
     //_frame->ruler_autorange_enable( PLOT_AXIS_Y2, false, false );
 
     // Enable y-axes according to use
-    if( _diag[0] != FIELDD_DIAG_NONE )
+    if( _diag[0] != FIELD_NONE )
 	_frame->force_enable_ruler( PLOT_AXIS_Y1, true );
-    if( _diag[1] != FIELDD_DIAG_NONE )
+    if( _diag[1] != FIELD_NONE )
 	_frame->force_enable_ruler( PLOT_AXIS_Y2, true );
 
     // X data
@@ -344,7 +344,7 @@ void FieldDiagPlot::build_plot( void )
     for( size_t a = 0; a < 2; a++ ) {
 
 	// Check if there is data for yaxis
-	if( _diag[a] == FIELDD_DIAG_NONE ) {
+	if( _diag[a] == FIELD_NONE ) {
 	    _graph[a] = NULL;
 	    continue;
 	}
@@ -396,9 +396,9 @@ void FieldDiagPlot::export_data( const std::string &filename ) const
     fstr << std::setw(14) << "Y (m) ";
     fstr << std::setw(14) << "Z (m) ";
     fstr << std::setw(14) << "Distance (m) ";
-    if( _diag[0] != FIELDD_DIAG_NONE )
+    if( _diag[0] != FIELD_NONE )
 	fstr << std::setw(13) << diagnostic_label( _diag[0] ) << " ";
-    if( _diag[1] != FIELDD_DIAG_NONE )
+    if( _diag[1] != FIELD_NONE )
 	fstr << std::setw(13) << diagnostic_label( _diag[1] ) << " ";
     fstr << "\n";
 
@@ -411,7 +411,7 @@ void FieldDiagPlot::export_data( const std::string &filename ) const
 
 	// Write data
 	for( size_t b = 0; b < 2; b++ ) {
-	    if( _diag[b] != FIELDD_DIAG_NONE )
+	    if( _diag[b] != FIELD_NONE )
 		fstr << std::setw(13) << fielddata[b][a] << " ";
 	}
 

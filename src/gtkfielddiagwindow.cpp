@@ -178,47 +178,47 @@ std::string GTKFieldDiagWindow::track_text( double x, double y )
 	}
 
 	switch( _plot.get_diagnostic_type( i ) ) {
-	case FIELDD_DIAG_EPOT:
+	case FIELD_EPOT:
 	    ss << "epot = " << val << "V\n";
 	    break;
 	    
-	case FIELDD_DIAG_EFIELD:
+	case FIELD_EFIELD:
 	    ss << "|E| = " << val << "V/m\n";
 	    break;
 	    
-	case FIELDD_DIAG_EFIELD_X:
+	case FIELD_EFIELD_X:
 	    ss << "Ex = " << val << "V/m\n";
 	    break;
 	    
-	case FIELDD_DIAG_EFIELD_Y:
+	case FIELD_EFIELD_Y:
 	    ss << "Ey = " << val << "V/m\n";
 	    break;
 	    
-	case FIELDD_DIAG_EFIELD_Z:
+	case FIELD_EFIELD_Z:
 	    ss << "Ez = " << val << "V/m\n";
 	    break;
 	    
-	case FIELDD_DIAG_SCHARGE:
+	case FIELD_SCHARGE:
 	    ss << "rho = " << val << "C/m^3\n";
 	    break;
 	    
-	case FIELDD_DIAG_BFIELD:
+	case FIELD_BFIELD:
 	    ss << "|B| = " << val << "T\n";
 	    break;
 	    
-	case FIELDD_DIAG_BFIELD_X:
+	case FIELD_BFIELD_X:
 	    ss << "Bx = " << val << "T\n";
 	    break;
 	    
-	case FIELDD_DIAG_BFIELD_Y:
+	case FIELD_BFIELD_Y:
 	    ss << "By = " << val << "T\n";
 	    break;
 	    
-	case FIELDD_DIAG_BFIELD_Z:
+	case FIELD_BFIELD_Z:
 	    ss << "Bz = " << val << "T\n";
 	    break;
 	    
-	case FIELDD_DIAG_NONE:
+	case FIELD_NONE:
 	default:
 	    break;
 	};

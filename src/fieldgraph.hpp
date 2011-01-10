@@ -63,7 +63,7 @@ class FieldGraph : public Graph3D {
     view_e                  _oview;
     double                  _olevel;
 
-    bool                    _enabled;         /*!< \brief Is mesh plotting enabled */
+    bool                    _enabled;         /*!< \brief Is plotting enabled */
 
     void build_scalarfield_plot( void );
 

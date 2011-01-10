@@ -2,7 +2,7 @@
  *  \brief GTK based plotters.
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -74,6 +74,7 @@ class GTKPlotter {
     const ScalarField      *_epot;
     const Efield           *_efield;
     const ScalarField      *_scharge;
+    const ScalarField      *_tdens;
     const VectorField      *_bfield;
     const ParticleDataBase *_pdb;
 
@@ -89,6 +90,7 @@ public:
     const ScalarField *get_epot( void ) const;
     const Efield *get_efield( void ) const;
     const ScalarField *get_scharge( void ) const;
+    const ScalarField *get_trajdens( void ) const;
     const VectorField *get_bfield( void ) const;
     const ParticleDataBase *get_particledatabase( void ) const;
 
@@ -96,6 +98,7 @@ public:
     void set_epot( const ScalarField *epot );
     void set_efield( const Efield *efield );
     void set_scharge( const ScalarField *scharge );
+    void set_trajdens( const ScalarField *tdens );
     void set_bfield( const VectorField *bfield );
     void set_particledatabase( const ParticleDataBase *pdb );    
 

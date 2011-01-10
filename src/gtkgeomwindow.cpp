@@ -57,16 +57,18 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       *plotter,
 			      const Geometry         *geom,
 			      const ScalarField      *epot,
 			      const ScalarField      *scharge,
+			      const ScalarField      *tdens,
 			      const VectorField      *bfield,
 			      const ParticleDataBase *pdb )
-    : GTKWindow(plotter), _geomplot(&_frame,geom), 
-      _geom(geom), _epot(epot), _scharge(scharge), _bfield(bfield), _pdb(pdb)
+    : GTKWindow(plotter), _geomplot(&_frame,geom),
+      _geom(geom), _epot(epot), _scharge(scharge), _tdens(tdens), _bfield(bfield), _pdb(pdb)
 {
     //std::cout << "GTKGeomWindow constructor\n";
 
     // Setup GeomPlot
     _geomplot.set_epot( epot );
     _geomplot.set_scharge( scharge );
+    _geomplot.set_trajdens( tdens );
     _geomplot.set_particle_database( pdb );
 
     // Set window title
@@ -381,6 +383,8 @@ std::string GTKGeomWindow::track_text( double x, double y )
 	ss << "bfield = " << (*_bfield)( loc ) << "\n";
     if( _scharge )
 	ss << "scharge = " << (*_scharge)( loc ) << "\n";
+    if( _tdens )
+	ss << "trajdens = " << (*_tdens)( loc ) << "\n";
 
     return( ss.str() );
 }
@@ -390,7 +394,9 @@ struct PreferencesData {
     GtkWidget *manual_eqlines_entry;
     GtkWidget *automatic_eqlines_spin;
     GtkWidget *particlediv_spin;
-    GtkWidget *scharge_field_check;
+    GtkWidget *field_none_radio;
+    GtkWidget *field_scharge_radio;
+    GtkWidget *field_tdens_radio;
     GtkWidget *qmdiscretation_check;
     GtkWidget *meshen_check;
 };
@@ -441,17 +447,6 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     gtk_box_pack_start( GTK_BOX(hbox), pdata->particlediv_spin, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
-    // Space charge field
-    hbox = gtk_hbox_new( TRUE, 30 );
-    label = gtk_label_new( "Space charge field" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    pdata->scharge_field_check = gtk_check_button_new_with_label( "on/off" );
-    bool scharge_field = _geomplot.get_scharge_field();
-    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->scharge_field_check), scharge_field );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), pdata->scharge_field_check, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
-
     // QM discretation
     hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Q/M discretation" );
@@ -472,6 +467,39 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->meshen_check), mesh );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), pdata->meshen_check, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Field colormap plot selector
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Field colormap plot" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    GtkWidget *vbox2 = gtk_vbox_new( FALSE, 0 );
+    // Field none radio button
+    pdata->field_none_radio = gtk_radio_button_new_with_label_from_widget( NULL, 
+									   "None" );
+    gtk_box_pack_start( GTK_BOX(vbox2), pdata->field_none_radio, FALSE, TRUE, 0 );
+    // Scharge none radio button
+    pdata->field_scharge_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->field_none_radio), 
+									      "Space charge" );
+    if( !_geomplot.get_scharge() )
+	gtk_widget_set_sensitive( pdata->field_scharge_radio, false );
+    gtk_box_pack_start( GTK_BOX(vbox2), pdata->field_scharge_radio, FALSE, TRUE, 0 );
+    // TrajDens none radio button
+    pdata->field_tdens_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->field_none_radio), 
+									    "Trajectory density" );
+    if( !_geomplot.get_trajdens() )
+	gtk_widget_set_sensitive( pdata->field_tdens_radio, false );
+    gtk_box_pack_start( GTK_BOX(vbox2), pdata->field_tdens_radio, FALSE, TRUE, 0 );
+
+    if( _geomplot.get_fieldgraph_plot() == FIELD_SCHARGE && _geomplot.get_scharge() )
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_scharge_radio), true );
+    else if( _geomplot.get_fieldgraph_plot() == FIELD_TRAJDENS && _geomplot.get_trajdens() )
+	  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_tdens_radio), true );
+    else
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_none_radio), true );
+    
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), vbox2, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
     // Add notebook page
@@ -506,10 +534,6 @@ void GTKGeomWindow::read_preferences( GtkWidget *notebook, void *_pdata )
     size_t particle_div = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(pdata->particlediv_spin) );
     _geomplot.set_particle_div( particle_div );
 
-    // Space charge field
-    bool scharge_field = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( pdata->scharge_field_check) );
-    _geomplot.set_scharge_field( scharge_field );
-
     // QM discretation
     bool qm_discretation = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( pdata->qmdiscretation_check) );
     _geomplot.set_qm_discretation( qm_discretation );
@@ -517,6 +541,15 @@ void GTKGeomWindow::read_preferences( GtkWidget *notebook, void *_pdata )
     // Mesh
     bool mesh = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( pdata->meshen_check) );
     _geomplot.set_mesh( mesh );
+
+    // Field colormap plot
+    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( pdata->field_none_radio) ) )
+	_geomplot.set_fieldgraph_plot( FIELD_NONE );
+    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( pdata->field_scharge_radio) ) )
+	_geomplot.set_fieldgraph_plot( FIELD_SCHARGE );
+    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( pdata->field_tdens_radio) ) )
+	_geomplot.set_fieldgraph_plot( FIELD_TRAJDENS );
+
 }
 
 
