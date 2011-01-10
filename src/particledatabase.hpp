@@ -196,6 +196,16 @@ public:
 	_trajdiv = div;
     }
 
+    /*! \brief Get trajectory saving.
+     *
+     *  If \a div is zero, no trajectories are saved.
+     *  If \a div is one, every trajectory is saved.
+     *  If \a div N>1, every Nth trajectory is saved.
+     */
+    uint32_t get_save_trajectories( void ) {
+	return( _trajdiv );
+    }
+
     /*! \brief Set particle mirroring on boundaries.
      *
      *  Mirroring is set for (xmin,xmax,ymin,ymax,zmin,zmax) borders.
@@ -647,11 +657,12 @@ public:
 	// Make separate space charge maps for all threads and build iterators
 	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
 	    if( a == 0 ) schmap[a] = &scharge;
-	    else schmap[a] = new ScalarField( g );
+	    else schmap[a] = new ScalarField( scharge );
+
 	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
-							   _polyint, _maxsteps, 
-							   _maxt, _trajdiv, _mirror, schmap[a], 
-							   &efield, &bfield, &g, &_particles[0] ) );
+							   _polyint, _maxsteps, _maxt, _trajdiv, 
+							   _mirror, schmap[a], &efield, &bfield, 
+							   &g, &_particles[0] ) );
 	    if( _nsimp )
 		iterators[a]->enable_nsimp_plasma_threshold( _epot, _phi_plasma );
 	}
@@ -760,6 +771,8 @@ public:
  */
 class ParticleDataBase2D : public ParticleDataBasePP<ParticleP2D> {
 
+    void add_tdens_from_segment( ScalarField &tdens, double IQ,
+				 ParticleP2D &x1, ParticleP2D &x2 ) const;
 
 public:
 
@@ -860,6 +873,12 @@ public:
     void add_2d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
 					      double a, double b, double e,
 					      double Ex, double x0, double y0 );
+
+    /*! \brief Build trajectory density field.
+     *
+     *  The scalar field \a tdens can differ from geometry.
+     */
+    void build_trajectory_density_field( ScalarField &tdens ) const;
 };
 
 
@@ -878,6 +897,8 @@ public:
  */
 class ParticleDataBaseCyl : public ParticleDataBasePP<ParticlePCyl> {
 
+    void add_tdens_from_segment( ScalarField &tdens, double IQ,
+				 ParticlePCyl &x1, ParticlePCyl &x2 ) const;
 
 public:
 
@@ -989,6 +1010,8 @@ public:
  */
 class ParticleDataBase3D : public ParticleDataBasePP<ParticleP3D> {
 
+    void add_tdens_from_segment( ScalarField &tdens, double IQ,
+				 ParticleP3D &x1, ParticleP3D &x2 ) const;
 
 public:
 

@@ -94,7 +94,7 @@ void FieldGraph::build_scalarfield_plot( void )
 	pentry.push_back( Palette::Entry( Color(0,0,0), 3 ) );
 	Palette p( pentry );
 	_colormap->set_palette( p );
-	_colormap->set_zscale( ZSCALE_RELLOG );
+	//_colormap->set_zscale( ZSCALE_RELLOG );
     }
 }
 
