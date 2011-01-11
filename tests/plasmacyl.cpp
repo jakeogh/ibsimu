@@ -81,7 +81,7 @@ void test( int *argc, char ***argv )
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
 
-    for( size_t i = 0; i < 20; i++ ) {
+    for( size_t i = 0; i < 3; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
@@ -109,6 +109,9 @@ void test( int *argc, char ***argv )
 	*/
     }
 
+    ScalarField tdens( geom );
+    pdb.build_trajectory_density_field( tdens );
+
     GeomPlotter gplotter( &geom );
     gplotter.set_size( 1024, 768 );
     gplotter.set_epot( &epot );
@@ -119,6 +122,9 @@ void test( int *argc, char ***argv )
     eqlines.push_back( +4.0 );
     gplotter.set_eqlines_manual( eqlines );
     gplotter.set_particle_database( &pdb );
+    gplotter.set_particle_div( 0 );
+    gplotter.set_trajdens( &tdens );
+    gplotter.set_fieldgraph_plot( FIELD_TRAJDENS );
     gplotter.plot_png( "plasmacyl.png" );
 
     ParticleDiagPlotter pplotter1( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
@@ -146,25 +152,13 @@ void test( int *argc, char ***argv )
     ParticleDiagPlotter pplotter3b( &geom, &pdb, AXIS_X, 0.012-1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_RP, DIAG_AP );
     pplotter3b.plot_png( "plasmacyl2_rp_ap.png" );
-
-    ScalarField tdens( geom );
-    pdb.build_trajectory_density_field( tdens );
-
-    GTKPlotter plotter( argc, argv );
-    plotter.set_geometry( &geom );
-    plotter.set_epot( &epot );
-    plotter.set_scharge( &scharge );
-    plotter.set_trajdens( &tdens );
-    plotter.set_particledatabase( &pdb );
-    plotter.new_geometry_plot_window();
-    plotter.run();
 }
 
 
 int main( int argc, char **argv )
 {
     try {
-	ibsimu.set_verbose_output( 1 );
+	ibsimu.set_verbose_output( 0 );
 	ibsimu.set_thread_count( 4 );
     	test( &argc, &argv );
     } catch ( Error e ) {

@@ -258,7 +258,18 @@ void ParticleDataBase2D::build_trajectory_density_field( ScalarField &tdens ) co
 	    // Next trajectory line
 	    x1 = x2;
 	}
-    }    
+    }
+
+    // Fix boundaries, which only get half of the contribution they should
+    // This should depend on mirroring properties!
+    for( int32_t i = 0; i < tdens.size(0); i++ ) {
+	tdens( i, 0 ) *= 2.0;
+	tdens( i, tdens.size(1)-1 ) *= 2.0;
+    }
+    for( int32_t j = 0; j < tdens.size(1); j++ ) {
+	tdens( 0, j ) *= 2.0;
+	tdens( tdens.size(0)-1, j ) *= 2.0;
+    }
 }
 
 
@@ -528,6 +539,18 @@ void ParticleDataBaseCyl::build_trajectory_density_field( ScalarField &tdens ) c
 	    x1 = x2;
 	}
     }    
+
+
+    // Fix boundaries, which only get half of the contribution they should
+    // This should depend on mirroring properties!
+    for( int32_t i = 0; i < tdens.size(0); i++ ) {
+	tdens( i, 0 ) *= 2.0;
+	tdens( i, tdens.size(1)-1 ) *= 2.0;
+    }
+    for( int32_t j = 0; j < tdens.size(1); j++ ) {
+	tdens( 0, j ) *= 2.0;
+	tdens( tdens.size(0)-1, j ) *= 2.0;
+    }
 }
 
 
@@ -1052,4 +1075,25 @@ void ParticleDataBase3D::build_trajectory_density_field( ScalarField &tdens ) co
 	    x1 = x2;
 	}
     }    
+
+    // Fix boundaries, which only get half of the contribution they should
+    // This should depend on mirroring properties!
+    for( int32_t i = 0; i < tdens.size(0); i++ ) {
+	for( int32_t j = 0; j < tdens.size(1); j++ ) {
+	    tdens( i, j, 0 ) *= 2.0;
+	    tdens( i, j, tdens.size(2)-1 ) *= 2.0;
+	}
+    }
+    for( int32_t i = 0; i < tdens.size(0); i++ ) {
+	for( int32_t k = 0; k < tdens.size(2); k++ ) {
+	    tdens( i, 0, k ) *= 2.0;
+	    tdens( i, tdens.size(1)-1, k ) *= 2.0;
+	}
+    }	
+    for( int32_t j = 0; j < tdens.size(1); j++ ) {
+	for( int32_t k = 0; k < tdens.size(2); k++ ) {
+	    tdens( 0, j, k ) *= 2.0;
+	    tdens( tdens.size(0)-1, j, k ) *= 2.0;
+	}
+    }
 }

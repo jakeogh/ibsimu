@@ -48,35 +48,23 @@ void test( void )
     //std::cout << "Solving BiCGSTAB with empty preconditioner\n";
     eps[0] = 1.0e-9;
     imax[0] = 100000;
-    if( !bicgstab( cmat, rhs, sol[0], Empty_Precond(), imax[0], eps[0] ) ) {
-	cout << "BiCGSTAB with empty preconditioner failed.\n";
-	exit( 1 );
-    }
+    bicgstab( cmat, rhs, sol[0], Empty_Precond(), imax[0], eps[0] );
 
     //std::cout << "Solving BiCGSTAB with diagonal preconditioner\n";
     eps[1] = 1.0e-9;
     imax[1] = 100000;
-    if( !bicgstab( cmat, rhs, sol[1], Diag_Precond(cmat), imax[1], eps[1] ) ) {
-	cout << "BiCGSTAB with diagonal preconditioner failed.\n";
-	exit( 1 );
-    }
+    bicgstab( cmat, rhs, sol[1], Diag_Precond(cmat), imax[1], eps[1] );
 
     //std::cout << "Solving BiCGSTAB with ILU0 preconditioner\n";
     eps[2] = 1.0e-9;
     imax[2] = 100000;
-    if( !bicgstab( cmat, rhs, sol[2], ILU0_Precond(cmat), imax[2], eps[2] ) ) {
-	cout << "BiCGSTAB with ILU0 preconditioner failed.\n";
-	exit( 1 );
-    }
+    bicgstab( cmat, rhs, sol[2], ILU0_Precond(cmat), imax[2], eps[2] );
 
     //std::cout << "Solving Gauss-Seidel\n";
     w = 1.66;
     eps[3] = 1.0e-9;
     imax[3] = 100000;
-    if( !GSSolver::gauss_seidel( mat, rhs, sol[3], imax[3], eps[3], w ) ) {
-	cout << "Gauss-Seidel solver failed.\n";
-	exit( 1 );
-    }
+    GSSolver::gauss_seidel( mat, rhs, sol[3], imax[3], eps[3], w );
 
     /* Compare results */
     for( int a = 1; a < 4; a++ ) {
