@@ -178,8 +178,11 @@ void GeomPlot::set_fieldgraph_plot( field_type_e fieldplot )
 	if( _tdens )
 	    _fieldgraph = new FieldGraph( _tdens );
 	break;
+    case FIELD_NONE:
+	// No fieldgraph defined
+	break;
     default:
-	throw( ErrorUnimplemented( ERROR_LOCATION, "VectorField plotting unimplemented" ) );
+	throw( ErrorUnimplemented( ERROR_LOCATION, "Unimplemented field plottingd" ) );
 	break;
     }
     
