@@ -214,10 +214,11 @@ Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
 
     if( ibsimu.get_verbose_output() ) {
 	std::cout << "Constructing geometry\n";
-	std::cout << "  origo = " << _origo << "\n";
-	std::cout << "  size  = " << _size << "\n";
-	std::cout << "  max   = " << _max << "\n";
-	std::cout << "  h     = " << _h << "\n";
+	std::cout << "  origo     = " << _origo << "\n";
+	std::cout << "  size      = " << _size << "\n";
+	std::cout << "  max       = " << _max << "\n";
+	std::cout << "  h         = " << _h << "\n";
+	std::cout << "  nodecount = " << nodecount() << "\n";
     }
 
     _n = 0;
@@ -516,6 +517,35 @@ void Geometry::build_mesh( void )
 	}
     }
 
+    // Report node counts
+    if( ibsimu.get_verbose_output() ) {
+	int b;
+	int nc = nodecount();
+	int vac = 0;
+	int neu = 0;
+	int dir = 0;
+	int solid[_n];
+	for( a = 0; a < _n; a++ )
+	    solid[a] = 0;
+
+	for( a = 0; a < nc; a++ ) {
+	    if( mesh(a) == 0 )
+		vac++;
+	    else if( (b = fabs(mesh(a))) >= 7 )
+		solid[b-7]++;
+	    else if( mesh(a) < 0 )
+		neu++;
+	    else
+		dir++;
+	}
+	
+	std::cout << "  Done. Built mesh with:\n";
+	std::cout << "  " << vac << " vacuum nodes\n";
+	std::cout << "  " << neu << " neumann nodes\n";
+	std::cout << "  " << dir << " dirichlet nodes\n";
+	for( a = 0; a < _n; a++ )
+	    std::cout << "  " << solid[a] << " solid " << a+7 << " nodes\n";
+    }
 }
 
 
