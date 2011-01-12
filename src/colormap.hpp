@@ -90,6 +90,8 @@ class Colormap : public Graph {
     Interpolation2D       *_intrp;         /*!< \brief Data interpolation. */
 
     void make_data_interpolation( void );
+    
+    void plot_to_image_surface( cairo_surface_t *surface, const Coordmapper *cm, int plim[4] );
 
 public:
 

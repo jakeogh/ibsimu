@@ -107,66 +107,13 @@ void Colormap::set_zscale( zscale_e zscale )
 }
 
 
-void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
+void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmapper *cm, int plim[4] )
 {
-    // Prepare by fetching surface and its parameters
-    cairo_surface_t *surface = cairo_get_target( cairo );
     unsigned char *buf = cairo_image_surface_get_data( surface );
-    cairo_format_t format = cairo_image_surface_get_format( surface );
-    if( buf == NULL ) {
-	throw( Error( ERROR_LOCATION, "cairo surface not image surface" ) );
-    } else if( format != CAIRO_FORMAT_ARGB32 ) {
-	throw( Error( ERROR_LOCATION, "cairo image surface format not supported" ) );
-    }
+
     int width  = cairo_image_surface_get_width( surface );
     int height = cairo_image_surface_get_height( surface );
     int stride = cairo_image_surface_get_stride( surface );
-
-    // Calculate pixel ranges
-    double prange[4];
-    if( _datarange[0] < range[0] )
-	prange[0] = range[0];
-    else
-	prange[0] = _datarange[0];
-    if( _datarange[1] < range[1] )
-	prange[1] = range[1];
-    else
-	prange[1] = _datarange[1];
-
-    if( _datarange[2] > range[2] )
-	prange[2] = range[2];
-    else
-	prange[2] = _datarange[2];
-    if( _datarange[3] > range[3] )
-	prange[3] = range[3];
-    else
-	prange[3] = _datarange[3];
-
-    /*
-    std::cout << "Untransformed prange: "
-	      << prange[0] << " "
-	      << prange[1] << " "
-	      << prange[2] << " "
-	      << prange[3] << "\n";
-    */
-
-    cm->transform( prange[0], prange[1] );
-    cm->transform( prange[2], prange[3] );
-
-    /*
-    std::cout << "Transformed prange: "
-	      << prange[0] << " "
-	      << prange[1] << " "
-	      << prange[2] << " "
-	      << prange[3] << "\n";
-    */
-
-    // Calculate pixel limits of drawn area, y flipped to have smaller
-    // numbers as 0 and 1, bigger as 2 and 3.
-    int plim[4] = { (int)floor(prange[0]+0.5),
-		    (int)floor(prange[3]+0.5),
-		    (int)floor(prange[2]+0.5),
-		    (int)floor(prange[1]+0.5) };
 
     // Check that drawing is only done to valid buffer
     if( plim[0] < 0 )
@@ -178,18 +125,7 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
     if( plim[3] >= height )
 	plim[3] = height-1;
     if( plim[0] > plim[2] || plim[1] > plim[3] )
-	return;
-
-    /*
-    std::cout << width << "\n";
-    std::cout << height << "\n";
-    std::cout << stride << "\n";
-    std::cout << "Rounded prange: " 
-	      << plim[0] << " "
-	      << plim[1] << " "
-	      << plim[2] << " "
-	      << plim[3] << "\n";
-    */
+	throw( Error( ERROR_LOCATION, "incorrect pixel limits" ) );	
 
     if( !_intrp )
 	throw( Error( ERROR_LOCATION, "No data available" ) );
@@ -211,10 +147,13 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 	sign = 0;
     }
 	
+    // flush to ensure all writing to the image was done
+    cairo_surface_flush( surface );
+
     for( int i = plim[0]; i <= plim[2]; i++ ) {
 	for( int j = plim[1]; j <= plim[3]; j++ ) {
 
-	    // Tranform to logical coordinates
+	    // Transform to logical coordinates
 	    double x[2] = { i, j };
 	    cm->inv_transform( x[0], x[1] );
 
@@ -255,6 +194,88 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 	    buf[j*stride+4*i+2] = (unsigned char)(255*c[0]);  // Red
 	    buf[j*stride+4*i+3] = (unsigned char)255;         // Alpha
 	}
+    }
+
+    // mark the image dirty so cairo clears its caches.
+    cairo_surface_mark_dirty( surface );
+}
+
+
+void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
+{
+    // Range of plot limited by current plot range and data range -> final range
+    double frange[4];
+    if( _datarange[0] < range[0] )
+	frange[0] = range[0];
+    else
+	frange[0] = _datarange[0];
+    if( _datarange[1] < range[1] )
+	frange[1] = range[1];
+    else
+	frange[1] = _datarange[1];
+
+    if( _datarange[2] > range[2] )
+	frange[2] = range[2];
+    else
+	frange[2] = _datarange[2];
+    if( _datarange[3] > range[3] )
+	frange[3] = range[3];
+    else
+	frange[3] = _datarange[3];
+
+    // Calculate pixel ranges
+    double prange[4];
+    cm->transform( &prange[0], &frange[0] );
+    cm->transform( &prange[2], &frange[2] );
+
+    // Calculate pixel integer limits of drawn area, 
+    // y flipped to have smaller numbers as 0 and 1, 
+    // bigger as 2 and 3.
+    int plim[4] = { (int)floor(prange[0]+0.5),
+		    (int)floor(prange[3]+0.5),
+		    (int)floor(prange[2]+0.5),
+		    (int)floor(prange[1]+0.5) };
+
+    // Prepare by fetching surface and its parameters
+    cairo_surface_t *surface = cairo_get_target( cairo );
+    if( cairo_image_surface_get_data( surface ) == NULL ) {
+
+	// Make a new image surface for plot
+	int width = plim[2]-plim[0]+1;
+	int height = plim[3]-plim[1]+1;
+	cairo_surface_t *nsurface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32,
+								width,
+								height );
+	// frange is clipped range in simulation coordinates
+	// transform from simu coord to pixels in nsurface.
+	double xx = (width-1)/(frange[2]-frange[0]);
+	double x0 = -xx*frange[0];
+	double yy = (height-1)/(frange[1]-frange[3]);
+	double y0 = -yy*frange[3];
+	Coordmapper *ncm = new Coordmapper( xx, x0, yy, y0 );
+	int nlim[4] = { 0, 0, width-1, height-1 };
+	plot_to_image_surface( nsurface, ncm, nlim );
+	delete ncm;
+	cairo_surface_write_to_png( nsurface, "surface.png" );
+
+	cairo_save( cairo );
+	cairo_set_source_surface( cairo, nsurface, plim[0], plim[1] );
+	cairo_pattern_t *pattern = cairo_get_source( cairo );
+	cairo_pattern_set_filter( pattern, CAIRO_FILTER_GOOD );
+	cairo_rectangle( cairo, plim[0], plim[1], width, height );
+	cairo_clip( cairo );
+	cairo_paint( cairo );
+	cairo_restore( cairo );
+	cairo_surface_destroy( nsurface );
+
+    } else {
+
+	// Plot directly to image surface
+	cairo_format_t format = cairo_image_surface_get_format( surface );
+	if( format != CAIRO_FORMAT_ARGB32 )
+	    throw( Error( ERROR_LOCATION, "cairo image surface format not supported" ) );
+
+	plot_to_image_surface( surface, cm, plim );
     }
 }
 

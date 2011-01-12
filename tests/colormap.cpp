@@ -1,4 +1,6 @@
 /*! \file colormap.cpp 
+ *  \brief Test colormap.
+ *
  *  \test Test colormap.
  */
 
@@ -7,6 +9,13 @@
 #include <iomanip>
 #include <cmath>
 #include <cstdlib>
+#include <cairo.h>
+#if CAIRO_HAS_PS_SURFACE
+#include <cairo-ps.h>
+#endif
+#ifdef CAIRO_HAS_PDF_SURFACE
+#include <cairo-pdf.h>
+#endif
 #include "frame.hpp"
 #include "xygraph.hpp"
 #include "colormap.hpp"
@@ -50,6 +59,10 @@ void test( void )
     colormap.set_palette( palette );
     f.add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, &colormap );
 
+    //
+    // PNG
+    //
+
     // Closest interpolation
     colormap.set_interpolation( INTERPOLATION_CLOSEST );
     surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, 640, 480 );
@@ -77,6 +90,88 @@ void test( void )
     cairo_destroy( cairo );
     cairo_surface_destroy( surface );
 
+    //
+    // PS
+    //
+#ifdef CAIRO_HAS_PS_SURFACE
+
+    // Closest interpolation
+    colormap.set_interpolation( INTERPOLATION_CLOSEST );
+    surface = cairo_ps_surface_create( "colormap_closest.ps", 640, 480 );
+    if( cairo_surface_status( surface ) != CAIRO_STATUS_SUCCESS )
+	throw( Error( ERROR_LOCATION, "error creating postscript surface" ) );
+#if CAIRO_VERSION >= CAIRO_VERSION_ENCODE(1, 6, 0)
+    cairo_ps_surface_set_eps( surface, true );
+#endif
+    cairo = cairo_create( surface );
+    f.draw( cairo );
+    cairo_destroy( cairo );
+    cairo_surface_destroy( surface );
+
+    // Bilinear interpolation
+    colormap.set_interpolation( INTERPOLATION_BILINEAR );
+    surface = cairo_ps_surface_create( "colormap_bilinear.ps", 640, 480 );
+    if( cairo_surface_status( surface ) != CAIRO_STATUS_SUCCESS )
+	throw( Error( ERROR_LOCATION, "error creating postscript surface" ) );
+#if CAIRO_VERSION >= CAIRO_VERSION_ENCODE(1, 6, 0)
+    cairo_ps_surface_set_eps( surface, true );
+#endif
+    cairo = cairo_create( surface );
+    f.draw( cairo );
+    cairo_destroy( cairo );
+    cairo_surface_destroy( surface );
+
+    // Bicubic interpolation
+    colormap.set_interpolation( INTERPOLATION_BICUBIC );
+    surface = cairo_ps_surface_create( "colormap_bicubic.ps", 640, 480 );
+    if( cairo_surface_status( surface ) != CAIRO_STATUS_SUCCESS )
+	throw( Error( ERROR_LOCATION, "error creating postscript surface" ) );
+#if CAIRO_VERSION >= CAIRO_VERSION_ENCODE(1, 6, 0)
+    cairo_ps_surface_set_eps( surface, true );
+#endif
+    cairo = cairo_create( surface );
+    f.draw( cairo );
+    cairo_destroy( cairo );
+    cairo_surface_destroy( surface );
+
+#endif
+
+    //
+    // PDF
+    //
+#ifdef CAIRO_HAS_PDF_SURFACE
+
+    // Closest interpolation
+    colormap.set_interpolation( INTERPOLATION_CLOSEST );
+    surface = cairo_pdf_surface_create( "colormap_closest.pdf", 640, 480 );
+    if( cairo_surface_status( surface ) != CAIRO_STATUS_SUCCESS )
+	throw( Error( ERROR_LOCATION, "error creating postscript surface" ) );
+    cairo = cairo_create( surface );
+    f.draw( cairo );
+    cairo_destroy( cairo );
+    cairo_surface_destroy( surface );
+
+    // Bilinear interpolation
+    colormap.set_interpolation( INTERPOLATION_BILINEAR );
+    surface = cairo_pdf_surface_create( "colormap_bilinear.pdf", 640, 480 );
+    if( cairo_surface_status( surface ) != CAIRO_STATUS_SUCCESS )
+	throw( Error( ERROR_LOCATION, "error creating postscript surface" ) );
+    cairo = cairo_create( surface );
+    f.draw( cairo );
+    cairo_destroy( cairo );
+    cairo_surface_destroy( surface );
+
+    // Bicubic interpolation
+    colormap.set_interpolation( INTERPOLATION_BICUBIC );
+    surface = cairo_pdf_surface_create( "colormap_bicubic.pdf", 640, 480 );
+    if( cairo_surface_status( surface ) != CAIRO_STATUS_SUCCESS )
+	throw( Error( ERROR_LOCATION, "error creating postscript surface" ) );
+    cairo = cairo_create( surface );
+    f.draw( cairo );
+    cairo_destroy( cairo );
+    cairo_surface_destroy( surface );
+
+#endif
 }
 
 

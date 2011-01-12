@@ -1,4 +1,6 @@
-/*! \file Test with a plasma in cylindrical electrode configuration.
+/*! \file plasmacyl.cpp
+ *  \brief Test with a plasma in cylindrical electrode configuration.
+ *
  *  \test Test with a plasma in cylindrical electrode configuration.
  */
 

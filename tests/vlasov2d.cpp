@@ -75,12 +75,11 @@ void test( int *argc, char ***argv )
     efield.set_extrapolation( efldextrpl );
 
     ParticleDataBase2D pdb;
-    pdb.set_thread_count( 1 );
     bool pmirror[6] = { false, false, true, false, false, false };
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
 
-    for( size_t i = 0; i < 3; i++ ) {
+    for( size_t i = 0; i < 10; i++ ) {
 	p.solve( epot, scharge );
 	pdb.clear();
 	pdb.add_2d_beam_with_energy( 1000, 50.0, 1.0, 1.0, 
@@ -107,6 +106,7 @@ int main( int argc, char **argv )
 {
     try {
 	ibsimu.set_verbose_output( 0 );
+	ibsimu.set_thread_count( 4 );
 	test( &argc, &argv );
     } catch ( Error e ) {
 	cout << "Error in " << e._loc._file << ":" << e._loc._line 
