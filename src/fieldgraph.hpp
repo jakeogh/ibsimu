@@ -2,7 +2,7 @@
  *  \brief %Graph for plotting fields
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -64,6 +64,7 @@ class FieldGraph : public Graph3D {
     double                  _olevel;
 
     bool                    _enabled;         /*!< \brief Is plotting enabled */
+    bool                    _logscale;        /*!< \brief Logarithmic scaling */
 
     void build_scalarfield_plot( void );
 
@@ -80,6 +81,12 @@ public:
     /*! \brief Enable/disable plot.
      */
     void enable( bool enable );
+
+    /*! \brief Set logarithmic scale.
+     */
+    void set_logscale( bool enable ) {
+	_logscale = enable;
+    }
 
     /*! \brief Plot drawable with cairo.
 

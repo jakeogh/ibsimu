@@ -397,6 +397,7 @@ struct PreferencesData {
     GtkWidget *field_none_radio;
     GtkWidget *field_scharge_radio;
     GtkWidget *field_tdens_radio;
+    GtkWidget *field_logscale;
     GtkWidget *qmdiscretation_check;
     GtkWidget *meshen_check;
 };
@@ -502,6 +503,17 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     gtk_box_pack_start( GTK_BOX(hbox), vbox2, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
+    // Field colormap logscale
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Field colormap logscale" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    pdata->field_logscale = gtk_check_button_new_with_label( "on/off" );
+    bool flogscale = _geomplot.get_fieldgraph_logscale();
+    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_logscale), flogscale );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), pdata->field_logscale, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
     // Add notebook page
     label = gtk_label_new( "Geometry" );
     gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox, label );
@@ -535,21 +547,24 @@ void GTKGeomWindow::read_preferences( GtkWidget *notebook, void *_pdata )
     _geomplot.set_particle_div( particle_div );
 
     // QM discretation
-    bool qm_discretation = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( pdata->qmdiscretation_check) );
+    bool qm_discretation = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->qmdiscretation_check) );
     _geomplot.set_qm_discretation( qm_discretation );
 
     // Mesh
-    bool mesh = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( pdata->meshen_check) );
+    bool mesh = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->meshen_check) );
     _geomplot.set_mesh( mesh );
 
     // Field colormap plot
-    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( pdata->field_none_radio) ) )
+    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->field_none_radio) ) )
 	_geomplot.set_fieldgraph_plot( FIELD_NONE );
-    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( pdata->field_scharge_radio) ) )
+    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->field_scharge_radio) ) )
 	_geomplot.set_fieldgraph_plot( FIELD_SCHARGE );
-    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( pdata->field_tdens_radio) ) )
+    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->field_tdens_radio) ) )
 	_geomplot.set_fieldgraph_plot( FIELD_TRAJDENS );
 
+    // Field colormap logscale
+    bool flogscale = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->field_logscale) );
+    _geomplot.set_fieldgraph_logscale( flogscale );
 }
 
 

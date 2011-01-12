@@ -138,15 +138,11 @@ void ScalarField::get_minmax( double &min, double &max ) const
     max = _F[0];
 
     size_t ncount = _size[0]*_size[1]*_size[2];
-    std::cout << "ncount = " << ncount << "\n";
     for( size_t a = 1; a < ncount; a++ ) {
 	if( _F[a] < min )
 	    min = _F[a];
 	if( _F[a] > max )
 	    max = _F[a];
-	std::cout << "a = " << a << ": " 
-		  << "min = " << min << " "
-		  << "max = " << max << "\n";
     }
 }
 

@@ -2,7 +2,7 @@
  *  \brief %Colormap graph for plotting
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -112,10 +112,25 @@ public:
     virtual ~Colormap();
 
     /*! \brief Set interpolation mode.
+     *
+     *  Can be either \a INTERPOLATION_CLOSEST, \a
+     *  INTERPOLATION_BILINEAR or \a INTERPOLATION_BICUBIC.
      */
     void set_interpolation( interpolation_e interpolation );
 
     /*! \brief Set zscale mode.
+     *
+     * Set a prescaling for z-axis. Defaults to \a ZSCALE_LINEAR,
+     * which is a linear scaling from the z-axis to palette. Other
+     * possibilities are \a ZSCALE_LOG, which is a standard
+     * logarithmic scaling from z-axis to palette (providing
+     * magnification close to zero) and \a ZSCALE_RELLOG, which is a
+     * special relative logrithmic scaling following the relation \f[
+     * \frac{\log(0.001+x)-\log(0.001)}{\log(1.001)-\log(0.001)} \f],
+     * where \a x is prescaled to range [0,1]. The z-ranges completely
+     * contained on the negative side are inverted to positive and
+     * z-ranges both on negative and positive sides are scaled
+     * separately to provide magnification close to zero.
      */
     void set_zscale( zscale_e zscale );
 
@@ -149,8 +164,3 @@ public:
 
 
 #endif
-
-
-
-
-

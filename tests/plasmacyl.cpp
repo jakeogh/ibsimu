@@ -99,9 +99,12 @@ void test( int *argc, char ***argv )
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
 	/*
+	ScalarField tdens( geom );
+	pdb.build_trajectory_density_field( tdens );
 	GTKPlotter plotter( argc, argv );
 	plotter.set_geometry( &geom );
 	plotter.set_epot( &epot );
+	plotter.set_trajdens( &tdens );
 	plotter.set_scharge( &scharge );
 	plotter.set_particledatabase( &pdb );
 	plotter.new_geometry_plot_window();

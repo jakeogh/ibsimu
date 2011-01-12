@@ -2,7 +2,7 @@
  *  \brief Source code for colormap.cpp
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -195,11 +195,22 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 	throw( Error( ERROR_LOCATION, "No data available" ) );
 
     // Go through pixel limits
-    //std::cout << "zmin = " << _zmin << "\n";
-    //std::cout << "zmax = " << _zmax << "\n";
-    if( _zscale == ZSCALE_LOG && _zmin <= 0.0 )
-	throw( Error( ERROR_LOCATION, "zmin less not positive on log scale" ) );
+    // Error if either end is at zero with LOG scaling
+    if( _zscale == ZSCALE_LOG && _zmin <= 0.0 && _zmax >= 0.0 )
+	throw( Error( ERROR_LOCATION, "zmin and zmax on different sides of zero" ) );
 
+    int sign;
+    if( _zmax <= 0.0 ) {
+	// Completely on negative side
+	sign = -1;
+    } else if( _zmin >= 0.0 ) {
+	// Completely on positive side
+	sign = +1;
+    } else {
+	// Both negative and positive
+	sign = 0;
+    }
+	
     for( int i = plim[0]; i <= plim[2]; i++ ) {
 	for( int j = plim[1]; j <= plim[3]; j++ ) {
 
@@ -209,14 +220,30 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 
 	    double val = get_value( x[0], x[1] );
 
-	    // Scale value
+	    // Scale value to [0:1] maintaining monotonic rising property
 	    if( _zscale == ZSCALE_LINEAR )
 		val = (val-_zmin)/(_zmax-_zmin);
 	    else if( _zscale == ZSCALE_LOG ) {
-		val = (log(val)-log(_zmin)) / (log(_zmax)-log(_zmin));
+		if( sign > 0 )
+		    val = (log(val)-log(_zmin)) / (log(_zmax)-log(_zmin));
+		else
+		    val = (log(-val)-log(-_zmin)) / (log(-_zmax)-log(-_zmin));
 	    } else if( _zscale == ZSCALE_RELLOG ) {
-		val = (val-_zmin)/(_zmax-_zmin);
-		val = (log(0.001+val) - log(0.001)) / (log(1.001) - log(0.001));
+		if( sign > 0 ) {
+		    val = (val-_zmin)/(_zmax-_zmin);
+		    val = (log(0.001+val) - log(0.001)) / (log(1.001) - log(0.001));
+		} else if( sign < 0 ) {
+		    val = (val-_zmax)/(_zmin-_zmax);
+		    val = 1.0+(log(0.001) - log(0.001+val)) / (log(1.001) - log(0.001));
+		} else {
+		    if( val > 0.0 ) {
+			val = (val-0.0)/(_zmax-0.0);
+			val = 0.5+0.5*(log(0.001+val) - log(0.001)) / (log(1.001) - log(0.001));
+		    } else {
+			val = (val-0.0)/(_zmin-0.0);
+			val = 0.5+0.5*(log(0.001) - log(0.001+val)) / (log(1.001) - log(0.001));
+		    }
+		}
 	    }
 	    Color c;
 	    if( comp_isinf( val ) || comp_isnan( val ) )
@@ -226,7 +253,7 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 	    buf[j*stride+4*i+0] = (unsigned char)(255*c[2]);  // Blue
 	    buf[j*stride+4*i+1] = (unsigned char)(255*c[1]);  // Green
 	    buf[j*stride+4*i+2] = (unsigned char)(255*c[0]);  // Red
-	    buf[j*stride+4*i+3] = (unsigned char)255;       // Alpha
+	    buf[j*stride+4*i+3] = (unsigned char)255;         // Alpha
 	}
     }
 }

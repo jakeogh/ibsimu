@@ -49,7 +49,7 @@ GeomPlot::GeomPlot( Frame *frame, const Geometry *geom )
       _solidgraph(NULL), _fieldgraph(NULL), _eqpotgraph(NULL), _particlegraph(NULL),
       _meshgraph(NULL), _view(VIEW_XY), _level(0),
       _eqlines_auto(20), _particle_div(10), _scharge_field(false), _qm_discretation(true), 
-      _mesh(false), _cache(true)
+      _mesh(false), _fieldplot_sel(FIELD_NONE), _fieldplot_logscale(false), _cache(true)
 {
     if( _geom == NULL )
 	throw( Error( ERROR_LOCATION, "geometry undefined" ) );
@@ -185,14 +185,23 @@ void GeomPlot::set_fieldgraph_plot( field_type_e fieldplot )
 	throw( ErrorUnimplemented( ERROR_LOCATION, "Unimplemented field plottingd" ) );
 	break;
     }
-    
+
     if( _fieldgraph ) {
 	_fieldgraph->set_view( _view, _level );
+	_fieldgraph->set_logscale( _fieldplot_logscale );
     }
 
     reset_graphs();
 }
 
+
+void GeomPlot::set_fieldgraph_logscale( bool enable )
+{
+    _fieldplot_logscale = enable;
+    if( _fieldgraph ) {
+	_fieldgraph->set_logscale( _fieldplot_logscale );
+    }
+}
 
 
 void GeomPlot::set_particledatabase( const ParticleDataBase *pdb ) 

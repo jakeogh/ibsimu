@@ -95,6 +95,7 @@ class GeomPlot {
     bool                    _mesh;
 
     field_type_e            _fieldplot_sel; /*!< \brief Selector for fieldgraph */
+    bool                    _fieldplot_logscale;
 
     bool                    _cache;
 
@@ -173,6 +174,16 @@ public:
      */
     field_type_e get_fieldgraph_plot( void ) {
 	return( _fieldplot_sel );
+    }
+
+    /*! \brief Set field graph logscale setting.
+     */
+    void set_fieldgraph_logscale( bool enable );
+
+    /*! \brief Get field graph loscale setting
+     */
+    bool get_fieldgraph_logscale( void ) {
+	return( _fieldplot_logscale );
     }
 
     void set_particle_database( const ParticleDataBase *pdb ) {
