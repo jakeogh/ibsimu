@@ -1,6 +1,16 @@
 		NEWS
 		====
 
+IBSimu 1.0.4dev                     				
+---------------------------------------------------------------------------
+
+- Trajectories at freely defined plane diagnostic feature
+- Fixed bugs: errnous kinetic energy diagnostic, polynomial coldata 
+  infinite loop
+- Debug printing to have stream reference for output
+- Trajectory density plot
+- Interactive plotter for selectable field plots
+
 IBSimu 1.0.4                     				28 Dec 2010
 ---------------------------------------------------------------------------
 
