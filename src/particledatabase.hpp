@@ -208,20 +208,29 @@ public:
 
     /*! \brief Set particle mirroring on boundaries.
      *
-     *  Mirroring is set for (xmin,xmax,ymin,ymax,zmin,zmax) borders.
+     *  Mirroring is set for (xmin,xmax,ymin,ymax,zmin,zmax)
+     *  borders. Mirroring is always false for directions that do not
+     *  exist.
      */
     void set_mirror( const bool mirror[6] ) {
 	_mirror[0] = mirror[0];
 	_mirror[1] = mirror[1];
 	_mirror[2] = mirror[2];
 	_mirror[3] = mirror[3];
-	_mirror[4] = mirror[4];
-	_mirror[5] = mirror[5];
+	if( geom_mode() == MODE_3D ) {
+	    _mirror[4] = mirror[4];
+	    _mirror[5] = mirror[5];
+	} else {
+	    _mirror[4] = false;
+	    _mirror[5] = false;
+	}
     }
 
     /*! \brief Get particle mirroring on boundaries.
      *
-     *  Mirroring is read for (xmin,xmax,ymin,ymax,zmin,zmax) borders.
+     *  Mirroring is read for (xmin,xmax,ymin,ymax,zmin,zmax)
+     *  borders. Mirroring is always false for directions that do not
+     *  exist.
      */
     void get_mirror( bool mirror[6] ) const {
 	mirror[0] = _mirror[0];
@@ -256,6 +265,10 @@ public:
 /* ************************************** *
  * Information and queries                *
  * ************************************** */
+
+    /*! \brief Return geometry mode.
+     */
+    virtual geom_mode_e geom_mode() const = 0;
 
     /*! \brief Returns particle count.
      */
@@ -434,6 +447,10 @@ public:
 /* ************************************** *
  * Information and queries                *
  * ************************************** */
+
+    /*! \brief Return geometry mode.
+     */
+    virtual geom_mode_e geom_mode() const { return( PP::geom_mode() ); }
 
     /*! \brief Returns particle count.
      */

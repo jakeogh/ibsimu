@@ -21,6 +21,8 @@ compmath.cpp \
 compmath.hpp \
 config.h \
 config.hpp \
+convergence.cpp \
+convergence.hpp \
 coordmapper.hpp \
 coordmatrix.cpp \
 coordmatrix.hpp \
@@ -191,6 +193,7 @@ colormap.hpp \
 config.h \
 coordmapper.hpp \
 coordmatrix.hpp \
+convergence.hpp \
 crowmatrix.hpp \
 diag_precond.hpp \
 dxf_solid.hpp \

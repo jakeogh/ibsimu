@@ -2,7 +2,7 @@
  *  \brief Trajectory diagnostics
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -276,39 +276,39 @@ public:
 
     /*! \brief Return average position (center location) of emittance distribution.
      */
-    double xave( void ) { return( _xave ); }
+    double xave( void ) const { return( _xave ); }
 
     /*! \brief Return average angle (center location) of emittance distribution.
      */
-    double xpave( void ) { return( _xpave ); }
+    double xpave( void ) const { return( _xpave ); }
 
     /*! \brief Return \f$\alpha\f$ of emittance distribution.
      */
-    double alpha( void ) { return( _alpha ); }
+    double alpha( void ) const { return( _alpha ); }
 
     /*! \brief Return \f$\beta\f$ of emittance distribution.
      */
-    double beta( void ) { return( _beta ); }
+    double beta( void ) const { return( _beta ); }
 
     /*! \brief Return \f$\gamma\f$ of emittance distribution.
      */
-    double gamma( void ) { return( _gamma ); }
+    double gamma( void ) const { return( _gamma ); }
 
     /*! \brief Return rms emittance.
      */
-    double epsilon( void ) { return( _epsilon ); }
+    double epsilon( void ) const { return( _epsilon ); }
 
     /*! \brief Return angle of fitted rms ellipse.
      */
-    double angle( void ) { return( _angle ); }
+    double angle( void ) const { return( _angle ); }
 
     /*! \brief Return major radius of fitted rms ellipse.
      */
-    double rmajor( void ) { return( _rmajor ); }
+    double rmajor( void ) const { return( _rmajor ); }
 
     /*! \brief Return minor radius of fitted rms ellipse.
      */
-    double rminor( void ) { return( _rminor ); } 
+    double rminor( void ) const { return( _rminor ); } 
 };
 
 

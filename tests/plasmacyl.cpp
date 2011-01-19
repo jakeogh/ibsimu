@@ -13,6 +13,7 @@
 #include "epot_problem.hpp"
 #include "particledatabase.hpp"
 #include "geometry.hpp"
+#include "convergence.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
 #include "vectorfield.hpp"
@@ -67,6 +68,7 @@ void test( int *argc, char ***argv )
 
     ScalarField epot( geom );
     ScalarField scharge( geom );
+    ScalarField scharge_ave( geom );
 
     BiCGSTABSolver solver;
     p.set_solver( solver );
@@ -83,7 +85,12 @@ void test( int *argc, char ***argv )
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
 
-    for( size_t i = 0; i < 3; i++ ) {
+    Convergence conv;
+    conv.add_epot( epot, 1, 1, 1.0e-6 );
+    conv.add_scharge( scharge_ave, 1, 1, 1.0e-6 );
+    conv.add_tdiag( pdb, AXIS_X, 11.9e-3, 1, 1, 1.0e-6 );
+
+    for( size_t i = 0; i < 5; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
@@ -91,7 +98,7 @@ void test( int *argc, char ***argv )
 	    p.construct( geom );
 	}
 
-	p.solve( epot, scharge );
+	p.solve( epot, scharge_ave );
 
 	pdb.clear();
 	pdb.add_2d_beam_with_energy( 5000, 600.0, 1.0, 1.0, 
@@ -99,6 +106,17 @@ void test( int *argc, char ***argv )
 				     0.0, 0.0, 
 				     0.0, 0.0015 );
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
+
+	if( i == 0 ) {
+            scharge_ave = scharge;
+        } else {
+            double coef = 0.3;
+            scharge *= coef;
+            scharge_ave += scharge;
+            scharge_ave *= (1.0/(1.0+coef));
+        }
+
+	conv.evaluate_iteration();
 
 	/*
 	ScalarField tdens( geom );
@@ -113,6 +131,10 @@ void test( int *argc, char ***argv )
 	plotter.run();
 	*/
     }
+
+    ofstream ofconv( "plasmacyl_conv.dat" );
+    conv.print_history( ofconv );
+    ofconv.close();
 
     ScalarField tdens( geom );
     pdb.build_trajectory_density_field( tdens );
