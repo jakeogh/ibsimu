@@ -70,6 +70,11 @@ enum particle_iterator_type_e {
 };
 
 
+enum plasma_threshold_type_e {
+    
+};
+
+
 /*! \brief %Mesh intersection (collision) coordinate data
  *
  * Contains one coordinate data and the direction of particle for one
@@ -855,9 +860,10 @@ public:
 		      bool polyint, uint32_t maxsteps, double maxt, 
 		      uint32_t trajdiv, bool mirror[6], ScalarField *scharge, 
 		      const Efield *efield, const VectorField *bfield, 
-		      const Geometry *g, Particle<PP> *first )
+		      const Geometry *g, Particle<PP> *first, 
+		      const CallbackFunctorD_V *bfield_suppression )
 	: _type(type), _polyint(polyint), _epsabs(epsabs), _epsrel(epsrel), _maxsteps(maxsteps), _maxt(maxt), 
-	  _trajdiv(trajdiv), _first(first), _pidata(scharge,efield,bfield,g), _end_time(0), 
+	  _trajdiv(trajdiv), _first(first), _pidata(scharge,efield,bfield,g,bfield_suppression), _end_time(0), 
 	  _end_step(0), _end_out(0), _end_coll(0), _end_baddef(0), _sum_steps(0) {
 
 	// Initialize mirroring
@@ -900,14 +906,6 @@ public:
 	gsl_odeiv_evolve_free( _evolve );
 	gsl_odeiv_control_free( _control );
 	gsl_odeiv_step_free( _step );
-    }
-
-
-    /*! \brief Enable plasma threshold model for NSIMP plasma model.
-     */
-    void enable_nsimp_plasma_threshold( const ScalarField *epot, double phi_plasma ) {
-	_pidata._epot = epot;
-	_pidata._phi_plasma = phi_plasma;
     }
 
 

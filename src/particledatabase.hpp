@@ -47,11 +47,79 @@
 #include <vector>
 #include "timer.hpp"
 #include "ibsimu.hpp"
+#include "callback.hpp"
 #include "trajectory.hpp"
 #include "particles.hpp"
 #include "particleiterator.hpp"
 #include "trajectorydiagnostics.hpp"
 
+
+/*! \brief Magnetic field plasma suppression for positive ion extraction.
+ *
+ *  Defines a magnetic field suppression, which is dependent on
+ *  electric potential. If the electric potential at the location \a x
+ *  is \b larger than the defined potential limit, the magnetic field
+ *  will be suppressed to zero. Otherwise, no magnetic field
+ *  suppression will be made. This produces a hard boundary for the
+ *  magnetic field suppression.
+ */
+class PPlasmaBfieldSuppression : public CallbackFunctorD_V {
+
+    double             _phi;    /*!< \brief Limit for potential. */
+    const ScalarField &_epot;   /*!< \brief Electric potential field. */
+    
+public:
+
+    /*! \brief Constructor setting electric potential field and potential limit.
+     */
+    PPlasmaBfieldSuppression( const ScalarField &epot, double phi ) : _epot(epot) {}
+
+    /*! \brief Destructor.
+     */
+    ~PPlasmaBfieldSuppression() {}
+
+    /*! \brief Suppression function.
+     */
+    virtual double operator()( const Vec3D &x ) const {
+	if( _epot( x ) > _phi )
+	    return( 0.0 );
+	return( 1.0 );
+    }
+};
+
+
+/*! \brief Magnetic field plasma suppression for negative ion extraction.
+ *
+ *  Defines a magnetic field suppression, which is dependent on
+ *  electric potential. If the electric potential at the location \a x
+ *  is \b smaller than the defined potential limit, the magnetic field
+ *  will be suppressed to zero. Otherwise, no magnetic field
+ *  suppression will be made. This produces a hard boundary for the
+ *  magnetic field suppression.
+ */
+class NPlasmaBfieldSuppression : public CallbackFunctorD_V {
+
+    double             _phi;    /*!< \brief Limit for potential. */
+    const ScalarField &_epot;   /*!< \brief Electric potential field. */
+    
+public:
+
+    /*! \brief Constructor setting electric potential field and potential limit.
+     */
+    NPlasmaBfieldSuppression( const ScalarField &epot, double phi ) : _epot(epot) {}
+
+    /*! \brief Destructor.
+     */
+    ~NPlasmaBfieldSuppression() {}
+
+    /*! \brief Suppression function.
+     */
+    virtual double operator()( const Vec3D &x ) const {
+	if( _epot( x ) < _phi )
+	    return( 0.0 );
+	return( 1.0 );
+    }
+};
 
 
 /* ******************************************************************************************* *
@@ -91,19 +159,15 @@ protected:
     uint32_t       _sum_steps;   /*!< \brief Total number of steps taken. */
 
     int            _iteration;   /*!< \brief Iteration number. */
-
-    bool           _nsimp;       /*!< \brief Plasma threshold for negative simple 
-				  *   extraction model. */
-    const ScalarField *_epot;    /*!< \brief Scalarfield for plasma threshold. */
-    double         _phi_plasma;  /*!< \brief Potential limit for plasma threshold. */
+    
+    const CallbackFunctorD_V *_bfield_suppression; /*!< \brief Location dependent magnetic field suppression. */
 
     /*! \brief Constructor.
      */
     ParticleDataBase()
 	: _epsabs(1e-6), _epsrel(1e-6), _polyint(true), _maxsteps(1000), 
 	  _maxt(1e-3), _trajdiv(1), _rhosum(0.0), _end_time(0), _end_step(0), _end_out(0), 
-	  _end_coll(0), _end_baddef(0), _sum_steps(0), _iteration(-1), _nsimp(false), 
-	  _epot(NULL), _phi_plasma(0.0) {
+	  _end_coll(0), _end_baddef(0), _sum_steps(0), _iteration(-1), _bfield_suppression(NULL) {
 	_mirror[0] = false;
 	_mirror[1] = false;
 	_mirror[2] = false;
@@ -143,10 +207,17 @@ public:
 	_epsrel = epsrel;
     }
 
-    void enable_nsimp_plasma_threshold( const ScalarField *epot, double phi_plasma ) {
-	_nsimp = true;
-	_epot = epot;
-	_phi_plasma = phi_plasma;
+    /*! \brief Set magnetic field suppression location depedent
+     *  callback functor.
+     *
+     *  Can be used to suppress the magnetic field effect on particles
+     *  inside the plasma by making an object with a pointer to
+     *  electric potential. Comparing to local potential value the
+     *  magnetic field suppression can be localized to a volume with
+     *  selected potential range.
+     */
+    void set_bfield_suppression( const CallbackFunctorD_V *functor ) {
+	_bfield_suppression = functor;
     }
 
     /*! \brief Set the interpolation type to polynomial(true) or linear(false).
@@ -679,9 +750,7 @@ public:
 	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
 							   _polyint, _maxsteps, _maxt, _trajdiv, 
 							   _mirror, schmap[a], &efield, &bfield, 
-							   &g, &_particles[0] ) );
-	    if( _nsimp )
-		iterators[a]->enable_nsimp_plasma_threshold( _epot, _phi_plasma );
+							   &g, &_particles[0], _bfield_suppression ) );
 	}
 
 	// Make Scheduler

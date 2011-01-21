@@ -12,6 +12,7 @@ bicgstab.cpp \
 bicgstab.hpp \
 bicgstab_solver.cpp \
 bicgstab_solver.hpp \
+callback.hpp \
 ccolmatrix.cpp \
 ccolmatrix.hpp \
 color.hpp \
@@ -187,6 +188,7 @@ libibsimu_la_includedir=$(includedir)/ibsimu
 libibsimu_la_include_HEADERS = \
 bicgstab.hpp \
 bicgstab_solver.hpp \
+callback.hpp \
 ccolmatrix.hpp \
 color.hpp \
 colormap.hpp \

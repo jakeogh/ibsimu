@@ -19,6 +19,10 @@ ParticleDataBase::set_thread_count() is deprecated by introducing
 global setting for thread count in IBSimu class. The set_thread_count
 function still remains for compatibility reasons but has no effect.
 
+Plasma suppression for magnetic fields enabled with particle database
+member enable_nsimp_plasma_threshold() is replaced with new
+set_bfield_suppression() using callback functors.
+
 IBSimu 1.0.4							
 ---------------------------------------------------------------------------
 

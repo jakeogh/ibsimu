@@ -1,8 +1,8 @@
 /*! \file particles.cpp
- *  \brief Particle and particle point objects
+ *  \brief %Particle and particle point objects
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -220,15 +220,12 @@ int ParticleP3D::get_derivatives( double t, const double *x, double *dxdt, void 
 
     if( pi->_efield )
 	E = (*pi->_efield)( xc );
-    if( pi->_bfield )
+    if( pi->_bfield ) {
 	B = (*pi->_bfield)( xc );
-    if( pi->_epot ) {
-	double phi = (*pi->_epot)( xc );
-#ifdef DEBUG_PARTICLE_DERIVATIVES
-	std::cout << "  phi  = " << phi << "\n";
-#endif
-	if( phi < pi->_phi_plasma )
-	    B = 0.0;
+	if( pi->_bfield_suppression ) {
+	    double factor = (*pi->_bfield_suppression)( xc );
+	    B *= factor;
+	}
     }
 
 #ifdef DEBUG_PARTICLE_DERIVATIVES
