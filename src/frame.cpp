@@ -652,6 +652,8 @@ void Frame::draw( cairo_t *cairo )
 {
 #ifdef FRAME_DEBUG
     std::cout << "\nFRAME::DRAW()\n\n";
+    std::cout << "width = " << _width << "\n";
+    std::cout << "height = " << _height << "\n";
 #endif
 
     // Draw background

@@ -188,4 +188,144 @@ void SignalHandler::signal_handler_SIGSEGV( int signum, siginfo_t *info, void *p
 #endif
 
 
+ErrorLocation::ErrorLocation()
+  : _file(NULL), _line(0), _func(NULL) 
+{
 
+}
+
+
+ErrorLocation::ErrorLocation( const char *file, int line, const char *func )
+    : _file(file), _line(line), _func(func) 
+{
+
+}
+
+
+std::string ErrorLocation::file( void ) 
+{
+    return( _file );
+}
+
+
+int ErrorLocation::line( void )
+{
+    return( _line );
+}
+
+
+std::string ErrorLocation::func( void ) 
+{
+    return( _func );
+}
+
+
+Error::Error() 
+{
+
+}
+
+
+Error::Error( const std::string &str ) 
+    : _error_str(str) 
+{
+
+}
+
+
+Error::Error( const ErrorLocation &loc ) 
+    : _loc(loc) 
+{
+
+}
+
+
+Error::Error( const ErrorLocation &loc, const std::string &str ) 
+    : _loc(loc), _error_str(str) 
+{
+
+}
+
+
+void Error::print_error_message( std::ostream &os, bool traceprint )
+{
+    os << "Error in " << _loc.file() << ":" << _loc.line() 
+       << " in " << _loc.func() << "(): " << _error_str << "\n";
+    if( traceprint )
+	print_trace( os );
+}
+
+
+
+std::string Error::get_error_message( void )
+{
+    return( _error_str );
+}   
+
+ErrorNoMem::ErrorNoMem( const ErrorLocation &loc )
+  : Error( loc, "memory allocation error" ) 
+{
+
+}
+
+
+ErrorUnimplemented::ErrorUnimplemented( const ErrorLocation &loc )
+  : Error( loc, "feature unimplemented" ) 
+{
+
+}
+
+
+ErrorUnimplemented::ErrorUnimplemented( const ErrorLocation &loc, const std::string &str ) 
+    : Error( loc, str ) 
+{
+
+}
+
+
+ErrorDim::ErrorDim( const ErrorLocation &loc )
+    : Error( loc, "dimension mismatch" ) 
+{
+
+}
+
+
+ErrorDim::ErrorDim( const ErrorLocation &loc, const std::string &str )
+    : Error( loc, str ) 
+{
+
+}
+
+
+ErrorErrno::ErrorErrno( const ErrorLocation &loc )
+    : Error(loc), _ierrno(errno) 
+{
+#if defined(WIN32) || defined(__MINGW32__)
+    _error_str = "errno " + to_string(_ierrno);
+#else
+    char buf[1024];
+    strerror_r( _ierrno, buf, 1024 );
+    _error_str = buf;
+#endif
+}
+
+
+ErrorRange::ErrorRange( const ErrorLocation &loc, 
+			uint32_t i, uint32_t n, 
+			uint32_t j, uint32_t m ) 
+    : Error(loc)
+{
+    std::ostringstream ss;
+    ss << "index out of range ( " << i << " >= " << n << " || ";
+    ss << j << " >= " << m << " )";
+    _error_str = ss.str();
+}
+
+
+ErrorRange::ErrorRange( const ErrorLocation &loc, uint32_t i, uint32_t n ) 
+    : Error(loc)
+{
+    std::ostringstream ss;
+    ss << "index out of range ( " << i << " >= " << n << " )";
+    _error_str = ss.str();
+}

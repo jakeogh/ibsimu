@@ -23,6 +23,9 @@ Plasma suppression for magnetic fields enabled with particle database
 member enable_nsimp_plasma_threshold() is replaced with new
 set_bfield_suppression() using callback functors.
 
+Error reporting classes are privatized. Printing now done with
+print_error_message()
+
 IBSimu 1.0.4							
 ---------------------------------------------------------------------------
 

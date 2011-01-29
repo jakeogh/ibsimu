@@ -586,8 +586,7 @@ void GTKFieldDiagDialog::run( void )
 	    _plotter->new_field_plot_window( N, x1, x2, diag, loc );
 	} catch( Error e ) {
 	    //GTKErrorDialog error( _window, e );
-	    std::cout << "Error in " << e._loc._file << ":" << e._loc._line 
-		      << " in " << e._loc._func << "(): " << e._error_str << "\n";
+	    e.print_error_message( std::cout );
 	    std::cout << "Trying to continue\n";
 	}
     }

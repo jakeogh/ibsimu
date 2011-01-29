@@ -56,6 +56,8 @@
 #include <signal.h>
 
 
+/*! \brief Function for converting a type to string.
+ */
 template <class T>
 inline std::string to_string( const T& t )
 {
@@ -77,14 +79,37 @@ inline std::string to_string( const T& t )
  *  purposes. Macro ERROR_LOCATION is defined for convenient use of
  *  class.
  */
-struct ErrorLocation {
-    ErrorLocation() 
-	: _file(NULL), _line(0), _func(NULL) {}
-    ErrorLocation( const char *file, int line, const char *func )
-	: _file(file), _line(line), _func(func) {}
+class ErrorLocation {
+
     const char *_file;
     int         _line;
     const char *_func;
+
+public:
+
+    /*! \brief Default constructor for error location.
+     *
+     *  Stores a null location.
+     */
+    ErrorLocation();
+
+    /*! \brief Constructor for setting error location.
+     *
+     *  This constructor is conveniently called with ERROR_LOCATION macro.
+     */
+    ErrorLocation( const char *file, int line, const char *func );
+
+    /*! \brief Return file name of location.
+     */
+    std::string file( void );
+
+    /*! \brief Return line number of location.
+     */
+    int line( void );
+
+    /*! \brief Return function name of location.
+     */
+    std::string func( void );
 };
 
 
@@ -93,97 +118,165 @@ struct ErrorLocation {
  *  Saves the backtrace when constructed. Uses GNU extensions and
  *  therefore only works when compiled with GNU system.
  */
-struct ExceptionTracer {
+class ExceptionTracer {
+
     void  *_traceaddress[25];
     int    _tracecount;
 
+public:
+
+    /*! \brief Default constructor for exception tracer. Saves the
+     *  backtrace of the program at this location for printing it when
+     *  the error is caught.
+     */
     ExceptionTracer();
+
+    /*! \brief Print the backtrace to \a os.
+     */
     void print_trace( std::ostream &os );
 };
 
 
 /*! \brief Basic error class.
  */
-struct Error : public ExceptionTracer {
+class Error : public ExceptionTracer {
+
     ErrorLocation  _loc;
+
+protected:
+    
     std::string    _error_str;
-    Error() {}
-    Error( const std::string &str ) 
-	: _error_str(str) {}
-    Error( ErrorLocation loc, const std::string &str ) 
-	: _loc(loc), _error_str(str) {}
+
+public:
+
+    /*! \brief Default constructor for error class.
+     */
+    Error();
+
+    /*! \brief Constructor for error class with error message.
+     */
+    Error( const std::string &str );
+
+    /*! \brief Constructor for error class with location information.
+     */
+    Error( const ErrorLocation &loc );
+
+    /*! \brief Constructor for error class with location information
+     *  and error message.
+     */
+    Error( const ErrorLocation &loc, const std::string &str );
+
+    /*! \brief Return error message.
+     */
+    std::string get_error_message( void );
+
+    /*! \brief Print a standard error message to \a os.
+     *
+     *  Print error message string and the error location is source
+     *  code. Also prints the exception back trace if \a print_trace
+     *  is true.
+     */
+    void print_error_message( std::ostream &os, bool traceprint = true );
 };
 
 
 /*! \brief %Error class for memory allocation errors.
  */
-struct ErrorNoMem : public Error {
-    ErrorNoMem( ErrorLocation loc ) 
-	: Error( loc, "memory allocation error" ) {}
+class ErrorNoMem : public Error {
+
+public:
+
+    /*! \brief Constructor for memory allocation error with standard error message.
+     *
+     *  The error message is "memory allocation error".
+     */
+    ErrorNoMem( const ErrorLocation &loc );
 };
 
 
 /*! \brief %Error class for C-style errno errors.
  */
-struct ErrorErrno : public Error {
+class ErrorErrno : public Error {
+
     int _ierrno;
-    ErrorErrno( ErrorLocation loc ) : _ierrno(errno) {
-	_loc = loc;
-#if defined(WIN32) || defined(__MINGW32__)
-	_error_str = "errno " + to_string(_ierrno);
-#else
-	char buf[1024];
-	strerror_r( _ierrno, buf, 1024 );
-	_error_str = buf;
-#endif
-    }
+
+public:
+
+    /*! \brief Constructor for errno based error with standard error
+     *  message from errno database.
+     */
+    ErrorErrno( const ErrorLocation &loc );
 };
 
 
 /*! \brief %Error class to use if requested feature is unimplemented.
  */
-struct ErrorUnimplemented : public Error {
-    ErrorUnimplemented( ErrorLocation loc ) 
-	: Error( loc, "feature unimplemented" ) {}
-    ErrorUnimplemented( ErrorLocation loc, const std::string &str ) 
-	: Error( loc, str ) {}
+class ErrorUnimplemented : public Error {
+
+public:
+
+   /*! \brief Constructor for unimplemented feature error with standard error message.
+     *
+     *  The error message is "feature unimplemented".
+     */
+    ErrorUnimplemented( const ErrorLocation &loc );
+
+    /*! \brief Constructor for unimplemented feature error with custom error message.
+     */
+    ErrorUnimplemented( const ErrorLocation &loc, const std::string &str );
 };
 
 
 /*! \brief %Error class for dimension mismatch errors.
  */
-struct ErrorDim : public Error {
-    ErrorDim( ErrorLocation loc )
-	: Error( loc, "dimension mismatch" ) {}
-    ErrorDim( ErrorLocation loc, const std::string &str )
-	: Error( loc, str ) {}
+class ErrorDim : public Error {
+
+public:
+
+    /*! \brief Constructor for dimension mismatch error with standard error message.
+     *
+     *  The error message is "dimension mismatch".
+     */
+    ErrorDim( const ErrorLocation &loc );
+
+    /*! \brief Constructor for dimension mismatch error with custom error message.
+     */
+    ErrorDim( const ErrorLocation &loc, const std::string &str );
 };
 
 
 /*! \brief %Error class for index range checking errors.
  */
-struct ErrorRange : public Error {
-    ErrorRange( ErrorLocation loc, uint32_t i, uint32_t n, uint32_t j, uint32_t m ) {
-	std::ostringstream ss;
-	ss << "index out of range ( " << i << " >= " << n << " || ";
-	ss << j << " >= " << m << " )";
-	_error_str = ss.str();
-	_loc = loc;
-    }
-    ErrorRange( ErrorLocation loc, uint32_t i, uint32_t n ) {
-	std::ostringstream ss;
-	ss << "index out of range ( " << i << " >= " << n << " )";
-	_error_str = ss.str();
-	_loc = loc;
-    }
+class ErrorRange : public Error {
+
+public:
+
+    /*! \brief Constructor for error message for two dimensional indexing error.
+     *
+     *  The index \a i is supposed to be smaller than \a n and \j
+     *  smaller than \a m.
+     */
+    ErrorRange( const ErrorLocation &loc, 
+		uint32_t i, uint32_t n, 
+		uint32_t j, uint32_t m );
+
+    /*! \brief Constructor for error message for one dimensional indexing error.
+     *
+     *  The index \a i is supposed to be smaller than \a n.
+     */
+    ErrorRange( const ErrorLocation &loc, uint32_t i, uint32_t n );
 };
 
 
 /*! \brief Signal handler
  */
-struct SignalHandler {
+class SignalHandler {
+
+public:
 
 #ifdef _GNU_SOURCE
+    /*! \brief Signal handler function for SIGSEGV.
+     */
     static void signal_handler_SIGSEGV( int signum, siginfo_t *info, void *ptr );
 #endif
 };
