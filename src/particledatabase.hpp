@@ -72,7 +72,8 @@ public:
 
     /*! \brief Constructor setting electric potential field and potential limit.
      */
-    PPlasmaBfieldSuppression( const ScalarField &epot, double phi ) : _epot(epot) {}
+    PPlasmaBfieldSuppression( const ScalarField &epot, double phi ) 
+	: _phi(phi), _epot(epot) {}
 
     /*! \brief Destructor.
      */
@@ -106,7 +107,8 @@ public:
 
     /*! \brief Constructor setting electric potential field and potential limit.
      */
-    NPlasmaBfieldSuppression( const ScalarField &epot, double phi ) : _epot(epot) {}
+    NPlasmaBfieldSuppression( const ScalarField &epot, double phi ) 
+	: _phi(phi), _epot(epot) {}
 
     /*! \brief Destructor.
      */

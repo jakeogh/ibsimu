@@ -90,7 +90,7 @@ void test( int *argc, char ***argv )
     conv.add_scharge( scharge_ave, 1, 1, 1.0e-6 );
     conv.add_tdiag( pdb, AXIS_X, 11.9e-3, 1, 1, 1.0e-6 );
 
-    for( size_t i = 0; i < 5; i++ ) {
+    for( size_t i = 0; i < 100; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
