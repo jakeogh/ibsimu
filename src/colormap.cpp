@@ -46,6 +46,9 @@
 #include "colormap.hpp"
 
 
+#define DEBUG_COLORMAP 1
+
+
 Colormap::Colormap()
     : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), _n(0), _m(0), _intrp(NULL)
 {
@@ -124,11 +127,15 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 	plim[2] = width-1;
     if( plim[3] >= height )
 	plim[3] = height-1;
-    if( plim[0] > plim[2] || plim[1] > plim[3] )
-	throw( Error( ERROR_LOCATION, "incorrect pixel limits" ) );	
+    if( plim[0] >= plim[2] || plim[1] >= plim[3] )
+	throw( Error( ERROR_LOCATION, (std::string)"incorrect pixel limits: " + 
+		      "plim[0] = " + to_string(plim[0]) + 
+		      ", plim[1] = " + to_string(plim[1]) +
+		      ", plim[2] = " + to_string(plim[2]) + 
+		      ", plim[3] = " + to_string(plim[3]) ) );
 
     if( !_intrp )
-	throw( Error( ERROR_LOCATION, "No data available" ) );
+	throw( Error( ERROR_LOCATION, "no data available" ) );
 
     // Go through pixel limits
     // Error if either end is at zero with LOG scaling
@@ -203,6 +210,17 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 
 void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
+#ifdef DEBUG_COLORMAP
+    std::cout << "datarange[0] = " << _datarange[0] << "\n"
+	      << "datarange[1] = " << _datarange[1] << "\n"
+	      << "datarange[2] = " << _datarange[2] << "\n"
+	      << "datarange[3] = " << _datarange[3] << "\n\n";
+    std::cout << "range[0] = " << range[0] << "\n"
+	      << "range[1] = " << range[1] << "\n"
+	      << "range[2] = " << range[2] << "\n"
+	      << "range[3] = " << range[3] << "\n\n";
+#endif
+
     // Range of plot limited by current plot range and data range -> final range
     double frange[4];
     if( _datarange[0] < range[0] )
@@ -235,6 +253,28 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 		    (int)floor(prange[3]+0.5),
 		    (int)floor(prange[2]+0.5),
 		    (int)floor(prange[1]+0.5) };
+
+    if( plim[2] <= plim[0] || plim[3] <= plim[1] ) {
+	// If drawing area inverted, do nothing
+	return;
+    }
+
+#ifdef DEBUG_COLORMAP
+    cm->debug_print( std::cout );
+    std::cout << "\n";
+    std::cout << "frange[0] = " << frange[0] << "\n"
+	      << "frange[1] = " << frange[1] << "\n"
+	      << "frange[2] = " << frange[2] << "\n"
+	      << "frange[3] = " << frange[3] << "\n\n";
+    std::cout << "prange[0] = " << prange[0] << "\n"
+	      << "prange[1] = " << prange[1] << "\n"
+	      << "prange[2] = " << prange[2] << "\n"
+	      << "prange[3] = " << prange[3] << "\n\n";
+    std::cout << "plim[0] = " << plim[0] << "\n"
+	      << "plim[1] = " << plim[1] << "\n"
+	      << "plim[2] = " << plim[2] << "\n"
+	      << "plim[3] = " << plim[3] << "\n\n";
+#endif
 
     // Prepare by fetching surface and its parameters
     cairo_surface_t *surface = cairo_get_target( cairo );

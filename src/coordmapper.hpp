@@ -174,6 +174,15 @@ public:
 	_cmy.inv_transform( xout[1], xin[1] );
     }
 
+
+    /*! \brief Debug print to stream.
+     */ 
+    void debug_print( std::ostream &os ) const {
+	os << "**Coordmapper x:\n";
+	_cmx.debug_print( os );
+	os << "**Coordmapper y:\n";
+	_cmy.debug_print( os );
+    }
 };
 
 
