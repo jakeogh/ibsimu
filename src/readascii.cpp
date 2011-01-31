@@ -1,0 +1,172 @@
+#include <iostream>
+#include <fstream>
+#include "readascii.hpp"
+#include "error.hpp"
+
+
+ReadAscii::ReadAscii()
+    : _N(0), _data(NULL)
+{
+}
+
+
+ReadAscii::ReadAscii( const std::string &filename, int columns )
+    : _N(0), _data(NULL)
+{
+    read( filename, columns );
+}
+
+
+ReadAscii::~ReadAscii()
+{
+    clear();
+}
+
+
+
+void ReadAscii::read_data_line( const std::string &str, int linec )
+{
+    // Parse line
+    const char *ptr = str.c_str();
+	    
+    // Skip leading white space
+    while( isspace(*ptr) ) ptr++;
+
+    // Check if comment
+    if( *ptr == '#' )
+	return;
+
+    // Check if line contained only white space
+    if( *ptr == '\n' || *ptr == '\r' || *ptr == '\0' )
+	return;
+
+    // Read line data
+    for( int i = 0; i < _N; i++ ) {
+
+	char *endptr;
+	double val = strtod( ptr, &endptr );
+	if( endptr == ptr ) {
+	    if( *ptr == '\n' || *ptr == '\r' || *ptr == '\0' )
+		throw( Error( ERROR_LOCATION, "unexpected end of line reading file \'" 
+			      + _filename + "\' on line " + to_string(linec) 
+			      + ". Missing data column on line?" ) );
+	    throw( Error( ERROR_LOCATION, "unexpected input reading file \'" 
+			  + _filename + "\' on line " + to_string(linec) ) );
+	}
+	_data[i]->push_back( val );
+	ptr = endptr;
+
+	// Skip white space
+	while( isspace(*ptr) ) ptr++;
+    }
+
+    // Check if line done
+    if( *ptr != '\n' && *ptr != '\r' && *ptr != '\0' )
+	throw( Error( ERROR_LOCATION, "unexpected input reading file \'" 
+		      + _filename + "\' on line " + to_string(linec)
+		      + ". Variable number of columns in file?") );
+}
+
+
+void ReadAscii::read( const std::string &filename, int columns )
+{
+    _filename = filename;
+    std::ifstream fin( filename.c_str() );
+    if( !fin.good() )
+	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\'" ) );
+
+    // Analyze first valid record of file if number of columns is not known
+    if( columns == -1 ) {
+	int linec = 0;
+	std::string str;
+	const char *ptr;
+	while( !fin.eof() ) {
+
+	    // Read line
+	    std::getline( fin, str );
+	    linec++;
+
+	    // Parse line
+	    ptr = str.c_str();
+	    
+	    // Skip leading white space
+	    while( isspace(*ptr) ) ptr++;
+
+	    // Check if comment
+	    if( *ptr == '#' )
+		continue;
+
+	    // Check if line contained only white space
+	    if( *ptr == '\n' || *ptr == '\r' || *ptr == '\0' )
+		continue;
+
+	    break;
+	}
+	if( fin.eof() )
+	    throw( Error( ERROR_LOCATION, "unexpected end of file \'" 
+			  + filename + "\' on line " + to_string(linec) ) );
+	
+	// Count columns
+	columns = 0;
+	while( 1 ) {
+	    char *endptr;
+	    double val = strtod( ptr, &endptr );
+	    if( val == 0.0 && endptr == ptr )
+		throw( Error( ERROR_LOCATION, "unexpected input reading file \'" 
+			      + filename + "\' on line " + to_string(linec) ) );
+	    ptr = endptr;
+	    columns++;
+
+	    // Skip white space
+	    while( isspace(*ptr) ) ptr++;
+	    
+	    // Check if line done
+	    if( *ptr == '\n' || *ptr == '\r' || *ptr == '\0' )
+		break;
+	}
+    }
+
+    // Reserve space for data
+    _N = columns;
+    _data = new std::vector<double> *[_N];
+    for( int i = 0; i < _N; i++ )
+	_data[i] = new std::vector<double>;
+
+    // Read data
+    int linec = 0;
+    fin.clear();
+    fin.seekg( 0 );
+    while( !fin.eof() ) {
+	
+	// Read line
+	std::string str;
+	std::getline( fin, str );
+	linec++;
+
+	read_data_line( str, linec );
+    }
+
+    fin.close();
+
+    // Most probably these data vectors are only used for temporary
+    // storage and therefore they are not reserved to exact
+    // size. Excess memory use does not matter in this case.
+}
+
+
+void ReadAscii::clear( void )
+{
+    for( int i = 0; i < _N; i++ )
+	delete _data[i];
+    delete _data;
+    _data = NULL;
+    _N = 0;
+}
+
+
+const std::vector<double> &ReadAscii::operator[]( int i ) const
+{
+    if( i < _N )
+	return( *_data[i] );
+    throw( ErrorRange( ERROR_LOCATION, i, _N ) );
+}

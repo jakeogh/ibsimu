@@ -49,6 +49,8 @@ fielddiagplotter.cpp \
 fielddiagplotter.hpp \
 fieldgraph.cpp \
 fieldgraph.hpp \
+file.cpp \
+file.hpp \
 fonts.cpp \
 fonts.hpp \
 frame.cpp \
@@ -150,6 +152,8 @@ precond.hpp \
 problem.hpp \
 qrandom.cpp \
 qrandom.hpp \
+readascii.cpp \
+readascii.hpp \
 ruler.cpp \
 ruler.hpp \
 scalarfield.cpp \
@@ -249,6 +253,7 @@ polysolver.hpp \
 precond.hpp \
 problem.hpp \
 qrandom.hpp \
+readascii.hpp \
 ruler.hpp \
 scalarfield.hpp \
 scharge.hpp \

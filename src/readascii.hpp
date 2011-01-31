@@ -1,8 +1,8 @@
-/*! \file file.hpp
- *  \brief Bindary file writing and reading tools.
+/*! \file readascii.hpp
+ *  \brief ASCII file reading tool.
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,71 +40,54 @@
  * permit others to do so.
  */
 
-#ifndef FILE_HPP
-#define FILE_HPP 1
+#ifndef READASCII_HPP
+#define READASCII_HPP 1
 
 
-#include <iostream>
-#include <stdint.h>
+#include <vector>
 
 
-/* **************** *
- * Write            *
- * **************** */
-
-
-/*! \brief Write int8_t \a value into stream \a s.
+/*! \brief Class for reading ASCII data files.
+ *
+ *  Reads ASCII data file formatted into \a N columns skipping empty
+ *  lines and lines starting with '#' character. The number of columns
+ *  may be given to read function, in which case it is checked to be
+ *  correct or the number of columns may be determined from the start
+ *  of the file. The number of columns must be fixed and may not
+ *  change during the file. Data is stored into \a N double-type
+ *  vectors, which can be read from the object after reading a
+ *  datafile.
  */
-void write_int8( std::ostream &s, int8_t value );
+class ReadAscii {
 
+    std::string           _filename; /*!< \brief Name of read file. */
+    int                   _N;        /*!< \brief Number of columns. */
+    std::vector<double> **_data;     /*!< \brief Column data vectors. */
 
-/*! \brief Write int16_t \a value into stream \a s.
- */
-void write_int16( std::ostream &s, int16_t value );
+    void read_data_line( const std::string &str, int linec );
 
+public:
 
-/*! \brief Write int32_t \a value into stream \a s.
- */
-void write_int32( std::ostream &s, int32_t value );
+    ReadAscii();
+    ReadAscii( const std::string &filename, int columns = -1 );
+    ~ReadAscii();
 
+    void read( const std::string &filename, int columns = -1 );
 
-/*! \brief Write uint32_t \a value into stream \a s.
- */
-void write_uint32( std::ostream &s, uint32_t value );
+    void clear( void );
 
+    int columns( void ) const {
+	return( _N );
+    }
 
-/*! \brief Write double \a value into stream \a s.
- */
-void write_double( std::ostream &s, double value );
+    int rows( void ) const {
+	if( _N > 0 )
+	    return( _data[0]->size() );
+	return( 0 );
+    }
 
-
-/*! \brief Write data block \a data of length \a len bytes into stream
- *  \a s in compressed form.
- */
-void write_compressed_block( std::ostream &s, uint32_t len, const int8_t *data );
-
-
-/* **************** *
- * Read             *
- * **************** */
-
-
-int8_t read_int8( std::istream &s );
-
-
-int16_t read_int16( std::istream &s );
-
-
-int32_t read_int32( std::istream &s );
-
-
-uint32_t read_uint32( std::istream &s );
-
-
-double read_double( std::istream &s );
-
-
-uint32_t read_compressed_block( std::istream &s, uint32_t len, int8_t *dest );
+    const std::vector<double> &operator[]( int i ) const;
+};
 
 
 #endif
