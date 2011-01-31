@@ -51,6 +51,7 @@
 #include <iomanip>
 #include "vec3d.hpp"
 #include "file.hpp"
+#include "error.hpp"
 
 
 /*! \brief Homogenous vector for three dimensional space

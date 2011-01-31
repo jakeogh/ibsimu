@@ -158,7 +158,7 @@ Emittance::Emittance( const std::vector<double> &x,
 
 #if DEBUG_EMITTANCECONV >= 1
     std::cout << "xave    = " << _xave << "\n";
-    std::cout << "xpave    = " << _xpave << "\n";
+    std::cout << "xpave   = " << _xpave << "\n";
     std::cout << "x2      = " << _x2 << "\n";
     std::cout << "xp2     = " << _xp2 << "\n";
     std::cout << "xxp     = " << _xxp << "\n";
@@ -229,6 +229,23 @@ Emittance::Emittance( const std::vector<double> &x,
     std::cout << "rmajor  = " << _rmajor << "\n";
     std::cout << "rminor  = " << _rminor << "\n";
 #endif
+}
+
+
+void Emittance::debug_print( std::ostream &os ) const
+{
+    os << "xave    = " << _xave << "\n";
+    os << "xpave   = " << _xpave << "\n";
+    os << "x2      = " << _x2 << "\n";
+    os << "xp2     = " << _xp2 << "\n";
+    os << "xxp     = " << _xxp << "\n";
+    os << "epsilon = " << _epsilon << "\n";
+    os << "alpha   = " << _alpha << "\n";
+    os << "beta    = " << _beta << "\n";
+    os << "gamma   = " << _gamma << "\n";
+    os << "angle   = " << _angle << "\n";
+    os << "rmajor  = " << _rmajor << "\n";
+    os << "rminor  = " << _rminor << "\n";
 }
 
 

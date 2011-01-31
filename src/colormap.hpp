@@ -99,6 +99,10 @@ public:
      */
     Colormap();
 
+    /*! \brief Copy constructor.
+     */
+    Colormap( const Colormap &colormap );
+
     /*! \brief Constructor for basic graph with defined data.
      *
      *  Data is defined as \a n by \a m array of data, where x and y

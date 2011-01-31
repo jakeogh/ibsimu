@@ -90,6 +90,21 @@ Colormap::Colormap( const double datarange[4], size_t n, size_t m,
 }
 
 
+Colormap::Colormap( const Colormap &colormap )
+    : _palette(colormap._palette), _interpolation(colormap._interpolation),
+      _zscale(colormap._zscale), _zmin(colormap._zmin), _zmax(colormap._zmax),
+      _n(colormap._n), _m(colormap._m), _f(colormap._f)
+{
+    _datarange[0] = colormap._datarange[0];
+    _datarange[1] = colormap._datarange[1];
+    _datarange[2] = colormap._datarange[2];
+    _datarange[3] = colormap._datarange[3];
+
+    _intrp = NULL;
+    make_data_interpolation();
+}
+
+
 Colormap::~Colormap()
 {
     if( _intrp )
@@ -360,7 +375,7 @@ void Colormap::make_data_interpolation( void )
 	_intrp = new BiCubicInterpolation2D( _n, _m, _f );
 	break;
     default:
-	throw( Error( ERROR_LOCATION, "unknown interpoltaion type" ) );	
+	throw( Error( ERROR_LOCATION, "unknown interpolation type" ) );	
     }
 }
 

@@ -309,6 +309,10 @@ public:
     /*! \brief Return minor radius of fitted rms ellipse.
      */
     double rminor( void ) const { return( _rminor ); } 
+
+    /*! \brief Print debugging information to os.
+     */
+    void debug_print( std::ostream &os ) const;
 };
 
 
