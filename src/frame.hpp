@@ -54,6 +54,15 @@
 
 
 
+/*! \brief Fixed aspect ratio setting for frame
+ *
+ *  Default mode is PLOT_FIXED_ASPECT_DISABLED, which means that the
+ *  frame axes are independent of each other. The mode
+ *  PLOT_FIXED_ASPECT_EXTEND_RANGE has fixed aspect ratio, which is
+ *  made by preserving the plot margins and extending the range of the
+ *  smaller axis. The mode PLOT_FIXED_ASPECT_INCREASE_MARGIN fixes the
+ *  aspect ratio by increasing the margin of the larger axis.
+ */
 enum PlotFixedMode {
     PLOT_FIXED_ASPECT_DISABLED = 0,
     PLOT_FIXED_ASPECT_EXTEND_RANGE,
@@ -61,6 +70,13 @@ enum PlotFixedMode {
 };
 
 
+/*! \brief Axis specification for plots.
+ *
+ *  PLOT_AXIS_X1 is the bottom axis, PLOT_AXIS_Y1 is the left side
+ *  axis, PLOT_AXIS_X2 is the top axis, PLOT_AXIS_Y2 is the right side
+ *  axis and PLOT_AXIS_Z is the depth axis for three dimensional plots
+ *  or colormap plots.
+ */
 enum PlotAxis {
     PLOT_AXIS_X1 = 0,
     PLOT_AXIS_Y1,
@@ -79,7 +95,7 @@ enum PlotAxis {
  *  numbered tics to the frame and labels for x- and y-axes. Frame x-
  *  and y-ranges can be set and coordinates can be forced to fixed
  *  aspect ratio. Content to the plot is drawn with Graph objects,
- *  which can be inserted and removed into the plot.
+ *  which can be inserted into and removed from the plot.
  *
  *  Ruler autorange is different from frame/graph autorange:
  *  - Frame autorange: Frame asks graph of the range they need 
@@ -89,6 +105,8 @@ enum PlotAxis {
  */
 class Frame {
 
+    /*! \brief Drawable object in frame
+     */
     struct DObj {
 	PlotAxis        _xaxis;         /*!< \brief X-axis for graph. */
 	PlotAxis        _yaxis;         /*!< \brief Y-axis for graph. */
@@ -298,21 +316,3 @@ public:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

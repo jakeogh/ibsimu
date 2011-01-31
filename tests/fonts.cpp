@@ -83,8 +83,7 @@ int main( void )
     try {
 	test();
     } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
+	e.print_error_message( cout );
 	exit( 1 );
     }
 

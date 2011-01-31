@@ -46,7 +46,7 @@
 #include "colormap.hpp"
 
 
-#define DEBUG_COLORMAP 1
+//#define DEBUG_COLORMAP 1
 
 
 Colormap::Colormap()

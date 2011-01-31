@@ -2,7 +2,7 @@
  *  \brief Source code for xygraph.cpp
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -48,13 +48,16 @@
 
 
 XYGraph::XYGraph()
-    : _linewidth(1.0), _color(Color(1,0,0)), _linestyle(XYGRAPH_LINE_DISABLE), _pointstyle(XYGRAPH_POINT_CIRCLE),
+    : _linewidth(1.0), _color(Color(1,0,0)), _linestyle(XYGRAPH_LINE_DISABLE), 
+      _pointstyle(XYGRAPH_POINT_CIRCLE),
       _point_filled(true), _point_scale(3.0)
 {
 }
 
-XYGraph::XYGraph( const std::vector<double> &xdata, const std::vector<double> &ydata )
-    : _linewidth(1.0), _color(Color(1,0,0)), _linestyle(XYGRAPH_LINE_DISABLE), _pointstyle(XYGRAPH_POINT_CIRCLE),
+XYGraph::XYGraph( const std::vector<double> &xdata, 
+		  const std::vector<double> &ydata )
+    : _linewidth(1.0), _color(Color(1,0,0)), _linestyle(XYGRAPH_LINE_DISABLE), 
+      _pointstyle(XYGRAPH_POINT_CIRCLE),
       _point_filled(true), _point_scale(3.0), _xdata(xdata), _ydata(ydata)    
 {
 }

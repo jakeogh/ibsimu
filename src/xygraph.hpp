@@ -2,7 +2,7 @@
  *  \brief XY-graph
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -126,10 +126,14 @@ public:
     void set_color( const Color &color );
 
     /*! \brief Set line style.
+     *
+     *  Defaults to no lines drawn (XYGRAPH_LINE_DISABLE)
      */
     void set_line_style( line_style_e linestyle );
 
     /*! \brief Set point style.
+     *
+     *  Defaults to filled XYGRAPH_POINT_CIRCLE with scale 1.0.
      */
     void set_point_style( point_style_e pointstyle, bool filled = true, double scale = 1.0 );
 };
