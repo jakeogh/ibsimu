@@ -274,6 +274,18 @@ public:
     Emittance( const std::vector<double> &x,
 	       const std::vector<double> &xp );
 
+    /*! \brief Constructor for emittance statistics from trajectory
+     *  diagnostic data in mesh form
+     *
+     *  The mesh has integer dimensions of (\a xsize, \a xpsize) and
+     *  has the extents defined by \a range, where \a range = (\a
+     *  xmin, \a xpmin, \a xmax, \a xpmax). Current data at each mesh
+     *  node is given by vector I, where data is stored in x major
+     *  order (I[xindex+xpindex*xsize]).
+     */
+    Emittance( size_t xsize, size_t xpsize, const double range[4],
+	       const std::vector<double> &I );
+
     /*! \brief Return average position (center location) of emittance distribution.
      */
     double xave( void ) const { return( _xave ); }

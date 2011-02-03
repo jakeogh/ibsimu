@@ -232,6 +232,79 @@ Emittance::Emittance( const std::vector<double> &x,
 }
 
 
+Emittance::Emittance( size_t xsize, size_t xpsize, const double range[4],
+		      const std::vector<double> &I )
+{
+    size_t N = I.size();
+    if( xsize*xpsize != N )
+	throw( Error( ERROR_LOCATION, 
+		      "intensity data size does not match mesh size" ) );
+
+    // Calculate averages
+    _Isum  = 0.0;
+    _xave  = 0.0;
+    _xpave = 0.0;
+    for( size_t j = 0; j < xpsize; j++ ) {
+	double Qxp = range[1] + ((double)j/(xpsize-1.0))*(range[3]-range[1]);
+	for( size_t i = 0; i < xsize; i++ ) {
+	    double Qx = range[0] + ((double)i/(xsize-1.0))*(range[2]-range[0]);
+	    double QI = I[i+j*xsize];
+	    _Isum  += QI;
+	    _xave  += Qx*QI;
+	    _xpave += Qxp*QI;
+	}
+    }
+    _xave  = _xave  / _Isum;
+    _xpave = _xpave / _Isum;
+
+    // Calculate expectation values
+    _x2  = 0.0;
+    _xp2 = 0.0;
+    _xxp = 0.0;
+    for( size_t j = 0; j < xpsize; j++ ) {
+	double Qxp = range[1] + ((double)j/(xpsize-1.0))*(range[3]-range[1]);
+	for( size_t i = 0; i < xsize; i++ ) {
+	    double Qx = range[0] + ((double)i/(xsize-1.0))*(range[2]-range[0]);
+	    double QI = I[i+j*xsize];
+	    _x2  += (Qx-_xave)*(Qx-_xave)*QI;
+	    _xp2 += (Qxp-_xpave)*(Qxp-_xpave)*QI;
+	    _xxp += (Qx-_xave)*(Qxp-_xpave)*QI;
+	}
+    }
+    _x2  = _x2  / _Isum;
+    _xp2 = _xp2 / _Isum;
+    _xxp = _xxp / _Isum;
+
+    // Calculate Twiss parameters
+    _epsilon = sqrt( _xp2*_x2 - _xxp*_xxp );
+    _alpha   = -_xxp/_epsilon;
+    _beta    = _x2/_epsilon;
+    _gamma   = _xp2/_epsilon;
+
+    // Calculate axes and angle
+    _angle = 0.5*atan2( -2.0*_alpha, _beta - _gamma );
+    double H = 0.5*(_beta+_gamma);
+    _rmajor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)+sqrt(H-1.0) );
+    _rminor = sqrt( 0.5*_epsilon ) * ( sqrt(H+1.0)-sqrt(H-1.0) );
+
+#if DEBUG_EMITTANCECONV >= 1
+    std::cout << "xave    = " << _xave << "\n";
+    std::cout << "xpave   = " << _xpave << "\n";
+    std::cout << "x2      = " << _x2 << "\n";
+    std::cout << "xp2     = " << _xp2 << "\n";
+    std::cout << "xxp     = " << _xxp << "\n";
+    std::cout << "epsilon = " << _epsilon << "\n";
+    std::cout << "alpha   = " << _alpha << "\n";
+    std::cout << "beta    = " << _beta << "\n";
+    std::cout << "gamma   = " << _gamma << "\n";
+    std::cout << "angle   = " << _angle << "\n";
+    std::cout << "H       = " << H << "\n";
+    std::cout << "rmajor  = " << _rmajor << "\n";
+    std::cout << "rminor  = " << _rminor << "\n";
+#endif
+}
+
+
 void Emittance::debug_print( std::ostream &os ) const
 {
     os << "xave    = " << _xave << "\n";
