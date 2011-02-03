@@ -1,4 +1,6 @@
-/*! \file Test particle mirroring
+/*! \file particles_mirror.cpp
+ *  \brief Test particle mirroring
+ *
  *  \test Test particle mirroring
  *
  *  The test case has a 1000 V potential difference between
@@ -68,7 +70,7 @@ void check_particle( Particle2D &p, double x0, double vx, double y0, double vy )
 }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(-0.05,-0.05,0.0), 0.01 );
     geom.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
@@ -116,21 +118,5 @@ void test( void )
 	exit( 1 );
     }
 }
-
-
-int main( void )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

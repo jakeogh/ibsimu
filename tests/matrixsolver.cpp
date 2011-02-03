@@ -1,4 +1,6 @@
 /*! \file matrixsolver.cpp 
+ *  \brief Test internal matrix solvers.
+ *
  *  \test Test internal matrix solvers.
  */
 
@@ -18,7 +20,7 @@
 using namespace std;
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     Vector rhs, sol[4];
     CColMatrix cmat;
@@ -87,19 +89,6 @@ void test( void )
     }
 }
 
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
 
 
 

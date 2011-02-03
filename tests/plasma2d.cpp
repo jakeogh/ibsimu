@@ -39,11 +39,14 @@ bool solid2( double x, double y, double z )
     return( x >= 0.0095 && y >= 0.0023333 && y >= 0.01283 - x );
 }
 
+
 bool initial_plasma( double x, double y, double z )
 {
     return( x <= 0.00055 );
 }
-void test( int *argc, char ***argv )
+
+
+void test( int argc, char **argv )
 {
     Geometry geom( MODE_2D, Int3D(241,141,1), Vec3D(0,0,0), 0.00005 );
     Solid *s1 = new FuncSolid( solid1 );
@@ -141,19 +144,6 @@ void test( int *argc, char ***argv )
 }
 
 
-int main( int argc, char **argv )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test( &argc, &argv );
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
 
 
 

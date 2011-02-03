@@ -1,4 +1,6 @@
 /*! \file solver1d_neumann.cpp 
+ *  \brief Test solver with a 1d problem with Neumann and Dirichlet boundaries.
+ *
  *  \test Test solver with a 1d problem with Neumann and Dirichlet boundaries.
  */
 
@@ -46,7 +48,7 @@ double phi2( double x )
 }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     bool err = false;
 
@@ -93,21 +95,6 @@ void test( void )
 	std::cout << "Error: solved potential differs from theory\n";
 	exit( 1 );
     }
-}
-
-
-int main( void )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
 }
 
 

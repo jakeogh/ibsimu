@@ -1,5 +1,7 @@
 /*! \file emittancedefcyl.cpp 
- *  \test Test beam definition by emittance in cyl
+ *  \brief Test beam definition by emittance in cyl.
+ *
+ *  \test Test beam definition by emittance in cyl.
  */
 
 
@@ -19,7 +21,7 @@
 using namespace std;
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     Geometry geom( MODE_CYL, Int3D(21,21,1), Vec3D(0,0,0), 1e-3 );
     geom.set_boundary( 1, Bound(BOUND_DIRICHLET, 0.0) );
@@ -82,19 +84,6 @@ void test( void )
 }
 
 
-int main( void )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
 
 
 

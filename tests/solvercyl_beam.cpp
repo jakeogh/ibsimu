@@ -1,4 +1,6 @@
 /*! \file solvercyl_beam.cpp 
+ *  \brief Test solver with a cylindrical problem with localized space charge.
+ *
  *  \test Test solver with a cylindrical problem with localized space charge.
  */
 
@@ -28,7 +30,7 @@ double phi( double r )
 }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     bool err = false;
 
@@ -82,20 +84,6 @@ void test( void )
 	std::cout << "Error: solved potential differs from theory\n";
 	exit( 1 );
     }
-}
-
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
 }
 
 

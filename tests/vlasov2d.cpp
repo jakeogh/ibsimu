@@ -1,4 +1,6 @@
 /*! \file Test with vlasov iteration in 2d electrode configuration.
+ *  \brief Test with vlasov iteration in 2d electrode configuration.
+ *
  *  \test Test with vlasov iteration in 2d electrode configuration.
  */
 
@@ -39,7 +41,7 @@ bool solid3( double x, double y, double z )
 }
 
 
-void test( int *argc, char ***argv )
+void test( int argc, char **argv )
 {
     // 12x5 cm geometry with 0.05 cm mesh size
     Geometry geom( MODE_2D, Int3D(241,101,1), Vec3D(0,0,0), 0.0005 );
@@ -100,22 +102,5 @@ void test( int *argc, char ***argv )
     geomplotter.set_particle_database( &pdb );
     geomplotter.plot_png( "vlasov2d.png" );
 }
-
-
-int main( int argc, char **argv )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	ibsimu.set_thread_count( 4 );
-	test( &argc, &argv );
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

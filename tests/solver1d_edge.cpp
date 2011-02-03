@@ -1,4 +1,6 @@
 /*! \file solver1d_edge.cpp 
+ *  \brief Test solver with a 1d problem with smooth edges.
+ *
  *  \test Test solver with a 1d problem with smooth edges.
  */
 
@@ -57,7 +59,7 @@ double phi( double x )
 }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     bool err = false;
     Geometry g( MODE_1D, Int3D(11,1,1), Vec3D(0,0,0), 0.01 );
@@ -103,21 +105,5 @@ void test( void )
     }
 
 }
-
-
-int main( void )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

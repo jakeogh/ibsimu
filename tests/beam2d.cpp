@@ -1,4 +1,6 @@
 /*! \file beam2d.cpp 
+ *  \brief Test with a beam in 2d system. Space charge on axis is checked.
+ *
  *  \test Test with a beam in 2d system. Space charge on axis is checked.
  */
 
@@ -21,7 +23,7 @@
 using namespace std;
 
 
-void test( int *argc, char ***argv )
+void test( int argc, char **argv )
 {    
     // 10x10 cm geometry with 0.25 cm mesh
     Geometry g( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.0025 );
@@ -106,19 +108,3 @@ void test( int *argc, char ***argv )
 	exit( 1 );
     }
 }
-
-
-int main( int argc, char **argv )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test( &argc, &argv );
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-

@@ -1,4 +1,6 @@
 /*! \file emittancedef3d.cpp 
+ *  \brief Test beam definition by emittance in 3d
+ *
  *  \test Test beam definition by emittance in 3d
  */
 
@@ -19,7 +21,7 @@
 using namespace std;
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     Geometry geom( MODE_3D, Int3D(21,21,21), Vec3D(0,0,0), 1e-3 );
     geom.set_boundary( 1, Bound(BOUND_DIRICHLET, 0.0) );
@@ -127,21 +129,6 @@ void test( void )
 				  DIAG_Y, DIAG_Z );
     pplotter6.plot_png( "emittancedef3d_gaussian_yz.png" );
     
-}
-
-
-int main( void )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
 }
 
 

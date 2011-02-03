@@ -1,4 +1,7 @@
 /*! \file beamcyl.cpp 
+ *  \brief Test with a beam in cylindrical system. Space 
+ *  charge on axis is checked.
+ *
  *  \test Test with a beam in cylindrical system. Space 
  *  charge on axis is checked.
  */
@@ -21,7 +24,7 @@
 using namespace std;
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     // 10x10 cm geometry with 0.25 cm mesh
     Geometry geom( MODE_CYL, Int3D(41,41,1), Vec3D(0,0,0), 0.0025 );
@@ -118,21 +121,3 @@ void test( void )
 	exit( 1 );
     }
 }
-
-
-int main( void )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
-
-

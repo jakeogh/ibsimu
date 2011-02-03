@@ -1,6 +1,7 @@
-/* LU test -- Test ILU matrix decomposition and solvers
- *
- *
+/*! \file lu_test.cpp 
+ *  \brief Test LU decomposition.
+ * 
+ *  \test Test LU decomposition.
  */
 
 
@@ -21,7 +22,7 @@ using namespace std;
 #define ERROR()							    \
     {								    \
 	cout << "Error at " << __FILE__ << ":" << __LINE__ << "\n"; \
-	return( 1 );					    \
+	exit( 1 );					    \
     }
 
 
@@ -113,7 +114,7 @@ void init_fdm_problem( Matrix &A, Vector &B, double v1, double v2 )
 }
 
 
-int main( void )
+int test( int argc, char **argv )
 {
     CColMatrix Ac;
     CRowMatrix Ar;
@@ -177,9 +178,4 @@ int main( void )
 	ERROR();
     if( max_abs(X-X_check) > 0.1 )
 	ERROR();
-
-    return( 0 );
 }
-
-
-

@@ -1,4 +1,6 @@
 /*! \file particles_bfield2d.cpp 
+ *  \brief  Test particle iterator in 2D in constant magnetic field.
+ *
  *  \test  Test particle iterator in 2D in constant magnetic field.
  */
 
@@ -20,10 +22,8 @@
 using namespace std;
 
 
-void test( void )
+void test( int argc, char **argv )
 {
-    ibsimu.set_verbose_output( 0 );
-
     Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(-0.05,-0.05,0.0), 0.01 );
     geom.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
     geom.set_boundary( 2, Bound(BOUND_DIRICHLET,    0.0) );
@@ -89,20 +89,5 @@ void test( void )
 	exit( 1 );
     }
 }
-
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

@@ -1,4 +1,4 @@
-/*! \file Test solver with a 1d problem with space charge.
+/*! \file solver1d_scharge.cpp
  *  \brief Test solver with a 1d problem with space charge.
  *
  *  \test The simple 1d problems with constant space charge are easily
@@ -35,7 +35,7 @@ double phi( double x )
 }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     bool err = false;
 
@@ -74,20 +74,5 @@ void test( void )
 	exit( 1 );
     }
 }
-
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

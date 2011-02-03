@@ -1,4 +1,6 @@
 /*! \file emittance3d.cpp 
+ *  \brief Test emittance of 3d beam against analytical value
+ * 
  *  \test Test emittance of 3d beam against analytical value
  */
 
@@ -19,7 +21,7 @@
 using namespace std;
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     Geometry geom( MODE_3D, Int3D(21,21,21), Vec3D(0,-1e-2,-1e-2), 1e-3 );
     geom.set_boundary( 1, Bound(BOUND_DIRICHLET, 0.0) );
@@ -68,21 +70,6 @@ void test( void )
     ParticleDiagPlotter pplotter2( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_Y, DIAG_Z );
     pplotter2.plot_png( "emittance3d_profile.png" );
-}
-
-
-int main( void )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
 }
 
 

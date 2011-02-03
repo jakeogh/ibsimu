@@ -155,10 +155,15 @@ endif
 
 TESTS = $(check_PROGRAMS)
 
+EXTRA_LTLIBRARIES = libibsimutest.la
+libibsimutest_la_SOURCES = \
+ibsimutest.cpp \
+ibsimutest.hpp
+
 AM_CPPFLAGS = $(CPPFLAGS) -Wall -g -I$(top_srcdir)/src
 AM_LDFLAGS = $(LIBS) -L$(top_srcdir)/src @rdynamic_flag@
-# `gsl-config --libs`
-LDADD = $(top_builddir)/src/libibsimu.la -lm
+LDADD = $(top_builddir)/src/libibsimu.la libibsimutest.la -lm
+
 if UMFPACK
 AM_CPPFLAGS += `pkg-config --cflags umfpack`
 AM_LDFLAGS += `pkg-config --libs umfpack`

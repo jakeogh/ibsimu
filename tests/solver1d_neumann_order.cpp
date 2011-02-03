@@ -1,4 +1,6 @@
 /*! \file solver1d_neumann_order.cpp 
+ *  \brief  Test solver with a 1d problem with different Neumann boundary orders.
+ *
  *  \test  Test solver with a 1d problem with different Neumann boundary orders.
  */
 
@@ -17,7 +19,7 @@
 using namespace std;
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     Geometry g( MODE_1D, Int3D(6,1,1), Vec3D(0,0,0), 0.02 );
     g.set_boundary( 1, Bound(BOUND_DIRICHLET,  0.0) );
@@ -81,20 +83,6 @@ void test( void )
     }
 }
 
-
-int main( void )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
 
 
 

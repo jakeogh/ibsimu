@@ -1,4 +1,6 @@
 /*! \file fonts.cpp 
+ *  \brief Test fonts.
+ *
  *  \test Test fonts.
  */
 
@@ -50,7 +52,7 @@ void draw_extents( cairo_t *cairo, double x, double y, const cairo_text_extents_
 }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     cairo_surface_t *surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, 640, 480 );
     cairo_t *cairo = cairo_create( surface );
@@ -76,19 +78,4 @@ void test( void )
     cairo_destroy( cairo );
     cairo_surface_destroy( surface );
 }
-
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	e.print_error_message( cout );
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
-
 

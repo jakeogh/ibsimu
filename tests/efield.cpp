@@ -35,7 +35,7 @@ bool f2( double x, double y, double z )
 }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     Geometry g( MODE_1D, Int3D(11,1,1), Vec3D(0,0,0), 0.01 );
     Solid *s1 = new FuncSolid( f1 );
@@ -91,20 +91,3 @@ void test( void )
 	 << setw(12) << SOLID2 << " "
 	 << setw(12) << 10000 << "\n\n\n";
 }
-
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
-
-

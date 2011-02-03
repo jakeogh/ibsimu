@@ -1,4 +1,6 @@
 /*! \file emittanceconv.cpp 
+ *  \brief Test emittance (r,r') to (x,x') converter
+ *
  *  \test Test emittance (r,r') to (x,x') converter
  */
 
@@ -19,7 +21,7 @@
 using namespace std;
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     Geometry geom( MODE_CYL, Int3D(11,11,1), Vec3D(0,0,0), 1e-3 );
     geom.set_boundary( 1, Bound(BOUND_DIRICHLET, 0.0) );
@@ -75,21 +77,5 @@ void test( void )
     if( fabs( emit.epsilon() - 3.22748612e-5 ) / 3.22748612e-5 > 0.01 )
 	throw( Error( ERROR_LOCATION, "rms emittance does not match theory" ) );
 }
-
-
-int main( void )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

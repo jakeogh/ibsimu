@@ -1,4 +1,7 @@
 /*! \file particles_bfieldcyl.cpp 
+ *  \brief Test particle iterator in constant magnetic field in 
+ *  cylindrical geometry.
+ *
  *  \test Test particle iterator in constant magnetic field in 
  *  cylindrical geometry.
  */
@@ -22,7 +25,7 @@
 using namespace std;
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     Geometry geom( MODE_CYL, Int3D(21,11,1), Vec3D(-0.05,0.0,0.0), 0.01 );
     geom.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
@@ -104,21 +107,5 @@ void test( void )
 	exit( 1 );
     }
 }
-
-
-int main( void )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

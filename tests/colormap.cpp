@@ -26,7 +26,7 @@
 using namespace std;
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     cairo_surface_t *surface;
     cairo_t *cairo;
@@ -173,20 +173,4 @@ void test( void )
 
 #endif
 }
-
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
-
 

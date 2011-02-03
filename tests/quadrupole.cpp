@@ -1,4 +1,6 @@
 /*! \file quadrupole.cpp 
+ *  \brief Test with a quadrupole field in 2D.
+ *
  *  \test Test with a quadrupole field in 2D.
  */
 
@@ -26,11 +28,13 @@ bool solid1( double x, double y, double z )
     return( x*x+y*y <= r*r );
 }
 
+
 bool solid2( double x, double y, double z )
 {
     x -= 0.1;
     return( x*x+y*y <= r*r );
 }
+
 
 bool solid3( double x, double y, double z )
 {
@@ -39,6 +43,7 @@ bool solid3( double x, double y, double z )
     return( x*x+y*y <= r*r );
 }
 
+
 bool solid4( double x, double y, double z )
 {
     y -= 0.1;
@@ -46,7 +51,7 @@ bool solid4( double x, double y, double z )
 }
 
 
-void test( int *argc, char ***argv )
+void test( int argc, char **argv )
 {
     Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.01 );
 
@@ -83,21 +88,5 @@ void test( int *argc, char ***argv )
     geomplotter.set_mesh( true );
     geomplotter.plot_png( "quadrupole.png" );
 }
-
-
-int main( int argc, char **argv )
-{
-    try {
-	//verbose_output = 1;
-	test( &argc, &argv );
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

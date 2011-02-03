@@ -1,6 +1,7 @@
 /*! \file histogram.cpp 
- *  \test Test histogram.
+ *  \brief Test histogram.
  *
+ *  \test Test histogram.
  */
 
 #include <cstdlib>
@@ -14,7 +15,7 @@
 #include "error.hpp"
 
 
-void test( int *argc, char ***argv )
+void test( int argc, char **argv )
 {
     double range[4] = {0, 0, 1, 1};
     Histogram2D histo( 4, 4, range );
@@ -54,20 +55,4 @@ void test( int *argc, char ***argv )
 	exit( 1 );
     }
 }
-
-
-int main( int argc, char **argv )
-{
-    try {
-	test( &argc, &argv );
-    } catch ( Error e ) {
-	std::cout << "Error in " << e._loc._file << ":" << e._loc._line 
-		  << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
-
 

@@ -1,4 +1,6 @@
 /*! \file solver2d_cylindrical_beam.cpp 
+ *  \brief Test solver with a 2d problem with cylindrical symmetry and beam.
+ *
  *  \test Test solver with a 2d problem with cylindrical symmetry and beam.
  */
 
@@ -36,7 +38,7 @@ double phi( double r )
 }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     Geometry geom( MODE_2D, Int3D(121,121,1), Vec3D(0,0,0), 0.0005 );
     Solid *s1 = new FuncSolid( solid1 );
@@ -98,21 +100,5 @@ void test( void )
 	exit( 1 );
     }
 }
-
-
-int main( void )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

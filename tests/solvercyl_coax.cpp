@@ -1,4 +1,7 @@
 /*! \file solvercyl_coax.cpp 
+ *  \brief Test solver with a cylindrical problem with coaxial
+ *  electrodes.
+ *
  *  \test Test solver with a cylindrical problem with coaxial
  *  electrodes.
  */
@@ -35,7 +38,7 @@ double phi( double r )
 }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     bool err = false;
 
@@ -97,19 +100,6 @@ void test( void )
     }
 }
 
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
 
 
 

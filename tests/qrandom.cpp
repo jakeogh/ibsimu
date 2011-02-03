@@ -1,8 +1,8 @@
-/* qrandom.cpp -- Test quasi random number generator
+/*! \file plasmacyl.cpp
+ *  \brief Test quasi random number generator.
  *
- *
+ *  \test Test quasi random number generator.
  */
-
 
 
 #include <iostream>
@@ -15,7 +15,7 @@
 using namespace std;
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     const int N = 10000;
     double sd = 0.0;
@@ -34,20 +34,5 @@ void test( void )
     sd = sqrt(sd/N);
     fstr << "# sd[3] = " << sd << "\n";
 }
-
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

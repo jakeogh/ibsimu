@@ -1,4 +1,6 @@
 /*! \file solver2d_smooth.cpp 
+ *  \brief Test solver with a 2d surfaces for edge smoothing
+ *
  *  \test Test solver with a 2d surfaces for edge smoothing
  */
 
@@ -31,7 +33,7 @@ bool solid2( double x, double y, double z )
 }
 
 
-void test( int *argc, char ***argv )
+void test( int argc, char **argv )
 {
     Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.01 );
     Solid *s1 = new FuncSolid( solid1 );
@@ -73,21 +75,5 @@ void test( int *argc, char ***argv )
     plotter.run();
     */
 }
-
-
-int main( int argc, char **argv )
-{
-    try {
-	//verbose_output = 1;
-	test( &argc, &argv );
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

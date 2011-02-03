@@ -1,5 +1,7 @@
 /*! \file csgobjectsolid.cpp 
- *  \test Test for CSGObjectSolid.
+ *  \brief Test CSGObjectSolid.
+ *
+ *  \test Test CSGObjectSolid.
  */
 
 
@@ -34,7 +36,7 @@ CSGObject *object1( void )
 }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     Geometry geom( MODE_2D, Int3D(101,101,1), Vec3D(-2.5,-2.5,0), 0.05 );
     CSGObject *o1 = object1();
@@ -50,20 +52,6 @@ void test( void )
     GeomPlotter gplotter( &geom );
     gplotter.set_mesh( true );
     gplotter.plot_png( "csgobjectsolid.png" );
-}
-
-
-int main( void )
-{
-    try {
-        test();
-    } catch ( Error e ) {
-        cout << "Error in " << e._loc._file << ":" << e._loc._line 
-             << " in " << e._loc._func << "(): " << e._error_str << "\n";
-        exit( 1 );
-    }
-
-    return( 0 );
 }
 
 

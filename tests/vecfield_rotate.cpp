@@ -1,4 +1,6 @@
 /*! \file vecfield_rotate.cpp 
+ *  \brief Test VectorField rotate functions
+ *
  *  \test Test VectorField rotate functions
  */
 
@@ -20,7 +22,7 @@ using namespace std;
     }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     bool fout[3] = {true, true, false};
     Int3D size(2,3,1);
@@ -91,19 +93,6 @@ void test( void )
 	ERROR();
 }
 
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
 
 
 

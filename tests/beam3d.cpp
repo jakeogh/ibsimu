@@ -43,7 +43,7 @@ bool electrode2_func( double x, double y, double z )
 }
 
 
-void test( int *argc, char ***argv )
+void test( int argc, char **argv )
 {
     // 10x20x40 cm geometry with 0.25 cm mesh
     Geometry geom( MODE_3D, Int3D(41,41,41), Vec3D(0,0,0), 0.0025 );
@@ -120,21 +120,4 @@ void test( int *argc, char ***argv )
     gplotter.set_view( VIEW_YZ, 0 );
     gplotter.plot_png( "beam3d_yz.png" );
 }
-
-
-int main( int argc, char **argv )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-    	test( &argc, &argv );
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
-
 

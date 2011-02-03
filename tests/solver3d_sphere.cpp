@@ -1,4 +1,6 @@
 /*! \file solver3d_sphere.cpp 
+ *  \brief Test solver with a 3d problem made of two concentric spheres.
+ *
  *  \test Test solver with a 3d problem made of two concentric spheres.
  */
 
@@ -48,7 +50,7 @@ double phi( double r )
 }
 
 
-void test( int *argc, char ***argv )
+void test( int argc, char **argv )
 {
     //Geometry g( MODE_3D, Int3D(81,81,81), Vec3D(0,0,0), 0.001 );
     Geometry g( MODE_3D, Int3D(41,41,41), Vec3D(0,0,0), 0.002 );
@@ -153,21 +155,5 @@ void test( int *argc, char ***argv )
 	exit( 1 );
     }
 }
-
-
-int main( int argc, char **argv )
-{
-    try {
-	//verbose_output = 1;
-	test( &argc, &argv );
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

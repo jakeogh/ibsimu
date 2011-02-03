@@ -1,6 +1,7 @@
 /*! \file particles_diagnostic.cpp 
- *  \test Test particle diagnostic tool.
+ *  \brief Test particle diagnostic tool.
  *
+ *  \test Test particle diagnostic tool.
  */
 
 
@@ -28,10 +29,8 @@ using namespace std;
     }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
-    //verbose_output = 1;
-
     Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.01 );
     geom.set_boundary( 1, Bound(BOUND_DIRICHLET, 1000.0) );
     geom.set_boundary( 2, Bound(BOUND_DIRICHLET,    0.0) );
@@ -108,19 +107,6 @@ void test( void )
     geomplotter.plot_png( "particles_diagnostic.png" );
 }
 
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
 
 
 

@@ -1,6 +1,7 @@
-/*! \file Test for scharge out of range error
- *  \test Test for scharge out of range error
+/*! \file scharge_out_of_range.cpp
+ *  \brief Test for scharge out of range error
  *
+ *  \test Test for scharge out of range error
  */
 
 
@@ -20,7 +21,7 @@
 using namespace std;
 
 
-void test( int *argc, char ***argv )
+void test( int argc, char **argv )
 {
     Geometry g( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.01 );
     g.set_boundary( 1, Bound(BOUND_DIRICHLET, -1000.0) );
@@ -74,21 +75,4 @@ void test( int *argc, char ***argv )
     pngplot( &geomplotter, "scharge_out_of_range.png" );
     */
 }
-
-
-int main( int argc, char **argv )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test( &argc, &argv );
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
-
 

@@ -26,7 +26,7 @@ using namespace std;
     }
 
 
-int main( int argc, char **argv )
+int test( int argc, char **argv )
 {
     /* Vector ssqr, norm2, normalize
      */

@@ -1,5 +1,7 @@
-/*! \file Test with a simple negative ion plasma in cylindrical 
+/*! \file nsimp_plasmacyl.cpp
+ *  \brief Test with a simple negative ion plasma in cylindrical 
  *  electrode configuration.
+ *
  *  \test Test with a simple negative ion plasma in cylindrical 
  *  electrode configuration.
  */
@@ -46,7 +48,7 @@ bool initial_plasma( double x, double y, double z )
 }
 
 
-void test( int *argc, char ***argv )
+void test( int argc, char **argv )
 {
     // 30x20 mm geometry with 0.05 mm mesh size
     //Geometry geom( MODE_CYL, Int3D(601,401,1), Vec3D(0,0,0), 0.00005 );
@@ -141,21 +143,4 @@ void test( int *argc, char ***argv )
 
     }
 }
-
-
-int main( int argc, char **argv )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-    	test( &argc, &argv );
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
-
 

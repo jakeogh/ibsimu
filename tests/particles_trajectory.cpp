@@ -1,4 +1,6 @@
 /*! \file particles_trajectory.cpp 
+ *  \brief Test particle iterator in constant electric field.
+ *
  *  \test Test particle iterator in constant electric field.
  */
 
@@ -56,7 +58,7 @@ void check_particle( Particle2D &p, double vx, double vy )
 }
 
 
-void test( int *argc, char ***argv )
+void test( int argc, char **argv )
 {
     Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(-0.05,-0.05,0.0), 0.01 );
     geom.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
@@ -105,21 +107,5 @@ void test( int *argc, char ***argv )
     plotter.run();
     */
 }
-
-
-int main( int argc, char **argv )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test( &argc, &argv );
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

@@ -1,4 +1,6 @@
 /*! \file particles_cyl.cpp 
+ *  \brief Test particle iterator in zero field in cylindrical coordinates.
+ *
  *  \test Test particle iterator in zero field in cylindrical coordinates.
  */
 
@@ -37,13 +39,14 @@ double vrfunc( double y, double vy, double z, double vz )
     return( (y*vy+z*vz)/sqrt(y*y+z*z) );
 }
 
+
 double wfunc( double y, double vy, double z, double vz )
 {
     return( (z*vy-y*vz)/(y*y+z*z) );
 }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     Geometry g( MODE_CYL, Int3D(11,11,1), Vec3D(-0.05,0.0,0.0), 0.01 );
     g.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
@@ -126,21 +129,5 @@ void test( void )
 	exit( 1 );
     }
 }
-
-
-int main( void )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

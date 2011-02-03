@@ -1,4 +1,6 @@
 /*! \file label.cpp 
+ *  \brief Test label.
+ * 
  *  \test Test label.
  */
 
@@ -62,7 +64,7 @@ void draw_bbox( cairo_t *cairo, const double bbox[4] )
     cairo_stroke( cairo );
 }
 
-void test( void )
+void test( int argc, char **argv )
 {
     cairo_surface_t *surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32,
 							   640, 480 );
@@ -228,20 +230,4 @@ void test( void )
     cairo_destroy( cairo );
     cairo_surface_destroy( surface );
 }
-
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
-
 

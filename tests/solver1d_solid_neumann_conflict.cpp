@@ -1,7 +1,9 @@
 /*! \file solver1d_solid_neumann_conflict.cpp 
- *  \test  Test solver with a 1d problem with Neumann and smooth 
+ *  \brief  Test solver with a 1d problem with Neumann and smooth 
  *  solid conflicting
  *
+ *  \test  Test solver with a 1d problem with Neumann and smooth 
+ *  solid conflicting
  */
 
 
@@ -33,7 +35,7 @@ bool solid2( double x, double y, double z )
 }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     Geometry g( MODE_1D, Int3D(11,1,1), Vec3D(0,0,0), 0.01 );
     Solid *s1 = new FuncSolid( solid1 );
@@ -112,21 +114,6 @@ void test( void )
 	exit( 1 );
     }
 
-}
-
-
-int main( void )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
 }
 
 

@@ -1,8 +1,8 @@
-/* geometry.cpp -- Test geometry class
+/*! \file geometry.cpp 
+ *  \brief Test geometry definition.
  *
- *
+ *  \test Test geometry definition.
  */
-
 
 
 #include <cstdlib>
@@ -69,18 +69,10 @@ void test2( void )
 }
 
 
-int main( void )
+void test( int argc, char **argv )
 {
-    try {
-	test1();
-	test2();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
+    test1();
+    test2();
 }
 
 

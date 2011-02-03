@@ -1,4 +1,6 @@
 /*! \file sclfield.cpp
+ *  \brief Test for ScalarField class
+ *
  *  \test Test for ScalarField class
  */
 
@@ -13,24 +15,8 @@
 using namespace std;
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     ScalarField f;
 }
-
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
-
 

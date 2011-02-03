@@ -1,4 +1,6 @@
 /*! \file efieldtest_2d.cpp 
+ *  \brief Test electric field interpolation in 2d.
+ *
  *  \test Test electric field interpolation in 2d.
  */
 
@@ -13,7 +15,7 @@
 using namespace std;
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     Geometry g( MODE_2D, Int3D(3,3,1), Vec3D(0,0,0), 1.0 );
     ScalarField epot( g );
@@ -41,20 +43,3 @@ void test( void )
     }
     ostr << "\n\n";
 }
-
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
-
-

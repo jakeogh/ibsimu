@@ -46,7 +46,7 @@ bool init_plasma( double x, double y, double z )
 }
 
 
-void test( int *argc, char ***argv )
+void test( int argc, char **argv )
 {
     // 12x7 mm geometry with 0.05 mm mesh size
     Geometry geom( MODE_CYL, Int3D(241,141,1), Vec3D(0,0,0), 0.00005 );
@@ -90,7 +90,7 @@ void test( int *argc, char ***argv )
     conv.add_scharge( scharge_ave, 1, 1, 1.0e-6 );
     conv.add_tdiag( pdb, AXIS_X, 11.9e-3, 1, 1, 1.0e-6 );
 
-    for( size_t i = 0; i < 100; i++ ) {
+    for( size_t i = 0; i < 8; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
@@ -180,22 +180,4 @@ void test( int *argc, char ***argv )
 				   DIAG_RP, DIAG_AP );
     pplotter3b.plot_png( "plasmacyl2_rp_ap.png" );
 }
-
-
-int main( int argc, char **argv )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	ibsimu.set_thread_count( 4 );
-    	test( &argc, &argv );
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
-
 

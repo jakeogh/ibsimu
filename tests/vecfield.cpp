@@ -1,4 +1,6 @@
 /*! \file vecfield.cpp 
+ *  \brief VectorField class
+ *
  *  \test Test VectorField class
  */
 
@@ -14,7 +16,7 @@
 using namespace std;
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     bool fout[3] = {false, false, true};
     Int3D size(2,2,1);
@@ -40,21 +42,5 @@ void test( void )
 	ostr << "\n";
     }
 }
-
-
-int main( void )
-{
-    try {
-	ibsimu.set_verbose_output( 0 );
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

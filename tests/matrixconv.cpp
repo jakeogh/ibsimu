@@ -1,6 +1,7 @@
-/* matrixconv.cpp -- Test matrix-to-matrix conversion
- *
- *
+/*! \file matrixconv.cpp 
+ *  \brief Test matrix-to-matrix conversion
+ * 
+ *  \test Test matrix-to-matrix conversion
  */
 
 
@@ -52,7 +53,7 @@ bool compare( Matrix &A, Matrix &B )
 }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     CRowMatrix Row(6,5);
     Row.set(4,1) = -91;
@@ -168,20 +169,5 @@ void test( void )
     if( !Row6.check_ascending() )
 	ERROR();
 }
-
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
-}
-
 
 

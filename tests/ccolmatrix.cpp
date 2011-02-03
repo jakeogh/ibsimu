@@ -1,6 +1,7 @@
-/* MCColMatrix test -- Test MCColMatrix
+/*! \file ccolmatrix.cpp 
+ *  \brief Test compressed column matrix.
  *
- *
+ *  \test Test compressed column matrix.
  */
 
 
@@ -23,7 +24,7 @@ using namespace std;
     }
 
 
-void test( void )
+void test( int argc, char **argv )
 {
     /* Constructors */
     CColMatrix A;
@@ -66,12 +67,7 @@ void test( void )
     A.clear();
     int row[3] = {   0,   1,   3};
     double val[3] = {0.25, 0.5, 1.5};
-    try {
-	A.set_column( 0, 3, row, val );
-    } catch( Error x ) {
-	cout << x._error_str << "\n";
-	exit( 1 );
-    }
+    A.set_column( 0, 3, row, val );
     if( A.get(0,0) != 0.25 || A.get(1,0) != 0.5 || A.get(2,0) != 0.0 || 
 	A.get(3,0) != 1.5 || A.get(4,0) != 0.0 )
 	ERROR();
@@ -160,20 +156,6 @@ void test( void )
     A.set(2,2) = 7;
     if( A.check_ascending() )
 	ERROR();
-}
-
-
-int main( void )
-{
-    try {
-	test();
-    } catch ( Error e ) {
-	cout << "Error in " << e._loc._file << ":" << e._loc._line 
-	     << " in " << e._loc._func << "(): " << e._error_str << "\n";
-	exit( 1 );
-    }
-
-    return( 0 );
 }
 
 

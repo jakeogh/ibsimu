@@ -1,6 +1,7 @@
-/* MCRowMatrix test -- Test MCRowMatrix
+/*! \file crowmatrix.cpp 
+ *  \brief Test compressed row matrix.
  *
- *
+ *  \test Test compressed row matrix.
  */
 
 
@@ -23,7 +24,7 @@ using namespace std;
     }
 
 
-int main( void )
+int test( int argc, char **argv )
 {
     /* Constructors */
     CRowMatrix A;
@@ -159,6 +160,4 @@ int main( void )
 
     return( 0 );
 }
-
-
 

@@ -1,5 +1,7 @@
-/* MVector test -- Test non-matrix features of MVector.
+/*! \file mvector.cpp 
+ * \brief Test non-matrix features of MVector.
  *
+ * \test Test non-matrix features of MVector.
  *
  */
 
@@ -18,11 +20,11 @@ using namespace std;
 #define ERROR()							    \
     {								    \
 	cout << "Error at " << __FILE__ << ":" << __LINE__ << "\n"; \
-	return( 1 );					    \
+	exit( 1 );					    \
     }
 
 
-int main( void )
+int test( int argc, char **argv )
 {
     /* Constructors */
     Vector A; 
