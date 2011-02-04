@@ -45,6 +45,7 @@
 
 
 #include <vector>
+#include <string>
 #include <gsl/gsl_errno.h>
 #include "geometry.hpp"
 #include "scalarfield.hpp"
@@ -151,6 +152,12 @@ public:
     static int trajectory_intersections_at_plane( std::vector<ParticleP2D> &intsc, 
 						  int crd, double val,
 						  const ParticleP2D &x1, const ParticleP2D &x2 );
+
+    /*! \brief Return string representation for unit of current
+     *
+     *  Returns "A/m".
+     */
+    static const std::string IQ_unit() { return( "A/m" ); }
 
     /*! \brief Returns the location of particle point in Vec3D.
      */
@@ -297,6 +304,12 @@ public:
 						  int crd, double val,
 						  const ParticlePCyl &x1,
 						  const ParticlePCyl &x2 );
+
+    /*! \brief Return string representation for unit of current
+     *
+     *  Returns "A".
+     */
+    static const std::string IQ_unit() { return( "A" ); }
 
     /*! \brief Returns the location of particle point in Vec3D.
      */
@@ -445,6 +458,12 @@ public:
 						  int crd, double val,
 						  const ParticleP3D &x1, const ParticleP3D &x2 );
 
+    /*! \brief Return string representation for unit of current
+     *
+     *  Returns "A".
+     */
+    static const std::string IQ_unit() { return( "A" ); }
+
     /*! \brief Returns the location of particle point in Vec3D.
      */
     Vec3D location() const { return( Vec3D( _x[1], _x[3], _x[5] ) ); }
@@ -592,7 +611,10 @@ public:
      */
     void set_status( particle_status_e status ) { _status = status; }
 
-    /*! \brief Return current or charge carried by trajectory or particle cloud [A/C].
+    /*! \brief Return current or charge carried by trajectory or
+     *  particle cloud [A/C].
+     *
+     *  With MODE_2D, this in A/m or C/m.
      */
     double IQ() const { return( _IQ ); }
 

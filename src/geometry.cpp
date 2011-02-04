@@ -298,6 +298,18 @@ void Geometry::set_solid( int32_t n, const Solid *s )
 }
 
 
+uint32_t Geometry::number_of_solids() const
+{
+    return( _n );
+}
+
+
+uint32_t Geometry::number_of_boundaries() const
+{
+    return( _n+6 );
+}
+
+
 const Solid *Geometry::get_solid( int32_t n ) const
 {
     if( n <= 6 || n > _n+6 )

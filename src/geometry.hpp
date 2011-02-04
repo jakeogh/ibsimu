@@ -244,7 +244,7 @@ public:
  */
 class Geometry : public Mesh
 {
-    int32_t                    _n;         /*!< \brief Number of solids */
+    uint32_t                   _n;         /*!< \brief Number of solids */
     std::vector<const Solid*>  _sdata;     /*!< \brief Array of solid definitions, size \a _n */
     std::vector<Bound>         _bound;     /*!< \brief Array of boundary conditions, size \a _n+6 */
 
@@ -279,6 +279,16 @@ public:
      */
     ~Geometry();
 
+    /*! \brief Return number of solids.
+     */
+    uint32_t number_of_solids() const;
+
+    /*! \brief Return number of boundaries.
+     *
+     *  Always returns at least \a n >= 6.
+     */
+    uint32_t number_of_boundaries() const;
+    
     /*! \brief Sets solid number \a n to \a s.
      *
      *  Solids have to be defined in incresing order. %Solid number \a

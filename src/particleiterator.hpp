@@ -51,6 +51,7 @@
 #include <gsl/gsl_odeiv.h>
 #include <gsl/gsl_poly.h>
 #include "geometry.hpp"
+#include "trajectory.hpp"
 #include "particles.hpp"
 #include "efield.hpp"
 #include "scalarfield.hpp"
@@ -67,11 +68,6 @@
 enum particle_iterator_type_e {
     PARTICLE_ITERATOR_ADAPTIVE = 0,
     PARTICLE_ITERATOR_FIXED_STEP_LEN
-};
-
-
-enum plasma_threshold_type_e {
-    
 };
 
 
@@ -242,6 +238,58 @@ public:
 };
 
 
+/*! \brief %Particle iteration statistics.
+ *
+ *  Stores statistics about the particle histories.
+ *
+ */
+class ParticleStatistics {
+
+    uint32_t      _nboundaries;      /*!< \brief Number of solids in geometry. */
+
+    uint32_t      _end_time;          /*!< \brief Number of time limited particle iterations. */
+    uint32_t      _end_step;          /*!< \brief Number of step count limited particle iterations. */
+    uint32_t      _end_baddef;        /*!< \brief Number of bad particle definitions. */
+    uint32_t      _sum_steps;         /*!< \brief Total number of steps taken. */
+
+    uint32_t     *_bound_collisions;  /*!< \brief Number of particles collided with electrodes. */
+    double       *_bound_current;     /*!< \brief Amount of current collided with electrodes. */
+
+public:
+
+    ParticleStatistics();
+    ParticleStatistics( const ParticleStatistics &stat );
+    ParticleStatistics( uint32_t nboundaries );
+    ~ParticleStatistics();
+
+    const ParticleStatistics &operator=( const ParticleStatistics &stat );
+    const ParticleStatistics &operator+=( const ParticleStatistics &stat );
+
+    void clear( void );
+    void reset( uint32_t nboundaries );
+    
+    uint32_t end_time( void ) const;
+    uint32_t end_step( void ) const;
+    uint32_t end_baddef( void ) const;
+    uint32_t sum_steps( void ) const;
+
+    uint32_t number_of_boundaries( void ) const;
+    uint32_t bound_collisions( uint32_t bound ) const;
+    uint32_t bound_collisions( void ) const;
+    double bound_current( uint32_t bound ) const;
+    double bound_current( void ) const;
+
+    void inc_end_time( void ) { _end_time++; }
+    void inc_end_step( void ) { _end_step++; }
+    void inc_end_baddef( void ) { _end_baddef++; }
+    void inc_sum_steps( void ) { _sum_steps++; }
+    void inc_sum_steps( uint32_t i ) { _sum_steps += i; }
+
+    void add_bound_collision( uint32_t bound, double IQ );
+
+};
+
+
 /*! \brief %Particle iterator class for continuous Vlasov-type iteration.
  *
  * Templated for particle point type (see ParticlePBase).
@@ -251,38 +299,31 @@ public:
  */
 template <class PP> class ParticleIterator {
 
-    gsl_odeiv_system      _system;    /**< \brief GSL ODE integrator system. */
-    gsl_odeiv_step       *_step;      /**< \brief GSL ODE integrator stepper. */
-    gsl_odeiv_control    *_control;   /**< \brief GSL ODE integrator constrol. */
-    gsl_odeiv_evolve     *_evolve;    /**< \brief GSL ODE integrator integrator. */
+    gsl_odeiv_system           _system;    /**< \brief GSL ODE integrator system. */
+    gsl_odeiv_step            *_step;      /**< \brief GSL ODE integrator stepper. */
+    gsl_odeiv_control         *_control;   /**< \brief GSL ODE integrator constrol. */
+    gsl_odeiv_evolve          *_evolve;    /**< \brief GSL ODE integrator integrator. */
 
-    particle_iterator_type_e _type;   /**< \brief Iteratory type. */
+    particle_iterator_type_e   _type;      /**< \brief Iteratory type. */
 
-    bool                  _polyint;   /*!< \brief Interpolation type to use. True means use polynomial */
-    double                _epsabs;    /*!< \brief Absolute error limit. */
-    double                _epsrel;    /*!< \brief Relative error limit. */
-    uint32_t              _maxsteps;  /*!< \brief Maximum number of simulation steps for particle. */
-    double                _maxt;      /*!< \brief Maximum particle lifetime. */
-    uint32_t              _trajdiv;   /*!< \brief Divisor for saved trajectories,
-				       * if 3, every third trajectory is saved. */
-    bool                  _mirror[6]; /*!< \brief Is particle mirrored on boundary? */
+    bool                       _polyint;   /*!< \brief Interpolation type to use. True means use polynomial */
+    double                     _epsabs;    /*!< \brief Absolute error limit. */
+    double                     _epsrel;    /*!< \brief Relative error limit. */
+    uint32_t                   _maxsteps;  /*!< \brief Maximum number of simulation steps for particle. */
+    double                     _maxt;      /*!< \brief Maximum particle lifetime. */
+    uint32_t                   _trajdiv;   /*!< \brief Divisor for saved trajectories,
+					    * if 3, every third trajectory is saved. */
+    bool                       _mirror[6]; /*!< \brief Is particle mirrored on boundary? */
 
-    Particle<PP>         *_first;     /*!< \brief Pointer to first particle of the database. */
-    ParticleIteratorData  _pidata;    /*!< \brief User data provided to PP::get_derivatives(). */
+    Particle<PP>              *_first;     /*!< \brief Pointer to first particle of the database. */
+    ParticleIteratorData       _pidata;    /*!< \brief User data provided to PP::get_derivatives(). */
 
-    PP                    _xi;        /*!< \brief Previous mesh intersection coordinates 
-				       *   or starting point. */
-    std::vector<PP>       _traj;      /*!< \brief %Particle trajectory data for current trajectory. */
+    PP                         _xi;        /*!< \brief Previous mesh intersection coordinates 
+					    *   or starting point. */
+    std::vector<PP>            _traj;      /*!< \brief %Particle trajectory data for current trajectory. */
     std::vector<ColData<PP> >  _coldata;   /*!< \brief Mesh intersection coordinate data. */
 
-    uint32_t              _end_time;  /*!< \brief Number of time limited particle iterations. */
-    uint32_t              _end_step;  /*!< \brief Number of step count limited particle iterations. */
-    uint32_t              _end_out;   /*!< \brief Number of particle iterations ended with particle 
-				       *   out of geometry. */
-    uint32_t              _end_coll;  /*!< \brief Number of particle iterations ended with particle 
-				       *   collided to an electrode. */
-    uint32_t              _end_baddef;/*!< \brief Number of bad particle definitions. */
-    uint32_t              _sum_steps; /*!< \brief Total number of steps taken. */
+    ParticleStatistics         _stat;      /*!< \brief Particle statistics. */
 
 
     /*! \brief Check for particle collision with solid
@@ -292,32 +333,24 @@ template <class PP> class ParticleIterator {
      *  collision point is bracketed between x1 and x2. Particle
      *  coordinates at status_x are set to collision coordinates.
      *  Returns false if particle collided.
-     * */
+     */
     bool check_collision( Particle<PP> &particle, const PP &x1, const PP &x2, PP &status_x ) {
 
-	size_t a;
-	double K;
-	Vec3D v1, v2, vc;
-
-	// Convert PP to Vec3D
-	for( a = 0; a < (PP::size()-1)/2; a++ ) {
-	    v1[a] = x1[2*a+1];
-	    v2[a] = x2[2*a+1];
-	}
-
 	// If inside solid, bracket for collision point
-	if( (a = _pidata._g->inside( v2 )) >= 7 ) {
-	    K = _pidata._g->bracket_surface( a, v2, v1, vc );
-	} else {
+	Vec3D v2 = x2.location();
+	int32_t bound = _pidata._g->inside( v2 );
+	if( bound < 7 )
 	    return( true ); // No collision happened.
-	}
+	Vec3D vc;
+	Vec3D v1 = x1.location();
+	double K = _pidata._g->bracket_surface( bound, v2, v1, vc );
 
-	// Convert Vec3D to PP
-	for( a = 0; a < PP::size(); a++ )
+	// Calculate new PP
+	for( size_t a = 0; a < PP::size(); a++ )
 	    status_x[a] = x2[a] + K*(x1[a]-x2[a]);
 
-	// Remove all points from _traj after time status_x[0].
-	for( a = _traj.size()-1; a > 0; a-- ) {
+	// Remove all points from trajectory after time status_x[0].
+	for( size_t a = _traj.size()-1; a > 0; a-- ) {
 	    if( _traj[a][0] > status_x[0] )
 		_traj.pop_back();
 	    else
@@ -327,7 +360,9 @@ template <class PP> class ParticleIterator {
 	// Save last trajectory point and update status
 	_traj.push_back( status_x );
 	particle.set_status( PARTICLE_COLL );
-	_end_coll++;
+
+	// Update collision statistics for boundary
+	_stat.add_bound_collision( bound, particle.IQ() );
 
 	return( false ); // Collision happened.
     }
@@ -412,7 +447,7 @@ template <class PP> class ParticleIterator {
     }
 
 
-    void handle_collision( Particle<PP> &particle, size_t c, PP &status_x ) {
+    void handle_collision( Particle<PP> &particle, uint32_t bound, size_t c, PP &status_x ) {
 
 #ifdef DEBUG_PARTICLE_ITERATOR
 	std::cout << "    handle_collision()\n";
@@ -421,7 +456,7 @@ template <class PP> class ParticleIterator {
 	_traj.push_back( _coldata[c]._x );
 	status_x = _coldata[c]._x;
 	particle.set_status( PARTICLE_OUT );
-	_end_out++;
+	_stat.add_bound_collision( bound, particle.IQ() );
     }
 
 
@@ -524,14 +559,14 @@ template <class PP> class ParticleIterator {
 		if( _mirror[2*a] )
 		    handle_mirror( c, i, a, -1, x2 );
 		else {
-		    handle_collision( particle, c, x2 );
+		    handle_collision( particle, 1+2*a, c, x2 );
 		    return( false );
 		}
 	    } else if( i[a] >= (_pidata._g->size(a)-1) ) {
 		if( _mirror[2*a+1] )
 		    handle_mirror( c, i, a, +1, x2 );
 		else {
-		    handle_collision( particle, c, x2 );
+		    handle_collision( particle, 2+2*a, c, x2 );
 		    return( false );
 		}
 	    }
@@ -863,8 +898,8 @@ public:
 		      const Geometry *g, Particle<PP> *first, 
 		      const CallbackFunctorD_V *bfield_suppression )
 	: _type(type), _polyint(polyint), _epsabs(epsabs), _epsrel(epsrel), _maxsteps(maxsteps), _maxt(maxt), 
-	  _trajdiv(trajdiv), _first(first), _pidata(scharge,efield,bfield,g,bfield_suppression), _end_time(0), 
-	  _end_step(0), _end_out(0), _end_coll(0), _end_baddef(0), _sum_steps(0) {
+	  _trajdiv(trajdiv), _first(first), _pidata(scharge,efield,bfield,g,bfield_suppression), 
+	  _stat(g->number_of_boundaries()) {
 
 	// Initialize mirroring
 	_mirror[0] = mirror[0];
@@ -910,22 +945,11 @@ public:
 
 
     /*! \brief Get particle iterator statistics.
-     *
-     *  Returns statistics in variables \a end_time, \a end_step, \a
-     *  end_out, \a end_coll, \a end_baddef and \a sum_steps. See
-     *  ParticleDatabase for more details about the particle iterator
-     *  statistics.
      */
-    void get_statistics( uint32_t &end_time, uint32_t &end_step, uint32_t &end_out,
-			 uint32_t &end_coll, uint32_t &end_baddef, uint32_t &sum_steps ) {
-	end_time   = _end_time;
-	end_step   = _end_step;
-	end_out    = _end_out;
-	end_coll   = _end_coll;
-	end_baddef = _end_baddef;
-	sum_steps  = _sum_steps;
+    const ParticleStatistics &get_statistics( void ) const {
+	return( _stat );
     }
-
+    
     /*! \brief Iterate a particle from start to end.
      *
      *  Iterate particle \a particle from start to end. This function
@@ -943,7 +967,7 @@ public:
 	// Check particle definition
 	if( !check_particle_definition( x ) ) {
 	    particle->set_status( PARTICLE_BADDEF );
-	    _end_baddef++;
+	    _stat.inc_end_baddef();
 	    return;
 	}
 	particle->x() = x;
@@ -1059,14 +1083,14 @@ public:
 	// Check if step count or time limited 
 	if( nstp == _maxsteps ) {
 	    particle->set_status( PARTICLE_NSTP );
-	    _end_step++;
+	    _stat.inc_end_step();
 	} else if( x[0] >= _maxt ) {
 	    particle->set_status( PARTICLE_TIME );
-	    _end_time++;
+	    _stat.inc_end_time();
 	}
 
 	// Save step count
-	_sum_steps += nstp;
+	_stat.inc_sum_steps( nstp );
 
 	// Save trajectory of current particle
 	if( _trajdiv != 0 && (particle-_first) % _trajdiv == 0 )

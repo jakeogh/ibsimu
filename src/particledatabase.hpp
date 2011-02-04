@@ -151,14 +151,7 @@ protected:
 
     double         _rhosum;      /*!< \brief Sum of space charge density in defined beams (C/m3). */
 
-    uint32_t       _end_time;    /*!< \brief Number of time limited particle iterations. */
-    uint32_t       _end_step;    /*!< \brief Number of step count limited particle iterations. */
-    uint32_t       _end_out;     /*!< \brief Number of particle iterations ended with particle 
-				  *   out of geometry. */
-    uint32_t       _end_coll;    /*!< \brief Number of particle iterations ended with particle 
-				  *   collided to an electrode. */
-    uint32_t       _end_baddef;  /*!< \brief Number of bad particle definitions. */
-    uint32_t       _sum_steps;   /*!< \brief Total number of steps taken. */
+    ParticleStatistics _stat;    /*!< \brief Particle statistics. */
 
     int            _iteration;   /*!< \brief Iteration number. */
     
@@ -166,17 +159,7 @@ protected:
 
     /*! \brief Constructor.
      */
-    ParticleDataBase()
-	: _epsabs(1e-6), _epsrel(1e-6), _polyint(true), _maxsteps(1000), 
-	  _maxt(1e-3), _trajdiv(1), _rhosum(0.0), _end_time(0), _end_step(0), _end_out(0), 
-	  _end_coll(0), _end_baddef(0), _sum_steps(0), _iteration(-1), _bfield_suppression(NULL) {
-	_mirror[0] = false;
-	_mirror[1] = false;
-	_mirror[2] = false;
-	_mirror[3] = false;
-	_mirror[4] = false;
-	_mirror[5] = false;
-    }
+    ParticleDataBase();
 
 public:
 
@@ -197,17 +180,14 @@ public:
      *  \deprecated This function is deprecated (it does nothing) and
      *  is replaced by global IBSimu::set_thread_count().
      */
-    void set_thread_count( uint32_t threadcount ) {}
+    void set_thread_count( uint32_t threadcount );
 
     /*! \brief Set the accuracy requirement for calculation.
      *
      *  Accuracy requirements default to \a epsabs = 1.0e-6 and \a
      *  epsrel = 1.0e-6.
      */
-    void set_accuracy( double epsabs, double epsrel ) {
-	_epsabs = epsabs;
-	_epsrel = epsrel;
-    }
+    void set_accuracy( double epsabs, double epsrel );
 
     /*! \brief Set magnetic field suppression location depedent
      *  callback functor.
@@ -218,46 +198,32 @@ public:
      *  magnetic field suppression can be localized to a volume with
      *  selected potential range.
      */
-    void set_bfield_suppression( const CallbackFunctorD_V *functor ) {
-	_bfield_suppression = functor;
-    }
+    void set_bfield_suppression( const CallbackFunctorD_V *functor );
 
     /*! \brief Set the interpolation type to polynomial(true) or linear(false).
      *
      *  Polynomial interpolation is the default.
      */
-    void set_polyint( bool polyint ) {
-	_polyint = polyint;
-    }
+    void set_polyint( bool polyint );
     
     /*! \brief Get current interpolation type.
      *
      *  True is returned if polynomial interpolation is enabled and
      *  false if disabled.
      */
-    bool get_polyint( void ) const {
-	return( _polyint );
-    }
+    bool get_polyint( void ) const;
     
     /*! \brief Set maximum number of steps to iterate.
      *
      *  One thousand (1000) steps is the default
      */
-    void set_max_steps( uint32_t maxsteps ) {
-	if( maxsteps <= 0 )
-	    throw( Error( ERROR_LOCATION, "invalid parameter" ) );
-	_maxsteps = maxsteps;
-    }
+    void set_max_steps( uint32_t maxsteps );
 
     /*! \brief Set maximum lifetime of particle in simulation.
      *
      *  One millisecond (1e-3 sec) is the default
      */
-    void set_max_time( double maxt ) {
-	if( maxt <= 0.0 )
-	    throw( Error( ERROR_LOCATION, "invalid parameter" ) );
-	_maxt = maxt;
-    }
+    void set_max_time( double maxt );
 
     /*! \brief Set trajectory saving.
      *
@@ -265,9 +231,7 @@ public:
      *  If \a div is one, every trajectory is saved.
      *  If \a div N>1, every Nth trajectory is saved.
      */
-    void set_save_trajectories( uint32_t div ) {
-	_trajdiv = div;
-    }
+    void set_save_trajectories( uint32_t div );
 
     /*! \brief Get trajectory saving.
      *
@@ -275,9 +239,7 @@ public:
      *  If \a div is one, every trajectory is saved.
      *  If \a div N>1, every Nth trajectory is saved.
      */
-    uint32_t get_save_trajectories( void ) {
-	return( _trajdiv );
-    }
+    uint32_t get_save_trajectories( void ) const;
 
     /*! \brief Set particle mirroring on boundaries.
      *
@@ -285,19 +247,7 @@ public:
      *  borders. Mirroring is always false for directions that do not
      *  exist.
      */
-    void set_mirror( const bool mirror[6] ) {
-	_mirror[0] = mirror[0];
-	_mirror[1] = mirror[1];
-	_mirror[2] = mirror[2];
-	_mirror[3] = mirror[3];
-	if( geom_mode() == MODE_3D ) {
-	    _mirror[4] = mirror[4];
-	    _mirror[5] = mirror[5];
-	} else {
-	    _mirror[4] = false;
-	    _mirror[5] = false;
-	}
-    }
+    void set_mirror( const bool mirror[6] );
 
     /*! \brief Get particle mirroring on boundaries.
      *
@@ -305,18 +255,9 @@ public:
      *  borders. Mirroring is always false for directions that do not
      *  exist.
      */
-    void get_mirror( bool mirror[6] ) const {
-	mirror[0] = _mirror[0];
-	mirror[1] = _mirror[1];
-	mirror[2] = _mirror[2];
-	mirror[3] = _mirror[3];
-	mirror[4] = _mirror[4];
-	mirror[5] = _mirror[5];
-    }
+    void get_mirror( bool mirror[6] ) const;
 
-    int get_iteration_number( void ) const {
-	return( _iteration );
-    }
+    int get_iteration_number( void ) const;
 
     /*! \brief Return sum of defined beam space charge density.
      *
@@ -331,9 +272,11 @@ public:
      *  incorrect for multi-beam extraction simulation defined with
      *  several calls to "add_beam" functions.
      */
-    double get_rhosum( void ) {
-	return( _rhosum );
-    }
+    double get_rhosum( void ) const;
+
+    /*! \brief Get particle iterator statistics.
+     */
+    const ParticleStatistics &get_statistics( void ) const;
 
 /* ************************************** *
  * Information and queries                *
@@ -730,13 +673,8 @@ public:
 	// Clear space charge
 	scharge.clear();
 
-	// Clear statistics
-	_end_time   = 0;
-	_end_step   = 0;
-	_end_out    = 0;
-	_end_coll   = 0;
-	_end_baddef = 0;
-	_sum_steps  = 0;
+	// Reset statistics
+	_stat.reset( g.number_of_boundaries() );
 
 	// Check number of particles
 	if( _particles.size() == 0 ) {
@@ -781,15 +719,8 @@ public:
 		scharge += *schmap[a];
 		delete schmap[a];
 	    }
-	    uint32_t end_time, end_step, end_out, end_coll, end_baddef, sum_steps;
-	    iterators[a]->get_statistics( end_time, end_step, end_out, 
-					  end_coll, end_baddef, sum_steps );
-	    _end_time   += end_time;
-	    _end_step   += end_step;
-	    _end_out    += end_out;
-	    _end_coll   += end_coll;
-	    _end_baddef += end_baddef;
-	    _sum_steps  += sum_steps;
+	    ParticleStatistics stat = iterators[a]->get_statistics();
+	    _stat += stat;
 	    delete iterators[a];
 	}
 
@@ -798,13 +729,17 @@ public:
 	t.stop();
 	if( ibsimu.get_verbose_output() ) {
 	    std::cout << "  Particle histories (" << _particles.size() << " total):\n";
-	    std::cout << "    time limited = " << _end_time << "\n";
-	    std::cout << "    step count limited = " << _end_step << "\n";
-	    std::cout << "    out of geometry = " << _end_out << "\n";
-	    std::cout << "    collided = " << _end_coll << "\n";
-	    std::cout << "    bad definitions = " << _end_baddef << "\n";
-	    std::cout << "    total steps = " << _sum_steps << "\n";
-	    std::cout << "    steps per particle (ave) = " << _sum_steps/(double)_particles.size() << "\n";
+	    std::cout << "    flown = " << _stat.bound_collisions() << "\n";
+	    std::cout << "    time limited = " << _stat.end_time() << "\n";
+	    std::cout << "    step count limited = " << _stat.end_step() << "\n";
+	    std::cout << "    bad definitions = " << _stat.end_baddef() << "\n";
+	    for( size_t a = 1; a <= _stat.number_of_boundaries(); a++ ) {
+		std::cout << "    beam to boundary " << a << " = " << _stat.bound_current(a)
+			  << " " << PP::IQ_unit() << " (" << _stat.bound_collisions(a) << " particles)" << "\n";
+	    }
+	    std::cout << "    total steps = " << _stat.sum_steps() << "\n";
+	    std::cout << "    steps per particle (ave) = " << 
+		_stat.sum_steps()/(double)_particles.size() << "\n";
 	    std::cout << "  time used = " << t << "\n";
 	}
     }

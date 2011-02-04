@@ -46,6 +46,121 @@
 #include "mat3d.hpp"
 
 
+ParticleDataBase::ParticleDataBase()
+    : _epsabs(1e-6), _epsrel(1e-6), _polyint(true), _maxsteps(1000), 
+      _maxt(1e-3), _trajdiv(1), _rhosum(0.0), _iteration(-1), _bfield_suppression(NULL) 
+{
+    _mirror[0] = false;
+    _mirror[1] = false;
+    _mirror[2] = false;
+    _mirror[3] = false;
+    _mirror[4] = false;
+    _mirror[5] = false;
+}
+
+
+void ParticleDataBase::set_thread_count( uint32_t threadcount )
+{
+
+}
+
+
+void ParticleDataBase::set_bfield_suppression( const CallbackFunctorD_V *functor )
+{
+    _bfield_suppression = functor;
+}
+
+
+void ParticleDataBase::set_polyint( bool polyint ) 
+{
+    _polyint = polyint;
+}
+
+
+bool ParticleDataBase::get_polyint( void ) const 
+{
+    return( _polyint );
+}
+
+
+void ParticleDataBase::set_max_steps( uint32_t maxsteps ) 
+{
+    if( maxsteps <= 0 )
+	throw( Error( ERROR_LOCATION, "invalid parameter" ) );
+    _maxsteps = maxsteps;
+}
+
+void ParticleDataBase::set_max_time( double maxt ) 
+{
+    if( maxt <= 0.0 )
+	throw( Error( ERROR_LOCATION, "invalid parameter" ) );
+    _maxt = maxt;
+}
+
+
+void ParticleDataBase::set_save_trajectories( uint32_t div ) 
+{
+    _trajdiv = div;
+}
+
+
+uint32_t ParticleDataBase::get_save_trajectories( void ) const
+{
+    return( _trajdiv );
+}
+
+
+int ParticleDataBase::get_iteration_number( void ) const 
+{
+    return( _iteration );
+}
+
+
+double ParticleDataBase::get_rhosum( void ) const
+{
+    return( _rhosum );
+}
+
+
+const ParticleStatistics &ParticleDataBase::get_statistics( void ) const
+{
+    return( _stat );
+}
+
+void ParticleDataBase::set_mirror( const bool mirror[6] )
+{
+    _mirror[0] = mirror[0];
+    _mirror[1] = mirror[1];
+    _mirror[2] = mirror[2];
+    _mirror[3] = mirror[3];
+    if( geom_mode() == MODE_3D ) {
+	_mirror[4] = mirror[4];
+	_mirror[5] = mirror[5];
+    } else {
+	_mirror[4] = false;
+	_mirror[5] = false;
+    }
+}
+
+
+void ParticleDataBase::get_mirror( bool mirror[6] ) const 
+{
+    mirror[0] = _mirror[0];
+    mirror[1] = _mirror[1];
+    mirror[2] = _mirror[2];
+    mirror[3] = _mirror[3];
+    mirror[4] = _mirror[4];
+    mirror[5] = _mirror[5];
+}
+
+
+void ParticleDataBase::set_accuracy( double epsabs, double epsrel )
+{
+    _epsabs = epsabs;
+    _epsrel = epsrel;
+}
+
+
 void ParticleDataBase2D::add_2d_beam_with_velocity( uint32_t N, double J, double q, double m, 
 						    double v, double dvp, double dvt, 
 						    double x1, double y1, double x2, double y2 )

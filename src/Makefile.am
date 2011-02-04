@@ -141,6 +141,7 @@ particlediagplotter.cpp \
 particlediagplotter.hpp \
 particlegraph.cpp \
 particlegraph.hpp \
+particleiterator.cpp \
 particleiterator.hpp \
 particles.cpp \
 particles.hpp \
