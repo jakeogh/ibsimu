@@ -76,9 +76,6 @@ class VectorField : public Mesh {
 				  *   is not stored.
 				  */
 
-    bool parse_line( const std::string &str, double c[6], double xscale, double fscale, 
-		     size_t cdim, size_t fdim, const std::string &filename, size_t linec );
-
     void transform( int ind[3] );
     
     void check_definition();
@@ -101,7 +98,7 @@ public:
      *  mesh size) set from \a m. The field is set to zero in all
      *  locations.
      */
-    VectorField( const Mesh &m, bool fout[3] );
+    VectorField( const Mesh &m, const bool fout[3] );
 
     /*! \brief Constructor for set geometry.
      *
@@ -113,7 +110,7 @@ public:
      *  the vector field. Components marked \a false are always
      *  zero. The field is initially set to zero in all locations.
      */
-    VectorField( geom_mode_e geom_mode, bool fout[3], Int3D size, 
+    VectorField( geom_mode_e geom_mode, const bool fout[3], Int3D size, 
 		 Vec3D origo, double h );
 
     /*! \brief Constructor for vector field from ascii file.
@@ -141,7 +138,7 @@ public:
      *  In 3D: (x, y, z, Bx, By, Bz)
      *
      */
-    VectorField( geom_mode_e geom_mode, bool fout[3], double xscale, 
+    VectorField( geom_mode_e geom_mode, const bool fout[3], double xscale, 
 		 double fscale, const std::string &filename );
 
     /*! \brief Copy constructor.
@@ -174,7 +171,7 @@ public:
      *  Very far (double the size of the simulation box) the field
      *  evaluator will always return zero.
      */
-    void set_extrapolation( field_extrpl_e extrpl[6] ) {
+    void set_extrapolation( const field_extrpl_e extrpl[6] ) {
 	memcpy( _extrpl, extrpl, 6*sizeof(field_extrpl_e) );
     }
 
@@ -207,7 +204,7 @@ public:
      *  Sets the field geometry according to the parameters and clears
      *  the field to zero in all locations.
      */
-    void reset( geom_mode_e geom_mode, bool fout[3], Int3D size, 
+    void reset( geom_mode_e geom_mode, const bool fout[3], Int3D size, 
 		Vec3D origo, double h );
 
     /*! \brief Search minimum and maximum vector length values of

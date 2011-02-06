@@ -1,7 +1,7 @@
 /*! \file vecfield_filedef.cpp 
- *  \brief Test VectorField definition from ascii file
+ *  \brief Test VectorField definition from ascii file.
  *
- *  \test Test VectorField definition from ascii file
+ *  \test Test VectorField definition from ascii file.
  */
 
 
@@ -18,14 +18,14 @@ using namespace std;
 
 void test( int argc, char **argv )
 {
-    bool fout[3] = {false, false, true};
-    char *srcdir = getenv( "srcdir" );
-    char *srcdir_default = ".";
+    const char *srcdir = getenv( "srcdir" );
+    const char *srcdir_default = ".";
     if( srcdir == NULL )
 	srcdir = srcdir_default;
     string infile = to_string(srcdir) + "/vecfield_filedef.in";
 
+    bool fout[3] = {false, false, true};
     VectorField f( MODE_2D, fout, 1.0, 1.0, infile );
-    //f.debug_print();
+    //f.debug_print( cout );
 }
 

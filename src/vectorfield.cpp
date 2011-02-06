@@ -45,6 +45,7 @@
 #include <cstring>
 #include <cmath>
 #include <cstdlib>
+#include "readascii.hpp"
 #include "vectorfield.hpp"
 #include "ibsimu.hpp"
 
@@ -56,7 +57,7 @@ VectorField::VectorField()
 }
 
 
-VectorField::VectorField( const Mesh &m, bool fout[3] )
+VectorField::VectorField( const Mesh &m, const bool fout[3] )
     : Mesh(m)
 {
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
@@ -74,7 +75,7 @@ VectorField::VectorField( const Mesh &m, bool fout[3] )
 }
 
 
-VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], Int3D size, 
+VectorField::VectorField( geom_mode_e geom_mode, const bool fout[3], Int3D size, 
 			  Vec3D origo, double h )
     : Mesh(geom_mode,size,origo,h)
 {
@@ -120,68 +121,13 @@ void VectorField::check_definition()
 }
 
 
-bool VectorField::parse_line( const std::string &str, double c[6], double xscale, double fscale, 
-			      size_t cdim, size_t fdim, const std::string &filename, size_t linec )
-{
-    const char *ptr = str.c_str();
-
-    // Skip leading white space
-    while( isspace(*ptr) ) ptr++;
-
-    // Check if line contained only white space
-    if( *ptr == '\n' || *ptr == '\r' || *ptr == '\0' )
-	return( false );
-
-    // Read cdim coordinates
-    for( size_t i = 0; i < cdim; i++ ) {
-	while( isspace(*ptr) ) ptr++;
-	if( !isdigit(*ptr) && *ptr != '-' && *ptr != '+' && *ptr != '.' ) {
-	    throw( Error( ERROR_LOCATION, "unexpected input reading coordinate data in " + 
-			  filename + ":" + to_string( linec ) ) );
-	}
-	c[i] = xscale*strtod( ptr, (char **)(&ptr) );
-    }
-
-    // Read fdim field values
-    for( size_t i = 0; i < fdim; i++ ) {
-	while( isspace(*ptr) ) ptr++;
-	if( !isdigit(*ptr) && *ptr != '-' && *ptr != '+' && *ptr != '.' ) {
-	    throw( Error( ERROR_LOCATION, "unexpected input reading field data in " +
-			  filename + ":" + to_string( linec ) ) );
-	}
-	c[3+i] = fscale*strtod( ptr, (char **)(&ptr) );
-    }
-
-    // Skip tailing white space
-    while( isspace(*ptr) ) ptr++;
-
-    // Check if line contains extra input
-    if( *ptr != '\n' && *ptr != '\r' && *ptr != '\0' )
-	throw( Error( ERROR_LOCATION, "unexpected input after reading field data in " +
-		      filename + ":" + to_string( linec ) ) );
-
-    return( true );
-}
-
-
-VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], double xscale, 
+VectorField::VectorField( geom_mode_e geom_mode, const bool fout[3], double xscale, 
 			  double fscale, const std::string &filename )
 {
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
 
     if( ibsimu.get_verbose_output() )
 	std::cout << "Reading vector field from " << filename << "\n";
-    
-    // Read through data to find out mesh parameters
-    size_t i;
-    Int3D size;
-    Vec3D origo( std::numeric_limits<double>::infinity(), 
-		 std::numeric_limits<double>::infinity(), 
-		 std::numeric_limits<double>::infinity() );
-    Vec3D max( -std::numeric_limits<double>::infinity(), 
-	       -std::numeric_limits<double>::infinity(), 
-	       -std::numeric_limits<double>::infinity() );
-    double h = 0.0;
 
     // Set number of dimensions (cdim) 
     size_t cdim;
@@ -209,73 +155,68 @@ VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], double xscale,
     if( fdim == 0 )
 	throw( Error( ERROR_LOCATION, "no field components to read" ) );
 
-    double c[6], c2[6];
-    int rec = 0;
+    // Read data columns
+    int columns = cdim + fdim;
+    ReadAscii data( filename, columns );
 
-    std::ifstream fin( filename.c_str() );
-    if( !fin.good() )
-	throw( Error( ERROR_LOCATION, "couldn\'t open file " + filename ) );
-
-    std::string str;
-
-    int linec = 0;
-    while( !fin.eof() ) {
-
-	// Read line
-	std::getline( fin, str );
-	linec++;
-
-	// Parse line
-	if( str[0] == '#' )
-	    continue;
-	if( !parse_line( str, c, xscale, fscale, cdim, fdim, filename, linec ) )
-	    continue;
-	rec++;
-
-	if( rec == 1 ) // Save first record
-	    memcpy( c2, c, 6*sizeof(double) );
-	else if( rec == 2 ) { // Calculate h 
-	    for( i = 0; i < cdim; i++ ) {
-		if( c[i] != c2[i] ) {
-		    h = fabs(c2[i]-c[i]);
-		    break;
-		}
-	    }
-	    if( i == cdim )
-		throw( Error( ERROR_LOCATION, "invalid coordinate data in " + filename + 
-			      ":" + to_string(linec) + ": no difference in coordinate data" ) );
-	}
-
-	// Find origo (minimum coordinate values) and max (maximum coordinate values)
-	for( i = 0; i < cdim; i++ ) {
-	    if( c[i] < origo[i] )
-		origo[i] = c[i];
-	    if( c[i] > max[i] )
-		max[i] = c[i];
+    // Check size
+    if( data.rows() < 2 )
+	throw( Error( ERROR_LOCATION, "too few records read" ) );
+    
+    // Determine mesh parameters from data
+    Int3D size;
+    Vec3D origo( std::numeric_limits<double>::infinity(), 
+		 std::numeric_limits<double>::infinity(), 
+		 std::numeric_limits<double>::infinity() );
+    Vec3D max( -std::numeric_limits<double>::infinity(), 
+	       -std::numeric_limits<double>::infinity(), 
+	       -std::numeric_limits<double>::infinity() );
+    
+    // Find origo (minimum coordinate values) and max (maximum coordinate values)
+    for( uint32_t a = 0; a < data.rows(); a++ ) {
+	for( uint32_t b = 0; b < cdim; b++ ) {
+	    double d = data[b][a];
+	    if( d < origo[b] )
+		origo[b] = d;
+	    if( d > max[b] )
+		max[b] = d;
 	}
     }
-
-    // Calculate size
-    for( i = 0; i < cdim; i++ ) {
+    
+    // Initial guess for h is difference of first two records
+    uint32_t first_dir = 0;
+    double h = 0.0;
+    for( uint32_t b = 0; b < cdim; b++ ) {
+	if( fabs(data[b][1] - data[b][0]) != 0.0 ) {
+	    first_dir = b;
+	    h = fabs(data[b][1] - data[b][0]);
+	    break;
+	}
+    }
+    if( first_dir == cdim )
+	throw( Error( ERROR_LOCATION, "no coordinate step recognized" ) );	
+    
+    // Calculate size from h
+    uint32_t i;
+    for( i = 0; i < cdim; i++ )
 	size[i] = (size_t)floor((max[i]-origo[i])/h+0.5)+1;
-	//if( size[i] == 1 )
-	//throw( Error( ERROR_LOCATION, "vector field doesn\'t support maps with size 1" ) );
-    }
     for( ; i < 3; i++ ) {
 	size[i] = 1;
 	origo[i] = 0.0;
 	max[i] = 0.0;
     }
 
+    // Correct h to higher accuracy
+    h = (max[first_dir]-origo[first_dir]) / ((double)size[first_dir]-1.0);
+
     // Check number of records
-    if( rec != size[0]*size[1]*size[2] ) {
-	throw( Error( ERROR_LOCATION, "number of records " + to_string(rec) + " in file " + filename + 
-		      " doesn\'t match expected mesh size " + to_string(size[0]) + "x"
-		      + to_string(size[1]) + "x" + to_string(size[2]) ) );
+    if( data.rows() != (uint32_t)size[0]*size[1]*size[2] ) {
+	throw( Error( ERROR_LOCATION, "number of records " + to_string(data.rows()) +
+		      " in file " + filename + " doesn\'t match expected mesh size " +
+		      to_string(size[0]) + "x" + to_string(size[1]) + "x" + to_string(size[2]) ) );
     }
 
     if( ibsimu.get_verbose_output() ) {
-	Int3D one(1,1,1);
 	std::cout << "  origo = " << origo << "\n";
 	std::cout << "  size  = " << size << "\n";
 	std::cout << "  max   = " << max << "\n";
@@ -294,35 +235,20 @@ VectorField::VectorField( geom_mode_e geom_mode, bool fout[3], double xscale,
 
     // Read data to fill mesh
     int ind[3] = {0, 0, 0};
-    fin.clear();
-    fin.seekg( 0 );
-
-    linec = 0;
-    while( !fin.eof() ) {
-
-	// Read line
-	std::getline( fin, str );
-	linec++;
-
-	// Parse line
-	if( str[0] == '#' )
-	    continue;
-	if( !parse_line( str, c, xscale, fscale, cdim, fdim, filename, linec ) )
-	    continue;
+    for( uint32_t a = 0; a < data.rows(); a++ ) {
 
 	// Convert coordinates to indexes
-	for( i = 0; i < cdim; i++ )
-	    ind[i] = (int)floor((c[i]-origo[i])/h+0.5);
+	for( uint32_t b = 0; b < cdim; b++ )
+	    ind[b] = (int)floor((data[b][a]-origo[b])/h+0.5);
 
-	size_t j;
-	for( i = 0, j = 0; i < 3; i++ )
+	uint32_t j = 0;
+	for( uint32_t i = 0; i < 3; i++ ) {
 	    if( fout[i] ) {
-		_F[i][size[0]*size[1]*ind[2] + size[0]*ind[1] + ind[0]] = c[3+j];
+		_F[i][size[0]*size[1]*ind[2] + size[0]*ind[1] + ind[0]] = data[cdim+j][a];
 		j++;
 	    }
+	}
     }
-
-    fin.close();
 }
 
 
@@ -530,7 +456,7 @@ void VectorField::clear()
 }
 
 
-void VectorField::reset( geom_mode_e geom_mode, bool fout[3], Int3D size, 
+void VectorField::reset( geom_mode_e geom_mode, const bool fout[3], Int3D size, 
 			 Vec3D origo, double h )
 {
     Mesh::reset( geom_mode, size, origo, h );

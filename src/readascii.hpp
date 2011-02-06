@@ -45,6 +45,7 @@
 
 
 #include <vector>
+#include <stdint.h>
 
 
 /*! \brief Class for reading ASCII data files.
@@ -61,32 +62,60 @@
 class ReadAscii {
 
     std::string           _filename; /*!< \brief Name of read file. */
-    int                   _N;        /*!< \brief Number of columns. */
+    uint32_t              _N;        /*!< \brief Number of columns. */
     std::vector<double> **_data;     /*!< \brief Column data vectors. */
 
     void read_data_line( const std::string &str, int linec );
 
 public:
 
+    /*! \brief Constructor for empty class.
+     */
     ReadAscii();
+
+    /*! \brief Constructor for class from file.
+     *
+     *  Read ASCII data file from \a filename. If \a columns is -1 the
+     *  number of data columns is determined from the file. If the
+     *  number of columns is given the file is checked to have the
+     *  columns.
+     */
     ReadAscii( const std::string &filename, int columns = -1 );
+
+    /*! \brief Destructor.
+     */
     ~ReadAscii();
 
+    /*! \brief Read ASCII data file.
+     *
+     *  Read ASCII data file from \a filename. If \a columns is -1 the
+     *  number of data columns is determined from the file. If the
+     *  number of columns is given the file is checked to have the
+     *  columns.
+     */
     void read( const std::string &filename, int columns = -1 );
 
+    /*! \brief Clear data.
+     */
     void clear( void );
 
-    int columns( void ) const {
+    /*! \brief Return number of columns in data.
+     */
+    uint32_t columns( void ) const {
 	return( _N );
     }
 
-    int rows( void ) const {
+    /*! \brief Return number of rows in data.
+     */
+    uint32_t rows( void ) const {
 	if( _N > 0 )
 	    return( _data[0]->size() );
 	return( 0 );
     }
 
-    const std::vector<double> &operator[]( int i ) const;
+    /*! \brief Return const reference to the vector containing column \a i.
+     */
+    const std::vector<double> &operator[]( uint32_t i ) const;
 };
 
 

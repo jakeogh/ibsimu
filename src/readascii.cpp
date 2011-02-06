@@ -41,7 +41,7 @@ void ReadAscii::read_data_line( const std::string &str, int linec )
 	return;
 
     // Read line data
-    for( int i = 0; i < _N; i++ ) {
+    for( uint32_t i = 0; i < _N; i++ ) {
 
 	char *endptr;
 	double val = strtod( ptr, &endptr );
@@ -129,7 +129,7 @@ void ReadAscii::read( const std::string &filename, int columns )
     // Reserve space for data
     _N = columns;
     _data = new std::vector<double> *[_N];
-    for( int i = 0; i < _N; i++ )
+    for( uint32_t i = 0; i < _N; i++ )
 	_data[i] = new std::vector<double>;
 
     // Read data
@@ -156,7 +156,7 @@ void ReadAscii::read( const std::string &filename, int columns )
 
 void ReadAscii::clear( void )
 {
-    for( int i = 0; i < _N; i++ )
+    for( uint32_t i = 0; i < _N; i++ )
 	delete _data[i];
     delete _data;
     _data = NULL;
@@ -164,7 +164,7 @@ void ReadAscii::clear( void )
 }
 
 
-const std::vector<double> &ReadAscii::operator[]( int i ) const
+const std::vector<double> &ReadAscii::operator[]( uint32_t i ) const
 {
     if( i < _N )
 	return( *_data[i] );
