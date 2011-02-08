@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <iomanip>
-#include "vectorfield.hpp"
+#include "meshvectorfield.hpp"
 #include "ibsimu.hpp"
 #include "error.hpp"
 
@@ -25,7 +25,7 @@ void test( int argc, char **argv )
     string infile = to_string(srcdir) + "/vecfield_filedef.in";
 
     bool fout[3] = {false, false, true};
-    VectorField f( MODE_2D, fout, 1.0, 1.0, infile );
-    //f.debug_print( cout );
+    MeshVectorField f( MODE_2D, fout, 1.0e-3, 1000.0, infile );
+    f.debug_print( cout );
 }
 

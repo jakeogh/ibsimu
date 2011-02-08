@@ -50,7 +50,6 @@
 #include "vec3d.hpp"
 #include "geometry.hpp"
 #include "scalarfield.hpp"
-#include "efield.hpp"
 #include "vectorfield.hpp"
 
 
@@ -87,8 +86,8 @@ class FieldDiagPlot {
 
     const Geometry     *_geom;
     const ScalarField  *_epot;
-    const Efield       *_efield;
     const ScalarField  *_scharge;
+    const VectorField  *_efield;
     const VectorField  *_bfield;
 
     size_t              _N;
@@ -123,7 +122,7 @@ public:
 
     /*! \brief Add pointer to electric field.
      */
-    void set_efield( const Efield *efield ) {
+    void set_efield( const VectorField *efield ) {
 	_efield = efield;
     }
 

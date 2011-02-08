@@ -51,7 +51,6 @@
 
 #include "geometry.hpp"
 #include "scalarfield.hpp"
-#include "efield.hpp"
 #include "vectorfield.hpp"
 #include "particledatabase.hpp"
 #include "particlediagplot.hpp"
@@ -72,9 +71,9 @@ class GTKPlotter {
     
     const Geometry         *_geom;
     const ScalarField      *_epot;
-    const Efield           *_efield;
     const ScalarField      *_scharge;
     const ScalarField      *_tdens;
+    const VectorField      *_efield;
     const VectorField      *_bfield;
     const ParticleDataBase *_pdb;
 
@@ -88,7 +87,7 @@ public:
 
     const Geometry *get_geometry( void ) const;
     const ScalarField *get_epot( void ) const;
-    const Efield *get_efield( void ) const;
+    const VectorField *get_efield( void ) const;
     const ScalarField *get_scharge( void ) const;
     const ScalarField *get_trajdens( void ) const;
     const VectorField *get_bfield( void ) const;
@@ -96,7 +95,7 @@ public:
 
     void set_geometry( const Geometry *geom );
     void set_epot( const ScalarField *epot );
-    void set_efield( const Efield *efield );
+    void set_efield( const VectorField *efield );
     void set_scharge( const ScalarField *scharge );
     void set_trajdens( const ScalarField *tdens );
     void set_bfield( const VectorField *bfield );

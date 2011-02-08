@@ -1,8 +1,8 @@
 /*! \file epot_efield.cpp
- *  \brief Source code for epot_efield.cpp
+ *  \brief Electric potential base electric field
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -42,6 +42,7 @@
 
 #include <cmath>
 #include "epot_efield.hpp"
+#include "error.hpp"
 
 
 EpotEfield::EpotEfield( const Geometry &g, const ScalarField &epot )
@@ -105,7 +106,7 @@ inline double epot_efield_interpolate_deriv
 }
 
 
-Vec3D EpotEfield::operator()( Vec3D x ) const
+const Vec3D EpotEfield::operator()( Vec3D x ) const
 {
     Vec3D E;
     double h = _g.h();

@@ -46,8 +46,8 @@
 
 
 FieldDiagPlot::FieldDiagPlot( Frame *frame, const Geometry *geom )
-    : _frame(frame), _geom(geom), _epot(NULL), _efield(NULL), _scharge(NULL), _bfield(NULL), 
-      _N(100)
+    : _frame(frame), _geom(geom), _epot(NULL), _scharge(NULL), 
+      _efield(NULL), _bfield(NULL), _N(100)
 {
     _diag[0] = FIELD_EPOT;
     _diag[1] = FIELD_NONE;

@@ -17,6 +17,7 @@
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
 #include "vectorfield.hpp"
+#include "meshvectorfield.hpp"
 #include "ibsimu.hpp"
 #include "error.hpp"
 #include "particlediagplotter.hpp"
@@ -73,7 +74,7 @@ void test( int argc, char **argv )
     BiCGSTABSolver solver;
     p.set_solver( solver );
 
-    VectorField bfield;
+    MeshVectorField bfield;
     EpotEfield efield( geom, epot );
     field_extrpl_e efldextrpl[6] = { FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE, 
 				     FIELD_MIRROR,      FIELD_EXTRAPOLATE,

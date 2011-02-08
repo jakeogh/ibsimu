@@ -33,7 +33,6 @@ diag_precond.cpp \
 diag_precond.hpp \
 dxf_solid.cpp \
 dxf_solid.hpp \
-efield.hpp \
 empty_precond.hpp \
 epot_efield.cpp \
 epot_efield.hpp \
@@ -117,10 +116,16 @@ mat3d.cpp \
 mat3d.hpp \
 matrix.cpp \
 matrix.hpp \
+mesh.cpp \
+mesh.hpp \
 meshgraph.cpp \
 meshgraph.hpp \
+meshvectorfield.cpp \
+meshvectorfield.hpp \
 mvector.cpp \
 mvector.hpp \
+multimeshvectorfield.cpp \
+multimeshvectorfield.hpp \
 mydxfblocks.cpp \
 mydxfblocks.hpp \
 mydxfentities.cpp \
@@ -184,7 +189,6 @@ vec3d.cpp \
 vec3d.hpp \
 vec4d.cpp \
 vec4d.hpp \
-vectorfield.cpp \
 vectorfield.hpp \
 xygraph.cpp \
 xygraph.hpp
@@ -204,7 +208,6 @@ convergence.hpp \
 crowmatrix.hpp \
 diag_precond.hpp \
 dxf_solid.hpp \
-efield.hpp \
 empty_precond.hpp \
 epot_efield.hpp \
 epot_problem.hpp \
@@ -235,8 +238,11 @@ legend.hpp \
 lineclip.hpp \
 mat3d.hpp \
 matrix.hpp \
+mesh.hpp \
 meshgraph.hpp \
+meshvectorfield.hpp \
 mvector.hpp \
+multimeshvectorfield.hpp \
 mydxfblocks.hpp \
 mydxfentities.hpp \
 mydxffile.hpp \

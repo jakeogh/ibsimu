@@ -61,152 +61,6 @@ std::ostream &operator<<( std::ostream &os, const Bound &b )
 }
 
 
-Mesh::Mesh()
-    : _geom_mode(MODE_3D), _h(1.0)
-{
-    _div_h = 1.0/_h;
-}
-
-
-Mesh::Mesh( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
-    : _geom_mode(geom_mode), _size(size), _origo(origo)
-{
-    _h = fabs(h);
-    _div_h = 1.0/_h;
-    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
-		  _origo(1)+_h*(_size[1]-1),
-		  _origo(2)+_h*(_size[2]-1) );
-
-    // Checks
-    if( _h == 0.0 )
-	throw( Error( ERROR_LOCATION, "zero mesh step size" ) );
-    else if( _geom_mode == MODE_CYL && _origo[1] < 0.0 )
-	throw( Error( ERROR_LOCATION, "negative origo in r-direction" ) );
-    else if( _size[0] <= 0 || _size[1] <= 0 || _size[2] <= 0 )
-    	throw( Error( ERROR_LOCATION, "zero mesh size" ) );
-}
-
-
-void Mesh::reset( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
-{
-    _geom_mode = geom_mode;
-    _size = size;
-    _origo = origo;
-    _h = fabs(h);
-    _div_h = 1.0/_h;
-    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
-		  _origo(1)+_h*(_size[1]-1),
-		  _origo(2)+_h*(_size[2]-1) );
-
-    // Checks
-    if( _h == 0.0 )
-	throw( Error( ERROR_LOCATION, "zero mesh step size" ) );
-    else if( _geom_mode == MODE_CYL && _origo[1] < 0.0 )
-	throw( Error( ERROR_LOCATION, "negative origo in r-direction" ) );
-    else if( _size[0] <= 0 || _size[1] <= 0 || _size[2] <= 0 )
-    	throw( Error( ERROR_LOCATION, "zero mesh size" ) );
-}
-
-
-Mesh::Mesh( std::istream &s )
-{
-    _geom_mode = (geom_mode_e)read_int32( s );
-    _size      = Int3D( s );
-    _origo     = Vec3D( s );
-    _h         = read_double( s );
-
-    // Calculate vector max and reciprocal of h
-    _div_h = 1.0/_h;
-    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
-		  _origo(1)+_h*(_size[1]-1),
-		  _origo(2)+_h*(_size[2]-1) );
-}
-
-
-int32_t Mesh::dim( void ) const
-{
-    switch( _geom_mode ) {
-    case MODE_1D:
-	return( 1 );
-	break;
-    case MODE_2D:
-	return( 2 );
-	break;
-    case MODE_CYL:
-	return( 2 );
-	break;
-    default:
-	return( 3 );
-	break;
-    }
-}
-
-
-void Mesh::save( std::ostream &s ) const
-{
-    write_int32( s, _geom_mode );
-    _size.save( s );
-    _origo.save( s );
-    write_double( s, _h );
-}
-
-
-bool Mesh::operator==( const Mesh &m ) const
-{
-    if( _geom_mode == m._geom_mode && 
-	_size == m._size && 
-	_origo == m._origo && 
-	_h == m._h )
-	return( true );
-    return( false );
-}
-
-
-bool Mesh::operator!=( const Mesh &m ) const
-{
-    if( _geom_mode != m._geom_mode ||
-	_size != m._size || 
-	_origo != m._origo || 
-	_h != m._h )
-	return( true );
-    return( false );
-}
-
-
-void Mesh::debug_print( std::ostream &os ) const
-{
-    os << "**Mesh\n";
-
-    switch( _geom_mode ) {
-    case MODE_1D:
-	os << "geom_mode = MODE_1D\n";
-	break;
-    case MODE_2D:
-	os << "geom_mode = MODE_2D\n";
-	break;
-    case MODE_CYL:
-	os << "geom_mode = MODE_CYL\n";
-	break;
-    case MODE_3D:
-	os << "geom_mode = MODE_3D\n";
-	break;
-    }
-    os << "size = (" 
-       << _size[0] << ", "
-       << _size[1] << ", "
-       << _size[2] << ")\n";
-    os << "origo = (" 
-       << _origo[0] << ", "
-       << _origo[1] << ", "
-       << _origo[2] << ")\n";
-    os << "max = (" 
-       << _max[0] << ", "
-       << _max[1] << ", "
-       << _max[2] << ")\n";
-    os << "h = " << _h << "\n";
-}
-
-
 Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
     : Mesh(geom_mode,size,origo,h)
 {
@@ -240,7 +94,7 @@ Geometry::Geometry( std::istream &s )
     check_definition();
 
     _n = read_int32( s );
-    for( int32_t a = 0; a < _n; a++ ) {
+    for( uint32_t a = 0; a < _n; a++ ) {
 	int32_t fileid = read_int32( s );
 	if( fileid == FILEID_FUNCSOLID )
 	    _sdata.push_back( new FuncSolid( s ) );
@@ -248,7 +102,7 @@ Geometry::Geometry( std::istream &s )
 	    throw( Error( ERROR_LOCATION, "unknown solid type" ) );
     }
 
-    for( int32_t a = 0; a < _n+6; a++ )
+    for( uint32_t a = 0; a < _n+6; a++ )
 	_bound.push_back( Bound( s ) );
 
     _built = read_int8( s );
@@ -259,7 +113,7 @@ Geometry::Geometry( std::istream &s )
 
 Geometry::~Geometry()
 {
-    for( int32_t a = 0; a < _n; a++ )
+    for( uint32_t a = 0; a < _n; a++ )
 	delete _sdata[a];
     delete [] _smesh;
 }
@@ -281,7 +135,7 @@ void Geometry::check_definition()
 }
 
 
-void Geometry::set_solid( int32_t n, const Solid *s )
+void Geometry::set_solid( uint32_t n, const Solid *s )
 {
     if( n <= 6 || n > _n+7 )
 	throw( Error( ERROR_LOCATION, "illegal solid number" + to_string(n) ) );
@@ -310,7 +164,7 @@ uint32_t Geometry::number_of_boundaries() const
 }
 
 
-const Solid *Geometry::get_solid( int32_t n ) const
+const Solid *Geometry::get_solid( uint32_t n ) const
 {
     if( n <= 6 || n > _n+6 )
 	throw( Error( ERROR_LOCATION, "illegal solid number " + to_string(n) ) );
@@ -319,7 +173,7 @@ const Solid *Geometry::get_solid( int32_t n ) const
 }
 
 
-void Geometry::set_boundary( int32_t n, const Bound &b )
+void Geometry::set_boundary( uint32_t n, const Bound &b )
 {
     if( n <= 0 || n > _n+6 )
 	throw( Error( ERROR_LOCATION, "illegal solid number " + to_string(n) ) );
@@ -328,7 +182,7 @@ void Geometry::set_boundary( int32_t n, const Bound &b )
 }
 
 
-Bound Geometry::get_boundary( int32_t n ) const
+Bound Geometry::get_boundary( uint32_t n ) const
 {
     if( n <= 0 || n > _n+6 )
 	throw( Error( ERROR_LOCATION, "illegal solid number " + to_string(n) ) );
@@ -360,7 +214,7 @@ int32_t Geometry::inside( const Vec3D &x ) const
 }
 
 
-bool Geometry::inside( int32_t n, const Vec3D &x ) const
+bool Geometry::inside( uint32_t n, const Vec3D &x ) const
 {
     if( n <= 6 || n > _n+6 )
 	throw( Error( ERROR_LOCATION, "illegal solid number n=" + to_string(n) ) );
@@ -537,7 +391,7 @@ void Geometry::build_mesh( void )
 	int neu = 0;
 	int dir = 0;
 	int solid[_n];
-	for( a = 0; a < _n; a++ )
+	for( a = 0; a < (int)_n; a++ )
 	    solid[a] = 0;
 
 	for( a = 0; a < nc; a++ ) {
@@ -555,7 +409,7 @@ void Geometry::build_mesh( void )
 	std::cout << "  " << vac << " vacuum nodes\n";
 	std::cout << "  " << neu << " neumann nodes\n";
 	std::cout << "  " << dir << " dirichlet nodes\n";
-	for( a = 0; a < _n; a++ )
+	for( a = 0; a < (int)_n; a++ )
 	    std::cout << "  " << solid[a] << " solid " << a+7 << " nodes\n";
     }
 }
@@ -565,9 +419,9 @@ void Geometry::save( std::ostream &s ) const
 {
     Mesh::save( s );
     write_int32( s, _n );
-    for( int32_t a = 0; a < _n; a++ )
+    for( uint32_t a = 0; a < _n; a++ )
 	_sdata[a]->save( s );
-    for( int32_t a = 0; a < _n+6; a++ )
+    for( uint32_t a = 0; a < _n+6; a++ )
 	_bound[a].save( s );
 
     write_int8( s, _built );
@@ -584,11 +438,11 @@ void Geometry::debug_print( std::ostream &os ) const
     os << "n = " << _n << "\n";
     if( _n == 0 )
 	os << "no sdata\n";
-    for( int32_t a = 0; a < _n; a++ ) {
+    for( uint32_t a = 0; a < _n; a++ ) {
 	os << "sdata[" << a << "]:\n";
 	_sdata[a]->debug_print( os );
     }
-    for( int32_t a = 0; a < _n+6; a++ ) {
+    for( uint32_t a = 0; a < _n+6; a++ ) {
 	os << "bound[" << a << "] = " << _bound[a] << "\n";
     }
     os << "built = " << _built << "\n";

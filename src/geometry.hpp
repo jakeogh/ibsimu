@@ -50,6 +50,7 @@
 #include "file.hpp"
 #include "vec3d.hpp"
 #include "solid.hpp"
+#include "mesh.hpp"
 #include "types.hpp"
 
 
@@ -91,121 +92,6 @@ struct Bound
     /*! \brief Outputting to stream.
      */
     friend std::ostream &operator<<( std::ostream &os, const Bound &b );
-};
-
-
-/*! \brief %Mesh geometry definion.
- *
- *  Class contains mesh geometry definition. It stores geometry mode (\a
- *  geom_mode), number of mesh nodes in each direction (\a size), the
- *  mesh cell size (\a h) and the locations of mesh node \a (0,0,0) and
- *  \a (size[0]-1,size[1]-1,size[2]-1) (known as \a origo and \a max).
- *  The \a max point is internally calculated. Other parameters are
- *  given when %Mesh is constructed.
- *
- *  %Mesh is to be used as a base class in all classes, which store or
- *  process some kind of mesh data.
- */
-class Mesh
-{
-protected:
-    geom_mode_e                _geom_mode; /*!< \brief %Geometry mode */
-    Int3D                      _size;      /*!< \brief Size of mesh */
-    Vec3D                      _origo;     /*!< \brief Location of mesh point (0,0,0) [m] */
-    Vec3D                      _max;       /*!< \brief Location of mesh point 
-					    * (size[0]-1,size[1]-1,size[2]-1) [m] */
-    double                     _h;         /*!< \brief Length of mesh step [m] */
-    double                     _div_h;     /*!< \brief Reciprocal of length of mesh step [1/m] */
-
-public:
-
-    /*! \brief Default constructor for mesh definition.
-     *
-     *  Sets geometry mode to MODE3D, mesh cell size \a h to 1, mesh
-     *  size \a size to (0,0,0) and origo \a origo to (0,0,0).
-     */
-    Mesh();
-
-    /*! \brief Constructor for mesh definition.
-     *
-     *  Sets geometry mode, mesh cell size \a h, mesh size \a size and
-     *  origo \a origo.
-     */
-    Mesh( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h );
-
-    /*! \brief Constructor for loading mesh from a file.
-     */
-    Mesh( std::istream &s );
-
-    /*! \brief Destructor.
-     */
-    ~Mesh() {}
-
-    /*! \brief Reset mesh definition.
-     */
-    void reset( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h );
-
-    /*! \brief Returns geometry mode.
-     */
-    geom_mode_e geom_mode( void ) const { return( _geom_mode ); }
-
-    /*! \brief Returns number of dimensions in geometry.
-     */
-    int32_t dim( void ) const;
-
-    /*! \brief Returns size array of geometry.
-     */
-    Int3D size( void ) const { return( _size ); }
-
-    /*! \brief Returns size of solid mesh in direction \a i.
-     */
-    int32_t size( int i ) const { return( _size[i] ); }
-   
-    /*! \brief Returns number of nodes in the mesh.
-     */
-    int32_t nodecount( void ) const { return( _size[0]*_size[1]*_size[2] ); }
-
-    /*! \brief Returns origo vector of geometry.
-     */
-    Vec3D origo( void ) const { return( _origo ); }
-
-    /*! \brief Returns \a i-th component of vector origo.
-     */
-    double origo( int i ) const { return( _origo[i] ); }
-
-    /*! \brief Returns vector pointing to the last mesh point opposite
-     *  of origo.
-     */
-    Vec3D max( void ) const { return( _max ); }
-
-    /*! \brief Returns \a i-th component of vector pointing to the
-     *  last mesh point opposite of origo.
-     */
-    double max( int i ) const { return( _max[i] ); }
-
-    /*! \brief Returns mesh cell size.
-     */
-    double h( void ) const { return( _h ); }
-
-    /*! \brief Returns reciprocal of mesh cell size (1/h).
-     */
-    double div_h( void ) const { return( _div_h ); }
-
-    /*! \brief Saves geometry data to stream.
-     */
-    void save( std::ostream &s ) const;
-
-    /*! \brief Equality.
-     */
-    bool operator==( const Mesh &m ) const;
-
-    /*! \brief Non-equality.
-     */
-    bool operator!=( const Mesh &m ) const;
-
-    /*! \brief Print debugging information to os.
-     */
-    void debug_print( std::ostream &os ) const;
 };
 
 
@@ -298,13 +184,13 @@ public:
      *  deleted. The newly defined defined solids default to Dirichlet
      *  boundary with potential zero.
      */
-    void set_solid( int32_t n, const Solid *s );
+    void set_solid( uint32_t n, const Solid *s );
 
     /*! \brief Returns a const pointer to solid number \a n.
      *
      *  %Solid number \a n should be >= 7.
      */
-    const Solid *get_solid( int32_t n ) const;
+    const Solid *get_solid( uint32_t n ) const;
 
     /*! \brief Sets boundary condition \a b for solid number \a n.
      *
@@ -321,11 +207,11 @@ public:
      *  means that the natural boundary for cylindrical axis will be
      *  used.
      */
-    void set_boundary( int32_t n, const Bound &b );
+    void set_boundary( uint32_t n, const Bound &b );
 
     /*! \brief Returns boundary condition for solid number \a n.
      */
-    Bound get_boundary( int32_t n ) const;
+    Bound get_boundary( uint32_t n ) const;
 
     /*! \brief Returns a vector of boundary conditions.
      */
@@ -344,11 +230,11 @@ public:
      *  The bracketing count number defaults to 12, which corresponds
      *  to relative accuracy of 1/4096.
      */
-    void set_bracket_count( int32_t n );
+    void set_bracket_count( uint32_t n );
 
     /*! \brief Returns the solid bracketing count number.
      */
-    int32_t get_bracket_count( void ) const;
+    uint32_t get_bracket_count( void ) const;
 
     /*! \brief Returns 0 if point \a x is vacuum or the number of
      *  solid of \a x is inside a defined solid. Returns a number from
@@ -360,7 +246,7 @@ public:
 
     /*! \brief Returns true if point \a x is inside solid \a n.
      */
-    bool inside( int32_t n, const Vec3D &x ) const;
+    bool inside( uint32_t n, const Vec3D &x ) const;
 
     /*! \brief Find solid \a n surface location by bracketing.
      *

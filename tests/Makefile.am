@@ -29,6 +29,7 @@ matvec3dtest_SOURCES = matvec3dtest.cpp
 matrixconv_SOURCES = matrixconv.cpp
 matrixsolver_SOURCES = matrixsolver.cpp
 mesh_SOURCES = mesh.cpp
+multimeshvecfield_SOURCES = multimeshvecfield.cpp
 mvector_SOURCES = mvector.cpp
 nsimp_plasmacyl_SOURCES = nsimp_plasmacyl.cpp
 palette_SOURCES = palette.cpp
@@ -107,6 +108,7 @@ matvec3dtest \
 matrixconv \
 matrixsolver \
 mesh \
+multimeshvecfield \
 mvector \
 nsimp_plasmacyl \
 palette \

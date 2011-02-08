@@ -655,7 +655,7 @@ public:
      *  in geometry \a g. Space charge density field \a scharge is set
      *  from the particle trajectories.
      */
-    virtual void iterate_trajectories( ScalarField &scharge, const Efield &efield, 
+    virtual void iterate_trajectories( ScalarField &scharge, const VectorField &efield, 
 				       const VectorField &bfield, const Geometry &g ) {
 
 	ScalarField                         *schmap[ibsimu.get_thread_count()];
@@ -750,7 +750,7 @@ public:
      *  forward one time step in electric field \a efield and geometry
      *  \a g.
      */
-    virtual void step_particles( const Efield &efield, const Geometry &g, double dt ) {
+    virtual void step_particles( const VectorField &efield, const Geometry &g, double dt ) {
 
     }
 

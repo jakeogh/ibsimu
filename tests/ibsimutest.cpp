@@ -1,7 +1,18 @@
+/*! \file ibsimutest.cpp
+ *  \brief Common functions for tests.
+ */
+
+
 #include <iostream>
 #include "ibsimutest.hpp"
 #include "ibsimu.hpp"
-#include "error.hpp"
+
+
+ErrorTest::ErrorTest( const ErrorLocation &loc, const std::string &str )
+    : Error(loc)
+{
+    _error_str = "Test failure: " + str;
+}
 
 
 /* Main function for tests

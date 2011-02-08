@@ -58,8 +58,8 @@ bool GTKPlotter::_gtk_initialized = false;
 
 
 GTKPlotter::GTKPlotter( int *argc, char ***argv )
-    : _geom(NULL), _epot(NULL), _efield(NULL), 
-      _scharge(NULL), _tdens(NULL), _bfield(NULL), _pdb(NULL)
+    : _geom(NULL), _epot(NULL), _scharge(NULL), _tdens(NULL), 
+      _efield(NULL), _bfield(NULL), _pdb(NULL)
 {
     if( !_gtk_initialized ) {
 	if( gtk_init_check( argc, argv ) == FALSE )
@@ -145,7 +145,7 @@ const ScalarField *GTKPlotter::get_epot( void ) const
 }
 
 
-const Efield *GTKPlotter::get_efield( void ) const
+const VectorField *GTKPlotter::get_efield( void ) const
 {
     return( _efield );
 }
@@ -186,7 +186,7 @@ void GTKPlotter::set_epot( const ScalarField *epot )
     _epot = epot;
 }
 
-void GTKPlotter::set_efield( const Efield *efield )
+void GTKPlotter::set_efield( const VectorField *efield )
 {
     _efield = efield;
 }

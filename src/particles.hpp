@@ -50,7 +50,6 @@
 #include "geometry.hpp"
 #include "scalarfield.hpp"
 #include "vectorfield.hpp"
-#include "efield.hpp"
 #include "vec3d.hpp"
 #include "callback.hpp"
 
@@ -788,13 +787,13 @@ typedef Particle<ParticleP3D>  Particle3D;
  */
 struct ParticleIteratorData {
     ScalarField              *_scharge;            /*!< \brief Space charge field or NULL. */
-    const Efield             *_efield;             /*!< \brief Electric field or NULL. */
+    const VectorField        *_efield;             /*!< \brief Electric field or NULL. */
     const VectorField        *_bfield;             /*!< \brief Magnetic field or NULL. */
     const Geometry           *_g;                  /*!< \brief Geometry. */
     double                    _qm;                 /*!< \brief Precalculated q/m. */
     const CallbackFunctorD_V *_bfield_suppression; /*!< \brief Location dependent magnetic field suppression. */
 
-    ParticleIteratorData( ScalarField *scharge, const Efield *efield, 
+    ParticleIteratorData( ScalarField *scharge, const VectorField *efield, 
 			  const VectorField *bfield, const Geometry *g, 
 			  const CallbackFunctorD_V *bfield_suppression )
 	: _scharge(scharge), _efield(efield), _bfield(bfield), 

@@ -2,7 +2,7 @@
  *  \brief Electric potential base electric field
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -44,15 +44,15 @@
 #define EPOT_EFIELD_HPP 1
 
 
-#include "efield.hpp"
+#include "vectorfield.hpp"
 #include "geometry.hpp"
 #include "scalarfield.hpp"
 #include "vec3d.hpp"
 #include "types.hpp"
 
 
-/*! \brief Electric field class implementation based on on-line
- *  interpolation of electric potential.
+/*! \brief %Vector field based on on-line interpolation of electric
+ *  potential.
  *
  *  %EpotEfield contains pointers to Geometry and to ScalarField
  *  electric potential (epot). In 1D %EpotEfield uses three closest
@@ -67,7 +67,7 @@
  *  can be programmed with set_extrapolation() function. Behaviour
  *  defaults to extrapolation using closest electric potential points. 
  */
-class EpotEfield : public Efield {
+class EpotEfield : public VectorField {
 
     field_extrpl_e       _extrpl[6];   /*!< \brief What to return outside geometry. */
 
@@ -110,26 +110,8 @@ public:
     /*! \brief Operator for getting interpolated electric field value
      *  at \a x.
      */
-    Vec3D operator()( Vec3D x ) const;
+    virtual const Vec3D operator()( Vec3D x ) const;
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

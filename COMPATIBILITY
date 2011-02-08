@@ -8,6 +8,10 @@ functions. This list was started from version 1.0.3.
 IBSimu 1.0.4dev
 ---------------------------------------------------------------------------
 
+VectorField is made abstract and efields inherits vector field. Mesh
+base vector field is now MeshVectorField. Potential based electric
+field is still EpotEfield.
+
 All MyDXFEntities constructors need a pointer to MyDXFFile. This
 change is made to give MyDXFEntities access to warning level setting
 at MyDXFFile.

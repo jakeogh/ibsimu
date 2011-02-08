@@ -53,7 +53,7 @@
 #include "geometry.hpp"
 #include "trajectory.hpp"
 #include "particles.hpp"
-#include "efield.hpp"
+#include "vectorfield.hpp"
 #include "scalarfield.hpp"
 #include "scharge.hpp"
 #include "scheduler.hpp"
@@ -894,7 +894,7 @@ public:
     ParticleIterator( particle_iterator_type_e type, double epsabs, double epsrel, 
 		      bool polyint, uint32_t maxsteps, double maxt, 
 		      uint32_t trajdiv, bool mirror[6], ScalarField *scharge, 
-		      const Efield *efield, const VectorField *bfield, 
+		      const VectorField *efield, const VectorField *bfield, 
 		      const Geometry *g, Particle<PP> *first, 
 		      const CallbackFunctorD_V *bfield_suppression )
 	: _type(type), _polyint(polyint), _epsabs(epsabs), _epsrel(epsrel), _maxsteps(maxsteps), _maxt(maxt), 

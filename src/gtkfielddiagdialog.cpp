@@ -41,6 +41,8 @@
  */
 
 #include "gtkfielddiagdialog.hpp"
+#include "meshvectorfield.hpp"
+#include "multimeshvectorfield.hpp"
 
 
 GTKFieldDiagDialog::GTKFieldDiagDialog( GtkWidget *window, GTKPlotter *plotter, 
@@ -389,8 +391,15 @@ void GTKFieldDiagDialog::run( void )
 
     // Bfield components
     bool bfield_fout[3] = {false, false, false};
-    if( _plotter->get_bfield() )
-	_plotter->get_bfield()->get_defined_components( bfield_fout );
+    if( _plotter->get_bfield() ) {
+	const VectorField *bfield = _plotter->get_bfield();
+	const MeshVectorField *meshbfield = dynamic_cast<const MeshVectorField *>( bfield );
+	const MultiMeshVectorField *multimeshbfield = dynamic_cast<const MultiMeshVectorField *>( bfield );
+	if( meshbfield != NULL )
+	    meshbfield->get_defined_components( bfield_fout );
+	else if( multimeshbfield != NULL )
+	    multimeshbfield->get_defined_components( bfield_fout );
+    }
 
     // B
     hbox = gtk_hbox_new( TRUE, 30 );
