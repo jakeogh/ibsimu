@@ -315,8 +315,8 @@ void SolidGraph::disable_cache( void )
 
 void SolidGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
-    if( ibsimu.get_verbose_output() )
-	std::cout << "  Plotting solids\n";
+    //if( ibsimu.get_verbose_output() )
+    //std::cout << "  Plotting solids\n";
 
     //std::cout << "--Plotting solids--\n";
     if( !_cache || _solid.size() == 0 || _oview != _view || _olevel != _level ) {

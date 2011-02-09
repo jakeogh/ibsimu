@@ -59,7 +59,6 @@ GeomPlotter::~GeomPlotter()
 
 void GeomPlotter::build_plot( void )
 {
-    //ParticleDiagPlot::build_plot();
 }
 
 

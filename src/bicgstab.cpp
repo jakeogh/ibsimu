@@ -83,7 +83,7 @@ void bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
     StatusPrint sp;
     if( ibsimu.get_verbose_output() ) {
 	std::stringstream ss;
-	ss << "  " << std::setw(5) << 0 << " " << std::setw(20) << resid;
+	ss << "  " << std::setw(5) << 0 << " " << std::scientific << std::setw(20) << resid;
 	sp.print( ss.str() );
     }
 
@@ -129,7 +129,7 @@ void bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
 
 	if( ibsimu.get_verbose_output() ) {
 	    std::stringstream ss;
-	    ss << "  " << std::setw(5) << i << " " << std::setw(20) << resid;
+	    ss << "  " << std::setw(5) << i << " " << std::scientific << std::setw(20) << resid;
 	    sp.print( ss.str() );
 	}
     }
@@ -141,24 +141,4 @@ void bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
     
     return;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

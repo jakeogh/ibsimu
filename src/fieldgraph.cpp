@@ -69,6 +69,7 @@ void FieldGraph::enable( bool enable )
 void FieldGraph::build_scalarfield_plot( void )
 {
     if( _scalarfield ) {
+
 	double range[4] = { _scalarfield->origo( _vb[0] ),
 			    _scalarfield->origo( _vb[1] ),
 			    _scalarfield->max  ( _vb[0] ),
@@ -122,8 +123,8 @@ void FieldGraph::build_scalarfield_plot( void )
 
 void FieldGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
-    if( ibsimu.get_verbose_output() )
-	std::cout << "  Plotting field\n";
+    //if( ibsimu.get_verbose_output() )
+    //std::cout << "  Plotting field\n";
 
     if( _colormap == NULL || _oview != _view || _olevel != _level ) {
 	// First plot or changed view happened
@@ -147,21 +148,3 @@ void FieldGraph::get_bbox( double bbox[4] )
 	bbox[3] = _scalarfield->max( _vb[1] );
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -223,8 +223,8 @@ void EqPotGraph::disable_cache( void )
 
 void EqPotGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
-    if( ibsimu.get_verbose_output() )
-	std::cout << "  Plotting equipotentials\n";
+    //if( ibsimu.get_verbose_output() )
+    //std::cout << "  Plotting equipotentials\n";
 
     if( !_data_built || _oview != _view || _olevel != _level || !_cache ) {
 	// First round or change happened
