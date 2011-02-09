@@ -45,8 +45,8 @@
 
 
 GeomPlot::GeomPlot( Frame *frame, const Geometry *geom )
-    : _frame(frame), _geom(geom), _epot(NULL), _scharge(NULL), _pdb(NULL),
-      _solidgraph(NULL), _fieldgraph(NULL), _eqpotgraph(NULL), _particlegraph(NULL),
+    : _frame(frame), _geom(geom), _epot(NULL), _scharge(NULL), _tdens(NULL), _bfield(NULL),
+      _pdb(NULL), _solidgraph(NULL), _fieldgraph(NULL), _eqpotgraph(NULL), _particlegraph(NULL),
       _meshgraph(NULL), _view(VIEW_XY), _level(0),
       _eqlines_auto(20), _particle_div(10), _scharge_field(false), _qm_discretation(true), 
       _mesh(false), _fieldplot_sel(FIELD_NONE), _fieldplot_logscale(false), _cache(true)
@@ -134,6 +134,12 @@ void GeomPlot::set_epot( const ScalarField *epot )
 	_eqpotgraph->set_eqlines_manual( _eqlines_manual );
     }
 
+    if( _fieldplot_sel == FIELD_EPOT ) {
+	// Redo field graph to use new epot
+	set_fieldgraph_plot( _fieldplot_sel );
+    }
+    
+    // Reset graphs in every case
     reset_graphs();
 }
 
@@ -151,6 +157,26 @@ void GeomPlot::set_eqlines_auto( size_t N )
     _eqlines_auto = N;
     if( _eqpotgraph )
 	_eqpotgraph->set_eqlines_auto( N );
+}
+
+
+void GeomPlot::set_trajdens( const ScalarField *tdens ) 
+{
+    _tdens = tdens;
+    if( _fieldplot_sel == FIELD_TRAJDENS ) {
+	// Redo field graph to use new tdens
+	set_fieldgraph_plot( _fieldplot_sel );
+    }
+}
+
+
+void GeomPlot::set_scharge( const ScalarField *scharge ) 
+{
+    _scharge = scharge;
+    if( _fieldplot_sel == FIELD_SCHARGE ) {
+	// Redo field graph to use new scharge
+	set_fieldgraph_plot( _fieldplot_sel );
+    }
 }
 
 

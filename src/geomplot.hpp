@@ -120,13 +120,13 @@ public:
 
     void set_eqlines_manual( const std::vector<double> &pot );
 
-    std::vector<double> get_eqlines_manual( void ) {
+    std::vector<double> get_eqlines_manual( void ) const {
 	return( _eqlines_manual );
     }
 
     void set_eqlines_auto( size_t N );
 
-    size_t get_eqlines_auto( void ) {
+    size_t get_eqlines_auto( void ) const {
 	return( _eqlines_auto );
     }
 
@@ -138,31 +138,27 @@ public:
 
     /*! \brief Get magnetic field.
      */
-    const VectorField *get_bfield( void ) {
+    const VectorField *get_bfield( void ) const {
 	return( _bfield );
     }
 
     /*! \brief Set trajectory density field.
      */
-    void set_trajdens( const ScalarField *tdens ) {
-	_tdens = tdens;
-    }
+    void set_trajdens( const ScalarField *tdens );
 
     /*! \brief Get trajectory density field.
      */
-    const ScalarField *get_trajdens( void ) {
+    const ScalarField *get_trajdens( void ) const {
 	return( _tdens );
     }
 
     /*! \brief Set space charge density field.
      */
-    void set_scharge( const ScalarField *scharge ) {
-	_scharge = scharge;
-    }
+    void set_scharge( const ScalarField *scharge );
 
     /*! \brief Get space charge density field.
      */
-    const ScalarField *get_scharge( void ) {
+    const ScalarField *get_scharge( void ) const {
 	return( _scharge );
     }
 
@@ -172,7 +168,7 @@ public:
 
     /*! \brief Get field graph plotting type.
      */
-    field_type_e get_fieldgraph_plot( void ) {
+    field_type_e get_fieldgraph_plot( void ) const {
 	return( _fieldplot_sel );
     }
 
@@ -182,7 +178,7 @@ public:
 
     /*! \brief Get field graph loscale setting
      */
-    bool get_fieldgraph_logscale( void ) {
+    bool get_fieldgraph_logscale( void ) const {
 	return( _fieldplot_logscale );
     }
 
@@ -194,19 +190,19 @@ public:
 
     void set_particle_div( size_t particle_div );
 
-    size_t get_particle_div( void ) {
+    size_t get_particle_div( void ) const {
 	return( _particle_div );
     }
 
     void set_qm_discretation( bool enable );
 
-    bool get_qm_discretation( void ) {
+    bool get_qm_discretation( void ) const {
 	return( _qm_discretation );
     }
 
     void set_mesh( bool enable );
 
-    bool get_mesh( void ) {
+    bool get_mesh( void ) const {
 	return( _mesh );
     }
 
