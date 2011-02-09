@@ -191,7 +191,7 @@ Bound Geometry::get_boundary( uint32_t n ) const
 }
 
 
-int32_t Geometry::inside( const Vec3D &x ) const
+uint32_t Geometry::inside( const Vec3D &x ) const
 {
     for( ssize_t a = _sdata.size()-1; a >= 0 ; a-- ) {
 	if( _sdata[a]->inside( x ) )
@@ -242,14 +242,13 @@ signed char Geometry::mesh_check( int32_t i, int32_t j, int32_t k ) const
 }
 
 
-double Geometry::bracket_surface( int32_t n, const Vec3D &xin, const Vec3D &xout, Vec3D &xsurf ) const
+double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xout, Vec3D &xsurf ) const
 {
-    int a;
     Vec3D xl = xin;
     Vec3D xh = xout;
 
     // Do iteration
-    for( a = 0; a < 12; a++ ) {
+    for( int a = 0; a < 12; a++ ) {
 	xsurf = 0.5*(xl+xh);
 	if( inside( n, xsurf ) )
 	    xl = xsurf;
@@ -261,7 +260,7 @@ double Geometry::bracket_surface( int32_t n, const Vec3D &xin, const Vec3D &xout
     xsurf = 0.5*(xl+xh);
 
     // Return parametric distance
-    for( a = 0; a < 3; a++ ) {
+    for( int a = 0; a < 3; a++ ) {
 	if( xin[a] != xout[a] )
 	    return( (xsurf[a] - xin[a]) / (xout[a] - xin[a]) );
     }

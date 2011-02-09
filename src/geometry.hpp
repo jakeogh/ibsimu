@@ -242,7 +242,7 @@ public:
      *  point is inside several defined solids, the solid with the
      *  highest solid number is returned.
      */
-    int32_t inside( const Vec3D &x ) const;
+    uint32_t inside( const Vec3D &x ) const;
 
     /*! \brief Returns true if point \a x is inside solid \a n.
      */
@@ -257,7 +257,7 @@ public:
      *  xsurf and returns parametrical distance (value from 0 to 1)
      *  from xin. %Vector \a xsurf is used as internal work space.
      */
-    double bracket_surface( int32_t n, const Vec3D &xin, const Vec3D &xout, Vec3D &xsurf ) const;
+    double bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xout, Vec3D &xsurf ) const;
 
     /*! \brief Is the solid mesh built?
      */
@@ -300,8 +300,8 @@ public:
 	return( _smesh[i + j*_size[0] + k*_size[0]*_size[1]] );
     }
 
-    /*! \brief Returns solid number from solid mesh at \a i, \a j, \a
-     *  k or number from 1 to 6 if point is outside mesh.
+    /*! \brief Returns solid node number from solid mesh at \a i, \a
+     *  j, \a k or number from 1 to 6 if point is outside mesh.
      */
     signed char mesh_check( int32_t i, int32_t j, int32_t k ) const;
 
