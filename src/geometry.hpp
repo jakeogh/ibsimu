@@ -95,6 +95,26 @@ struct Bound
 };
 
 
+/* A node is:
+ * 1. Vacuum
+ *    - Pure
+ *    - Near solid
+ * 2. Boundary
+ *    - Dirichlet
+ *    - Neumann
+ *
+ */
+
+#define SMESH_NODE_ID_MASK             0xC0000000 // 1100...
+#define SMESH_NODE_ID_PURE_VACUUM      0x40000000 // 0100...
+#define SMESH_NODE_ID_NEAR_SOLID       0x00000000 // 0000...
+#define SMESH_NODE_ID_DIRICHLET        0xC0000000 // 1100...
+#define SMESH_NODE_ID_NEUMANN          0x80000000 // 1000...
+
+#define SMESH_BOUNDARY_NUMBER_MASK     0x000000FF // limit to 0-255
+#define SMESH_NEAR_SOLID_INDEX_MASK    0x3FFFFFFF // limit to 0-2^30
+
+
 /*! \brief %Geometry defining class.
  *
  *  %Geometry class holds the definitions of the geometry
@@ -135,14 +155,37 @@ class Geometry : public Mesh
     std::vector<Bound>         _bound;     /*!< \brief Array of boundary conditions, size \a _n+6 */
 
     bool                       _built;     /*!< \brief Is solid mesh array built? */
-    signed char               *_smesh;     /*!< \brief Solid mesh array */
+    uint32_t                  *_smesh;     /*!< \brief Solid mesh array. */
+    std::vector<uint8_t>       _nearsolid; /*!< \brief Near solid data. */
 
-    int32_t                    _brktc;     /*!< \brief Bracket count (accuracy) */
+    uint32_t                   _brktc;     /*!< \brief Bracket count (accuracy) */
 
     
-    /*! \brief Check if node is vacuum or Neumann.
+    /*! \brief Check if node is solid (n>=7).
+     *
+     *  Returns 0 if node is not solid (vacuum, outside mesh or
+     *  simulation box boundary). If node is solid, the solid number
+     *  >= 7 is returned.
      */
-    bool vac_or_neu( int32_t i, int32_t j, int32_t k );
+    uint32_t is_solid( int32_t i, int32_t j, int32_t k ) const;
+
+    /*! \brief Add an entry to near solid data.
+     *
+     *  Appends a new entry to near solid data and updated \a
+     *  near_solid_index to point to the next byte after the end of
+     *  data.
+     */
+    void add_near_solid_entry( uint32_t &near_solid_index, int32_t i, int32_t j, int32_t k );
+
+    /*! \brief Bracket solid surface between node points
+     *
+     *  Finds surface of solid \a solid between the outer node (\a i,
+     *  \a j, \a k) and the inner node in \a sign direction (+/-1) of
+     *  of coordinate axis \a coord (0,1 or 2). Returns parametric
+     *  distance (between 0 and 1) from the outer node to the inner
+     *  node.
+     */
+    double bracket_ndist( int32_t i, int32_t j, int32_t k, int32_t solid, int sign, int coord ) const;
 
     /*! \brief Check mesh definition validity.
      */
@@ -227,8 +270,8 @@ public:
      *  number halvings \a n that are done before bracket_surface()
      *  returns the best estimate.
      *
-     *  The bracketing count number defaults to 12, which corresponds
-     *  to relative accuracy of 1/4096.
+     *  The bracketing count number defaults to 16, which corresponds
+     *  to relative accuracy of 1/65536.
      */
     void set_bracket_count( uint32_t n );
 
@@ -270,40 +313,40 @@ public:
 
     /*! \brief Returns a const reference to solid mesh.
      */
-    const signed char &mesh( int32_t i ) const { return( _smesh[i] ); }
+    const uint32_t &mesh( int32_t i ) const { return( _smesh[i] ); }
 
     /*! \brief Returns a const reference to solid mesh.
      */
-    const signed char &mesh( int32_t i, int32_t j ) const {
+    const uint32_t &mesh( int32_t i, int32_t j ) const {
 	return( _smesh[i + j*_size[0]] ); 
     }
 
     /*! \brief Returns a const reference to solid mesh.
      */
-    const signed char &mesh( int32_t i, int32_t j, int32_t k ) const {
+    const uint32_t &mesh( int32_t i, int32_t j, int32_t k ) const {
 	return( _smesh[i + j*_size[0] + k*_size[0]*_size[1]] );
     }
 
     /*! \brief Returns a reference to solid mesh.
      */
-    signed char &mesh( int32_t i ) { return( _smesh[i] ); }
+    uint32_t &mesh( int32_t i ) { return( _smesh[i] ); }
 
     /*! \brief Returns a reference to solid mesh.
      */
-    signed char &mesh( int32_t i, int32_t j ) {
+    uint32_t &mesh( int32_t i, int32_t j ) {
 	return( _smesh[i + j*_size[0]] );
     }
 
     /*! \brief Returns a reference to solid mesh.
      */
-    signed char &mesh( int32_t i, int32_t j, int32_t k ) {
+    uint32_t &mesh( int32_t i, int32_t j, int32_t k ) {
 	return( _smesh[i + j*_size[0] + k*_size[0]*_size[1]] );
     }
 
     /*! \brief Returns solid node number from solid mesh at \a i, \a
-     *  j, \a k or number from 1 to 6 if point is outside mesh.
+     *  j, \a k or Dirichlet boundary number if point is outside mesh.
      */
-    signed char mesh_check( int32_t i, int32_t j, int32_t k ) const;
+    uint32_t mesh_check( int32_t i, int32_t j, int32_t k ) const;
 
     /*! \brief Saves geometry data to stream.
      */

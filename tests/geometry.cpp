@@ -18,26 +18,22 @@ using namespace std;
 
 bool s1( double x, double y, double z )
 {
-    /*
-    cout << "Testing at ("
-	 << x << ", "
-	 << y << ", "
-	 << z << ")\n";
-    */
-
-    return( x*x + y*y < 0.1*0.1 );
+    return( (x-0.04)*(x-0.04)/(0.032*0.032) + y*y/(0.015*0.015) < 1 );
 }
 
 
 void test1( void )
 {
-    Geometry g( MODE_2D, Int3D(20,20,1), Vec3D(0,0,0), 0.01 );
+    Geometry g( MODE_2D, Int3D(5,5,1), Vec3D(0,0,0), 0.01 );
     Solid *s = new FuncSolid( s1 );
     g.set_solid( 7, s );
-    g.set_boundary( 7, Bound(BOUND_DIRICHLET, 20.0) );
-    g.set_boundary( 1, Bound(BOUND_DIRICHLET, 20.0) );
+    g.set_boundary( 1, Bound(BOUND_NEUMANN,    0.0) );
+    g.set_boundary( 2, Bound(BOUND_NEUMANN,   10.0) );
+    g.set_boundary( 3, Bound(BOUND_NEUMANN,    0.0) );
+    g.set_boundary( 4, Bound(BOUND_DIRICHLET, 20.0) );
+    g.set_boundary( 7, Bound(BOUND_DIRICHLET, 10.0) );
     g.build_mesh();
-    //g.debug_print();
+    g.debug_print( cout );
 
     ofstream fstr( "geometry.dat" );
     g.save( fstr );
@@ -72,7 +68,7 @@ void test2( void )
 void test( int argc, char **argv )
 {
     test1();
-    test2();
+    //test2();
 }
 
 

@@ -43,6 +43,7 @@
 #include <iostream>
 #include <iomanip>
 #include <math.h>
+#include <string.h>
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "error.hpp"
@@ -62,7 +63,7 @@ std::ostream &operator<<( std::ostream &os, const Bound &b )
 
 
 Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
-    : Mesh(geom_mode,size,origo,h)
+    : Mesh(geom_mode,size,origo,h), _brktc(16)
 {
     check_definition();
 
@@ -84,7 +85,7 @@ Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
     _bound.push_back( Bound(BOUND_NEUMANN,0.0) );
 
     _built = false;
-    _smesh = new signed char[_size[0]*_size[1]*_size[2]];
+    _smesh = new uint32_t[_size[0]*_size[1]*_size[2]];
 }
 
 
@@ -106,8 +107,12 @@ Geometry::Geometry( std::istream &s )
 	_bound.push_back( Bound( s ) );
 
     _built = read_int8( s );
-    _smesh = new signed char[_size[0]*_size[1]*_size[2]];
-    read_compressed_block( s, _size[0]*_size[1]*_size[2], (int8_t *)_smesh );
+    _smesh = new uint32_t[_size[0]*_size[1]*_size[2]];
+    read_compressed_block( s, sizeof(uint32_t)*_size[0]*_size[1]*_size[2], 
+			   (int8_t *)_smesh );
+
+    // DO: _nearsolid;
+    _brktc = read_int32( s );
 }
 
 
@@ -223,22 +228,34 @@ bool Geometry::inside( uint32_t n, const Vec3D &x ) const
 }
 
 
-signed char Geometry::mesh_check( int32_t i, int32_t j, int32_t k ) const
+uint32_t Geometry::mesh_check( int32_t i, int32_t j, int32_t k ) const
 {
     if( i < 0 )
-	return( 1 );
+	return( SMESH_NODE_ID_DIRICHLET | 1 );
     else if( i >= _size[0] )
-	return( 2 );
+	return( SMESH_NODE_ID_DIRICHLET | 2 );
     if( j < 0 )
-	return( 3 );
+	return( SMESH_NODE_ID_DIRICHLET | 3 );
     else if( j >= _size[1] )
-	return( 4 );
+	return( SMESH_NODE_ID_DIRICHLET | 4 );
     if( k < 0 )
-	return( 5 );
+	return( SMESH_NODE_ID_DIRICHLET | 5 );
     else if( k >= _size[2] )
-	return( 6 );
+	return( SMESH_NODE_ID_DIRICHLET | 6 );
 
     return( _smesh[i + j*_size[0] + k*_size[0]*_size[1]] );
+}
+
+
+void Geometry::set_bracket_count( uint32_t n )
+{
+    _brktc = n;
+}
+
+
+uint32_t Geometry::get_bracket_count( void ) const
+{
+    return( _brktc );
 }
 
 
@@ -248,7 +265,7 @@ double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xou
     Vec3D xh = xout;
 
     // Do iteration
-    for( int a = 0; a < 12; a++ ) {
+    for( uint32_t a = 0; a < _brktc; a++ ) {
 	xsurf = 0.5*(xl+xh);
 	if( inside( n, xsurf ) )
 	    xl = xsurf;
@@ -260,7 +277,7 @@ double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xou
     xsurf = 0.5*(xl+xh);
 
     // Return parametric distance
-    for( int a = 0; a < 3; a++ ) {
+    for( uint32_t a = 0; a < 3; a++ ) {
 	if( xin[a] != xout[a] )
 	    return( (xsurf[a] - xin[a]) / (xout[a] - xin[a]) );
     }
@@ -270,18 +287,97 @@ double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xou
 }
 
 
-bool Geometry::vac_or_neu( int32_t i, int32_t j, int32_t k )
+double Geometry::bracket_ndist( int32_t i, int32_t j, int32_t k, int32_t solid, int sign, int coord ) const
 {
-    signed char a = mesh_check( i, j, k );
-    if( a >= -6 && a <= 0 ) // Vacuum or Neumann
-	return( true );
-    return( false );
+    Vec3D vout( _origo[0]+i*_h, _origo[1]+j*_h, _origo[2]+k*_h );
+    double xsurf = 0.5;
+    double xin = 1.0;
+    double xout = 0.0;
+
+    // Do iteration
+    for( uint32_t a = 0; a < _brktc; a++ ) {
+	Vec3D vtest( vout );
+	vtest[coord] += sign*xsurf*_h;
+	if( inside( solid, vtest ) )
+	    xin = xsurf;
+	else
+	    xout = xsurf;
+	xsurf = 0.5*(xin+xout);
+    }
+
+    return( xsurf );
+}
+
+
+uint32_t Geometry::is_solid( int32_t i, int32_t j, int32_t k ) const
+{
+    uint32_t a = mesh_check( i, j, k );
+    if( (a & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	(a & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	return( a & SMESH_BOUNDARY_NUMBER_MASK );
+    return( 0 );
+}
+
+
+void Geometry::add_near_solid_entry( uint32_t &near_solid_index, int32_t i, int32_t j, int32_t k )
+{
+    uint32_t solid = 0;        // Solid number of neighbour
+    int nsolids = 0;           // Number of near neighbour solids nodes.
+    uint8_t neighbours = 0;    // Bit flags for neighbours
+    std::vector<double> ndist; // Neighbour distances
+
+    // X
+    if( (solid = is_solid(i-1,j,k)) ) {
+	neighbours += 0x20;
+	nsolids++;
+	ndist.push_back( bracket_ndist( i,j,k, solid, -1, 0 ) );
+    }
+    neighbours = neighbours >> 1;
+    if( ( solid = is_solid(i+1,j,k)) ) {
+	neighbours += 0x20;
+	nsolids++;
+	ndist.push_back( bracket_ndist( i,j,k, solid, +1, 0 ) );
+    }
+    neighbours = neighbours >> 1;
+
+    // Y
+    if( (solid = is_solid(i,j-1,k)) ) {
+	neighbours += 0x20;
+	nsolids++;
+	ndist.push_back( bracket_ndist( i,j,k, solid, -1, 1 ) );
+    }
+    neighbours = neighbours >> 1;
+    if( (solid = is_solid(i,j+1,k)) ) {
+	neighbours += 0x20;
+	nsolids++;
+	ndist.push_back( bracket_ndist( i,j,k, solid, +1, 1 ) );
+    }
+    neighbours = neighbours >> 1;
+
+    // Z
+    if( (solid = is_solid(i,j,k-1)) ) {
+	neighbours += 0x20;
+	nsolids++;
+	ndist.push_back( bracket_ndist( i,j,k, solid, -1, 2 ) );
+    }
+    neighbours = neighbours >> 1;
+    if( (solid = is_solid(i,j,k+1)) ) {
+	neighbours += 0x20;
+	nsolids++;
+	ndist.push_back( bracket_ndist( i,j,k, solid, +1, 2 ) );
+    }
+
+    size_t ind = _nearsolid.size();
+    near_solid_index = ind + 1 + sizeof(double)*nsolids;
+    _nearsolid.resize( near_solid_index );
+    _nearsolid[ind] = neighbours;
+    memcpy( (void *)&_nearsolid[ind+1], (void *)&ndist[0], sizeof(double)*nsolids );
 }
 
 
 void Geometry::build_mesh( void )
 {
-    int a;
+    uint32_t nid;
     int32_t i, j, k;
     double x, y, z;
 
@@ -290,93 +386,104 @@ void Geometry::build_mesh( void )
 
     _built = true;
 
-    // Set solids
+    // Mark solid (Dirichlet) nodes. Others left to zero.
     for( k = 0; k < _size[2]; k++ ) {
 	z = k*_h+_origo[2];
 	for( j = 0; j < _size[1]; j++ ) {
 	    y = j*_h+_origo[1];
 	    for( i = 0; i < _size[0]; i++ ) {
 		x = i*_h+_origo[0];
-		mesh(i,j,k) = inside( Vec3D(x,y,z) );
+		nid = inside( Vec3D(x,y,z) );
+		if( nid )
+		    mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | nid;
+		else
+		    mesh(i,j,k) = 0;
 	    }
 	}
     }
 
-    // Mark boundaries
+    // Mark 0 nodes on boundaries as Dirichlet or Neumann boundaries
     // Mark xmin
-    if( _bound[0].type == BOUND_NEUMANN ) a = -1;
-    else a = 1;
+    if( _bound[0].type == BOUND_NEUMANN ) nid = SMESH_NODE_ID_NEUMANN | 1;
+    else nid = SMESH_NODE_ID_DIRICHLET | 1;
     for( k = 0; k < _size[2]; k++ ) {
 	for( j = 0; j < _size[1]; j++ ) {
 	    if( mesh(0,j,k) == 0 )
-		mesh(0,j,k) = a;
+		mesh(0,j,k) = nid;
 	}
     }
     // Mark xmax
-    if( _bound[1].type == BOUND_NEUMANN ) a = -2;
-    else a = 2;
+    if( _bound[1].type == BOUND_NEUMANN ) nid = SMESH_NODE_ID_NEUMANN | 2;
+    else nid = SMESH_NODE_ID_DIRICHLET | 2;
     for( k = 0; k < _size[2]; k++ ) {
 	for( j = 0; j < _size[1]; j++ ) {
 	    if( mesh(_size[0]-1,j,k) == 0 )
-		mesh(_size[0]-1,j,k) = a;
+		mesh(_size[0]-1,j,k) = nid;
 	}
     }
     if( _geom_mode == MODE_2D || _geom_mode == MODE_CYL ||
 	_geom_mode == MODE_3D ) {
 	// Mark ymin.
-	if( _bound[2].type == BOUND_NEUMANN ) a = -3;
-	else a = 3;
+	if( _bound[2].type == BOUND_NEUMANN ) nid = SMESH_NODE_ID_NEUMANN | 3;
+	else nid = SMESH_NODE_ID_DIRICHLET | 3;
 	for( k = 0; k < _size[2]; k++ ) {
 	    for( i = 0; i < _size[0]; i++ ) {
 		if( mesh(i,0,k) == 0 )
-		    mesh(i,0,k) = a;
+		    mesh(i,0,k) = nid;
 	    }
 	}
 	// Mark ymax
-	if( _bound[3].type == BOUND_NEUMANN ) a = -4;
-	else a = 4;
+	if( _bound[3].type == BOUND_NEUMANN ) nid = SMESH_NODE_ID_NEUMANN | 4;
+	else nid = SMESH_NODE_ID_DIRICHLET | 4;
 	for( k = 0; k < _size[2]; k++ ) {
 	    for( i = 0; i < _size[0]; i++ ) {
 		if( mesh(i,_size[1]-1,k) == 0 )
-		    mesh(i,_size[1]-1,k) = a;
+		    mesh(i,_size[1]-1,k) = nid;
 	    }
 	}
     }
     if( _geom_mode == MODE_3D ) {
 	// Mark zmin
-	if( _bound[4].type == BOUND_NEUMANN ) a = -5;
-	else a = 5;
+	if( _bound[4].type == BOUND_NEUMANN ) nid = SMESH_NODE_ID_NEUMANN | 5;
+	else nid = SMESH_NODE_ID_DIRICHLET | 5;
 	for( j = 0; j < _size[1]; j++ ) {
 	    for( i = 0; i < _size[0]; i++ ) {
 		if( mesh(i,j,0) == 0 )
-		    mesh(i,j,0) = a;
+		    mesh(i,j,0) = nid;
 	    }
 	}
 	// Mark ymax
-	if( _bound[5].type == BOUND_NEUMANN ) a = -6;
-	else a = 6;
+	if( _bound[5].type == BOUND_NEUMANN ) nid = SMESH_NODE_ID_NEUMANN | 6;
+	else nid = SMESH_NODE_ID_DIRICHLET | 6;
 	for( j = 0; j < _size[1]; j++ ) {
 	    for( i = 0; i < _size[0]; i++ ) {
 		if( mesh(i,j,_size[2]-1) == 0 )
-		    mesh(i,j,_size[2]-1) = a;
+		    mesh(i,j,_size[2]-1) = nid;
 	    }
 	}
     }
 
-    // Mark solid edges
+    // Mark 0 nodes next to solid nodes as near solid nodes and 
+    // build nearsolid data array, rest of the 0 nodes are marked as 
+    // pure vacuum.
+    uint32_t near_solid_index = 0;
     for( k = 0; k < _size[2]; k++ ) {
 	for( j = 0; j < _size[1]; j++ ) {
 	    for( i = 0; i < _size[0]; i++ ) {
-		// Check if solid node is an solid edge node
-		if( (a = mesh(i,j,k)) >= 7 &&
-		    ( vac_or_neu(i-1,j,  k  ) ||
-		      vac_or_neu(i+1,j,  k  ) ||
-		      vac_or_neu(i,  j-1,k  ) || 
-		      vac_or_neu(i,  j+1,k  ) ||
-		      vac_or_neu(i,  j,  k-1) || 
-		      vac_or_neu(i,  j,  k+1) ) )  {
-		    // Mark node as an edge
-		    mesh(i,j,k) = -a;
+		if( mesh(i,j,k) != 0 )
+		    continue;
+		if( is_solid(i-1,j,  k  ) ||
+		    is_solid(i+1,j,  k  ) ||
+		    is_solid(i,  j-1,k  ) || 
+		    is_solid(i,  j+1,k  ) ||
+		    is_solid(i,  j,  k-1) || 
+		    is_solid(i,  j,  k+1) ) {
+		    // Mark node as near solid vacuum and build near solid data
+		    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+		    add_near_solid_entry( near_solid_index, i, j, k );
+		} else {
+		    // Pure vacuum
+		    mesh(i,j,k) = SMESH_NODE_ID_PURE_VACUUM;
 		}
 	    }
 	}
@@ -385,15 +492,15 @@ void Geometry::build_mesh( void )
     // Report node counts
     if( ibsimu.get_verbose_output() ) {
 	int b;
-	int nc = nodecount();
+	uint32_t nc = nodecount();
 	int vac = 0;
 	int neu = 0;
 	int dir = 0;
 	int solid[_n];
-	for( a = 0; a < (int)_n; a++ )
+	for( uint32_t a = 0; a < _n; a++ )
 	    solid[a] = 0;
 
-	for( a = 0; a < nc; a++ ) {
+	for( uint32_t a = 0; a < nc; a++ ) {
 	    if( mesh(a) == 0 )
 		vac++;
 	    else if( (b = fabs(mesh(a))) >= 7 )
@@ -408,7 +515,7 @@ void Geometry::build_mesh( void )
 	std::cout << "  " << vac << " vacuum nodes\n";
 	std::cout << "  " << neu << " neumann nodes\n";
 	std::cout << "  " << dir << " dirichlet nodes\n";
-	for( a = 0; a < (int)_n; a++ )
+	for( uint32_t a = 0; a < _n; a++ )
 	    std::cout << "  " << solid[a] << " solid " << a+7 << " nodes\n";
     }
 }
@@ -424,7 +531,11 @@ void Geometry::save( std::ostream &s ) const
 	_bound[a].save( s );
 
     write_int8( s, _built );
-    write_compressed_block( s, _size[0]*_size[1]*_size[2]*sizeof(signed char), _smesh );
+    write_compressed_block( s, _size[0]*_size[1]*_size[2]*sizeof(uint32_t), 
+			    (int8_t *)_smesh );
+
+    // DO: _nearsolid
+    write_int32( s, _brktc );
 }
 
 
@@ -442,15 +553,65 @@ void Geometry::debug_print( std::ostream &os ) const
 	_sdata[a]->debug_print( os );
     }
     for( uint32_t a = 0; a < _n+6; a++ ) {
-	os << "bound[" << a << "] = " << _bound[a] << "\n";
+	os << "bound[" << a+1 << "] = " << _bound[a] << "\n";
     }
     os << "built = " << _built << "\n";
-    os << "smesh = \n";
-    for( int32_t j = 0; j < _size[1]; j++ ) {
-	for( int32_t i = 0; i < _size[0]; i++ )
-	    os << std::setw(2) << (int)mesh(i,j,0) << " ";
-	os << "\n";
+    if( (_geom_mode == MODE_2D || _geom_mode == MODE_CYL) && _size[0] <= 20 && _size[1] <= 20 ) {
+	os << "mesh visualization:\n";
+	for( int32_t j = _size[1]-1; j >= 0; j-- ) {
+	    for( int32_t i = 0; i < _size[0]; i++ ) {
+		uint32_t ind = mesh(i,j);
+		if( (ind & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_PURE_VACUUM ) {
+		    os << " ";
+		} else if( (ind & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEUMANN ) {
+		    os << "N";
+		} else if( (ind & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET ) {
+		    if( ind & SMESH_BOUNDARY_NUMBER_MASK <= 6 )
+			os << "D";
+		    else
+			os << "S";
+		} else if( (ind & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEAR_SOLID ) {
+		    os << ".";
+		}
+	    }
+	    os << "\n";
+	}
     }
+    for( int32_t k = 0; k < _size[2]; k++ ) {
+	for( int32_t j = 0; j < _size[1]; j++ ) {
+	    for( int32_t i = 0; i < _size[0]; i++ ) {
+
+		uint32_t ind = mesh(i,j,k);
+		os << "smesh(" << i << ", " << j << ", " << k << ") = " 
+		   << ind << " (";
+
+		if( (ind & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_PURE_VACUUM ) {
+		    os << "pure vacuum)\n";
+		} else if( (ind & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEUMANN ) {
+		    os << "neumann, solid " << (ind & SMESH_BOUNDARY_NUMBER_MASK) << ")\n";
+		} else if( (ind & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET ) {
+		    os << "dirichlet, solid " << (ind & SMESH_BOUNDARY_NUMBER_MASK) << ")\n";
+		} else if( (ind & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEAR_SOLID ) {
+		    os << "near solid , index " << (ind & SMESH_NEAR_SOLID_INDEX_MASK) << ")\n";
+		    ind = (ind & SMESH_NEAR_SOLID_INDEX_MASK);
+		    uint8_t sflag = _nearsolid[ind];
+		    os << "near solid flags = " << sflag << "\n";
+		    uint8_t mask = 1;
+		    double *ptr = (double *)&_nearsolid[ind+1];
+		    for( uint32_t a = 0; a < 6; a++ ) {
+			if( mask & sflag ) {
+			    os << "ndist[" << a << "] = " << *ptr << "\n";
+			    ptr++;
+			} else {
+			    os << "ndist[" << a << "] = -\n";
+			}
+			mask = mask << 1;
+		    }
+		}
+	    }
+	}
+    }
+    os << "brktc = " << _brktc << "\n";
 }
 
 
