@@ -63,7 +63,7 @@ std::ostream &operator<<( std::ostream &os, const Bound &b )
 
 
 Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
-    : Mesh(geom_mode,size,origo,h), _brktc(16)
+    : Mesh(geom_mode,size,origo,h)
 {
     check_definition();
 
@@ -111,8 +111,10 @@ Geometry::Geometry( std::istream &s )
     read_compressed_block( s, sizeof(uint32_t)*_size[0]*_size[1]*_size[2], 
 			   (int8_t *)_smesh );
 
-    // DO: _nearsolid;
-    _brktc = read_int32( s );
+    uint32_t nearsolidsize = read_int32( s );
+    _nearsolid.resize( nearsolidsize );
+    read_compressed_block( s, sizeof(uint8_t)*nearsolidsize, 
+			   (int8_t *)&_nearsolid[0] );
 }
 
 
@@ -247,25 +249,13 @@ uint32_t Geometry::mesh_check( int32_t i, int32_t j, int32_t k ) const
 }
 
 
-void Geometry::set_bracket_count( uint32_t n )
-{
-    _brktc = n;
-}
-
-
-uint32_t Geometry::get_bracket_count( void ) const
-{
-    return( _brktc );
-}
-
-
 double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xout, Vec3D &xsurf ) const
 {
     Vec3D xl = xin;
     Vec3D xh = xout;
 
     // Do iteration
-    for( uint32_t a = 0; a < _brktc; a++ ) {
+    for( uint32_t a = 0; a < 8; a++ ) {
 	xsurf = 0.5*(xl+xh);
 	if( inside( n, xsurf ) )
 	    xl = xsurf;
@@ -287,15 +277,17 @@ double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xou
 }
 
 
-double Geometry::bracket_ndist( int32_t i, int32_t j, int32_t k, int32_t solid, int sign, int coord ) const
+uint8_t Geometry::bracket_ndist( int32_t i, int32_t j, int32_t k, int32_t solid, int sign, int coord ) const
 {
+    // Floating point version of bracketing
+    /*
     Vec3D vout( _origo[0]+i*_h, _origo[1]+j*_h, _origo[2]+k*_h );
     double xsurf = 0.5;
     double xin = 1.0;
     double xout = 0.0;
 
     // Do iteration
-    for( uint32_t a = 0; a < _brktc; a++ ) {
+    for( uint32_t a = 0; a < 8; a++ ) {
 	Vec3D vtest( vout );
 	vtest[coord] += sign*xsurf*_h;
 	if( inside( solid, vtest ) )
@@ -304,8 +296,24 @@ double Geometry::bracket_ndist( int32_t i, int32_t j, int32_t k, int32_t solid, 
 	    xout = xsurf;
 	xsurf = 0.5*(xin+xout);
     }
+    */
 
-    return( xsurf );
+    Vec3D vout( _origo[0]+i*_h, _origo[1]+j*_h, _origo[2]+k*_h );
+    uint32_t bp = 0x80;
+    uint32_t surf = 0x80;
+
+    // Do iteration
+    double step = sign*_h;
+    for( uint32_t a = 0; a < 8; a++ ) {
+	Vec3D vtest( vout );
+	vtest[coord] += step*surf/255.0;
+	if( inside( solid, vtest ) )
+	    surf -= bp;
+	bp = bp >> 1;
+	surf += bp;
+    }
+
+    return( surf );
 }
 
 
@@ -321,10 +329,10 @@ uint32_t Geometry::is_solid( int32_t i, int32_t j, int32_t k ) const
 
 void Geometry::add_near_solid_entry( uint32_t &near_solid_index, int32_t i, int32_t j, int32_t k )
 {
-    uint32_t solid = 0;        // Solid number of neighbour
-    int nsolids = 0;           // Number of near neighbour solids nodes.
-    uint8_t neighbours = 0;    // Bit flags for neighbours
-    std::vector<double> ndist; // Neighbour distances
+    uint32_t solid = 0;         // Solid number of neighbour
+    int nsolids = 0;            // Number of near neighbour solids nodes.
+    uint8_t neighbours = 0;     // Bit flags for neighbours
+    std::vector<uint8_t> ndist; // Neighbour distances
 
     // X
     if( (solid = is_solid(i-1,j,k)) ) {
@@ -368,10 +376,10 @@ void Geometry::add_near_solid_entry( uint32_t &near_solid_index, int32_t i, int3
     }
 
     size_t ind = _nearsolid.size();
-    near_solid_index = ind + 1 + sizeof(double)*nsolids;
+    near_solid_index = ind + 1 + sizeof(uint8_t)*nsolids;
     _nearsolid.resize( near_solid_index );
     _nearsolid[ind] = neighbours;
-    memcpy( (void *)&_nearsolid[ind+1], (void *)&ndist[0], sizeof(double)*nsolids );
+    memcpy( (void *)&_nearsolid[ind+1], (void *)&ndist[0], sizeof(uint8_t)*nsolids );
 }
 
 
@@ -492,31 +500,44 @@ void Geometry::build_mesh( void )
     // Report node counts
     if( ibsimu.get_verbose_output() ) {
 	int b;
-	uint32_t nc = nodecount();
-	int vac = 0;
-	int neu = 0;
-	int dir = 0;
-	int solid[_n];
+	uint32_t ncount = nodecount();
+	uint32_t nvacuum = 0;
+	uint32_t nnearsolid = 0;
+	uint32_t nneumann = 0;
+	uint32_t ndirichlet = 0;
+	int nsolid[_n];
 	for( uint32_t a = 0; a < _n; a++ )
-	    solid[a] = 0;
+	    nsolid[a] = 0;
 
-	for( uint32_t a = 0; a < nc; a++ ) {
-	    if( mesh(a) == 0 )
-		vac++;
-	    else if( (b = fabs(mesh(a))) >= 7 )
-		solid[b-7]++;
-	    else if( mesh(a) < 0 )
-		neu++;
-	    else
-		dir++;
+	for( uint32_t a = 0; a < ncount; a++ ) {
+
+	    switch( mesh(a) & SMESH_NODE_ID_MASK ) {
+	    case SMESH_NODE_ID_NEAR_SOLID:
+		nnearsolid++;
+		break;
+	    case SMESH_NODE_ID_PURE_VACUUM:
+		nvacuum++;
+		break;
+	    case SMESH_NODE_ID_NEUMANN:
+		nneumann++;
+		if( (b = (mesh(a) & SMESH_BOUNDARY_NUMBER_MASK)) >= 7 )
+		    nsolid[b-7]++;
+		break;
+	    case SMESH_NODE_ID_DIRICHLET:
+		ndirichlet++;
+		if( (b = (mesh(a) & SMESH_BOUNDARY_NUMBER_MASK)) >= 7 )
+		    nsolid[b-7]++;
+		break;
+	    }
 	}
 	
 	std::cout << "  Done. Built mesh with:\n";
-	std::cout << "  " << vac << " vacuum nodes\n";
-	std::cout << "  " << neu << " neumann nodes\n";
-	std::cout << "  " << dir << " dirichlet nodes\n";
+	std::cout << "  " << nvacuum << " pure vacuum nodes\n";
+	std::cout << "  " << nnearsolid << " near solid nodes\n";
+	std::cout << "  " << nneumann << " neumann nodes\n";
+	std::cout << "  " << ndirichlet << " dirichlet nodes\n";
 	for( uint32_t a = 0; a < _n; a++ )
-	    std::cout << "  " << solid[a] << " solid " << a+7 << " nodes\n";
+	    std::cout << "  " << nsolid[a] << " solid " << a+7 << " nodes\n";
     }
 }
 
@@ -534,8 +555,9 @@ void Geometry::save( std::ostream &s ) const
     write_compressed_block( s, _size[0]*_size[1]*_size[2]*sizeof(uint32_t), 
 			    (int8_t *)_smesh );
 
-    // DO: _nearsolid
-    write_int32( s, _brktc );
+    write_int32( s, _nearsolid.size() );
+    write_compressed_block( s, _nearsolid.size()*sizeof(uint8_t), 
+			    (int8_t *)&_nearsolid[0] );
 }
 
 
@@ -566,7 +588,7 @@ void Geometry::debug_print( std::ostream &os ) const
 		} else if( (ind & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEUMANN ) {
 		    os << "N";
 		} else if( (ind & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET ) {
-		    if( ind & SMESH_BOUNDARY_NUMBER_MASK <= 6 )
+		    if( (ind & SMESH_BOUNDARY_NUMBER_MASK) <= 6 )
 			os << "D";
 		    else
 			os << "S";
@@ -577,13 +599,16 @@ void Geometry::debug_print( std::ostream &os ) const
 	    os << "\n";
 	}
     }
+
     for( int32_t k = 0; k < _size[2]; k++ ) {
 	for( int32_t j = 0; j < _size[1]; j++ ) {
 	    for( int32_t i = 0; i < _size[0]; i++ ) {
 
 		uint32_t ind = mesh(i,j,k);
-		os << "smesh(" << i << ", " << j << ", " << k << ") = " 
-		   << ind << " (";
+		os << "smesh(" << i << ", " << j << ", " << k << ") = "
+		   << "0x" << std::hex << std::setfill('0')
+		   << std::setw(8) << ind << " ("
+		   << std::dec << std::setfill(' ');
 
 		if( (ind & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_PURE_VACUUM ) {
 		    os << "pure vacuum)\n";
@@ -591,19 +616,19 @@ void Geometry::debug_print( std::ostream &os ) const
 		    os << "neumann, solid " << (ind & SMESH_BOUNDARY_NUMBER_MASK) << ")\n";
 		} else if( (ind & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET ) {
 		    os << "dirichlet, solid " << (ind & SMESH_BOUNDARY_NUMBER_MASK) << ")\n";
-		} else if( (ind & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEAR_SOLID ) {
-		    os << "near solid , index " << (ind & SMESH_NEAR_SOLID_INDEX_MASK) << ")\n";
+		} else if( (ind & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEAR_SOLID ) {		    
+		    os << "near solid, index " << (ind & SMESH_NEAR_SOLID_INDEX_MASK) << ")\n";
 		    ind = (ind & SMESH_NEAR_SOLID_INDEX_MASK);
 		    uint8_t sflag = _nearsolid[ind];
-		    os << "near solid flags = " << sflag << "\n";
+		    os << std::hex << std::setfill('0')
+		       << "  near solid flags = 0x" << std::setw(2) << (int)sflag << "\n"
+		       << std::dec << std::setfill(' ');
 		    uint8_t mask = 1;
-		    double *ptr = (double *)&_nearsolid[ind+1];
+		    uint8_t *ptr = (uint8_t *)&_nearsolid[ind+1];
 		    for( uint32_t a = 0; a < 6; a++ ) {
 			if( mask & sflag ) {
-			    os << "ndist[" << a << "] = " << *ptr << "\n";
+			    os << "  ndist[" << a+1 << "] = " << (int)*ptr << "\n";
 			    ptr++;
-			} else {
-			    os << "ndist[" << a << "] = -\n";
 			}
 			mask = mask << 1;
 		    }
@@ -611,7 +636,6 @@ void Geometry::debug_print( std::ostream &os ) const
 	    }
 	}
     }
-    os << "brktc = " << _brktc << "\n";
 }
 
 

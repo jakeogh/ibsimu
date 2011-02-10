@@ -18,7 +18,7 @@ using namespace std;
 
 bool s1( double x, double y, double z )
 {
-    return( (x-0.04)*(x-0.04)/(0.032*0.032) + y*y/(0.015*0.015) < 1 );
+    return( (x-0.04)*(x-0.04)/(0.033*0.033) + y*y/(0.015*0.015) < 1 );
 }
 
 
@@ -33,7 +33,7 @@ void test1( void )
     g.set_boundary( 4, Bound(BOUND_DIRICHLET, 20.0) );
     g.set_boundary( 7, Bound(BOUND_DIRICHLET, 10.0) );
     g.build_mesh();
-    g.debug_print( cout );
+    //g.debug_print( cout );
 
     ofstream fstr( "geometry.dat" );
     g.save( fstr );
@@ -45,11 +45,13 @@ void test2( void )
 {
     ifstream fstr( "geometry.dat" );
     Geometry g( fstr );
-    //g.debug_print();
+    //g.debug_print( cout );
+
     int stat = 0;
     try {
 	g.inside( Vec3D(0.05,0.05,0.05) );
     } catch( Error ) {
+	// Function solid can't be saved to file. Should cause error.
 	stat = 1;
     }
     if( stat == 0 )
@@ -68,8 +70,6 @@ void test2( void )
 void test( int argc, char **argv )
 {
     test1();
-    //test2();
+    test2();
 }
-
-
 

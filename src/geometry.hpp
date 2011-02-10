@@ -95,21 +95,11 @@ struct Bound
 };
 
 
-/* A node is:
- * 1. Vacuum
- *    - Pure
- *    - Near solid
- * 2. Boundary
- *    - Dirichlet
- *    - Neumann
- *
- */
-
 #define SMESH_NODE_ID_MASK             0xC0000000 // 1100...
-#define SMESH_NODE_ID_PURE_VACUUM      0x40000000 // 0100...
 #define SMESH_NODE_ID_NEAR_SOLID       0x00000000 // 0000...
-#define SMESH_NODE_ID_DIRICHLET        0xC0000000 // 1100...
+#define SMESH_NODE_ID_PURE_VACUUM      0x40000000 // 0100...
 #define SMESH_NODE_ID_NEUMANN          0x80000000 // 1000...
+#define SMESH_NODE_ID_DIRICHLET        0xC0000000 // 1100...
 
 #define SMESH_BOUNDARY_NUMBER_MASK     0x000000FF // limit to 0-255
 #define SMESH_NEAR_SOLID_INDEX_MASK    0x3FFFFFFF // limit to 0-2^30
@@ -158,8 +148,6 @@ class Geometry : public Mesh
     uint32_t                  *_smesh;     /*!< \brief Solid mesh array. */
     std::vector<uint8_t>       _nearsolid; /*!< \brief Near solid data. */
 
-    uint32_t                   _brktc;     /*!< \brief Bracket count (accuracy) */
-
     
     /*! \brief Check if node is solid (n>=7).
      *
@@ -182,10 +170,10 @@ class Geometry : public Mesh
      *  Finds surface of solid \a solid between the outer node (\a i,
      *  \a j, \a k) and the inner node in \a sign direction (+/-1) of
      *  of coordinate axis \a coord (0,1 or 2). Returns parametric
-     *  distance (between 0 and 1) from the outer node to the inner
+     *  distance (between 0 and 255) from the outer node to the inner
      *  node.
      */
-    double bracket_ndist( int32_t i, int32_t j, int32_t k, int32_t solid, int sign, int coord ) const;
+    uint8_t bracket_ndist( int32_t i, int32_t j, int32_t k, int32_t solid, int sign, int coord ) const;
 
     /*! \brief Check mesh definition validity.
      */
@@ -260,25 +248,6 @@ public:
      */
     std::vector<Bound> get_boundaries() const;
 
-    /*! \brief Set the solid bracketing count number.
-     *
-     *  The "exact" locations of the solid surfaces are determined by
-     *  bracketing in class %Geometry using function
-     *  bracket_surface(). In a typical case the bracketing is started
-     *  from two mesh nodes and the estimate for the location of the
-     *  surface is halved at each bracketing. This function sets the
-     *  number halvings \a n that are done before bracket_surface()
-     *  returns the best estimate.
-     *
-     *  The bracketing count number defaults to 16, which corresponds
-     *  to relative accuracy of 1/65536.
-     */
-    void set_bracket_count( uint32_t n );
-
-    /*! \brief Returns the solid bracketing count number.
-     */
-    uint32_t get_bracket_count( void ) const;
-
     /*! \brief Returns 0 if point \a x is vacuum or the number of
      *  solid of \a x is inside a defined solid. Returns a number from
      *  1 to 6 if point \a x is outside the defined geometry. If the
@@ -347,6 +316,14 @@ public:
      *  j, \a k or Dirichlet boundary number if point is outside mesh.
      */
     uint32_t mesh_check( int32_t i, int32_t j, int32_t k ) const;
+
+    /*! \brief Returns a const pointer to start of near solid data for
+     *  node (\a i, \a j, \a k).
+     */
+    const uint8_t *nearsolid_ptr( int32_t i, int32_t j, int32_t k ) const {
+	return( &_nearsolid[_smesh[i + j*_size[0] + k*_size[0]*_size[1]] & 
+			    SMESH_NEAR_SOLID_INDEX_MASK] );
+    }
 
     /*! \brief Saves geometry data to stream.
      */
