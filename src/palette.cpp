@@ -153,9 +153,9 @@ Color Palette::operator()( double x ) const
 	return( _entries[0]._color );
 
     // If out of limits
-    if( x < 0.0 )
+    if( x <= 0.0 )
 	return( _entries[0]._color );
-    else if( x > 1.0 )
+    else if( x >= 1.0 )
 	return( _entries[_entries.size()-1]._color );
 
     // Search correct index
@@ -164,11 +164,13 @@ Color Palette::operator()( double x ) const
 	if( x < _entries[a]._val )
 	    break;
     }
+    if( a == _entries.size() ) 
+	a = _entries.size()-1;
     
     // Interpolate
+    double t = (x-_entries[a-1]._val) / (_entries[a]._val-_entries[a-1]._val);
     Color c = _entries[a-1]._color + 
-	(x-_entries[a-1]._val)/(_entries[a]._val-_entries[a-1]._val)*
-	(_entries[a]._color-_entries[a-1]._color);
+	t*(_entries[a]._color-_entries[a-1]._color);
 
     return( c );
 }

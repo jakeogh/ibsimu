@@ -92,10 +92,12 @@ public:
 
     /*! \brief Return the interpolated color value from palette.
      *
-     *  Makes and interpolated color value at value \a x. If palette
-     *  has no colors, black will be returned. If palette has one
-     *  color, that color will be returned. With two or more colors
-     *  the interpolation can be done correctly.
+     *  Makes and interpolated color value at value \a x, where 0 <= x
+     *  <= 1. If palette has no colors, black will be returned. If
+     *  palette has one color, that color will be returned. With two
+     *  or more colors the value returned is interpolated from the
+     *  colors. Outside the defined range, the closest color value is
+     *  returned (color 0 if x < 0 and color N-1 if x > 1).
      */
     Color operator()( double x ) const;
 
