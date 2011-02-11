@@ -46,30 +46,8 @@
 #include "epot_problem.hpp"
 #include "ibsimu.hpp"
 #include "error.hpp"
+#include "constants.hpp"
 
-
-// From NIST, official value of Apr 7 2008
-#define EPSILON0 8.854187817e-12
-
-
-/* ************************************** *
- * Node2DoF                               *
- * ************************************** */
-
-void EpotProblem::Node2DoF::debug_print( std::ostream &os ) const
-{
-    int a;
-    os << "**Node2DoF\n";
-    os << "size = ("
-       	<< _size[0] << ", "
-	<< _size[1] << ", "
-	<< _size[2] << ")\n";
-    os << "n2d = (";
-    for( a = 0; a < _size[0]*_size[1]*_size[2]-1; a++ )
-	os << _n2d[a] << ", ";
-    if( a < _size[0]*_size[1]*_size[2] )
-	os << _n2d[a] << ")\n";
-}
 
 
 /* ************************************** *
@@ -77,50 +55,40 @@ void EpotProblem::Node2DoF::debug_print( std::ostream &os ) const
  * ************************************** */
 
 
-EpotProblem::EpotProblem() 
-    : _nodecount(0), _dof(0), _fd_mat(0), _fd_vec(0), _neumann_order(2), 
-      _smooth_solid(true), _plasma(PLASMA_NONE), _rhoe(0.0), _Te(0.0), _Up(0.0), 
+EpotProblem::EpotProblem( const Geometry &geom ) 
+    : _geom(geom), _neumann_order(2), _smooth_solid(true), _plasma(PLASMA_NONE), 
+      _rhoe(0.0), _Te(0.0), _Up(0.0), 
       _force_pot(0.0), _force_pot_func(0), _init_plasma_func(0), _solver(0)
 {
     
 }
 
 
-EpotProblem::EpotProblem( std::istream &s )
+EpotProblem::EpotProblem( const Geometry &geom, std::istream &s )
+    : _geom(geom)
 {
-    
+    throw( ErrorUnimplemented( ERROR_LOCATION ) );    
 }
 
 
 EpotProblem::~EpotProblem()
 {
-    if( _fd_mat )
-	delete _fd_mat;
-    if( _fd_vec )
-	delete _fd_vec;
+
 }
 
 
 void EpotProblem::clear_problem( void )
 {
-    if( _solver )
-	_solver->reset();
-    if( _fd_mat )
-	delete _fd_mat;
-    if( _fd_vec )
-	delete _fd_vec;
-    _fd_mat = 0;
-    _fd_vec = 0;
-    _dof = 0;
+
 }
 
 
 /* ************************************** *
- * EpotProblem constructing                   *
+ * EpotProblem constructing               *
  * ************************************** */
 
 
-void EpotProblem::set_neumann_order( int32_t order )
+void EpotProblem::set_neumann_order( uint32_t order )
 {
     if( order < 1 || order > 2 )
 	throw( Error( ERROR_LOCATION, "illegal neumann order" ) );
@@ -129,7 +97,7 @@ void EpotProblem::set_neumann_order( int32_t order )
 }
 
 
-void EpotProblem::enable_smooth_solids( bool enable )
+void EpotProblem::set_smooth_solids( bool enable )
 {
     _smooth_solid = enable;
     clear_problem();
@@ -137,7 +105,7 @@ void EpotProblem::enable_smooth_solids( bool enable )
 
 
 void EpotProblem::set_forced_potential_volume( double force_pot, 
-					       bool (*force_pot_func)(double,double,double) )
+					       CallbackFunctorB_V *force_pot_func )
 {
     _force_pot = force_pot;
     _force_pot_func = force_pot_func;
@@ -145,13 +113,13 @@ void EpotProblem::set_forced_potential_volume( double force_pot,
 
 
 void EpotProblem::set_initial_plasma( double Up, 
-				      bool (*plasma_func)(double,double,double) )
+				      CallbackFunctorB_V *init_plasma_func )
 {
     _plasma     = PLASMA_INITIAL;
     _Up         = Up;
-    if( !plasma_func )
+    if( !init_plasma_func )
 	throw( Error( ERROR_LOCATION, "NULL initial plasma function" ) );
-    _init_plasma_func = plasma_func;
+    _init_plasma_func = init_plasma_func;
     clear_problem();
 }
 
@@ -167,13 +135,13 @@ void EpotProblem::set_pexp_plasma( double rhoe, double Te, double Up )
 
 
 
-void EpotProblem::set_nsimp_initial_plasma( bool (*plasma_func)(double,double,double) )
+void EpotProblem::set_nsimp_initial_plasma( CallbackFunctorB_V *init_plasma_func )
 {
     _plasma     = PLASMA_INITIAL;
     _Up         = 0.0;
-    if( !plasma_func )
+    if( !init_plasma_func )
 	throw( Error( ERROR_LOCATION, "NULL initial plasma function" ) );
-    _init_plasma_func = plasma_func;
+    _init_plasma_func = init_plasma_func;
     clear_problem();
 }
 
@@ -206,6 +174,7 @@ void EpotProblem::set_nsimp_plasma( double rhop, double Ep,
  * be added to the vector side of the system of equations on row
  * a. The value of b indicates the boundary value number of the node.
  */
+/*
 void EpotProblem::set_link( CRowMatrix &A, Vector &B, 
 			    int32_t a, int32_t b, double val )
 {
@@ -214,34 +183,39 @@ void EpotProblem::set_link( CRowMatrix &A, Vector &B,
     else
 	A.construct_add( a, b, val );
 }
+*/
 
 
 /*! \brief Adds an initial plasma node (i,j,k) to the linear system.
  *
  *  Initial guess for plasma node is a fixed potential value at plasma potential.
  */
+ /*
 void EpotProblem::add_initial_plasma( int32_t i, int32_t j, int32_t k, 
 				      CRowMatrix &A, Vector &B, Node2DoF &n2d )
 {
     set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
     B[n2d(i,j,k)] += _Up;
 }
+ */
 
 
 /*! \brief Adds an forced potential node (i,j,k) to the linear system.
  *
  *  The node is forced to \a _force_pot.
  */
+  /*
 void EpotProblem::add_forced_pot( int32_t i, int32_t j, int32_t k, 
 				  CRowMatrix &A, Vector &B, Node2DoF &n2d )
 {
     set_link( A, B, n2d(i,j,k), n2d(i,j,k), 1.0 );
     B[n2d(i,j,k)] += _force_pot;
 }
-
+  */
 
 /*! \brief Adds a vacuum node (i,j,k) to the linear system.
  */
+   /*
 void EpotProblem::add_vacuum_node( int32_t i, int32_t j, int32_t k, 
 				   CRowMatrix &A, Vector &B, Node2DoF &n2d )
 {
@@ -278,13 +252,14 @@ void EpotProblem::add_vacuum_node( int32_t i, int32_t j, int32_t k,
 
     // Space charge is added when problem is being solved
 }
-
+   */
 
 /* Adds a Neumann boundary node (i,j,k) to the linear system.
  *
  * Second order approximation is used if enabled and the approximation
  * does not reference any solid nodes (edges are ok if smooth edges enabled)
  */
+    /*
 void EpotProblem::add_neumann_node( signed char a, int32_t i, int32_t j, int32_t k, 
 				    CRowMatrix &A, Vector &B, Node2DoF &n2d )
 {
@@ -414,10 +389,11 @@ bool sol_or_dir( const Geometry *g, int32_t i, int32_t j, int32_t k )
     
     return( a > 0 || a <= -7 ); // Solid or Dirichlet (or outside simulation geometry)
 }
-
+*/
 
 /*! \brief Adds a solid edge node (i,j,k) to the linear system.
  */
+/*
 void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int32_t k, 
 				       CRowMatrix &A, Vector &B, Node2DoF &n2d )
 {
@@ -1046,7 +1022,7 @@ void EpotProblem::add_solid_edge_node( signed char a, int32_t i, int32_t j, int3
 }
 
 
-void EpotProblem::construct( const Geometry &g )
+void EpotProblem::construct( void )
 {
     signed char a;
     int32_t i, j, k;
@@ -1149,6 +1125,7 @@ void EpotProblem::construct( const Geometry &g )
 	}
     }
 }
+*/
 
 
 void EpotProblem::set_solver( Solver &s )
@@ -1161,23 +1138,47 @@ void EpotProblem::set_solver( Solver &s )
  * Solver interface                       *
  * ************************************** */
 
+MeshScalarField *EpotProblem::evaluate_scharge( const ScalarField &__scharge ) const
+{
+    // If scharge not defined in same points as geometry, evaluate scharge at nodes
+    MeshScalarField *scharge = new MeshScalarField( _geom );
+    for( uint32_t k = 0; k < _geom.size(2); k++ ) {
+	double z = k*_geom.h()+_geom.origo(2);
+	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
+	    double y = j*_geom.h()+_geom.origo(1);
+	    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
+		double x = i*_geom.h()+_geom.origo(0);
+		(*scharge)(i,j,k) = __scharge( Vec3D(x,y,z) );
+	    }
+	}
+    }
 
-void EpotProblem::solve( ScalarField &epot, const ScalarField &scharge ) const
+    return( scharge );
+}
+
+
+void EpotProblem::solve( MeshScalarField &epot, const ScalarField &__scharge ) const
 {
     if( ibsimu.get_verbose_output() ) {
 	std::cout << "Solving problem\n";
     }
 
+    // Set scharge to be used by solver
+    bool scharge_internal = false;
+    const MeshScalarField *scharge = dynamic_cast<const MeshScalarField *>( &__scharge );
+    if( scharge == 0 || *scharge != _geom ) {
+	if( ibsimu.get_verbose_output() && *scharge != _geom )
+	    std::cout << "  Converting space charge density to match geometry.\n";
+	scharge_internal = true;
+	scharge = evaluate_scharge( __scharge );
+    }
+
     if( _solver == 0 )
 	throw( Error( ERROR_LOCATION, "solver undefined" ) );
-    if( _dof == 0 )
-	throw( Error( ERROR_LOCATION, "problem undefined" ) );
-    if( scharge.size() != _g->size() )
-	throw( Error( ERROR_LOCATION, "incorrect size of space charge field" ) );
 
     // Resize epot if necessary
-    if( epot.size() != _g->size() )
-	epot.reset( _g->geom_mode(), _g->size(), _g->origo(), _g->h() );
+    if( epot != _geom )
+	epot.reset( _geom.geom_mode(), _geom.size(), _geom.origo(), _geom.h() );
 
     // Allocate temporary space for calculation
     Vector X( _dof );
@@ -1325,11 +1326,6 @@ bool EpotProblem::linear( void ) const
 void EpotProblem::debug_print( std::ostream &os ) const 
 {
     os << "**EpotProblem\n";
-    os << "dof = " << _dof << "\n";
-    os << "n2d:\n";
-    _n2d.debug_print( os );
-    os << "fd_mat = \n" << *_fd_mat << "\n";
-    os << "fd_vec = \n" << *_fd_vec << "\n";
     os << "neumann_order = " << _neumann_order << "\n";
     os << "plasma = " << _plasma << "\n";
     os << "rhoe = " << _rhoe << "\n";
@@ -1340,7 +1336,7 @@ void EpotProblem::debug_print( std::ostream &os ) const
 
 void EpotProblem::save( std::ostream &s ) const
 {
-
+    throw( ErrorUnimplemented( ERROR_LOCATION ) );
 }
 
 

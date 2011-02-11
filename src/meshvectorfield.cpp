@@ -642,9 +642,9 @@ void MeshVectorField::set( int32_t i, int32_t j, int32_t k, const Vec3D &v )
 }
 
 
-const Vec3D MeshVectorField::operator()( Vec3D x ) const
+const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
 {
-    Vec3D R;
+    Vec3D R, X(x);
     Vec3D sign( 1.0, 1.0, 1.0 );
 
     if( _size[0] == 0 )
@@ -663,7 +663,7 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 	    break;
 	}
 
-	if( x[0] < _origo[0] ) {
+	if( X[0] < _origo[0] ) {
 	    if( _extrpl[0] == FIELD_ZERO ) {
 		// return zero
 		return( Vec3D(0.0) );
@@ -671,16 +671,16 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 		// return NaN
 		return( Vec3D(std::numeric_limits<double>::quiet_NaN()) );
 	    }
-	    if( x[0] < _origo[0]-_size[0]*_h ) {
+	    if( X[0] < _origo[0]-_size[0]*_h ) {
 		// Outside double the simulation box: return zero
 		return( Vec3D(0.0) );
 	    }
 	    if( _extrpl[0] == FIELD_MIRROR ) {
 		sign[0] *= -1.0;
-		x[0]  = 2.0*_origo[0] - x[0];
+		X[0]  = 2.0*_origo[0] - X[0];
 	    }
 		
-	} else if( x[0] > _max[0] ) {
+	} else if( X[0] > _max[0] ) {
 	    if( _extrpl[1] == FIELD_ZERO ) {
 		// return zero
 		return( Vec3D(0.0) );
@@ -688,24 +688,24 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 		// return NaN
 		return( Vec3D(std::numeric_limits<double>::quiet_NaN()) );
 	    }
-	    if( x[0] > _origo[0]+2.0*_size[0]*_h ) {
+	    if( X[0] > _origo[0]+2.0*_size[0]*_h ) {
 		// Outside double the simulation box: return zero
 		return( R );
 	    }
 	    if( _extrpl[1] == FIELD_MIRROR ) {
 		sign[0] *= -1.0;
-		x[0]  = 2.0*_max[0] - x[0];
+		X[0]  = 2.0*_max[0] - X[0];
 	    }
 	}
 
 	// Linear approximation
-	int32_t i = (int32_t)floor( (x[0]-_origo[0])*_div_h );
+	int32_t i = (int32_t)floor( (X[0]-_origo[0])*_div_h );
 	if( i < 0 )
 	    i = 0;
 	else if( i >= _size[0]-1 )
 	    i = _size[0]-2;
 
-	double t = _div_h*( x[0]-(i*_h+_origo[0]) );
+	double t = _div_h*( X[0]-(i*_h+_origo[0]) );
 	
 	for( size_t b = 0; b < 3; b++ ) {
 	    if( _F[b] != NULL ) {
@@ -721,7 +721,7 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 	double t, u;
 
 	for( int a = 0; a < 2; a++ ) {
-	    if( x[a] < _origo[a] ) {
+	    if( X[a] < _origo[a] ) {
 		if( _extrpl[2*a] == FIELD_ZERO ) {
                     // return zero
                     return( Vec3D(0.0) );
@@ -729,16 +729,16 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 		    // return NaN
 		    return( Vec3D(std::numeric_limits<double>::quiet_NaN()) );
 		}
-		if( x[a] < _origo[a]-_size[a]*_h ) {
+		if( X[a] < _origo[a]-_size[a]*_h ) {
 		    // Limit to double the simulation box -> return zero
 		    return( R );
 		}
 		if( _extrpl[2*a] == FIELD_MIRROR ) {
                     sign[a] *= -1.0;
-                    x[a]     = 2.0*_origo[a] - x[a];
+                    X[a]     = 2.0*_origo[a] - X[a];
 		}
 
-	    } else if( x[0] > _max[0] ) {
+	    } else if( X[0] > _max[0] ) {
 		if( _extrpl[2*a+1] == FIELD_ZERO ) {
                     // return zero
                     return( Vec3D(0.0) );
@@ -746,13 +746,13 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 		    // return NaN
 		    return( Vec3D(std::numeric_limits<double>::quiet_NaN()) );
 		}
-		if( x[a] > _origo[a]+2.0*_size[a]*_h ) {
+		if( X[a] > _origo[a]+2.0*_size[a]*_h ) {
 		    // Limit to double the simulation box -> return zero
 		    return( R );
 		}
                 if( _extrpl[2*a+1] == FIELD_MIRROR ) {
                     sign[a] *= -1.0;
-                    x[a]     = 2.0*_max[a] - x[a];
+                    X[a]     = 2.0*_max[a] - X[a];
 		}
 	    }
 	}
@@ -763,12 +763,12 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 	    di = 0;
 	    t  = 0.0;
 	} else {
-	    i = (int32_t)floor( (x[0]-_origo[0])*_div_h );
+	    i = (int32_t)floor( (X[0]-_origo[0])*_div_h );
 	    if( i < 0 )
 		i = 0;
 	    else if( i >= _size[0]-1 )
 		i = _size[0]-2;
-	    t  = _div_h*( x[0]-(i*_h+_origo[0]) );
+	    t  = _div_h*( X[0]-(i*_h+_origo[0]) );
 	    di = 1;
 	}
 
@@ -778,12 +778,12 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 	    dj = 0;
 	    u  = 0.0;
 	} else {
-	    j = (int32_t)floor( (x[1]-_origo[1])*_div_h );
+	    j = (int32_t)floor( (X[1]-_origo[1])*_div_h );
 	    if( j < 0 )
 		j = 0;
 	    else if( j >= _size[1]-1 )
 		j = _size[1]-2;
-	    u = _div_h*( x[1]-(j*_h+_origo[1]) );
+	    u = _div_h*( X[1]-(j*_h+_origo[1]) );
 	    dj = _size[0];
 	}
 
@@ -804,7 +804,7 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 	double t, u, v;
 
 	for( int a = 0; a < 3; a++ ) {
-	    if( x[a] < _origo[a] ) {
+	    if( X[a] < _origo[a] ) {
 		if( _extrpl[2*a] == FIELD_ZERO ) {
                     // return zero
                     return( Vec3D(0.0) );
@@ -812,16 +812,16 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 		    // return NaN
 		    return( Vec3D(std::numeric_limits<double>::quiet_NaN()) );
 		}
-		if( x[a] < _origo[a]-_size[a]*_h ) {
+		if( X[a] < _origo[a]-_size[a]*_h ) {
 		    // Limit to double the simulation box -> return zero
 		    return( R );
 		}
 		if( _extrpl[2*a] == FIELD_MIRROR ) {
                     sign[a] *= -1.0;
-                    x[a]     = 2.0*_origo[a] - x[a];
+                    X[a]     = 2.0*_origo[a] - X[a];
 		}
 
-	    } else if( x[0] > _max[0] ) {
+	    } else if( X[0] > _max[0] ) {
 		if( _extrpl[2*a+1] == FIELD_ZERO ) {
                     // return zero
                     return( Vec3D(0.0) );
@@ -829,13 +829,13 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 		    // return NaN
 		    return( Vec3D(std::numeric_limits<double>::quiet_NaN()) );
 		}
-		if( x[a] > _origo[a]+2.0*_size[a]*_h ) {
+		if( X[a] > _origo[a]+2.0*_size[a]*_h ) {
 		    // Limit to double the simulation box -> return zero
 		    return( R );
 		}
                 if( _extrpl[2*a+1] == FIELD_MIRROR ) {
                     sign[a] *= -1.0;
-                    x[a]     = 2.0*_max[a] - x[a];
+                    X[a]     = 2.0*_max[a] - X[a];
 		}
             }
 	}
@@ -845,12 +845,12 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 	    di = 0;
 	    t  = 0.0;
 	} else {
-	    i = (int32_t)floor( (x[0]-_origo[0])*_div_h );
+	    i = (int32_t)floor( (X[0]-_origo[0])*_div_h );
 	    if( i < 0 )
 		i = 0;
 	    else if( i >= _size[0]-1 )
 		i = _size[0]-2;
-	    t  = _div_h*( x[0]-(i*_h+_origo[0]) );
+	    t  = _div_h*( X[0]-(i*_h+_origo[0]) );
 	    di = 1;
 	}
 
@@ -859,12 +859,12 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 	    dj = 0;
 	    u  = 0.0;
 	} else {
-	    j = (int32_t)floor( (x[1]-_origo[1])*_div_h );
+	    j = (int32_t)floor( (X[1]-_origo[1])*_div_h );
 	    if( j < 0 )
 		j = 0;
 	    else if( j >= _size[1]-1 )
 		j = _size[1]-2;
-	    u = _div_h*( x[1]-(j*_h+_origo[1]) );
+	    u = _div_h*( X[1]-(j*_h+_origo[1]) );
 	    dj = _size[0];
 	}
 
@@ -873,12 +873,12 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 	    dk = 0;
 	    v  = 0.0;
 	} else {
-	    k = (int32_t)floor( (x[2]-_origo[2])*_div_h );
+	    k = (int32_t)floor( (X[2]-_origo[2])*_div_h );
 	    if( k < 0 )
 		k = 0;
 	    else if( k >= _size[2]-1 )
 		k = _size[2]-2;
-	    v = _div_h*( x[2]-(k*_h+_origo[2]) );
+	    v = _div_h*( X[2]-(k*_h+_origo[2]) );
 	    dk = _size[0]*_size[1];
 	}
 

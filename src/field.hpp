@@ -1,8 +1,8 @@
-/*! \file scalarfield.hpp
- *  \brief Scalar fields
+/*! \file field.hpp
+ *  \brief Field base class
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,30 +40,21 @@
  * permit others to do so.
  */
 
-#ifndef SCALARFIELD_HPP
-#define SCALARFIELD_HPP 1
+#ifndef FIELD_HPP
+#define FIELD_HPP 1
 
 
-#include "vec3d.hpp"
-#include "field.hpp"
-
-
-/*! \brief Scalar field.
+/*! \brief Field class.
  *
- *  Abstract base class for scalar field implementations.
+ *  Abstract base class for field implementations.
  */
-class ScalarField : public Field {
+class Field {
 
 public:
 
     /*! \brief Virtual destructor.
      */
-    virtual ~ScalarField() {}
-
-    /*! \brief Operator for getting interpolated field value
-     *  at \a x.
-     */
-    virtual double operator()( const Vec3D &x ) const = 0;
+    virtual ~Field() {}
 };
 
 

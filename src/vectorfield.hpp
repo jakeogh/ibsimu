@@ -44,13 +44,15 @@
 #define VECTORFIELD_HPP 1
 
 
+#include "field.hpp"
 #include "vec3d.hpp"
 
 
-/*! \brief Abstract base class for vector field.
+/*! \brief Vector field.
  *
+ *  Abstract base class for vector field implementations.
  */
-class VectorField {
+class VectorField : public Field {
 
 public:
 
@@ -61,26 +63,8 @@ public:
     /*! \brief Operator for getting interpolated field value
      *  at \a x.
      */
-    virtual const Vec3D operator()( const Vec3D x ) const = 0;
+    virtual const Vec3D operator()( const Vec3D &x ) const = 0;
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -117,11 +117,11 @@ public:
 
     /*! \brief Returns size of solid mesh in direction \a i.
      */
-    int32_t size( int i ) const { return( _size[i] ); }
+    uint32_t size( int i ) const { return( _size[i] ); }
    
     /*! \brief Returns number of nodes in the mesh.
      */
-    int32_t nodecount( void ) const { return( _size[0]*_size[1]*_size[2] ); }
+    uint32_t nodecount( void ) const { return( _size[0]*_size[1]*_size[2] ); }
 
     /*! \brief Returns origo vector of geometry.
      */

@@ -318,7 +318,15 @@ public:
     uint32_t mesh_check( int32_t i, int32_t j, int32_t k ) const;
 
     /*! \brief Returns a const pointer to start of near solid data for
-     *  node (\a i, \a j, \a k).
+     *  node (\a i, \a j, \a k). The first byte contains the bit flags
+     *  for the existance of neighbouring solids. From bit 5 to bit 0
+     *  the boolean flags are for directions xmin, xmax, ymin, ymax,
+     *  zmin, zmax. The next bytes contain the parametric distances of
+     *  the solid surfaces from the node in each direction. Only the
+     *  directions with set bit flag are saved to data. The distances
+     *  are saved in the same order as the flags. The distance
+     *  information is an unsigned 8-bit integer (0 to 255), where 0
+     *  means distance 0.0 and 255 means 1.0.
      */
     const uint8_t *nearsolid_ptr( int32_t i, int32_t j, int32_t k ) const {
 	return( &_nearsolid[_smesh[i + j*_size[0] + k*_size[0]*_size[1]] & 

@@ -46,11 +46,10 @@
 
 #include <iostream>
 #include <stdint.h>
-#include "problem.hpp"
 #include "solver.hpp"
-#include "scalarfield.hpp"
+#include "callback.hpp"
+#include "meshscalarfield.hpp"
 #include "geometry.hpp"
-#include "vec3d.hpp"
 
 
 /*! \brief Plasma modes
@@ -139,107 +138,34 @@ enum plasma_mode_e {PLASMA_NONE = 0, PLASMA_PEXP_INITIAL, PLASMA_PEXP,
  *  is the same as the total positive beam space charge density for enabling
  *  plasma neutrality.
  */
-class EpotProblem : public Problem {
+class EpotProblem {
 
-    /*! \brief Class nodes to degrees of freedom mapping.
-     *
-     *  Uses running numbers starting from 0 to point to vectors with
-     *  free variables (electric potential and matrices during solving
-     *  for example). If a node is solid interior point or dirichlet
-     *  boundary, a fixed negative number corresponding to the solid
-     *  is used, i.e. from -1 to -6 for boundaries and starting from
-     *  -7 for electrodes.
-     */
-    class Node2DoF {
-	Int3D         _size;          /*!< \brief Size of mesh */
-	int32_t      *_n2d;           /*!< \brief Nodes to degrees of freedom array. */
-	
-    public:
-	
-	Node2DoF() : _size(0), _n2d(0) {}
-	Node2DoF( Int3D size ) : _size(size) {
-	    _n2d = new int32_t[_size[0]*_size[1]*_size[2]];
-	}
-	~Node2DoF() { delete _n2d; }
-	
-	void resize( Int3D size ) {
-	    _size = size;
-	    if( _n2d )
-		delete _n2d;
-	    _n2d = new int32_t[_size[0]*_size[1]*_size[2]];
-	}
-	
-	int32_t &operator()( int i ) 
-	    { return( _n2d[i] ); }
-	int32_t &operator()( int i, int j ) 
-	    { return( _n2d[i+j*_size[0]] ); }
-	int32_t &operator()( int i, int j, int k ) 
-	    { return( _n2d[i+j*_size[0]+k*_size[0]*_size[1]] ); }
-	
-	const int32_t &operator()( int i ) const
-	    { return( _n2d[i] ); }
-	const int32_t &operator()( int i, int j )  const 
-	    { return( _n2d[i+j*_size[0]] ); }
-	const int32_t &operator()( int i, int j, int k ) const 
-	    { return( _n2d[i+j*_size[0]+k*_size[0]*_size[1]] ); }
-	
-	/*! \brief Print debugging information to os.
-	 */
-	void debug_print( std::ostream &os ) const;
-    };
+    const Geometry     &_geom;             /*!< \brief Geometry reference. */
+    
+    uint32_t            _neumann_order;    /*!< \brief Neumann boundary order (1 or 2). */
+    bool                _smooth_solid;     /*!< \brief Smooth solid. */
 
-    int32_t             _nodecount;     /*!< \brief Number of nodes. */
-    int32_t             _dof;           /*!< \brief Degrees of freedom. */
-    Node2DoF            _n2d;           /*!< \brief Nodes to degrees of freedom map. */
-    CRowMatrix         *_fd_mat;        /*!< \brief Finite Difference (linear) matrix. */
-    Vector             *_fd_vec;        /*!< \brief Finite Difference (linear) vector. */
+    plasma_mode_e       _plasma;           /*!< \brief Plasma simulation mode. */
 
-    const Geometry     *_g;             /*!< \brief Geometry for solve in process. */
-    mutable CRowMatrix *_fd_mat2;       /*!< \brief Working matrix for solver. */
-    mutable Vector     *_fd_vec2;       /*!< \brief Working vector 1 for solver. */
-    mutable Vector     *_fd_vec3;       /*!< \brief Working vector 2 for solver. */
+    double              _rhoe;             /*!< \brief Electron charge density (C/m3), < 0. */
+    double              _Te;               /*!< \brief Electron thermal energy, > 0. */
+    double              _Up;               /*!< \brief Plasma potential, > 0. */
 
-    int32_t             _neumann_order; /*!< \brief Neumann boundary order (1 or 2). */
-    bool                _smooth_solid;  /*!< \brief Enable smooth solids. */
+    std::vector<double> _rhoi;             /*!< \brief Charge density for positive ions, 
+					    *   first fast protons, then thermal ions */
+    std::vector<double> _Ei;               /*!< \brief Energy for positive ions,
+					    *   first fast protons, then thermal ions */
 
-    plasma_mode_e       _plasma;        /*!< \brief Plasma simulation mode. */
+    double              _force_pot;        /*!< \brief Potential to be forced. */
+    CallbackFunctorB_V *_force_pot_func;   /*!< \brief Force area potential function. */
+    CallbackFunctorB_V *_init_plasma_func; /*!< \brief Initial plasma area function. */
 
-    double              _rhoe;          /*!< \brief Electron charge density (C/m3), < 0. */
-    double              _Te;            /*!< \brief Electron thermal energy, > 0. */
-    double              _Up;            /*!< \brief Plasma potential, > 0. */
+    Solver             *_solver;           /*!< \brief Solver for solving problem. */
 
-    std::vector<double> _rhoi;          /*!< \brief Charge density for positive ions, 
-					 *   first fast protons, then thermal ions */
-    std::vector<double> _Ei;            /*!< \brief Energy for positive ions,
-					 *   first fast protons, then thermal ions */
-
-    double              _force_pot;     /*!< \brief Potential to be forced. */
-
-    bool (*_force_pot_func)(double,double,double); /*!< \brief Force area potential function. */
-    bool (*_init_plasma_func)(double,double,double); /*!< \brief Initial plasma area function. */
-
-    Solver             *_solver;        /*!< \brief Solver for solving problem. */
-
-
-    void set_link( CRowMatrix &A, Vector &B, 
-		   int32_t a, int32_t b, double val );
-
-    void add_initial_plasma( int32_t i, int32_t j, int32_t k, 
-			     CRowMatrix &A, Vector &B, Node2DoF &n2d );
-
-    void add_forced_pot( int32_t i, int32_t j, int32_t k, 
-			 CRowMatrix &A, Vector &B, Node2DoF &n2d );
-
-    void add_vacuum_node( int32_t i, int32_t j, int32_t k, 
-			  CRowMatrix &A, Vector &B, Node2DoF &n2d );
-
-    void add_neumann_node( signed char a, int32_t i, int32_t j, int32_t k, 
-			   CRowMatrix &A, Vector &B, Node2DoF &n2d );
-
-    void add_solid_edge_node( signed char a, int32_t i, int32_t j, int32_t k, 
-			      CRowMatrix &A, Vector &B, Node2DoF &n2d );
     
     void clear_problem( void );
+    
+    MeshScalarField *evaluate_scharge( const ScalarField &__scharge ) const;
 
 public:
 
@@ -247,13 +173,13 @@ public:
  * Constructors and destructor            *
  * ************************************** */
 
-    /*! \brief Default constructor.
+    /*! \brief Constructor.
      */
-    EpotProblem();
+    EpotProblem( const Geometry &geom );
 
     /*! \brief Constructor for loading problem from a file.
      */
-    EpotProblem( std::istream &s );
+    EpotProblem( const Geometry &geom, std::istream &s );
 
     /*! \brief Destructor for problem.
      */
@@ -267,30 +193,32 @@ public:
      *
      *  Valid values are 1 and 2 (default).
      */
-    void set_neumann_order( int32_t order );
+    void set_neumann_order( uint32_t order );
 
-    /*! \brief Enable smooth solid edges
-     *
-     *  Smooth edges are enabled by default.
+    /*! \brief Set smooth solid surfaces.
+     * 
+     *  Default is enabled
      */
-    void enable_smooth_solids( bool enable );
+    void set_smooth_solids( bool enable );
 
     /*! \brief Define forced potential volume.
      *
      *  Vacuum volume inside the volume defined by function \a
-     *  force_pot_func will be forced to potential \a force_pot. This
-     *  function is designed to be used with negative ion plasma
-     *  extraction to stabilize plasma close non-physical boundaries.
+     *  force_pot_func will be forced to potential \a
+     *  force_pot_func. This function is designed to be used with
+     *  negative ion plasma extraction to stabilize plasma close
+     *  non-physical boundaries.
      */
     void set_forced_potential_volume( double force_pot, 
-				      bool (*force_pot_func)(double,double,double) );
+				      CallbackFunctorB_V *force_pot_func );
 
     /*! \brief Define initial plasma to the problem.
      *
-     *  Initial plasma volume is defined in the area given by \a plasma_func.
+     *  Initial plasma volume is defined in the area given by callback
+     *  functor \a init_plasma_func.
      */
     void set_initial_plasma( double Up, 
-			     bool (*plasma_func)(double,double,double) );
+			     CallbackFunctorB_V *init_plasma_func );
 
     /*! \brief Enable plasma model for positive ion extraction problem.
      */
@@ -301,7 +229,7 @@ public:
      *
      *  Initial plasma volume is defined in the area given by \a plasma_func.
      */
-    void set_nsimp_initial_plasma( bool (*plasma_func)(double,double,double) );
+    void set_nsimp_initial_plasma( CallbackFunctorB_V *init_plasma_func );
 
     /*! \brief Enable plasma model for negative ion extraction problem.
      *
@@ -319,12 +247,6 @@ public:
     void set_nsimp_plasma( double rhop, double Ep, 
 			   std::vector<double> rhoi, std::vector<double> Ei );
 
-    /*! \brief Construct matrix form of the problem.
-     *
-     *  Requires that mesh is build for geometry \a g.
-     */
-    void construct( const Geometry &g );
-
     /*! \brief Set solver to be used for the problem.
      */
     void set_solver( Solver &s );
@@ -336,7 +258,7 @@ public:
      *  the problem vector before solving. The solution is returned in
      *  \a epot.
      */
-    void solve( ScalarField &epot, const ScalarField &scharge ) const;
+    void solve( MeshScalarField &epot, const ScalarField &scharge ) const;
 
 /* ************************************** *
  * Solver interface                       *
@@ -367,10 +289,6 @@ public:
 /* ************************************** *
  * Misc                                   *
  * ************************************** */
-
-    /*! \brief Get degrees of freedom.
-     */
-    int get_dof( void ) const { return( _dof ); }
 
     /*! \brief Print debugging information to os.
      */

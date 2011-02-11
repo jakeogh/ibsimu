@@ -1,5 +1,5 @@
-/*! \file scalarfield.cpp
- *  \brief Source code for scalarfield.cpp
+/*! \file meshscalarfield.cpp
+ *  \brief Mesh based scalar field.
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -40,20 +40,20 @@
  * permit others to do so.
  */
 
-#include "scalarfield.hpp"
 #include <iostream>
 #include <string.h>
 #include <cmath>
 #include <limits>
+#include "meshscalarfield.hpp"
 
 
-ScalarField::ScalarField()
+MeshScalarField::MeshScalarField()
     : _F(NULL)
 {
 }
 
 
-ScalarField::ScalarField( const Mesh &m )
+MeshScalarField::MeshScalarField( const Mesh &m )
     : Mesh(m)
 {
     check_definition();
@@ -63,7 +63,7 @@ ScalarField::ScalarField( const Mesh &m )
 }
 
 
-ScalarField::ScalarField( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
+MeshScalarField::MeshScalarField( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
     : Mesh(geom_mode,size,origo,h)
 {
     check_definition();
@@ -73,7 +73,7 @@ ScalarField::ScalarField( geom_mode_e geom_mode, Int3D size, Vec3D origo, double
 }
 
 
-ScalarField::ScalarField( std::istream &s )
+MeshScalarField::MeshScalarField( std::istream &s )
     : Mesh(s)
 {
     check_definition();
@@ -83,7 +83,7 @@ ScalarField::ScalarField( std::istream &s )
 }
 
 
-ScalarField::ScalarField( const ScalarField &f )
+MeshScalarField::MeshScalarField( const MeshScalarField &f )
     : Mesh(f)
 {
     _F = new double[_size[0]*_size[1]*_size[2]];
@@ -91,16 +91,16 @@ ScalarField::ScalarField( const ScalarField &f )
 }
 
 
-ScalarField::~ScalarField()
+MeshScalarField::~MeshScalarField()
 {
     if( _F )
 	delete [] _F;
 }
 
 
-void ScalarField::check_definition()
+void MeshScalarField::check_definition()
 {
-    // Check that mesh size need for ScalarField are fullfilled
+    // Check that mesh size need for MeshScalarField are fullfilled
     if( _geom_mode == MODE_3D ) {
 	if( _size[0] < 2 || _size[1] < 2 || _size[2] < 2 )
 	    throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
@@ -114,13 +114,13 @@ void ScalarField::check_definition()
 }
 
 
-void ScalarField::clear()
+void MeshScalarField::clear()
 {
     memset( _F, 0, _size[0]*_size[1]*_size[2]*sizeof(double) );
 }
 
 
-void ScalarField::reset( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
+void MeshScalarField::reset( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
 {
     Mesh::reset( geom_mode, size, origo, h );
     check_definition();
@@ -132,7 +132,7 @@ void ScalarField::reset( geom_mode_e geom_mode, Int3D size, Vec3D origo, double 
 }
 
 
-void ScalarField::get_minmax( double &min, double &max ) const
+void MeshScalarField::get_minmax( double &min, double &max ) const
 {
     min = _F[0];
     max = _F[0];
@@ -147,25 +147,7 @@ void ScalarField::get_minmax( double &min, double &max ) const
 }
 
 
-void ScalarField::epot_get_minmax( const Geometry &g, double &min, double &max ) const
-{
-    min = std::numeric_limits<double>::infinity();
-    max = -std::numeric_limits<double>::infinity();
-
-    size_t ncount = _size[0]*_size[1]*_size[2];
-    for( size_t a = 0; a < ncount; a++ ) {
-	if( g.mesh( a ) <= -7 )
-	    // Skip electrode edges
-	    continue; 
-	if( _F[a] < min )
-	    min = _F[a];
-	if( _F[a] > max )
-	    max = _F[a];
-    }
-}
-
-
-ScalarField &ScalarField::operator=( const ScalarField &f )
+MeshScalarField &MeshScalarField::operator=( const MeshScalarField &f )
 {
     (Mesh)(*this) = (Mesh)f;
 
@@ -177,7 +159,7 @@ ScalarField &ScalarField::operator=( const ScalarField &f )
 }
 
 
-ScalarField &ScalarField::operator+=( const ScalarField &f )
+MeshScalarField &MeshScalarField::operator+=( const MeshScalarField &f )
 {
     if( (Mesh)(*this) != (Mesh)f )
 	throw( Error( ERROR_LOCATION, "non-matching fields" ) );
@@ -189,7 +171,7 @@ ScalarField &ScalarField::operator+=( const ScalarField &f )
 }
 
 
-ScalarField &ScalarField::operator*=( double x )
+MeshScalarField &MeshScalarField::operator*=( double x )
 {
     size_t ncount = _size[0]*_size[1]*_size[2];
     for( size_t a = 0; a < ncount; a++ )
@@ -198,7 +180,7 @@ ScalarField &ScalarField::operator*=( double x )
 }
 
 
-ScalarField &ScalarField::operator/=( double x )
+MeshScalarField &MeshScalarField::operator/=( double x )
 {
     double xi = 1.0/x;
     size_t ncount = _size[0]*_size[1]*_size[2];
@@ -208,7 +190,7 @@ ScalarField &ScalarField::operator/=( double x )
 }
 
 
-double ScalarField::operator()( Vec3D x ) const
+double MeshScalarField::operator()( const Vec3D &x ) const
 {
     if( !_F )
 	return( 0.0 );
@@ -290,18 +272,18 @@ double ScalarField::operator()( Vec3D x ) const
 }
 
 
-void ScalarField::save( std::ostream &s ) const
+void MeshScalarField::save( std::ostream &s ) const
 {
     Mesh::save( s );
     write_compressed_block( s, _size[0]*_size[1]*_size[2]*sizeof(double), (int8_t *)_F );
 }
 
 
-void ScalarField::debug_print( std::ostream &os ) const
+void MeshScalarField::debug_print( std::ostream &os ) const
 {
     Mesh::debug_print( os );
 
-    os << "**ScalarField\n";
+    os << "**MeshScalarField\n";
     os << "F = (";
     if( _size[0]*_size[1]*_size[2] < 10 ) {
 	int a;

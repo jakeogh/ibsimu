@@ -52,6 +52,7 @@
 #include "vectorfield.hpp"
 #include "vec3d.hpp"
 #include "callback.hpp"
+#include "constants.hpp"
 
 
 /* Integer error value that is supposed to diffed from internal GSL error values */
@@ -73,13 +74,6 @@ enum particle_status_e {
     PARTICLE_TIME,
     PARTICLE_NSTP 
 };
-
-
-/* Atomic mass unit */
-#define MASS_U        1.66053873e-27
-/* Elementary charge */
-#define CHARGE_E      1.602176462e-19
-
 
 
 

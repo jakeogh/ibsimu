@@ -42,6 +42,7 @@ eqpotgraph.cpp \
 eqpotgraph.hpp \
 error.cpp \
 error.hpp \
+field.hpp \
 fielddiagplot.cpp \
 fielddiagplot.hpp \
 fielddiagplotter.cpp \
@@ -120,6 +121,8 @@ mesh.cpp \
 mesh.hpp \
 meshgraph.cpp \
 meshgraph.hpp \
+meshscalarfield.cpp \
+meshscalarfield.hpp \
 meshvectorfield.cpp \
 meshvectorfield.hpp \
 mvector.cpp \
@@ -162,7 +165,6 @@ readascii.cpp \
 readascii.hpp \
 ruler.cpp \
 ruler.hpp \
-scalarfield.cpp \
 scalarfield.hpp \
 scharge.cpp \
 scharge.hpp \
@@ -213,6 +215,7 @@ epot_efield.hpp \
 epot_problem.hpp \
 eqpotgraph.hpp \
 error.hpp \
+field.hpp \
 fielddiagplot.hpp \
 fielddiagplotter.hpp \
 fieldgraph.hpp \
@@ -240,6 +243,7 @@ mat3d.hpp \
 matrix.hpp \
 mesh.hpp \
 meshgraph.hpp \
+meshscalarfield.hpp \
 meshvectorfield.hpp \
 mvector.hpp \
 multimeshvectorfield.hpp \

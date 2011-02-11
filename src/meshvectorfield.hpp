@@ -260,7 +260,7 @@ public:
     /*! \brief Operator for getting linearly interpolated field value
      *  at \a x.
      */
-    virtual const Vec3D operator()( Vec3D x ) const;
+    virtual const Vec3D operator()( const Vec3D &x ) const;
 
     /*! \brief Saves vector field data to stream.
      */
