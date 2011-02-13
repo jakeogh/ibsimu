@@ -2,7 +2,7 @@
  *  \brief Space charge deposition functions
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -55,7 +55,7 @@
  *  for potential solvers. Also corrects boundary space charge values.
  *
  */
-void scharge_finalize( ScalarField &scharge );
+void scharge_finalize( MeshScalarField &scharge );
 
 
 /*! \brief Function for adding charge to space charge density map from
@@ -68,7 +68,7 @@ void scharge_finalize( ScalarField &scharge );
  *  supposed to be used so that \a x1 and \a x2 are at the mesh
  *  intersection points, through which particle trajectory has passed.
  */
-void scharge_add_from_trajectory( ScalarField &scharge, double IQ, 
+void scharge_add_from_trajectory( MeshScalarField &scharge, double IQ, 
 				  const ParticleP2D &x1, const ParticleP2D &x2 );
 
 
@@ -78,7 +78,7 @@ void scharge_add_from_trajectory( ScalarField &scharge, double IQ,
  *  Same as for scharge_add_from_trajectory(). Now IQ is real current
  *  (A).
  */
-void scharge_add_from_trajectory( ScalarField &scharge, double IQ, 
+void scharge_add_from_trajectory( MeshScalarField &scharge, double IQ, 
 				  const ParticlePCyl &x1, const ParticlePCyl &x2 );
 
 
@@ -88,7 +88,7 @@ void scharge_add_from_trajectory( ScalarField &scharge, double IQ,
  *  Same as for scharge_add_from_trajectory(). Now IQ is real current
  *  (A).
  */
-void scharge_add_from_trajectory( ScalarField &scharge, double IQ, 
+void scharge_add_from_trajectory( MeshScalarField &scharge, double IQ, 
 				  const ParticleP3D &x1, const ParticleP3D &x2 );
 
 

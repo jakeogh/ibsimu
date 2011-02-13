@@ -113,7 +113,7 @@ bool Convergence::evaluate_iteration( void )
 	if( !_epot_old ) {
 	    // First round 
 	    _epot_hist.push_back( 0.0 );
-	    _epot_old = new ScalarField( *_epot );
+	    _epot_old = new MeshScalarField( *_epot );
 	} else {
 	    // Evaluate error estimate
 	    double error = 0.0;
@@ -131,7 +131,7 @@ bool Convergence::evaluate_iteration( void )
 	    }
 	    _epot_hist.push_back( error );
 	    delete _epot_old;
-	    _epot_old = new ScalarField( *_epot );
+	    _epot_old = new MeshScalarField( *_epot );
 
 	    if( error > 1.0 )
 		convergence = false;
@@ -146,7 +146,7 @@ bool Convergence::evaluate_iteration( void )
 	if( !_scharge_old ) {
 	    // First round 
 	    _scharge_hist.push_back( 0.0 );
-	    _scharge_old = new ScalarField( *_scharge );
+	    _scharge_old = new MeshScalarField( *_scharge );
 	} else {
 	    // Evaluate error estimate
 	    double error = 0.0;
@@ -164,7 +164,7 @@ bool Convergence::evaluate_iteration( void )
 	    }
 	    _scharge_hist.push_back( error );
 	    delete _scharge_old;
-	    _scharge_old = new ScalarField( *_scharge );
+	    _scharge_old = new MeshScalarField( *_scharge );
 
 	    if( error > 1.0 )
 		convergence = false;
@@ -312,7 +312,7 @@ void Convergence::print_history( std::ostream &os ) const
 }
 
 
-void Convergence::add_epot( const ScalarField &epot, double absf, double relf, double lim )
+void Convergence::add_epot( const MeshScalarField &epot, double absf, double relf, double lim )
 {
     _epot = &epot;
     _epot_old = NULL;
@@ -324,7 +324,7 @@ void Convergence::add_epot( const ScalarField &epot, double absf, double relf, d
 }
 
 
-void Convergence::add_scharge( const ScalarField &scharge, double absf, double relf, double lim )
+void Convergence::add_scharge( const MeshScalarField &scharge, double absf, double relf, double lim )
 {
     _scharge = &scharge;
     _scharge_old = NULL;

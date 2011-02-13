@@ -66,13 +66,13 @@
 class PPlasmaBfieldSuppression : public CallbackFunctorD_V {
 
     double             _phi;    /*!< \brief Limit for potential. */
-    const ScalarField &_epot;   /*!< \brief Electric potential field. */
+    const MeshScalarField &_epot;   /*!< \brief Electric potential field. */
     
 public:
 
     /*! \brief Constructor setting electric potential field and potential limit.
      */
-    PPlasmaBfieldSuppression( const ScalarField &epot, double phi ) 
+    PPlasmaBfieldSuppression( const MeshScalarField &epot, double phi ) 
 	: _phi(phi), _epot(epot) {}
 
     /*! \brief Destructor.
@@ -101,13 +101,13 @@ public:
 class NPlasmaBfieldSuppression : public CallbackFunctorD_V {
 
     double             _phi;    /*!< \brief Limit for potential. */
-    const ScalarField &_epot;   /*!< \brief Electric potential field. */
+    const MeshScalarField &_epot;   /*!< \brief Electric potential field. */
     
 public:
 
     /*! \brief Constructor setting electric potential field and potential limit.
      */
-    NPlasmaBfieldSuppression( const ScalarField &epot, double phi ) 
+    NPlasmaBfieldSuppression( const MeshScalarField &epot, double phi ) 
 	: _phi(phi), _epot(epot) {}
 
     /*! \brief Destructor.
@@ -655,10 +655,10 @@ public:
      *  in geometry \a g. Space charge density field \a scharge is set
      *  from the particle trajectories.
      */
-    virtual void iterate_trajectories( ScalarField &scharge, const VectorField &efield, 
+    virtual void iterate_trajectories( MeshScalarField &scharge, const VectorField &efield, 
 				       const VectorField &bfield, const Geometry &g ) {
 
-	ScalarField                         *schmap[ibsimu.get_thread_count()];
+	MeshScalarField                     *schmap[ibsimu.get_thread_count()];
 	std::vector<ParticleIterator<PP> *>  iterators;
 
 	Timer t;
@@ -685,7 +685,7 @@ public:
 	// Make separate space charge maps for all threads and build iterators
 	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
 	    if( a == 0 ) schmap[a] = &scharge;
-	    else schmap[a] = new ScalarField( scharge );
+	    else schmap[a] = new MeshScalarField( scharge );
 
 	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
 							   _polyint, _maxsteps, _maxt, _trajdiv, 
@@ -794,7 +794,7 @@ public:
  */
 class ParticleDataBase2D : public ParticleDataBasePP<ParticleP2D> {
 
-    void add_tdens_from_segment( ScalarField &tdens, double IQ,
+    void add_tdens_from_segment( MeshScalarField &tdens, double IQ,
 				 ParticleP2D &x1, ParticleP2D &x2 ) const;
 
 public:
@@ -901,7 +901,7 @@ public:
      *
      *  The scalar field \a tdens can differ from geometry.
      */
-    void build_trajectory_density_field( ScalarField &tdens ) const;
+    void build_trajectory_density_field( MeshScalarField &tdens ) const;
 };
 
 
@@ -920,7 +920,7 @@ public:
  */
 class ParticleDataBaseCyl : public ParticleDataBasePP<ParticlePCyl> {
 
-    void add_tdens_from_segment( ScalarField &tdens, double IQ,
+    void add_tdens_from_segment( MeshScalarField &tdens, double IQ,
 				 ParticlePCyl &x1, ParticlePCyl &x2 ) const;
 
 public:
@@ -1015,7 +1015,7 @@ public:
      *
      *  The scalar field \a tdens can differ from geometry.
      */
-    void build_trajectory_density_field( ScalarField &tdens ) const;
+    void build_trajectory_density_field( MeshScalarField &tdens ) const;
 };
 
 
@@ -1033,7 +1033,7 @@ public:
  */
 class ParticleDataBase3D : public ParticleDataBasePP<ParticleP3D> {
 
-    void add_tdens_from_segment( ScalarField &tdens, double IQ,
+    void add_tdens_from_segment( MeshScalarField &tdens, double IQ,
 				 ParticleP3D &x1, ParticleP3D &x2 ) const;
 
 public:
@@ -1200,7 +1200,7 @@ public:
      *
      *  The scalar field \a tdens can differ from geometry.
      */
-    void build_trajectory_density_field( ScalarField &tdens ) const;
+    void build_trajectory_density_field( MeshScalarField &tdens ) const;
 };
 
 #endif

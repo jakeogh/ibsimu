@@ -1,4 +1,4 @@
-/*! \file epot_problem.hpp
+/*! \file epot_solver.hpp
  *  \brief Poisson equation problem for solving electric potential
  */
 
@@ -40,8 +40,8 @@
  * permit others to do so.
  */
 
-#ifndef EPOT_PROBLEM_HPP
-#define EPOT_PROBLEM_HPP 1
+#ifndef EPOT_SOLVER_HPP
+#define EPOT_SOLVER_HPP 1
 
 
 #include <iostream>
@@ -138,7 +138,9 @@ enum plasma_mode_e {PLASMA_NONE = 0, PLASMA_PEXP_INITIAL, PLASMA_PEXP,
  *  is the same as the total positive beam space charge density for enabling
  *  plasma neutrality.
  */
-class EpotProblem {
+class EpotSolver {
+
+protected:
 
     const Geometry     &_geom;             /*!< \brief Geometry reference. */
     
@@ -160,12 +162,16 @@ class EpotProblem {
     CallbackFunctorB_V *_force_pot_func;   /*!< \brief Force area potential function. */
     CallbackFunctorB_V *_init_plasma_func; /*!< \brief Initial plasma area function. */
 
-    Solver             *_solver;           /*!< \brief Solver for solving problem. */
-
     
     void clear_problem( void );
     
     MeshScalarField *evaluate_scharge( const ScalarField &__scharge ) const;
+
+    virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge ) const = 0;
+
+    /*! \brief Print debugging information to os.
+     */
+    void debug_print_base( std::ostream &os ) const;
 
 public:
 
@@ -175,16 +181,12 @@ public:
 
     /*! \brief Constructor.
      */
-    EpotProblem( const Geometry &geom );
+    EpotSolver( const Geometry &geom );
 
-    /*! \brief Constructor for loading problem from a file.
+    /*! \brief Destructor.
      */
-    EpotProblem( const Geometry &geom, std::istream &s );
+    virtual ~EpotSolver() {}
 
-    /*! \brief Destructor for problem.
-     */
-    ~EpotProblem();
-    
 /* ************************************** *
  * Problem constructing and solving       *
  * ************************************** */
@@ -247,10 +249,6 @@ public:
     void set_nsimp_plasma( double rhop, double Ep, 
 			   std::vector<double> rhoi, std::vector<double> Ei );
 
-    /*! \brief Set solver to be used for the problem.
-     */
-    void set_solver( Solver &s );
-
     /*! \brief Solve the problem.
      *
      *  The \a epot field is used as an initial guess for the
@@ -292,11 +290,11 @@ public:
 
     /*! \brief Print debugging information to os.
      */
-    void debug_print( std::ostream &os ) const;
+    virtual void debug_print( std::ostream &os ) const = 0;
 
     /*! \brief Saves problem data to stream.
      */
-    void save( std::ostream &s ) const;
+    virtual void save( std::ostream &s ) const = 0;
 };
 
 

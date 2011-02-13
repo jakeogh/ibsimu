@@ -139,7 +139,7 @@ const Geometry *GTKPlotter::get_geometry( void ) const
     return( _geom );
 }
 
-const ScalarField *GTKPlotter::get_epot( void ) const
+const MeshScalarField *GTKPlotter::get_epot( void ) const
 {
     return( _epot );
 }
@@ -151,13 +151,13 @@ const VectorField *GTKPlotter::get_efield( void ) const
 }
 
 
-const ScalarField *GTKPlotter::get_scharge( void ) const
+const MeshScalarField *GTKPlotter::get_scharge( void ) const
 {
     return( _scharge );
 }
 
 
-const ScalarField *GTKPlotter::get_trajdens( void ) const
+const MeshScalarField *GTKPlotter::get_trajdens( void ) const
 {
     return( _tdens );
 }
@@ -181,7 +181,7 @@ void GTKPlotter::set_geometry( const Geometry *geom )
 }
 
 
-void GTKPlotter::set_epot( const ScalarField *epot )
+void GTKPlotter::set_epot( const MeshScalarField *epot )
 {
     _epot = epot;
 }
@@ -191,13 +191,13 @@ void GTKPlotter::set_efield( const VectorField *efield )
     _efield = efield;
 }
 
-void GTKPlotter::set_scharge( const ScalarField *scharge )
+void GTKPlotter::set_scharge( const MeshScalarField *scharge )
 {
     _scharge = scharge;
 }
 
 
-void GTKPlotter::set_trajdens( const ScalarField *tdens )
+void GTKPlotter::set_trajdens( const MeshScalarField *tdens )
 {
     _tdens = tdens;
 }

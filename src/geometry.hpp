@@ -328,9 +328,14 @@ public:
      *  information is an unsigned 8-bit integer (0 to 255), where 0
      *  means distance 0.0 and 255 means 1.0.
      */
+    /*
     const uint8_t *nearsolid_ptr( int32_t i, int32_t j, int32_t k ) const {
 	return( &_nearsolid[_smesh[i + j*_size[0] + k*_size[0]*_size[1]] & 
 			    SMESH_NEAR_SOLID_INDEX_MASK] );
+    }
+    */
+    const uint8_t *nearsolid_ptr( int32_t index ) const {
+	return( &_nearsolid[index] );
     }
 
     /*! \brief Saves geometry data to stream.

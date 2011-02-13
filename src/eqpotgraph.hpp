@@ -2,7 +2,7 @@
  *  \brief %Graph for plotting equipotential lines
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -46,7 +46,7 @@
 
 #include <vector>
 #include "geometry.hpp"
-#include "scalarfield.hpp"
+#include "meshscalarfield.hpp"
 #include "graph3d.hpp"
 #include "color.hpp"
 
@@ -79,7 +79,7 @@ class EqPotGraph : public Graph3D {
     };
 
     Color                               _color;
-    const ScalarField                   _epot;
+    const MeshScalarField               _epot;
     const Geometry                     &_g;
     bool                                _data_built;
 
@@ -105,7 +105,7 @@ public:
      *  Makes a plot object for plotting equipotential data from
      *  scalarfield \a field in geometry \a g.
      */
-    EqPotGraph( const ScalarField &epot, const Geometry &g );
+    EqPotGraph( const MeshScalarField &epot, const Geometry &g );
 
     /*! \brief Destructor,
      */

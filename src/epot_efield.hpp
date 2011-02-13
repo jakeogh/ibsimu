@@ -46,7 +46,7 @@
 
 #include "vectorfield.hpp"
 #include "geometry.hpp"
-#include "scalarfield.hpp"
+#include "meshscalarfield.hpp"
 #include "vec3d.hpp"
 #include "types.hpp"
 
@@ -54,7 +54,7 @@
 /*! \brief %Vector field based on on-line interpolation of electric
  *  potential.
  *
- *  %EpotEfield contains pointers to Geometry and to ScalarField
+ *  %EpotEfield contains pointers to Geometry and to MeshScalarField
  *  electric potential (epot). In 1D %EpotEfield uses three closest
  *  mesh neighbours of point \a x to calculate the electric field at
  *  \a x in 1D (9 points in 2D and 27 points in 3D).  A second order
@@ -69,16 +69,16 @@
  */
 class EpotEfield : public VectorField {
 
-    field_extrpl_e       _extrpl[6];   /*!< \brief What to return outside geometry. */
+    field_extrpl_e          _extrpl[6];   /*!< \brief What to return outside geometry. */
 
-    const Geometry      &_g;           /*!< \brief Reference to geometry. */
-    const ScalarField   &_epot;        /*!< \brief Reference to electric potential. */
+    const Geometry         &_g;           /*!< \brief Reference to geometry. */
+    const MeshScalarField  &_epot;        /*!< \brief Reference to electric potential. */
 
 public:
 
     /*! \brief Constructor.
      */
-    EpotEfield( const Geometry &g, const ScalarField &epot );
+    EpotEfield( const Geometry &g, const MeshScalarField &epot );
 
     /*! \brief Destructor.
      */
@@ -110,7 +110,7 @@ public:
     /*! \brief Operator for getting interpolated electric field value
      *  at \a x.
      */
-    virtual const Vec3D operator()( Vec3D x ) const;
+    virtual const Vec3D operator()( const Vec3D &x ) const;
 };
 
 

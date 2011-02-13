@@ -20,7 +20,7 @@ ErrorTest::ErrorTest( const ErrorLocation &loc, const std::string &str )
 int main( int argc, char **argv )
 {
     try {
-	ibsimu.set_verbose_output( 0 );
+	ibsimu.set_verbose_output( 1 );
 	ibsimu.set_thread_count( 4 );
 	test( argc, argv );
     } catch( Error e ) {

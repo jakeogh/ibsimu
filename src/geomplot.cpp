@@ -116,7 +116,7 @@ void GeomPlot::reset_graphs()
 }
 
 
-void GeomPlot::set_epot( const ScalarField *epot ) 
+void GeomPlot::set_epot( const MeshScalarField *epot ) 
 {
     _epot = epot;
 
@@ -160,7 +160,7 @@ void GeomPlot::set_eqlines_auto( size_t N )
 }
 
 
-void GeomPlot::set_trajdens( const ScalarField *tdens ) 
+void GeomPlot::set_trajdens( const MeshScalarField *tdens ) 
 {
     _tdens = tdens;
     if( _fieldplot_sel == FIELD_TRAJDENS ) {
@@ -170,7 +170,7 @@ void GeomPlot::set_trajdens( const ScalarField *tdens )
 }
 
 
-void GeomPlot::set_scharge( const ScalarField *scharge ) 
+void GeomPlot::set_scharge( const MeshScalarField *scharge ) 
 {
     _scharge = scharge;
     if( _fieldplot_sel == FIELD_SCHARGE ) {
@@ -366,7 +366,7 @@ void GeomPlot::set_view( view_e view, int level )
 	_level = _geom->size(_vb[2])/2;
     else if( level < 0 )
 	_level = 0;
-    else if( level >= _geom->size(_vb[2]) )
+    else if( level >= (int32_t)_geom->size(_vb[2]) )
 	_level = _geom->size(_vb[2])-1;
     else
 	_level = level;

@@ -2,7 +2,7 @@
  *  \brief Source code for eqpotgraph.cpp
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,7 +45,7 @@
 #include "ibsimu.hpp"
 
 
-EqPotGraph::EqPotGraph( const ScalarField &epot, const Geometry &g )
+EqPotGraph::EqPotGraph( const MeshScalarField &epot, const Geometry &g )
     : _color(Color(0.2,1,0.2)), _epot(epot), _g(g), _data_built(false), _cache(true)
 {
 }
@@ -115,7 +115,7 @@ void EqPotGraph::build_data( void )
 
     // Add automatic lines
     double min, max;
-    _epot.epot_get_minmax( _g, min, max );
+    _epot.get_minmax( min, max );
     for( size_t a = 0; a < _eqlines_auto; a++ )
 	_lines.push_back( new EqPotLines( min + a*(max-min)/(_eqlines_auto-1) ) );
 

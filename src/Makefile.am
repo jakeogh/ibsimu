@@ -36,8 +36,10 @@ dxf_solid.hpp \
 empty_precond.hpp \
 epot_efield.cpp \
 epot_efield.hpp \
-epot_problem.cpp \
-epot_problem.hpp \
+epot_gssolver.cpp \
+epot_gssolver.hpp \
+epot_solver.cpp \
+epot_solver.hpp \
 eqpotgraph.cpp \
 eqpotgraph.hpp \
 error.cpp \
@@ -212,7 +214,8 @@ diag_precond.hpp \
 dxf_solid.hpp \
 empty_precond.hpp \
 epot_efield.hpp \
-epot_problem.hpp \
+epot_gssolver.hpp \
+epot_solver.hpp \
 eqpotgraph.hpp \
 error.hpp \
 field.hpp \

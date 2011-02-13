@@ -1,8 +1,8 @@
-/*! \file fieldgraph.hpp
- *  \brief %Graph for plotting fields
+/*! \file epot_gssolver.hpp
+ *  \brief Gauss-Seidel solver for electric potential problem
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,87 +40,52 @@
  * permit others to do so.
  */
 
-#ifndef FIELDGRAPH_HPP
-#define FIELDGRAPH_HPP 1
+#ifndef EPOT_GSSOLVER_HPP
+#define EPOT_GSSOLVER_HPP 1
 
 
-#include <vector>
-#include "graph3d.hpp"
-#include "meshscalarfield.hpp"
-#include "colormap.hpp"
-#include "geometry.hpp"
+#include "epot_solver.hpp"
 
 
-/*! \brief Class for drawing fields with colormap
- *
- *  Implementation of %Graph3D.
- */
-class FieldGraph : public Graph3D {
+class EpotGSSolver : public EpotSolver {
 
-    const MeshScalarField  *_scalarfield;     /*!< \brief MeshScalarfield for plotting. */
-    Colormap               *_colormap;        /*!< \brief Colormap for field plot. */
+    uint32_t _iter_max;       /*!< \brief Maximum number of iteration rounds. */
 
-    view_e                  _oview;
-    double                  _olevel;
+    void gs_solve( MeshScalarField &epot, const MeshScalarField &scharge ) const;
+    void gs_loop( MeshScalarField &epot, const MeshScalarField &rhs ) const;
+    void gs_process_node( MeshScalarField &epot, const MeshScalarField &rhs,
+			  uint32_t i, uint32_t j, uint32_t k ) const;
+    void gs_process_near_solid( MeshScalarField &epot, const MeshScalarField &rhs,
+				const uint8_t *nearsolid_ptr, 
+				uint32_t i, uint32_t j, uint32_t k ) const;
+    void gs_process_pure_vacuum( MeshScalarField &epot, const MeshScalarField &rhs,
+				 uint32_t i, uint32_t j, uint32_t k ) const;
+    void gs_process_neumann( MeshScalarField &epot, const MeshScalarField &rhs,
+			     uint32_t boundary, uint32_t i, uint32_t j, uint32_t k ) const;
 
-    bool                    _enabled;         /*!< \brief Is plotting enabled */
-    bool                    _logscale;        /*!< \brief Logarithmic scaling */
-
-    void build_scalarfield_plot( void );
+    virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge ) const;
 
 public:
 
-    /*! \brief Constructor for plotting MeshScalarField.
+    /*! \brief Constructor.
      */
-    FieldGraph( const MeshScalarField *field );
+    EpotGSSolver( const Geometry &geom );
+
+    /*! \brief Construct from file.
+     */
+    EpotGSSolver( const Geometry &geom, std::istream &s );
 
     /*! \brief Destructor.
      */
-    virtual ~FieldGraph();
+    virtual ~EpotGSSolver() {}
 
-    /*! \brief Enable/disable plot.
+    /*! \brief Print debugging information to os.
      */
-    void enable( bool enable );
+    virtual void debug_print( std::ostream &os ) const;
 
-    /*! \brief Set logarithmic scale.
+    /*! \brief Saves problem data to stream.
      */
-    void set_logscale( bool enable ) {
-	_logscale = enable;
-    }
-
-    /*! \brief Plot drawable with cairo.
-
-     *  Plot drawable using \a cairo and coordinate mapper \a cm. The
-     *  visible range of plot is given in array \a range in order
-     *  xmin, ymin, xmax, ymax.
-     */
-    virtual void plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] );
-
-    /*! \brief Get bounding box of drawable.
-     *
-     *  Returns the bounding box of the drawable in array \a bbox in
-     *  order xmin, ymin, xmax, ymax.
-     */
-    virtual void get_bbox( double bbox[4] );
+    virtual void save( std::ostream &s ) const;
 };
 
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

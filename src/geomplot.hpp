@@ -47,7 +47,7 @@
 #include "types.hpp"
 #include "frame.hpp"
 #include "geometry.hpp"
-#include "scalarfield.hpp"
+#include "meshscalarfield.hpp"
 #include "vectorfield.hpp"
 #include "particledatabase.hpp"
 
@@ -71,9 +71,9 @@ class GeomPlot {
     Frame                   *_frame;
 
     const Geometry          *_geom;
-    const ScalarField       *_epot;
-    const ScalarField       *_scharge;
-    const ScalarField       *_tdens;
+    const MeshScalarField       *_epot;
+    const MeshScalarField       *_scharge;
+    const MeshScalarField       *_tdens;
     const VectorField       *_bfield;
     const ParticleDataBase  *_pdb;
 
@@ -116,7 +116,7 @@ public:
 
     void disable_cache( void );
 
-    void set_epot( const ScalarField *epot );
+    void set_epot( const MeshScalarField *epot );
 
     void set_eqlines_manual( const std::vector<double> &pot );
 
@@ -144,21 +144,21 @@ public:
 
     /*! \brief Set trajectory density field.
      */
-    void set_trajdens( const ScalarField *tdens );
+    void set_trajdens( const MeshScalarField *tdens );
 
     /*! \brief Get trajectory density field.
      */
-    const ScalarField *get_trajdens( void ) const {
+    const MeshScalarField *get_trajdens( void ) const {
 	return( _tdens );
     }
 
     /*! \brief Set space charge density field.
      */
-    void set_scharge( const ScalarField *scharge );
+    void set_scharge( const MeshScalarField *scharge );
 
     /*! \brief Get space charge density field.
      */
-    const ScalarField *get_scharge( void ) const {
+    const MeshScalarField *get_scharge( void ) const {
 	return( _scharge );
     }
 

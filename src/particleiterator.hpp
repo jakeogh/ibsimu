@@ -54,7 +54,7 @@
 #include "trajectory.hpp"
 #include "particles.hpp"
 #include "vectorfield.hpp"
-#include "scalarfield.hpp"
+#include "meshscalarfield.hpp"
 #include "scharge.hpp"
 #include "scheduler.hpp"
 #include "polysolver.hpp"
@@ -69,6 +69,7 @@ enum particle_iterator_type_e {
     PARTICLE_ITERATOR_ADAPTIVE = 0,
     PARTICLE_ITERATOR_FIXED_STEP_LEN
 };
+
 
 
 /*! \brief %Mesh intersection (collision) coordinate data
@@ -562,7 +563,7 @@ template <class PP> class ParticleIterator {
 		    handle_collision( particle, 1+2*a, c, x2 );
 		    return( false );
 		}
-	    } else if( i[a] >= (_pidata._g->size(a)-1) ) {
+	    } else if( i[a] >= (int32_t)(_pidata._g->size(a)-1) ) {
 		if( _mirror[2*a+1] )
 		    handle_mirror( c, i, a, +1, x2 );
 		else {
@@ -893,7 +894,7 @@ public:
      */
     ParticleIterator( particle_iterator_type_e type, double epsabs, double epsrel, 
 		      bool polyint, uint32_t maxsteps, double maxt, 
-		      uint32_t trajdiv, bool mirror[6], ScalarField *scharge, 
+		      uint32_t trajdiv, bool mirror[6], MeshScalarField *scharge, 
 		      const VectorField *efield, const VectorField *bfield, 
 		      const Geometry *g, Particle<PP> *first, 
 		      const CallbackFunctorD_V *bfield_suppression )

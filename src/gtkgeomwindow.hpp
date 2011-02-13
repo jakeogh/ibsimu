@@ -59,9 +59,9 @@ class GTKGeomWindow : public GTKWindow {
     GeomPlot                 _geomplot;
 
     const Geometry          *_geom;
-    const ScalarField       *_epot;
-    const ScalarField       *_scharge;
-    const ScalarField       *_tdens;
+    const MeshScalarField       *_epot;
+    const MeshScalarField       *_scharge;
+    const MeshScalarField       *_tdens;
     const VectorField       *_bfield;
     const ParticleDataBase  *_pdb;
 
@@ -107,9 +107,9 @@ public:
     
     GTKGeomWindow( class GTKPlotter *plotter,
 		   const Geometry *geom,
-		   const ScalarField *epot,
-		   const ScalarField *scharge,
-		   const ScalarField *tdens,
+		   const MeshScalarField *epot,
+		   const MeshScalarField *scharge,
+		   const MeshScalarField *tdens,
 		   const VectorField *bfield,
 		   const ParticleDataBase *pdb );
     

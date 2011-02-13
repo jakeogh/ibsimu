@@ -316,32 +316,32 @@ void ParticleDataBase2D::add_2d_gaussian_beam_with_emittance( uint32_t N, double
 }
 
 
-void ParticleDataBase2D::add_tdens_from_segment( ScalarField &tdens, double IQ,
+void ParticleDataBase2D::add_tdens_from_segment( MeshScalarField &tdens, double IQ,
 						 ParticleP2D &x1, ParticleP2D &x2 ) const
 {
     double x[2];
     double t[2];
-    int i[2];
+    int32_t i[2];
 
     for( size_t a = 0; a < 2; a++ ) {
 	x[a] = 0.5*( x1[2*a+1] + x2[2*a+1] );
-	i[a] = (int)floor( ( x[a]-tdens.origo(a) ) * tdens.div_h() );
+	i[a] = (int32_t)floor( ( x[a]-tdens.origo(a) ) * tdens.div_h() );
 	t[a] = ( x[a]-(i[a]*tdens.h()+tdens.origo(a)) ) * tdens.div_h();
 	
-	if( i[a] < 0 || i[a] >= tdens.size(a)-1 )
+	if( i[a] < 0 || i[a] >= (int32_t)tdens.size(a)-1 )
 	    continue;
     }
 
     double J = IQ/tdens.h(); // J = I/area
     int p = tdens.size(0)*i[1] + i[0];
-    tdens( p )                   += (1.0-t[0])*(1.0-t[1])*J;
+    tdens( p )                 += (1.0-t[0])*(1.0-t[1])*J;
     tdens( p+tdens.size(0) )   += (1.0-t[0])*t[1]*J;
-    tdens( p+1 )                 += t[0]*(1.0-t[1])*J;
+    tdens( p+1 )               += t[0]*(1.0-t[1])*J;
     tdens( p+1+tdens.size(0) ) += t[0]*t[1]*J;
 }
 
 
-void ParticleDataBase2D::build_trajectory_density_field( ScalarField &tdens ) const
+void ParticleDataBase2D::build_trajectory_density_field( MeshScalarField &tdens ) const
 {
     tdens.clear();
 
@@ -377,11 +377,11 @@ void ParticleDataBase2D::build_trajectory_density_field( ScalarField &tdens ) co
 
     // Fix boundaries, which only get half of the contribution they should
     // This should depend on mirroring properties!
-    for( int32_t i = 0; i < tdens.size(0); i++ ) {
+    for( uint32_t i = 0; i < tdens.size(0); i++ ) {
 	tdens( i, 0 ) *= 2.0;
 	tdens( i, tdens.size(1)-1 ) *= 2.0;
     }
-    for( int32_t j = 0; j < tdens.size(1); j++ ) {
+    for( uint32_t j = 0; j < tdens.size(1); j++ ) {
 	tdens( 0, j ) *= 2.0;
 	tdens( tdens.size(0)-1, j ) *= 2.0;
     }
@@ -580,7 +580,7 @@ void ParticleDataBaseCyl::add_2d_gaussian_beam_with_emittance( uint32_t N, doubl
 }
 
 
-void ParticleDataBaseCyl::add_tdens_from_segment( ScalarField &tdens, double IQ,
+void ParticleDataBaseCyl::add_tdens_from_segment( MeshScalarField &tdens, double IQ,
 						  ParticlePCyl &x1, ParticlePCyl &x2 ) const
 {
     double x[2];
@@ -606,7 +606,7 @@ void ParticleDataBaseCyl::add_tdens_from_segment( ScalarField &tdens, double IQ,
 	if( i[a] < 0 ) {
 	    i[a] = 0;
 	    t[a] = 0.0;
-	} else if( i[a] >= tdens.size(a)-1 ) {
+	} else if( i[a] >= (int32_t)tdens.size(a)-1 ) {
 	    i[a] = tdens.size(a)-2;
 	    t[a] = 1.0;
 	}
@@ -621,7 +621,7 @@ void ParticleDataBaseCyl::add_tdens_from_segment( ScalarField &tdens, double IQ,
 }
 
 
-void ParticleDataBaseCyl::build_trajectory_density_field( ScalarField &tdens ) const
+void ParticleDataBaseCyl::build_trajectory_density_field( MeshScalarField &tdens ) const
 {
     tdens.clear();
 
@@ -658,11 +658,11 @@ void ParticleDataBaseCyl::build_trajectory_density_field( ScalarField &tdens ) c
 
     // Fix boundaries, which only get half of the contribution they should
     // This should depend on mirroring properties!
-    for( int32_t i = 0; i < tdens.size(0); i++ ) {
+    for( uint32_t i = 0; i < tdens.size(0); i++ ) {
 	tdens( i, 0 ) *= 2.0;
 	tdens( i, tdens.size(1)-1 ) *= 2.0;
     }
-    for( int32_t j = 0; j < tdens.size(1); j++ ) {
+    for( uint32_t j = 0; j < tdens.size(1); j++ ) {
 	tdens( 0, j ) *= 2.0;
 	tdens( tdens.size(0)-1, j ) *= 2.0;
     }
@@ -1126,7 +1126,7 @@ trajectories_at_free_plane( TrajectoryDiagnosticData &tdata,
 }
 
 
-void ParticleDataBase3D::add_tdens_from_segment( ScalarField &tdens, double IQ,
+void ParticleDataBase3D::add_tdens_from_segment( MeshScalarField &tdens, double IQ,
 						 ParticleP3D &x1, ParticleP3D &x2 ) const
 {
     double x[3];
@@ -1138,7 +1138,7 @@ void ParticleDataBase3D::add_tdens_from_segment( ScalarField &tdens, double IQ,
 	i[a] = (int)floor( ( x[a]-tdens.origo(a) ) * tdens.div_h() );
 	t[a] = ( x[a]-(i[a]*tdens.h()+tdens.origo(a)) ) * tdens.div_h();
 	
-	if( i[a] < 0 || i[a] >= tdens.size(a)-1 )
+	if( i[a] < 0 || i[a] >= (int32_t)tdens.size(a)-1 )
 	    continue;
     }
 
@@ -1157,7 +1157,7 @@ void ParticleDataBase3D::add_tdens_from_segment( ScalarField &tdens, double IQ,
 }
 
 
-void ParticleDataBase3D::build_trajectory_density_field( ScalarField &tdens ) const
+void ParticleDataBase3D::build_trajectory_density_field( MeshScalarField &tdens ) const
 {
     tdens.clear();
 
@@ -1193,20 +1193,20 @@ void ParticleDataBase3D::build_trajectory_density_field( ScalarField &tdens ) co
 
     // Fix boundaries, which only get half of the contribution they should
     // This should depend on mirroring properties!
-    for( int32_t i = 0; i < tdens.size(0); i++ ) {
-	for( int32_t j = 0; j < tdens.size(1); j++ ) {
+    for( uint32_t i = 0; i < tdens.size(0); i++ ) {
+	for( uint32_t j = 0; j < tdens.size(1); j++ ) {
 	    tdens( i, j, 0 ) *= 2.0;
 	    tdens( i, j, tdens.size(2)-1 ) *= 2.0;
 	}
     }
-    for( int32_t i = 0; i < tdens.size(0); i++ ) {
-	for( int32_t k = 0; k < tdens.size(2); k++ ) {
+    for( uint32_t i = 0; i < tdens.size(0); i++ ) {
+	for( uint32_t k = 0; k < tdens.size(2); k++ ) {
 	    tdens( i, 0, k ) *= 2.0;
 	    tdens( i, tdens.size(1)-1, k ) *= 2.0;
 	}
     }	
-    for( int32_t j = 0; j < tdens.size(1); j++ ) {
-	for( int32_t k = 0; k < tdens.size(2); k++ ) {
+    for( uint32_t j = 0; j < tdens.size(1); j++ ) {
+	for( uint32_t k = 0; k < tdens.size(2); k++ ) {
 	    tdens( 0, j, k ) *= 2.0;
 	    tdens( tdens.size(0)-1, j, k ) *= 2.0;
 	}

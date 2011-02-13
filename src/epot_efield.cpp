@@ -45,7 +45,7 @@
 #include "error.hpp"
 
 
-EpotEfield::EpotEfield( const Geometry &g, const ScalarField &epot )
+EpotEfield::EpotEfield( const Geometry &g, const MeshScalarField &epot )
   : _g(g), _epot(epot)
 {
     _extrpl[0] = FIELD_EXTRAPOLATE;
@@ -106,9 +106,9 @@ inline double epot_efield_interpolate_deriv
 }
 
 
-const Vec3D EpotEfield::operator()( Vec3D x ) const
+const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 {
-    Vec3D E;
+    Vec3D E, X(x);
     double h = _g.h();
     double inv_h = 1.0/_g.h();
 
@@ -116,34 +116,34 @@ const Vec3D EpotEfield::operator()( Vec3D x ) const
     case MODE_1D:
     {
 	double sign = -1.0;
-	if( x[0] < _g.origo(0)-_g.size(0)*h ) {
+	if( X[0] < _g.origo(0)-_g.size(0)*h ) {
 	    // Outside double the simulation box: return zero
 	    return( E );
-	} else if( x[0] < _g.origo(0) ) {
+	} else if( X[0] < _g.origo(0) ) {
 	    if( _extrpl[0] == FIELD_MIRROR ) {
 		sign *= -1.0;
-		x[0]  = 2.0*_g.origo(0) - x[0];
+		X[0]  = 2.0*_g.origo(0) - X[0];
 	    } else if( _extrpl[0] == FIELD_ZERO ) {
 		// return zero
 		return( E );
 	    }
-	} else if( x[0] > _g.origo(0)+2.0*_g.size(0)*h ) {
+	} else if( X[0] > _g.origo(0)+2.0*_g.size(0)*h ) {
 	    // Outside double the simulation box: return zero
 	    return( E );
-	} else if( x[0] > _g.max(0) ) {
+	} else if( X[0] > _g.max(0) ) {
 	    if( _extrpl[1] == FIELD_MIRROR ) {
 		sign *= -1.0;
-		x[0]  = 2.0*_g.max(0) - x[0];
+		X[0]  = 2.0*_g.max(0) - X[0];
 	    } else if( _extrpl[1] == FIELD_ZERO ) {
 		// return zero
 		return( E );
 	    }
 	}
 
-	int32_t i = (int32_t)floor( (x[0]-_g.origo(0))*inv_h + 0.5 );
+	int32_t i = (int32_t)floor( (X[0]-_g.origo(0))*inv_h + 0.5 );
 	if( i < 1 )
 	    i = 1;
-	else if( i >= _g.size(0)-1 )
+	else if( i >= (int32_t)_g.size(0)-1 )
 	    i = _g.size(0)-2;
 	
 	if( _g.mesh( i ) > 0 )
@@ -155,7 +155,7 @@ const Vec3D EpotEfield::operator()( Vec3D x ) const
 	    else if( _g.mesh(i-1) == 0 ) i--;
 	}
 	
-	double t = ( x[0]-(i*_g.h()+_g.origo(0)) )*inv_h;
+	double t = ( X[0]-(i*_g.h()+_g.origo(0)) )*inv_h;
 	E[0] = sign*epot_efield_interpolate_deriv( 
 	    _epot( i-1 ), _epot( i ), _epot( i+1 ), t )*inv_h;
 	break;
@@ -165,24 +165,24 @@ const Vec3D EpotEfield::operator()( Vec3D x ) const
     {
 	double sign[2] = {-1.0, -1.0};
 	for( int a = 0; a < 2; a++ ) {
-	    if( x[a] < _g.origo(a)-_g.size(a)*h ) {
+	    if( X[a] < _g.origo(a)-_g.size(a)*h ) {
 		// Outside double the simulation box: return zero
 		return( E );
-	    } else if( x[a] < _g.origo(a) ) {
+	    } else if( X[a] < _g.origo(a) ) {
 		if( _extrpl[2*a] == FIELD_MIRROR ) {
 		    sign[a] *= -1.0;
-		    x[a]     = 2.0*_g.origo(a) - x[a];
+		    X[a]     = 2.0*_g.origo(a) - X[a];
 		} else if( _extrpl[2*a] == FIELD_ZERO ) {
 		    // return zero
 		    return( E );
 		}
-	    } else if( x[a] > _g.origo(a)+2.0*_g.size(a)*h ) {
+	    } else if( X[a] > _g.origo(a)+2.0*_g.size(a)*h ) {
 		// Outside double the simulation box: return zero
 		return( E );
-	    } else if( x[0] > _g.max(0) ) {
+	    } else if( X[0] > _g.max(0) ) {
 		if( _extrpl[2*a+1] == FIELD_MIRROR ) {
 		    sign[a] *= -1.0;
-		    x[a]     = 2.0*_g.max(a) - x[a];
+		    X[a]     = 2.0*_g.max(a) - X[a];
 		} else if( _extrpl[2*a+1] == FIELD_ZERO ) {
 		    // return zero
 		    return( E );
@@ -190,16 +190,16 @@ const Vec3D EpotEfield::operator()( Vec3D x ) const
 	    }
 	}
 	
-	int32_t i = (int32_t)floor( (x[0]-_g.origo(0))*inv_h + 0.5 );
-	int32_t j = (int32_t)floor( (x[1]-_g.origo(1))*inv_h + 0.5 );
+	int32_t i = (int32_t)floor( (X[0]-_g.origo(0))*inv_h + 0.5 );
+	int32_t j = (int32_t)floor( (X[1]-_g.origo(1))*inv_h + 0.5 );
 
 	if( i < 1 )
 	    i = 1;
-	else if( i >= _g.size(0)-1 )
+	else if( i >= (int32_t)_g.size(0)-1 )
 	    i = _g.size(0)-2;
 	if( j < 1 )
 	    j = 1;
-	else if( j >= _g.size(1)-1 )
+	else if( j >= (int32_t)_g.size(1)-1 )
 	    j = _g.size(1)-2;
 
 	if( _g.mesh(i,j) > 0 )
@@ -230,8 +230,8 @@ const Vec3D EpotEfield::operator()( Vec3D x ) const
 	    }
 	}
 	
-	double t = ( x[0]-(i*_g.h()+_g.origo(0)) )*inv_h;
-	double u = ( x[1]-(j*_g.h()+_g.origo(1)) )*inv_h;
+	double t = ( X[0]-(i*_g.h()+_g.origo(0)) )*inv_h;
+	double u = ( X[1]-(j*_g.h()+_g.origo(1)) )*inv_h;
 
 	E[0] = sign[0]*epot_efield_interpolate_deriv( 
 	    epot_efield_interpolate_1d( _epot( i-1, j-1 ), 
@@ -259,24 +259,24 @@ const Vec3D EpotEfield::operator()( Vec3D x ) const
     {
 	double sign[3] = {-1.0, -1.0, -1.0};
 	for( int a = 0; a < 3; a++ ) {
-	    if( x[a] < _g.origo(a)-_g.size(a)*h ) {
+	    if( X[a] < _g.origo(a)-_g.size(a)*h ) {
 		// Outside double the simulation box: return zero
 		return( E );
-	    } else if( x[a] < _g.origo(a) ) {
+	    } else if( X[a] < _g.origo(a) ) {
 		if( _extrpl[2*a] == FIELD_MIRROR ) {
 		    sign[a] *= -1.0;
-		    x[a]     = 2.0*_g.origo(a) - x[a];
+		    X[a]     = 2.0*_g.origo(a) - X[a];
 		} else if( _extrpl[2*a] == FIELD_ZERO ) {
 		    // return zero
 		    return( E );
 		}
-	    } else if( x[a] > _g.origo(a)+2.0*_g.size(a)*h ) {
+	    } else if( X[a] > _g.origo(a)+2.0*_g.size(a)*h ) {
 		// Outside double the simulation box: return zero
 		return( E );
-	    } else if( x[0] > _g.max(0) ) {
+	    } else if( X[0] > _g.max(0) ) {
 		if( _extrpl[2*a+1] == FIELD_MIRROR ) {
 		    sign[a] *= -1.0;
-		    x[a]     = 2.0*_g.max(a) - x[a];
+		    X[a]     = 2.0*_g.max(a) - X[a];
 		} else if( _extrpl[2*a+1] == FIELD_ZERO ) {
 		    // return zero
 		    return( E );
@@ -284,21 +284,21 @@ const Vec3D EpotEfield::operator()( Vec3D x ) const
 	    }
 	}
 	
-	int32_t i = (int32_t)floor( (x[0]-_g.origo(0))*inv_h + 0.5 );
-	int32_t j = (int32_t)floor( (x[1]-_g.origo(1))*inv_h + 0.5 );
-	int32_t k = (int32_t)floor( (x[2]-_g.origo(2))*inv_h + 0.5 );
+	int32_t i = (int32_t)floor( (X[0]-_g.origo(0))*inv_h + 0.5 );
+	int32_t j = (int32_t)floor( (X[1]-_g.origo(1))*inv_h + 0.5 );
+	int32_t k = (int32_t)floor( (X[2]-_g.origo(2))*inv_h + 0.5 );
 
 	if( i < 1 )
 	    i = 1;
-	else if( i >= _g.size(0)-1 )
+	else if( i >= (int32_t)_g.size(0)-1 )
 	    i = _g.size(0)-2;
 	if( j < 1 )
 	    j = 1;
-	else if( j >= _g.size(1)-1 )
+	else if( j >= (int32_t)_g.size(1)-1 )
 	    j = _g.size(1)-2;
 	if( k < 1 )
 	    k = 1;
-	else if( k >= _g.size(2)-1 )
+	else if( k >= (int32_t)_g.size(2)-1 )
 	    k = _g.size(2)-2;
 
 	if( _g.mesh(i,j,k) > 0 )
@@ -437,9 +437,9 @@ const Vec3D EpotEfield::operator()( Vec3D x ) const
 	    } 
 	}
 	
-	double t = ( x[0]-(i*_g.h()+_g.origo(0)) )*inv_h;
-	double u = ( x[1]-(j*_g.h()+_g.origo(1)) )*inv_h;
-	double v = ( x[2]-(k*_g.h()+_g.origo(2)) )*inv_h;
+	double t = ( X[0]-(i*_g.h()+_g.origo(0)) )*inv_h;
+	double u = ( X[1]-(j*_g.h()+_g.origo(1)) )*inv_h;
+	double v = ( X[2]-(k*_g.h()+_g.origo(2)) )*inv_h;
 
 	E[0] = sign[0]*epot_efield_interpolate_deriv( 
 	    epot_efield_interpolate_2d( _epot( i-1, j-1, k-1 ), 

@@ -44,7 +44,7 @@
 #include "ibsimu.hpp"
 
 
-FieldGraph::FieldGraph( const ScalarField *field )
+FieldGraph::FieldGraph( const MeshScalarField *field )
     : _scalarfield(field), _colormap(NULL), _enabled(true)
 {
     

@@ -70,9 +70,9 @@ class GTKPlotter {
     std::list<class GTKWindow *>  _windows;
     
     const Geometry         *_geom;
-    const ScalarField      *_epot;
-    const ScalarField      *_scharge;
-    const ScalarField      *_tdens;
+    const MeshScalarField      *_epot;
+    const MeshScalarField      *_scharge;
+    const MeshScalarField      *_tdens;
     const VectorField      *_efield;
     const VectorField      *_bfield;
     const ParticleDataBase *_pdb;
@@ -86,18 +86,18 @@ public:
     void run();
 
     const Geometry *get_geometry( void ) const;
-    const ScalarField *get_epot( void ) const;
+    const MeshScalarField *get_epot( void ) const;
     const VectorField *get_efield( void ) const;
-    const ScalarField *get_scharge( void ) const;
-    const ScalarField *get_trajdens( void ) const;
+    const MeshScalarField *get_scharge( void ) const;
+    const MeshScalarField *get_trajdens( void ) const;
     const VectorField *get_bfield( void ) const;
     const ParticleDataBase *get_particledatabase( void ) const;
 
     void set_geometry( const Geometry *geom );
-    void set_epot( const ScalarField *epot );
+    void set_epot( const MeshScalarField *epot );
     void set_efield( const VectorField *efield );
-    void set_scharge( const ScalarField *scharge );
-    void set_trajdens( const ScalarField *tdens );
+    void set_scharge( const MeshScalarField *scharge );
+    void set_trajdens( const MeshScalarField *tdens );
     void set_bfield( const VectorField *bfield );
     void set_particledatabase( const ParticleDataBase *pdb );    
 

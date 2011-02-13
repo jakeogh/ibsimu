@@ -62,15 +62,15 @@ class Convergence {
     double                  _epot_lim;          /*!< \brief Convergence limit. */
     double                  _epot_absf;         /*!< \brief Absolute error coefficient. */
     double                  _epot_relf;         /*!< \brief Relative error coefficient. */
-    ScalarField            *_epot_old;          /*!< \brief Epot of last round. */
-    const ScalarField      *_epot;              /*!< \brief Epot pointer. */
+    MeshScalarField        *_epot_old;          /*!< \brief Epot of last round. */
+    const MeshScalarField  *_epot;              /*!< \brief Epot pointer. */
 
     std::vector<double>     _scharge_hist;      /*!< \brief Convergence history of scharge. */
     double                  _scharge_lim;       /*!< \brief Convergence limit. */
     double                  _scharge_absf;      /*!< \brief Absolute error coefficient. */
     double                  _scharge_relf;      /*!< \brief Relative error coefficient. */
-    ScalarField            *_scharge_old;       /*!< \brief Scharge of last round. */
-    const ScalarField      *_scharge;           /*!< \brief Scharge pointer. */
+    MeshScalarField        *_scharge_old;       /*!< \brief Scharge of last round. */
+    const MeshScalarField  *_scharge;           /*!< \brief Scharge pointer. */
 
     struct EmitPoint {
 	double              _epsilon;           /*!< \brief Epsilon. */
@@ -122,11 +122,11 @@ public:
 
     /*! \brief Add electric potential to be followed.
      */
-    void add_epot( const ScalarField &epot, double absf, double relf, double lim );
+    void add_epot( const MeshScalarField &epot, double absf, double relf, double lim );
 
     /*! \brief Add space charge density to be followed.
      */
-    void add_scharge( const ScalarField &scharge, double absf, double relf, double lim );
+    void add_scharge( const MeshScalarField &scharge, double absf, double relf, double lim );
 
     /*! \brief Add trajectory diagnostics to be followed.
      */

@@ -1,8 +1,8 @@
 /*! \file scharge.cpp
- *  \brief Source code for scharge.cpp
+ *  \brief Space charge deposition functions
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,7 +47,7 @@
 //#define DEBUG_SCHARGE 1
 
 
-void scharge_finalize( ScalarField &scharge )
+void scharge_finalize( MeshScalarField &scharge )
 {
     if( ibsimu.get_verbose_output() )
 	std::cout << "  Finalizing space charge density map\n";
@@ -59,11 +59,11 @@ void scharge_finalize( ScalarField &scharge )
 	scharge /= (scharge.h()*scharge.h());
 
 	// Correct boundaries
-	for( int32_t i = 0; i < scharge.size(0); i++ ) {
+	for( uint32_t i = 0; i < scharge.size(0); i++ ) {
 	    scharge( i, 0 ) *= 2.0;
 	    scharge( i, scharge.size(1)-1 ) *= 2.0;
 	}
-	for( int32_t j = 0; j < scharge.size(1); j++ ) {
+	for( uint32_t j = 0; j < scharge.size(1); j++ ) {
 	    scharge( 0, j ) *= 2.0;
 	    scharge( scharge.size(0)-1, j ) *= 2.0;
 	}
@@ -72,8 +72,8 @@ void scharge_finalize( ScalarField &scharge )
     case MODE_CYL:
     {
 	// Convert charge map to space charge density map
- 	for( int32_t i = 0; i < scharge.size(0); i++ ) {
-	    for( int32_t j = 0; j < scharge.size(1); j++ ) {
+ 	for( uint32_t i = 0; i < scharge.size(0); i++ ) {
+	    for( uint32_t j = 0; j < scharge.size(1); j++ ) {
 		if( j == 0 ) {
                     double rj2 = scharge.h()+scharge.origo(1);
                     scharge( i, j ) /= (M_PI*scharge.h()*(rj2*rj2));
@@ -85,11 +85,11 @@ void scharge_finalize( ScalarField &scharge )
 	    }
 	}
 	// Correct boundaries
-	for( int32_t i = 0; i < scharge.size(0); i++ ) {
+	for( uint32_t i = 0; i < scharge.size(0); i++ ) {
 	    scharge( i, 0 ) *= 2.0;
 	    scharge( i, scharge.size(1)-1 ) *= 2.0;
 	}
-	for( int32_t j = 0; j < scharge.size(1); j++ ) {
+	for( uint32_t j = 0; j < scharge.size(1); j++ ) {
 	    scharge( 0, j ) *= 2.0;
 	    scharge( scharge.size(0)-1, j ) *= 2.0;
 	}
@@ -101,20 +101,20 @@ void scharge_finalize( ScalarField &scharge )
 	scharge /= (scharge.h()*scharge.h()*scharge.h());
 
 	// Correct boundaries
- 	for( int32_t i = 0; i < scharge.size(0); i++ ) {
-	    for( int32_t j = 0; j < scharge.size(1); j++ ) {
+ 	for( uint32_t i = 0; i < scharge.size(0); i++ ) {
+	    for( uint32_t j = 0; j < scharge.size(1); j++ ) {
 		scharge( i, j, 0 ) *= 2.0;
 		scharge( i, j, scharge.size(2)-1 ) *= 2.0;
 	    }
 	}
-	for( int32_t i = 0; i < scharge.size(0); i++ ) {
-	    for( int32_t k = 0; k < scharge.size(2); k++ ) {
+	for( uint32_t i = 0; i < scharge.size(0); i++ ) {
+	    for( uint32_t k = 0; k < scharge.size(2); k++ ) {
 		scharge( i, 0, k ) *= 2.0;
 		scharge( i, scharge.size(1)-1, k ) *= 2.0;
 	    }
 	}	
-	for( int32_t j = 0; j < scharge.size(1); j++ ) {
-	    for( int32_t k = 0; k < scharge.size(2); k++ ) {
+	for( uint32_t j = 0; j < scharge.size(1); j++ ) {
+	    for( uint32_t k = 0; k < scharge.size(2); k++ ) {
 		scharge( 0, j, k ) *= 2.0;
 		scharge( scharge.size(0)-1, j, k ) *= 2.0;
 	    }
@@ -129,12 +129,12 @@ void scharge_finalize( ScalarField &scharge )
 }
 
 
-void scharge_add_from_trajectory( ScalarField &scharge, double IQ, 
+void scharge_add_from_trajectory( MeshScalarField &scharge, double IQ, 
 				  const ParticleP2D &x1, const ParticleP2D &x2 )
 {
     double x[2];
     double t[2];
-    int i[2];
+    int32_t i[2];
 
 #ifdef DEBUG_SCHARGE
     std::cout << "Calculating space charge\n";
@@ -157,7 +157,7 @@ void scharge_add_from_trajectory( ScalarField &scharge, double IQ,
 	if( i[a] < 0 ) {
 	    i[a] = 0;
 	    t[a] = 0.0;
-	} else if( i[a] >= scharge.size(a)-1 ) {
+	} else if( i[a] >= (int32_t)scharge.size(a)-1 ) {
 	    i[a] = scharge.size(a)-2;
 	    t[a] = 1.0;
 	}
@@ -186,12 +186,12 @@ void scharge_add_from_trajectory( ScalarField &scharge, double IQ,
 }
 
 
-void scharge_add_from_trajectory( ScalarField &scharge, double IQ, 
+void scharge_add_from_trajectory( MeshScalarField &scharge, double IQ, 
 				  const ParticlePCyl &x1, const ParticlePCyl &x2 )
 {
     double x[2];
     double t[2];
-    int i[2];
+    int32_t i[2];
 
     // x-direction
     x[0] = 0.5*( x1[1] + x2[1] );
@@ -212,7 +212,7 @@ void scharge_add_from_trajectory( ScalarField &scharge, double IQ,
 	if( i[a] < 0 ) {
 	    i[a] = 0;
 	    t[a] = 0.0;
-	} else if( i[a] >= scharge.size(a)-1 ) {
+	} else if( i[a] >= (int32_t)scharge.size(a)-1 ) {
 	    i[a] = scharge.size(a)-2;
 	    t[a] = 1.0;
 	}
@@ -227,12 +227,12 @@ void scharge_add_from_trajectory( ScalarField &scharge, double IQ,
 }
 
 
-void scharge_add_from_trajectory( ScalarField &scharge, double IQ, 
+void scharge_add_from_trajectory( MeshScalarField &scharge, double IQ, 
 				  const ParticleP3D &x1, const ParticleP3D &x2 )
 {
     double x[3];
     double t[3];
-    int i[3];
+    int32_t i[3];
 
     for( size_t a = 0; a < 3; a++ ) {
 	x[a] = 0.5*( x1[2*a+1] + x2[2*a+1] );
@@ -243,7 +243,7 @@ void scharge_add_from_trajectory( ScalarField &scharge, double IQ,
 	if( i[a] < 0 ) {
 	    i[a] = 0;
 	    t[a] = 0.0;
-	} else if( i[a] >= scharge.size(a)-1 ) {
+	} else if( i[a] >= (int32_t)scharge.size(a)-1 ) {
 	    i[a] = scharge.size(a)-2;
 	    t[a] = 1.0;
 	}
