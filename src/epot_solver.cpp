@@ -1312,18 +1312,3 @@ void EpotSolver::debug_print_base( std::ostream &os ) const
     os << "Up = " << _Up << "\n";
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

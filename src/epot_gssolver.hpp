@@ -49,19 +49,21 @@
 
 class EpotGSSolver : public EpotSolver {
 
-    uint32_t _iter_max;       /*!< \brief Maximum number of iteration rounds. */
+    uint32_t _imax;           /*!< \brief Maximum number of iteration rounds. */
+    double   _eps;            /*!< \brief Accuracy request */
+    double   _w;              /*!< \brief Relaxation coefficient. */
 
     void gs_solve( MeshScalarField &epot, const MeshScalarField &scharge ) const;
-    void gs_loop( MeshScalarField &epot, const MeshScalarField &rhs ) const;
-    void gs_process_node( MeshScalarField &epot, const MeshScalarField &rhs,
-			  uint32_t i, uint32_t j, uint32_t k ) const;
-    void gs_process_near_solid( MeshScalarField &epot, const MeshScalarField &rhs,
-				const uint8_t *nearsolid_ptr, 
-				uint32_t i, uint32_t j, uint32_t k ) const;
-    void gs_process_pure_vacuum( MeshScalarField &epot, const MeshScalarField &rhs,
-				 uint32_t i, uint32_t j, uint32_t k ) const;
-    void gs_process_neumann( MeshScalarField &epot, const MeshScalarField &rhs,
-			     uint32_t boundary, uint32_t i, uint32_t j, uint32_t k ) const;
+    double gs_loop( MeshScalarField &epot, const MeshScalarField &rhs ) const;
+    double gs_process_node( MeshScalarField &epot, const MeshScalarField &rhs,
+			    uint32_t i, uint32_t j, uint32_t k ) const;
+    double gs_process_near_solid( MeshScalarField &epot, const MeshScalarField &rhs,
+				  const uint8_t *nearsolid_ptr, 
+				  uint32_t i, uint32_t j, uint32_t k ) const;
+    double gs_process_pure_vacuum( MeshScalarField &epot, const MeshScalarField &rhs,
+				   uint32_t i, uint32_t j, uint32_t k ) const;
+    double gs_process_neumann( MeshScalarField &epot, const MeshScalarField &rhs,
+			       uint32_t boundary, uint32_t i, uint32_t j, uint32_t k ) const;
 
     virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge ) const;
 
@@ -78,6 +80,14 @@ public:
     /*! \brief Destructor.
      */
     virtual ~EpotGSSolver() {}
+
+    /*! \brief Sets the accuracy request.
+     */
+    void set_eps( double eps );
+
+    /*! \brief Sets maximum iteration count.
+     */
+    void set_imax( uint32_t imax );
 
     /*! \brief Print debugging information to os.
      */
