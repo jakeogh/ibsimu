@@ -22,7 +22,7 @@
 #include <fstream>
 #include <iomanip>
 #include "bicgstab_solver.hpp"
-#include "epot_problem.hpp"
+#include "epot_gssolver.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
@@ -61,35 +61,32 @@ double phi( double x )
 
 void test( int argc, char **argv )
 {
-    bool err = false;
-    Geometry g( MODE_1D, Int3D(11,1,1), Vec3D(0,0,0), 0.01 );
+    Geometry geom( MODE_1D, Int3D(11,1,1), Vec3D(0,0,0), 0.01 );
     Solid *solid1 = new FuncSolid( s1 );
-    g.set_solid( 7, solid1 );
+    geom.set_solid( 7, solid1 );
     Solid *solid2 = new FuncSolid( s2 );
-    g.set_solid( 8, solid2 );
-    g.set_boundary( 1, Bound(BOUND_DIRICHLET,  0.0) );
-    g.set_boundary( 2, Bound(BOUND_DIRICHLET, 10.0) );
-    g.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
-    g.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
-    g.build_mesh();
+    geom.set_solid( 8, solid2 );
+    geom.set_boundary( 1, Bound(BOUND_DIRICHLET,  0.0) );
+    geom.set_boundary( 2, Bound(BOUND_DIRICHLET, 10.0) );
+    geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
+    geom.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
+    geom.build_mesh();
 
-    EpotProblem p;
-    p.construct( g );
+    EpotGSSolver solver( geom );
+    MeshScalarField epot( geom );
+    MeshScalarField scharge( geom );
 
-    ScalarField epot( g );
-    ScalarField scharge( g );
-
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
+    solver.set_w( 1.0 );
+    solver.solve( epot, scharge );
     
+    bool err = false;
     ofstream ostr( "solver1d_edge.dat" );
     ostr << "# "
 	 << setw(12) << "x (m)" << " " 
 	 << setw(14) << "potential (V)" << " "
 	 << setw(14) << "theory (V)" << "\n";
-    for( int a = 0; a < g.size(0); a++ ) {
-	double x = a*g.h();
+    for( uint32_t a = 0; a < geom.size(0); a++ ) {
+	double x = a*geom.h();
 	if( x > x1 && x < x2 && fabs( epot(a) - phi(x) ) > 0.05  )
 	    err = true;
 	ostr << setw(14) << x << " " 

@@ -53,17 +53,41 @@ class EpotGSSolver : public EpotSolver {
     double   _eps;            /*!< \brief Accuracy request */
     double   _w;              /*!< \brief Relaxation coefficient. */
 
-    void gs_solve( MeshScalarField &epot, const MeshScalarField &scharge ) const;
-    double gs_loop( MeshScalarField &epot, const MeshScalarField &rhs ) const;
-    double gs_process_node( MeshScalarField &epot, const MeshScalarField &rhs,
-			    uint32_t i, uint32_t j, uint32_t k ) const;
-    double gs_process_near_solid( MeshScalarField &epot, const MeshScalarField &rhs,
-				  const uint8_t *nearsolid_ptr, 
-				  uint32_t i, uint32_t j, uint32_t k ) const;
-    double gs_process_pure_vacuum( MeshScalarField &epot, const MeshScalarField &rhs,
-				   uint32_t i, uint32_t j, uint32_t k ) const;
-    double gs_process_neumann( MeshScalarField &epot, const MeshScalarField &rhs,
-			       uint32_t boundary, uint32_t i, uint32_t j, uint32_t k ) const;
+    double gs_loop_3d( MeshScalarField &epot, const MeshScalarField &rhs ) const;
+    double gs_process_node_3d( MeshScalarField &epot, const MeshScalarField &rhs,
+			       uint32_t i, uint32_t j, uint32_t k ) const;
+    double gs_process_near_solid_3d( MeshScalarField &epot, const MeshScalarField &rhs,
+				     const uint8_t *nearsolid_ptr, 
+				     uint32_t i, uint32_t j, uint32_t k ) const;
+    double gs_process_pure_vacuum_3d( MeshScalarField &epot, const MeshScalarField &rhs,
+				      uint32_t i, uint32_t j, uint32_t k ) const;
+    double gs_process_neumann_3d( MeshScalarField &epot, const MeshScalarField &rhs,
+				  uint32_t boundary, uint32_t i, uint32_t j, uint32_t k ) const;
+
+
+    double gs_loop_2d( MeshScalarField &epot, const MeshScalarField &rhs ) const;
+    double gs_process_node_2d( MeshScalarField &epot, const MeshScalarField &rhs,
+			       uint32_t i, uint32_t j ) const;
+    double gs_process_near_solid_2d( MeshScalarField &epot, const MeshScalarField &rhs,
+				     const uint8_t *nearsolid_ptr, 
+				     uint32_t i, uint32_t j ) const;
+    double gs_process_pure_vacuum_2d( MeshScalarField &epot, const MeshScalarField &rhs,
+				      uint32_t i, uint32_t j ) const;
+    double gs_process_neumann_2d( MeshScalarField &epot, const MeshScalarField &rhs,
+				  uint32_t boundary, uint32_t i, uint32_t j ) const;
+
+
+    double gs_loop_1d( MeshScalarField &epot, const MeshScalarField &rhs ) const;
+    double gs_process_node_1d( MeshScalarField &epot, const MeshScalarField &rhs,
+			       uint32_t i ) const;
+    double gs_process_near_solid_1d( MeshScalarField &epot, const MeshScalarField &rhs,
+				     const uint8_t *nearsolid_ptr, 
+				     uint32_t i ) const;
+    double gs_process_pure_vacuum_1d( MeshScalarField &epot, const MeshScalarField &rhs,
+				      uint32_t i ) const;
+    double gs_process_neumann_1d( MeshScalarField &epot, const MeshScalarField &rhs,
+				  uint32_t boundary, uint32_t i ) const;
+
 
     virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge ) const;
 
@@ -88,6 +112,10 @@ public:
     /*! \brief Sets maximum iteration count.
      */
     void set_imax( uint32_t imax );
+
+    /*! \brief Sets relaxation parameter.
+     */
+    void set_w( double w );
 
     /*! \brief Print debugging information to os.
      */
