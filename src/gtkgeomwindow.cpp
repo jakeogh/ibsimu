@@ -365,6 +365,8 @@ std::string GTKGeomWindow::track_text( double x, double y )
     i[_geomplot.vb(1)] = (int)floor( (y-_geom->origo(_geomplot.vb(1)))/_geom->h() );
     i[_geomplot.vb(2)] = _geomplot.get_level();
 
+    uint32_t smesh = _geom->mesh_check( i[0], i[1], i[2] );
+
     Vec3D loc(xc[0],xc[1],xc[2]);
 
     ss << "x = " << xc[0] << " m\n"
@@ -373,6 +375,35 @@ std::string GTKGeomWindow::track_text( double x, double y )
     ss << "i = " << i[0] << "\n"
        << "j = " << i[1] << "\n"
        << "k = " << i[2] << "\n";
+
+    // Mesh id for debugging
+    ss << "solid mesh = 0x" << std::hex << std::setfill('0') << std::setw(8)
+       << smesh << std::dec << std::setfill(' ') << ", ";
+    if( (smesh & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEAR_SOLID ) {
+	ss << "near solid: ";
+	uint32_t ind = smesh & SMESH_NEAR_SOLID_INDEX_MASK;
+	const uint8_t *ptr = _geom->nearsolid_ptr(ind);
+	uint8_t sflag = ptr[0];
+	uint8_t mask = 0x01;
+	bool first = true;
+	for( uint32_t a = 0; a < 6; a++ ) {
+	    if( mask & sflag ) {
+		if( !first )
+		    ss << ", ";
+		ss << "ndist[" << a << "] = " << (int)*ptr << " ";
+		ptr++;
+		first = false;
+	    }
+	    mask = mask << 1;
+	}
+	ss << "\n";
+    } else if( (smesh & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_PURE_VACUUM )
+	ss << "pure vacuum\n";
+    else if( (smesh & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEUMANN )
+	ss << "neumann\n";
+    else if( (smesh & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET )
+	ss << "dirichlet\n";
+
     ss << "solid = " << _geom->inside( loc ) << "\n";
     if( _epot ) {
 	ss << "epot = " << (*_epot)( loc ) << "\n";

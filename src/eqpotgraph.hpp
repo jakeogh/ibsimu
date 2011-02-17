@@ -92,9 +92,11 @@ class EqPotGraph : public Graph3D {
 
     bool                                _cache;
 
-
-    bool eqline_exists( double pot1, signed char sol1, 
-			double pot2, signed char sol2, 
+    
+    bool is_solid( uint32_t sol ) const;
+    bool is_near( uint32_t sol ) const;
+    bool eqline_exists( double pot1, uint32_t sol1, 
+			double pot2, uint32_t sol2, 
 			double pot ) const;
     void build_data( void );
 

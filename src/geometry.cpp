@@ -185,6 +185,9 @@ void Geometry::set_boundary( uint32_t n, const Bound &b )
     if( n <= 0 || n > _n+6 )
 	throw( Error( ERROR_LOCATION, "illegal solid number " + to_string(n) ) );
 
+    if( n >= 7 && b.type != BOUND_DIRICHLET )
+	throw( Error( ERROR_LOCATION, "trying to set solid " + to_string(n) + " as Neumann boundary" ) );
+
     _bound[n-1] = b;
 }
 
@@ -327,6 +330,16 @@ uint32_t Geometry::is_solid( int32_t i, int32_t j, int32_t k ) const
 }
 
 
+void Geometry::add_near_solid_distance( std::vector<uint8_t> &ndist, uint8_t dist )
+{
+    // zero distance is illegal, can cause problems with solver
+    if( dist == 0 )
+	ndist.push_back( 1 );
+    else
+	ndist.push_back( dist );
+}
+
+
 void Geometry::add_near_solid_entry( uint32_t &near_solid_index, int32_t i, int32_t j, int32_t k )
 {
     uint32_t solid = 0;         // Solid number of neighbour
@@ -338,13 +351,13 @@ void Geometry::add_near_solid_entry( uint32_t &near_solid_index, int32_t i, int3
     if( (solid = is_solid(i-1,j,k)) ) {
 	neighbours += 0x20;
 	nsolids++;
-	ndist.push_back( bracket_ndist( i,j,k, solid, -1, 0 ) );
+	add_near_solid_distance( ndist, bracket_ndist( i,j,k, solid, -1, 0 ) );
     }
     neighbours = neighbours >> 1;
     if( ( solid = is_solid(i+1,j,k)) ) {
 	neighbours += 0x20;
 	nsolids++;
-	ndist.push_back( bracket_ndist( i,j,k, solid, +1, 0 ) );
+	add_near_solid_distance( ndist, bracket_ndist( i,j,k, solid, +1, 0 ) );
     }
     neighbours = neighbours >> 1;
 
@@ -352,13 +365,13 @@ void Geometry::add_near_solid_entry( uint32_t &near_solid_index, int32_t i, int3
     if( (solid = is_solid(i,j-1,k)) ) {
 	neighbours += 0x20;
 	nsolids++;
-	ndist.push_back( bracket_ndist( i,j,k, solid, -1, 1 ) );
+	add_near_solid_distance( ndist, bracket_ndist( i,j,k, solid, -1, 1 ) );
     }
     neighbours = neighbours >> 1;
     if( (solid = is_solid(i,j+1,k)) ) {
 	neighbours += 0x20;
 	nsolids++;
-	ndist.push_back( bracket_ndist( i,j,k, solid, +1, 1 ) );
+	add_near_solid_distance( ndist, bracket_ndist( i,j,k, solid, +1, 1 ) );
     }
     neighbours = neighbours >> 1;
 
@@ -366,13 +379,13 @@ void Geometry::add_near_solid_entry( uint32_t &near_solid_index, int32_t i, int3
     if( (solid = is_solid(i,j,k-1)) ) {
 	neighbours += 0x20;
 	nsolids++;
-	ndist.push_back( bracket_ndist( i,j,k, solid, -1, 2 ) );
+	add_near_solid_distance( ndist, bracket_ndist( i,j,k, solid, -1, 2 ) );
     }
     neighbours = neighbours >> 1;
     if( (solid = is_solid(i,j,k+1)) ) {
 	neighbours += 0x20;
 	nsolids++;
-	ndist.push_back( bracket_ndist( i,j,k, solid, +1, 2 ) );
+	add_near_solid_distance( ndist, bracket_ndist( i,j,k, solid, +1, 2 ) );
     }
 
     size_t ind = _nearsolid.size();
@@ -542,6 +555,56 @@ void Geometry::build_mesh( void )
 }
 
 
+uint8_t Geometry::solid_dist( uint32_t i, uint32_t j, uint32_t k, uint32_t dir ) const
+{
+    uint32_t snode = _smesh[i + j*_size[0] + k*_size[0]*_size[1]];
+    if( (snode & SMESH_NODE_ID_MASK) != SMESH_NODE_ID_NEAR_SOLID )
+	throw( Error( ERROR_LOCATION, "not a near solid node" ) );
+
+    const uint8_t *nptr = &_nearsolid[snode & SMESH_NEAR_SOLID_INDEX_MASK];
+    uint8_t neighbours = nptr[0];
+    nptr++;
+    uint32_t a = 0;
+    while( a < dir ) {
+	if( neighbours & 0x01 )
+	    nptr++;
+	neighbours = neighbours >> 1;
+	a++;
+    }
+    if( (neighbours & 0x01) == 0x00 )
+	throw( Error( ERROR_LOCATION, (const std::string)"no near neighbour in selected direction"
+		      ", dir = " + to_string(dir) 
+		      + ", neighbours = " + to_string((int)_nearsolid[snode & SMESH_NEAR_SOLID_INDEX_MASK]) ) );
+
+    return( *nptr );
+}
+
+
+uint8_t Geometry::solid_dist( uint32_t i, uint32_t dir ) const
+{
+    uint32_t snode = _smesh[i];
+    if( (snode & SMESH_NODE_ID_MASK) != SMESH_NODE_ID_NEAR_SOLID )
+	throw( Error( ERROR_LOCATION, "not a near solid node" ) );
+
+    const uint8_t *nptr = &_nearsolid[snode & SMESH_NEAR_SOLID_INDEX_MASK];
+    uint8_t neighbours = nptr[0];
+    nptr++;
+    uint32_t a = 0;
+    while( a < dir ) {
+	if( neighbours & 0x01 )
+	    nptr++;
+	neighbours = neighbours >> 1;
+	a++;
+    }
+    if( (neighbours & 0x01) == 0x00 )
+	throw( Error( ERROR_LOCATION, (const std::string)"no near neighbour in selected direction"
+		      ", dir = " + to_string(dir) 
+		      + ", neighbours = " + to_string((int)_nearsolid[snode & SMESH_NEAR_SOLID_INDEX_MASK]) ) );
+
+    return( *nptr );
+}
+
+
 void Geometry::save( std::ostream &s ) const
 {
     Mesh::save( s );
@@ -627,7 +690,7 @@ void Geometry::debug_print( std::ostream &os ) const
 		    uint8_t *ptr = (uint8_t *)&_nearsolid[ind+1];
 		    for( uint32_t a = 0; a < 6; a++ ) {
 			if( mask & sflag ) {
-			    os << "  ndist[" << a+1 << "] = " << (int)*ptr << "\n";
+			    os << "  ndist[" << a << "] = " << (int)*ptr << "\n";
 			    ptr++;
 			}
 			mask = mask << 1;

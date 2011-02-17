@@ -2,7 +2,7 @@
  *  \brief Graph for plotting solids
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -54,7 +54,7 @@
  *
  *  Class for constructing and plotting a view of the geometry
  *  solids. The view data is stored inside the object in a cache to
- *  speed up more frequent use (in interactive plotter).
+ *  speed up frequent use (in interactive plotter).
  */
 class SolidGraph : public Graph3D {
 
@@ -63,15 +63,15 @@ class SolidGraph : public Graph3D {
 
 	Point( double _x, double _y ) { x[0] = _x; x[1] = _y; }
 	
-	double &operator[]( int i ) { return( x[i] ); }
-	const double &operator[]( int i ) const { return( x[i] ); }
+	double &operator[]( int32_t i ) { return( x[i] ); }
+	const double &operator[]( int32_t i ) const { return( x[i] ); }
     };
 
     struct SolidPoints {
-	int                N;    /* Solid number of electrode */
+	uint32_t           N;    /* Solid number of electrode, N>=7 */
 	std::vector<Point> p;    /* Coordinate points of electrode boundary */
 	
-	SolidPoints( int N ) : N(N) {}
+	SolidPoints( uint32_t N ) : N(N) {}
     };
 
     Color                                _color;
@@ -83,9 +83,9 @@ class SolidGraph : public Graph3D {
     
     bool                                 _cache;
 
-    bool is_edge( int N, const int i[3] ) const;
-    int get_mesh( const int i[3], int offsetx, int offsety ) const;
-    void build_solid( SolidPoints *solid, const int i[3], char *done, int last, int N );
+    bool is_edge( uint32_t node, const int32_t i[3] ) const;
+    uint32_t get_mesh( const int i[3], int offsetx, int offsety ) const;
+    void build_solid( SolidPoints *solid, const int32_t i[3], char *done, bool out, uint32_t node );
     void build_data( void );
     void clear_data( void );
     

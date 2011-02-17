@@ -157,6 +157,12 @@ class Geometry : public Mesh
      */
     uint32_t is_solid( int32_t i, int32_t j, int32_t k ) const;
 
+    /*! \brief Add a near solid distance to near solid data.
+     *
+     *  Subroutine of add_near_solid_entry().
+     */
+    void add_near_solid_distance( std::vector<uint8_t> &ndist, uint8_t dist );
+
     /*! \brief Add an entry to near solid data.
      *
      *  Appends a new entry to near solid data and updated \a
@@ -280,47 +286,47 @@ public:
      */
     void build_mesh( void );
 
-    /*! \brief Returns a const reference to solid mesh.
+    /*! \brief Returns a const reference to solid mesh array.
      */
     const uint32_t &mesh( int32_t i ) const { return( _smesh[i] ); }
 
-    /*! \brief Returns a const reference to solid mesh.
+    /*! \brief Returns a const reference to solid mesh array.
      */
     const uint32_t &mesh( int32_t i, int32_t j ) const {
 	return( _smesh[i + j*_size[0]] ); 
     }
 
-    /*! \brief Returns a const reference to solid mesh.
+    /*! \brief Returns a const reference to solid mesh array.
      */
     const uint32_t &mesh( int32_t i, int32_t j, int32_t k ) const {
 	return( _smesh[i + j*_size[0] + k*_size[0]*_size[1]] );
     }
 
-    /*! \brief Returns a reference to solid mesh.
+    /*! \brief Returns a reference to solid mesh array.
      */
     uint32_t &mesh( int32_t i ) { return( _smesh[i] ); }
 
-    /*! \brief Returns a reference to solid mesh.
+    /*! \brief Returns a reference to solid mesh array.
      */
     uint32_t &mesh( int32_t i, int32_t j ) {
 	return( _smesh[i + j*_size[0]] );
     }
 
-    /*! \brief Returns a reference to solid mesh.
+    /*! \brief Returns a reference to solid mesh array.
      */
     uint32_t &mesh( int32_t i, int32_t j, int32_t k ) {
 	return( _smesh[i + j*_size[0] + k*_size[0]*_size[1]] );
     }
 
-    /*! \brief Returns solid node number from solid mesh at \a i, \a
-     *  j, \a k or Dirichlet boundary number if point is outside mesh.
+    /*! \brief Returns number from solid mesh array at \a i, \a j, \a
+     *  k or Dirichlet boundary number if point is outside mesh.
      */
     uint32_t mesh_check( int32_t i, int32_t j, int32_t k ) const;
 
     /*! \brief Returns a const pointer to start of near solid data for
      *  node (\a i, \a j, \a k). The first byte contains the bit flags
-     *  for the existance of neighbouring solids. From bit 5 to bit 0
-     *  the boolean flags are for directions xmin, xmax, ymin, ymax,
+     *  for the existance of neighbouring solids. From bit 0 to bit 5
+     *  the boolean flags are for directions: xmin, xmax, ymin, ymax,
      *  zmin, zmax. The next bytes contain the parametric distances of
      *  the solid surfaces from the node in each direction. Only the
      *  directions with set bit flag are saved to data. The distances
@@ -337,6 +343,25 @@ public:
     const uint8_t *nearsolid_ptr( int32_t index ) const {
 	return( &_nearsolid[index] );
     }
+
+    /*! \brief Returns distance of solid boundary from point.
+     *
+     *  Returns the distance (0 to 255) of near solid into direction
+     *  \a dir from near solid point at (\a i, \a j, \a k). The
+     *  direction \a dir is an integer from 0 to 5, with 0 meaning +x,
+     *  1 meaning -x, 2 meaning +y, 3 meaning -y, 4 meaning +z and 5
+     *  meaning -z. If the node at (\a i, \a j, \a k) is not a near
+     *  solid node or if there is no solid nearby in the direction an
+     *  error will be thrown.
+     */
+    uint8_t solid_dist( uint32_t i, uint32_t j, uint32_t k, uint32_t dir ) const;
+
+    /*! \brief Returns distance of solid boundary from point.
+     *
+     *  Same as solid_dist() above, just using one dimensional index
+     *  for mesh.
+     */
+    uint8_t solid_dist( uint32_t i, uint32_t dir ) const;
 
     /*! \brief Saves geometry data to stream.
      */

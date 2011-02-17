@@ -46,21 +46,29 @@
 using namespace std;
 
 
+const double r1 = 0.021;
+const double r2 = 0.07;
+const double V1 = 0.0;
+const double V2 = 10.0;
+const double A = (V1-V2)/log(r1/r2);
+const double B = V1-A*log(r1);
+
+
 bool solid1( double x, double y, double z )
 {
-    return( x*x+y*y <= 0.02*0.02 );
+    return( x*x+y*y <= r1*r1 );
 }
 
 
 bool solid2( double x, double y, double z )
 {
-    return( x*x+y*y >= 0.07*0.07 );
+    return( x*x+y*y >= r2*r2 );
 }
 
 
 double phi( double r )
 {
-    return( 7.98235600148*log(r) + 31.2271603153 );
+    return( A*log(r)+B );
 }
 
 
@@ -78,6 +86,7 @@ void test( int argc, char **argv )
     geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
     geom.build_mesh();
+    //geom.debug_print( std::cout );
 
     EpotGSSolver solver( geom );
     MeshScalarField epot( geom );
@@ -110,13 +119,11 @@ void test( int argc, char **argv )
 
     ostr.close();
 
-    /*
-    GTKPlotter plotter( argc, argv );
+    GTKPlotter plotter( &argc, &argv );
     plotter.set_geometry( &geom );
     plotter.set_epot( &epot );
     plotter.new_geometry_plot_window();
     plotter.run();
-    */
 
     if( err ) {
 	std::cout << "Error: solved potential differs from theory\n";

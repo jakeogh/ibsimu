@@ -1,8 +1,8 @@
 /*! \file solidgraph.cpp
- *  \brief Source code for solidgraph.cpp
+ *  \brief Graph for plotting solids
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -52,7 +52,7 @@
 #include "ibsimu.hpp"
 
 
-int SolidGraph::get_mesh( const int i[3], int offsetx, int offsety ) const
+uint32_t SolidGraph::get_mesh( const int32_t i[3], int offsetx, int offsety ) const
 {
     int j[3] = { i[0], i[1], i[2] };
 
@@ -63,36 +63,36 @@ int SolidGraph::get_mesh( const int i[3], int offsetx, int offsety ) const
 }
 
 
-/* Return true if node at (i,j,k) is solid number N and is an edge
- * node. Here a node is counted as an edge node if some of the four
- * nearest neighbours differs from solid number N. Therefore also
- * simulation area boundaries will be counted as edges. 
+/* Return true if node at (i,j,k) is solid mesh node number N and is
+ * an edge node. Here a node is counted as an edge node if some of the
+ * four nearest neighbours differs from solid number N. Therefore also
+ * simulation area boundaries will be counted as edges.
  */
-bool SolidGraph::is_edge( int N, const int i[3] ) const
+bool SolidGraph::is_edge( uint32_t node, const int32_t i[3] ) const
 {
-    return( abs(get_mesh( i, 0, 0 )) == N &&
-	    ( abs(get_mesh( i, -1,  0 )) != N ||
-	      abs(get_mesh( i, +1,  0 )) != N ||
-	      abs(get_mesh( i,  0, -1 )) != N ||
-	      abs(get_mesh( i,  0, +1 )) != N ) );
+    return( get_mesh( i, 0, 0 ) == node &&
+	    ( get_mesh( i, -1,  0 ) != node ||
+	      get_mesh( i, +1,  0 ) != node ||
+	      get_mesh( i,  0, -1 ) != node ||
+	      get_mesh( i,  0, +1 ) != node ) );
 }
 
 
-void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, int lastN, int N )
+void SolidGraph::build_solid( SolidPoints *solid, const int32_t j[3], char *done, bool out, uint32_t node )
 {
-    int next[3]  = {j[0], j[1], j[2]};
-    int i[3]     = {j[0], j[1], j[2]};
-    int first[3] = {j[0], j[1], j[2]};
+    int32_t next[3]  = {j[0], j[1], j[2]};
+    int32_t i[3]     = {j[0], j[1], j[2]};
+    int32_t first[3] = {j[0], j[1], j[2]};
     int a, dir, save;
     int loop_done = 0;
     
     //std::cout << solid << "\n";
 
     // Initialize direction
-    if( lastN != N )
-	dir = 9; // Going into solid -> direction 6 first
+    if( out )
+	dir = 3; // Going out of solid -> direction 0 first (3 will be subtracted later)
     else
-	dir = 3; // Going out of solid -> direction 0 first
+	dir = 9; // Going into solid -> direction 6 first (3 will be subtracted later)
 
     //std::cout << "  Starting with from ("
     // << i[0] << ","
@@ -120,8 +120,8 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
 		next[_vb[1]] = i[_vb[1]]+1;
 		break;
 	    case 1:
-		if( abs(get_mesh( i,  0, +1 )) != N &&
-		    abs(get_mesh( i, -1,  0 )) != N )
+		if( get_mesh( i,  0, +1 ) != node &&
+		    get_mesh( i, -1,  0 ) != node )
 		    save = 1;
 		next[_vb[0]] = i[_vb[0]]-1;
 		next[_vb[1]] = i[_vb[1]]+1;
@@ -132,8 +132,8 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
 		next[_vb[1]] = i[_vb[1]];
 		break;
 	    case 3:
-		if( abs(get_mesh( i,  0, -1 )) != N &&
-		    abs(get_mesh( i, -1,  0 )) != N )
+		if( get_mesh( i,  0, -1 ) != node &&
+		    get_mesh( i, -1,  0 ) != node )
 		    save = 1;
 		next[_vb[0]] = i[_vb[0]]-1;
 		next[_vb[1]] = i[_vb[1]]-1;
@@ -144,8 +144,8 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
 		next[_vb[1]] = i[_vb[1]]-1;
 		break;
 	    case 5:
-		if( abs(get_mesh( i,  0, -1 )) != N &&
-		    abs(get_mesh( i, +1,  0 )) != N )
+		if( get_mesh( i,  0, -1 ) != node &&
+		    get_mesh( i, +1,  0 ) != node )
 		    save = 1;
 		next[_vb[0]] = i[_vb[0]]+1;
 		next[_vb[1]] = i[_vb[1]]-1;
@@ -156,8 +156,8 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
 		next[_vb[1]] = i[_vb[1]];
 		break;
 	    case 7:
-		if( abs(get_mesh( i,  0, +1 )) != N &&
-		    abs(get_mesh( i, +1,  0 )) != N )
+		if( get_mesh( i,  0, +1 ) != node &&
+		    get_mesh( i, +1,  0 ) != node )
 		    save = 1;
 		next[_vb[0]] = i[_vb[0]]+1;
 		next[_vb[1]] = i[_vb[1]]+1;
@@ -167,11 +167,13 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
 	    }
 
 	    // If loop is done and direction same as starting direction
-	    if( loop_done && ((dir == 6 && lastN != N) || (dir == 0 && lastN == N)) )
+	    if( loop_done && ((dir == 6 && !out) || (dir == 0 && out)) )
 		break;
 
-	    // If next point is an edge point, proceed to the next point without saving
-	    if( abs(_g.mesh_check( next[0], next[1], next[2] )) == N )
+	    // If next point is an edge point, proceed to the next
+	    // point without saving a point
+	    //if( _g.mesh_check( next[0], next[1], next[2] ) == node )
+	    if( is_edge( node, next ) )
 		break;
 
 	    // Save solid edge point between i and next
@@ -183,7 +185,7 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
 			  next[1]*_g.h()+_g.origo(1),
 			  next[2]*_g.h()+_g.origo(2) );
 		Vec3D xsurf;
-		_g.bracket_surface( N, x1, x2, xsurf );
+		_g.bracket_surface( node & SMESH_NEAR_SOLID_INDEX_MASK, x1, x2, xsurf );
 		//std::cout << "  Saving point (" 
 		//	  << xsurf(vb[0]) << ","
 		//	  << xsurf(vb[1]) << ")\n";
@@ -234,31 +236,40 @@ void SolidGraph::build_data( void )
     // Clear old plot
     clear_data();
 
+    // Array for marking processed nodes
     char *done = new char[ _g.size(_vb[0]) * _g.size(_vb[1]) ];
     memset( done, 0, _g.size(_vb[0])*_g.size(_vb[1])*sizeof(char) );
 
     // Go through mesh
-    int lastN = 0;
-    int i[3];
+    int32_t i[3];
+    uint32_t lastnode;
+    uint32_t node = SMESH_NODE_ID_PURE_VACUUM;
     i[_vb[2]] = (int)floor(_level+0.5);
-    for( i[_vb[1]] = 0; i[_vb[1]] < _g.size(_vb[1]); i[_vb[1]]++ ) {
-	for( i[_vb[0]] = 0; i[_vb[0]] < _g.size(_vb[0]); i[_vb[0]]++ ) {
+    for( i[_vb[1]] = 0; i[_vb[1]] < (int32_t)_g.size(_vb[1]); i[_vb[1]]++ ) {
+	for( i[_vb[0]] = 0; i[_vb[0]] < (int32_t)_g.size(_vb[0]); i[_vb[0]]++ ) {
 
 	    //std::cout << "Processing (" 
 	    // << i[0] << "," 
 	    // << i[1] << "," 
 	    // << i[2] << "): ";
 
-	    int N = abs( _g.mesh( i[0], i[1], i[2] ) );
-	    //std::cout << "N = " << N << " ";
-	    // Skip processed nodes and vacuum
-	    if( N < 7 ) {
-		//std::cout << "vacuum or boundary\n";
+	    // Skip until unprocessed edge is found
+	    lastnode = node;
+	    node = _g.mesh( i[0], i[1], i[2] );
+	    uint32_t nodeid = node & SMESH_NODE_ID_MASK;
+	    if( nodeid == SMESH_NODE_ID_NEAR_SOLID ||
+		nodeid == SMESH_NODE_ID_PURE_VACUUM ||
+		nodeid == SMESH_NODE_ID_NEUMANN ) {
+		//std::cout << "vacuum\n";
 		continue;
-	    } else  if( done[ i[_vb[0]] + i[_vb[1]]*_g.size(_vb[0]) ] ) {
+	    } else if( nodeid == SMESH_NODE_ID_DIRICHLET &&
+		       (node & SMESH_BOUNDARY_NUMBER_MASK) < 7 ) {
+		//std::cout << "Dirichlet simulation box boundary\n";
+		continue;
+	    } else if( done[ i[_vb[0]] + i[_vb[1]]*_g.size(_vb[0]) ] ) {
 		//std::cout << "done\n";
 		continue;
-	    } else if( !is_edge( N, i ) ) {
+	    } else if( !is_edge( node, i ) ) {
 		//std::cout << "not an edge\n";
 		continue;
 	    }
@@ -266,25 +277,23 @@ void SolidGraph::build_data( void )
 	    // If solid is a continuation of processed solid
 	    size_t a;
 	    for( a = 0; a < _solid.size(); a++ ) {
-		if( N == _solid[a]->N ) {
+		if( (node & SMESH_BOUNDARY_NUMBER_MASK) == _solid[a]->N ) {
 		    // Add break
 		    //std::cout << "building continuation\n";
 		    _solid[a]->p.push_back( Point(std::numeric_limits<double>::quiet_NaN(),
 						  std::numeric_limits<double>::quiet_NaN()) );
-		    build_solid( _solid[a], i, done, lastN, N );
+		    build_solid( _solid[a], i, done, (lastnode == node), node );
 		    break;
 		}
 	    }
 	    if( a == _solid.size() ) {
 		// Create a new solid
 		//std::cout << "building new\n";
-		_solid.push_back( new SolidPoints( N ) );
+		_solid.push_back( new SolidPoints( node & SMESH_BOUNDARY_NUMBER_MASK ) );
 		//std::cout << "push_back done\n";
 		//std::cout << solid[a] << "\n";
-		build_solid( _solid[a], i, done, lastN, N );
+		build_solid( _solid[a], i, done, (lastnode == node), node );
 	    }
-	    lastN = N;
-
 	}
     }
 

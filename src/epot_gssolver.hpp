@@ -54,8 +54,6 @@ class EpotGSSolver : public EpotSolver {
     double   _w;              /*!< \brief Relaxation coefficient. */
 
     double gs_loop_3d( MeshScalarField &epot, const MeshScalarField &rhs ) const;
-    double gs_process_node_3d( MeshScalarField &epot, const MeshScalarField &rhs,
-			       uint32_t i, uint32_t j, uint32_t k ) const;
     double gs_process_near_solid_3d( MeshScalarField &epot, const MeshScalarField &rhs,
 				     const uint8_t *nearsolid_ptr, 
 				     uint32_t i, uint32_t j, uint32_t k ) const;
@@ -66,8 +64,6 @@ class EpotGSSolver : public EpotSolver {
 
 
     double gs_loop_2d( MeshScalarField &epot, const MeshScalarField &rhs ) const;
-    double gs_process_node_2d( MeshScalarField &epot, const MeshScalarField &rhs,
-			       uint32_t i, uint32_t j ) const;
     double gs_process_near_solid_2d( MeshScalarField &epot, const MeshScalarField &rhs,
 				     const uint8_t *nearsolid_ptr, 
 				     uint32_t i, uint32_t j ) const;
@@ -78,8 +74,6 @@ class EpotGSSolver : public EpotSolver {
 
 
     double gs_loop_1d( MeshScalarField &epot, const MeshScalarField &rhs ) const;
-    double gs_process_node_1d( MeshScalarField &epot, const MeshScalarField &rhs,
-			       uint32_t i ) const;
     double gs_process_near_solid_1d( MeshScalarField &epot, const MeshScalarField &rhs,
 				     const uint8_t *nearsolid_ptr, 
 				     uint32_t i ) const;

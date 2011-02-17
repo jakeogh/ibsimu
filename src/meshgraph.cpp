@@ -59,9 +59,6 @@ MeshGraph::~MeshGraph()
 
 void MeshGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
-    if( ibsimu.get_verbose_output() )
-        std::cout << "  Plotting mesh\n";
-
     cairo_set_source_rgb( cairo, 0.5, 0.5, 0.5 );
     cairo_set_line_width( cairo, 1.0 );
 

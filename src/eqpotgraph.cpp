@@ -1,5 +1,5 @@
 /*! \file eqpotgraph.cpp
- *  \brief Source code for eqpotgraph.cpp
+ *  \brief %Graph for plotting equipotential lines
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -72,31 +72,28 @@ void EqPotGraph::set_eqlines_auto( size_t N )
 }
 
 
-bool EqPotGraph::eqline_exists( double pot1, signed char sol1, 
-				double pot2, signed char sol2, 
+bool EqPotGraph::eqline_exists( double pot1, uint32_t sol1, 
+				double pot2, uint32_t sol2, 
 				double pot ) const 
 {
-    if( // Basic rule: at least one point in vacuum/neumann/dirichlet 
-	// and potential pot is between pot1 and pot2.
-	( ((sol1 <= 6 && sol1 >= -6) || (sol2 <= 6 && sol2 >= -6)) &&
-	  pot1 != pot2 &&
-	  ((pot1 >= pot && pot2 <= pot) ||
-	   (pot1 <= pot && pot2 >= pot)) )
-	&&
-	// Additional rule: potential pot has to be a real (non-virtual) potential close to 
-	// solid boundaries with virtual potentials.
-	!(( sol1 < -6 && 
-	    ((pot1 >= pot && _g.get_boundary(-sol1).val <= pot) ||
-	     (pot1 <= pot && _g.get_boundary(-sol1).val >= pot)) ) 
-	  ||
-	  ( sol2 < -6 && 
-	    ((pot2 >= pot && _g.get_boundary(-sol2).val <= pot) ||
-	     (pot2 <= pot && _g.get_boundary(-sol2).val >= pot)) )) )
-    {
+    if( pot1 != pot2 && ((pot1 >= pot && pot2 <= pot) ||
+			 (pot1 <= pot && pot2 >= pot)) ) {
 	return( true );
     }
-    
     return( false );
+}
+
+
+bool EqPotGraph::is_solid( uint32_t sol ) const
+{
+    return( (sol & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET && 
+	    (sol & SMESH_BOUNDARY_NUMBER_MASK) >= 7 );
+}
+
+
+bool EqPotGraph::is_near( uint32_t sol ) const
+{
+    return( (sol & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEAR_SOLID );
 }
 
 
@@ -138,17 +135,22 @@ void EqPotGraph::build_data( void )
 	    size_t ptr = _g.size(0)*_g.size(1)*i[2] + _g.size(0)*i[1] + i[0];
 
 	    // Potentials and solid mesh numbers counterclockwise
-	    double pot1       = _epot( ptr );
-	    signed char sol1  = _g.mesh( ptr );
-	    size_t ptrt       = ptr+dx;
-	    double pot2       = _epot( ptrt );
-	    signed char sol2  = _g.mesh( ptrt );
-	    ptrt             += dy;
-	    double pot3       = _epot( ptrt );
-	    signed char sol3  = _g.mesh( ptrt );
-	    ptrt             -= dx;
-	    double pot4       = _epot( ptrt );
-	    signed char sol4  = _g.mesh( ptrt );
+	    // starting from lower left corner in vb[0], vb[1] coordinates
+	    size_t ptr1       = ptr;
+	    double pot1       = _epot( ptr1 );
+	    uint32_t sol1     = _g.mesh( ptr1 );
+
+	    size_t ptr2       = ptr+dx;
+	    double pot2       = _epot( ptr2 );
+	    uint32_t sol2     = _g.mesh( ptr2 );
+
+	    size_t ptr3       = ptr+dx+dy;
+	    double pot3       = _epot( ptr3 );
+	    uint32_t sol3     = _g.mesh( ptr3 );
+
+	    size_t ptr4       = ptr+dy;
+	    double pot4       = _epot( ptr4 );
+	    uint32_t sol4     = _g.mesh( ptr4 );
 
 	    // Check for existance of each equipotential line
 	    for( size_t a = 0; a < _lines.size(); a++ ) {
@@ -161,44 +163,84 @@ void EqPotGraph::build_data( void )
 
 		// Bottom
 		if( eqline_exists( pot1, sol1, pot2, sol2, pot ) ) {
-		    if( pot2 != pot1 )
-			x[b+0] = (i[_vb[0]]+(pot-pot1)/(pot2-pot1)) * _g.h() + _g.origo(_vb[0]);
-		    else
-			x[b+0] = i[_vb[0]]*_g.h() + _g.origo(_vb[0]);
+		    if( is_near(sol1) && is_solid(sol2) ) {
+			// Get solid distance for sol1 to direction of sol2 (+vb[0])
+			uint8_t dist = _g.solid_dist( ptr1, 2*_vb[0]+1 );
+			double t = dist*(pot-pot1) / (255*(pot2-pot1));
+			x[b+0] = ( i[_vb[0]] + t ) * _g.h() + _g.origo(_vb[0]);
+		    } else if( is_near(sol2) && is_solid(sol1) ) {
+			// Get solid distance for sol2 to direction of sol1 (-vb[0])
+			uint8_t dist = _g.solid_dist( ptr2, 2*_vb[0] );
+			double t = dist*(pot-pot2) / (255*(pot1-pot2));
+			x[b+0] = ( i[_vb[0]] + 1 - t ) * _g.h() + _g.origo(_vb[0]);
+		    } else {
+			double t = (pot-pot1) / (pot2-pot1);
+			x[b+0] = ( i[_vb[0]] + t ) * _g.h() + _g.origo(_vb[0]);
+		    }
 		    x[b+1] = i[_vb[1]]*_g.h() + _g.origo(_vb[1]);
 		    b += 2;
 		}
 
 		// Right
 		if( eqline_exists( pot2, sol2, pot3, sol3, pot ) ) {
+		    if( is_near(sol2) && is_solid(sol3) ) {
+			// Get solid distance for sol2 to direction of sol3 (+vb[1])
+			uint8_t dist = _g.solid_dist( ptr2, 2*_vb[1]+1 );
+			double t = dist*(pot-pot2) / (255*(pot3-pot2));
+			x[b+1] = ( i[_vb[1]] + t ) * _g.h() + _g.origo(_vb[1]);
+		    } else if( is_near(sol3) && is_solid(sol2) ) {
+			// Get solid distance for sol3 to direction of sol2 (-vb[1])
+			uint8_t dist = _g.solid_dist( ptr3, 2*_vb[1] );
+			double t = dist*(pot-pot3) / (255*(pot2-pot3));
+			x[b+1] = ( i[_vb[1]] + 1 - t ) * _g.h() + _g.origo(_vb[1]);
+		    } else {
+			double t = (pot-pot2) / (pot3-pot2);
+			x[b+1] = ( i[_vb[1]] + t ) * _g.h() + _g.origo(_vb[1]);
+		    }
 		    x[b+0] = (i[_vb[0]]+1)*_g.h() + _g.origo(_vb[0]);
-		    if( pot3 != pot2 )
-			x[b+1] = (i[_vb[1]]+(pot-pot2)/(pot3-pot2)) * _g.h() + _g.origo(_vb[1]);
-		    else
-			x[b+1] = i[_vb[1]]*_g.h() + _g.origo(_vb[1]);
 		    b += 2;
 		}
 		
 		// Top
 		if( eqline_exists( pot4, sol4, pot3, sol3, pot ) ) {
-		    if( pot4 != pot3 )
-			x[b+0] = (i[_vb[0]]+(pot-pot4)/(pot3-pot4)) * _g.h() + _g.origo(_vb[0]);
-		    else
-			x[b+0] = (i[_vb[0]]+1)*_g.h() + _g.origo(_vb[0]);
-		    x[b+1] = (i[_vb[1]]+1) * _g.h() + _g.origo(_vb[1]);
+		    if( is_near(sol4) && is_solid(sol3) ) {
+			// Get solid distance for sol4 to direction of sol3 (+vb[0])
+			uint8_t dist = _g.solid_dist( ptr4, 2*_vb[0]+1 );
+			double t = dist*(pot-pot4) / (255*(pot3-pot4));
+			x[b+0] = ( i[_vb[0]] + t ) * _g.h() + _g.origo(_vb[0]);
+		    } else if( is_near(sol3) && is_solid(sol4) ) {
+			// Get solid distance for sol3 to direction of sol4 (-vb[0])
+			uint8_t dist = _g.solid_dist( ptr3, 2*_vb[0] );
+			double t = dist*(pot-pot3) / (255*(pot4-pot3));
+			x[b+0] = ( i[_vb[0]] + 1 - t ) * _g.h() + _g.origo(_vb[0]);
+		    } else {
+			double t = (pot-pot4) / (pot3-pot4);
+			x[b+0] = ( i[_vb[0]] + t ) * _g.h() + _g.origo(_vb[0]);
+		    }
+		    x[b+1] = (i[_vb[1]]+1)*_g.h() + _g.origo(_vb[1]);
 		    b += 2;
 		}
 
 		// Left
 		if( eqline_exists( pot1, sol1, pot4, sol4, pot ) ) {
+		    if( is_near(sol1) && is_solid(sol4) ) {
+			// Get solid distance for sol1 to direction of sol4 (+vb[1])
+			uint8_t dist = _g.solid_dist( ptr1, 2*_vb[1]+1 );
+			double t = dist*(pot-pot1) / (255*(pot4-pot1));
+			x[b+1] = ( i[_vb[1]] + t ) * _g.h() + _g.origo(_vb[1]);
+		    } else if( is_near(sol4) && is_solid(sol1) ) {
+			// Get solid distance for sol4 to direction of sol1 (-vb[1])
+			uint8_t dist = _g.solid_dist( ptr4, 2*_vb[1] );
+			double t = dist*(pot-pot4) / (255*(pot1-pot4));
+			x[b+1] = ( i[_vb[1]] + 1 - t ) * _g.h() + _g.origo(_vb[1]);
+		    } else {
+			double t = (pot-pot1) / (pot4-pot1);
+			x[b+1] = ( i[_vb[1]] + t ) * _g.h() + _g.origo(_vb[1]);
+		    }
 		    x[b+0] = i[_vb[0]]*_g.h() + _g.origo(_vb[0]);
-		    if( pot4 != pot1 )
-			x[b+1] = (i[_vb[1]]+(pot-pot1)/(pot4-pot1)) * _g.h() + _g.origo(_vb[1]);
-		    else
-			x[b+1] = (i[_vb[1]]+1)*_g.h() + _g.origo(_vb[1]);
 		    b += 2;
 		}
-		
+
 		if( b == 4 ) {
 		    _lines[a]->x.push_back( Line( x[0], x[1], x[2], x[3] ) );
 		} else if( b == 8 ) {

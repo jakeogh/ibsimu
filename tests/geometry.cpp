@@ -11,6 +11,7 @@
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "error.hpp"
+#include "ibsimutest.hpp"
 
 
 using namespace std;
@@ -47,15 +48,30 @@ void test2( void )
     Geometry g( fstr );
     //g.debug_print( cout );
 
+    // Test inside() when function not available
     int stat = 0;
     try {
 	g.inside( Vec3D(0.05,0.05,0.05) );
     } catch( Error ) {
-	// Function solid can't be saved to file. Should cause error.
 	stat = 1;
     }
     if( stat == 0 )
-	exit( 1 );
+	throw( ErrorTest( ERROR_LOCATION, "inside() didn't fail when function not available" ) );
+
+    // Test solid_dist()
+    if( g.solid_dist( 1, 1, 0, 1 ) != 137 )
+	throw( ErrorTest( ERROR_LOCATION, "incorrect distance from solid_dist()" ) );
+    if( g.solid_dist( 1, 1, 0, 2 ) != 95 )
+	throw( ErrorTest( ERROR_LOCATION, "incorrect distance from solid_dist()" ) );
+
+    stat = 0;
+    try {
+	g.solid_dist( 1, 1, 0, 0 );
+    } catch( Error ) {
+	stat = 1;
+    }
+    if( stat == 0 )
+	throw( ErrorTest( ERROR_LOCATION, "solid_dist() didn't fail when no near solid" ) );
 
     /*
     for( int j = 0; j < g.size(1); j++ ) {
