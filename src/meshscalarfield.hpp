@@ -142,6 +142,10 @@ public:
      */
     MeshScalarField &operator+=( const MeshScalarField &f );
 
+    /*! \brief Inverse accumulation operator.
+     */
+    MeshScalarField &operator-=( const MeshScalarField &f );
+
     /*! \brief Scaling operator.
      */
     MeshScalarField &operator*=( double x );

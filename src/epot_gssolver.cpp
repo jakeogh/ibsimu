@@ -26,6 +26,11 @@ void EpotGSSolver::set_eps( double eps )
     _eps = eps;
 }
 
+double EpotGSSolver::get_err( void ) const
+{
+    return( _err );
+}
+
 
 void EpotGSSolver::set_imax( uint32_t imax )
 {
@@ -44,8 +49,8 @@ void EpotGSSolver::set_w( double w )
  */
 
 double EpotGSSolver::gs_process_near_solid_3d( MeshScalarField &epot, const MeshScalarField &rhs,
-					       const uint8_t *nearsolid_ptr, 
-					       uint32_t i, uint32_t j, uint32_t k ) const
+					       const uint8_t *nearsolid_ptr, uint32_t a,
+					       uint32_t dj, uint32_t dk ) const
 {
     uint8_t sflag = nearsolid_ptr[0];
     uint8_t *ptr = (uint8_t *)&nearsolid_ptr[1];
@@ -66,7 +71,7 @@ double EpotGSSolver::gs_process_near_solid_3d( MeshScalarField &epot, const Mesh
 
     // Factors for X axis
     double cof = 2.0/(alpha*beta);
-    double epf = 2.0/(alpha+beta)*( epot(i-1,j,k)/alpha + epot(i+1,j,k)/beta );
+    double epf = 2.0/(alpha+beta)*( epot(a-1)/alpha + epot(a+1)/beta );
 
     // Ymin direction
     alpha = 1.0;
@@ -84,7 +89,7 @@ double EpotGSSolver::gs_process_near_solid_3d( MeshScalarField &epot, const Mesh
 
     // Factors for Y axis
     cof += 2.0/(alpha*beta);
-    epf += 2.0/(alpha+beta)*( epot(i,j-1,k)/alpha + epot(i,j+1,k)/beta );
+    epf += 2.0/(alpha+beta)*( epot(a-dj)/alpha + epot(a+dj)/beta );
 
     // Zmin direction
     alpha = 1.0;
@@ -102,49 +107,50 @@ double EpotGSSolver::gs_process_near_solid_3d( MeshScalarField &epot, const Mesh
 
     // Factors for Z axis
     cof += 2.0/(alpha*beta);
-    epf += 2.0/(alpha+beta)*( epot(i,j,k-1)/alpha + epot(i,j,k+1)/beta );
+    epf += 2.0/(alpha+beta)*( epot(a-dk)/alpha + epot(a+dk)/beta );
 
 
-    return( (1.0/cof) * ( epf - rhs(i,j,k) ) );
+    return( (1.0/cof) * ( epf - rhs(a) ) );
 }
 
 
 double EpotGSSolver::gs_process_pure_vacuum_3d( MeshScalarField &epot, const MeshScalarField &rhs,
-						uint32_t i, uint32_t j, uint32_t k ) const
+						uint32_t a, uint32_t dj, uint32_t dk ) const
 {
-    return( (1.0/6.0) * ( epot(i+1,j,k) + epot(i-1,j,k) +
-			  epot(i,j+1,k) + epot(i,j-1,k) + 
-			  epot(i,j,k+1) + epot(i,j,k-1) - rhs(i,j,k) ) );
+    return( (1.0/6.0) * ( epot(a+1)  + epot(a-1) +
+			  epot(a+dj) + epot(a-dj) + 
+			  epot(a+dk) + epot(a-dk) - rhs(a) ) );
 }
 
 
 double EpotGSSolver::gs_process_neumann_3d( MeshScalarField &epot, const MeshScalarField &rhs,
-					    uint32_t boundary, uint32_t i, uint32_t j, uint32_t k ) const
+					    uint32_t boundary, uint32_t a,
+					    uint32_t dj, uint32_t dk ) const
 {
     switch( boundary ) {
     case 1:
 	// (phi_i - phi_i+1) / h = q_0
-	return( epot(i+1,j,k) + rhs(i,j,k) );
+	return( epot(a+1) + rhs(a) );
 	break;
     case 2:
 	// (phi_i-1 - phi_i) / h = q_0
-	return( epot(i-1,j,k) + rhs(i,j,k) );
+	return( epot(a-1) + rhs(a) );
 	break;
     case 3:
 	// (phi_j - phi_j+1) / h = q_0
-	return( epot(i,j+1,k) + rhs(i,j,k) );
+	return( epot(a+dj) + rhs(a) );
 	break;
     case 4:
 	// (phi_j-1 - phi_j) / h = q_0
-	return( epot(i,j-1,k) + rhs(i,j,k) );
+	return( epot(a-dj) + rhs(a) );
 	break;
     case 5:
 	// (phi_k - phi_k+1) / h = q_0
-	return( epot(i,j,k+1) + rhs(i,j,k) );
+	return( epot(a+dk) + rhs(a) );
 	break;
     case 6:
 	// (phi_k-1 - phi_k) / h = q_0
-	return( epot(i,j,k-1) + rhs(i,j,k) );
+	return( epot(a-dk) + rhs(a) );
 	break;
     }
 
@@ -156,32 +162,40 @@ double EpotGSSolver::gs_loop_3d( MeshScalarField &epot, const MeshScalarField &r
 {
     // Go through all nodes
     double maxerr = 0.0;
-    double w2 = 1.0-_w;
+    const double w2 = 1.0-_w;
+    const uint32_t dj = _geom.size(0);
+    const uint32_t dk = _geom.size(0)*_geom.size(1);
+
+    //for( uint32_t rb = 0; rb < 2; rb++ ) {
     for( uint32_t k = 0; k < _geom.size(2); k++ ) {
 	//double z = k*_geom.h()+_geom.origo(2);
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
-	    //double y = j*_geom.h()+_geom.origo(1);
-	    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
+	    uint32_t a = k*dk+j*dj;
+	    for( uint32_t i = 0; i < _geom.size(0); i++, a++ ) {
 		//double x = i*_geom.h()+_geom.origo(0);
 
-		double Vold = epot(i,j,k);
+		//uint32_t s = i+j+k;
+		//if( s % 2 == rb )
+		//continue;
+
+		double Vold = epot(a);
 		double Vnew;
-		uint32_t mesh = _geom.mesh(i,j,k);
+		uint32_t mesh = _geom.mesh(a);
 		uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
 		if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
 		    const uint8_t *nearsolid_ptr = _geom.nearsolid_ptr( mesh & SMESH_NEAR_SOLID_INDEX_MASK );
-		    Vnew = gs_process_near_solid_3d( epot, rhs, nearsolid_ptr, i, j, k );
+		    Vnew = gs_process_near_solid_3d( epot, rhs, nearsolid_ptr, a, dj, dk );
 		} else if( node_id == SMESH_NODE_ID_PURE_VACUUM ) {
-		    Vnew = gs_process_pure_vacuum_3d( epot, rhs, i, j, k );
+		    Vnew = gs_process_pure_vacuum_3d( epot, rhs, a, dj, dk );
 		} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
 		    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
-		    Vnew = gs_process_neumann_3d( epot, rhs, boundary, i, j, k );
+		    Vnew = gs_process_neumann_3d( epot, rhs, boundary, a, dj, dk );
 		} else {
 		    // Dirichlet
 		    continue;
 		}
 		Vnew = _w*Vnew + w2*Vold;
-		epot(i,j,k) = Vnew;
+		epot(a) = Vnew;
 		double err = fabs( Vnew - Vold );
 		if( err > maxerr )
 		    maxerr = err;
@@ -192,6 +206,7 @@ double EpotGSSolver::gs_loop_3d( MeshScalarField &epot, const MeshScalarField &r
 	    }
 	}
     }
+    //}
     return( maxerr );
 }
 
@@ -462,7 +477,7 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 	}
     }
     
-    StatusPrint sp;
+    StatusPrint sp( std::cout );
     if( ibsimu.get_verbose_output() ) {
 	std::stringstream ss;
 	ss << "  " << std::setw(5) << 0 << " " << std::scientific << std::setw(20) << 0;
@@ -471,15 +486,14 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 
     // Loop until converged
     //std::cout << "\nIterate\n------------------------\n";
-    double err = 0.0;
     uint32_t iter = 0;
     while( iter < _imax ) {
 	if( _geom.geom_mode() == MODE_3D )
-	    err = gs_loop_3d( epot, *rhs );
+	    _err = gs_loop_3d( epot, *rhs );
 	else if( _geom.geom_mode() == MODE_2D )
-	    err = gs_loop_2d( epot, *rhs );
+	    _err = gs_loop_2d( epot, *rhs );
 	else if( _geom.geom_mode() == MODE_1D )
-	    err = gs_loop_1d( epot, *rhs );
+	    _err = gs_loop_1d( epot, *rhs );
 	else
 	    throw( ErrorUnimplemented( ERROR_LOCATION ) );
 
@@ -488,14 +502,14 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 	
 	if( ibsimu.get_verbose_output() ) {
 	    std::stringstream ss;
-	    ss << "  " << std::setw(5) << iter << " " << std::scientific << std::setw(20) << err;
+	    ss << "  " << std::setw(5) << iter << " " << std::scientific << std::setw(20) << _err;
 	    sp.print( ss.str() );
 	}
 
 	iter++;
-	if( err < _eps )
+	if( _err < _eps )
 	    break;
-	if( comp_isinf(err) || comp_isnan(err) )
+	if( comp_isinf(_err) || comp_isnan(_err) )
 	    break;
     }
 
@@ -504,11 +518,15 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 
     // End timer
     t.stop();
+
     if( ibsimu.get_verbose_output() ) {
-	sp.print( "" );
+	std::stringstream ss;
+	ss << "  " << std::setw(5) << iter << " " << std::scientific << std::setw(20) << _err;
+	sp.print( ss.str(), true );
+	std::cout << "\n";
 	if( iter == _imax )
 	    std::cout << "  Maximum number of iteration rounds done.\n";
-	std::cout << "  residual error = " << err << "\n";
+	std::cout << "  residual error = " << _err << "\n";
 	std::cout << "  iterations = " << iter << "\n";
 	std::cout << "  time used = " << t << "\n";
 	std::cout << std::flush;

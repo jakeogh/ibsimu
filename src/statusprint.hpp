@@ -1,8 +1,8 @@
 /*! \file statusprint.hpp
- *  \brief Subroutine for printing running status line on command line
+ *  \brief Subroutine for printing running status line on command line.
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -44,6 +44,7 @@
 #define STATUSPRINT_HPP 1
 
 
+#include <iostream>
 #include <time.h>
 
 
@@ -51,16 +52,28 @@
  */
 class StatusPrint {
     
-    size_t _width;
-    time_t _time;
+    std::ostream &_os;
+    size_t        _width;
+    time_t        _time;
 
 public:
 
-    StatusPrint();
+    /*! \brief Constructor for status printer for output stream \a os.
+     */
+    StatusPrint( std::ostream &os );
 
+    /*! \brief Destructor.
+     */
     ~StatusPrint();
 
-    void print( const std::string &str );
+    /*! \brief Print str to output stream.
+     *
+     *  Printing is only done is time returned by system time() has
+     *  changed. This enforces a maximum update frequency of 1 update
+     *  per second. If \a force is true the printing is done
+     *  regardless of time.
+     */
+    void print( const std::string &str, bool force = false );
     
 };
 

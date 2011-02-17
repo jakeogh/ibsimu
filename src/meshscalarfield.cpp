@@ -171,6 +171,18 @@ MeshScalarField &MeshScalarField::operator+=( const MeshScalarField &f )
 }
 
 
+MeshScalarField &MeshScalarField::operator-=( const MeshScalarField &f )
+{
+    if( (Mesh)(*this) != (Mesh)f )
+	throw( Error( ERROR_LOCATION, "non-matching fields" ) );
+
+    size_t ncount = _size[0]*_size[1]*_size[2];
+    for( size_t a = 0; a < ncount; a++ )
+	_F[a] -= f._F[a];
+    return( *this );
+}
+
+
 MeshScalarField &MeshScalarField::operator*=( double x )
 {
     size_t ncount = _size[0]*_size[1]*_size[2];

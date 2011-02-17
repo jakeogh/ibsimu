@@ -64,20 +64,79 @@ double phi( double r )
  *
  */
 
-/* w = 1.93, -O2 compiler
+/* Speed test
  *
- * h = 0.002,   iter = 260, time = 0.26 s
- * h = 0.001,   iter = 279, time = 2.01 s
- * h = 0.0005,  iter = 1272, time = 68.58 s
- * h = 0.00025, iter = 4542, time = 1993.02 s
+ * w = 1.93, -O2 compiler optimization
  *
+ * fys80:
+ * Intel(R) Core(TM)2 Quad CPU Q6700
+ * 2666.67 MHz, 4096 KB
  *
+ * golgata:
+ * AMD Athlon(tm) 64 X2 Dual Core Processor 4800+
+ * 2500.000 MHz, 512 KB cache
+ *
+ * h        iter    t/fys80       t/golgata
+ * ---------------------------------------------------------
+ * 0.002     260       0.26            0.48  
+ * 0.001     279       2.01            3.44
+ * 0.0005   1272      68.58          120.33
+ * 0.00025  4542    1993.02
+ *
+ * Hand optimization: (i,j,k) -> (a,dj,dk)
+ *
+ * h        iter    t/fys80       t/golgata
+ * ---------------------------------------------------------
+ * 0.002     260          -            0.31
+ * 0.001     279          -            2.41
+ * 0.0005   1272          -           85.81
+ * 0.00025                -
+ *
+ * Inline keyword: no effect
+ * Compiler: -O3
+ *
+ * h        iter    t/fys80       t/golgata
+ * ---------------------------------------------------------
+ * 0.002     260          -            
+ * 0.001     279          -            2.62
+ * 0.0005   1272          -           85.41
+ * 0.00025                -
+ * 
+ * Typed into one function (force inline)
+ *
+ * h        iter    t/fys80       t/golgata
+ * ---------------------------------------------------------
+ * 0.002     260          -            0.32
+ * 0.001     279          -            2.51
+ * 0.0005   1272          -           87.36
+ * 0.00025                -
+ * 
+ * Back to separate functions and red-black sor algorithm, w = 1.93
+ *
+ * h        iter    t/fys80       t/golgata    max err
+ * ---------------------------------------------------------
+ * 0.002     258          -            0.48   0.293490
+ * 0.001     258          -            3.12   0.138084
+ * 0.0005   1200          -          112.24  0.0670977
+ * 0.00025                -
+ * 
+ * Comparison same as previous, disabling red-black
+ *
+ * h        iter    t/fys80       t/golgata    max err
+ * ---------------------------------------------------------
+ * 0.002     260          -            0.30    0.29349
+ * 0.001     279          -            2.39   0.138079
+ * 0.0005   1272          -           83.66  0.0670906
+ * 0.00025                -
+ * 
+ * Analysis. about 35 % overhead from algorithm change. Iteration
+ * count does not increase -> suggests need for adjusting w.
  *
  */
 
-void test( int argc, char **argv )
+void test_simu( int argc, char **argv )
 {
-    double h = 0.002;
+    double h = 0.0005;
     int32_t size = (int32_t)ceil(0.08/h) + 1;
     Geometry g( MODE_3D, Int3D(size,size,size), Vec3D(0,0,0), h );
     Solid *s1 = new FuncSolid( solid1 );
@@ -96,10 +155,52 @@ void test( int argc, char **argv )
     MeshScalarField epot( g );
     MeshScalarField scharge( g );
 
-    solver.set_imax( 10000 );
-    solver.set_w( 1.93 );
+    solver.set_imax( 1000000 );
+    solver.set_eps( 1e-20 );
+    solver.set_w( 1.00 );
     solver.solve( epot, scharge );
 
+    ofstream osepot( "solver3d_sphere_h=0.0005.dat" );
+    epot.save( osepot );
+    osepot.close();
+    return;
+
+
+
+    ifstream isepot( "solver3d_sphere_h=0.0005.dat" );
+    MeshScalarField epot_ref( isepot );
+    isepot.close();
+
+    ofstream dout( "solver3d_sphere_convergence_h=0.002.dat" );
+
+    for( uint32_t iter = 0; iter < 100000; iter++ ) {
+	// Take one iteration step
+	solver.set_imax( 1 );
+	solver.set_eps( 1e-20 );
+	solver.set_w( 1.00 );
+	solver.solve( epot, scharge );
+	double res = solver.get_err();
+
+	// Calculate absolute error
+	double abserr = 0.0;
+	for( uint32_t a = 0; a < epot.nodecount(); a++ ) {
+	    double err = fabs(epot(a)-epot_ref(a));
+	    if( err > abserr )
+		abserr = err;
+	}
+
+	// Store statistics
+	dout << setw(12) << iter << " "
+	     << setw(12) << err << " "
+	     << setw(12) << res << "\n";
+
+	if( res <= 1.0e-8 )
+	    break;
+    }
+
+    dout.close();
+
+    /*
     bool err = false;
     double maxerr = 0.0;
     int maxerrl[3] = {0,0,0};
@@ -143,6 +244,14 @@ void test( int argc, char **argv )
     }
 
     ostr.close();
+    */
+    /*
+    std::cout << "Maximum error = " << maxerr << "\n";
+    std::cout << " at (" 
+	      << maxerrl[0] << ", " 
+	      << maxerrl[1] << ", " 
+	      << maxerrl[2] << ")\n";
+    */
 
     /*
     GTKPlotter plotter( &argc, &argv );
@@ -153,8 +262,8 @@ void test( int argc, char **argv )
     plotter.run();
     */
 
-    if( err ) {
 	/*
+    if( err ) {
 	  Constructing geometry
 	  origo =            0            0            0
 	  size  =           41           41           41
@@ -168,7 +277,7 @@ void test( int argc, char **argv )
 	  time used = 3.88 s (3.88477 s realtime)
 	  Maximum error = 0.305325
 	  at (0, 0, 13)
-	*/
+    
 	std::cout << "Error: solved potential differs from theory\n";
 	std::cout << "Maximum error = " << maxerr << "\n";
 	std::cout << " at (" 
@@ -177,6 +286,12 @@ void test( int argc, char **argv )
 		  << maxerrl[2] << ")\n";
 	exit( 1 );
     }
+	*/
 }
 
 
+void test( int argc, char **argv )
+{
+    test_simu( argc, argv );
+
+}

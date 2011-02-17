@@ -50,17 +50,19 @@
 class EpotGSSolver : public EpotSolver {
 
     uint32_t _imax;           /*!< \brief Maximum number of iteration rounds. */
-    double   _eps;            /*!< \brief Accuracy request */
+    double   _eps;            /*!< \brief Accuracy request. */
+    double   _err;            /*!< \brief Residual error. */
     double   _w;              /*!< \brief Relaxation coefficient. */
 
     double gs_loop_3d( MeshScalarField &epot, const MeshScalarField &rhs ) const;
     double gs_process_near_solid_3d( MeshScalarField &epot, const MeshScalarField &rhs,
 				     const uint8_t *nearsolid_ptr, 
-				     uint32_t i, uint32_t j, uint32_t k ) const;
+				     uint32_t a, uint32_t dj, uint32_t dk ) const;
     double gs_process_pure_vacuum_3d( MeshScalarField &epot, const MeshScalarField &rhs,
-				      uint32_t i, uint32_t j, uint32_t k ) const;
+				      uint32_t a, uint32_t dj, uint32_t dk ) const;
     double gs_process_neumann_3d( MeshScalarField &epot, const MeshScalarField &rhs,
-				  uint32_t boundary, uint32_t i, uint32_t j, uint32_t k ) const;
+				  uint32_t boundary, uint32_t a,
+				  uint32_t dj, uint32_t dk ) const;
 
 
     double gs_loop_2d( MeshScalarField &epot, const MeshScalarField &rhs ) const;
@@ -102,6 +104,10 @@ public:
     /*! \brief Sets the accuracy request.
      */
     void set_eps( double eps );
+
+    /*! \brief Get estimate of residual error.
+     */
+    double get_err( void ) const;
 
     /*! \brief Sets maximum iteration count.
      */

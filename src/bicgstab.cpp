@@ -80,7 +80,7 @@ void bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
 	return;
     }
 
-    StatusPrint sp;
+    StatusPrint sp( std::cout );
     if( ibsimu.get_verbose_output() ) {
 	std::stringstream ss;
 	ss << "  " << std::setw(5) << 0 << " " << std::scientific << std::setw(20) << resid;
