@@ -683,7 +683,7 @@ public:
 	}
 
 	// Make separate space charge maps for all threads and build iterators
-	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
+	for( uint32_t a = 0; a < ibsimu.get_thread_count(); a++ ) {
 	    if( a == 0 ) schmap[a] = &scharge;
 	    else schmap[a] = new MeshScalarField( scharge );
 
@@ -714,7 +714,7 @@ public:
 
 	// Combine separate space charge maps and collect
 	// statistics. Free all allocated memory.
-	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
+	for( uint32_t a = 0; a < ibsimu.get_thread_count(); a++ ) {
 	    if( a != 0 ) {
 		scharge += *schmap[a];
 		delete schmap[a];

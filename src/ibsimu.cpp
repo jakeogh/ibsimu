@@ -62,7 +62,7 @@ IBSimu::IBSimu()
 }
 
 
-void IBSimu::set_verbose_output( int level )
+void IBSimu::set_verbose_output( int32_t level )
 {
     _verbose_output = level;
     if( level > 0 && !_hello ) {
@@ -72,7 +72,7 @@ void IBSimu::set_verbose_output( int level )
 }
 
 
-void IBSimu::set_thread_count( int threadcount ) {
+void IBSimu::set_thread_count( uint32_t threadcount ) {
     if( threadcount <= 0 )
 	throw( Error( ERROR_LOCATION, "invalid parameter" ) );
     _threadcount = threadcount;

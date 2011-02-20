@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iomanip>
 #include "epot_gssolver.hpp"
+#include "epot_rbgssolver.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
@@ -47,6 +48,13 @@ double phi( double r )
 	return( phi_b );
     return( A/r - B );
 }
+
+/* Red-Black Gauss-Seidel
+ *
+ * w = 1.00, iter = 7347
+ *
+ *
+ */
 
 /* Optimize w at h=0.001
  *
@@ -136,7 +144,7 @@ double phi( double r )
 
 void test_simu( int argc, char **argv )
 {
-    double h = 0.0005;
+    double h = 0.001;
     int32_t size = (int32_t)ceil(0.08/h) + 1;
     Geometry g( MODE_3D, Int3D(size,size,size), Vec3D(0,0,0), h );
     Solid *s1 = new FuncSolid( solid1 );
@@ -151,15 +159,17 @@ void test_simu( int argc, char **argv )
     g.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
     g.build_mesh();
 
-    EpotGSSolver solver( g );
+    //EpotGSSolver solver( g );
+    EpotRBGSSolver solver( g );
     MeshScalarField epot( g );
     MeshScalarField scharge( g );
 
     solver.set_imax( 1000000 );
-    solver.set_eps( 1e-20 );
-    solver.set_w( 1.00 );
+    solver.set_eps( 1e-6 );
+    solver.set_w( 1.93 );
     solver.solve( epot, scharge );
 
+    /*
     ofstream osepot( "solver3d_sphere_h=0.0005.dat" );
     epot.save( osepot );
     osepot.close();
@@ -179,7 +189,7 @@ void test_simu( int argc, char **argv )
 	solver.set_eps( 1e-20 );
 	solver.set_w( 1.00 );
 	solver.solve( epot, scharge );
-	double res = solver.get_err();
+	double res = solver.get_residual();
 
 	// Calculate absolute error
 	double abserr = 0.0;
@@ -191,7 +201,7 @@ void test_simu( int argc, char **argv )
 
 	// Store statistics
 	dout << setw(12) << iter << " "
-	     << setw(12) << err << " "
+	     << setw(12) << res << " "
 	     << setw(12) << res << "\n";
 
 	if( res <= 1.0e-8 )
@@ -199,8 +209,8 @@ void test_simu( int argc, char **argv )
     }
 
     dout.close();
+    */
 
-    /*
     bool err = false;
     double maxerr = 0.0;
     int maxerrl[3] = {0,0,0};
@@ -244,7 +254,7 @@ void test_simu( int argc, char **argv )
     }
 
     ostr.close();
-    */
+
     /*
     std::cout << "Maximum error = " << maxerr << "\n";
     std::cout << " at (" 
@@ -253,31 +263,14 @@ void test_simu( int argc, char **argv )
 	      << maxerrl[2] << ")\n";
     */
 
-    /*
     GTKPlotter plotter( &argc, &argv );
     plotter.set_geometry( &g );
     plotter.set_scharge( &scharge );
     plotter.set_epot( &epot );
     plotter.new_geometry_plot_window();
     plotter.run();
-    */
 
-	/*
     if( err ) {
-	  Constructing geometry
-	  origo =            0            0            0
-	  size  =           41           41           41
-	  max   =         0.08         0.08         0.08
-	  h     = 0.002
-	  Constructing linear electric potential problem
-	  dof = 25098
-	  Solving problem
-	  Using UMFPACK solver
-	  Done
-	  time used = 3.88 s (3.88477 s realtime)
-	  Maximum error = 0.305325
-	  at (0, 0, 13)
-    
 	std::cout << "Error: solved potential differs from theory\n";
 	std::cout << "Maximum error = " << maxerr << "\n";
 	std::cout << " at (" 
@@ -286,7 +279,6 @@ void test_simu( int argc, char **argv )
 		  << maxerrl[2] << ")\n";
 	exit( 1 );
     }
-	*/
 }
 
 

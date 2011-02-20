@@ -1,5 +1,5 @@
-/*! \file epot_gssolver.hpp
- *  \brief Gauss-Seidel solver for electric potential problem
+/*! \file epot_rbgssolver.hpp
+ *  \brief Red-Black Gauss-Seidel solver for electric potential problem
  */
 
 /* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
@@ -40,49 +40,44 @@
  * permit others to do so.
  */
 
-#ifndef EPOT_GSSOLVER_HPP
-#define EPOT_GSSOLVER_HPP 1
+#ifndef EPOT_RBGSSOLVER_HPP
+#define EPOT_RBGSSOLVER_HPP 1
 
 
 #include "epot_solver.hpp"
+#include "statusprint.hpp"
+#include <pthread.h>
 
 
-class EpotGSSolver : public EpotSolver {
+class EpotRBGSSolver : public EpotSolver {
 
-    uint32_t _imax;           /*!< \brief Maximum number of iteration rounds. */
-    double   _eps;            /*!< \brief Accuracy request. */
-    double   _err;            /*!< \brief Residual error. */
-    double   _w;              /*!< \brief Relaxation coefficient. */
+    MeshScalarField *_epot;
+    MeshScalarField *_rhs;
 
-    double gs_loop_3d( MeshScalarField &epot, const MeshScalarField &rhs ) const;
-    double gs_process_near_solid_3d( MeshScalarField &epot, const MeshScalarField &rhs,
-				     const uint8_t *nearsolid_ptr, 
+    uint32_t         _iter;           /*!< \brief Number of iteration rounds done. */
+    uint32_t         _imax;           /*!< \brief Maximum number of iteration rounds. */
+    double           _eps;            /*!< \brief Accuracy request. */
+    double           _res;            /*!< \brief Residual error. */
+    double           _w;              /*!< \brief Relaxation coefficient. */
+
+    pthread_mutex_t  _mutex;
+    pthread_cond_t   _cond;
+
+    uint32_t         _done_count;
+    bool             _done;
+    bool             _error;
+    Error            _err;
+    StatusPrint     *_sp;
+
+    static void *iterator_entry( void *data );
+    void *iterator_main( uint32_t thno, uint32_t thcount );
+    double iterator_loop( uint32_t thno, uint32_t thcount, uint32_t rb, uint32_t dj, uint32_t dk );
+
+    double gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, 
 				     uint32_t a, uint32_t dj, uint32_t dk ) const;
-    double gs_process_pure_vacuum_3d( MeshScalarField &epot, const MeshScalarField &rhs,
-				      uint32_t a, uint32_t dj, uint32_t dk ) const;
-    double gs_process_neumann_3d( MeshScalarField &epot, const MeshScalarField &rhs,
-				  uint32_t boundary, uint32_t a,
+    double gs_process_pure_vacuum_3d( uint32_t a, uint32_t dj, uint32_t dk ) const;
+    double gs_process_neumann_3d( uint32_t boundary, uint32_t a,
 				  uint32_t dj, uint32_t dk ) const;
-
-
-    double gs_loop_2d( MeshScalarField &epot, const MeshScalarField &rhs ) const;
-    double gs_process_near_solid_2d( MeshScalarField &epot, const MeshScalarField &rhs,
-				     const uint8_t *nearsolid_ptr, 
-				     uint32_t i, uint32_t j ) const;
-    double gs_process_pure_vacuum_2d( MeshScalarField &epot, const MeshScalarField &rhs,
-				      uint32_t i, uint32_t j ) const;
-    double gs_process_neumann_2d( MeshScalarField &epot, const MeshScalarField &rhs,
-				  uint32_t boundary, uint32_t i, uint32_t j ) const;
-
-
-    double gs_loop_1d( MeshScalarField &epot, const MeshScalarField &rhs ) const;
-    double gs_process_near_solid_1d( MeshScalarField &epot, const MeshScalarField &rhs,
-				     const uint8_t *nearsolid_ptr, 
-				     uint32_t i ) const;
-    double gs_process_pure_vacuum_1d( MeshScalarField &epot, const MeshScalarField &rhs,
-				      uint32_t i ) const;
-    double gs_process_neumann_1d( MeshScalarField &epot, const MeshScalarField &rhs,
-				  uint32_t boundary, uint32_t i ) const;
 
 
     virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge );
@@ -91,15 +86,15 @@ public:
 
     /*! \brief Constructor.
      */
-    EpotGSSolver( const Geometry &geom );
+    EpotRBGSSolver( const Geometry &geom );
 
     /*! \brief Construct from file.
      */
-    EpotGSSolver( const Geometry &geom, std::istream &s );
+    EpotRBGSSolver( const Geometry &geom, std::istream &s );
 
     /*! \brief Destructor.
      */
-    virtual ~EpotGSSolver() {}
+    virtual ~EpotRBGSSolver();
 
     /*! \brief Sets the accuracy request.
      */

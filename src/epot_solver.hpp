@@ -167,7 +167,7 @@ protected:
     
     MeshScalarField *evaluate_scharge( const ScalarField &__scharge ) const;
 
-    virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge ) const = 0;
+    virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge ) = 0;
 
     /*! \brief Print debugging information to os.
      */
@@ -256,7 +256,7 @@ public:
      *  the problem vector before solving. The solution is returned in
      *  \a epot.
      */
-    void solve( MeshScalarField &epot, const ScalarField &scharge ) const;
+    void solve( MeshScalarField &epot, const ScalarField &scharge );
 
 /* ************************************** *
  * Solver interface                       *
