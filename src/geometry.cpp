@@ -466,6 +466,7 @@ void Geometry::build_mesh( void )
     if( _geom_mode == MODE_3D ) {
 	// Mark zmin
 	if( _bound[4].type == BOUND_NEUMANN ) nid = SMESH_NODE_ID_NEUMANN | 5;
+
 	else nid = SMESH_NODE_ID_DIRICHLET | 5;
 	for( j = 0; j < _size[1]; j++ ) {
 	    for( i = 0; i < _size[0]; i++ ) {

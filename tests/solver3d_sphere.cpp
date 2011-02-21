@@ -77,7 +77,7 @@ double phi( double r )
 
 void test( int argc, char **argv )
 {
-    double h = 0.002;
+    double h = 0.0005;
     int32_t size = (int32_t)ceil(0.08/h) + 1;
     Geometry g( MODE_3D, Int3D(size,size,size), Vec3D(0,0,0), h );
     Solid *s1 = new FuncSolid( solid1 );
