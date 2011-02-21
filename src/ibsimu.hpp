@@ -45,6 +45,9 @@
 #define IBSIMU_HPP 1
 
 
+#include <stdint.h>
+
+
 /*! \brief Main class for %IBSimu.
  *
  *  Used to store global settings. One instance of the class is
@@ -53,8 +56,8 @@
 class IBSimu 
 {
     bool     _hello;
-    int      _verbose_output;
-    int      _threadcount;
+    int32_t  _verbose_output;
+    uint32_t _threadcount;
 
 public:
 
@@ -64,19 +67,19 @@ public:
 
     /*! \brief Set verbosity level.
      */
-    void set_verbose_output( int level );
+    void set_verbose_output( int32_t level );
 
     /*! \brief Get verbosity level.
      */
-    int get_verbose_output( void ) { return( _verbose_output ); }
+    int32_t get_verbose_output( void ) { return( _verbose_output ); }
 
     /*! \brief Set the number of threads used for calculation.
      */
-    void set_thread_count( int threadcount );
+    void set_thread_count( uint32_t threadcount );
 
     /*! \brief Get the number of threads used for calculation.
      */
-    int get_thread_count( void ) { return( _threadcount ); }
+    uint32_t get_thread_count( void ) { return( _threadcount ); }
 };
 
 

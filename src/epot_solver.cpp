@@ -1137,7 +1137,7 @@ MeshScalarField *EpotSolver::evaluate_scharge( const ScalarField &__scharge ) co
 }
 
 
-void EpotSolver::solve( MeshScalarField &epot, const ScalarField &__scharge ) const
+void EpotSolver::solve( MeshScalarField &epot, const ScalarField &__scharge )
 {
     if( ibsimu.get_verbose_output() )
 	std::cout << "Solving problem\n";

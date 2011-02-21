@@ -21,7 +21,7 @@ int main( int argc, char **argv )
 {
     try {
 	ibsimu.set_verbose_output( 1 );
-	ibsimu.set_thread_count( 4 );
+	ibsimu.set_thread_count( 2 );
 	test( argc, argv );
     } catch( Error e ) {
 	e.print_error_message( std::cerr );

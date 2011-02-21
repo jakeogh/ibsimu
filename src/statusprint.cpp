@@ -1,8 +1,8 @@
 /*! \file statusprint.cpp
- *  \brief Source code for statusprint.cpp
+ *  \brief Subroutine for printing running status line on command line.
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,13 +40,12 @@
  * permit others to do so.
  */
 
-#include <iostream>
 #include <iomanip>
 #include "statusprint.hpp"
 
 
-StatusPrint::StatusPrint()
-    : _width(0)
+StatusPrint::StatusPrint( std::ostream &os )
+    : _os(os), _width(0)
 {
     _time = time( NULL );
 }
@@ -59,15 +58,15 @@ StatusPrint::~StatusPrint()
 }
 
 
-void StatusPrint::print( const std::string &str )
+void StatusPrint::print( const std::string &str, bool force )
 {
     time_t t = time( NULL );
-    if( t != _time ) {
+    if( force || t != _time ) {
 	_width = str.length();
 	_time = t;
 	for( size_t i = 0; i < _width; i++ )
-	    std::cout << "\b";
-	std::cout << str << std::flush;
+	    _os << "\b";
+	_os << str << std::flush;
     }
 }
 
