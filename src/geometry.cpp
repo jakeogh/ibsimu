@@ -330,6 +330,17 @@ uint32_t Geometry::is_solid( int32_t i, int32_t j, int32_t k ) const
 }
 
 
+bool Geometry::is_near_solid( int32_t i, int32_t j, int32_t k ) const
+{
+    return( is_solid(i-1,j,  k  ) ||
+	    is_solid(i+1,j,  k  ) ||
+	    is_solid(i,  j-1,k  ) || 
+	    is_solid(i,  j+1,k  ) ||
+	    is_solid(i,  j,  k-1) || 
+	    is_solid(i,  j,  k+1) );
+}
+
+
 void Geometry::add_near_solid_distance( std::vector<uint8_t> &ndist, uint8_t dist )
 {
     // zero distance is illegal, can cause problems with solver
@@ -423,7 +434,9 @@ void Geometry::build_mesh( void )
 	}
     }
 
-    // Mark 0 nodes on boundaries as Dirichlet or Neumann boundaries
+    // Mark 0 nodes on boundaries as Dirichlet or Neumann boundaries.
+    // Here x overrides y, which overrides z.
+
     // Mark xmin
     if( _bound[0].type == BOUND_NEUMANN ) nid = SMESH_NODE_ID_NEUMANN | 1;
     else nid = SMESH_NODE_ID_DIRICHLET | 1;
@@ -494,12 +507,7 @@ void Geometry::build_mesh( void )
 	    for( i = 0; i < _size[0]; i++ ) {
 		if( mesh(i,j,k) != 0 )
 		    continue;
-		if( is_solid(i-1,j,  k  ) ||
-		    is_solid(i+1,j,  k  ) ||
-		    is_solid(i,  j-1,k  ) || 
-		    is_solid(i,  j+1,k  ) ||
-		    is_solid(i,  j,  k-1) || 
-		    is_solid(i,  j,  k+1) ) {
+		if( is_near_solid(i,j,k) ) {
 		    // Mark node as near solid vacuum and build near solid data
 		    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
 		    add_near_solid_entry( near_solid_index, i, j, k );

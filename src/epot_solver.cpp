@@ -52,7 +52,7 @@
  * ************************************** */
 
 
-EpotSolver::EpotSolver( const Geometry &geom ) 
+EpotSolver::EpotSolver( Geometry &geom ) 
     : _geom(geom), _neumann_order(2), _smooth_solid(true), _plasma(PLASMA_NONE), 
       _rhoe(0.0), _Te(0.0), _Up(0.0), 
       _force_pot(0.0), _force_pot_func(0), _init_plasma_func(0)

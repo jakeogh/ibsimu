@@ -95,14 +95,32 @@ struct Bound
 };
 
 
+/*
 #define SMESH_NODE_ID_MASK             0xC0000000 // 1100...
 #define SMESH_NODE_ID_NEAR_SOLID       0x00000000 // 0000...
 #define SMESH_NODE_ID_PURE_VACUUM      0x40000000 // 0100...
 #define SMESH_NODE_ID_NEUMANN          0x80000000 // 1000...
 #define SMESH_NODE_ID_DIRICHLET        0xC0000000 // 1100...
+*/
+
+
+#define SMESH_NODE_ID_MASK             0xE0000000 // 111...
+
+#define SMESH_NODE_ID_NEAR_SOLID       0x00000000 // 000...
+#define SMESH_NODE_ID_PURE_VACUUM      0x20000000 // 001...
+#define SMESH_NODE_ID_NEUMANN          0x40000000 // 010...
+#define SMESH_NODE_ID_ROUGH_BOUNDARY   0x60000000 // 011...
+
+#define SMESH_NODE_ID_NEAR_SOLID_FIX   0x80000000 // 100...
+#define SMESH_NODE_ID_PURE_VACUUM_FIX  0xA0000000 // 101...
+#define SMESH_NODE_ID_FINE_BOUNDARY    0xC0000000 // 110...
+#define SMESH_NODE_ID_DIRICHLET        0xE0000000 // 111...
+
+#define SMESH_NODE_FIXED               0x80000000 // 100...
+
 
 #define SMESH_BOUNDARY_NUMBER_MASK     0x000000FF // limit to 0-255
-#define SMESH_NEAR_SOLID_INDEX_MASK    0x3FFFFFFF // limit to 0-2^30
+#define SMESH_NEAR_SOLID_INDEX_MASK    0x1FFFFFFF // limit to 0-2^29 (5.4e8)
 
 
 /*! \brief %Geometry defining class.
@@ -318,10 +336,19 @@ public:
 	return( _smesh[i + j*_size[0] + k*_size[0]*_size[1]] );
     }
 
-    /*! \brief Returns number from solid mesh array at \a i, \a j, \a
-     *  k or Dirichlet boundary number if point is outside mesh.
+    /*! \brief Returns number from solid mesh array.
+     *
+     *  Returns number from solid mesh array at \a i, \a j, \a
+     *  k or Dirichlet boundary number (1-6) if point is outside mesh.
      */
     uint32_t mesh_check( int32_t i, int32_t j, int32_t k ) const;
+
+    /*! \brief Returns true if node is a potential near solid point.
+     *
+     *  Returns true if any of the neighbouring points is a solid
+     *  point (Dirichlet with solid number >= 7).
+     */
+    bool is_near_solid( int32_t i, int32_t j, int32_t k ) const;
 
     /*! \brief Returns a const pointer to start of near solid data for
      *  node (\a i, \a j, \a k). The first byte contains the bit flags

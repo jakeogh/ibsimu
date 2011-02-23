@@ -86,11 +86,11 @@ public:
 
     /*! \brief Constructor.
      */
-    EpotRBGSSolver( const Geometry &geom );
+    EpotRBGSSolver( Geometry &geom );
 
     /*! \brief Construct from file.
      */
-    EpotRBGSSolver( const Geometry &geom, std::istream &s );
+    EpotRBGSSolver( Geometry &geom, std::istream &s );
 
     /*! \brief Destructor.
      */

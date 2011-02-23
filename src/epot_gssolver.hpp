@@ -49,19 +49,22 @@
 
 class EpotGSSolver : public EpotSolver {
 
-    uint32_t _imax;           /*!< \brief Maximum number of iteration rounds. */
-    double   _eps;            /*!< \brief Accuracy request. */
-    double   _err;            /*!< \brief Residual error. */
-    double   _w;              /*!< \brief Relaxation coefficient. */
+    MeshScalarField *_epot;
+    MeshScalarField *_rhs;
 
-    double gs_loop_3d( MeshScalarField &epot, const MeshScalarField &rhs ) const;
-    double gs_process_near_solid_3d( MeshScalarField &epot, const MeshScalarField &rhs,
-				     const uint8_t *nearsolid_ptr, 
+    uint32_t         _iter;           /*!< \brief Number of iteration rounds done. */
+    uint32_t         _imax;           /*!< \brief Maximum number of iteration rounds. */
+    double           _eps;            /*!< \brief Accuracy request. */
+    double           _res;            /*!< \brief Residual error. */
+    double           _w;              /*!< \brief Relaxation coefficient. */
+
+    std::vector<uint32_t> _nsind;     /*!< \brief Stored near solid indexes for Neumann conversion nodes. */
+
+    double gs_loop_3d( void ) const;
+    double gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, 
 				     uint32_t a, uint32_t dj, uint32_t dk ) const;
-    double gs_process_pure_vacuum_3d( MeshScalarField &epot, const MeshScalarField &rhs,
-				      uint32_t a, uint32_t dj, uint32_t dk ) const;
-    double gs_process_neumann_3d( MeshScalarField &epot, const MeshScalarField &rhs,
-				  uint32_t boundary, uint32_t a,
+    double gs_process_pure_vacuum_3d( uint32_t a, uint32_t dj, uint32_t dk ) const;
+    double gs_process_neumann_3d( uint32_t boundary, uint32_t a,
 				  uint32_t dj, uint32_t dk ) const;
 
 
@@ -85,17 +88,19 @@ class EpotGSSolver : public EpotSolver {
 				  uint32_t boundary, uint32_t i ) const;
 
 
+    void preprocess( const MeshScalarField &scharge );
+    void postprocess( void );
     virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge );
 
 public:
 
     /*! \brief Constructor.
      */
-    EpotGSSolver( const Geometry &geom );
+    EpotGSSolver( Geometry &geom );
 
     /*! \brief Construct from file.
      */
-    EpotGSSolver( const Geometry &geom, std::istream &s );
+    EpotGSSolver( Geometry &geom, std::istream &s );
 
     /*! \brief Destructor.
      */

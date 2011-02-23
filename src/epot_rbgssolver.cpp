@@ -5,7 +5,7 @@
 #include "compmath.hpp"
 
 
-EpotRBGSSolver::EpotRBGSSolver( const Geometry &geom )
+EpotRBGSSolver::EpotRBGSSolver( Geometry &geom )
     : EpotSolver( geom ), _rhs(NULL), _imax(10000), _eps(1.0e-6), _w(1.66), _sp(NULL)
 {
     pthread_mutex_init( &_mutex, NULL );
@@ -14,7 +14,7 @@ EpotRBGSSolver::EpotRBGSSolver( const Geometry &geom )
 
 
 
-EpotRBGSSolver::EpotRBGSSolver( const Geometry &geom, std::istream &s )
+EpotRBGSSolver::EpotRBGSSolver( Geometry &geom, std::istream &s )
     : EpotSolver(geom)
 {
     throw( ErrorUnimplemented( ERROR_LOCATION ) );    
@@ -171,15 +171,8 @@ double EpotRBGSSolver::iterator_loop( uint32_t thno, uint32_t thcount, uint32_t 
     const double w2 = 1.0-_w;
     double maxerr = 0.0;
 
-    // Debug
-    //pthread_mutex_lock( &_mutex );
-    //if( rb == 0 )
-    //std::cout << "Red (rb=0)\n";
-    //else
-    //std::cout << "Black (rb=1)\n";
-    //pthread_mutex_unlock( &_mutex );
-
-    for( uint32_t k = thno; k < _geom.size(2); k += thcount ) {
+    uint32_t kmax = _geom.size(2)*(thno+1)/thcount;
+    for( uint32_t k = _geom.size(2)*thno/thcount; k < kmax; k++ ) {
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	    
 	    uint32_t i = (k+j) % 2;
@@ -190,12 +183,6 @@ double EpotRBGSSolver::iterator_loop( uint32_t thno, uint32_t thcount, uint32_t 
 		    
 	    uint32_t a = k*dk+j*dj+i;
 	    for( ; i < _geom.size(0); i += 2, a += 2 ) {
-		
-		// Debug
-		//pthread_mutex_lock( &_mutex );
-		//std::cout << "Thread " << thno << " processing node (" 
-		//<< i << ", " << j << ", " << k << ")\n";
-		//pthread_mutex_unlock( &_mutex );
 
 		double Vold = (*_epot)(a);
 		double Vnew;
@@ -269,8 +256,6 @@ void *EpotRBGSSolver::iterator_main( uint32_t thno, uint32_t thcount )
 	    rb = 0;
 
 	_done_count++;
-	//std::cout << "Thread " << thno << ": done_count = " << _done_count << "\n";
-	//std::cout << "Thread " << thno << ": thcount = " << thcount << "\n";
 
 	if( _done_count == thcount ) {
 	    // Last thread
@@ -284,7 +269,7 @@ void *EpotRBGSSolver::iterator_main( uint32_t thno, uint32_t thcount )
 	    if( rb == 0 ) {
 		if( ibsimu.get_verbose_output() ) {
 		    std::stringstream ss;
-		    ss << "  " << std::setw(5) << iter << " " << std::scientific << std::setw(20) << _res;
+		    ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
 		    _sp->print( ss.str() );
 		}
 		if( _res < _eps )
@@ -293,14 +278,8 @@ void *EpotRBGSSolver::iterator_main( uint32_t thno, uint32_t thcount )
 		    _res = 0.0;
 	    }
 
-	    // Debug
-	    //std::cout << "Thread " << thno << " broadcast\n";
-
 	    pthread_cond_broadcast( &_cond );
 	} else {
-
-	    // Debug
-	    //std::cout << "Thread " << thno << " waiting\n";
 	    
 	    // Wait until all threads done
 	    pthread_cond_wait( &_cond, &_mutex );

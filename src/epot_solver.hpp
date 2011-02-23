@@ -142,7 +142,7 @@ class EpotSolver {
 
 protected:
 
-    const Geometry     &_geom;             /*!< \brief Geometry reference. */
+    Geometry           &_geom;             /*!< \brief Geometry reference. */
     
     uint32_t            _neumann_order;    /*!< \brief Neumann boundary order (1 or 2). */
     bool                _smooth_solid;     /*!< \brief Smooth solid. */
@@ -181,7 +181,7 @@ public:
 
     /*! \brief Constructor.
      */
-    EpotSolver( const Geometry &geom );
+    EpotSolver( Geometry &geom );
 
     /*! \brief Destructor.
      */
