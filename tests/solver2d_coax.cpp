@@ -74,7 +74,8 @@ double phi( double r )
 
 void test( int argc, char **argv )
 {
-    Geometry geom( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.002 );
+    Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.008 );
+    //Geometry geom( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.002 );
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
@@ -86,7 +87,7 @@ void test( int argc, char **argv )
     geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
     geom.build_mesh();
-    //geom.debug_print( std::cout );
+    geom.debug_print( std::cout );
 
     EpotGSSolver solver( geom );
     MeshScalarField epot( geom );

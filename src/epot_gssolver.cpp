@@ -210,8 +210,7 @@ double EpotGSSolver::gs_loop_3d( void ) const
  * 2D
  */
 
-double EpotGSSolver::gs_process_near_solid_2d( MeshScalarField &epot, const MeshScalarField &rhs,
-					       const uint8_t *nearsolid_ptr, 
+double EpotGSSolver::gs_process_near_solid_2d( const uint8_t *nearsolid_ptr, 
 					       uint32_t i, uint32_t j ) const
 {
     uint8_t sflag = nearsolid_ptr[0];
@@ -233,7 +232,7 @@ double EpotGSSolver::gs_process_near_solid_2d( MeshScalarField &epot, const Mesh
 
     // Factors for X axis
     double cof = 2.0/(alpha*beta);
-    double epf = 2.0/(alpha+beta)*( epot(i-1,j)/alpha + epot(i+1,j)/beta );
+    double epf = 2.0/(alpha+beta)*( (*_epot)(i-1,j)/alpha + (*_epot)(i+1,j)/beta );
 
     // Ymin direction
     alpha = 1.0;
@@ -251,39 +250,37 @@ double EpotGSSolver::gs_process_near_solid_2d( MeshScalarField &epot, const Mesh
 
     // Factors for Y axis
     cof += 2.0/(alpha*beta);
-    epf += 2.0/(alpha+beta)*( epot(i,j-1)/alpha + epot(i,j+1)/beta );
+    epf += 2.0/(alpha+beta)*( (*_epot)(i,j-1)/alpha + (*_epot)(i,j+1)/beta );
 
-    return( (1.0/cof) * ( epf - rhs(i,j) ) );
+    return( (1.0/cof) * ( epf - (*_rhs)(i,j) ) );
 }
 
 
-double EpotGSSolver::gs_process_pure_vacuum_2d( MeshScalarField &epot, const MeshScalarField &rhs,
-						uint32_t i, uint32_t j ) const
+double EpotGSSolver::gs_process_pure_vacuum_2d( uint32_t i, uint32_t j ) const
 {
-    return( (1.0/4.0) * ( epot(i+1,j) + epot(i-1,j) +
-			  epot(i,j+1) + epot(i,j-1) - rhs(i,j) ) );
+    return( (1.0/4.0) * ( (*_epot)(i+1,j) + (*_epot)(i-1,j) +
+			  (*_epot)(i,j+1) + (*_epot)(i,j-1) - (*_rhs)(i,j) ) );
 }
 
 
-double EpotGSSolver::gs_process_neumann_2d( MeshScalarField &epot, const MeshScalarField &rhs,
-					    uint32_t boundary, uint32_t i, uint32_t j ) const
+double EpotGSSolver::gs_process_neumann_2d( uint32_t boundary, uint32_t i, uint32_t j ) const
 {
     switch( boundary ) {
     case 1:
 	// (phi_i - phi_i+1) / h = q_0
-	return( epot(i+1,j) + rhs(i,j) );
+	return( (*_epot)(i+1,j) + (*_rhs)(i,j) );
 	break;
     case 2:
 	// (phi_i-1 - phi_i) / h = q_0
-	return( epot(i-1,j) + rhs(i,j) );
+	return( (*_epot)(i-1,j) + (*_rhs)(i,j) );
 	break;
     case 3:
 	// (phi_j - phi_j+1) / h = q_0
-	return( epot(i,j+1) + rhs(i,j) );
+	return( (*_epot)(i,j+1) + (*_rhs)(i,j) );
 	break;
     case 4:
 	// (phi_j-1 - phi_j) / h = q_0
-	return( epot(i,j-1) + rhs(i,j) );
+	return( (*_epot)(i,j-1) + (*_rhs)(i,j) );
 	break;
     }
 
@@ -291,7 +288,7 @@ double EpotGSSolver::gs_process_neumann_2d( MeshScalarField &epot, const MeshSca
 }
 
 
-double EpotGSSolver::gs_loop_2d( MeshScalarField &epot, const MeshScalarField &rhs ) const
+double EpotGSSolver::gs_loop_2d( void ) const
 {
     // Go through all nodes
     double maxerr = 0.0;
@@ -301,24 +298,24 @@ double EpotGSSolver::gs_loop_2d( MeshScalarField &epot, const MeshScalarField &r
 	for( uint32_t i = 0; i < _geom.size(0); i++ ) {
 	    //double x = i*_geom.h()+_geom.origo(0);
 	    
-	    double Vold = epot(i,j);
+	    double Vold = (*_epot)(i,j);
 	    double Vnew;
 	    uint32_t mesh = _geom.mesh(i,j);
 	    uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
 	    if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
 		const uint8_t *nearsolid_ptr = _geom.nearsolid_ptr( mesh & SMESH_NEAR_SOLID_INDEX_MASK );
-		Vnew = gs_process_near_solid_2d( epot, rhs, nearsolid_ptr, i, j );
+		Vnew = gs_process_near_solid_2d( nearsolid_ptr, i, j );
 	    } else if( node_id == SMESH_NODE_ID_PURE_VACUUM ) {
-		Vnew = gs_process_pure_vacuum_2d( epot, rhs, i, j );
+		Vnew = gs_process_pure_vacuum_2d( i, j );
 	    } else if( node_id == SMESH_NODE_ID_NEUMANN ) {
 		uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
-		Vnew = gs_process_neumann_2d( epot, rhs, boundary, i, j );
+		Vnew = gs_process_neumann_2d( boundary, i, j );
 	    } else {
 		// Dirichlet
 		continue;
 	    }
 	    Vnew = _w*Vnew + w2*Vold;
-	    epot(i,j) = Vnew;
+	    (*_epot)(i,j) = Vnew;
 	    double err = fabs( Vnew - Vold );
 	    if( err > maxerr )
 		maxerr = err;
@@ -667,8 +664,7 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 	if( _geom.geom_mode() == MODE_3D )
 	    _res = gs_loop_3d();
 	else if( _geom.geom_mode() == MODE_2D )
-	    ;
-	    //_res = gs_loop_2d( _epot, _rhs );
+	    _res = gs_loop_2d();
 	else if( _geom.geom_mode() == MODE_1D )
 	    ;
 	    //_res = gs_loop_1d( _pot, _rhs );
@@ -726,9 +722,4 @@ void EpotGSSolver::debug_print( std::ostream &os ) const
     os << "w = " << _w << "\n";
 
 }
-
-
-
-
-
 
