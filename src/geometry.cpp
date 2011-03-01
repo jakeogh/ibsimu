@@ -431,7 +431,9 @@ void Geometry::build_mesh( void )
     }
 
     // Mark 0 nodes on boundaries as Dirichlet, Neumann boundaries or
-    // as near solid nodes. Here x overrides y, which overrides z.
+    // as near solid nodes. Here x overrides y, which overrides
+    // z. Order is important as near solid indexes are processed also
+    // by the solver preprocess/postprocess routines.
     uint32_t nid;
     uint32_t near_solid_index = 0;
 
@@ -508,9 +510,9 @@ void Geometry::build_mesh( void )
 	}
     }
 
-    // Mark 0 nodes next to solid nodes as near solid nodes and 
-    // build nearsolid data array, rest of the 0 nodes are marked as 
-    // pure vacuum.
+    // Mark 0 nodes next to solid nodes as near solid nodes and build
+    // nearsolid data array, rest of the 0 nodes are marked as pure
+    // vacuum. No conflict should occur because 0 node = pure vacuum.
     for( int32_t k = 0; k < _size[2]; k++ ) {
 	for( int32_t j = 0; j < _size[1]; j++ ) {
 	    for( int32_t i = 0; i < _size[0]; i++ ) {

@@ -1,5 +1,5 @@
 /*! \file epot_solver.hpp
- *  \brief Poisson equation problem for solving electric potential
+ *  \brief Poisson equation problem for solving electric potential.
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.

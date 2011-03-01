@@ -1,5 +1,5 @@
 /*! \file solidgraph.cpp
- *  \brief Graph for plotting solids
+ *  \brief %Graph for plotting solids.
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -185,7 +185,7 @@ void SolidGraph::build_solid( SolidPoints *solid, const int32_t j[3], char *done
 			  next[1]*_g.h()+_g.origo(1),
 			  next[2]*_g.h()+_g.origo(2) );
 		Vec3D xsurf;
-		_g.bracket_surface( node & SMESH_NEAR_SOLID_INDEX_MASK, x1, x2, xsurf );
+		_g.bracket_surface( node & SMESH_BOUNDARY_NUMBER_MASK, x1, x2, xsurf );
 		//std::cout << "  Saving point (" 
 		//	  << xsurf(vb[0]) << ","
 		//	  << xsurf(vb[1]) << ")\n";
@@ -258,7 +258,9 @@ void SolidGraph::build_data( void )
 	    node = _g.mesh( i[0], i[1], i[2] );
 	    uint32_t nodeid = node & SMESH_NODE_ID_MASK;
 	    if( nodeid == SMESH_NODE_ID_NEAR_SOLID ||
+		nodeid == SMESH_NODE_ID_NEAR_SOLID_FIX ||
 		nodeid == SMESH_NODE_ID_PURE_VACUUM ||
+		nodeid == SMESH_NODE_ID_PURE_VACUUM_FIX ||
 		nodeid == SMESH_NODE_ID_NEUMANN ) {
 		//std::cout << "vacuum\n";
 		continue;
@@ -299,8 +301,6 @@ void SolidGraph::build_data( void )
 
     delete [] done;
 }
-
-
 
 
 SolidGraph::SolidGraph( const Geometry &g ) 
@@ -384,22 +384,3 @@ void SolidGraph::get_bbox( double bbox[4] )
     bbox[2] = _g.max( _vb[0] );
     bbox[3] = _g.max( _vb[1] );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

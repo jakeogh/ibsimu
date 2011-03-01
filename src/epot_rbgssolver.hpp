@@ -69,9 +69,12 @@ class EpotRBGSSolver : public EpotSolver {
     Error            _err;
     StatusPrint     *_sp;
 
+    std::vector<uint32_t> _nsind;     /*!< \brief Stored near solid indexes for Neumann conversion nodes. */
+
     static void *iterator_entry( void *data );
     void *iterator_main( uint32_t thno, uint32_t thcount );
     double iterator_loop( uint32_t thno, uint32_t thcount, uint32_t rb, uint32_t dj, uint32_t dk );
+
 
     double gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, 
 				     uint32_t a, uint32_t dj, uint32_t dk ) const;
@@ -80,6 +83,8 @@ class EpotRBGSSolver : public EpotSolver {
 				  uint32_t dj, uint32_t dk ) const;
 
 
+    void preprocess( const MeshScalarField &scharge );
+    void postprocess( void );
     virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge );
 
 public:

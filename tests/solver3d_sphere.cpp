@@ -144,7 +144,7 @@ double phi( double r )
 
 void test_simu( int argc, char **argv )
 {
-    double h = 0.008;
+    double h = 0.0007;
     int32_t size = (int32_t)ceil(0.08/h) + 1;
     Geometry g( MODE_3D, Int3D(size,size,size), Vec3D(0,0,0), h );
     Solid *s1 = new FuncSolid( solid1 );
@@ -160,10 +160,9 @@ void test_simu( int argc, char **argv )
     g.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
     g.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
     g.build_mesh();
-    g.debug_print( std::cout );
-
-    //EpotGSSolver solver( g );
-    EpotRBGSSolver solver( g );
+    
+    EpotGSSolver solver( g );
+    //EpotRBGSSolver solver( g );
     MeshScalarField epot( g );
     MeshScalarField scharge( g );
 

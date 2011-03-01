@@ -1,5 +1,5 @@
 /*! \file solidgraph.hpp
- *  \brief Graph for plotting solids
+ *  \brief %Graph for plotting solids
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -40,8 +40,8 @@
  * permit others to do so.
  */
 
-#ifndef SOLIDPLOT_HPP
-#define SOLIDPLOT_HPP 1
+#ifndef SOLIDGRAPH_HPP
+#define SOLIDGRAPH_HPP 1
 
 
 #include <vector>
@@ -123,21 +123,3 @@ public:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

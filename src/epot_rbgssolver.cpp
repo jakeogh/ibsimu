@@ -535,6 +535,227 @@ double EpotRBGSSolver::gs_loop_1d( MeshScalarField &epot, const MeshScalarField 
  */
 
 
+void EpotRBGSSolver::preprocess( const MeshScalarField &scharge )
+{
+    // Build right-hand-side
+    if( _rhs )
+	delete _rhs;
+    _rhs = new MeshScalarField( (const Mesh)scharge );
+
+    // Change near solid nodes on Neumann boundaries to
+    // NODE_ID_NEUMANN and store near solid indexes. Take care to
+    // process in the same order as in Geometry class (x overrides y,
+    // which overrides z.
+
+    // Clear near solid indexes vector
+    _nsind.clear();
+
+    // Xmin and Xmax
+    for( uint32_t bound = 1; bound <= 2; bound++ ) {
+	uint32_t i = 0;
+	if( bound == 2 ) i = _geom.size(0)-1;
+	if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+	    for( uint32_t k = 0; k < _geom.size(2); k++ ) {
+		for( uint32_t j = 0; j < _geom.size(1); j++ ) {
+		    uint32_t mesh = _geom.mesh(i,j,k);
+		    uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+		    if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
+			uint32_t index = mesh & SMESH_NEAR_SOLID_INDEX_MASK;
+			_nsind.push_back( index );
+			_geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
+		    }
+		}
+	    }
+	}
+    }
+    if( _geom.geom_mode() == MODE_2D || _geom.geom_mode() == MODE_CYL ||
+	_geom.geom_mode() == MODE_3D ) {
+	// Ymin and Ymax
+	for( uint32_t bound = 3; bound <= 4; bound++ ) {
+	    uint32_t j = 0;
+	    if( bound == 4 ) j = _geom.size(1)-1;
+	    if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+		for( uint32_t k = 0; k < _geom.size(2); k++ ) {
+		    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
+			uint32_t mesh = _geom.mesh(i,j,k);
+			uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+			if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
+			    uint32_t index = mesh & SMESH_NEAR_SOLID_INDEX_MASK;
+			    _nsind.push_back( index );
+			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
+			}
+		    }
+		}
+	    }
+	}
+    }
+    if( _geom.geom_mode() == MODE_3D ) {
+	// Zmin and Zmax
+	for( uint32_t bound = 5; bound <= 6; bound++ ) {
+	    uint32_t k = 0;
+	    if( bound == 6 ) k = _geom.size(2)-1;
+	    if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+		for( uint32_t j = 0; j < _geom.size(1); j++ ) {
+		    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
+			uint32_t mesh = _geom.mesh(i,j,k);
+			uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+			if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
+			    uint32_t index = mesh & SMESH_NEAR_SOLID_INDEX_MASK;
+			    _nsind.push_back( index );
+			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
+			}
+		    }
+		}
+	    }
+	}
+    }
+
+    // Build rhs and set forced vacuum nodes and dirichlet nodes to
+    // epot. Mark fixed vacuum nodes with a tag.
+    for( uint32_t k = 0; k < _geom.size(2); k++ ) {
+	double z = k*_geom.h()+_geom.origo(2);
+	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
+	    double y = j*_geom.h()+_geom.origo(1);
+	    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
+		double x = i*_geom.h()+_geom.origo(0);
+
+		uint32_t mesh = _geom.mesh(i,j,k);
+		uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+		if( node_id == SMESH_NODE_ID_NEAR_SOLID ||
+		    node_id == SMESH_NODE_ID_PURE_VACUUM ) {
+
+		    // Vacuum
+		    if( _force_pot_func && (*_force_pot_func)(Vec3D(x,y,z)) ) {
+
+			// Mark as fixed vacuum
+			_geom.mesh(i,j,k) |= SMESH_NODE_FIXED;
+			(*_epot)(i,j,k) = _force_pot;
+
+		    } else if ( _init_plasma_func && (*_init_plasma_func)(Vec3D(x,y,z)) ) {
+
+			// Mark as fixed vacuum
+			_geom.mesh(i,j,k) |= SMESH_NODE_FIXED;
+			(*_epot)(i,j,k) = _Up;
+
+		    } else {
+
+			// Ordinary vacuum/near solid
+			(*_rhs)(i,j,k) = -scharge(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+		    }
+
+		} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
+
+		    // Neumann
+		    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
+		    (*_rhs)(i,j,k) = _geom.h()*_geom.get_boundary( boundary ).val;
+
+		} else if( node_id == SMESH_NODE_ID_DIRICHLET ) {
+		    
+		    // Dirichlet
+		    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
+		    (*_epot)(i,j,k) = _geom.get_boundary( boundary ).val;
+
+		}
+	    }
+	}
+    }
+    
+
+}
+
+
+void EpotRBGSSolver::postprocess( void )
+{
+    delete _rhs;
+    _rhs = NULL;
+
+    // Remove fixed vacuum tags
+    for( uint32_t k = 0; k < _geom.size(2); k++ ) {
+	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
+	    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
+
+		uint32_t mesh = _geom.mesh(i,j,k);
+		uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+		if( node_id == SMESH_NODE_ID_NEAR_SOLID_FIX ) {
+		    // Change to near solid node, keeping index pointer
+		    uint32_t index = SMESH_NEAR_SOLID_INDEX_MASK & mesh;
+		    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | index;
+		} else if( node_id == SMESH_NODE_ID_PURE_VACUUM_FIX ) {
+		    // Change to vacuum node
+		    _geom.mesh(i,j,k) = SMESH_NODE_ID_PURE_VACUUM;
+		}
+	    }
+	}
+    }
+
+    // Change Neumann boundaries next to solid nodes back to
+    // NEAR_SOLID and retrieve stored solid indexes. Take care to
+    // process in the same order as in Geometry class (x overrides y,
+    // which overrides z.
+    uint32_t near_solid_index = 0;
+
+    // Xmin and Xmax
+    for( uint32_t bound = 1; bound <= 2; bound++ ) {
+	uint32_t i = 0;
+	if( bound == 2 ) i = _geom.size(0)-1;
+	if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+	    for( uint32_t k = 0; k < _geom.size(2); k++ ) {
+		for( uint32_t j = 0; j < _geom.size(1); j++ ) {
+		    uint32_t mesh = _geom.mesh(i,j,k);
+		    uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+		    if( node_id == SMESH_NODE_ID_NEUMANN && _geom.is_near_solid(i,j,k) ) {
+			uint32_t index = _nsind[near_solid_index++];
+			_geom.mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | index;
+		    }
+		}
+	    }
+	}
+    }
+    if( _geom.geom_mode() == MODE_2D || _geom.geom_mode() == MODE_CYL ||
+	_geom.geom_mode() == MODE_3D ) {
+	// Ymin and Ymax
+	for( uint32_t bound = 3; bound <= 4; bound++ ) {
+	    uint32_t j = 0;
+	    if( bound == 4 ) j = _geom.size(1)-1;
+	    if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+		for( uint32_t k = 0; k < _geom.size(2); k++ ) {
+		    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
+			uint32_t mesh = _geom.mesh(i,j,k);
+			uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+			if( node_id == SMESH_NODE_ID_NEUMANN && _geom.is_near_solid(i,j,k) ) {
+			    uint32_t index = _nsind[near_solid_index++];
+			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | index;
+			}
+		    }
+		}
+	    }
+	}
+    }
+    if( _geom.geom_mode() == MODE_3D ) {
+	// Zmin and Zmax
+	for( uint32_t bound = 5; bound <= 6; bound++ ) {
+	    uint32_t k = 0;
+	    if( bound == 6 ) k = _geom.size(2)-1;
+	    if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+		for( uint32_t j = 0; j < _geom.size(1); j++ ) {
+		    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
+			uint32_t mesh = _geom.mesh(i,j,k);
+			uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+			if( node_id == SMESH_NODE_ID_NEUMANN && _geom.is_near_solid(i,j,k) ) {
+			    uint32_t index = _nsind[near_solid_index++];
+			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | index;
+			}
+		    }
+		}
+	    }
+	}
+    }
+
+    // Clear near solid indexes vector
+    _nsind.clear();
+}
+
+
 void EpotRBGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &scharge )
 {
     Timer t;
@@ -549,41 +770,7 @@ void EpotRBGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &sch
 
     // Build rhs and save fields
     _epot = &epot;
-    if( _rhs )
-	delete _rhs;
-    _rhs = new MeshScalarField( (const Mesh)scharge );
-
-    // Build rhs and set forced and dirichlet nodes to epot
-    //std::cout << "\nPreprocess\n------------------------\n";
-    for( uint32_t k = 0; k < _geom.size(2); k++ ) {
-	//double z = k*_geom.h()+_geom.origo(2);
-	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
-	    //double y = j*_geom.h()+_geom.origo(1);
-	    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
-		//double x = i*_geom.h()+_geom.origo(0);
-
-		//std::cout << "(" 
-		//	  << i << ", "
-		//	  << j << ", "
-		//	  << k << "): ";
-		uint32_t mesh = _geom.mesh(i,j,k);
-		uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
-		if( node_id == SMESH_NODE_ID_NEAR_SOLID ||
-		    node_id == SMESH_NODE_ID_PURE_VACUUM ) {
-		    //std::cout << "vacuum\n";
-		    (*_rhs)(i,j,k) = -scharge(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
-		} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
-		    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
-		    //std::cout << "neumann\n";
-		    (*_rhs)(i,j,k) = _geom.h()*_geom.get_boundary( boundary ).val;
-		} else if( node_id == SMESH_NODE_ID_DIRICHLET ) {
-		    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
-		    //std::cout << "dirichlet\n";
-		    epot(i,j,k) = _geom.get_boundary( boundary ).val;
-		}
-	    }
-	}
-    }
+    preprocess( scharge );
 
     // Initialize
     if( _sp )
@@ -613,6 +800,9 @@ void EpotRBGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &sch
 	pthread_join( itdata[a]._thread, NULL );
     if( _error )
 	throw( _err );
+
+    // Postprocess
+    postprocess();
 
     // End timer
     t.stop();

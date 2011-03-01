@@ -75,14 +75,11 @@ class EpotGSSolver : public EpotSolver {
     double gs_process_neumann_2d( uint32_t boundary, uint32_t i, uint32_t j ) const;
 
 
-    double gs_loop_1d( MeshScalarField &epot, const MeshScalarField &rhs ) const;
-    double gs_process_near_solid_1d( MeshScalarField &epot, const MeshScalarField &rhs,
-				     const uint8_t *nearsolid_ptr, 
+    double gs_loop_1d( void ) const;
+    double gs_process_near_solid_1d( const uint8_t *nearsolid_ptr, 
 				     uint32_t i ) const;
-    double gs_process_pure_vacuum_1d( MeshScalarField &epot, const MeshScalarField &rhs,
-				      uint32_t i ) const;
-    double gs_process_neumann_1d( MeshScalarField &epot, const MeshScalarField &rhs,
-				  uint32_t boundary, uint32_t i ) const;
+    double gs_process_pure_vacuum_1d( uint32_t i ) const;
+    double gs_process_neumann_1d( uint32_t boundary, uint32_t i ) const;
 
 
     void preprocess( const MeshScalarField &scharge );

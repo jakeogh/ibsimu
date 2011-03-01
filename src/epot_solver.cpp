@@ -1,5 +1,5 @@
 /*! \file epot_solver.cpp
- *  \brief Poisson equation problem for solving electric potential
+ *  \brief Poisson equation problem for solving electric potential.
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -89,7 +89,7 @@ void EpotSolver::set_smooth_solids( bool enable )
 
 
 void EpotSolver::set_forced_potential_volume( double force_pot, 
-					       CallbackFunctorB_V *force_pot_func )
+					      CallbackFunctorB_V *force_pot_func )
 {
     _force_pot = force_pot;
     _force_pot_func = force_pot_func;
@@ -97,7 +97,7 @@ void EpotSolver::set_forced_potential_volume( double force_pot,
 
 
 void EpotSolver::set_initial_plasma( double Up, 
-				      CallbackFunctorB_V *init_plasma_func )
+				     CallbackFunctorB_V *init_plasma_func )
 {
     _plasma     = PLASMA_INITIAL;
     _Up         = Up;
@@ -131,7 +131,7 @@ void EpotSolver::set_nsimp_initial_plasma( CallbackFunctorB_V *init_plasma_func 
 
 
 void EpotSolver::set_nsimp_plasma( double rhop, double Ep, 
-				    std::vector<double> rhoi, std::vector<double> Ei )
+				   std::vector<double> rhoi, std::vector<double> Ei )
 {
     _plasma = PLASMA_NSIMP;
     _rhoi.clear();
