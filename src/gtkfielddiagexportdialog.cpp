@@ -73,7 +73,6 @@ void GTKFieldDiagExportDialog::run( void )
    if( gtk_dialog_run( GTK_DIALOG(dialog) ) == GTK_RESPONSE_ACCEPT ) {
 
        char *filename = gtk_file_chooser_get_filename( GTK_FILE_CHOOSER(dialog) );
-       std::cout << filename << "\n";
 
        // Write output to filename
        _plot->export_data( filename );

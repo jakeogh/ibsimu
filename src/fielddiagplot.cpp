@@ -1,8 +1,8 @@
 /*! \file fielddiagplot.cpp
- *  \brief Source code for fielddiagplot.cpp
+ *  \brief %Field diagnostic plotter.
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -41,7 +41,7 @@
  */
 
 #include <fstream>
-
+#include "ibsimu.hpp"
 #include "fielddiagplot.hpp"
 
 
@@ -384,6 +384,8 @@ void FieldDiagPlot::build_plot( void )
 void FieldDiagPlot::export_data( const std::string &filename ) const
 {
     std::ofstream fstr( filename.c_str() );
+    if( ibsimu.get_verbose_output() )
+	std::cout << "Exporting field diagnostic data to \'" << filename << "\'\n";
 
     // Build data
     std::vector<double> coord[4];

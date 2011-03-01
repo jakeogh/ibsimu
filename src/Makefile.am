@@ -78,6 +78,8 @@ gtkhardcopy.cpp \
 gtkhardcopy.hpp \
 gtkparticlediagdialog.cpp \
 gtkparticlediagdialog.hpp \
+gtkparticlediagexportdialog.cpp \
+gtkparticlediagexportdialog.hpp \
 gtkparticlediagwindow.cpp \
 gtkparticlediagwindow.hpp \
 gtkplotter.cpp \
@@ -226,7 +228,6 @@ geomplotter.hpp \
 graph.hpp \
 graph3d.hpp \
 gs_solver.hpp \
-gtkfielddiagexportdialog.hpp \
 gtkplotter.hpp \
 hbio.hpp \
 histogram.hpp \

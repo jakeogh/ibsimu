@@ -1,8 +1,8 @@
 /*! \file gtkparticlediagwindow.cpp
- *  \brief Source code for gtkparticlediagwindow.cpp
+ *  \brief %Particle diagnostic window.
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,20 +40,30 @@
  * permit others to do so.
  */
 
-#include "gtkparticlediagwindow.hpp"
-#include "histogram.hpp"
 #include <sstream>
 #include <limits>
+#include "gtkparticlediagwindow.hpp"
+#include "gtkparticlediagexportdialog.hpp"
+#include "histogram.hpp"
 
 
-GTKParticleDiagWindow::GTKParticleDiagWindow( GTKPlotter *plotter, const ParticleDataBase *pdb, const Geometry *geom,
+GTKParticleDiagWindow::GTKParticleDiagWindow( GTKPlotter *plotter, const ParticleDataBase *pdb, 
+					      const Geometry *geom,
 					      coordinate_axis_e axis, double level, 
 					      particle_diag_plot_type_e type,
-					      trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy )
+					      trajectory_diagnostic_e diagx, 
+					      trajectory_diagnostic_e diagy )
     : GTKWindow(plotter), _plot(&_frame, geom, pdb, axis, level, type, diagx, diagy)
 {
     // Set window title
     gtk_window_set_title( GTK_WINDOW(_window), "Particle diagnostics" );
+
+    // Add export menu item
+    GtkWidget *item_export = gtk_menu_item_new_with_mnemonic( "_Export" );
+    gtk_menu_shell_prepend( GTK_MENU_SHELL(_menu_file), item_export );
+    g_signal_connect( G_OBJECT(item_export), "activate",
+                      G_CALLBACK(menuitem_export_signal),
+                      (gpointer)this );
 
     _plot.build_plot();
     show();
@@ -230,6 +240,21 @@ void GTKParticleDiagWindow::read_preferences( GtkWidget *notebook, void *_pdata 
 
     _plot.build_plot();
     draw_and_expose();
+}
+
+
+void GTKParticleDiagWindow::export_data( void )
+{
+    GTKParticleDiagExportDialog dialog( _window, &_plot );
+    dialog.run();
+}
+
+
+void GTKParticleDiagWindow::menuitem_export_signal( GtkToolButton *button,
+						    gpointer object )
+{
+    GTKParticleDiagWindow *window = (GTKParticleDiagWindow *)object;
+    window->export_data();
 }
 
 

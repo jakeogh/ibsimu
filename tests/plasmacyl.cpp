@@ -91,7 +91,7 @@ void test( int argc, char **argv )
     conv.add_scharge( scharge_ave, 1, 1, 1.0e-6 );
     conv.add_tdiag( pdb, AXIS_X, 11.9e-3, 1, 1, 1.0e-6 );
 
-    for( size_t i = 0; i < 8; i++ ) {
+    for( size_t i = 0; i < 2; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
@@ -119,10 +119,9 @@ void test( int argc, char **argv )
 
 	conv.evaluate_iteration();
 
-	/*
 	ScalarField tdens( geom );
 	pdb.build_trajectory_density_field( tdens );
-	GTKPlotter plotter( argc, argv );
+	GTKPlotter plotter( &argc, &argv );
 	plotter.set_geometry( &geom );
 	plotter.set_epot( &epot );
 	plotter.set_trajdens( &tdens );
@@ -130,7 +129,6 @@ void test( int argc, char **argv )
 	plotter.set_particledatabase( &pdb );
 	plotter.new_geometry_plot_window();
 	plotter.run();
-	*/
     }
 
     ofstream ofconv( "plasmacyl_conv.dat" );

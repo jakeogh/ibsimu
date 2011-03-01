@@ -1,5 +1,5 @@
 /*! \file gtkparticlediagwindow.hpp
- *  \brief %Particle diagnostic window
+ *  \brief %Particle diagnostic window.
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -60,6 +60,10 @@ class GTKParticleDiagWindow : public GTKWindow {
 
     virtual void *build_preferences( GtkWidget *notebook );
     virtual void read_preferences( GtkWidget *notebook, void *pdata );
+
+    void export_data( void );
+    static void menuitem_export_signal( GtkToolButton *button,
+					gpointer object );
 
 public:
 
