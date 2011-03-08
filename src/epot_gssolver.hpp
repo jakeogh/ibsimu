@@ -68,11 +68,18 @@ class EpotGSSolver : public EpotSolver {
 				  uint32_t dj, uint32_t dk ) const;
 
 
+    double gs_loop_cyl( void ) const;
+    double gs_process_near_solid_cyl( const uint8_t *nearsolid_ptr, 
+				     uint32_t i, uint32_t j ) const;
+    double gs_process_pure_vacuum_cyl( uint32_t i, uint32_t j ) const;
+    double gs_process_neumann_cyl( uint32_t boundary, uint32_t a, uint32_t dj ) const;
+
+
     double gs_loop_2d( void ) const;
     double gs_process_near_solid_2d( const uint8_t *nearsolid_ptr, 
-				     uint32_t i, uint32_t j ) const;
-    double gs_process_pure_vacuum_2d( uint32_t i, uint32_t j ) const;
-    double gs_process_neumann_2d( uint32_t boundary, uint32_t i, uint32_t j ) const;
+				     uint32_t a, uint32_t dj ) const;
+    double gs_process_pure_vacuum_2d( uint32_t a, uint32_t dj ) const;
+    double gs_process_neumann_2d( uint32_t boundary, uint32_t a, uint32_t dj ) const;
 
 
     double gs_loop_1d( void ) const;

@@ -44,7 +44,7 @@ bool solid3( double x, double y, double z )
 void test( int argc, char **argv )
 {
     // 12x5 cm geometry with 0.05 cm mesh size
-    Geometry geom( MODE_2D, Int3D(241,101,1), Vec3D(0,0,0), 0.0005 );
+    Geometry geom( MODE_CYL, Int3D(241,101,1), Vec3D(0,0,0), 0.0005 );
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
@@ -70,7 +70,7 @@ void test( int argc, char **argv )
 				     FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE };
     efield.set_extrapolation( efldextrpl );
 
-    ParticleDataBase2D pdb;
+    ParticleDataBaseCyl pdb;
     bool pmirror[6] = { false, false, true, false, false, false };
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
@@ -79,7 +79,7 @@ void test( int argc, char **argv )
 	solver.solve( epot, scharge );
 	efield.recalculate();
 	pdb.clear();
-	pdb.add_2d_beam_with_energy( 1000, 50.0, 1.0, 1.0, 
+	pdb.add_2d_beam_with_energy( 1439, 50.0, 1.0, 1.0, 
 				     3.0e3, 0.0, 0.0, 
 				     0.0, 0.0, 
 				     0.0, 0.012 );
@@ -106,7 +106,7 @@ void test( int argc, char **argv )
     eqlines.push_back( +5.0 );
     geomplotter.set_eqlines_manual( eqlines );
     geomplotter.set_particle_database( &pdb );
-    geomplotter.plot_png( "vlasov2d.png" );
+    geomplotter.plot_png( "vlasovcyl.png" );
 }
 
 

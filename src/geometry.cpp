@@ -661,7 +661,8 @@ void Geometry::debug_print( std::ostream &os ) const
 	os << "bound[" << a+1 << "] = " << _bound[a] << "\n";
     }
     os << "built = " << _built << "\n";
-    if( (_geom_mode == MODE_2D || _geom_mode == MODE_CYL) && _size[0] <= 20 && _size[1] <= 20 ) {
+    if( (_geom_mode == MODE_1D || _geom_mode == MODE_2D || _geom_mode == MODE_CYL) && 
+	_size[0] <= 20 && _size[1] <= 20 ) {
 	os << "mesh visualization:\n";
 	for( int32_t j = _size[1]-1; j >= 0; j-- ) {
 	    for( int32_t i = 0; i < _size[0]; i++ ) {

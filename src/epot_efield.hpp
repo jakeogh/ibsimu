@@ -1,5 +1,5 @@
 /*! \file epot_efield.hpp
- *  \brief Electric potential base electric field
+ *  \brief Electric potential base electric field.
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -45,8 +45,7 @@
 
 
 #include "vectorfield.hpp"
-#include "geometry.hpp"
-#include "meshscalarfield.hpp"
+#include "epot_field.hpp"
 #include "vec3d.hpp"
 #include "types.hpp"
 
@@ -69,20 +68,28 @@
  */
 class EpotEfield : public VectorField {
 
-    field_extrpl_e          _extrpl[6];   /*!< \brief What to return outside geometry. */
+    field_extrpl_e    _extrpl[6];   /*!< \brief What to return outside geometry. */
+    const EpotField  &_epot;        /*!< \brief Reference to electric potential. */
+    const Geometry   *_geom;        /*!< \brief Pointer to geometry. */
 
-    const Geometry         &_g;           /*!< \brief Reference to geometry. */
-    const MeshScalarField  &_epot;        /*!< \brief Reference to electric potential. */
+    double           *_F[3];        /*!< \brief Vector field data in three components */
+
+    uint8_t solid_dist( uint32_t node, uint32_t dir ) const;
+
+    void precalc_1d( void );
+    void precalc_2d( void );
+    void precalc_3d( void );
+    void precalc( void );
 
 public:
 
     /*! \brief Constructor.
      */
-    EpotEfield( const Geometry &g, const MeshScalarField &epot );
+    EpotEfield( const EpotField &epot );
 
     /*! \brief Destructor.
      */
-    ~EpotEfield() {}
+    ~EpotEfield();
 
     /*! \brief Set the behaviour of electric field interpolation
      *  outside mesh points (extrapolation).
@@ -103,14 +110,20 @@ public:
      *  Very far (double the size of the simulation box) the field
      *  evaluator will always return zero.
      */
-    void set_extrapolation( field_extrpl_e extrpl[6] ) {
-	memcpy( _extrpl, extrpl, 6*sizeof(field_extrpl_e) );
-    }
+    void set_extrapolation( field_extrpl_e extrpl[6] );
+
+    /*! \brief Recalculate electric field from potential.
+     */
+    void recalculate( void );
 
     /*! \brief Operator for getting interpolated electric field value
      *  at \a x.
      */
     virtual const Vec3D operator()( const Vec3D &x ) const;
+
+    /*! \brief Print debugging information to os.
+     */
+    void debug_print( std::ostream &os ) const;
 };
 
 

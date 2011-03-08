@@ -8,8 +8,7 @@
 
 #include <fstream>
 #include <iomanip>
-#include "bicgstab_solver.hpp"
-#include "epot_problem.hpp"
+#include "epot_gssolver.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
@@ -37,39 +36,35 @@ bool f2( double x, double y, double z )
 
 void test( int argc, char **argv )
 {
-    Geometry g( MODE_1D, Int3D(11,1,1), Vec3D(0,0,0), 0.01 );
+    Geometry geom( MODE_1D, Int3D(12,1,1), Vec3D(0,0,0), 0.01 );
     Solid *s1 = new FuncSolid( f1 );
-    g.set_solid( 7, s1 );
+    geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( f2 );
-    g.set_solid( 8, s2 );
-    g.set_boundary( 1, Bound(BOUND_NEUMANN, 0.0) );
-    g.set_boundary( 2, Bound(BOUND_DIRICHLET, 0.0) );
-    g.set_boundary( 7, Bound(BOUND_DIRICHLET, 0.0) );
-    g.set_boundary( 8, Bound(BOUND_DIRICHLET, 0.0) );
-    g.build_mesh();
-    //g.debug_print();
+    geom.set_solid( 8, s2 );
+    geom.set_boundary( 1, Bound(BOUND_NEUMANN, 0.0) );
+    geom.set_boundary( 2, Bound(BOUND_DIRICHLET, 0.0) );
+    geom.set_boundary( 7, Bound(BOUND_DIRICHLET, 0.0) );
+    geom.set_boundary( 8, Bound(BOUND_DIRICHLET, 0.0) );
+    geom.build_mesh();
+    geom.debug_print( cout );
 
-    EpotProblem p;
-    p.construct( g );
-
-    ScalarField epot( g );
-    ScalarField scharge( g );
-    for( int a = 0; a < g.size(0); a++ )
+    EpotGSSolver solver( geom);
+    EpotField epot( geom );
+    MeshScalarField scharge( geom );
+    for( uint32_t a = 0; a < geom.size(0); a++ )
 	scharge(a) = 1.0e-5;
-
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
-
-    EpotEfield ef( g, epot );
+    solver.solve( epot, scharge );
+    solver.debug_print( cout );
+    EpotEfield ef( epot );
+    ef.debug_print( cout );
 
     ofstream ostr( "efield.dat" );
     ostr << "# "
 	 << setw(10) << "x (m)" << " " 
 	 << setw(12) << "potential (V)" << " "
 	 << setw(12) << "efield (V/m)" << "\n";
-    for( int a = -10; a < 111; a++ ) {
-	Vec3D x( g.h()*(g.size(0)-1)*a/99.0, 0.0, 0.0 );
+    for( int a = -10; a < 1111; a++ ) {
+	Vec3D x( geom.h()*(geom.size(0)-1)*a/999.0, 0.0, 0.0 );
 	ostr << setw(12) << x[0] << " " 
 	     << setw(12) << epot(x) << " "
 	     << setw(12) << ef(x) << "\n";

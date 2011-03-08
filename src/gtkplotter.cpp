@@ -58,8 +58,8 @@ bool GTKPlotter::_gtk_initialized = false;
 
 
 GTKPlotter::GTKPlotter( int *argc, char ***argv )
-    : _geom(NULL), _epot(NULL), _scharge(NULL), _tdens(NULL), 
-      _efield(NULL), _bfield(NULL), _pdb(NULL)
+    : _geom(NULL), _epot(NULL), _efield(NULL), _scharge(NULL), _tdens(NULL), 
+      _bfield(NULL), _pdb(NULL)
 {
     if( !_gtk_initialized ) {
 	if( gtk_init_check( argc, argv ) == FALSE )
@@ -83,7 +83,7 @@ void GTKPlotter::run()
 
 GTKWindow *GTKPlotter::new_geometry_plot_window( void )
 {
-    GTKWindow *window = new GTKGeomWindow( this, _geom, _epot, _scharge, _tdens, _bfield, _pdb );
+    GTKWindow *window = new GTKGeomWindow( this, _geom, _epot, _efield, _scharge, _tdens, _bfield, _pdb );
     _windows.push_back( window );
 
     return( window );
@@ -139,13 +139,13 @@ const Geometry *GTKPlotter::get_geometry( void ) const
     return( _geom );
 }
 
-const MeshScalarField *GTKPlotter::get_epot( void ) const
+const EpotField *GTKPlotter::get_epot( void ) const
 {
     return( _epot );
 }
 
 
-const VectorField *GTKPlotter::get_efield( void ) const
+const EpotEfield *GTKPlotter::get_efield( void ) const
 {
     return( _efield );
 }
@@ -181,12 +181,12 @@ void GTKPlotter::set_geometry( const Geometry *geom )
 }
 
 
-void GTKPlotter::set_epot( const MeshScalarField *epot )
+void GTKPlotter::set_epot( const EpotField *epot )
 {
     _epot = epot;
 }
 
-void GTKPlotter::set_efield( const VectorField *efield )
+void GTKPlotter::set_efield( const EpotEfield *efield )
 {
     _efield = efield;
 }

@@ -1,5 +1,5 @@
 /*! \file epot_efield.cpp
- *  \brief Electric potential base electric field
+ *  \brief Electric potential base electric field.
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -40,520 +40,578 @@
  * permit others to do so.
  */
 
+#include <limits>
 #include <cmath>
 #include "epot_efield.hpp"
+#include "ibsimu.hpp"
 #include "error.hpp"
 
 
-EpotEfield::EpotEfield( const Geometry &g, const MeshScalarField &epot )
-  : _g(g), _epot(epot)
+EpotEfield::EpotEfield( const EpotField &epot )
+    : _epot(epot), _geom(epot.geom())
 {
+    _F[0] = NULL;
+    _F[1] = NULL;
+    _F[2] = NULL;
+
     _extrpl[0] = FIELD_EXTRAPOLATE;
     _extrpl[1] = FIELD_EXTRAPOLATE;
     _extrpl[2] = FIELD_EXTRAPOLATE;
     _extrpl[3] = FIELD_EXTRAPOLATE;
     _extrpl[4] = FIELD_EXTRAPOLATE;
     _extrpl[5] = FIELD_EXTRAPOLATE;
+
+    precalc();
 }    
 
 
-/* Return second order polynomial interpolation of 2D field at s.
- * Field is defined by three values p1, p2 and p3 at points s=-1, s=0
- * and s=+1 respectively.
+EpotEfield::~EpotEfield()
+{
+    for( size_t i = 0; i < 3; i++ ) {
+	if( _F[i] != NULL )
+	    delete [] _F[i];
+    }
+}
+
+
+void EpotEfield::set_extrapolation( field_extrpl_e extrpl[6] ) 
+{
+    memcpy( _extrpl, extrpl, 6*sizeof(field_extrpl_e) );
+}
+
+
+void EpotEfield::recalculate( void )
+{
+    precalc();
+}
+
+
+uint8_t EpotEfield::solid_dist( uint32_t node, uint32_t dir ) const
+{
+    const uint8_t *nptr = _geom->nearsolid_ptr(node & SMESH_NEAR_SOLID_INDEX_MASK);
+    uint8_t neighbours = nptr[0];
+    nptr++;
+    uint32_t a = 0;
+    while( a < dir ) {
+	if( neighbours & 0x01 )
+	    nptr++;
+	neighbours = neighbours >> 1;
+	a++;
+    }
+    if( (neighbours & 0x01) == 0x00 )
+	throw( Error( ERROR_LOCATION, (const std::string)"no near neighbour in selected direction"
+		      ", dir = " + to_string(dir) 
+		      + ", neighbours = " + 
+		      to_string((int)*_geom->nearsolid_ptr(node & SMESH_NEAR_SOLID_INDEX_MASK)) ) );
+
+    return( *nptr );
+}
+
+
+void EpotEfield::precalc_1d( void )
+{
+    double h = _epot.h();
+    uint32_t n = _epot.size(0)-1;
+
+    _F[0] = new double[n];
+
+    for( uint32_t i = 0; i < n; i++ ) {
+	
+	uint32_t node1 = _geom->mesh(i);
+	uint32_t node1id = node1 & SMESH_NODE_ID_MASK;
+	uint32_t node2 = _geom->mesh(i+1);
+	uint32_t node2id = node2 & SMESH_NODE_ID_MASK;
+
+	if( node1id == SMESH_NODE_ID_NEAR_SOLID &&
+	    node2id == SMESH_NODE_ID_DIRICHLET && 
+	    (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+
+	    // Between near solid node and solid node
+	    uint8_t dist = solid_dist( node1, 1 );
+	    _F[0][i] = 255.0*( _epot(i) - _epot(i+1) ) / (dist*h);
+
+	} else if( node2id == SMESH_NODE_ID_NEAR_SOLID &&
+		   node1id == SMESH_NODE_ID_DIRICHLET && 
+		   (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+
+	    // Between near solid node and solid node
+	    uint8_t dist = solid_dist( node2, 0 );
+	    _F[0][i] = 255.0*( _epot(i) - _epot(i+1) ) / (dist*h);
+
+	} else {
+
+	    // Free space or inside solid
+	    _F[0][i] = (_epot(i) - _epot(i+1)) / h;
+
+	}
+    }
+}
+
+void EpotEfield::precalc_2d( void )
+{
+    double h = _epot.h();
+    uint32_t n = _epot.size(0)-1;
+    uint32_t m = _epot.size(1)-1;
+
+    _F[0] = new double[n*(m+1)];
+    _F[1] = new double[(n+1)*m];
+
+    // Do Ex-field
+    for( uint32_t j = 0; j < m+1; j++ ) {
+	for( uint32_t i = 0; i < n; i++ ) {
+	
+	    uint32_t node1 = _geom->mesh(i,j);
+	    uint32_t node1id = node1 & SMESH_NODE_ID_MASK;
+	    uint32_t node2 = _geom->mesh(i+1,j);
+	    uint32_t node2id = node2 & SMESH_NODE_ID_MASK;
+		
+	    if( node1id == SMESH_NODE_ID_NEAR_SOLID &&
+		node2id == SMESH_NODE_ID_DIRICHLET && 
+		(node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+		
+		// Between near solid node and solid node
+		uint8_t dist = solid_dist( node1, 1 );
+		_F[0][i+j*n] = 255.0*( _epot(i,j) - _epot(i+1,j) ) / (dist*h);
+		
+	    } else if( node2id == SMESH_NODE_ID_NEAR_SOLID &&
+		       node1id == SMESH_NODE_ID_DIRICHLET && 
+		       (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+		
+		// Between near solid node and solid node
+		uint8_t dist = solid_dist( node2, 0 );
+		_F[0][i+j*n] = 255.0*( _epot(i,j) - _epot(i+1,j) ) / (dist*h);
+		
+	    } else {
+		
+		// Free space or inside solid
+		_F[0][i+j*n] = (_epot(i,j) - _epot(i+1,j)) / h;
+	    }
+	}
+    }
+
+    // Do Ey-field
+    for( uint32_t i = 0; i < n+1; i++ ) {
+	for( uint32_t j = 0; j < m; j++ ) {
+	
+	    uint32_t node1 = _geom->mesh(i,j);
+	    uint32_t node1id = node1 & SMESH_NODE_ID_MASK;
+	    uint32_t node2 = _geom->mesh(i,j+1);
+	    uint32_t node2id = node2 & SMESH_NODE_ID_MASK;
+
+	    if( node1id == SMESH_NODE_ID_NEAR_SOLID &&
+		node2id == SMESH_NODE_ID_DIRICHLET && 
+		(node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+		
+		// Between near solid node and solid node
+		uint8_t dist = solid_dist( node1, 3 );
+		_F[1][i+j*_epot.size(0)] = 255.0*( _epot(i,j) - _epot(i,j+1) ) / (dist*h);
+
+	    } else if( node2id == SMESH_NODE_ID_NEAR_SOLID &&
+		       node1id == SMESH_NODE_ID_DIRICHLET && 
+		       (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+		
+		// Between near solid node and solid node
+		uint8_t dist = solid_dist( node2, 2 );
+		_F[1][i+j*_epot.size(0)] = 255.0*( _epot(i,j) - _epot(i,j+1) ) / (dist*h);
+		
+	    } else {
+		
+		// Free space or inside solid
+		_F[1][i+j*_epot.size(0)] = (_epot(i,j) - _epot(i,j+1)) / h;
+	    }
+	}
+    }
+}
+
+void EpotEfield::precalc_3d( void )
+{
+    double h = _epot.h();
+    uint32_t n = _epot.size(0)-1;
+    uint32_t m = _epot.size(1)-1;
+    uint32_t o = _epot.size(2)-1;
+
+    _F[0] = new double[n*(m+1)*(o+1)];
+    _F[1] = new double[(n+1)*m*(o+1)];
+    _F[2] = new double[(n+1)*(m+1)*o];
+
+    // Do Ex-field
+    for( uint32_t k = 0; k < o+1; k++ ) {
+	for( uint32_t j = 0; j < m+1; j++ ) {
+	    for( uint32_t i = 0; i < n; i++ ) {
+	
+		uint32_t node1 = _geom->mesh(i,j,k);
+		uint32_t node1id = node1 & SMESH_NODE_ID_MASK;
+		uint32_t node2 = _geom->mesh(i+1,j,k);
+		uint32_t node2id = node2 & SMESH_NODE_ID_MASK;
+
+		if( node1id == SMESH_NODE_ID_NEAR_SOLID &&
+		    node2id == SMESH_NODE_ID_DIRICHLET && 
+		    (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+		    
+		    // Between near solid node and solid node
+		    uint8_t dist = solid_dist( node1, 1 );
+		    _F[0][i+(j+k*_epot.size(1))*n] = 
+			255.0*( _epot(i,j,k) - _epot(i+1,j,k) ) / (dist*h);
+		    
+		} else if( node2id == SMESH_NODE_ID_NEAR_SOLID &&
+			   node1id == SMESH_NODE_ID_DIRICHLET && 
+			   (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+		    
+		    // Between near solid node and solid node
+		    uint8_t dist = solid_dist( node2, 0 );
+		    _F[0][i+(j+k*_epot.size(1))*n] = 
+			255.0*( _epot(i,j,k) - _epot(i+1,j,k) ) / (dist*h);
+		    
+		} else {
+		    
+		    // Free space or inside solid
+		    _F[0][i+(j+k*_epot.size(1))*n] = 
+			(_epot(i,j,k) - _epot(i+1,j,k)) / h;
+		}
+	    }
+	}
+    }
+
+    // Do Ey-field
+    for( uint32_t k = 0; k < o+1; k++ ) {
+	for( uint32_t i = 0; i < n+1; i++ ) {
+	    for( uint32_t j = 0; j < m; j++ ) {
+	
+		uint32_t node1 = _geom->mesh(i,j,k);
+		uint32_t node1id = node1 & SMESH_NODE_ID_MASK;
+		uint32_t node2 = _geom->mesh(i,j+1,k);
+		uint32_t node2id = node2 & SMESH_NODE_ID_MASK;
+
+		if( node1id == SMESH_NODE_ID_NEAR_SOLID &&
+		    node2id == SMESH_NODE_ID_DIRICHLET && 
+		    (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+		
+		    // Between near solid node and solid node
+		    uint8_t dist = solid_dist( node1, 3 );
+		    _F[1][i+(j+k*m)*_epot.size(0)] = 
+			255.0*( _epot(i,j,k) - _epot(i,j+1,k) ) / (dist*h);
+
+		} else if( node2id == SMESH_NODE_ID_NEAR_SOLID &&
+			   node1id == SMESH_NODE_ID_DIRICHLET && 
+			   (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+		
+		    // Between near solid node and solid node
+		    uint8_t dist = solid_dist( node2, 2 );
+		    _F[1][i+(j+k*m)*_epot.size(0)] = 
+			255.0*( _epot(i,j,k) - _epot(i,j+1,k) ) / (dist*h);
+		
+		} else {
+		    
+		    // Free space or inside solid
+		    _F[1][i+(j+k*m)*_epot.size(0)] = 
+			(_epot(i,j,k) - _epot(i,j+1,k)) / h;
+		}
+	    }
+	}
+    }
+
+    // Do Ez-field
+    for( uint32_t i = 0; i < n+1; i++ ) {
+	for( uint32_t j = 0; j < m+1; j++ ) {
+	    for( uint32_t k = 0; k < o; k++ ) {
+	
+		uint32_t node1 = _geom->mesh(i,j,k);
+		uint32_t node1id = node1 & SMESH_NODE_ID_MASK;
+		uint32_t node2 = _geom->mesh(i,j,k+1);
+		uint32_t node2id = node2 & SMESH_NODE_ID_MASK;
+
+		if( node1id == SMESH_NODE_ID_NEAR_SOLID &&
+		    node2id == SMESH_NODE_ID_DIRICHLET && 
+		    (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+		
+		    // Between near solid node and solid node
+		    uint8_t dist = solid_dist( node1, 5 );
+		    _F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 
+			255.0*( _epot(i,j,k) - _epot(i,j,k+1) ) / (dist*h);
+
+		} else if( node2id == SMESH_NODE_ID_NEAR_SOLID &&
+			   node1id == SMESH_NODE_ID_DIRICHLET && 
+			   (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+		
+		    // Between near solid node and solid node
+		    uint8_t dist = solid_dist( node2, 4 );
+		    _F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 
+			255.0*( _epot(i,j,k) - _epot(i,j,k+1) ) / (dist*h);
+		
+		} else {
+		    
+		    // Free space or inside solid
+		    _F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 
+			(_epot(i,j,k) - _epot(i,j,k+1)) / h;
+		}
+	    }
+	}
+    }
+}
+
+
+/* Calculate electric field at points between potential nodes
+ *
+ *
  */
-inline double epot_efield_interpolate_1d
-( double p1, double p2, double p3, double s )
+void EpotEfield::precalc( void )
 {
-    return( (0.5*(p1+p3)-p2)*s*s + 0.5*(p3-p1)*s + p2 );
+    if( ibsimu.get_verbose_output() ) {
+	std::cout << "Calculating efield\n";
+    }
+
+    // Delete old fields
+    for( size_t i = 0; i < 3; i++ ) {
+	if( _F[i] != NULL )
+	    delete [] _F[i];
+    }
+
+    switch( _epot.geom_mode() ) {
+    case MODE_1D:
+	precalc_1d();
+	break;
+    case MODE_2D:
+    case MODE_CYL:
+	precalc_2d();
+	break;
+    case MODE_3D:
+	precalc_3d();
+	break;
+    }
 }
 
 
-/* Return second order polynomial interpolation of 2D field at
- * (s,t). Field is defined by nine values p1-p9 at points (-1,+1),
- * (0,+1), (+1,1), (-1,0), (0,0), (+1,0), (-1,-1), (0,-1) and (+1,-1)
- * respectively. */
-inline double epot_efield_interpolate_2d
-( double p1, double p2, double p3, 
-  double p4, double p5, double p6, 
-  double p7, double p8, double p9, 
-  double s, double t )
+void EpotEfield::debug_print( std::ostream &os ) const
 {
-    double t2;
-    double A, B, C, D, E, F, G, H, I;
+    os << "**EpotEfield\n";
     
-    A = 0.25*(p1-2*p2+p3-2*p4+4*p5-2*p6+p7-2*p8+p9);
-    B = 0.25*(-p1+2*p2-p3+p7-2*p8+p9);
-    C = 0.5*(p4+p6)-p5;
-    D = 0.25*(-p1+p3+2*p4-2*p6-p7+p9);
-    E = 0.25*(p1-p3-p7+p9);
-    F = 0.5*(p6-p4);
-    G = 0.5*(p2+p8)-p5;
-    H = 0.5*(p8-p2);
-    I = p5;
-    t2 = t*t;
+    os << "extrpl = (";
+    for( uint32_t a = 0; a < 6; a++ ) {
+	switch( _extrpl[a] ) {
+	case FIELD_EXTRAPOLATE:
+	    os << "FIELD_EXTRAPOLATE";
+	    break;
+	case FIELD_MIRROR:
+	    os << "FIELD_MIRROR";
+	    break;
+	case FIELD_ZERO:
+	    os << "FIELD_ZERO";
+	    break;
+	case FIELD_NAN:
+	    os << "FIELD_NAN";
+	    break;
+	}
+	if( a != 5 ) os << ", ";
+    }
+    os << ")\n";
 
-    return( (A*t2+B*t+C)*s*s + (D*t2+E*t+F)*s + G*t2+H*t+I );
-}
-
-
-/* Return first derivative of field based on second order polynomial
- * interpolation of field at s. Field is defined by three points p1,
- * p2, p3 at points s=-1, s=0, s=1 respectively. */
-inline double epot_efield_interpolate_deriv
-( double p1, double p2, double p3, double s )
-{
-    return( ((p1-2.0*p2+p3)*s + 0.5*(p3-p1)) );
+    uint32_t nodecount = _geom->nodecount();
+    for( uint32_t b = 0; b < 3; b++ ) {
+	os << "F[" << b << "] = ";
+	if( _F[b] == NULL ) {
+	    os << "NULL\n";
+	    continue;
+	}
+	os << "(";
+	if( nodecount < 10 ) {
+	    uint a;
+	    for( a = 0; a < nodecount-1; a++ )
+		os << _F[b][a] << ", ";
+	    if( a < nodecount )
+		os << _F[b][a] << ")\n";
+	} else {
+	    // Print only 10 first nodes
+	    for( uint a = 0; a < 10; a++ )
+		os << _F[b][a] << ", ";
+	    os << "... )\n";
+	}
+    }
 }
 
 
 const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 {
-    Vec3D E, X(x);
-    double h = _g.h();
-    double inv_h = 1.0/_g.h();
+    Vec3D R, X(x);
+    Vec3D sign( 1.0, 1.0, 1.0 );
 
-    switch( _g.geom_mode() ) {
+    switch( _geom->geom_mode() ) {
     case MODE_1D:
     {
-	double sign = -1.0;
-	if( X[0] < _g.origo(0)-_g.size(0)*h ) {
-	    // Outside double the simulation box: return zero
-	    return( E );
-	} else if( X[0] < _g.origo(0) ) {
-	    if( _extrpl[0] == FIELD_MIRROR ) {
-		sign *= -1.0;
-		X[0]  = 2.0*_g.origo(0) - X[0];
-	    } else if( _extrpl[0] == FIELD_ZERO ) {
-		// return zero
-		return( E );
+	if( !_F[0] )
+	    break;
+
+	if( X[0] < _geom->origo(0) ) {
+	    if( _extrpl[0] == FIELD_ZERO ) {
+		R[0] = 0.0;
+		break;
+	    } else if( _extrpl[0] == FIELD_NAN ) {
+		R[0] = std::numeric_limits<double>::quiet_NaN();
+		break;
+	    } else if( X[0] < _geom->origo(0)-_geom->size(0)*_geom->h() ) {
+		// Outside double the simulation box: return zero
+		R[0] = 0.0;
+		break;
+	    } else if( _extrpl[0] == FIELD_MIRROR ) {
+		sign[0] *= -1.0;
+		X[0] = 2.0*_geom->origo(0) - X[0];
 	    }
-	} else if( X[0] > _g.origo(0)+2.0*_g.size(0)*h ) {
-	    // Outside double the simulation box: return zero
-	    return( E );
-	} else if( X[0] > _g.max(0) ) {
-	    if( _extrpl[1] == FIELD_MIRROR ) {
-		sign *= -1.0;
-		X[0]  = 2.0*_g.max(0) - X[0];
-	    } else if( _extrpl[1] == FIELD_ZERO ) {
-		// return zero
-		return( E );
+	} else if( X[0] > _geom->max(0) ) {
+	    if( _extrpl[1] == FIELD_ZERO ) {
+		R[0] = 0.0;
+		break;
+	    } else if( _extrpl[1] == FIELD_NAN ) {
+		R[0] = std::numeric_limits<double>::quiet_NaN();
+		break;
+	    } else if( X[0] < _geom->origo(0)+2.0*_geom->size(0)*_geom->h() ) {
+		// Outside double the simulation box: return zero
+		R[0] = 0.0;
+		break;
+	    } else if( _extrpl[1] == FIELD_MIRROR ) {
+		sign[0] *= -1.0;
+		X[0] = 2.0*_geom->max(0) - X[0];
 	    }
 	}
 
-	int32_t i = (int32_t)floor( (X[0]-_g.origo(0))*inv_h + 0.5 );
-	if( i < 1 )
-	    i = 1;
-	else if( i >= (int32_t)_g.size(0)-1 )
-	    i = _g.size(0)-2;
-	
-	if( _g.mesh( i ) > 0 )
-	    // Inside solid, return zero
-	    return( E );
-	else if( _g.mesh( i ) < 0 ) {
-	    // At solid edge, search free direction
-	    if( _g.mesh(i+1) == 0 ) i++;
-	    else if( _g.mesh(i-1) == 0 ) i--;
-	}
-	
-	double t = ( X[0]-(i*_g.h()+_g.origo(0)) )*inv_h;
-	E[0] = sign*epot_efield_interpolate_deriv( 
-	    _epot( i-1 ), _epot( i ), _epot( i+1 ), t )*inv_h;
+	int32_t i = (int32_t)floor( (X[0]-_geom->origo(0))*_geom->div_h() - 0.5 );
+	if( i < 0 )
+	    i = 0;
+	else if( i >= (int32_t)_geom->size(0)-2 )
+	    i = _geom->size(0)-3;
+
+	double t = _geom->div_h()*( X[0]-((i+0.5)*_geom->h()+_geom->origo(0)) );
+
+	R[0] = sign[0]*( (1.0-t)*_F[0][i] + t*_F[0][i+1] );
 	break;
     }
     case MODE_2D:
     case MODE_CYL:
     {
-	double sign[2] = {-1.0, -1.0};
+	if( !_F[0] || !_F[1] )
+	    break;
+
 	for( int a = 0; a < 2; a++ ) {
-	    if( X[a] < _g.origo(a)-_g.size(a)*h ) {
-		// Outside double the simulation box: return zero
-		return( E );
-	    } else if( X[a] < _g.origo(a) ) {
-		if( _extrpl[2*a] == FIELD_MIRROR ) {
+	    if( X[a] < _geom->origo(a) ) {
+		if( _extrpl[2*a] == FIELD_ZERO ) {
+		    break;
+		} else if( _extrpl[2*a] == FIELD_NAN ) {
+		    R[0] = std::numeric_limits<double>::quiet_NaN();
+		    R[1] = std::numeric_limits<double>::quiet_NaN();
+		    break;
+		} else if( X[a] < _geom->origo(a)-_geom->size(a)*_geom->h() ) {
+		    // Outside double the simulation box: return zero
+		    break;
+		} else if( _extrpl[2*a] == FIELD_MIRROR ) {
 		    sign[a] *= -1.0;
-		    X[a]     = 2.0*_g.origo(a) - X[a];
-		} else if( _extrpl[2*a] == FIELD_ZERO ) {
-		    // return zero
-		    return( E );
+		    X[a] = 2.0*_geom->origo(a) - X[a];
 		}
-	    } else if( X[a] > _g.origo(a)+2.0*_g.size(a)*h ) {
-		// Outside double the simulation box: return zero
-		return( E );
-	    } else if( X[0] > _g.max(0) ) {
-		if( _extrpl[2*a+1] == FIELD_MIRROR ) {
+	    } else if( X[a] > _geom->max(a) ) {
+		if( _extrpl[2*a+1] == FIELD_ZERO ) {
+		    break;
+		} else if( _extrpl[2*a+1] == FIELD_NAN ) {
+		    R[0] = std::numeric_limits<double>::quiet_NaN();
+		    R[1] = std::numeric_limits<double>::quiet_NaN();
+		    break;
+		} else if( X[a] < _geom->origo(a)+2.0*_geom->size(a)*_geom->h() ) {
+		    // Outside double the simulation box: return zero
+		    break;
+		} else if( _extrpl[2*a+1] == FIELD_MIRROR ) {
 		    sign[a] *= -1.0;
-		    X[a]     = 2.0*_g.max(a) - X[a];
-		} else if( _extrpl[2*a+1] == FIELD_ZERO ) {
-		    // return zero
-		    return( E );
+		    X[a] = 2.0*_geom->max(a) - X[a];
 		}
 	    }
 	}
-	
-	int32_t i = (int32_t)floor( (X[0]-_g.origo(0))*inv_h + 0.5 );
-	int32_t j = (int32_t)floor( (X[1]-_g.origo(1))*inv_h + 0.5 );
 
-	if( i < 1 )
-	    i = 1;
-	else if( i >= (int32_t)_g.size(0)-1 )
-	    i = _g.size(0)-2;
-	if( j < 1 )
-	    j = 1;
-	else if( j >= (int32_t)_g.size(1)-1 )
-	    j = _g.size(1)-2;
-
-	if( _g.mesh(i,j) > 0 )
-	    // Inside solid, return zero
-	    return( E );
-	else if( _g.mesh(i,j) < 0 ) {
-	    // At solid edge, search free direction
-	    if( _g.mesh(i-1,j) == 0 && _g.mesh(i+1,j) != 0 && _g.mesh(i,j+1) != 0 && _g.mesh(i,j-1) != 0 )
-		i--;
-	    else if( _g.mesh(i+1,j) == 0 && _g.mesh(i-1,j) != 0 && _g.mesh(i,j+1) != 0 && _g.mesh(i,j-1) != 0 )
-		i++;
-	    else if( _g.mesh(i,j-1) == 0 && _g.mesh(i,j+1) != 0 && _g.mesh(i+1,j) != 0 && _g.mesh(i-1,j) != 0 )
-		j--;
-	    else if( _g.mesh(i,j+1) == 0 && _g.mesh(i,j-1) != 0 && _g.mesh(i+1,j) != 0 && _g.mesh(i-1,j) != 0 )
-		j++;
-	    else if( _g.mesh(i-1,j-1) == 0 && _g.mesh(i-1,j) == 0 && _g.mesh(i,j-1) == 0 && 
-		     _g.mesh(i+1,j) != 0 && _g.mesh(i,j+1) != 0 ) {
-		i--; j--;
-	    } else if( _g.mesh(i+1,j-1) == 0 && _g.mesh(i+1,j) == 0 && _g.mesh(i,j-1) == 0 && 
-		       _g.mesh(i-1,j) != 0 && _g.mesh(i,j+1) != 0 ) {
-		i++; j--;
-	    } else if( _g.mesh(i-1,j+1) == 0 && _g.mesh(i-1,j) == 0 && _g.mesh(i,j+1) == 0 && 
-		       _g.mesh(i+1,j) != 0 && _g.mesh(i,j-1) != 0 ) {
-		i--; j++;
-	    } else if( _g.mesh(i+1,j+1) == 0 && _g.mesh(i+1,j) == 0 && _g.mesh(i,j+1) == 0 && 
-		       _g.mesh(i-1,j) != 0 && _g.mesh(i,j-1) != 0 ) {
-		i++; j++;
-	    }
+	// Ex
+	if( true ) {
+	    int32_t i = (int32_t)floor( (X[0]-_geom->origo(0))*_geom->div_h() - 0.5 );
+	    int32_t j = (int32_t)floor( (X[1]-_geom->origo(1))*_geom->div_h() );
+	    if( i < 0 )
+		i = 0;
+	    else if( i >= (int32_t)_geom->size(0)-2 )
+		i = _geom->size(0)-3;
+	    if( j < 0 )
+		j = 0;
+	    else if( j >= (int32_t)_geom->size(1)-1 )
+		j = _geom->size(1)-2;
+	    
+	    double t = _geom->div_h()*( X[0]-((i+0.5)*_geom->h()+_geom->origo(0)) );
+	    double u = _geom->div_h()*( X[1]-(j*_geom->h()+_geom->origo(1)) );
+	    
+	    size_t b = _geom->size(0)-1;
+	    size_t c = i+j*b;
+	    R[0] = sign[0]*( (1.0-u)*(1.0-t)*_F[0][c]   + 
+		             (1.0-u)*     t *_F[0][c+1] +
+		                  u *(1.0-t)*_F[0][c+b] +
+			          u *     t *_F[0][c+b+1] );
 	}
-	
-	double t = ( X[0]-(i*_g.h()+_g.origo(0)) )*inv_h;
-	double u = ( X[1]-(j*_g.h()+_g.origo(1)) )*inv_h;
 
-	E[0] = sign[0]*epot_efield_interpolate_deriv( 
-	    epot_efield_interpolate_1d( _epot( i-1, j-1 ), 
-					_epot( i-1, j   ), 
-					_epot( i-1, j+1 ), u ),
-	    epot_efield_interpolate_1d( _epot( i,   j-1 ), 
-					_epot( i,   j   ), 
-					_epot( i,   j+1 ), u ),
-	    epot_efield_interpolate_1d( _epot( i+1, j-1 ), 
-					_epot( i+1, j   ), 
-					_epot( i+1, j+1 ), u ), t )*inv_h;
-	E[1] = sign[1]*epot_efield_interpolate_deriv( 
-	    epot_efield_interpolate_1d( _epot( i-1, j-1 ), 
-					_epot( i,   j-1 ), 
-					_epot( i+1, j-1 ), t ),
-	    epot_efield_interpolate_1d( _epot( i-1, j   ), 
-					_epot( i,   j   ), 
-					_epot( i+1, j   ), t ),
-	    epot_efield_interpolate_1d( _epot( i-1, j+1 ), 
-					_epot( i,   j+1 ), 
-					_epot( i+1, j+1 ), t ), u )*inv_h;
+	// Ey
+	if( true ) {
+	    int32_t i = (int32_t)floor( (X[0]-_geom->origo(0))*_geom->div_h() );
+	    int32_t j = (int32_t)floor( (X[1]-_geom->origo(1))*_geom->div_h() - 0.5 );
+	    if( i < 0 )
+		i = 0;
+	    else if( i >= (int32_t)_geom->size(0)-1 )
+		i = _geom->size(0)-2;
+	    if( j < 0 )
+		j = 0;
+	    else if( j >= (int32_t)_geom->size(1)-2 )
+		j = _geom->size(1)-3;
+	    
+	    double t = _geom->div_h()*( X[0]-(i*_geom->h()+_geom->origo(0)) );
+	    double u = _geom->div_h()*( X[1]-((j+0.5)*_geom->h()+_geom->origo(1)) );
+	    
+	    size_t b = _geom->size(0);
+	    size_t c = i+j*b;
+	    R[1] = sign[1]*( (1.0-u)*(1.0-t)*_F[1][c]   + 
+			     (1.0-u)*     t *_F[1][c+1] +
+			          u *(1.0-t)*_F[1][c+b] +
+			          u *     t *_F[1][c+b+1] );
+	}
 	break;
     }
     case MODE_3D:
     {
-	double sign[3] = {-1.0, -1.0, -1.0};
-	for( int a = 0; a < 3; a++ ) {
-	    if( X[a] < _g.origo(a)-_g.size(a)*h ) {
-		// Outside double the simulation box: return zero
-		return( E );
-	    } else if( X[a] < _g.origo(a) ) {
-		if( _extrpl[2*a] == FIELD_MIRROR ) {
-		    sign[a] *= -1.0;
-		    X[a]     = 2.0*_g.origo(a) - X[a];
-		} else if( _extrpl[2*a] == FIELD_ZERO ) {
-		    // return zero
-		    return( E );
-		}
-	    } else if( X[a] > _g.origo(a)+2.0*_g.size(a)*h ) {
-		// Outside double the simulation box: return zero
-		return( E );
-	    } else if( X[0] > _g.max(0) ) {
-		if( _extrpl[2*a+1] == FIELD_MIRROR ) {
-		    sign[a] *= -1.0;
-		    X[a]     = 2.0*_g.max(a) - X[a];
-		} else if( _extrpl[2*a+1] == FIELD_ZERO ) {
-		    // return zero
-		    return( E );
-		}
-	    }
-	}
-	
-	int32_t i = (int32_t)floor( (X[0]-_g.origo(0))*inv_h + 0.5 );
-	int32_t j = (int32_t)floor( (X[1]-_g.origo(1))*inv_h + 0.5 );
-	int32_t k = (int32_t)floor( (X[2]-_g.origo(2))*inv_h + 0.5 );
+	/*
+	if( !_F[0] || !_F[1] || !_F[2] )
+	    return( 0.0 );
 
-	if( i < 1 )
-	    i = 1;
-	else if( i >= (int32_t)_g.size(0)-1 )
-	    i = _g.size(0)-2;
-	if( j < 1 )
-	    j = 1;
-	else if( j >= (int32_t)_g.size(1)-1 )
-	    j = _g.size(1)-2;
-	if( k < 1 )
-	    k = 1;
-	else if( k >= (int32_t)_g.size(2)-1 )
-	    k = _g.size(2)-2;
+	int32_t i = (int32_t)floor( (x[0]-_origo[0])*_div_h );
+	int32_t j = (int32_t)floor( (x[1]-_origo[1])*_div_h );
+	int32_t k = (int32_t)floor( (x[2]-_origo[2])*_div_h );
+	if( i < 0 )
+	    i = 0;
+	else if( i >= _size[0]-1 )
+	    i = _size[0]-2;
+	if( j < 0 )
+	    j = 0;
+	else if( j >= _size[1]-1 )
+	    j = _size[1]-2;
+	if( k < 0 )
+	    k = 0;
+	else if( k >= _size[2]-1 )
+	    k = _size[2]-2;
 
-	if( _g.mesh(i,j,k) > 0 )
-	    // Inside solid, return zero
-	    return( E );
-	else if( _g.mesh(i,j,k) < 0 ) {
-	    // At solid edge, search free direction
-	    // On face
-	    if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) == 0 && 
-		_g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) != 0 &&
-		_g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) != 0 )
-		i--;
-	    else if( _g.mesh(i+1,j,k) == 0 && _g.mesh(i-1,j,k) != 0 && 
-		     _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) != 0 &&
-		     _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) != 0 )
-		i++;
-	    else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) != 0 && 
-		     _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) == 0 &&
-		     _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) != 0 )
-		j--;
-	    else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) != 0 && 
-		     _g.mesh(i,j+1,k) == 0 && _g.mesh(i,j-1,k) != 0 &&
-		     _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) != 0 )
-		j++;
-	    else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) != 0 && 
-		     _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) != 0 &&
-		     _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) == 0 )
-		k--;
-	    else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) != 0 && 
-		     _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) != 0 &&
-		     _g.mesh(i,j,k+1) == 0 && _g.mesh(i,j,k-1) != 0 )
-		k++;
-	    // On edge
-	    else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) == 0 && 
-		     _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) == 0 && 
-		     _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) != 0 &&
-		     _g.mesh(i-1,j-1,k) == 0 ) {
-		i--; j--;
-	    } else if( _g.mesh(i+1,j,k) == 0 && _g.mesh(i-1,j,k) != 0 && 
-		       _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) == 0 && 
-		       _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) != 0 &&
-		       _g.mesh(i+1,j-1,k) == 0 ) {
-		i++; j--;
-	    } else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) == 0 && 
-		       _g.mesh(i,j+1,k) == 0 && _g.mesh(i,j-1,k) != 0 && 
-		       _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) != 0 &&
-		       _g.mesh(i-1,j+1,k) == 0 ) {
-		i--; j++;
-	    } else if( _g.mesh(i+1,j,k) == 0 && _g.mesh(i-1,j,k) != 0 && 
-		       _g.mesh(i,j+1,k) == 0 && _g.mesh(i,j-1,k) != 0 && 
-		       _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) != 0 &&
-		       _g.mesh(i+1,j+1,k) == 0 ) {
-		i++; j++;
-	    } else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) == 0 && 
-		       _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) != 0 && 
-		       _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) == 0 &&
-		       _g.mesh(i-1,j,k-1) == 0 ) {
-		i--; k--;
-	    } else if( _g.mesh(i+1,j,k) == 0 && _g.mesh(i-1,j,k) != 0 && 
-		       _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) != 0 && 
-		       _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) == 0 &&
-		       _g.mesh(i+1,j,k-1) == 0 ) {
-		i++; k--;
-	    } else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) == 0 && 
-		       _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) != 0 && 
-		       _g.mesh(i,j,k+1) == 0 && _g.mesh(i,j,k-1) != 0 &&
-		       _g.mesh(i-1,j,k+1) == 0 ) {
-		i--; k++;
-	    } else if( _g.mesh(i+1,j,k) == 0 && _g.mesh(i-1,j,k) != 0 && 
-		       _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) != 0 && 
-		       _g.mesh(i,j,k+1) == 0 && _g.mesh(i,j,k-1) != 0 &&
-		       _g.mesh(i+1,j,k+1) == 0 ) {
-		i++; k++;
-	    } else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) != 0 && 
-		       _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) == 0 && 
-		       _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) == 0 &&
-		       _g.mesh(i,j-1,k-1) == 0 ) {
-		j--; k--;
-	    } else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) != 0 && 
-		       _g.mesh(i,j+1,k) == 0 && _g.mesh(i,j-1,k) != 0 && 
-		       _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) == 0 &&
-		       _g.mesh(i,j+1,k-1) == 0 ) {
-		j++; k--;
-	    } else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) != 0 && 
-		       _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) == 0 && 
-		       _g.mesh(i,j,k+1) == 0 && _g.mesh(i,j,k-1) != 0 &&
-		       _g.mesh(i,j-1,k+1) == 0 ) {
-		j--; k++;
-	    } else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) != 0 && 
-		       _g.mesh(i,j+1,k) == 0 && _g.mesh(i,j-1,k) != 0 && 
-		       _g.mesh(i,j,k+1) == 0 && _g.mesh(i,j,k-1) != 0 &&
-		       _g.mesh(i,j+1,k+1) == 0 ) {
-		j++; k++;
-	    }
-	    // On corner
-	    else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) == 0 && 
-		     _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) == 0 && 
-		     _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) == 0 &&
-		     _g.mesh(i-1,j-1,k-1) == 0 ) {
-		i--; j--; k--;
-	    } else if( _g.mesh(i+1,j,k) == 0 && _g.mesh(i-1,j,k) != 0 && 
-		       _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) == 0 && 
-		       _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) == 0 &&
-		       _g.mesh(i+1,j-1,k-1) == 0 ) {
-		i++; j--; k--;
-	    } else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) == 0 && 
-		       _g.mesh(i,j+1,k) == 0 && _g.mesh(i,j-1,k) != 0 && 
-		       _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) == 0 &&
-		       _g.mesh(i-1,j+1,k-1) == 0 ) {
-		i--; j++; k--;
-	    } else if( _g.mesh(i+1,j,k) == 0 && _g.mesh(i-1,j,k) != 0 && 
-		       _g.mesh(i,j+1,k) == 0 && _g.mesh(i,j-1,k) != 0 && 
-		       _g.mesh(i,j,k+1) != 0 && _g.mesh(i,j,k-1) == 0 &&
-		       _g.mesh(i+1,j+1,k-1) == 0 ) {
-		i++; j++; k--;
-	    } else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) == 0 && 
-		       _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) == 0 && 
-		       _g.mesh(i,j,k+1) == 0 && _g.mesh(i,j,k-1) != 0 &&
-		       _g.mesh(i-1,j-1,k+1) == 0 ) {
-		i--; j--; k++;
-	    } else if( _g.mesh(i+1,j,k) == 0 && _g.mesh(i-1,j,k) != 0 && 
-		       _g.mesh(i,j+1,k) != 0 && _g.mesh(i,j-1,k) == 0 && 
-		       _g.mesh(i,j,k+1) == 0 && _g.mesh(i,j,k-1) != 0 &&
-		       _g.mesh(i+1,j-1,k+1) == 0 ) {
-		i++; j--; k++;
-	    } else if( _g.mesh(i+1,j,k) != 0 && _g.mesh(i-1,j,k) == 0 && 
-		       _g.mesh(i,j+1,k) == 0 && _g.mesh(i,j-1,k) != 0 && 
-		       _g.mesh(i,j,k+1) == 0 && _g.mesh(i,j,k-1) != 0 &&
-		       _g.mesh(i-1,j+1,k+1) == 0 ) {
-		i--; j++; k++;
-	    } else if( _g.mesh(i+1,j,k) == 0 && _g.mesh(i-1,j,k) != 0 && 
-		       _g.mesh(i,j+1,k) == 0 && _g.mesh(i,j-1,k) != 0 && 
-		       _g.mesh(i,j,k+1) == 0 && _g.mesh(i,j,k-1) != 0 &&
-		       _g.mesh(i+1,j+1,k+1) == 0 ) {
-		i++; j++; k++;
-	    } 
-	}
-	
-	double t = ( X[0]-(i*_g.h()+_g.origo(0)) )*inv_h;
-	double u = ( X[1]-(j*_g.h()+_g.origo(1)) )*inv_h;
-	double v = ( X[2]-(k*_g.h()+_g.origo(2)) )*inv_h;
+	double t = _div_h*( x[0]-(i*_h+_origo[0]) );
+	double u = _div_h*( x[1]-(j*_h+_origo[1]) );
+	double v = _div_h*( x[2]-(k*_h+_origo[2]) );
 
-	E[0] = sign[0]*epot_efield_interpolate_deriv( 
-	    epot_efield_interpolate_2d( _epot( i-1, j-1, k-1 ), 
-					_epot( i-1, j,   k-1 ), 
-					_epot( i-1, j+1, k-1 ),
-					_epot( i-1, j-1, k   ),
-					_epot( i-1, j,   k   ),
-					_epot( i-1, j+1, k   ),
-					_epot( i-1, j-1, k+1 ),
-					_epot( i-1, j,   k+1 ), 
-					_epot( i-1, j+1, k+1 ), u, v ),
-	    epot_efield_interpolate_2d( _epot( i,   j-1, k-1 ), 
-					_epot( i,   j,   k-1 ), 
-					_epot( i,   j+1, k-1 ),
-					_epot( i,   j-1, k   ),
-					_epot( i,   j,   k   ),
-					_epot( i,   j+1, k   ),
-					_epot( i,   j-1, k+1 ),
-					_epot( i,   j,   k+1 ), 
-					_epot( i,   j+1, k+1 ), u, v ),
-	    epot_efield_interpolate_2d( _epot( i+1, j-1, k-1 ), 
-					_epot( i+1, j,   k-1 ), 
-					_epot( i+1, j+1, k-1 ),
-					_epot( i+1, j-1, k   ),
-					_epot( i+1, j,   k   ),
-					_epot( i+1, j+1, k   ),
-					_epot( i+1, j-1, k+1 ),
-					_epot( i+1, j,   k+1 ), 
-					_epot( i+1, j+1, k+1 ), u, v ), t )*inv_h;
-
-	E[1] = sign[1]*epot_efield_interpolate_deriv( 
-	    epot_efield_interpolate_2d( _epot( i-1, j-1, k-1 ), 
-					_epot( i,   j-1, k-1 ), 
-					_epot( i+1, j-1, k-1 ),
-					_epot( i-1, j-1, k   ), 
-					_epot( i,   j-1, k   ), 
-					_epot( i+1, j-1, k   ),
-					_epot( i-1, j-1, k+1 ), 
-					_epot( i,   j-1, k+1 ), 
-					_epot( i+1, j-1, k+1 ), t, v ),
-	    epot_efield_interpolate_2d( _epot( i-1, j,   k-1 ), 
-					_epot( i,   j,   k-1 ), 
-					_epot( i+1, j,   k-1 ),
-					_epot( i-1, j,   k   ), 
-					_epot( i,   j,   k   ), 
-					_epot( i+1, j,   k   ),
-					_epot( i-1, j,   k+1 ), 
-					_epot( i,   j,   k+1 ), 
-					_epot( i+1, j,   k+1 ), t, v ),
-	    epot_efield_interpolate_2d( _epot( i-1, j+1, k-1 ), 
-					_epot( i,   j+1, k-1 ), 
-					_epot( i+1, j+1, k-1 ),
-					_epot( i-1, j+1, k   ), 
-					_epot( i,   j+1, k   ), 
-					_epot( i+1, j+1, k   ),
-					_epot( i-1, j+1, k+1 ), 
-					_epot( i,   j+1, k+1 ), 
-					_epot( i+1, j+1, k+1 ), t, v ), u )*inv_h;
-	
-	E[2] = sign[2]*epot_efield_interpolate_deriv( 
-	    epot_efield_interpolate_2d( _epot( i-1, j-1, k-1 ), 
-					_epot( i,   j-1, k-1 ), 
-					_epot( i+1, j-1, k-1 ),
-					_epot( i-1, j,   k-1 ), 
-					_epot( i,   j,   k-1 ), 
-					_epot( i+1, j,   k-1 ),
-					_epot( i-1, j+1, k-1 ), 
-					_epot( i,   j+1, k-1 ), 
-					_epot( i+1, j+1, k-1 ), t, u ),
-	    epot_efield_interpolate_2d( _epot( i-1, j-1, k   ), 
-					_epot( i,   j-1, k   ), 
-					_epot( i+1, j-1, k   ),
-					_epot( i-1, j,   k   ), 
-					_epot( i,   j,   k   ), 
-					_epot( i+1, j,   k   ),
-					_epot( i-1, j+1, k   ), 
-					_epot( i,   j+1, k   ), 
-					_epot( i+1, j+1, k   ), t, u ),
-	    epot_efield_interpolate_2d( _epot( i-1, j-1, k+1 ), 
-					_epot( i,   j-1, k+1 ), 
-					_epot( i+1, j-1, k+1 ),
-					_epot( i-1, j,   k+1 ), 
-					_epot( i,   j,   k+1 ), 
-					_epot( i+1, j,   k+1 ),
-					_epot( i-1, j+1, k+1 ), 
-					_epot( i,   j+1, k+1 ), 
-					_epot( i+1, j+1, k+1 ), t, u ), v )*inv_h;
+	int32_t b  = _size[0]*_size[1];
+	int32_t ptr = b*k + _size[0]*j + i;
+	return( (1.0-t)*(1.0-u)*(1.0-v)*_F[ptr] +
+		(    t)*(1.0-u)*(1.0-v)*_F[ptr+1] +
+		(1.0-t)*(    u)*(1.0-v)*_F[ptr+_size[0]] +
+		(    t)*(    u)*(1.0-v)*_F[ptr+1+_size[0]] +
+		(1.0-t)*(1.0-u)*(    v)*_F[ptr+b] +
+		(    t)*(1.0-u)*(    v)*_F[ptr+1+b] +
+		(1.0-t)*(    u)*(    v)*_F[ptr+_size[0]+b] +
+		(    t)*(    u)*(    v)*_F[ptr+1+_size[0]+b] );
 	break;
-    }
-    default:
-    {
-	throw( Error( ERROR_LOCATION, "unsupported dimension number" ) );
-	break;
+	*/
     }
     }
-    
-    return( E );
+
+    return( R );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

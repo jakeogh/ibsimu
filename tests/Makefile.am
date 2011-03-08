@@ -67,6 +67,7 @@ vecfield_SOURCES = vecfield.cpp
 vecfield_filedef_SOURCES = vecfield_filedef.cpp
 vecfield_rotate_SOURCES = vecfield_rotate.cpp
 vlasov2d_SOURCES = vlasov2d.cpp
+vlasovcyl_SOURCES = vlasovcyl.cpp
 
 if UMFPACK
 umfpack_solver_SOURCES = umfpack_solver.cpp
@@ -145,7 +146,8 @@ trajdiaghisto \
 vecfield \
 vecfield_filedef \
 vecfield_rotate \
-vlasov2d
+vlasov2d \
+vlasovcyl
 
 if UMFPACK
 check_PROGRAMS += umfpack_solver

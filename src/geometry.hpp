@@ -357,9 +357,9 @@ public:
      *  zmin, zmax. The next bytes contain the parametric distances of
      *  the solid surfaces from the node in each direction. Only the
      *  directions with set bit flag are saved to data. The distances
-     *  are saved in the same order as the flags. The distance
-     *  information is an unsigned 8-bit integer (0 to 255), where 0
-     *  means distance 0.0 and 255 means 1.0.
+     *  are saved in the same order as the flags (from xmin to
+     *  zmax). The distance information is an unsigned 8-bit integer
+     *  (0 to 255), where 0 means distance 0.0 and 255 means 1.0.
      */
     /*
     const uint8_t *nearsolid_ptr( int32_t i, int32_t j, int32_t k ) const {
@@ -375,9 +375,9 @@ public:
      *
      *  Returns the distance (0 to 255) of near solid into direction
      *  \a dir from near solid point at (\a i, \a j, \a k). The
-     *  direction \a dir is an integer from 0 to 5, with 0 meaning +x,
-     *  1 meaning -x, 2 meaning +y, 3 meaning -y, 4 meaning +z and 5
-     *  meaning -z. If the node at (\a i, \a j, \a k) is not a near
+     *  direction \a dir is an integer from 0 to 5, with 0 meaning -x,
+     *  1 meaning +x, 2 meaning -y, 3 meaning +y, 4 meaning -z and 5
+     *  meaning +z. If the node at (\a i, \a j, \a k) is not a near
      *  solid node or if there is no solid nearby in the direction an
      *  error will be thrown.
      */

@@ -69,11 +69,13 @@
  */
 class MeshScalarField : public ScalarField, public Mesh {
 
-    double     *_F;         /*!< \brief Scalar field data */
-
     /*! \brief Check mesh definition validity.
      */
     void check_definition();
+
+protected:
+
+    double     *_F;         /*!< \brief Scalar field data */
 
 public:
 
@@ -111,7 +113,7 @@ public:
 
     /*! \brief Destructor.
      */
-    ~MeshScalarField();
+    virtual ~MeshScalarField();
 
     /*! \brief Clears the field.
      */

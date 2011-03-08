@@ -763,28 +763,37 @@ void GTKWindow::menuitem_quit_signal( GtkMenuItem *menuitem,
 
 void GTKWindow::menuitem_tool_change( GtkToolButton *button )
 {
+    //std::cout << "GTKWindow: ";
+
     int tool;
     const char *label = gtk_tool_button_get_label( button );
-    if( !strcmp( label, "Zoom in" ) ) 
+    if( !strcmp( label, "Zoom in" ) ) {
+	//std::cout << "TOOL_ZOOM_IN ";
 	tool = TOOL_ZOOM_IN;
-    else if( !strcmp( label, "Zoom out" ) ) 
+    } else if( !strcmp( label, "Zoom out" ) ) {
+	//std::cout << "TOOL_ZOOM_OUT ";
 	tool = TOOL_ZOOM_OUT;
-    else if( !strcmp( label, "Move" ) ) 
+    } else if( !strcmp( label, "Move" ) ) {
+	//std::cout << "TOOL_MOVE ";
 	tool = TOOL_MOVE;
-    else if( !strcmp( label, "Track" ) )
+    } else if( !strcmp( label, "Track" ) ) {
+	//std::cout << "TOOL_TRACK ";
 	tool = TOOL_TRACK;
-    else {
+    } else {
+	//std::cout << "TOOL_UNKNOWN\n";
 	tool = TOOL_UNKNOWN;
 	return;
     }
 
     if( !gtk_toggle_tool_button_get_active( GTK_TOGGLE_TOOL_BUTTON(button) ) ) {
 	// Disable tool
+	//std::cout << "disable\n";
 	if( tool == TOOL_TRACK )
 	    track( 4, 0, 0 );
 	_tool = TOOL_UNKNOWN;
     } else {
 	// Enable tool
+	//std::cout << "enable\n";
 	_tool = tool;
 	if( tool == TOOL_TRACK )
 	    track( 3, 0, 0 );

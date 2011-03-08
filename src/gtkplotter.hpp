@@ -51,6 +51,8 @@
 
 #include "geometry.hpp"
 #include "scalarfield.hpp"
+#include "epot_field.hpp"
+#include "epot_efield.hpp"
 #include "vectorfield.hpp"
 #include "particledatabase.hpp"
 #include "particlediagplot.hpp"
@@ -70,10 +72,10 @@ class GTKPlotter {
     std::list<class GTKWindow *>  _windows;
     
     const Geometry         *_geom;
-    const MeshScalarField      *_epot;
-    const MeshScalarField      *_scharge;
-    const MeshScalarField      *_tdens;
-    const VectorField      *_efield;
+    const EpotField        *_epot;
+    const EpotEfield       *_efield;
+    const MeshScalarField  *_scharge;
+    const MeshScalarField  *_tdens;
     const VectorField      *_bfield;
     const ParticleDataBase *_pdb;
 
@@ -86,16 +88,16 @@ public:
     void run();
 
     const Geometry *get_geometry( void ) const;
-    const MeshScalarField *get_epot( void ) const;
-    const VectorField *get_efield( void ) const;
+    const EpotField *get_epot( void ) const;
+    const EpotEfield *get_efield( void ) const;
     const MeshScalarField *get_scharge( void ) const;
     const MeshScalarField *get_trajdens( void ) const;
     const VectorField *get_bfield( void ) const;
     const ParticleDataBase *get_particledatabase( void ) const;
 
     void set_geometry( const Geometry *geom );
-    void set_epot( const MeshScalarField *epot );
-    void set_efield( const VectorField *efield );
+    void set_epot( const EpotField *epot );
+    void set_efield( const EpotEfield *efield );
     void set_scharge( const MeshScalarField *scharge );
     void set_trajdens( const MeshScalarField *tdens );
     void set_bfield( const VectorField *bfield );

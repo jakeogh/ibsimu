@@ -48,6 +48,9 @@
 
 #include "gtkwindow.hpp"
 #include "geomplot.hpp"
+#include "meshscalarfield.hpp"
+#include "epot_field.hpp"
+#include "epot_efield.hpp"
 #include "vectorfield.hpp"
 
 
@@ -59,9 +62,10 @@ class GTKGeomWindow : public GTKWindow {
     GeomPlot                 _geomplot;
 
     const Geometry          *_geom;
-    const MeshScalarField       *_epot;
-    const MeshScalarField       *_scharge;
-    const MeshScalarField       *_tdens;
+    const EpotField         *_epot;
+    const EpotEfield        *_efield;
+    const MeshScalarField   *_scharge;
+    const MeshScalarField   *_tdens;
     const VectorField       *_bfield;
     const ParticleDataBase  *_pdb;
 
@@ -107,7 +111,8 @@ public:
     
     GTKGeomWindow( class GTKPlotter *plotter,
 		   const Geometry *geom,
-		   const MeshScalarField *epot,
+		   const EpotField *epot,
+		   const EpotEfield *efield,
 		   const MeshScalarField *scharge,
 		   const MeshScalarField *tdens,
 		   const VectorField *bfield,

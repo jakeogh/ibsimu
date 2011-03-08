@@ -55,13 +55,15 @@
 
 GTKGeomWindow::GTKGeomWindow( class GTKPlotter       *plotter, 
 			      const Geometry         *geom,
-			      const MeshScalarField      *epot,
-			      const MeshScalarField      *scharge,
-			      const MeshScalarField      *tdens,
+			      const EpotField        *epot,
+			      const EpotEfield       *efield,
+			      const MeshScalarField  *scharge,
+			      const MeshScalarField  *tdens,
 			      const VectorField      *bfield,
 			      const ParticleDataBase *pdb )
-    : GTKWindow(plotter), _geomplot(&_frame,geom),
-      _geom(geom), _epot(epot), _scharge(scharge), _tdens(tdens), _bfield(bfield), _pdb(pdb)
+    : GTKWindow(plotter), _geomplot(&_frame,geom), _geom(geom), _epot(epot), 
+      _efield(efield), _scharge(scharge), _tdens(tdens), _bfield(bfield), _pdb(pdb),
+      _tool(TOOL_UNKNOWN)
 {
     //std::cout << "GTKGeomWindow constructor\n";
 
@@ -405,11 +407,10 @@ std::string GTKGeomWindow::track_text( double x, double y )
 	ss << "dirichlet\n";
 
     ss << "solid = " << _geom->inside( loc ) << "\n";
-    if( _epot ) {
+    if( _epot )
 	ss << "epot = " << (*_epot)( loc ) << "\n";
-	EpotEfield efield( *_geom, *_epot );
-	ss << "efield = " << efield( loc ) << "\n";
-    }
+    if( _efield )
+	ss << "efield = " << (*_efield)( loc ) << "\n";
     if( _bfield )
 	ss << "bfield = " << (*_bfield)( loc ) << "\n";
     if( _scharge )
@@ -725,22 +726,29 @@ void GTKGeomWindow::spinbutton( GtkSpinButton *spinbutton )
 
 void GTKGeomWindow::menuitem_tool_change( GtkToolButton *button )
 {
+    //std::cout << "GTKGeomWindow: ";
+    
     int tool;
     const char *label = gtk_tool_button_get_label( button );
-    if( !strcmp( label, "Particle diagnostics" ) ) 
+    if( !strcmp( label, "Particle diagnostics" ) ) {
+	//std::cout << "TOOL_PARTICLE_DIAG ";
 	tool = TOOL_PARTICLE_DIAG;
-    else if( !strcmp( label, "Field diagnostics" ) ) 
+    } else if( !strcmp( label, "Field diagnostics" ) ) {
+	//std::cout << "TOOL_FIELD_DIAG ";
 	tool = TOOL_FIELD_DIAG;
-    else {
+    } else {
+	//std::cout << "TOOL_UNKNOWN\n";
 	tool = TOOL_UNKNOWN;
 	return;
     }
 
     if( !gtk_toggle_tool_button_get_active( GTK_TOGGLE_TOOL_BUTTON(button) ) ) {
 	// Disable tool
+	//std::cout << "disable\n";
 	_tool = TOOL_UNKNOWN;
     } else {
 	// Enable tool
+	//std::cout << "enable\n";
 	_tool = tool;
     }
 }

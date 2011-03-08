@@ -280,7 +280,6 @@ double MeshScalarField::operator()( const Vec3D &x ) const
 	break;
     }
     }
-
 }
 
 

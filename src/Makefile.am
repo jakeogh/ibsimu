@@ -34,6 +34,8 @@ diag_precond.hpp \
 dxf_solid.cpp \
 dxf_solid.hpp \
 empty_precond.hpp \
+epot_field.cpp \
+epot_field.hpp \
 epot_efield.cpp \
 epot_efield.hpp \
 epot_gssolver.cpp \

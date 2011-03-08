@@ -37,6 +37,7 @@
 #include "epot_gssolver.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
+#include "epot_field.hpp"
 #include "epot_efield.hpp"
 #include "gtkplotter.hpp"
 #include "error.hpp"
@@ -90,9 +91,8 @@ void test( int argc, char **argv )
     geom.debug_print( std::cout );
 
     EpotGSSolver solver( geom );
-    MeshScalarField epot( geom );
+    EpotField epot( geom );
     MeshScalarField scharge( geom );
-
     solver.solve( epot, scharge );
 
     bool err = false;
