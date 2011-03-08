@@ -9,14 +9,13 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
-#include "bicgstab_solver.hpp"
-#include "epot_problem.hpp"
+#include "epot_gssolver.hpp"
 #include "particledatabase.hpp"
 #include "geometry.hpp"
 #include "convergence.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
-#include "vectorfield.hpp"
+#include "meshvectorfield.hpp"
 #include "meshvectorfield.hpp"
 #include "ibsimu.hpp"
 #include "error.hpp"
@@ -41,16 +40,12 @@ bool solid2( double x, double y, double z )
 }
 
 
-bool init_plasma( double x, double y, double z )
-{
-    return( x < 0.00055 );
-}
-
-
 void test( int argc, char **argv )
 {
     // 12x7 mm geometry with 0.05 mm mesh size
-    Geometry geom( MODE_CYL, Int3D(241,141,1), Vec3D(0,0,0), 0.00005 );
+    //Geometry geom( MODE_CYL, Int3D(241,141,1), Vec3D(0,0,0), 0.00005 );
+    Geometry geom( MODE_CYL, Int3D(121,71,1), Vec3D(0,0,0), 0.0001 );
+
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
@@ -63,19 +58,15 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, -8.0e3) );
     geom.build_mesh();
 
-    EpotProblem p;
-    p.set_initial_plasma( 5.0, init_plasma );
-    p.construct( geom );
+    
+    EpotGSSolver solver( geom );
+    InitialPlasma initp( AXIS_X, 0.0006 );
+    solver.set_initial_plasma( 5.0, &initp );
 
-    ScalarField epot( geom );
-    ScalarField scharge( geom );
-    ScalarField scharge_ave( geom );
-
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-
+    EpotField epot( geom );
+    MeshScalarField scharge( geom );
     MeshVectorField bfield;
-    EpotEfield efield( geom, epot );
+    EpotEfield efield( epot );
     field_extrpl_e efldextrpl[6] = { FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE, 
 				     FIELD_MIRROR,      FIELD_EXTRAPOLATE,
 				     FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE };
@@ -88,18 +79,20 @@ void test( int argc, char **argv )
 
     Convergence conv;
     conv.add_epot( epot, 1, 1, 1.0e-6 );
-    conv.add_scharge( scharge_ave, 1, 1, 1.0e-6 );
+    conv.add_scharge( scharge, 1, 1, 1.0e-6 );
     conv.add_tdiag( pdb, AXIS_X, 11.9e-3, 1, 1, 1.0e-6 );
 
     for( size_t i = 0; i < 8; i++ ) {
 
+	/*
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
 	    p.set_pexp_plasma( -rhoe, 5.0, 5.0 );
 	    p.construct( geom );
 	}
+	*/
 
-	p.solve( epot, scharge_ave );
+	solver.solve( epot, scharge );
 
 	pdb.clear();
 	pdb.add_2d_beam_with_energy( 5000, 600.0, 1.0, 1.0, 
@@ -108,21 +101,11 @@ void test( int argc, char **argv )
 				     0.0, 0.0015 );
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
-	if( i == 0 ) {
-            scharge_ave = scharge;
-        } else {
-            double coef = 0.3;
-            scharge *= coef;
-            scharge_ave += scharge;
-            scharge_ave *= (1.0/(1.0+coef));
-        }
-
 	conv.evaluate_iteration();
 
-	/*
-	ScalarField tdens( geom );
+	MeshScalarField tdens( geom );
 	pdb.build_trajectory_density_field( tdens );
-	GTKPlotter plotter( argc, argv );
+	GTKPlotter plotter( &argc, &argv );
 	plotter.set_geometry( &geom );
 	plotter.set_epot( &epot );
 	plotter.set_trajdens( &tdens );
@@ -130,14 +113,13 @@ void test( int argc, char **argv )
 	plotter.set_particledatabase( &pdb );
 	plotter.new_geometry_plot_window();
 	plotter.run();
-	*/
     }
 
     ofstream ofconv( "plasmacyl_conv.dat" );
     conv.print_history( ofconv );
     ofconv.close();
 
-    ScalarField tdens( geom );
+    MeshScalarField tdens( geom );
     pdb.build_trajectory_density_field( tdens );
 
     GeomPlotter gplotter( &geom );

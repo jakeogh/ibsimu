@@ -256,6 +256,13 @@ double EpotGSSolver::gs_process_near_solid_cyl( const uint8_t *nearsolid_ptr,
 
 double EpotGSSolver::gs_process_pure_vacuum_cyl( uint32_t i, uint32_t j ) const
 {
+    if( _plasma == PLASMA_PEXP )
+	return( (1.0/4.0) * ( (*_epot)(i+1,j) + (*_epot)(i-1,j)
+			      + (1.0+0.5/j)*(*_epot)(i,j+1)
+			      + (1.0-0.5/j)*(*_epot)(i,j-1) 
+			      - (*_rhs)(i,j) 
+			      - _plA*exp( _plB*(*_epot)(i,j) - _plC ) ) );
+ 
     return( (1.0/4.0) * ( (*_epot)(i+1,j) + (*_epot)(i-1,j)
 			  + (1.0+0.5/j)*(*_epot)(i,j+1)
 			  + (1.0-0.5/j)*(*_epot)(i,j-1) 
@@ -276,7 +283,11 @@ double EpotGSSolver::gs_process_neumann_cyl( uint32_t boundary, uint32_t a, uint
 	break;
     case 3:
 	// Special axis condition: (phi_{i-1,0} + phi_{i+1,j} + 4phi_{i,j+1} - 6phi_{i,j}) = rhs
-	return( (1.0/6.0) * ( (*_epot)(a-1) + (*_epot)(a+1) + 4.0*(*_epot)(a+dj) - (*_rhs)(a) ) );
+	if( _plasma == PLASMA_PEXP )
+	    return( (1.0/6.0) * ( (*_epot)(a-1) + (*_epot)(a+1) + 4.0*(*_epot)(a+dj) -
+				  (*_rhs)(a) ) - _plA*exp( _plB*(*_epot)(a) - _plC ) );
+	else
+	    return( (1.0/6.0) * ( (*_epot)(a-1) + (*_epot)(a+1) + 4.0*(*_epot)(a+dj) - (*_rhs)(a) ) );
 	break;
     case 4:
 	// (phi_j-1 - phi_j) / h = q_0
@@ -561,6 +572,13 @@ double EpotGSSolver::gs_loop_1d( void ) const
 
 void EpotGSSolver::preprocess( const MeshScalarField &scharge )
 {
+    // Calculate plasma parameters. Calculation done as rhs + A*exp(B*x-C)
+    if( _plasma == PLASMA_PEXP ) {
+	_plA = _rhoe*_geom.h()*_geom.h()/EPSILON0;
+	_plB = 1.0/_Te;
+	_plC = _Up/_Te;
+    }
+
     // Build right-hand-side
     if( _rhs )
 	delete _rhs;
@@ -655,7 +673,9 @@ void EpotGSSolver::preprocess( const MeshScalarField &scharge )
 			_geom.mesh(i,j,k) |= SMESH_NODE_FIXED;
 			(*_epot)(i,j,k) = _force_pot;
 
-		    } else if ( _init_plasma_func && (*_init_plasma_func)(Vec3D(x,y,z)) ) {
+		    } else if( (_plasma == PLASMA_PEXP_INITIAL ||
+				_plasma == PLASMA_NSIMP_INITIAL) && 
+			       _init_plasma_func && (*_init_plasma_func)(Vec3D(x,y,z)) ) {
 
 			// Mark as fixed vacuum
 			_geom.mesh(i,j,k) |= SMESH_NODE_FIXED;

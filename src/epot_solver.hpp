@@ -52,6 +52,53 @@
 #include "geometry.hpp"
 
 
+class InitialPlasma : public CallbackFunctorB_V {
+
+    coordinate_axis_e _axis;
+    double            _val;
+
+public:
+
+    /*! \brief Constructor setting initial plasma.
+     *
+     *  Initial plasma exists at coordinates less than \a val in \a
+     *  axis direction.
+     */
+    InitialPlasma( coordinate_axis_e axis, double val ) 
+        : _axis(axis), _val(val) {}
+
+    /*! \brief Destructor.
+     */
+    ~InitialPlasma() {}
+
+    /*! \brief Suppression function.
+     */
+    virtual bool operator()( const Vec3D &x ) const {
+	switch( _axis ) {
+	case AXIS_X:
+	    if( x[0] < _val )
+		return( true );
+	    else 
+		return( false );
+	    break;
+	case AXIS_Y:
+	case AXIS_R:
+	    if( x[1] < _val )
+		return( true );
+	    else 
+		return( false );
+	    break;
+	case AXIS_Z:
+	    if( x[2] < _val )
+		return( true );
+	    else 
+		return( false );
+	    break;
+	}
+    }
+};
+
+
 /*! \brief Plasma modes
  *
  *  Selection of modes for plasma calculation in electric potential

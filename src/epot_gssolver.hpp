@@ -60,6 +60,10 @@ class EpotGSSolver : public EpotSolver {
 
     std::vector<uint32_t> _nsind;     /*!< \brief Stored near solid indexes for Neumann conversion nodes. */
 
+    double           _plA;            /*!< \brief Plasma parameter A. */
+    double           _plB;            /*!< \brief Plasma parameter B. */
+    double           _plC;            /*!< \brief Plasma parameter C. */
+
     double gs_loop_3d( void ) const;
     double gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, 
 				     uint32_t a, uint32_t dj, uint32_t dk ) const;
