@@ -1,7 +1,7 @@
-/*! \file plasma2d.cpp
- *  \brief Test with a plasma in 2d electrode configuration.
+/*! \file plasma3d.cpp
+ *  \brief Test with a plasma in 3d electrode configuration.
  *
- *  \test Test with a plasma in 2d electrode configuration.
+ *  \test Test with a plasma in 3d electrode configuration.
  */
 
 
@@ -29,22 +29,22 @@ using namespace std;
 
 bool solid1( double x, double y, double z )
 {
-    return( x <= 0.00187 && y >= 0.00054 && y >= 2.28*x - 0.0010 &&
-	    (x >= 0.00054 || y >= 0.0015) );
+    double r = sqrt(y*y+z*z);
+    return( x <= 0.00187 && r >= 0.00054 && r >= 2.28*x - 0.0010 &&
+	    (r >= 0.00054 || r >= 0.0015) );
 }
 
 
 bool solid2( double x, double y, double z )
 {
-    return( x >= 0.0095 && y >= 0.0023333 && y >= 0.01283 - x );
+    double r = sqrt(y*y+z*z);
+    return( x >= 0.0095 && r >= 0.0023333 && r >= 0.01283 - x );
 }
 
 
 void test( int argc, char **argv )
 {
-    // 12x7 mm geometry with 0.05 mm mesh size
-    //Geometry geom( MODE_2D, Int3D(241,141,1), Vec3D(0,0,0), 0.00005 );
-    Geometry geom( MODE_2D, Int3D(121,71,1), Vec3D(0,0,0), 0.0001 );
+    Geometry geom( MODE_3D, Int3D(121,141,141), Vec3D(0,-7e-3,-7e-3), 0.0001 );
 
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
@@ -54,10 +54,12 @@ void test( int argc, char **argv )
     geom.set_boundary( 2, Bound(BOUND_DIRICHLET, -8.0e3) );
     geom.set_boundary( 3, Bound(BOUND_NEUMANN,    0.0) );
     geom.set_boundary( 4, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 5, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 6, Bound(BOUND_NEUMANN,    0.0) );
     geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0)  );
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, -8.0e3) );
     geom.build_mesh();
-    
+
     EpotGSSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_initial_plasma( 5.0, &initp );
@@ -67,11 +69,11 @@ void test( int argc, char **argv )
     MeshVectorField bfield;
     EpotEfield efield( epot );
     field_extrpl_e efldextrpl[6] = { FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE, 
-				     FIELD_MIRROR,      FIELD_EXTRAPOLATE,
+				     FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE,
 				     FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE };
     efield.set_extrapolation( efldextrpl );
 
-    ParticleDataBase2D pdb;
+    ParticleDataBase3D pdb;
     bool pmirror[6] = { false, false, true, false, false, false };
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
@@ -94,10 +96,11 @@ void test( int argc, char **argv )
 	efield.recalculate();
 
 	pdb.clear();
-	pdb.add_2d_beam_with_energy( 5000, 600.0, 1.0, 1.0, 
-				     5.0, 0.0, 0.5, 
-				     0.0, 0.0, 
-				     0.0, 0.0015 );
+	pdb.add_cylindrical_beam_with_energy( 50000, 600.0, 1.0, 1.0, 
+					      5.0, 0.0, 0.5, 
+					      Vec3D(0,0,0),
+					      Vec3D(0,1,0),
+					      Vec3D(0,0,1), 0.0015 );
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
 	conv.evaluate_iteration();
@@ -115,7 +118,7 @@ void test( int argc, char **argv )
 	plotter.run();
     }
 
-    ofstream ofconv( "plasma2d_conv.dat" );
+    ofstream ofconv( "plasma3d_conv.dat" );
     conv.print_history( ofconv );
     ofconv.close();
 
@@ -136,6 +139,6 @@ void test( int argc, char **argv )
     gplotter.set_particle_div( 0 );
     gplotter.set_trajdens( &tdens );
     gplotter.set_fieldgraph_plot( FIELD_TRAJDENS );
-    gplotter.plot_png( "plasma2d.png" );
+    gplotter.plot_png( "plasma3d.png" );
 }
 

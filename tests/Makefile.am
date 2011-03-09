@@ -42,6 +42,7 @@ particles_edip_SOURCES = particles_edip.cpp
 particles_mirror_SOURCES = particles_mirror.cpp
 particles_trajectory_SOURCES = particles_trajectory.cpp
 plasma2d_SOURCES = plasma2d.cpp
+plasma3d_SOURCES = plasma3d.cpp
 plasmacyl_SOURCES = plasmacyl.cpp
 qrandom_SOURCES = qrandom.cpp
 quadrupole_SOURCES = quadrupole.cpp
@@ -122,6 +123,7 @@ particles_edip \
 particles_mirror \
 particles_trajectory \
 plasma2d \
+plasma3d \
 plasmacyl \
 qrandom \
 quadrupole \

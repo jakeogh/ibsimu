@@ -61,12 +61,6 @@ EpotSolver::EpotSolver( Geometry &geom )
 }
 
 
-void EpotSolver::clear_problem( void )
-{
-
-}
-
-
 /* ************************************** *
  * EpotSolver constructing               *
  * ************************************** */
@@ -77,14 +71,14 @@ void EpotSolver::set_neumann_order( uint32_t order )
     if( order < 1 || order > 2 )
 	throw( Error( ERROR_LOCATION, "illegal neumann order" ) );
     _neumann_order = order;
-    clear_problem();
+    reset_problem();
 }
 
 
 void EpotSolver::set_smooth_solids( bool enable )
 {
     _smooth_solid = enable;
-    clear_problem();
+    reset_problem();
 }
 
 
@@ -104,7 +98,7 @@ void EpotSolver::set_initial_plasma( double Up,
     if( !init_plasma_func )
 	throw( Error( ERROR_LOCATION, "NULL initial plasma function" ) );
     _init_plasma_func = init_plasma_func;
-    clear_problem();
+    reset_problem();
 }
 
 
@@ -114,7 +108,7 @@ void EpotSolver::set_pexp_plasma( double rhoe, double Te, double Up )
     _rhoe       = -fabs(rhoe); // Ensure correct sign of charge density
     _Te         = Te;
     _Up         = Up;
-    clear_problem();
+    reset_problem();
 }
 
 
@@ -126,7 +120,7 @@ void EpotSolver::set_nsimp_initial_plasma( CallbackFunctorB_V *init_plasma_func 
     if( !init_plasma_func )
 	throw( Error( ERROR_LOCATION, "NULL initial plasma function" ) );
     _init_plasma_func = init_plasma_func;
-    clear_problem();
+    reset_problem();
 }
 
 
@@ -146,7 +140,7 @@ void EpotSolver::set_nsimp_plasma( double rhop, double Ep,
 	_Ei.push_back( Ei[a] );
     }
 
-    clear_problem();
+    reset_problem();
 }
 
 
@@ -1046,7 +1040,7 @@ void EpotSolver::construct( void )
     }
 
     // Delete old problem formulation
-    clear_problem();
+    reset_problem();
 
     // Build n2d array and calculate degrees of freedom
     _n2d.resize( _g->size() );

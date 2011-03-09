@@ -21,6 +21,12 @@ EpotGSSolver::EpotGSSolver( Geometry &geom, std::istream &s )
 }
 
 
+void EpotGSSolver::reset_problem( void )
+{
+    // Do nothing
+}
+
+
 void EpotGSSolver::set_eps( double eps )
 {
     _eps = eps;
@@ -108,6 +114,11 @@ double EpotGSSolver::gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, uin
     cof += 2.0/(alpha*beta);
     epf += 2.0/(alpha+beta)*( (*_epot)(a-dk)/alpha + (*_epot)(a+dk)/beta );
 
+    if( _plasma == PLASMA_PEXP ) {
+	double p = (*_epot)(a);
+	double t = _plA*exp( _plB*p - _plC );
+	return( p + ( epf - cof*p - (*_rhs)(a) - t ) / ( cof + _plB*t ) );
+    }
 
     return( (1.0/cof) * ( epf - (*_rhs)(a) ) );
 }
@@ -115,6 +126,15 @@ double EpotGSSolver::gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, uin
 
 double EpotGSSolver::gs_process_pure_vacuum_3d( uint32_t a, uint32_t dj, uint32_t dk ) const
 {
+    if( _plasma == PLASMA_PEXP ) {
+	double p = (*_epot)(a);
+	double t = _plA*exp( _plB*p - _plC );
+	return( p + ( (*_epot)(a+1) + (*_epot)(a-1) 
+		      + (*_epot)(a+dj) + (*_epot)(a-dj) 
+		      + (*_epot)(a+dk) + (*_epot)(a-dk) - 6.0*p
+		      - (*_rhs)(a) - t ) / ( 6.0 + _plB*t ) );
+    }
+
     return( (1.0/6.0) * ( (*_epot)(a+1)  + (*_epot)(a-1) +
 			  (*_epot)(a+dj) + (*_epot)(a-dj) + 
 			  (*_epot)(a+dk) + (*_epot)(a-dk) - (*_rhs)(a) ) );
@@ -250,18 +270,26 @@ double EpotGSSolver::gs_process_near_solid_cyl( const uint8_t *nearsolid_ptr,
     cof += 2.0/(alpha*beta);
     epf += 2.0/(alpha+beta)*( (*_epot)(i,j-1)/alpha + (*_epot)(i,j+1)/beta );
 
+    if( _plasma == PLASMA_PEXP ) {
+	double p = (*_epot)(i,j);
+	double t = _plA*exp( _plB*p - _plC );
+	return( p + ( epf - cof*p - (*_rhs)(i,j) - t ) / ( cof + _plB*t ) );
+    }
+
     return( (1.0/cof) * ( epf - (*_rhs)(i,j) ) );
 }
 
 
 double EpotGSSolver::gs_process_pure_vacuum_cyl( uint32_t i, uint32_t j ) const
 {
-    if( _plasma == PLASMA_PEXP )
-	return( (1.0/4.0) * ( (*_epot)(i+1,j) + (*_epot)(i-1,j)
-			      + (1.0+0.5/j)*(*_epot)(i,j+1)
-			      + (1.0-0.5/j)*(*_epot)(i,j-1) 
-			      - (*_rhs)(i,j) 
-			      - _plA*exp( _plB*(*_epot)(i,j) - _plC ) ) );
+    if( _plasma == PLASMA_PEXP ) {
+	double p = (*_epot)(i,j);
+	double t = _plA*exp( _plB*p - _plC );
+	return( p + ( (*_epot)(i+1,j) + (*_epot)(i-1,j) 
+		      + (1.0+0.5/j)*(*_epot)(i,j+1) 
+		      + (1.0-0.5/j)*(*_epot)(i,j-1) - 4.0*p
+		      - (*_rhs)(i,j) - t ) / ( 4.0 + _plB*t ) );
+    }
  
     return( (1.0/4.0) * ( (*_epot)(i+1,j) + (*_epot)(i-1,j)
 			  + (1.0+0.5/j)*(*_epot)(i,j+1)
@@ -283,11 +311,15 @@ double EpotGSSolver::gs_process_neumann_cyl( uint32_t boundary, uint32_t a, uint
 	break;
     case 3:
 	// Special axis condition: (phi_{i-1,0} + phi_{i+1,j} + 4phi_{i,j+1} - 6phi_{i,j}) = rhs
-	if( _plasma == PLASMA_PEXP )
-	    return( (1.0/6.0) * ( (*_epot)(a-1) + (*_epot)(a+1) + 4.0*(*_epot)(a+dj) -
-				  (*_rhs)(a) ) - _plA*exp( _plB*(*_epot)(a) - _plC ) );
-	else
+	if( _plasma == PLASMA_PEXP ) {
+	    double p = (*_epot)(a);
+	    double t = _plA*exp( _plB*p - _plC );
+	    return( p + ( (*_epot)(a+1) + (*_epot)(a-1) 
+			  + 4.0*(*_epot)(a+dj) - 6.0*p
+			  - (*_rhs)(a) - t ) / ( 6.0 + _plB*t ) );
+	} else {
 	    return( (1.0/6.0) * ( (*_epot)(a-1) + (*_epot)(a+1) + 4.0*(*_epot)(a+dj) - (*_rhs)(a) ) );
+	}
 	break;
     case 4:
 	// (phi_j-1 - phi_j) / h = q_0
@@ -390,12 +422,26 @@ double EpotGSSolver::gs_process_near_solid_2d( const uint8_t *nearsolid_ptr,
     cof += 2.0/(alpha*beta);
     epf += 2.0/(alpha+beta)*( (*_epot)(a-dj)/alpha + (*_epot)(a+dj)/beta );
 
+    if( _plasma == PLASMA_PEXP ) {
+	double p = (*_epot)(a);
+	double t = _plA*exp( _plB*p - _plC );
+	return( p + ( epf - cof*p - (*_rhs)(a) - t ) / ( cof + _plB*t ) );
+    }
+
     return( (1.0/cof) * ( epf - (*_rhs)(a) ) );
 }
 
 
 double EpotGSSolver::gs_process_pure_vacuum_2d( uint32_t a, uint32_t dj ) const
 {
+    if( _plasma == PLASMA_PEXP ) {
+	double p = (*_epot)(a);
+	double t = _plA*exp( _plB*p - _plC );
+	return( p + ( (*_epot)(a+1) + (*_epot)(a-1) 
+		      + (*_epot)(a+dj) + (*_epot)(a-dj) - 4.0*p
+		      - (*_rhs)(a) - t ) / ( 4.0 + _plB*t ) );
+    }
+
     return( (1.0/4.0) * ( (*_epot)(a+1) + (*_epot)(a-1) +
 			  (*_epot)(a+dj) + (*_epot)(a-dj) - (*_rhs)(a) ) );
 }
@@ -574,7 +620,7 @@ void EpotGSSolver::preprocess( const MeshScalarField &scharge )
 {
     // Calculate plasma parameters. Calculation done as rhs + A*exp(B*x-C)
     if( _plasma == PLASMA_PEXP ) {
-	_plA = _rhoe*_geom.h()*_geom.h()/EPSILON0;
+	_plA = -_rhoe*_geom.h()*_geom.h()/EPSILON0;
 	_plB = 1.0/_Te;
 	_plC = _Up/_Te;
     }

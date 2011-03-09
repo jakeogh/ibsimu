@@ -210,7 +210,7 @@ protected:
     CallbackFunctorB_V *_init_plasma_func; /*!< \brief Initial plasma area function. */
 
     
-    void clear_problem( void );
+    virtual void reset_problem( void ) = 0;
     
     MeshScalarField *evaluate_scharge( const ScalarField &__scharge ) const;
 

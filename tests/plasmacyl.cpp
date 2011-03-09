@@ -57,7 +57,6 @@ void test( int argc, char **argv )
     geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0)  );
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, -8.0e3) );
     geom.build_mesh();
-
     
     EpotGSSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
@@ -84,15 +83,13 @@ void test( int argc, char **argv )
 
     for( size_t i = 0; i < 8; i++ ) {
 
-	/*
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
-	    p.set_pexp_plasma( -rhoe, 5.0, 5.0 );
-	    p.construct( geom );
+	    solver.set_pexp_plasma( -rhoe, 5.0, 5.0 );
 	}
-	*/
 
 	solver.solve( epot, scharge );
+	efield.recalculate();
 
 	pdb.clear();
 	pdb.add_2d_beam_with_energy( 5000, 600.0, 1.0, 1.0, 
@@ -108,6 +105,7 @@ void test( int argc, char **argv )
 	GTKPlotter plotter( &argc, &argv );
 	plotter.set_geometry( &geom );
 	plotter.set_epot( &epot );
+	plotter.set_efield( &efield );
 	plotter.set_trajdens( &tdens );
 	plotter.set_scharge( &scharge );
 	plotter.set_particledatabase( &pdb );
@@ -126,9 +124,10 @@ void test( int argc, char **argv )
     gplotter.set_size( 1024, 768 );
     gplotter.set_epot( &epot );
     std::vector<double> eqlines;
-    eqlines.push_back( -8.0 );
     eqlines.push_back( -4.0 );
+    eqlines.push_back( -2.0 );
     eqlines.push_back( 0.01 );
+    eqlines.push_back( +2.0 );
     eqlines.push_back( +4.0 );
     gplotter.set_eqlines_manual( eqlines );
     gplotter.set_particle_database( &pdb );

@@ -64,6 +64,8 @@ class EpotGSSolver : public EpotSolver {
     double           _plB;            /*!< \brief Plasma parameter B. */
     double           _plC;            /*!< \brief Plasma parameter C. */
 
+    virtual void reset_problem( void );
+
     double gs_loop_3d( void ) const;
     double gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, 
 				     uint32_t a, uint32_t dj, uint32_t dk ) const;
