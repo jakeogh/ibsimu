@@ -60,10 +60,24 @@ class EpotGSSolver : public EpotSolver {
 
     std::vector<uint32_t> _nsind;     /*!< \brief Stored near solid indexes for Neumann conversion nodes. */
 
-    double           _plA;            /*!< \brief Plasma parameter A. */
-    double           _plB;            /*!< \brief Plasma parameter B. */
-    double           _plC;            /*!< \brief Plasma parameter C. */
+    double           _plA;            /*!< \brief Plasma parameter.
+				       *   For positive ion extraction: rho_th * h^2 / epsilon_0,
+				       *   for negative ion extraction: rho_f * h^2 / epsilon_0 */
+    double           _plB;            /*!< \brief Plasma parameter.
+				       *   For positive ion extraction: 1/Te,
+				       *   for negative ion extraction: E_f,i */
+    double           _plC;            /*!< \brief Plasma parameter for positive ion extraction. 
+				      *    Up/Te */
 
+    std::vector<double> _plD;         /*!< \brief Plasma parameter for negative ion extraction.
+				       *   rho_th,i * h^2 / epsilon_0 */
+    std::vector<double> _plE;         /*!< \brief Plasma parameter for negative ion extraction. 
+				      *    1/Ti */
+
+
+    void pexp_newton( double &rhs, double &drhs, double epot ) const;
+    void nsimp_newton( double &rhs, double &drhs, double epot ) const;
+    
     virtual void reset_problem( void );
 
     double gs_loop_3d( void ) const;

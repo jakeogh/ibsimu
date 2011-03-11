@@ -116,8 +116,14 @@ double EpotGSSolver::gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, uin
 
     if( _plasma == PLASMA_PEXP ) {
 	double p = (*_epot)(a);
-	double t = _plA*exp( _plB*p - _plC );
-	return( p + ( epf - cof*p - (*_rhs)(a) - t ) / ( cof + _plB*t ) );
+	double rhst, drhst;
+	pexp_newton( rhst, drhst, p );
+	return( p + ( epf - cof*p - (*_rhs)(a) - rhst ) / ( cof + drhst ) );
+    } else if( _plasma == PLASMA_NSIMP ) 
+{	double p = (*_epot)(a);
+	double rhst, drhst;
+	nsimp_newton( rhst, drhst, p );
+	return( p + ( epf - cof*p - (*_rhs)(a) - rhst ) / ( cof + drhst ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(a) ) );
@@ -128,11 +134,20 @@ double EpotGSSolver::gs_process_pure_vacuum_3d( uint32_t a, uint32_t dj, uint32_
 {
     if( _plasma == PLASMA_PEXP ) {
 	double p = (*_epot)(a);
-	double t = _plA*exp( _plB*p - _plC );
+	double rhst, drhst;
+	pexp_newton( rhst, drhst, p );
 	return( p + ( (*_epot)(a+1) + (*_epot)(a-1) 
 		      + (*_epot)(a+dj) + (*_epot)(a-dj) 
 		      + (*_epot)(a+dk) + (*_epot)(a-dk) - 6.0*p
-		      - (*_rhs)(a) - t ) / ( 6.0 + _plB*t ) );
+		      - (*_rhs)(a) - rhst ) / ( 6.0 + drhst ) );
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_epot)(a);
+	double rhst, drhst;
+	nsimp_newton( rhst, drhst, p );
+	return( p + ( (*_epot)(a+1) + (*_epot)(a-1) 
+		      + (*_epot)(a+dj) + (*_epot)(a-dj) 
+		      + (*_epot)(a+dk) + (*_epot)(a-dk) - 6.0*p
+		      - (*_rhs)(a) - rhst ) / ( 6.0 + drhst ) );
     }
 
     return( (1.0/6.0) * ( (*_epot)(a+1)  + (*_epot)(a-1) +
@@ -272,8 +287,14 @@ double EpotGSSolver::gs_process_near_solid_cyl( const uint8_t *nearsolid_ptr,
 
     if( _plasma == PLASMA_PEXP ) {
 	double p = (*_epot)(i,j);
-	double t = _plA*exp( _plB*p - _plC );
-	return( p + ( epf - cof*p - (*_rhs)(i,j) - t ) / ( cof + _plB*t ) );
+	double rhst, drhst;
+	pexp_newton( rhst, drhst, p );
+	return( p + ( epf - cof*p - (*_rhs)(i,j) - rhst ) / ( cof + drhst ) );
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_epot)(i,j);
+	double rhst, drhst;
+	nsimp_newton( rhst, drhst, p );
+	return( p + ( epf - cof*p - (*_rhs)(i,j) - rhst ) / ( cof + drhst ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(i,j) ) );
@@ -284,11 +305,20 @@ double EpotGSSolver::gs_process_pure_vacuum_cyl( uint32_t i, uint32_t j ) const
 {
     if( _plasma == PLASMA_PEXP ) {
 	double p = (*_epot)(i,j);
-	double t = _plA*exp( _plB*p - _plC );
+	double rhst, drhst;
+	pexp_newton( rhst, drhst, p );
 	return( p + ( (*_epot)(i+1,j) + (*_epot)(i-1,j) 
 		      + (1.0+0.5/j)*(*_epot)(i,j+1) 
 		      + (1.0-0.5/j)*(*_epot)(i,j-1) - 4.0*p
-		      - (*_rhs)(i,j) - t ) / ( 4.0 + _plB*t ) );
+		      - (*_rhs)(i,j) - rhst ) / ( 4.0 + drhst ) );
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_epot)(i,j);
+	double rhst, drhst;
+	nsimp_newton( rhst, drhst, p );
+	return( p + ( (*_epot)(i+1,j) + (*_epot)(i-1,j) 
+		      + (1.0+0.5/j)*(*_epot)(i,j+1) 
+		      + (1.0-0.5/j)*(*_epot)(i,j-1) - 4.0*p
+		      - (*_rhs)(i,j) - rhst ) / ( 4.0 + drhst ) );
     }
  
     return( (1.0/4.0) * ( (*_epot)(i+1,j) + (*_epot)(i-1,j)
@@ -313,10 +343,18 @@ double EpotGSSolver::gs_process_neumann_cyl( uint32_t boundary, uint32_t a, uint
 	// Special axis condition: (phi_{i-1,0} + phi_{i+1,j} + 4phi_{i,j+1} - 6phi_{i,j}) = rhs
 	if( _plasma == PLASMA_PEXP ) {
 	    double p = (*_epot)(a);
-	    double t = _plA*exp( _plB*p - _plC );
+	    double rhst, drhst;
+	    pexp_newton( rhst, drhst, p );
 	    return( p + ( (*_epot)(a+1) + (*_epot)(a-1) 
 			  + 4.0*(*_epot)(a+dj) - 6.0*p
-			  - (*_rhs)(a) - t ) / ( 6.0 + _plB*t ) );
+			  - (*_rhs)(a) - rhst ) / ( 6.0 + drhst ) );
+	}  else if( _plasma == PLASMA_NSIMP ) {
+	    double p = (*_epot)(a);
+	    double rhst, drhst;
+	    nsimp_newton( rhst, drhst, p );
+	    return( p + ( (*_epot)(a+1) + (*_epot)(a-1) 
+			  + 4.0*(*_epot)(a+dj) - 6.0*p
+			  - (*_rhs)(a) - rhst ) / ( 6.0 + drhst ) );
 	} else {
 	    return( (1.0/6.0) * ( (*_epot)(a-1) + (*_epot)(a+1) + 4.0*(*_epot)(a+dj) - (*_rhs)(a) ) );
 	}
@@ -424,8 +462,14 @@ double EpotGSSolver::gs_process_near_solid_2d( const uint8_t *nearsolid_ptr,
 
     if( _plasma == PLASMA_PEXP ) {
 	double p = (*_epot)(a);
-	double t = _plA*exp( _plB*p - _plC );
-	return( p + ( epf - cof*p - (*_rhs)(a) - t ) / ( cof + _plB*t ) );
+	double rhst, drhst;
+	pexp_newton( rhst, drhst, p );
+	return( p + ( epf - cof*p - (*_rhs)(a) - rhst ) / ( cof + drhst ) );
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_epot)(a);
+	double rhst, drhst;
+	nsimp_newton( rhst, drhst, p );
+	return( p + ( epf - cof*p - (*_rhs)(a) - rhst ) / ( cof + drhst ) );	
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(a) ) );
@@ -436,10 +480,18 @@ double EpotGSSolver::gs_process_pure_vacuum_2d( uint32_t a, uint32_t dj ) const
 {
     if( _plasma == PLASMA_PEXP ) {
 	double p = (*_epot)(a);
-	double t = _plA*exp( _plB*p - _plC );
+	double rhst, drhst;
+	pexp_newton( rhst, drhst, p );
 	return( p + ( (*_epot)(a+1) + (*_epot)(a-1) 
 		      + (*_epot)(a+dj) + (*_epot)(a-dj) - 4.0*p
-		      - (*_rhs)(a) - t ) / ( 4.0 + _plB*t ) );
+		      - (*_rhs)(a) - rhst ) / ( 4.0 + drhst ) );
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_epot)(a);
+	double rhst, drhst;
+	nsimp_newton( rhst, drhst, p );
+	return( p + ( (*_epot)(a+1) + (*_epot)(a-1) 
+		      + (*_epot)(a+dj) + (*_epot)(a-dj) - 4.0*p
+		      - (*_rhs)(a) - rhst ) / ( 4.0 + drhst ) );
     }
 
     return( (1.0/4.0) * ( (*_epot)(a+1) + (*_epot)(a-1) +
@@ -616,13 +668,52 @@ double EpotGSSolver::gs_loop_1d( void ) const
  */
 
 
+void EpotGSSolver::pexp_newton( double &rhs, double &drhs, double epot ) const
+{
+    rhs = _plA*exp( _plB*epot - _plC );
+    drhs = _plB*rhs;
+}
+
+
+void EpotGSSolver::nsimp_newton( double &rhs, double &drhs, double epot ) const
+{
+    // fast
+    double r = _plB*epot;
+    rhs = _plA*( 1.0 + erf( -r ) );
+    drhs = _plC*exp( -r*r );
+    // thermal
+    for( size_t i = 0; i < _plD.size(); i++ ) {
+	double w = _plD[i]*exp( -_plE[i]*epot );
+	rhs += w;
+	drhs += _plE[i]*w;
+    }
+}
+
+
 void EpotGSSolver::preprocess( const MeshScalarField &scharge )
 {
-    // Calculate plasma parameters. Calculation done as rhs + A*exp(B*x-C)
     if( _plasma == PLASMA_PEXP ) {
+	// Calculate plasma parameters for positive ion extraction. 
+	// Calculation done as rhs + A*exp(B*x-C)
 	_plA = -_rhoe*_geom.h()*_geom.h()/EPSILON0;
 	_plB = 1.0/_Te;
 	_plC = _Up/_Te;
+    } else if( _plasma == PLASMA_NSIMP ) {
+	// Calculate plasma parameters for negative ion extraction. 
+	// The total right hand side is rhs + r_fast + r_thermal, where
+	// r_fast = A(1+erf(-B*x)) and
+	// r_thermal = Di*exp(Ei*x), for i >= 0. The derivatives are
+	// r_fast' = A*B*2/sqrt(pi)*exp(-B^2*x^2)
+	// r_thermal' = Di*Ei*exp(Ei*x)
+	_plA = -_rhoi[0]*_geom.h()*_geom.h()/EPSILON0;
+	_plB = 1.0/_Ei[0];
+	_plC = -_plA*_plB*2.0/sqrt(M_PI);
+	_plD.clear();
+	_plE.clear();
+	for( uint32_t i = 1; i < _rhoi.size(); i++ ) {
+	    _plD.push_back( _rhoi[i]*_geom.h()*_geom.h()/EPSILON0 );
+	    _plE.push_back( 1.0/_Ei[i] );
+	}
     }
 
     // Build right-hand-side
