@@ -198,8 +198,8 @@ void ParticleDiagPlot::build_data( void )
 						(*_tdata)(1).data(), (*_tdata)(2).data() );
 	_histo = histo2d;
 
-	// Scale plot to have constant area per square for cylindrical geometry.
 	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
+	    // Scale plot to have constant area per square for cylindrical geometry.
 	    double dr = histo2d->nstep();
 	    for( size_t i = 0; i < histo2d->n(); i++ ) {
 		double r = fabs( histo2d->icoord( i ) );
@@ -209,6 +209,13 @@ void ParticleDiagPlot::build_data( void )
 		for( size_t j = 0; j < histo2d->m(); j++ )
 		    (*histo2d)(i,j) /= w;
 	    }
+	} else if( (_diagx == DIAG_X || _diagx == DIAG_Y || _diagx == DIAG_R || _diagx == DIAG_Z) && 
+		   (_diagy == DIAG_X || _diagy == DIAG_Y || _diagy == DIAG_R || _diagy == DIAG_Z) ) {
+	    // Profile plot: scale for A/m2 unit
+	    double w = 1.0/(histo2d->nstep()*histo2d->mstep());
+	    for( size_t i = 0; i < histo2d->n(); i++ )
+		for( size_t j = 0; j < histo2d->m(); j++ )
+		    (*histo2d)(i,j) *= w;
 	}
 
 	// Build emittance fit if applicable

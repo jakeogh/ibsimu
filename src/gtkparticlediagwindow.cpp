@@ -314,9 +314,18 @@ std::string GTKParticleDiagWindow::track_text( double x, double y )
     }
 
     if( type == PARTICLE_DIAG_PLOT_HISTO2D ) {
-	const Colormap *cmap = _plot.get_colormap();
-	double val = cmap->get_value( x, y );
-	ss << "J = " << val << " A/(m rad)\n";
+	if( (diagx == DIAG_X || diagx == DIAG_Y || diagx == DIAG_R || diagx == DIAG_Z) && 
+	    (diagy == DIAG_X || diagy == DIAG_Y || diagy == DIAG_R || diagy == DIAG_Z) ) {
+	    // Profile plot
+	    const Colormap *cmap = _plot.get_colormap();
+	    double val = cmap->get_value( x, y );
+	    ss << "J = " << val << " A/m2\n";
+	} else {
+	    // Emittance plot
+	    const Colormap *cmap = _plot.get_colormap();
+	    double val = cmap->get_value( x, y );
+	    ss << "J = " << val << " A/(m rad)\n";
+	}
     }
 
     
