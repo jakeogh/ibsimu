@@ -30,6 +30,8 @@ using namespace std;
 bool solid1( double x, double y, double z )
 {
     double r = sqrt(y*y+z*z);
+    if( x <= 0.0003 && r <= 0.001 )
+	return( false );
     return( x <= 0.00187 && r >= 0.00054 && r >= 2.28*x - 0.0010 &&
 	    (r >= 0.00054 || r >= 0.0015) );
 }
@@ -100,7 +102,7 @@ void test( int argc, char **argv )
 					      5.0, 0.0, 0.5, 
 					      Vec3D(0,0,0),
 					      Vec3D(0,1,0),
-					      Vec3D(0,0,1), 0.0015 );
+					      Vec3D(0,0,1), 0.001 );
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
 	conv.evaluate_iteration();

@@ -572,42 +572,148 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
     }
     case MODE_3D:
     {
-	/*
 	if( !_F[0] || !_F[1] || !_F[2] )
-	    return( 0.0 );
+	    break;
 
-	int32_t i = (int32_t)floor( (x[0]-_origo[0])*_div_h );
-	int32_t j = (int32_t)floor( (x[1]-_origo[1])*_div_h );
-	int32_t k = (int32_t)floor( (x[2]-_origo[2])*_div_h );
-	if( i < 0 )
-	    i = 0;
-	else if( i >= _size[0]-1 )
-	    i = _size[0]-2;
-	if( j < 0 )
-	    j = 0;
-	else if( j >= _size[1]-1 )
-	    j = _size[1]-2;
-	if( k < 0 )
-	    k = 0;
-	else if( k >= _size[2]-1 )
-	    k = _size[2]-2;
+	for( int a = 0; a < 3; a++ ) {
+	    if( X[a] < _geom->origo(a) ) {
+		if( _extrpl[2*a] == FIELD_ZERO ) {
+		    break;
+		} else if( _extrpl[2*a] == FIELD_NAN ) {
+		    R[0] = std::numeric_limits<double>::quiet_NaN();
+		    R[1] = std::numeric_limits<double>::quiet_NaN();
+		    R[2] = std::numeric_limits<double>::quiet_NaN();
+		    break;
+		} else if( X[a] < _geom->origo(a)-_geom->size(a)*_geom->h() ) {
+		    // Outside double the simulation box: return zero
+		    break;
+		} else if( _extrpl[2*a] == FIELD_MIRROR ) {
+		    sign[a] *= -1.0;
+		    X[a] = 2.0*_geom->origo(a) - X[a];
+		}
+	    } else if( X[a] > _geom->max(a) ) {
+		if( _extrpl[2*a+1] == FIELD_ZERO ) {
+		    break;
+		} else if( _extrpl[2*a+1] == FIELD_NAN ) {
+		    R[0] = std::numeric_limits<double>::quiet_NaN();
+		    R[1] = std::numeric_limits<double>::quiet_NaN();
+		    R[2] = std::numeric_limits<double>::quiet_NaN();
+		    break;
+		} else if( X[a] < _geom->origo(a)+2.0*_geom->size(a)*_geom->h() ) {
+		    // Outside double the simulation box: return zero
+		    break;
+		} else if( _extrpl[2*a+1] == FIELD_MIRROR ) {
+		    sign[a] *= -1.0;
+		    X[a] = 2.0*_geom->max(a) - X[a];
+		}
+	    }
+	}
 
-	double t = _div_h*( x[0]-(i*_h+_origo[0]) );
-	double u = _div_h*( x[1]-(j*_h+_origo[1]) );
-	double v = _div_h*( x[2]-(k*_h+_origo[2]) );
+	// Ex
+	if( true ) {
+	    int32_t i = (int32_t)floor( (X[0]-_geom->origo(0))*_geom->div_h() - 0.5 );
+	    int32_t j = (int32_t)floor( (X[1]-_geom->origo(1))*_geom->div_h() );
+	    int32_t k = (int32_t)floor( (X[2]-_geom->origo(2))*_geom->div_h() );
+	    if( i < 0 )
+		i = 0;
+	    else if( i >= (int32_t)_geom->size(0)-2 )
+		i = _geom->size(0)-3;
+	    if( j < 0 )
+		j = 0;
+	    else if( j >= (int32_t)_geom->size(1)-1 )
+		j = _geom->size(1)-2;
+	    if( k < 0 )
+		k = 0;
+	    else if( k >= (int32_t)_geom->size(2)-1 )
+		k = _geom->size(2)-2;
+	    
+	    double t = _geom->div_h()*( X[0]-((i+0.5)*_geom->h()+_geom->origo(0)) );
+	    double u = _geom->div_h()*( X[1]-(j*_geom->h()+_geom->origo(1)) );
+	    double v = _geom->div_h()*( X[2]-(k*_geom->h()+_geom->origo(2)) );
+	    
+	    size_t a = _geom->size(0)-1;
+	    size_t b = a*_geom->size(1);
+	    size_t c = i+j*a+k*b;
+	    R[0] = sign[0]*( (1.0-v)*(1.0-u)*(1.0-t)*_F[0][c]   + 
+		             (1.0-v)*(1.0-u)*     t *_F[0][c+1] +
+		             (1.0-v)*     u *(1.0-t)*_F[0][c+a] +
+			     (1.0-v)*     u *     t *_F[0][c+a+1] +
+			          v *(1.0-u)*(1.0-t)*_F[0][c+b]   + 
+		                  v *(1.0-u)*     t *_F[0][c+b+1] +
+		                  v *     u *(1.0-t)*_F[0][c+b+a] +
+			          v *     u *     t *_F[0][c+b+a+1] );
+	}
 
-	int32_t b  = _size[0]*_size[1];
-	int32_t ptr = b*k + _size[0]*j + i;
-	return( (1.0-t)*(1.0-u)*(1.0-v)*_F[ptr] +
-		(    t)*(1.0-u)*(1.0-v)*_F[ptr+1] +
-		(1.0-t)*(    u)*(1.0-v)*_F[ptr+_size[0]] +
-		(    t)*(    u)*(1.0-v)*_F[ptr+1+_size[0]] +
-		(1.0-t)*(1.0-u)*(    v)*_F[ptr+b] +
-		(    t)*(1.0-u)*(    v)*_F[ptr+1+b] +
-		(1.0-t)*(    u)*(    v)*_F[ptr+_size[0]+b] +
-		(    t)*(    u)*(    v)*_F[ptr+1+_size[0]+b] );
+	// Ey
+	if( true ) {
+	    int32_t i = (int32_t)floor( (X[0]-_geom->origo(0))*_geom->div_h() );
+	    int32_t j = (int32_t)floor( (X[1]-_geom->origo(1))*_geom->div_h() - 0.5 );
+	    int32_t k = (int32_t)floor( (X[2]-_geom->origo(2))*_geom->div_h() );
+	    if( i < 0 )
+		i = 0;
+	    else if( i >= (int32_t)_geom->size(0)-1 )
+		i = _geom->size(0)-2;
+	    if( j < 0 )
+		j = 0;
+	    else if( j >= (int32_t)_geom->size(1)-2 )
+		j = _geom->size(1)-3;
+	    if( k < 0 )
+		k = 0;
+	    else if( k >= (int32_t)_geom->size(2)-1 )
+		k = _geom->size(2)-2;
+	    
+	    double t = _geom->div_h()*( X[0]-(i*_geom->h()+_geom->origo(0)) );
+	    double u = _geom->div_h()*( X[1]-((j+0.5)*_geom->h()+_geom->origo(1)) );
+	    double v = _geom->div_h()*( X[2]-(k*_geom->h()+_geom->origo(2)) );
+
+	    size_t a = _geom->size(0);
+	    size_t b = a*(_geom->size(1)-1);
+	    size_t c = i+j*a+k*b;
+	    R[1] = sign[1]*( (1.0-v)*(1.0-u)*(1.0-t)*_F[1][c]   + 
+		             (1.0-v)*(1.0-u)*     t *_F[1][c+1] +
+		             (1.0-v)*     u *(1.0-t)*_F[1][c+a] +
+			     (1.0-v)*     u *     t *_F[1][c+a+1] +
+			          v *(1.0-u)*(1.0-t)*_F[1][c+b]   + 
+		                  v *(1.0-u)*     t *_F[1][c+b+1] +
+		                  v *     u *(1.0-t)*_F[1][c+b+a] +
+			          v *     u *     t *_F[1][c+b+a+1] );
+	}
+
+	// Ez
+	if( true ) {
+	    int32_t i = (int32_t)floor( (X[0]-_geom->origo(0))*_geom->div_h() );
+	    int32_t j = (int32_t)floor( (X[1]-_geom->origo(1))*_geom->div_h() );
+	    int32_t k = (int32_t)floor( (X[2]-_geom->origo(2))*_geom->div_h() - 0.5 );
+	    if( i < 0 )
+		i = 0;
+	    else if( i >= (int32_t)_geom->size(0)-1 )
+		i = _geom->size(0)-2;
+	    if( j < 0 )
+		j = 0;
+	    else if( j >= (int32_t)_geom->size(1)-1 )
+		j = _geom->size(1)-2;
+	    if( k < 0 )
+		k = 0;
+	    else if( k >= (int32_t)_geom->size(2)-2 )
+		k = _geom->size(2)-3;
+	    
+	    double t = _geom->div_h()*( X[0]-(i*_geom->h()+_geom->origo(0)) );
+	    double u = _geom->div_h()*( X[1]-(j*_geom->h()+_geom->origo(1)) );
+	    double v = _geom->div_h()*( X[2]-((k+0.5)*_geom->h()+_geom->origo(2)) );
+
+	    size_t a = _geom->size(0);
+	    size_t b = a*_geom->size(1);
+	    size_t c = i+j*a+k*b;
+	    R[2] = sign[2]*( (1.0-v)*(1.0-u)*(1.0-t)*_F[2][c]   + 
+		             (1.0-v)*(1.0-u)*     t *_F[2][c+1] +
+		             (1.0-v)*     u *(1.0-t)*_F[2][c+a] +
+			     (1.0-v)*     u *     t *_F[2][c+a+1] +
+			          v *(1.0-u)*(1.0-t)*_F[2][c+b]   + 
+		                  v *(1.0-u)*     t *_F[2][c+b+1] +
+		                  v *     u *(1.0-t)*_F[2][c+b+a] +
+			          v *     u *     t *_F[2][c+b+a+1] );
+	}
 	break;
-	*/
     }
     }
 

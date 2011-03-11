@@ -268,7 +268,7 @@ double EpotGSSolver::gs_process_near_solid_cyl( const uint8_t *nearsolid_ptr,
 
     // Factors for Y axis
     cof += 2.0/(alpha*beta);
-    epf += 2.0/(alpha+beta)*( (*_epot)(i,j-1)/alpha + (*_epot)(i,j+1)/beta );
+    epf += 1.0/(alpha+beta)*( (2.0/alpha-1.0/j)*(*_epot)(i,j-1) + (2.0/beta+1.0/j)*(*_epot)(i,j+1) );
 
     if( _plasma == PLASMA_PEXP ) {
 	double p = (*_epot)(i,j);
