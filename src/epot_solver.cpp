@@ -134,8 +134,9 @@ void EpotSolver::set_nsimp_plasma( double rhop, double Ep,
     _rhoi.push_back( fabs(rhop) ); // Ensure correct sign of charge density
     _Ei.push_back( Ep );
 
-    size_t size = rhoi.size() < Ei.size() ? rhoi.size() : Ei.size();
-    for( size_t a = 0; a < size; a++ ) {
+    if(  rhoi.size() != Ei.size() )
+	throw( Error( ERROR_LOCATION, "different size rhoi and Ep vectors" ) );
+    for( size_t a = 0; a < rhoi.size(); a++ ) {
 	_rhoi.push_back( fabs(rhoi[a]) ); // Ensure correct sign of charge density
 	_Ei.push_back( Ei[a] );
     }

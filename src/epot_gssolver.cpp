@@ -161,28 +161,52 @@ double EpotGSSolver::gs_process_neumann_3d( uint32_t boundary, uint32_t a,
 {
     switch( boundary ) {
     case 1:
-	// (phi_i - phi_i+1) / h = q_0
-	return( (*_epot)(a+1) + (*_rhs)(a) );
+	if( _neumann_order == 2 )
+	    // (3*phi_i - 4*phi_i+1 + phi_i+2) / 2h = q_0
+	    return( (4.0*(*_epot)(a+1) - (*_epot)(a+2) + (*_rhs)(a))/3.0 );
+	else
+	    // (phi_i - phi_i+1) / h = q_0
+	    return( (*_epot)(a+1) + (*_rhs)(a) );
 	break;
     case 2:
-	// (phi_i-1 - phi_i) / h = q_0
-	return( (*_epot)(a-1) + (*_rhs)(a) );
+	if( _neumann_order == 2 )
+	    // (3*phi_i - 4*phi_i-1 + phi_i-2) / 2h = q_0
+	    return( (4.0*(*_epot)(a-1) - (*_epot)(a-2) + (*_rhs)(a))/3.0 );
+	else
+	    // (phi_i-1 - phi_i) / h = q_0
+	    return( (*_epot)(a-1) + (*_rhs)(a) );
 	break;
     case 3:
-	// (phi_j - phi_j+1) / h = q_0
-	return( (*_epot)(a+dj) + (*_rhs)(a) );
+	if( _neumann_order == 2 )
+	    // (3*phi_j - 4*phi_j+1 + phi_j+2) / 2h = q_0
+	    return( (4.0*(*_epot)(a+dj) - (*_epot)(a+2*dj) + (*_rhs)(a))/3.0 );
+	else
+	    // (phi_j - phi_j+1) / h = q_0
+	    return( (*_epot)(a+dj) + (*_rhs)(a) );
 	break;
     case 4:
-	// (phi_j-1 - phi_j) / h = q_0
-	return( (*_epot)(a-dj) + (*_rhs)(a) );
+	if( _neumann_order == 2 )
+	    // (3*phi_j - 4*phi_j-1 + phi_j-2) / 2h = q_0
+	    return( (4.0*(*_epot)(a-dj) - (*_epot)(a-2*dj) + (*_rhs)(a))/3.0 );
+	else
+	    // (phi_j-1 - phi_j) / h = q_0
+	    return( (*_epot)(a-dj) + (*_rhs)(a) );
 	break;
     case 5:
-	// (phi_k - phi_k+1) / h = q_0
-	return( (*_epot)(a+dk) + (*_rhs)(a) );
+	if( _neumann_order == 2 )
+	    // (3*phi_k - 4*phi_k+1 + phi_k+2) / 2h = q_0
+	    return( (4.0*(*_epot)(a+dk) - (*_epot)(a+2*dk) + (*_rhs)(a))/3.0 );
+	else
+	    // (phi_k - phi_k+1) / h = q_0
+	    return( (*_epot)(a+dk) + (*_rhs)(a) );
 	break;
     case 6:
-	// (phi_k-1 - phi_k) / h = q_0
-	return( (*_epot)(a-dk) + (*_rhs)(a) );
+	if( _neumann_order == 2 )
+	    // (3*phi_k - 4*phi_k-1 + phi_k-2) / 2h = q_0
+	    return( (4.0*(*_epot)(a-dk) - (*_epot)(a-2*dk) + (*_rhs)(a))/3.0 );
+	else
+	    // (phi_k-1 - phi_k) / h = q_0
+	    return( (*_epot)(a-dk) + (*_rhs)(a) );
 	break;
     }
 
@@ -332,12 +356,20 @@ double EpotGSSolver::gs_process_neumann_cyl( uint32_t boundary, uint32_t a, uint
 {
     switch( boundary ) {
     case 1:
-	// (phi_i - phi_i+1) / h = q_0
-	return( (*_epot)(a+1) + (*_rhs)(a) );
+	if( _neumann_order == 2 )
+	    // (3*phi_i - 4*phi_i+1 + phi_i+2) / 2h = q_0
+	    return( (4.0*(*_epot)(a+1) - (*_epot)(a+2) + (*_rhs)(a))/3.0 );
+	else
+	    // (phi_i - phi_i+1) / h = q_0
+	    return( (*_epot)(a+1) + (*_rhs)(a) );
 	break;
     case 2:
-	// (phi_i-1 - phi_i) / h = q_0
-	return( (*_epot)(a-1) + (*_rhs)(a) );
+	if( _neumann_order == 2 )
+	    // (3*phi_i - 4*phi_i-1 + phi_i-2) / 2h = q_0
+	    return( (4.0*(*_epot)(a-1) - (*_epot)(a-2) + (*_rhs)(a))/3.0 );
+	else
+	    // (phi_i-1 - phi_i) / h = q_0
+	    return( (*_epot)(a-1) + (*_rhs)(a) );
 	break;
     case 3:
 	// Special axis condition: (phi_{i-1,0} + phi_{i+1,j} + 4phi_{i,j+1} - 6phi_{i,j}) = rhs
@@ -360,8 +392,12 @@ double EpotGSSolver::gs_process_neumann_cyl( uint32_t boundary, uint32_t a, uint
 	}
 	break;
     case 4:
-	// (phi_j-1 - phi_j) / h = q_0
-	return( (*_epot)(a-dj) + (*_rhs)(a) );
+	if( _neumann_order == 2 )
+	    // (3*phi_j - 4*phi_j-1 + phi_j-2) / 2h = q_0
+	    return( (4.0*(*_epot)(a-dj) - (*_epot)(a-2*dj) + (*_rhs)(a))/3.0 );
+	else
+	    // (phi_j-1 - phi_j) / h = q_0
+	    return( (*_epot)(a-dj) + (*_rhs)(a) );
 	break;
     }
 
@@ -503,20 +539,36 @@ double EpotGSSolver::gs_process_neumann_2d( uint32_t boundary, uint32_t a, uint3
 {
     switch( boundary ) {
     case 1:
-	// (phi_i - phi_i+1) / h = q_0
-	return( (*_epot)(a+1) + (*_rhs)(a) );
+	if( _neumann_order == 2 )
+	    // (3*phi_i - 4*phi_i+1 + phi_i+2) / 2h = q_0
+	    return( (4.0*(*_epot)(a+1) - (*_epot)(a+2) + (*_rhs)(a))/3.0 );
+	else
+	    // (phi_i - phi_i+1) / h = q_0
+	    return( (*_epot)(a+1) + (*_rhs)(a) );
 	break;
     case 2:
-	// (phi_i-1 - phi_i) / h = q_0
-	return( (*_epot)(a-1) + (*_rhs)(a) );
+	if( _neumann_order == 2 )
+	    // (3*phi_i - 4*phi_i-1 + phi_i-2) / 2h = q_0
+	    return( (4.0*(*_epot)(a-1) - (*_epot)(a-2) + (*_rhs)(a))/3.0 );
+	else
+	    // (phi_i-1 - phi_i) / h = q_0
+	    return( (*_epot)(a-1) + (*_rhs)(a) );
 	break;
     case 3:
-	// (phi_j - phi_j+1) / h = q_0
-	return( (*_epot)(a+dj) + (*_rhs)(a) );
+	if( _neumann_order == 2 )
+	    // (3*phi_j - 4*phi_j+1 + phi_j+2) / 2h = q_0
+	    return( (4.0*(*_epot)(a+dj) - (*_epot)(a+2*dj) + (*_rhs)(a))/3.0 );
+	else
+	    // (phi_j - phi_j+1) / h = q_0
+	    return( (*_epot)(a+dj) + (*_rhs)(a) );
 	break;
     case 4:
-	// (phi_j-1 - phi_j) / h = q_0
-	return( (*_epot)(a-dj) + (*_rhs)(a) );
+	if( _neumann_order == 2 )
+	    // (3*phi_j - 4*phi_j-1 + phi_j-2) / 2h = q_0
+	    return( (4.0*(*_epot)(a-dj) - (*_epot)(a-2*dj) + (*_rhs)(a))/3.0 );
+	else
+	    // (phi_j-1 - phi_j) / h = q_0
+	    return( (*_epot)(a-dj) + (*_rhs)(a) );
 	break;
     }
 
@@ -679,11 +731,11 @@ void EpotGSSolver::nsimp_newton( double &rhs, double &drhs, double epot ) const
 {
     // fast
     double r = _plB*epot;
-    rhs = _plA*( 1.0 + erf( -r ) );
+    rhs = _plA*( 1.0 + erf( r ) );
     drhs = _plC*exp( -r*r );
     // thermal
     for( size_t i = 0; i < _plD.size(); i++ ) {
-	double w = _plD[i]*exp( -_plE[i]*epot );
+	double w = _plD[i]*exp( _plE[i]*epot );
 	rhs += w;
 	drhs += _plE[i]*w;
     }
@@ -701,18 +753,23 @@ void EpotGSSolver::preprocess( const MeshScalarField &scharge )
     } else if( _plasma == PLASMA_NSIMP ) {
 	// Calculate plasma parameters for negative ion extraction. 
 	// The total right hand side is rhs + r_fast + r_thermal, where
-	// r_fast = A(1+erf(-B*x)) and
-	// r_thermal = Di*exp(Ei*x), for i >= 0. The derivatives are
+	// r_fast = A(1+erf(B*x)) and
+	// r_thermal = D*exp(E*x), for i >= 0. The derivatives are
 	// r_fast' = A*B*2/sqrt(pi)*exp(-B^2*x^2)
-	// r_thermal' = Di*Ei*exp(Ei*x)
+	// r_thermal' = D*E*exp(E*x)
 	_plA = -_rhoi[0]*_geom.h()*_geom.h()/EPSILON0;
-	_plB = 1.0/_Ei[0];
-	_plC = -_plA*_plB*2.0/sqrt(M_PI);
+	_plB = -1.0/_Ei[0];
+	_plC = _plA*_plB*2.0/sqrt(M_PI);
+	std::cout << "plA = " << _plA << "\n";
+	std::cout << "plB = " << _plB << "\n";
+	std::cout << "plC = " << _plC << "\n";
 	_plD.clear();
 	_plE.clear();
 	for( uint32_t i = 1; i < _rhoi.size(); i++ ) {
-	    _plD.push_back( _rhoi[i]*_geom.h()*_geom.h()/EPSILON0 );
-	    _plE.push_back( 1.0/_Ei[i] );
+	    _plD.push_back( -_rhoi[i]*_geom.h()*_geom.h()/EPSILON0 );
+	    _plE.push_back( -1.0/_Ei[i] );
+	    std::cout << "plD[" << i-1 << "] = " << _plD[i-1] << "\n";
+	    std::cout << "plE[" << i-1 << "] = " << _plE[i-1] << "\n";
 	}
     }
 
@@ -827,15 +884,32 @@ void EpotGSSolver::preprocess( const MeshScalarField &scharge )
 		} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
 
 		    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
-		    if( _geom.geom_mode() == MODE_CYL && boundary == 3 ) {
+		    if( _force_pot_func && (*_force_pot_func)(Vec3D(x,y,z)) ) {
+
+			// Mark as fixed vacuum
+			_geom.mesh(i,j,k) = SMESH_NODE_ID_PURE_VACUUM_FIX;
+			(*_epot)(i,j,k) = _force_pot;
+
+		    } else if( (_plasma == PLASMA_PEXP_INITIAL ||
+				_plasma == PLASMA_NSIMP_INITIAL) && 
+			       _init_plasma_func && (*_init_plasma_func)(Vec3D(x,y,z)) ) {
+
+			// Mark as fixed vacuum
+			_geom.mesh(i,j,k) = SMESH_NODE_ID_PURE_VACUUM_FIX;
+			(*_epot)(i,j,k) = _Up;
+
+		    } else if( _geom.geom_mode() == MODE_CYL && boundary == 3 ) {
 
 			// Symmetry axis (vacuum)
 			(*_rhs)(i,j,k) = -scharge(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 
 		    } else {
 
-			// Neumann
-			(*_rhs)(i,j,k) = _geom.h()*_geom.get_boundary( boundary ).val;
+			// Ordinary Neumann node
+			if( _neumann_order == 2 )
+			    (*_rhs)(i,j,k) = 2.0*_geom.h()*_geom.get_boundary( boundary ).val;
+			else
+			    (*_rhs)(i,j,k) = _geom.h()*_geom.get_boundary( boundary ).val;
 		    }
 
 		} else if( node_id == SMESH_NODE_ID_DIRICHLET ) {
@@ -868,17 +942,25 @@ void EpotGSSolver::postprocess( void )
 		    uint32_t index = SMESH_NEAR_SOLID_INDEX_MASK & mesh;
 		    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | index;
 		} else if( node_id == SMESH_NODE_ID_PURE_VACUUM_FIX ) {
-		    // Change to vacuum node
+		    // Change to vacuum node if not on border
+		    if( i == 0 || i == _geom.size(0)-1 )
+			continue;
+		    if( (_geom.geom_mode() == MODE_2D || _geom.geom_mode() == MODE_CYL ||
+			 _geom.geom_mode() == MODE_3D) && (j == 0 || j == _geom.size(1)-1) )
+			continue;
+		    if( _geom.geom_mode() == MODE_3D && (k == 0 || k == _geom.size(2)-1) )
+			continue;
 		    _geom.mesh(i,j,k) = SMESH_NODE_ID_PURE_VACUUM;
 		}
 	    }
 	}
     }
 
-    // Change Neumann boundaries next to solid nodes back to
-    // NEAR_SOLID and retrieve stored solid indexes. Take care to
-    // process in the same order as in Geometry class (x overrides y,
-    // which overrides z.
+    // 1. Change PURE_VACUUM_FIX nodes on Neumann boundaries back to
+    // Neumann nodes. 2. Change Neumann nodes on Neumann boundaries
+    // next to solid nodes back to NEAR_SOLID and retrieve stored
+    // solid indexes. Take care to process in the same order as in
+    // Geometry class (x overrides y, which overrides z.
     uint32_t near_solid_index = 0;
 
     // Xmin and Xmax
@@ -890,6 +972,10 @@ void EpotGSSolver::postprocess( void )
 		for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 		    uint32_t mesh = _geom.mesh(i,j,k);
 		    uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+		    if( node_id == SMESH_NODE_ID_PURE_VACUUM_FIX ) {
+			_geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
+			node_id = SMESH_NODE_ID_NEUMANN;
+		    }
 		    if( node_id == SMESH_NODE_ID_NEUMANN && _geom.is_near_solid(i,j,k) ) {
 			uint32_t index = _nsind[near_solid_index++];
 			_geom.mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | index;
@@ -909,6 +995,10 @@ void EpotGSSolver::postprocess( void )
 		    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
 			uint32_t mesh = _geom.mesh(i,j,k);
 			uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+			if( node_id == SMESH_NODE_ID_PURE_VACUUM_FIX ) {
+			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
+			    node_id = SMESH_NODE_ID_NEUMANN;
+			}
 			if( node_id == SMESH_NODE_ID_NEUMANN && _geom.is_near_solid(i,j,k) ) {
 			    uint32_t index = _nsind[near_solid_index++];
 			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | index;
@@ -928,6 +1018,10 @@ void EpotGSSolver::postprocess( void )
 		    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
 			uint32_t mesh = _geom.mesh(i,j,k);
 			uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+			if( node_id == SMESH_NODE_ID_PURE_VACUUM_FIX ) {
+			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
+			    node_id = SMESH_NODE_ID_NEUMANN;
+			}
 			if( node_id == SMESH_NODE_ID_NEUMANN && _geom.is_near_solid(i,j,k) ) {
 			    uint32_t index = _nsind[near_solid_index++];
 			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | index;

@@ -163,7 +163,7 @@ void test_simu( int argc, char **argv )
     
     EpotGSSolver solver( g );
     //EpotRBGSSolver solver( g );
-    MeshScalarField epot( g );
+    EpotField epot( g );
     MeshScalarField scharge( g );
 
     solver.set_imax( 1000000 );
