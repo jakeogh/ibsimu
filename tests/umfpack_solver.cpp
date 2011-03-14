@@ -6,8 +6,7 @@
 
 #include <fstream>
 #include <iomanip>
-#include "umfpack_solver.hpp"
-#include "epot_problem.hpp"
+#include "epot_umfpacksolver.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
@@ -36,7 +35,7 @@ double phi( double r )
 }
 
 
-void check_epot( Geometry &geom, ScalarField &epot )
+void check_epot( Geometry &geom, EpotField &epot )
 {
     bool err = false;
     ofstream ostr( "umfpack_solver.dat" );
@@ -46,8 +45,8 @@ void check_epot( Geometry &geom, ScalarField &epot )
 	 << setw(14) << "r (m)" << " " 
 	 << setw(14) << "potential (V)" << " "
 	 << setw(14) << "theory (V)" << "\n";
-    for( int a = 0; a < geom.size(0); a++ ) {
-	for( int b = 0; b < geom.size(1); b++ ) {
+    for( uint32_t a = 0; a < geom.size(0); a++ ) {
+	for( uint32_t b = 0; b < geom.size(1); b++ ) {
 	    double x = a*geom.h();
 	    double y = b*geom.h();
 	    double r = sqrt(x*x + y*y);
@@ -85,14 +84,11 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
     geom.build_mesh();
 
-    EpotProblem p;
-    p.construct( geom );
-
-    ScalarField epot( geom );
-    ScalarField scharge( geom );
-    UMFPACKSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
+    EpotUMFPACKSolver solver( geom );
+    EpotField epot( geom );
+    MeshScalarField scharge( geom );
+    solver.solve( epot, scharge );
+    solver.debug_print( std::cout );
     check_epot( geom, epot );
 }
 

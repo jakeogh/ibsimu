@@ -283,6 +283,22 @@ ErrorUnimplemented::ErrorUnimplemented( const ErrorLocation &loc, const std::str
 }
 
 
+
+ErrorAssert::ErrorAssert( const ErrorLocation &loc )
+  : Error( loc, "assertion failed" ) 
+{
+
+}
+
+
+ErrorAssert::ErrorAssert( const ErrorLocation &loc, const std::string &str ) 
+    : Error( loc, str ) 
+{
+
+}
+
+
+
 ErrorDim::ErrorDim( const ErrorLocation &loc )
     : Error( loc, "dimension mismatch" ) 
 {

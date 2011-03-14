@@ -40,10 +40,14 @@ epot_efield.cpp \
 epot_efield.hpp \
 epot_gssolver.cpp \
 epot_gssolver.hpp \
+epot_matrixsolver.cpp \
+epot_matrixsolver.hpp \
 epot_rbgssolver.cpp \
 epot_rbgssolver.hpp \
 epot_solver.cpp \
 epot_solver.hpp \
+epot_umfpacksolver.cpp \
+epot_umfpacksolver.hpp \
 eqpotgraph.cpp \
 eqpotgraph.hpp \
 error.cpp \
@@ -219,8 +223,10 @@ dxf_solid.hpp \
 empty_precond.hpp \
 epot_efield.hpp \
 epot_gssolver.hpp \
+epot_matrixsolver.hpp \
 epot_rbgssolver.hpp \
 epot_solver.hpp \
+epot_umfpacksolver.hpp \
 eqpotgraph.hpp \
 error.hpp \
 field.hpp \

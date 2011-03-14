@@ -227,6 +227,24 @@ public:
 };
 
 
+/*! \brief %Error class to use if impossible things happen
+ */
+class ErrorAssert : public Error {
+
+public:
+
+   /*! \brief Constructor for assert error with standard error message.
+     *
+     *  The error message is "assertion failed".
+     */
+    ErrorAssert( const ErrorLocation &loc );
+
+    /*! \brief Constructor for assert error with custom error message.
+     */
+    ErrorAssert( const ErrorLocation &loc, const std::string &str );
+};
+
+
 /*! \brief %Error class for dimension mismatch errors.
  */
 class ErrorDim : public Error {

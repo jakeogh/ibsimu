@@ -209,16 +209,38 @@ protected:
     CallbackFunctorB_V *_force_pot_func;   /*!< \brief Force area potential function. */
     CallbackFunctorB_V *_init_plasma_func; /*!< \brief Initial plasma area function. */
 
-    
+    double           _plA;            /*!< \brief Plasma parameter.
+				       *   For positive ion extraction: rho_th * h^2 / epsilon_0,
+				       *   for negative ion extraction: rho_f * h^2 / epsilon_0 */
+    double           _plB;            /*!< \brief Plasma parameter.
+				       *   For positive ion extraction: 1/Te,
+				       *   for negative ion extraction: E_f,i */
+    double           _plC;            /*!< \brief Plasma parameter for positive ion extraction. 
+				      *    Up/Te */
+
+    std::vector<double> _plD;         /*!< \brief Plasma parameter for negative ion extraction.
+				       *   rho_th,i * h^2 / epsilon_0 */
+    std::vector<double> _plE;         /*!< \brief Plasma parameter for negative ion extraction. 
+				      *    1/Ti */
+
+    std::vector<uint32_t> _nsind;     /*!< \brief Stored near solid indexes for Neumann conversion nodes. */
+
+
+    void pexp_newton( double &rhs, double &drhs, double epot ) const;
+    void nsimp_newton( double &rhs, double &drhs, double epot ) const;
+
+    void preprocess( MeshScalarField &epot, const MeshScalarField &scharge );
+    void postprocess( void );
+
+    /*! \brief Reset solver/problem settings.
+     */
     virtual void reset_problem( void ) = 0;
     
     MeshScalarField *evaluate_scharge( const ScalarField &__scharge ) const;
 
-    virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge ) = 0;
-
-    /*! \brief Print debugging information to os.
+    /*! \brief Solve problem with given mesh based space charge.
      */
-    void debug_print_base( std::ostream &os ) const;
+    virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge ) = 0;
 
 public:
 
@@ -229,6 +251,10 @@ public:
     /*! \brief Constructor.
      */
     EpotSolver( Geometry &geom );
+
+    /*! \brief Construct from file.
+     */
+    EpotSolver( Geometry &geom, std::istream &s );
 
     /*! \brief Destructor.
      */

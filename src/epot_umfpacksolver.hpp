@@ -1,5 +1,5 @@
-/*! \file epot_gssolver.hpp
- *  \brief Gauss-Seidel solver for electric potential problem
+/*! \file epot_umfpacksolver.hpp
+ *  \brief UMFPACK matrix solver for electric potential problem
  */
 
 /* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
@@ -40,58 +40,17 @@
  * permit others to do so.
  */
 
-#ifndef EPOT_GSSOLVER_HPP
-#define EPOT_GSSOLVER_HPP 1
+
+#ifndef EPOT_UMFPACKSOLVER_HPP
+#define EPOT_UMFPACKSOLVER_HPP 1
 
 
-#include "epot_solver.hpp"
+#include "epot_matrixsolver.hpp"
 
 
-/*! \brief Gauss-Seidel solver for Electric potential problem.
+/*! \brief UMFPACK matrix solver for Electric potential problem.
  */
-class EpotGSSolver : public EpotSolver {
-
-    MeshScalarField *_epot;
-    MeshScalarField *_rhs;
-
-    uint32_t         _iter;           /*!< \brief Number of iteration rounds done. */
-    uint32_t         _imax;           /*!< \brief Maximum number of iteration rounds. */
-    double           _eps;            /*!< \brief Accuracy request. */
-    double           _res;            /*!< \brief Residual error. */
-    double           _w;              /*!< \brief Relaxation coefficient. */
-
-    
-    double gs_loop_3d( void ) const;
-    double gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, 
-				     uint32_t a, uint32_t dj, uint32_t dk ) const;
-    double gs_process_pure_vacuum_3d( uint32_t a, uint32_t dj, uint32_t dk ) const;
-    double gs_process_neumann_3d( uint32_t boundary, uint32_t a,
-				  uint32_t dj, uint32_t dk ) const;
-
-
-    double gs_loop_cyl( void ) const;
-    double gs_process_near_solid_cyl( const uint8_t *nearsolid_ptr, 
-				     uint32_t i, uint32_t j ) const;
-    double gs_process_pure_vacuum_cyl( uint32_t i, uint32_t j ) const;
-    double gs_process_neumann_cyl( uint32_t boundary, uint32_t a, uint32_t dj ) const;
-
-
-    double gs_loop_2d( void ) const;
-    double gs_process_near_solid_2d( const uint8_t *nearsolid_ptr, 
-				     uint32_t a, uint32_t dj ) const;
-    double gs_process_pure_vacuum_2d( uint32_t a, uint32_t dj ) const;
-    double gs_process_neumann_2d( uint32_t boundary, uint32_t a, uint32_t dj ) const;
-
-
-    double gs_loop_1d( void ) const;
-    double gs_process_near_solid_1d( const uint8_t *nearsolid_ptr, 
-				     uint32_t i ) const;
-    double gs_process_pure_vacuum_1d( uint32_t i ) const;
-    double gs_process_neumann_1d( uint32_t boundary, uint32_t i ) const;
-
-
-    void preprocess( const MeshScalarField &scharge );
-    void postprocess( void );
+class EpotUMFPACKSolver : public EpotMatrixSolver {
 
     /*! \brief Reset solver/problem settings.
      */
@@ -105,31 +64,15 @@ public:
 
     /*! \brief Constructor.
      */
-    EpotGSSolver( Geometry &geom );
+    EpotUMFPACKSolver( Geometry &geom );
 
     /*! \brief Construct from file.
      */
-    EpotGSSolver( Geometry &geom, std::istream &s );
+    EpotUMFPACKSolver( Geometry &geom, std::istream &s );
 
     /*! \brief Destructor.
      */
-    virtual ~EpotGSSolver() {}
-
-    /*! \brief Sets the accuracy request.
-     */
-    void set_eps( double eps );
-
-    /*! \brief Get estimate of residual error.
-     */
-    double get_residual( void ) const;
-
-    /*! \brief Sets maximum iteration count.
-     */
-    void set_imax( uint32_t imax );
-
-    /*! \brief Sets relaxation parameter.
-     */
-    void set_w( double w );
+    virtual ~EpotUMFPACKSolver();
 
     /*! \brief Print debugging information to os.
      */
@@ -139,5 +82,6 @@ public:
      */
     virtual void save( std::ostream &s ) const;
 };
+
 
 #endif

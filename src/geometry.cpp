@@ -133,6 +133,10 @@ void Geometry::check_definition()
 	if( _size[0] < 3 || _size[1] < 3 || _size[2] < 3 )
 	    throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
     } else if( _geom_mode == MODE_2D || _geom_mode == MODE_CYL ) {
+	if( _geom_mode == MODE_CYL ) {
+	    if( _origo(1) != 0.0 )
+		throw( Error( ERROR_LOCATION, "j=0 node not on axis" ) );
+	}
 	if( _size[0] < 3 || _size[1] < 3 || _size[2] != 1 )
 	    throw( Error( ERROR_LOCATION, "illegal mesh size" ) );
     } else {

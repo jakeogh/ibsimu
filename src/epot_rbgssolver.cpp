@@ -838,8 +838,8 @@ void EpotRBGSSolver::save( std::ostream &s ) const
 
 void EpotRBGSSolver::debug_print( std::ostream &os ) const 
 {
+    EpotSolver::debug_print( os );
     os << "**EpotRBGSSolver\n";
-    debug_print_base( os );
     os << "imax = " << _imax << "\n";
     os << "eps = " << _eps << "\n";
     os << "w = " << _w << "\n";
