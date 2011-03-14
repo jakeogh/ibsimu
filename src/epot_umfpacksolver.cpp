@@ -41,12 +41,13 @@
  */
 
 
+#include <umfpack.h>
 #include "epot_umfpacksolver.hpp"
 #include "ibsimu.hpp"
 
 
 EpotUMFPACKSolver::EpotUMFPACKSolver( Geometry &geom )
-    : EpotMatrixSolver(geom)
+    : EpotMatrixSolver(geom), _numeric(0)
 {
 
 }
@@ -68,13 +69,91 @@ void EpotUMFPACKSolver::save( std::ostream &s ) const
 
 EpotUMFPACKSolver::~EpotUMFPACKSolver()
 {
-
+    if( _numeric )
+	umfpack_di_free_numeric( &_numeric );
 }
 
 
 void EpotUMFPACKSolver::reset_problem( void )
 {
+    if( _numeric )
+	umfpack_di_free_numeric( &_numeric );
+    _numeric = 0;
     reset_matrix();
+}
+
+
+void EpotUMFPACKSolver::umfpack_error( const std::string func, int status )
+{
+    if( status == UMFPACK_ERROR_n_nonpositive )
+	throw( Error( ERROR_LOCATION, func + ": n less than or equal to zero" ) );
+    else if( status == UMFPACK_ERROR_invalid_matrix )
+	throw( Error( ERROR_LOCATION, func + ": invalid matrix" ) );
+    else if( status == UMFPACK_ERROR_out_of_memory )
+	throw( Error( ERROR_LOCATION, func + ": memory allocation error" ) );
+    else if( status == UMFPACK_ERROR_argument_missing )
+	throw( Error( ERROR_LOCATION, func + ": argument missing" ) );
+    else if( status == UMFPACK_ERROR_internal_error )
+	throw( Error( ERROR_LOCATION, func + ": internal error" ) );
+    else if( status == UMFPACK_WARNING_singular_matrix )
+	throw( Error( ERROR_LOCATION, func + ": singular matrix" ) );
+    else if( status == UMFPACK_ERROR_invalid_Symbolic_object )
+	throw( Error( ERROR_LOCATION, func + ": invalid symbolic object" ) );
+    else if( status == UMFPACK_ERROR_invalid_system )
+	throw( Error( ERROR_LOCATION, func + ": invalid system" ) );
+    else if( status == UMFPACK_ERROR_different_pattern )
+	throw( Error( ERROR_LOCATION, func + ": different pattern" ) );
+    else if( status == UMFPACK_ERROR_invalid_Numeric_object )
+	throw( Error( ERROR_LOCATION, func + ": invalid numeric object" ) );
+    else if( status != UMFPACK_OK )
+	throw( Error( ERROR_LOCATION, "unknown error in " + func ) );
+}
+
+
+void EpotUMFPACKSolver::umfpack_decompose( const CColMatrix &mat )
+{
+    int   status;
+    void *symbolic;
+
+    // Free old decomposition
+    if( _numeric )
+	umfpack_di_free_numeric( &_numeric );
+    _numeric = 0;
+
+    status = umfpack_di_symbolic( mat.columns(), mat.rows(), 
+				  &mat.ptr(0), &mat.row(0), &mat.val(0), 
+				  &symbolic, (double *)NULL, (double *)NULL );
+    if( status != UMFPACK_OK )
+	umfpack_error( "umfpack_di_symbolic", status );
+
+    status = umfpack_di_numeric( &mat.ptr(0), &mat.row(0), &mat.val(0), 
+				 symbolic, &_numeric, (double *)NULL, 
+				 (double *)NULL );
+    if( status != UMFPACK_OK )
+	umfpack_error( "umfpack_di_numeric", status );
+
+    // Free symbolic data
+    umfpack_di_free_symbolic( &symbolic );
+}
+
+
+void EpotUMFPACKSolver::umfpack_solve( const CColMatrix &mat, const Vector &rhs, Vector &sol, 
+				       bool force_decomposition )
+{
+    int status;
+
+    // Resize solution vector
+    sol.resize( rhs.size() );
+
+    // Do decomposition if needed
+    if( !_numeric || force_decomposition )
+	umfpack_decompose( mat );
+
+    status = umfpack_di_solve( UMFPACK_A, &mat.ptr(0), &mat.row(0), &mat.val(0), 
+			       sol.get_data(), rhs.get_data(), _numeric, 
+			       (double *)NULL, (double *)NULL );
+    if( status != UMFPACK_OK )
+	umfpack_error( "umfpack_di_solve", status );
 }
 
 
@@ -92,6 +171,9 @@ void EpotUMFPACKSolver::subsolve( MeshScalarField &epot, const MeshScalarField &
 	const Matrix *A;
 	const Vector *B;
 	get_vecmat( &A, &B );
+
+	CColMatrix Acol( *A );
+	umfpack_solve( Acol, *B, X );
 
     } else {
 

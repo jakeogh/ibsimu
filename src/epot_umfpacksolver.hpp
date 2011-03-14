@@ -46,11 +46,14 @@
 
 
 #include "epot_matrixsolver.hpp"
+#include "ccolmatrix.hpp"
 
 
 /*! \brief UMFPACK matrix solver for Electric potential problem.
  */
 class EpotUMFPACKSolver : public EpotMatrixSolver {
+
+    void    *_numeric;      /*!< \brief Numeric data for LU decomposition. */
 
     /*! \brief Reset solver/problem settings.
      */
@@ -59,6 +62,12 @@ class EpotUMFPACKSolver : public EpotMatrixSolver {
     /*! \brief Solve problem with given mesh based space charge.
      */
     virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge );
+
+    static void umfpack_error( const std::string func, int status );
+
+    void umfpack_decompose( const CColMatrix &mat );
+    void umfpack_solve( const CColMatrix &mat, const Vector &rhs, Vector &sol,
+			bool force_decomposition = false );
 
 public:
 

@@ -50,6 +50,13 @@
 #include "mvector.hpp"
 
 
+#define N2D_TYPE_MASK   0x80000000 // 100...
+#define N2D_TYPE_FIXED  0x80000000 // 100...
+#define N2D_TYPE_FREE   0x00000000 // 000...
+
+#define N2D_INDEX_MASK  0x7FFFFFFF // 011...
+
+
 /*! \brief Parent class for Matrix-based solvers for Electric potential problem.
  */
 class EpotMatrixSolver : public EpotSolver {
@@ -67,7 +74,7 @@ protected:
      */
     class Node2DoF {
         Int3D         _size;          /*!< \brief Size of mesh */
-        int32_t      *_n2d;           /*!< \brief Nodes to degrees of freedom array. */
+        uint32_t     *_n2d;          /*!< \brief Nodes to degrees of freedom array. */
         
     public:
         
@@ -77,18 +84,18 @@ protected:
 	void clear( void );
         void resize( Int3D size );
 	
-        int32_t &operator()( int i ) 
+        uint32_t &operator()( int i ) 
             { return( _n2d[i] ); }
-        int32_t &operator()( int i, int j ) 
+        uint32_t &operator()( int i, int j ) 
             { return( _n2d[i+j*_size[0]] ); }
-        int32_t &operator()( int i, int j, int k ) 
+        uint32_t &operator()( int i, int j, int k ) 
             { return( _n2d[i+j*_size[0]+k*_size[0]*_size[1]] ); }
         
-        const int32_t &operator()( int i ) const
+        const uint32_t &operator()( int i ) const
             { return( _n2d[i] ); }
-        const int32_t &operator()( int i, int j )  const 
+        const uint32_t &operator()( int i, int j )  const 
             { return( _n2d[i+j*_size[0]] ); }
-        const int32_t &operator()( int i, int j, int k ) const 
+        const uint32_t &operator()( int i, int j, int k ) const 
             { return( _n2d[i+j*_size[0]+k*_size[0]*_size[1]] ); }
         
         /*! \brief Print debugging information to os.
@@ -154,7 +161,7 @@ protected:
 
 private:
 
-    void set_link( int32_t a, int32_t b, double val );
+    void set_link( uint32_t a, uint32_t b, double val );
     void add_vacuum_node( uint32_t i, uint32_t j, uint32_t k );
     void add_near_solid_node_1d( uint32_t i );
     void add_near_solid_node_2d( uint32_t i, uint32_t j );
@@ -168,10 +175,6 @@ public:
     /*! \brief Destructor.
      */
     virtual ~EpotMatrixSolver();
-
-
-
-
 
     /*! \brief Print debugging information to os.
      */

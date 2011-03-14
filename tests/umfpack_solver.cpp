@@ -11,7 +11,9 @@
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
 #include "error.hpp"
+#include "gtkplotter.hpp"
 #include "ibsimu.hpp"
+#include "ibsimutest.hpp"
 
 
 using namespace std;
@@ -35,8 +37,27 @@ double phi( double r )
 }
 
 
-void check_epot( Geometry &geom, EpotField &epot )
+void test( int argc, char **argv )
 {
+    Geometry geom( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.002 );
+    //Geometry geom( MODE_2D, Int3D(6,6,1), Vec3D(0,0,0), 0.016 );
+    Solid *s1 = new FuncSolid( solid1 );
+    geom.set_solid( 7, s1 );
+    Solid *s2 = new FuncSolid( solid2 );
+    geom.set_solid( 8, s2 );
+    geom.set_boundary( 1, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 2, Bound(BOUND_DIRICHLET, 10.0) );
+    geom.set_boundary( 3, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 4, Bound(BOUND_DIRICHLET, 10.0) );
+    geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
+    geom.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
+    geom.build_mesh();
+
+    EpotUMFPACKSolver solver( geom );
+    EpotField epot( geom );
+    MeshScalarField scharge( geom );
+    solver.solve( epot, scharge );
+
     bool err = false;
     ofstream ostr( "umfpack_solver.dat" );
     ostr << "# "
@@ -62,33 +83,13 @@ void check_epot( Geometry &geom, EpotField &epot )
 
     ostr.close();
 
-    if( err ) {
-	std::cout << "Error: solved potential differs from theory\n";
-	exit( 1 );
-    }
-}
+    GTKPlotter plotter( &argc, &argv );
+    plotter.set_geometry( &geom );
+    plotter.set_epot( &epot );
+    plotter.new_geometry_plot_window();
+    plotter.run();
 
-
-void test( int argc, char **argv )
-{
-    Geometry geom( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.002 );
-    Solid *s1 = new FuncSolid( solid1 );
-    geom.set_solid( 7, s1 );
-    Solid *s2 = new FuncSolid( solid2 );
-    geom.set_solid( 8, s2 );
-    geom.set_boundary( 1, Bound(BOUND_NEUMANN,    0.0) );
-    geom.set_boundary( 2, Bound(BOUND_DIRICHLET, 10.0) );
-    geom.set_boundary( 3, Bound(BOUND_NEUMANN,    0.0) );
-    geom.set_boundary( 4, Bound(BOUND_DIRICHLET, 10.0) );
-    geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
-    geom.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
-    geom.build_mesh();
-
-    EpotUMFPACKSolver solver( geom );
-    EpotField epot( geom );
-    MeshScalarField scharge( geom );
-    solver.solve( epot, scharge );
-    solver.debug_print( std::cout );
-    check_epot( geom, epot );
+    if( err )
+	throw( ErrorTest( ERROR_LOCATION, "Error: solved potential differs from theory" ) );
 }
 

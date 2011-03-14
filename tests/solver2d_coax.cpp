@@ -42,6 +42,7 @@
 #include "gtkplotter.hpp"
 #include "error.hpp"
 #include "ibsimu.hpp"
+#include "ibsimutest.hpp"
 
 
 using namespace std;
@@ -126,10 +127,8 @@ void test( int argc, char **argv )
     plotter.new_geometry_plot_window();
     plotter.run();
 
-    if( err ) {
-	std::cout << "Error: solved potential differs from theory\n";
-	exit( 1 );
-    }
+    if( err )
+	throw( ErrorTest( ERROR_LOCATION, "Error: solved potential differs from theory" ) );
 }
 
 

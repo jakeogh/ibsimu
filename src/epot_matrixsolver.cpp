@@ -56,7 +56,7 @@ EpotMatrixSolver::Node2DoF::Node2DoF()
 EpotMatrixSolver::Node2DoF::Node2DoF( Int3D size ) 
   : _size(size) 
 {
-    _n2d = new int32_t[_size[0]*_size[1]*_size[2]];
+    _n2d = new uint32_t[_size[0]*_size[1]*_size[2]];
 }
 
 
@@ -81,7 +81,7 @@ void EpotMatrixSolver::Node2DoF::resize( Int3D size )
     _size = size;
     if( _n2d )
 	delete _n2d;
-    _n2d = new int32_t[_size[0]*_size[1]*_size[2]];
+    _n2d = new uint32_t[_size[0]*_size[1]*_size[2]];
 }
 
 
@@ -136,7 +136,6 @@ EpotMatrixSolver::~EpotMatrixSolver()
 
 void EpotMatrixSolver::reset_matrix( void )
 {
-    // Reset solver?
     if( _fd_mat )
         delete _fd_mat;
     if( _fd_vec )
@@ -157,12 +156,18 @@ void EpotMatrixSolver::reset_matrix( void )
  * be added to the vector side of the system of equations on row
  * a. The value of potential at node b is stored in epot(-b).
  */
-void EpotMatrixSolver::set_link( int32_t a, int32_t b, double val )
+void EpotMatrixSolver::set_link( uint32_t a, uint32_t b, double val )
 {
-    if( b < 0 )
-        (*_fd_vec)(a) += -val * (*_epot)(-b);
-    else
-        (*_fd_mat).construct_add( a, b, val );
+    //std::cout << "set_link( a = " << a << ", b = " << b << ", val = " << val << ")\n";
+
+    if( (b & N2D_TYPE_MASK) == N2D_TYPE_FIXED ) {
+	//std::cout << "epot = " << (*_epot)(b & N2D_INDEX_MASK) << "\n";
+        (*_fd_vec)(a) += -val * (*_epot)(b & N2D_INDEX_MASK);
+    } else {
+	//std::cout << "matrix construct\n";
+        (*_fd_mat).construct_add( a & N2D_INDEX_MASK, 
+				  b & N2D_INDEX_MASK, val );
+    }
 }
 
 
@@ -199,8 +204,12 @@ void EpotMatrixSolver::add_vacuum_node( uint32_t i, uint32_t j, uint32_t k )
         break;
     }
 
-    (*_fd_vec)(_n2d(i,j,k)) = -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+    //if( (_n2d(i,j,k) & N2D_TYPE_MASK) == N2D_TYPE_FIXED )
+    //throw( ErrorAssert( ERROR_LOCATION ) );
+	
+    (*_fd_vec)(_n2d(i,j,k) & N2D_INDEX_MASK) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 }
+
 
 void EpotMatrixSolver::add_near_solid_node_1d( uint32_t i )
 {
@@ -231,6 +240,8 @@ void EpotMatrixSolver::add_near_solid_node_1d( uint32_t i )
 
 void EpotMatrixSolver::add_near_solid_node_2d( uint32_t i, uint32_t j )
 {
+    //std::cout << "add_near_solid_node_2d( i = " << i << ", j = " << j << ")\n";
+
     const uint8_t *nearsolid_ptr = _geom.nearsolid_ptr( _geom.mesh(i,j) & SMESH_NEAR_SOLID_INDEX_MASK );
     uint8_t sflag = nearsolid_ptr[0];
     uint8_t *ptr = (uint8_t *)&nearsolid_ptr[1];
@@ -400,15 +411,22 @@ void EpotMatrixSolver::add_near_solid_node( uint32_t i, uint32_t j, uint32_t k )
     switch( _geom.geom_mode() ) {
     case MODE_1D:
 	add_near_solid_node_1d(i);
+	break;
     case MODE_2D:
 	add_near_solid_node_2d(i,j);
+	break;
     case MODE_CYL:
 	add_near_solid_node_cyl(i,j);
+	break;
     case MODE_3D:
 	add_near_solid_node_3d(i,j,k);
+	break;
     }
 
-    (*_fd_vec)(_n2d(i,j,k)) = -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+    //if( (_n2d(i,j,k) & N2D_TYPE_MASK) == N2D_TYPE_FIXED )
+    //throw( ErrorAssert( ERROR_LOCATION ) );
+	
+    (*_fd_vec)(_n2d(i,j,k) & N2D_INDEX_MASK) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 }
 
 
@@ -476,11 +494,14 @@ void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, uin
 	}
 	break;
     }
-
+    
+    //if( (_n2d(i,j,k) & N2D_TYPE_MASK) == N2D_TYPE_FIXED )
+    //throw( ErrorAssert( ERROR_LOCATION ) );
+	
     if( _neumann_order == 2 )
-	(*_fd_vec)(_n2d(i,j,k)) = -2.0*_geom.h()*_geom.get_boundary( boundary).val;
+	(*_fd_vec)(_n2d(i,j,k) & N2D_INDEX_MASK) += -2.0*_geom.h()*_geom.get_boundary( boundary).val;
     else
-	(*_fd_vec)(_n2d(i,j,k)) = -_geom.h()*_geom.get_boundary( boundary).val;
+	(*_fd_vec)(_n2d(i,j,k) & N2D_INDEX_MASK) += -_geom.h()*_geom.get_boundary( boundary).val;
 }
 
 
@@ -496,7 +517,7 @@ void EpotMatrixSolver::preprocess( MeshScalarField &epot, const MeshScalarField 
     // Build n2d array and calculate degrees of freedom.
     _n2d.resize( _geom.size() );
     _dof = 0;
-    for( uint32_t a = 0; a < _geom.nodecount(); a++ ) {
+    for( int32_t a = 0; a < (int32_t)_geom.nodecount(); a++ ) {
 
 	uint32_t mesh = _geom.mesh(a);
 	//uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
@@ -504,10 +525,10 @@ void EpotMatrixSolver::preprocess( MeshScalarField &epot, const MeshScalarField 
 
 	if( fixed )
 	    // Fixed node
-	    _n2d(a) = -a;
+	    _n2d(a) = N2D_TYPE_FIXED | a;
 	else { 
 	    // Free node
-	    _n2d(a) = _dof;
+	    _n2d(a) = N2D_TYPE_FREE | _dof;
 	    _dof++;
 	}
     }
@@ -523,40 +544,49 @@ void EpotMatrixSolver::preprocess( MeshScalarField &epot, const MeshScalarField 
     X.resize( _dof );
 
     // Build matrix, rhs vector and solution vector
+    //std::cout << "BUILD MATRIX, RHS and SOL\n";
     for( uint32_t k = 0; k < _geom.size(2); k++ ) {
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
             for( uint32_t i = 0; i < _geom.size(0); i++ ) {
+
+		//std::cout << "\n";
+		//std::cout << "epot(" << i << ", " << j << ", " << k << ") = " << epot(i,j,k) << "\n";
 
 		uint32_t a = (k*_geom.size(1)+j)*_geom.size(0)+i;
 		uint32_t mesh = _geom.mesh(a);
 		uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
 		bool fixed = mesh & SMESH_NODE_FIXED;
 
-		if( fixed )
+		if( fixed ) {
+		    //std::cout << "Fixed\n";
 		    continue;
-		else if( node_id == SMESH_NODE_ID_PURE_VACUUM )
+		} else if( node_id == SMESH_NODE_ID_PURE_VACUUM ) {
+		    //std::cout << "Vacuum\n";
 		    add_vacuum_node( i, j, k );
-		else if( node_id == SMESH_NODE_ID_NEAR_SOLID )
+		} else if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
+		    //std::cout << "Near solid\n";
 		    add_near_solid_node( i, j, k );
-		else if( node_id == SMESH_NODE_ID_NEUMANN )
+		} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
+		    //std::cout << "Neumann\n";
 		    add_neumann_node( i, j, k, mesh & SMESH_BOUNDARY_NUMBER_MASK );
+		}
 
-		X( _n2d(a) ) = epot(a);
+		//if( (_n2d(i,j,k) & N2D_TYPE_MASK) == N2D_TYPE_FIXED )
+		//throw( ErrorAssert( ERROR_LOCATION ) );
+
+		X( _n2d(a) & N2D_INDEX_MASK ) = epot(a);
 	    }
         }
     }
-
-
 }
 
 
 void EpotMatrixSolver::postprocess( MeshScalarField &epot, const Vector &X )
-{
-    int32_t b;
- 
+{ 
     // Load content from X to epot.
     for( uint32_t a = 0; a < _geom.nodecount(); a++ ) {
-        if( (b = _n2d(a)) >= 0 )
+	uint32_t b = _n2d(a);
+        if( (b & N2D_TYPE_MASK) == N2D_TYPE_FREE )
             epot(a) = X(b);
     }
 
@@ -568,7 +598,8 @@ void EpotMatrixSolver::postprocess( MeshScalarField &epot, const Vector &X )
 
 void EpotMatrixSolver::get_vecmat( const Matrix **A, const Vector **B ) const
 {
-
+    *A = _fd_mat;
+    *B = _fd_vec;
 }
 
 
