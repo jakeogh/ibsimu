@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iomanip>
 #include "epot_gssolver.hpp"
+#include "epot_umfpacksolver.hpp"
 #include "particledatabase.hpp"
 #include "geometry.hpp"
 #include "convergence.hpp"
@@ -58,7 +59,8 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, -8.0e3) );
     geom.build_mesh();
     
-    EpotGSSolver solver( geom );
+    //EpotGSSolver solver( geom );
+    EpotUMFPACKSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_initial_plasma( 5.0, &initp );
 

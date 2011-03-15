@@ -55,6 +55,10 @@ class EpotUMFPACKSolver : public EpotMatrixSolver {
 
     void    *_numeric;      /*!< \brief Numeric data for LU decomposition. */
 
+    double   _newton_Reps;  /*!< \brief Accuracy request for Newton-Raphson residual. */
+    double   _newton_dXeps; /*!< \brief Accuracy request for Newton-Raphson step. */
+    uint32_t _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
+
     /*! \brief Reset solver/problem settings.
      */
     virtual void reset_problem( void );
@@ -73,7 +77,10 @@ public:
 
     /*! \brief Constructor.
      */
-    EpotUMFPACKSolver( Geometry &geom );
+    EpotUMFPACKSolver( Geometry &geom, 
+		       double newton_Reps = 1.0e-5, 
+		       double newton_dXeps = 1.0e-6, 
+		       uint32_t newton_imax = 10 );
 
     /*! \brief Construct from file.
      */
@@ -82,6 +89,18 @@ public:
     /*! \brief Destructor.
      */
     virtual ~EpotUMFPACKSolver();
+
+    /*! \brief Sets maximum iteration count for Newton-Raphson steps.
+     */
+    void set_newton_imax( uint32_t newton_imax );
+
+    /*! \brief Sets the accuracy request for Newton-Raphson residual.
+     */
+    void set_newton_residual_eps( double newton_Reps );
+
+    /*! \brief Sets the accuracy request for Newton-Raphson step size.
+     */
+    void set_newton_step_eps( double newton_dXeps );
 
     /*! \brief Print debugging information to os.
      */

@@ -229,7 +229,7 @@ protected:
     void pexp_newton( double &rhs, double &drhs, double epot ) const;
     void nsimp_newton( double &rhs, double &drhs, double epot ) const;
 
-    void preprocess( MeshScalarField &epot, const MeshScalarField &scharge );
+    void preprocess( MeshScalarField &epot );
     void postprocess( void );
 
     /*! \brief Reset solver/problem settings.

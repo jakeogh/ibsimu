@@ -174,7 +174,7 @@ void EpotSolver::nsimp_newton( double &rhs, double &drhs, double epot ) const
 }
 
 
-void EpotSolver::preprocess( MeshScalarField &epot, const MeshScalarField &scharge )
+void EpotSolver::preprocess( MeshScalarField &epot )
 {
     if( _plasma == PLASMA_PEXP ) {
 	// Calculate plasma parameters for positive ion extraction. 
