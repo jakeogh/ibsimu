@@ -193,17 +193,19 @@ void EpotMatrixSolver::add_vacuum_node( uint32_t i, uint32_t j, uint32_t k )
     }
 
     if( _plasma == PLASMA_PEXP ) {
-	//std::cout << "a = " << a << ", i = " << i << ", j = " << j << "\n";
 	double p = (*_sol)(a);
 	double rhst, drhst;
 	pexp_newton( rhst, drhst, p );
 	(*_fd_vec)(a) += rhst;
 	(*_d_vec)(a) = drhst;
-	//std::cout << "p = " << p << "\n";
-	//std::cout << "rhst = " << rhst << "\n";
-	//std::cout << "drhst = " << drhst << "\n";
-	//std::cout << "scharge = " << (*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0 << "\n";
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_sol)(a);
+        double rhst, drhst;
+        nsimp_newton( rhst, drhst, p );
+	(*_fd_vec)(a) += rhst;
+	(*_d_vec)(a) = drhst;
     }
+
     (*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 }
 
@@ -434,6 +436,12 @@ void EpotMatrixSolver::add_near_solid_node( uint32_t i, uint32_t j, uint32_t k )
 	pexp_newton( rhst, drhst, p );
 	(*_fd_vec)(a) += rhst;
 	(*_d_vec)(a) = drhst;
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_sol)(a);
+        double rhst, drhst;
+        nsimp_newton( rhst, drhst, p );
+	(*_fd_vec)(a) += rhst;
+	(*_d_vec)(a) = drhst;
     }
     (*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 }
@@ -470,17 +478,23 @@ void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, uin
 	break;
     case 3:
 	if( _geom.geom_mode() == MODE_CYL ) {
+	    set_link( a, _n2d(i-1,j,k), 1.0 );
+            set_link( a, _n2d(i,j,k), -6.0 );
+            set_link( a, _n2d(i+1,j,k), 1.0 );
+            set_link( a, _n2d(i,j+1,k), 4.0 );
 	    if( _plasma == PLASMA_PEXP ) {
 		double p = (*_sol)(a);
 		double rhst, drhst;
 		pexp_newton( rhst, drhst, p );
 		(*_fd_vec)(a) += rhst;
 		(*_d_vec)(a) = drhst;
+	    } else if( _plasma == PLASMA_NSIMP ) {
+		double p = (*_sol)(a);
+		double rhst, drhst;
+		nsimp_newton( rhst, drhst, p );
+		(*_fd_vec)(a) += rhst;
+		(*_d_vec)(a) = drhst;
 	    }
-	    set_link( a, _n2d(i-1,j,k), 1.0 );
-            set_link( a, _n2d(i,j,k), -6.0 );
-            set_link( a, _n2d(i+1,j,k), 1.0 );
-            set_link( a, _n2d(i,j+1,k), 4.0 );
 	    (*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 	} else if( _neumann_order == 2 ) {
 	    set_link( a, _n2d(i,j,k), 3.0 );

@@ -1,8 +1,8 @@
-/*! \file bicgstab_solver.hpp
- *  \brief Stabilized Biconjugate Gradient solver based problem solver
+/*! \file epot_bicgstabsolver.hpp
+ *  \brief BiCGSTAB matrix solver for electric potential problem
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,26 +40,19 @@
  * permit others to do so.
  */
 
-#ifndef BICGSTAB_SOLVER_HPP
-#define BICGSTAB_SOLVER_HPP 1
+
+#ifndef EPOT_BICGSTABSOLVER_HPP
+#define EPOT_BICGSTABSOLVER_HPP 1
 
 
-#include <iostream>
-#include "solver.hpp"
-#include "geometry.hpp"
-#include "problem.hpp"
-#include "matrix.hpp"
-#include "mvector.hpp"
+#include "epot_matrixsolver.hpp"
+#include "ccolmatrix.hpp"
 
 
-/*! \brief BiCGSTAB based solver implementation.
- *
- *  An implementation of virtual class Solver using ILU0
- *  preconditioner and bicgstab() solver function. Linear and
- *  nonlinear solvers.
- *
+/*! \brief BiCGSTAB matrix solver for Electric potential problem.
  */
-class BiCGSTABSolver : public Solver {
+class EpotBiCGSTABSolver : public EpotMatrixSolver {
+
     double   _eps;          /*!< \brief Accuracy request. */
     uint32_t _imax;         /*!< \brief Maximum iteration count. */
 
@@ -67,82 +60,61 @@ class BiCGSTABSolver : public Solver {
     double   _newton_dXeps; /*!< \brief Accuracy request for Newton-Raphson step. */
     uint32_t _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
 
+    /*! \brief Reset solver/problem settings.
+     */
+    virtual void reset_problem( void );
+
+    /*! \brief Solve problem with given mesh based space charge.
+     */
+    virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge );
+
 public:
 
     /*! \brief Constructor.
      */
-    BiCGSTABSolver( double eps = 1.0e-6, uint32_t imax = 10000,
-		    double newton_Reps = 1.0e-5, double newton_dXeps = 1.0e-6, 
-		    uint32_t newton_imax = 10 );
+    EpotBiCGSTABSolver( Geometry &geom,
+			double eps = 1.0e-6, 
+			uint32_t imax = 10000,
+			double newton_Reps = 1.0e-5, 
+			double newton_dXeps = 1.0e-6, 
+			uint32_t newton_imax = 10 );
+
+    /*! \brief Construct from file.
+     */
+    EpotBiCGSTABSolver( Geometry &geom, std::istream &s );
 
     /*! \brief Destructor.
      */
-    ~BiCGSTABSolver() {}
-
-    /*! \brief Solve problem \a p defined in geometry \a g.  Initial
-     *  guess and solution are in vector \a X.
-     */
-    virtual void solve( const Problem &p, Vector &X );
-
-    /*! \brief Reset solver.
-     *
-     *  This is a signal from the problem that the problem has changed
-     *  and internal caches (if they exist) in the solver should be
-     *  resetted.
-     */
-    virtual void reset( void );
+    virtual ~EpotBiCGSTABSolver();
 
     /*! \brief Sets the accuracy request for BiCGSTAB solver.
      */
-    void set_eps( double eps ) {
-	_eps = eps;
-    }
+    void set_eps( double eps );
 
     /*! \brief Sets maximum iteration count for BiCGSTAB solver.
      */
-    void set_imax( uint32_t imax ) {
-	_imax = imax;
-    }
+    void set_imax( uint32_t imax );
 
     /*! \brief Sets maximum iteration count for Newton-Raphson steps.
      */
-    void set_newton_imax( uint32_t newton_imax ) {
-	_newton_imax = newton_imax;
-    }
+    void set_newton_imax( uint32_t newton_imax );
 
     /*! \brief Sets the accuracy request for Newton-Raphson residual.
      */
-    void set_newton_residual_eps( double newton_Reps ) {
-	_newton_Reps = newton_Reps;
-    }
+    void set_newton_residual_eps( double newton_Reps );
 
     /*! \brief Sets the accuracy request for Newton-Raphson step size.
      */
-    void set_newton_step_eps( double newton_dXeps ) {
-	_newton_dXeps = newton_dXeps;
-    }
+    void set_newton_step_eps( double newton_dXeps );
 
+    /*! \brief Print debugging information to os.
+     */
+    virtual void debug_print( std::ostream &os ) const;
+
+    /*! \brief Saves problem data to stream.
+     */
+    virtual void save( std::ostream &s ) const;
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

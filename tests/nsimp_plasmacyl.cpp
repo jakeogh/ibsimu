@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iomanip>
 #include "bicgstab_solver.hpp"
+#include "epot_umfpacksolver.hpp"
 #include "epot_gssolver.hpp"
 #include "particledatabase.hpp"
 #include "geometry.hpp"
@@ -69,7 +70,8 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, +6.0e3) );
     geom.build_mesh();
 
-    EpotGSSolver solver( geom );
+    //EpotGSSolver solver( geom );
+    EpotUMFPACKSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_nsimp_initial_plasma( &initp );
 

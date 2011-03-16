@@ -11,6 +11,7 @@
 #include <iomanip>
 #include "epot_gssolver.hpp"
 #include "epot_umfpacksolver.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "particledatabase.hpp"
 #include "geometry.hpp"
 #include "convergence.hpp"
@@ -60,7 +61,8 @@ void test( int argc, char **argv )
     geom.build_mesh();
     
     //EpotGSSolver solver( geom );
-    EpotUMFPACKSolver solver( geom );
+    //EpotUMFPACKSolver solver( geom );
+    EpotBiCGSTABSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_initial_plasma( 5.0, &initp );
 
