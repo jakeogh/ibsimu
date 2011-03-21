@@ -192,7 +192,6 @@ protected:
     Geometry           &_geom;             /*!< \brief Geometry reference. */
     
     uint32_t            _neumann_order;    /*!< \brief Neumann boundary order (1 or 2). */
-    bool                _smooth_solid;     /*!< \brief Smooth solid. */
 
     plasma_mode_e       _plasma;           /*!< \brief Plasma simulation mode. */
 
@@ -209,27 +208,27 @@ protected:
     CallbackFunctorB_V *_force_pot_func;   /*!< \brief Force area potential function. */
     CallbackFunctorB_V *_init_plasma_func; /*!< \brief Initial plasma area function. */
 
-    double           _plA;            /*!< \brief Plasma parameter.
-				       *   For positive ion extraction: rho_th * h^2 / epsilon_0,
-				       *   for negative ion extraction: rho_f * h^2 / epsilon_0 */
-    double           _plB;            /*!< \brief Plasma parameter.
-				       *   For positive ion extraction: 1/Te,
-				       *   for negative ion extraction: E_f,i */
-    double           _plC;            /*!< \brief Plasma parameter for positive ion extraction. 
-				      *    Up/Te */
+    double              _plA;              /*!< \brief Plasma parameter.
+				            *   For positive ion extraction: rho_th * h^2 / epsilon_0,
+				            *   for negative ion extraction: rho_f * h^2 / epsilon_0 */
+    double              _plB;              /*!< \brief Plasma parameter.
+					    *   For positive ion extraction: 1/Te,
+					    *   for negative ion extraction: E_f,i */
+    double              _plC;              /*!< \brief Plasma parameter for positive ion extraction. 
+					    *    Up/Te */
 
-    std::vector<double> _plD;         /*!< \brief Plasma parameter for negative ion extraction.
-				       *   rho_th,i * h^2 / epsilon_0 */
-    std::vector<double> _plE;         /*!< \brief Plasma parameter for negative ion extraction. 
-				      *    1/Ti */
-
-    std::vector<uint32_t> _nsind;     /*!< \brief Stored near solid indexes for Neumann conversion nodes. */
+    std::vector<double> _plD;              /*!< \brief Plasma parameter for negative ion extraction.
+					    *   rho_th,i * h^2 / epsilon_0 */
+    std::vector<double> _plE;              /*!< \brief Plasma parameter for negative ion extraction. 
+					    *    1/Ti */
+    
+    std::vector<uint32_t> _nsind;          /*!< \brief Stored near solid indexes for Neumann conversion nodes. */
 
 
     void pexp_newton( double &rhs, double &drhs, double epot ) const;
     void nsimp_newton( double &rhs, double &drhs, double epot ) const;
 
-    void preprocess( MeshScalarField &epot, const MeshScalarField &scharge );
+    void preprocess( MeshScalarField &epot );
     void postprocess( void );
 
     /*! \brief Reset solver/problem settings.
@@ -248,7 +247,7 @@ public:
  * Constructors and destructor            *
  * ************************************** */
 
-    /*! \brief Constructor.
+    /*! \brief Constructor for solver from \a geom.
      */
     EpotSolver( Geometry &geom );
 
@@ -269,12 +268,6 @@ public:
      *  Valid values are 1 and 2 (default).
      */
     void set_neumann_order( uint32_t order );
-
-    /*! \brief Set smooth solid surfaces.
-     * 
-     *  Default is enabled
-     */
-    void set_smooth_solids( bool enable );
 
     /*! \brief Define forced potential volume.
      *

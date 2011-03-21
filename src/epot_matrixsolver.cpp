@@ -510,7 +510,7 @@ void EpotMatrixSolver::preprocess( MeshScalarField &epot, const MeshScalarField 
 {
     _epot = &epot;
     _scharge = &scharge;
-    EpotSolver::preprocess( epot, scharge );
+    EpotSolver::preprocess( epot );
 
     reset_matrix();
 

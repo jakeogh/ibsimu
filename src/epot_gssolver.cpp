@@ -764,7 +764,7 @@ double EpotGSSolver::gs_loop_1d( void ) const
 
 void EpotGSSolver::preprocess( const MeshScalarField &scharge )
 {
-    EpotSolver::preprocess( *_epot, scharge );
+    EpotSolver::preprocess( *_epot );
 
     // Build right-hand-side
     if( _rhs )

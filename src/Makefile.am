@@ -42,6 +42,8 @@ epot_gssolver.cpp \
 epot_gssolver.hpp \
 epot_matrixsolver.cpp \
 epot_matrixsolver.hpp \
+epot_mgsolver.cpp \
+epot_mgsolver.hpp \
 epot_rbgssolver.cpp \
 epot_rbgssolver.hpp \
 epot_solver.cpp \
@@ -224,6 +226,7 @@ empty_precond.hpp \
 epot_efield.hpp \
 epot_gssolver.hpp \
 epot_matrixsolver.hpp \
+epot_mgsolver.hpp \
 epot_rbgssolver.hpp \
 epot_solver.hpp \
 epot_umfpacksolver.hpp \

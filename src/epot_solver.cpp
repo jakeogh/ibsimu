@@ -54,7 +54,7 @@
 
 
 EpotSolver::EpotSolver( Geometry &geom ) 
-    : _geom(geom), _neumann_order(2), _smooth_solid(true), _plasma(PLASMA_NONE), 
+    : _geom(geom), _neumann_order(2), _plasma(PLASMA_NONE), 
       _rhoe(0.0), _Te(0.0), _Up(0.0), 
       _force_pot(0.0), _force_pot_func(0), _init_plasma_func(0)
 {
@@ -78,13 +78,6 @@ void EpotSolver::set_neumann_order( uint32_t order )
     if( order < 1 || order > 2 )
 	throw( Error( ERROR_LOCATION, "illegal neumann order" ) );
     _neumann_order = order;
-    reset_problem();
-}
-
-
-void EpotSolver::set_smooth_solids( bool enable )
-{
-    _smooth_solid = enable;
     reset_problem();
 }
 
@@ -174,7 +167,7 @@ void EpotSolver::nsimp_newton( double &rhs, double &drhs, double epot ) const
 }
 
 
-void EpotSolver::preprocess( MeshScalarField &epot, const MeshScalarField &scharge )
+void EpotSolver::preprocess( MeshScalarField &epot )
 {
     if( _plasma == PLASMA_PEXP ) {
 	// Calculate plasma parameters for positive ion extraction. 
