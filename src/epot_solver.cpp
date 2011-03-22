@@ -192,16 +192,11 @@ void EpotSolver::preprocess( MeshScalarField &epot )
 	_plA = -_rhoi[0]*_geom.h()*_geom.h()/EPSILON0;
 	_plB = -1.0/_Ei[0];
 	_plC = _plA*_plB*2.0/sqrt(M_PI);
-	std::cout << "plA = " << _plA << "\n";
-	std::cout << "plB = " << _plB << "\n";
-	std::cout << "plC = " << _plC << "\n";
 	_plD.clear();
 	_plE.clear();
 	for( uint32_t i = 1; i < _rhoi.size(); i++ ) {
 	    _plD.push_back( -_rhoi[i]*_geom.h()*_geom.h()/EPSILON0 );
 	    _plE.push_back( -1.0/_Ei[i] );
-	    std::cout << "plD[" << i-1 << "] = " << _plD[i-1] << "\n";
-	    std::cout << "plE[" << i-1 << "] = " << _plE[i-1] << "\n";
 	}
     }
 

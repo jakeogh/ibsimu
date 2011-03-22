@@ -2,7 +2,7 @@
  *  \brief Window for GTK plots
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -89,6 +89,8 @@ class GTKWindow {
     void delete_window( void );
     void menuitem_tool_change( GtkToolButton *button );
     void menuitem_preferences( GtkMenuItem *menuitem );
+
+    void frame_draw( void );
 
     static gboolean window_delete_signal( GtkWidget *widget, 
 					  GdkEventExpose *event, 

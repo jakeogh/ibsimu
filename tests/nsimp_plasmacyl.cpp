@@ -11,7 +11,7 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
-#include "bicgstab_solver.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "epot_umfpacksolver.hpp"
 #include "epot_gssolver.hpp"
 #include "particledatabase.hpp"
@@ -151,6 +151,18 @@ void test( int argc, char **argv )
 	plotter.run();	
 	*/
     }
+
+	MeshScalarField tdens( geom );
+	pdb.build_trajectory_density_field( tdens );
+	GTKPlotter plotter( &argc, &argv );
+	plotter.set_geometry( &geom );
+	plotter.set_epot( &epot );
+	plotter.set_efield( &efield );
+	plotter.set_trajdens( &tdens );
+	plotter.set_scharge( &scharge );
+	plotter.set_particledatabase( &pdb );
+	plotter.new_geometry_plot_window();
+	plotter.run();	
 
     GeomPlotter gplotter( &geom );
     gplotter.set_size( 1024, 768 );

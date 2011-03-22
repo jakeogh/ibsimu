@@ -106,6 +106,22 @@ void test( int argc, char **argv )
 
 	conv.evaluate_iteration();
 
+	/*
+	MeshScalarField tdens( geom );
+	pdb.build_trajectory_density_field( tdens );
+	GTKPlotter plotter( &argc, &argv );
+	plotter.set_geometry( &geom );
+	plotter.set_epot( &epot );
+	plotter.set_efield( &efield );
+	plotter.set_trajdens( &tdens );
+	plotter.set_scharge( &scharge );
+	plotter.set_particledatabase( &pdb );
+	plotter.new_geometry_plot_window();
+	plotter.run();
+	*/
+    }
+
+    if( true ) {
 	MeshScalarField tdens( geom );
 	pdb.build_trajectory_density_field( tdens );
 	GTKPlotter plotter( &argc, &argv );
