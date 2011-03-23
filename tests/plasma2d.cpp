@@ -15,7 +15,7 @@
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
-#include "vectorfield.hpp"
+#include "meshvectorfield.hpp"
 #include "ibsimu.hpp"
 #include "error.hpp"
 #include "gtkplotter.hpp"
@@ -71,7 +71,7 @@ void test( int argc, char **argv )
     BiCGSTABSolver solver;
     p.set_solver( solver );
 
-    VectorField bfield;
+    MeshVectorField bfield;
     EpotEfield efield( geom, epot );
     field_extrpl_e efldextrpl[6] = {FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE, 
 				    FIELD_MIRROR,FIELD_EXTRAPOLATE,
@@ -84,7 +84,7 @@ void test( int argc, char **argv )
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
 
-    for( size_t i = 0; i < 2; i++ ) {
+    for( size_t i = 0; i < 1; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
@@ -94,7 +94,7 @@ void test( int argc, char **argv )
 
 	p.solve( epot, scharge );
 	pdb.clear();
-	pdb.add_2d_beam_with_energy( 30000, 600.0, 1.0, 1.0, 
+	pdb.add_2d_beam_with_energy( 50000, 600.0, 1.0, 1.0, 
 				     5.0, 0.0, 0.5, 
 				     0.0, 0.0, 
 				     0.0, 0.0015 );

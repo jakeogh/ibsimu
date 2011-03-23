@@ -140,20 +140,20 @@ class ParticleDataBase {
 
 protected:
 
-    double         _epsabs;      /*!< \brief Absolute error limit for calculation. */
-    double         _epsrel;      /*!< \brief Relative error limit for calculation. */
-    bool           _polyint;     /*!< \brief Use polynomial(true)/linear(false) interpolation. */
-    uint32_t       _maxsteps;    /*!< \brief Maximum number of steps to calculate. */
-    double         _maxt;        /*!< \brief Maximum particle time in simulation. */
-    uint32_t       _trajdiv;     /*!< \brief Divisor for saved trajectories,
-				  * if 3, every third trajectory is saved. */
-    bool           _mirror[6];   /*!< \brief Boundary particle mirroring. */
+    double                    _epsabs;      /*!< \brief Absolute error limit for calculation. */
+    double                    _epsrel;      /*!< \brief Relative error limit for calculation. */
+    bool                      _polyint;     /*!< \brief Use polynomial(true)/linear(false) interpolation. */
+    uint32_t                  _maxsteps;    /*!< \brief Maximum number of steps to calculate. */
+    double                    _maxt;        /*!< \brief Maximum particle time in simulation. */
+    uint32_t                  _trajdiv;     /*!< \brief Divisor for saved trajectories,
+					     * if 3, every third trajectory is saved. */
+    bool                      _mirror[6];   /*!< \brief Boundary particle mirroring. */
 
-    double         _rhosum;      /*!< \brief Sum of space charge density in defined beams (C/m3). */
+    double                    _rhosum;      /*!< \brief Sum of space charge density in defined beams (C/m3). */
 
-    ParticleStatistics _stat;    /*!< \brief Particle statistics. */
+    ParticleStatistics        _stat;        /*!< \brief Particle statistics. */
 
-    int            _iteration;   /*!< \brief Iteration number. */
+    int                       _iteration;   /*!< \brief Iteration number. */
     
     const CallbackFunctorD_V *_bfield_suppression; /*!< \brief Location dependent magnetic field suppression. */
 
@@ -750,8 +750,93 @@ public:
      *  forward one time step in electric field \a efield and geometry
      *  \a g.
      */
-    virtual void step_particles( const VectorField &efield, const Geometry &g, double dt ) {
+    virtual void step_particles( ScalarField &scharge, const VectorField &efield, 
+				 const VectorField &bfield, const Geometry &g, double dt ) {
 
+	ScalarField                         *schmap[ibsimu.get_thread_count()];
+	std::vector<ParticleIterator<PP> *>  iterators;
+
+	Timer t;
+	if( ibsimu.get_verbose_output() )
+	    std::cout << "Calculating particle trajectories\n";
+	_iteration++;
+
+	// Check geometry mode
+	if( g.geom_mode() != PP::geom_mode() )
+	    throw( Error( ERROR_LOCATION, "Differing geometry modes" ) );
+
+	// Clear space charge
+	scharge.clear();
+
+	// Reset statistics
+	_stat.reset( g.number_of_boundaries() );
+
+	// Check number of particles
+	if( _particles.size() == 0 ) {
+	    std::cout << "  no particles to calculate\n";
+	    return;
+	}
+
+	// Make separate space charge maps for all threads and build iterators
+	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
+	    if( a == 0 ) schmap[a] = &scharge;
+	    else schmap[a] = new ScalarField( scharge );
+
+	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
+							   _polyint, _maxsteps, _maxt, _trajdiv, 
+							   _mirror, schmap[a], &efield, &bfield, 
+							   &g, &_particles[0], _bfield_suppression ) );
+	}
+
+	// Make Scheduler
+	Scheduler<ParticleIterator<PP>,Particle<PP>,Error> scheduler( iterators );
+
+	// Add problems
+	for( size_t a = 0; a < _particles.size(); a++ )
+	    scheduler.add_problem( &_particles[a] );
+
+	// Wait for completition
+	scheduler.run();
+	scheduler.finish();
+
+	if( scheduler.is_error() ) {
+	    // Throw the error
+	    std::vector<Error> err;
+	    std::vector<Particle<PP> *> part;
+	    scheduler.get_errors( err, part );
+	    throw( err[0] );
+	}
+
+	// Combine separate space charge maps and collect
+	// statistics. Free all allocated memory.
+	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
+	    if( a != 0 ) {
+		scharge += *schmap[a];
+		delete schmap[a];
+	    }
+	    ParticleStatistics stat = iterators[a]->get_statistics();
+	    _stat += stat;
+	    delete iterators[a];
+	}
+
+	scharge_finalize( scharge );
+	
+	t.stop();
+	if( ibsimu.get_verbose_output() ) {
+	    std::cout << "  Particle histories (" << _particles.size() << " total):\n";
+	    std::cout << "    flown = " << _stat.bound_collisions() << "\n";
+	    std::cout << "    time limited = " << _stat.end_time() << "\n";
+	    std::cout << "    step count limited = " << _stat.end_step() << "\n";
+	    std::cout << "    bad definitions = " << _stat.end_baddef() << "\n";
+	    for( size_t a = 1; a <= _stat.number_of_boundaries(); a++ ) {
+		std::cout << "    beam to boundary " << a << " = " << _stat.bound_current(a)
+			  << " " << PP::IQ_unit() << " (" << _stat.bound_collisions(a) << " particles)" << "\n";
+	    }
+	    std::cout << "    total steps = " << _stat.sum_steps() << "\n";
+	    std::cout << "    steps per particle (ave) = " << 
+		_stat.sum_steps()/(double)_particles.size() << "\n";
+	    std::cout << "  time used = " << t << "\n";
+	}
     }
 
 /* ************************************** *
