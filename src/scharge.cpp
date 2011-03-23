@@ -129,7 +129,7 @@ void scharge_finalize( ScalarField &scharge )
 }
 
 
-void scharge_add_from_trajectory( ScalarField &scharge, double IQ, 
+void scharge_add_from_trajectory( ScalarField &scharge, pthread_mutex_t *mutex, double IQ, 
 				  const ParticleP2D &x1, const ParticleP2D &x2 )
 {
     double x[2];
@@ -179,14 +179,16 @@ void scharge_add_from_trajectory( ScalarField &scharge, double IQ,
     std::cout << "Q = " << Q << "\n\n";
 #endif
     int p = scharge.size(0)*i[1] + i[0];
+    pthread_mutex_lock( mutex );
     scharge( p )                   += (1.0-t[0])*(1.0-t[1])*Q;
     scharge( p+scharge.size(0) )   += (1.0-t[0])*t[1]*Q;
     scharge( p+1 )                 += t[0]*(1.0-t[1])*Q;
     scharge( p+1+scharge.size(0) ) += t[0]*t[1]*Q;
+    pthread_mutex_unlock( mutex );
 }
 
 
-void scharge_add_from_trajectory( ScalarField &scharge, double IQ, 
+void scharge_add_from_trajectory( ScalarField &scharge, pthread_mutex_t *mutex, double IQ, 
 				  const ParticlePCyl &x1, const ParticlePCyl &x2 )
 {
     double x[2];
@@ -220,14 +222,16 @@ void scharge_add_from_trajectory( ScalarField &scharge, double IQ,
 
     double Q = IQ*(x2[0]-x1[0]); // Q = I*dt
     int p = scharge.size(0)*i[1] + i[0];
+    pthread_mutex_lock( mutex );
     scharge( p )                   += (1.0-t[0])*(1.0-t[1])*Q;
     scharge( p+scharge.size(0) )   += (1.0-t[0])*t[1]*Q;
     scharge( p+1 )                 += t[0]*(1.0-t[1])*Q;
     scharge( p+1+scharge.size(0) ) += t[0]*t[1]*Q;    
+    pthread_mutex_unlock( mutex );
 }
 
 
-void scharge_add_from_trajectory( ScalarField &scharge, double IQ, 
+void scharge_add_from_trajectory( ScalarField &scharge, pthread_mutex_t *mutex, double IQ, 
 				  const ParticleP3D &x1, const ParticleP3D &x2 )
 {
     double x[3];
@@ -251,6 +255,8 @@ void scharge_add_from_trajectory( ScalarField &scharge, double IQ,
 
     double Q = IQ*(x2[0]-x1[0]); // Q = I*dt
     int p = scharge.size(0)*scharge.size(1)*i[2] + scharge.size(0)*i[1] + i[0];
+
+    pthread_mutex_lock( mutex );
     scharge( p )                   += (1.0-t[0])*(1.0-t[1])*(1.0-t[2])*Q;
     scharge( p+scharge.size(0) )   += (1.0-t[0])*t[1]*(1.0-t[2])*Q;
     scharge( p+1 )                 += t[0]*(1.0-t[1])*(1.0-t[2])*Q;
@@ -261,6 +267,7 @@ void scharge_add_from_trajectory( ScalarField &scharge, double IQ,
     scharge( p+scharge.size(0) )   += (1.0-t[0])*t[1]*t[2]*Q;
     scharge( p+1 )                 += t[0]*(1.0-t[1])*t[2]*Q;
     scharge( p+1+scharge.size(0) ) += t[0]*t[1]*t[2]*Q;
+    pthread_mutex_unlock( mutex );
 }
 
 

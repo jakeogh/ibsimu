@@ -315,8 +315,9 @@ template <class PP> class ParticleIterator {
 					    * if 3, every third trajectory is saved. */
     bool                       _mirror[6]; /*!< \brief Is particle mirrored on boundary? */
 
-    Particle<PP>              *_first;     /*!< \brief Pointer to first particle of the database. */
+    Particle<PP>              *_first;     /*!< \brief Pointer to first particle of the database. */    
     ParticleIteratorData       _pidata;    /*!< \brief User data provided to PP::get_derivatives(). */
+    pthread_mutex_t           *_scharge_mutex; 
 
     PP                         _xi;        /*!< \brief Previous mesh intersection coordinates 
 					    *   or starting point. */
@@ -684,7 +685,7 @@ template <class PP> class ParticleIterator {
 
 	    // Update space charge for one mesh.
 	    if( _pidata._scharge )
-		scharge_add_from_trajectory( *_pidata._scharge, particle.IQ(), 
+		scharge_add_from_trajectory( *_pidata._scharge, _scharge_mutex, particle.IQ(), 
 					     _xi, _coldata[a]._x );
 
 #ifdef DEBUG_PARTICLE_ITERATOR
@@ -894,12 +895,13 @@ public:
     ParticleIterator( particle_iterator_type_e type, double epsabs, double epsrel, 
 		      bool polyint, uint32_t maxsteps, double maxt, 
 		      uint32_t trajdiv, bool mirror[6], ScalarField *scharge, 
+		      pthread_mutex_t *scharge_mutex,
 		      const VectorField *efield, const VectorField *bfield, 
 		      const Geometry *g, Particle<PP> *first, 
 		      const CallbackFunctorD_V *bfield_suppression )
 	: _type(type), _polyint(polyint), _epsabs(epsabs), _epsrel(epsrel), _maxsteps(maxsteps), _maxt(maxt), 
 	  _trajdiv(trajdiv), _first(first), _pidata(scharge,efield,bfield,g,bfield_suppression), 
-	  _stat(g->number_of_boundaries()) {
+	  _scharge_mutex(scharge_mutex), _stat(g->number_of_boundaries()) {
 
 	// Initialize mirroring
 	_mirror[0] = mirror[0];

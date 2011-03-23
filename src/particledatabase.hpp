@@ -658,7 +658,7 @@ public:
     virtual void iterate_trajectories( ScalarField &scharge, const VectorField &efield, 
 				       const VectorField &bfield, const Geometry &g ) {
 
-	ScalarField                         *schmap[ibsimu.get_thread_count()];
+	pthread_mutex_t                      scharge_mutex = PTHREAD_MUTEX_INITIALIZER;
 	std::vector<ParticleIterator<PP> *>  iterators;
 
 	Timer t;
@@ -684,12 +684,10 @@ public:
 
 	// Make separate space charge maps for all threads and build iterators
 	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
-	    if( a == 0 ) schmap[a] = &scharge;
-	    else schmap[a] = new ScalarField( scharge );
 
 	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
 							   _polyint, _maxsteps, _maxt, _trajdiv, 
-							   _mirror, schmap[a], &efield, &bfield, 
+							   _mirror, &scharge, &scharge_mutex, &efield, &bfield, 
 							   &g, &_particles[0], _bfield_suppression ) );
 	}
 
@@ -712,13 +710,8 @@ public:
 	    throw( err[0] );
 	}
 
-	// Combine separate space charge maps and collect
-	// statistics. Free all allocated memory.
+	// Collectstatistics. Free all allocated memory.
 	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
-	    if( a != 0 ) {
-		scharge += *schmap[a];
-		delete schmap[a];
-	    }
 	    ParticleStatistics stat = iterators[a]->get_statistics();
 	    _stat += stat;
 	    delete iterators[a];
@@ -753,6 +746,7 @@ public:
     virtual void step_particles( ScalarField &scharge, const VectorField &efield, 
 				 const VectorField &bfield, const Geometry &g, double dt ) {
 
+	pthread_mutex_t                      scharge_mutex = PTHREAD_MUTEX_INITIALIZER;
 	ScalarField                         *schmap[ibsimu.get_thread_count()];
 	std::vector<ParticleIterator<PP> *>  iterators;
 
@@ -784,7 +778,7 @@ public:
 
 	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
 							   _polyint, _maxsteps, _maxt, _trajdiv, 
-							   _mirror, schmap[a], &efield, &bfield, 
+							   _mirror, schmap[a], &scharge_mutex, &efield, &bfield, 
 							   &g, &_particles[0], _bfield_suppression ) );
 	}
 
