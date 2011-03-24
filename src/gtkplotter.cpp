@@ -41,6 +41,7 @@
  */
 
 #include <sstream>
+#include "ibsimu.hpp"
 #include "gtkplotter.hpp"
 #include "gtkwindow.hpp"
 #include "gtkgeomwindow.hpp"
@@ -77,7 +78,13 @@ GTKPlotter::~GTKPlotter()
 
 void GTKPlotter::run()
 {
+    if( ibsimu.get_verbose_output() )
+	std::cout << "Running GTKPlotter\n";
+
     gtk_main();
+
+    if( ibsimu.get_verbose_output() )
+	std::cout << "  Done\n";
 }
 
 
