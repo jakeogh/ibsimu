@@ -211,6 +211,7 @@ ccolmatrix.hpp \
 color.hpp \
 colormap.hpp \
 config.h \
+constants.hpp \
 coordmapper.hpp \
 coordmatrix.hpp \
 convergence.hpp \
@@ -220,6 +221,7 @@ dxf_solid.hpp \
 empty_precond.hpp \
 epot_bicgstabsolver.hpp \
 epot_efield.hpp \
+epot_field.hpp \
 epot_gssolver.hpp \
 epot_matrixsolver.hpp \
 epot_rbgssolver.hpp \

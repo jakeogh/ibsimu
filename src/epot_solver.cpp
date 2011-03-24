@@ -134,6 +134,7 @@ void EpotSolver::set_nsimp_initial_plasma( CallbackFunctorB_V *init_plasma_func 
 void EpotSolver::set_nsimp_plasma( double rhop, double Ep, 
 				   std::vector<double> rhoi, std::vector<double> Ei )
 {
+    _init_plasma_func = NULL;
     _plasma = PLASMA_NSIMP;
     _rhoi.clear();
     _Ei.clear();
