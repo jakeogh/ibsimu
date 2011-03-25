@@ -2,7 +2,7 @@
  *  \brief Stabilized Biconjugate Gradient solver based problem solver
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -63,6 +63,7 @@ class BiCGSTABSolver : public Solver {
     double   _eps;          /*!< \brief Accuracy request. */
     uint32_t _imax;         /*!< \brief Maximum iteration count. */
 
+    bool     _gnewton;      /*!< \brief Globally convergent version of Newton-Raphson. */
     double   _newton_Reps;  /*!< \brief Accuracy request for Newton-Raphson residual. */
     double   _newton_dXeps; /*!< \brief Accuracy request for Newton-Raphson step. */
     uint32_t _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
@@ -73,7 +74,7 @@ public:
      */
     BiCGSTABSolver( double eps = 1.0e-6, uint32_t imax = 10000,
 		    double newton_Reps = 1.0e-5, double newton_dXeps = 1.0e-6, 
-		    uint32_t newton_imax = 10 );
+		    uint32_t newton_imax = 10, bool gnewton = false );
 
     /*! \brief Destructor.
      */
@@ -91,6 +92,12 @@ public:
      *  resetted.
      */
     virtual void reset( void );
+
+    /*! \brief Enable/disable globally convergent Newton-Raphson.
+     */
+    void set_gnewton( bool enable ) {
+	_gnewton = enable;
+    }
 
     /*! \brief Sets the accuracy request for BiCGSTAB solver.
      */

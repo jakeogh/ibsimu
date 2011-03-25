@@ -1,8 +1,8 @@
 /*! \file bicgstab_solver.cpp
- *  \brief Source code for bicgstab_solver.cpp
+ *  \brief Stabilized Biconjugate Gradient solver based problem solver
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,6 +40,7 @@
  * permit others to do so.
  */
 
+#include <limits>
 #include "bicgstab_solver.hpp"
 #include "bicgstab.hpp"
 #include "ilu0_precond.hpp"
@@ -51,8 +52,9 @@
 BiCGSTABSolver::BiCGSTABSolver( double eps, uint32_t imax,
 				double newton_Reps, 
 				double newton_dXeps, 
-				uint32_t newton_imax )
-    : _eps(eps), _imax(imax), _newton_Reps(newton_Reps), 
+				uint32_t newton_imax, 
+				bool gnewton )
+    : _eps(eps), _imax(imax), _gnewton(gnewton), _newton_Reps(newton_Reps), 
       _newton_dXeps(newton_dXeps), _newton_imax(newton_imax)
 {
     if( _imax <= 0 || _newton_imax <= 0 )
@@ -89,8 +91,22 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
     } else {
 
 	// Nonlinear solver (Newton-Raphson)
-	if( ibsimu.get_verbose_output() )
-	    std::cout << "  Using Newton-Raphson ILU0-BiCGSTAB solver\n";
+	if( ibsimu.get_verbose_output() ) {
+	    if( _gnewton ) {
+		std::cout << "  Using Global Newton-Raphson ILU0-BiCGSTAB solver\n";
+		std::cout << "    " 
+			  << std::setw(5) << "Iter" << " " 
+			  << std::setw(14) << "Step size" << " " 
+			  << std::setw(14) << "Step fac" << " " 
+			  << std::setw(14) << "Residual" << "\n";
+	    } else {
+		std::cout << "  Using Newton-Raphson ILU0-BiCGSTAB solver\n";
+		std::cout << "    " 
+			  << std::setw(5) << "Iter" << " " 
+			  << std::setw(14) << "Step size" << " " 
+			  << std::setw(14) << "Residual" << "\n";
+	    }
+	}
 
 	uint32_t a;
 	uint32_t imax_sum = 0;
@@ -99,37 +115,83 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 	double accR = 0.0, accX = 0.0;
 	Vector dX;
 
-	if( ibsimu.get_verbose_output() )
-	    std::cout << "    " 
-		      << std::setw(5) << "Iter" << " " 
-		      << std::setw(14) << "Step size" << " " 
-		      << std::setw(14) << "Residual" << "\n";
+	if( _gnewton ) {
 
-	for( a = 0; a < _newton_imax; a++ ) {
-	    // Calculate dX = J^{-1}*R	    
+	    // Globally convergent Newton-Raphson
+	    Vector Xold( X.size() );
+
+	    // First jacobian and residual
 	    p.get_resjac( &J, &R, X );
-	    ILU0_Precond pc( *J );
-	    imax = _imax - imax_sum;
-	    eps = _eps;
-	    dX.clear();
-	    bicgstab( *J, *R, dX, pc, imax, eps );
-	    imax_sum += imax;
+	    double f = ssqr( *R );
 
-	    // Take step
-	    X -= dX;
+	    for( a = 0; a < _newton_imax; a++ ) {
 
-	    // Check for convergence
-	    accR = max_abs( *R );
-	    accX = max_abs( dX );
+		// Calculate dX = J^{-1}*R
+		ILU0_Precond pc( *J );
+		imax = _imax - imax_sum;
+		eps = _eps;
+		dX.clear();
+		bicgstab( *J, *R, dX, pc, imax, eps );
+		imax_sum += imax;
 
-	    if( ibsimu.get_verbose_output() )
-		std::cout << "    " 
-			  << std::setw(5) << a << " " 
-			  << std::setw(14) << accX << " " 
-			  << std::setw(14) << accR << "\n";
+		// Search for acceptable step
+		double t = 1.0;
+		double fold = f;
+		Xold = X;
+		while( f >= fold ) {
 
-	    if( accR < _newton_Reps || accX < _newton_dXeps || imax_sum >= _imax )
-		break;
+		    X = Xold - t*dX;
+		    p.get_resjac( &J, &R, X );
+		    f = ssqr( *R );
+		    t *= 0.5;
+		    if( t <= std::numeric_limits<double>::epsilon() )
+			break;
+		}
+
+		// Check for convergence
+		accR = max_abs( *R );
+		accX = t*max_abs( dX );
+
+		if( ibsimu.get_verbose_output() )
+		    std::cout << "    " 
+			      << std::setw(5) << a << " " 
+			      << std::setw(14) << accX << " " 
+			      << std::setw(14) << t << " " 
+			      << std::setw(14) << accR << "\n";
+		
+		if( accR < _newton_Reps || (t == 1.0 && accX < _newton_dXeps) || imax_sum >= _imax )
+		    break;
+	    }
+
+	} else {
+
+	    // Standard Newton-Raphson
+	    for( a = 0; a < _newton_imax; a++ ) {
+		// Calculate dX = J^{-1}*R	    
+		p.get_resjac( &J, &R, X );
+		ILU0_Precond pc( *J );
+		imax = _imax - imax_sum;
+		eps = _eps;
+		dX.clear();
+		bicgstab( *J, *R, dX, pc, imax, eps );
+		imax_sum += imax;
+
+		// Take Newton step
+		X -= dX;
+
+		// Check for convergence
+		accR = max_abs( *R );
+		accX = max_abs( dX );
+
+		if( ibsimu.get_verbose_output() )
+		    std::cout << "    " 
+			      << std::setw(5) << a << " " 
+			      << std::setw(14) << accX << " " 
+			      << std::setw(14) << accR << "\n";
+		
+		if( accR < _newton_Reps || accX < _newton_dXeps || imax_sum >= _imax )
+		    break;
+	    }
 	}
 
 	if( ibsimu.get_verbose_output() ) {
@@ -157,20 +219,5 @@ void BiCGSTABSolver::reset( void )
 {
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
