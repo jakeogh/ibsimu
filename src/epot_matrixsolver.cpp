@@ -112,7 +112,7 @@ void EpotMatrixSolver::Node2DoF::debug_print( std::ostream &os ) const
 
 
 EpotMatrixSolver::EpotMatrixSolver( Geometry &geom )
-    : EpotSolver(geom), _dof(0), _fd_mat(0), _fd_vec(0)
+    : EpotSolver(geom), _dof(0), _fd_mat(0), _fd_vec(0), _d_vec(0)
 {
 
 }
@@ -131,20 +131,6 @@ EpotMatrixSolver::~EpotMatrixSolver()
         delete _fd_mat;
     if( _fd_vec )
         delete _fd_vec;
-}
-
-
-void EpotMatrixSolver::reset_matrix( void )
-{
-    if( _fd_mat )
-        delete _fd_mat;
-    if( _fd_vec )
-        delete _fd_vec;
-    _fd_mat = 0;
-    _fd_vec = 0;
-    _dof = 0;
-
-    _n2d.clear();
 }
 
 
@@ -173,46 +159,61 @@ void EpotMatrixSolver::set_link( uint32_t a, uint32_t b, double val )
 
 void EpotMatrixSolver::add_vacuum_node( uint32_t i, uint32_t j, uint32_t k )
 {
+    uint32_t a = _n2d(i,j,k) & N2D_INDEX_MASK;
+
     switch( _geom.geom_mode() ) {
     case MODE_1D:
-        set_link( _n2d(i,j,k), _n2d(i-1,j,k), 1.0 );
-        set_link( _n2d(i,j,k), _n2d(i,j,k), -2.0 );
-        set_link( _n2d(i,j,k), _n2d(i+1,j,k), 1.0 );
+        set_link( a, _n2d(i-1,j,k), 1.0 );
+        set_link( a, _n2d(i,j,k), -2.0 );
+        set_link( a, _n2d(i+1,j,k), 1.0 );
         break;
     case MODE_2D:
-        set_link( _n2d(i,j,k), _n2d(i,j-1,k), 1.0 );
-        set_link( _n2d(i,j,k), _n2d(i-1,j,k), 1.0 );
-        set_link( _n2d(i,j,k), _n2d(i,j,k), -4.0 );
-        set_link( _n2d(i,j,k), _n2d(i+1,j,k), 1.0 );
-        set_link( _n2d(i,j,k), _n2d(i,j+1,k), 1.0 );
+        set_link( a, _n2d(i,j-1,k), 1.0 );
+        set_link( a, _n2d(i-1,j,k), 1.0 );
+        set_link( a, _n2d(i,j,k), -4.0 );
+        set_link( a, _n2d(i+1,j,k), 1.0 );
+        set_link( a, _n2d(i,j+1,k), 1.0 );
         break;
     case MODE_CYL:
-        set_link( _n2d(i,j,k), _n2d(i,j-1,k), 1.0-0.5/j );
-        set_link( _n2d(i,j,k), _n2d(i-1,j,k), 1.0 );
-        set_link( _n2d(i,j,k), _n2d(i,j,k), -4.0 );
-        set_link( _n2d(i,j,k), _n2d(i+1,j,k), 1.0 );
-        set_link( _n2d(i,j,k), _n2d(i,j+1,k), 1.0+0.5/j );
+        set_link( a, _n2d(i,j-1,k), 1.0-0.5/j );
+        set_link( a, _n2d(i-1,j,k), 1.0 );
+        set_link( a, _n2d(i,j,k), -4.0 );
+        set_link( a, _n2d(i+1,j,k), 1.0 );
+        set_link( a, _n2d(i,j+1,k), 1.0+0.5/j );
         break;
     case MODE_3D:
-        set_link( _n2d(i,j,k), _n2d(i,j,k-1), 1.0 );
-        set_link( _n2d(i,j,k), _n2d(i,j-1,k), 1.0 );
-        set_link( _n2d(i,j,k), _n2d(i-1,j,k), 1.0 );
-        set_link( _n2d(i,j,k), _n2d(i,j,k), -6.0 );
-        set_link( _n2d(i,j,k), _n2d(i+1,j,k), 1.0 );
-        set_link( _n2d(i,j,k), _n2d(i,j+1,k), 1.0 );
-        set_link( _n2d(i,j,k), _n2d(i,j,k+1), 1.0 );
+        set_link( a, _n2d(i,j,k-1), 1.0 );
+        set_link( a, _n2d(i,j-1,k), 1.0 );
+        set_link( a, _n2d(i-1,j,k), 1.0 );
+        set_link( a, _n2d(i,j,k), -6.0 );
+        set_link( a, _n2d(i+1,j,k), 1.0 );
+        set_link( a, _n2d(i,j+1,k), 1.0 );
+        set_link( a, _n2d(i,j,k+1), 1.0 );
         break;
     }
 
-    //if( (_n2d(i,j,k) & N2D_TYPE_MASK) == N2D_TYPE_FIXED )
-    //throw( ErrorAssert( ERROR_LOCATION ) );
-	
-    (*_fd_vec)(_n2d(i,j,k) & N2D_INDEX_MASK) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+    if( _plasma == PLASMA_PEXP ) {
+	double p = (*_sol)(a);
+	double rhst, drhst;
+	pexp_newton( rhst, drhst, p );
+	(*_fd_vec)(a) += rhst;
+	(*_d_vec)(a) = drhst;
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_sol)(a);
+        double rhst, drhst;
+        nsimp_newton( rhst, drhst, p );
+	(*_fd_vec)(a) += rhst;
+	(*_d_vec)(a) = drhst;
+    }
+
+    (*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 }
 
 
 void EpotMatrixSolver::add_near_solid_node_1d( uint32_t i )
 {
+    uint32_t a = _n2d(i) & N2D_INDEX_MASK;
+
     const uint8_t *nearsolid_ptr = _geom.nearsolid_ptr( _geom.mesh(i) & SMESH_NEAR_SOLID_INDEX_MASK );
     uint8_t sflag = nearsolid_ptr[0];
     uint8_t *ptr = (uint8_t *)&nearsolid_ptr[1];
@@ -232,15 +233,15 @@ void EpotMatrixSolver::add_near_solid_node_1d( uint32_t i )
     }
 
     // Factors for X axis
-    set_link( _n2d(i), _n2d(i-1), 2.0/((alpha+beta)*alpha) );
-    set_link( _n2d(i), _n2d(i), -2.0/(alpha*beta) );
-    set_link( _n2d(i), _n2d(i+1), 2.0/((alpha+beta)*beta) );
+    set_link( a, _n2d(i-1), 2.0/((alpha+beta)*alpha) );
+    set_link( a, _n2d(i), -2.0/(alpha*beta) );
+    set_link( a, _n2d(i+1), 2.0/((alpha+beta)*beta) );
 }
 
 
 void EpotMatrixSolver::add_near_solid_node_2d( uint32_t i, uint32_t j )
 {
-    //std::cout << "add_near_solid_node_2d( i = " << i << ", j = " << j << ")\n";
+    uint32_t a = _n2d(i,j) & N2D_INDEX_MASK;
 
     const uint8_t *nearsolid_ptr = _geom.nearsolid_ptr( _geom.mesh(i,j) & SMESH_NEAR_SOLID_INDEX_MASK );
     uint8_t sflag = nearsolid_ptr[0];
@@ -262,8 +263,8 @@ void EpotMatrixSolver::add_near_solid_node_2d( uint32_t i, uint32_t j )
 
     // Factors for X axis
     double cof = 2.0/(alpha*beta);
-    set_link( _n2d(i,j), _n2d(i-1,j), 2.0/((alpha+beta)*alpha) );
-    set_link( _n2d(i,j), _n2d(i+1,j), 2.0/((alpha+beta)*beta) );
+    set_link( a, _n2d(i-1,j), 2.0/((alpha+beta)*alpha) );
+    set_link( a, _n2d(i+1,j), 2.0/((alpha+beta)*beta) );
 
     // Ymin direction
     alpha = 1.0;
@@ -281,16 +282,18 @@ void EpotMatrixSolver::add_near_solid_node_2d( uint32_t i, uint32_t j )
 
     // Factors for Y axis
     cof += 2.0/(alpha*beta);
-    set_link( _n2d(i,j), _n2d(i,j-1), 2.0/((alpha+beta)*alpha) );
-    set_link( _n2d(i,j), _n2d(i,j+1), 2.0/((alpha+beta)*beta) );
+    set_link( a, _n2d(i,j-1), 2.0/((alpha+beta)*alpha) );
+    set_link( a, _n2d(i,j+1), 2.0/((alpha+beta)*beta) );
 
     // Middle node
-    set_link( _n2d(i,j), _n2d(i,j), -cof );
+    set_link( a, _n2d(i,j), -cof );
 }
 
 
 void EpotMatrixSolver::add_near_solid_node_cyl( uint32_t i, uint32_t j )
 {
+    uint32_t a = _n2d(i,j) & N2D_INDEX_MASK;
+
     const uint8_t *nearsolid_ptr = _geom.nearsolid_ptr( _geom.mesh(i,j) & SMESH_NEAR_SOLID_INDEX_MASK );
     uint8_t sflag = nearsolid_ptr[0];
     uint8_t *ptr = (uint8_t *)&nearsolid_ptr[1];
@@ -311,8 +314,8 @@ void EpotMatrixSolver::add_near_solid_node_cyl( uint32_t i, uint32_t j )
 
     // Factors for X axis
     double cof = 2.0/(alpha*beta);
-    set_link( _n2d(i,j), _n2d(i-1,j), 2.0/((alpha+beta)*alpha) );
-    set_link( _n2d(i,j), _n2d(i+1,j), 2.0/((alpha+beta)*beta) );
+    set_link( a, _n2d(i-1,j), 2.0/((alpha+beta)*alpha) );
+    set_link( a, _n2d(i+1,j), 2.0/((alpha+beta)*beta) );
 
     // Ymin direction
     alpha = 1.0;
@@ -330,16 +333,18 @@ void EpotMatrixSolver::add_near_solid_node_cyl( uint32_t i, uint32_t j )
 
     // Factors for Y axis
     cof += 2.0/(alpha*beta);
-    set_link( _n2d(i,j), _n2d(i,j-1), 1.0/(alpha+beta)*(2.0/alpha-1.0/j) );
-    set_link( _n2d(i,j), _n2d(i,j+1), 1.0/(alpha+beta)*(2.0/beta+1.0/j) );
+    set_link( a, _n2d(i,j-1), 1.0/(alpha+beta)*(2.0/alpha-1.0/j) );
+    set_link( a, _n2d(i,j+1), 1.0/(alpha+beta)*(2.0/beta+1.0/j) );
 
     // Middle node
-    set_link( _n2d(i,j), _n2d(i,j), -cof );
+    set_link( a, _n2d(i,j), -cof );
 }
 
 
 void EpotMatrixSolver::add_near_solid_node_3d( uint32_t i, uint32_t j, uint32_t k )
 {
+    uint32_t a = _n2d(i,j,k) & N2D_INDEX_MASK;
+
     const uint8_t *nearsolid_ptr = _geom.nearsolid_ptr( _geom.mesh(i,j,k) & SMESH_NEAR_SOLID_INDEX_MASK );
     uint8_t sflag = nearsolid_ptr[0];
     uint8_t *ptr = (uint8_t *)&nearsolid_ptr[1];
@@ -360,8 +365,8 @@ void EpotMatrixSolver::add_near_solid_node_3d( uint32_t i, uint32_t j, uint32_t 
 
     // Factors for X axis
     double cof = 2.0/(alpha*beta);
-    set_link( _n2d(i,j,k), _n2d(i-1,j,k), 2.0/((alpha+beta)*alpha) );
-    set_link( _n2d(i,j,k), _n2d(i+1,j,k), 2.0/((alpha+beta)*beta) );
+    set_link( a, _n2d(i-1,j,k), 2.0/((alpha+beta)*alpha) );
+    set_link( a, _n2d(i+1,j,k), 2.0/((alpha+beta)*beta) );
 
     // Ymin direction
     alpha = 1.0;
@@ -379,8 +384,8 @@ void EpotMatrixSolver::add_near_solid_node_3d( uint32_t i, uint32_t j, uint32_t 
 
     // Factors for Y axis
     cof += 2.0/(alpha*beta);
-    set_link( _n2d(i,j,k), _n2d(i,j-1,k), 2.0/((alpha+beta)*alpha) );
-    set_link( _n2d(i,j,k), _n2d(i,j+1,k), 2.0/((alpha+beta)*beta) );
+    set_link( a, _n2d(i,j-1,k), 2.0/((alpha+beta)*alpha) );
+    set_link( a, _n2d(i,j+1,k), 2.0/((alpha+beta)*beta) );
 
     // Zmin direction
     alpha = 1.0;
@@ -398,16 +403,18 @@ void EpotMatrixSolver::add_near_solid_node_3d( uint32_t i, uint32_t j, uint32_t 
 
     // Factors for Z axis
     cof += 2.0/(alpha*beta);
-    set_link( _n2d(i,j,k), _n2d(i,j,k-1), 2.0/((alpha+beta)*alpha) );
-    set_link( _n2d(i,j,k), _n2d(i,j,k+1), 2.0/((alpha+beta)*beta) );
+    set_link( a, _n2d(i,j,k-1), 2.0/((alpha+beta)*alpha) );
+    set_link( a, _n2d(i,j,k+1), 2.0/((alpha+beta)*beta) );
 
     // Middle node
-    set_link( _n2d(i,j,k), _n2d(i,j,k), -cof );
+    set_link( a, _n2d(i,j,k), -cof );
 }
 
 
 void EpotMatrixSolver::add_near_solid_node( uint32_t i, uint32_t j, uint32_t k )
 {
+    uint32_t a = _n2d(i,j,k) & N2D_INDEX_MASK;
+
     switch( _geom.geom_mode() ) {
     case MODE_1D:
 	add_near_solid_node_1d(i);
@@ -423,90 +430,164 @@ void EpotMatrixSolver::add_near_solid_node( uint32_t i, uint32_t j, uint32_t k )
 	break;
     }
 
-    //if( (_n2d(i,j,k) & N2D_TYPE_MASK) == N2D_TYPE_FIXED )
-    //throw( ErrorAssert( ERROR_LOCATION ) );
-	
-    (*_fd_vec)(_n2d(i,j,k) & N2D_INDEX_MASK) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+    if( _plasma == PLASMA_PEXP ) {
+	double p = (*_sol)(a);
+	double rhst, drhst;
+	pexp_newton( rhst, drhst, p );
+	(*_fd_vec)(a) += rhst;
+	(*_d_vec)(a) = drhst;
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_sol)(a);
+        double rhst, drhst;
+        nsimp_newton( rhst, drhst, p );
+	(*_fd_vec)(a) += rhst;
+	(*_d_vec)(a) = drhst;
+    }
+    (*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 }
 
 
 void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, uint32_t boundary )
 {
+    uint32_t a = _n2d(i,j,k) & N2D_INDEX_MASK;
+
     switch( boundary ) {
     case 1:
 	if( _neumann_order == 2 ) {
-	    set_link( _n2d(i,j,k), _n2d(i,j,k), 3.0 );
-            set_link( _n2d(i,j,k), _n2d(i+1,j,k), -4.0 );
-            set_link( _n2d(i,j,k), _n2d(i+2,j,k), 1.0 );
+	    set_link( a, _n2d(i,j,k), 3.0 );
+            set_link( a, _n2d(i+1,j,k), -4.0 );
+            set_link( a, _n2d(i+2,j,k), 1.0 );
+	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).val;
 	} else {
-	    set_link( _n2d(i,j,k), _n2d(i,j,k), 1.0 );
-            set_link( _n2d(i,j,k), _n2d(i+1,j,k), -1.0 );
+	    set_link( a, _n2d(i,j,k), 1.0 );
+            set_link( a, _n2d(i+1,j,k), -1.0 );
+	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).val;
 	}	
 	break;
     case 2:
 	if( _neumann_order == 2 ) {
-	    set_link( _n2d(i,j,k), _n2d(i-2,j,k), 1.0 );
-            set_link( _n2d(i,j,k), _n2d(i-1,j,k), -4.0 );
-            set_link( _n2d(i,j,k), _n2d(i,j,k), 3.0 );
+	    set_link( a, _n2d(i-2,j,k), 1.0 );
+            set_link( a, _n2d(i-1,j,k), -4.0 );
+            set_link( a, _n2d(i,j,k), 3.0 );
+	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).val;
 	} else {
-	    set_link( _n2d(i,j,k), _n2d(i-1,j,k), -1.0 );
-            set_link( _n2d(i,j,k), _n2d(i,j,k), 1.0 );
+	    set_link( a, _n2d(i-1,j,k), -1.0 );
+            set_link( a, _n2d(i,j,k), 1.0 );
+	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).val;
 	}
 	break;
     case 3:
-	if( _neumann_order == 2 ) {
-	    set_link( _n2d(i,j,k), _n2d(i,j,k), 3.0 );
-            set_link( _n2d(i,j,k), _n2d(i,j+1,k), -4.0 );
-            set_link( _n2d(i,j,k), _n2d(i,j+2,k), 1.0 );
+	if( _geom.geom_mode() == MODE_CYL ) {
+	    set_link( a, _n2d(i-1,j,k), 1.0 );
+            set_link( a, _n2d(i,j,k), -6.0 );
+            set_link( a, _n2d(i+1,j,k), 1.0 );
+            set_link( a, _n2d(i,j+1,k), 4.0 );
+	    if( _plasma == PLASMA_PEXP ) {
+		double p = (*_sol)(a);
+		double rhst, drhst;
+		pexp_newton( rhst, drhst, p );
+		(*_fd_vec)(a) += rhst;
+		(*_d_vec)(a) = drhst;
+	    } else if( _plasma == PLASMA_NSIMP ) {
+		double p = (*_sol)(a);
+		double rhst, drhst;
+		nsimp_newton( rhst, drhst, p );
+		(*_fd_vec)(a) += rhst;
+		(*_d_vec)(a) = drhst;
+	    }
+	    (*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+	} else if( _neumann_order == 2 ) {
+	    set_link( a, _n2d(i,j,k), 3.0 );
+            set_link( a, _n2d(i,j+1,k), -4.0 );
+            set_link( a, _n2d(i,j+2,k), 1.0 );
+	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).val;
 	} else {
-	    set_link( _n2d(i,j,k), _n2d(i,j,k), 1.0 );
-            set_link( _n2d(i,j,k), _n2d(i,j+1,k), -1.0 );
+	    set_link( a, _n2d(i,j,k), 1.0 );
+            set_link( a, _n2d(i,j+1,k), -1.0 );
+	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).val;
 	}	
 	break;
     case 4:
 	if( _neumann_order == 2 ) {
-	    set_link( _n2d(i,j,k), _n2d(i,j-2,k), 1.0 );
-            set_link( _n2d(i,j,k), _n2d(i,j-1,k), -4.0 );
-            set_link( _n2d(i,j,k), _n2d(i,j,k), 3.0 );
+	    set_link( a, _n2d(i,j-2,k), 1.0 );
+            set_link( a, _n2d(i,j-1,k), -4.0 );
+            set_link( a, _n2d(i,j,k), 3.0 );
+	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).val;
 	} else {
-	    set_link( _n2d(i,j,k), _n2d(i,j-1,k), -1.0 );
-            set_link( _n2d(i,j,k), _n2d(i,j,k), 1.0 );
+	    set_link( a, _n2d(i,j-1,k), -1.0 );
+            set_link( a, _n2d(i,j,k), 1.0 );
+	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).val;
 	}
 	break;
     case 5:
 	if( _neumann_order == 2 ) {
-	    set_link( _n2d(i,j,k), _n2d(i,j,k), 3.0 );
-            set_link( _n2d(i,j,k), _n2d(i,j,k+1), -4.0 );
-            set_link( _n2d(i,j,k), _n2d(i,j,k+2), 1.0 );
+	    set_link( a, _n2d(i,j,k), 3.0 );
+            set_link( a, _n2d(i,j,k+1), -4.0 );
+            set_link( a, _n2d(i,j,k+2), 1.0 );
+	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).val;
 	} else {
-	    set_link( _n2d(i,j,k), _n2d(i,j,k), 1.0 );
-            set_link( _n2d(i,j,k), _n2d(i,j,k+1), -1.0 );
+	    set_link( a, _n2d(i,j,k), 1.0 );
+            set_link( a, _n2d(i,j,k+1), -1.0 );
+	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).val;
 	}	
 	break;
     case 6:
 	if( _neumann_order == 2 ) {
-	    set_link( _n2d(i,j,k), _n2d(i,j,k-2), 1.0 );
-            set_link( _n2d(i,j,k), _n2d(i,j,k-1), -4.0 );
-            set_link( _n2d(i,j,k), _n2d(i,j,k), 3.0 );
+	    set_link( a, _n2d(i,j,k-2), 1.0 );
+            set_link( a, _n2d(i,j,k-1), -4.0 );
+            set_link( a, _n2d(i,j,k), 3.0 );
+	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).val;
 	} else {
-	    set_link( _n2d(i,j,k), _n2d(i,j,k-1), -1.0 );
-            set_link( _n2d(i,j,k), _n2d(i,j,k), 1.0 );
+	    set_link( a, _n2d(i,j,k-1), -1.0 );
+            set_link( a, _n2d(i,j,k), 1.0 );
+	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).val;
 	}
 	break;
     }
-    
-    //if( (_n2d(i,j,k) & N2D_TYPE_MASK) == N2D_TYPE_FIXED )
-    //throw( ErrorAssert( ERROR_LOCATION ) );
-	
-    if( _neumann_order == 2 )
-	(*_fd_vec)(_n2d(i,j,k) & N2D_INDEX_MASK) += -2.0*_geom.h()*_geom.get_boundary( boundary).val;
-    else
-	(*_fd_vec)(_n2d(i,j,k) & N2D_INDEX_MASK) += -_geom.h()*_geom.get_boundary( boundary).val;
 }
 
 
-void EpotMatrixSolver::preprocess( MeshScalarField &epot, const MeshScalarField &scharge,
-				   Vector &X )
+void EpotMatrixSolver::reset_matrix( void )
+{
+    if( _fd_mat )
+        delete _fd_mat;
+    if( _fd_vec )
+        delete _fd_vec;
+    _fd_mat = 0;
+    _fd_vec = 0;
+    _dof = 0;
+
+    _n2d.clear();
+}
+
+
+void EpotMatrixSolver::set_initial_guess( const MeshScalarField &epot, Vector &X ) const
+{
+    if( _dof == 0  )
+	throw( Error( ERROR_LOCATION, "preprocess not done" ) );
+
+    X.resize( _dof );
+    for( int32_t a = 0; a < (int32_t)_geom.nodecount(); a++ ) {
+	if( (_n2d(a) & N2D_TYPE_MASK) == N2D_TYPE_FREE )
+	    X( _n2d(a) & N2D_INDEX_MASK ) = epot(a);
+    }
+}
+
+
+void EpotMatrixSolver::set_solution( MeshScalarField &epot, const Vector &X ) const
+{ 
+    if( _dof == 0  )
+	throw( Error( ERROR_LOCATION, "preprocess not done" ) );
+
+    for( uint32_t a = 0; a < _geom.nodecount(); a++ ) {
+	uint32_t b = _n2d(a);
+        if( (b & N2D_TYPE_MASK) == N2D_TYPE_FREE )
+            epot(a) = X(b);
+    }
+}
+
+
+void EpotMatrixSolver::preprocess( MeshScalarField &epot, const MeshScalarField &scharge )
 {
     _epot = &epot;
     _scharge = &scharge;
@@ -520,7 +601,6 @@ void EpotMatrixSolver::preprocess( MeshScalarField &epot, const MeshScalarField 
     for( int32_t a = 0; a < (int32_t)_geom.nodecount(); a++ ) {
 
 	uint32_t mesh = _geom.mesh(a);
-	//uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
 	bool fixed = mesh & SMESH_NODE_FIXED;
 
 	if( fixed )
@@ -538,13 +618,20 @@ void EpotMatrixSolver::preprocess( MeshScalarField &epot, const MeshScalarField 
     if( _dof == 0 )
         throw( Error( ERROR_LOCATION, "zero degrees of freedom" ) );
     
-    // Allocate problem matrix and vectors
+    // Allocate problem matrix and vector
     _fd_mat = new CRowMatrix( _dof, _dof );
     _fd_vec = new Vector( _dof );
-    X.resize( _dof );
+}
 
-    // Build matrix, rhs vector and solution vector
-    //std::cout << "BUILD MATRIX, RHS and SOL\n";
+
+void EpotMatrixSolver::build_mat_vec( void )
+{
+    if( _dof == 0  )
+	throw( Error( ERROR_LOCATION, "preprocess not done" ) );
+    _fd_mat->clear();
+    _fd_vec->clear();
+
+    // Build matrix and rhs vector
     for( uint32_t k = 0; k < _geom.size(2); k++ ) {
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
             for( uint32_t i = 0; i < _geom.size(0); i++ ) {
@@ -570,42 +657,51 @@ void EpotMatrixSolver::preprocess( MeshScalarField &epot, const MeshScalarField 
 		    //std::cout << "Neumann\n";
 		    add_neumann_node( i, j, k, mesh & SMESH_BOUNDARY_NUMBER_MASK );
 		}
-
-		//if( (_n2d(i,j,k) & N2D_TYPE_MASK) == N2D_TYPE_FIXED )
-		//throw( ErrorAssert( ERROR_LOCATION ) );
-
-		X( _n2d(a) & N2D_INDEX_MASK ) = epot(a);
 	    }
         }
     }
 }
 
 
-void EpotMatrixSolver::postprocess( MeshScalarField &epot, const Vector &X )
+void EpotMatrixSolver::postprocess( void )
 { 
-    // Load content from X to epot.
-    for( uint32_t a = 0; a < _geom.nodecount(); a++ ) {
-	uint32_t b = _n2d(a);
-        if( (b & N2D_TYPE_MASK) == N2D_TYPE_FREE )
-            epot(a) = X(b);
-    }
-
     reset_matrix();
-
     EpotSolver::postprocess();
 }
 
 
-void EpotMatrixSolver::get_vecmat( const Matrix **A, const Vector **B ) const
+void EpotMatrixSolver::get_vecmat( const Matrix **A, const Vector **B )
 {
+    build_mat_vec();
     *A = _fd_mat;
     *B = _fd_vec;
 }
 
 
-void EpotMatrixSolver::get_resjac( const Matrix **J, const Vector **R, const Vector &X ) const
+void EpotMatrixSolver::get_resjac( const Matrix **J, const Vector **R, const Vector &X )
 {
+    // Build residual and jacobian from linear matric and vector.
+    // Calculate R = J0*X - B(X) and J = J0 + I*D(X)
+    _d_vec = new Vector( _dof );
 
+    // Construct whole right hand side to _fd_vec, nonlinear component of diagonal 
+    // to _d_vec and linear part of jacobian to _fd_mat.
+    _sol = &X;
+    build_mat_vec();
+
+    // Linear part
+    Vector w = (*_fd_mat) * X;
+
+    for( uint32_t a = 0; a < _dof; a++ ) {
+
+	(*_fd_vec)(a) = w(a) - (*_fd_vec)(a);
+	_fd_mat->set(a,a) -= (*_d_vec)(a);
+    }
+
+    *J = _fd_mat;
+    *R = _fd_vec;
+
+    delete _d_vec;
 }
 
 

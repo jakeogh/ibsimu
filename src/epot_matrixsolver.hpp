@@ -107,6 +107,8 @@ protected:
     Node2DoF               _n2d;           /*!< \brief Nodes to degrees of freedom map. */
     CRowMatrix            *_fd_mat;        /*!< \brief Finite Difference matrix. */
     Vector                *_fd_vec;        /*!< \brief Finite Difference vector. */
+    Vector                *_d_vec;         /*!< \brief Derivative vector for nonlinear solution. */
+    const Vector          *_sol;           /*!< \brief Current solution vector. */
 
     MeshScalarField       *_epot;
     const MeshScalarField *_scharge;
@@ -122,44 +124,51 @@ protected:
 
     /*! \brief Return const pointers to the matrix \a A and vector \a
      *  B of the linear problem.
-     *
-     *  This function should only be called by solver, while method
-     *  subsolve() is running and only in case of linear problem.
      */
-    void get_vecmat( const Matrix **A, const Vector **B ) const;
+    void get_vecmat( const Matrix **A, const Vector **B );
 
     /*! \brief Return const pointers to jacobian matrix and residual
      *  vector of the problem to \a J and \a R at \a X.
-     *
-     *  This function should only be called by solver, while method
-     *  subsolve() is running and only in case of nonlinear problem.
      */
-    void get_resjac( const Matrix **J, const Vector **R, const Vector &X ) const;
+    void get_resjac( const Matrix **J, const Vector **R, const Vector &X );
 
     /*! \brief Return true if problem is linear.
      */
     bool linear( void ) const;
 
+    /*! \brief Load initial solution vector from electric potential.
+     */
+    void set_initial_guess( const MeshScalarField &epot, Vector &X ) const;
+
+    /*! \brief Load electric potential from solution vector.
+     *
+     *  Only free nodes are set. Fixed nodes are set during preprocess.
+     */
+    void set_solution( MeshScalarField &epot, const Vector &X ) const;
+
     /*! \brief Preprocess.
      *
      *  Modify solid mesh suitable for solver, build n2d map and
-     *  linear matrix. Make right-hand-side and solution vector from
-     *  electric potential.
+     *  linear matrix. Make right-hand-side.
      */
-    void preprocess( MeshScalarField &epot, const MeshScalarField &scharge, Vector &X );
+    void preprocess( MeshScalarField &epot, const MeshScalarField &scharge );
 
     /*! \brief Postprocess.
      *
-     *  Return solid mesh back to original state and make electric
-     *  potential field from solution vector.
+     *  Return solid mesh back to original state and remove temporary
+     *  variables.
      */
-    void postprocess( MeshScalarField &epot, const Vector &X );
+    void postprocess( void );
 
     /*! \brief Reset matrix representation.
      */
     void reset_matrix( void );
 
 private:
+
+    /*! \brief Build linear matrix and right-hand-side.
+     */
+    void build_mat_vec( void );
 
     void set_link( uint32_t a, uint32_t b, double val );
     void add_vacuum_node( uint32_t i, uint32_t j, uint32_t k );

@@ -8,6 +8,8 @@
 #include <fstream>
 #include <iomanip>
 #include "epot_gssolver.hpp"
+#include "epot_bicgstabsolver.hpp"
+#include "epot_umfpacksolver.hpp"
 #include "epot_rbgssolver.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
@@ -144,7 +146,7 @@ double phi( double r )
 
 void test_simu( int argc, char **argv )
 {
-    double h = 0.0007;
+    double h = 0.0008;
     int32_t size = (int32_t)ceil(0.08/h) + 1;
     Geometry g( MODE_3D, Int3D(size,size,size), Vec3D(0,0,0), h );
     Solid *s1 = new FuncSolid( solid1 );
@@ -162,13 +164,15 @@ void test_simu( int argc, char **argv )
     g.build_mesh();
     
     EpotGSSolver solver( g );
+    //EpotBiCGSTABSolver solver( g );
+    //EpotUMFPACKSolver solver( g );
     //EpotRBGSSolver solver( g );
     EpotField epot( g );
     MeshScalarField scharge( g );
 
-    solver.set_imax( 1000000 );
-    solver.set_eps( 1e-6 );
-    solver.set_w( 1.93 );
+    //solver.set_imax( 1000000 );
+    //solver.set_eps( 1e-6 );
+    //solver.set_w( 1.93 );
     solver.solve( epot, scharge );
 
     /*

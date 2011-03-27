@@ -76,7 +76,7 @@ void Frame::unset_frame_clipping( cairo_t *cairo )
 
 Frame::Frame()
     : _offx(0), _offy(0), _width(640), _height(480), 
-      _fontsize(12.0), _titlespace(10.0), _bg(Color(1,1,1)), _fg(Color(0,0,0)),
+      _fontsize(12.0), _titlespace(10.0), _bg(Color(1,1,1,0)), _fg(Color(0,0,0)),
       _fixedaspect(PLOT_FIXED_ASPECT_DISABLED), _automargin(true)
 {
     // Ruler X1
@@ -657,9 +657,11 @@ void Frame::draw( cairo_t *cairo )
 #endif
 
     // Draw background
-    cairo_rectangle( cairo, _offx, _offy, _width, _height );
-    cairo_set_source_rgba( cairo, _bg[0], _bg[1], _bg[2], _bg[3] );
-    cairo_fill( cairo );
+    if( _bg[3] != 0.0 ) {
+	cairo_rectangle( cairo, _offx, _offy, _width, _height );
+	cairo_set_source_rgba( cairo, _bg[0], _bg[1], _bg[2], _bg[3] );
+	cairo_fill( cairo );
+    }
 
     // Get drawable bounding boxes and set ruler ranges
     calculate_autoranging();

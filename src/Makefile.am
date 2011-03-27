@@ -10,8 +10,6 @@ AM_CPPFLAGS = -Wall
 libibsimu_la_SOURCES = \
 bicgstab.cpp \
 bicgstab.hpp \
-bicgstab_solver.cpp \
-bicgstab_solver.hpp \
 callback.hpp \
 ccolmatrix.cpp \
 ccolmatrix.hpp \
@@ -34,6 +32,8 @@ diag_precond.hpp \
 dxf_solid.cpp \
 dxf_solid.hpp \
 empty_precond.hpp \
+epot_bicgstabsolver.cpp \
+epot_bicgstabsolver.hpp \
 epot_field.cpp \
 epot_field.hpp \
 epot_efield.cpp \
@@ -48,8 +48,6 @@ epot_rbgssolver.cpp \
 epot_rbgssolver.hpp \
 epot_solver.cpp \
 epot_solver.hpp \
-epot_umfpacksolver.cpp \
-epot_umfpacksolver.hpp \
 eqpotgraph.cpp \
 eqpotgraph.hpp \
 error.cpp \
@@ -210,12 +208,12 @@ xygraph.hpp
 libibsimu_la_includedir=$(includedir)/ibsimu
 libibsimu_la_include_HEADERS = \
 bicgstab.hpp \
-bicgstab_solver.hpp \
 callback.hpp \
 ccolmatrix.hpp \
 color.hpp \
 colormap.hpp \
 config.h \
+constants.hpp \
 coordmapper.hpp \
 coordmatrix.hpp \
 convergence.hpp \
@@ -223,13 +221,14 @@ crowmatrix.hpp \
 diag_precond.hpp \
 dxf_solid.hpp \
 empty_precond.hpp \
+epot_bicgstabsolver.hpp \
 epot_efield.hpp \
+epot_field.hpp \
 epot_gssolver.hpp \
 epot_matrixsolver.hpp \
 epot_mgsolver.hpp \
 epot_rbgssolver.hpp \
 epot_solver.hpp \
-epot_umfpacksolver.hpp \
 eqpotgraph.hpp \
 error.hpp \
 field.hpp \
@@ -302,8 +301,8 @@ vectorfield.hpp \
 xygraph.hpp
 
 if UMFPACK
-libibsimu_la_SOURCES += umfpack_solver.cpp umfpack_solver.hpp
-libibsimu_la_include_HEADERS += umfpack_solver.hpp
+libibsimu_la_SOURCES += epot_umfpacksolver.cpp epot_umfpacksolver.hpp 
+libibsimu_la_include_HEADERS += epot_umfpacksolver.hpp 
 endif
 
 if CSG

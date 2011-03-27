@@ -1,8 +1,8 @@
 /*! \file plotter.cpp
- *  \brief Source code for plotter.cpp
+ *  \brief Basis for file output plotters
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -194,7 +194,10 @@ void Plotter::plot_png( const std::string &filename )
         throw( Error( ERROR_LOCATION, (std::string)"error creating cairo: " 
 		      +  cairo_status_to_string(status) ) );
 
-    // Set cairoplot canvas size and draw
+    // Clear canvas to white and draw frame
+    cairo_rectangle( cairo, 0.0, 0.0, _width, _height );
+    cairo_set_source_rgba( cairo, 1.0, 1.0, 1.0, 1.0 );
+    cairo_fill( cairo );
     _frame.set_geometry( _width, _height, 0, 0 );
     _frame.draw( cairo );
 
@@ -237,7 +240,7 @@ void Plotter::plot_eps( const std::string &filename )
         throw( Error( ERROR_LOCATION, (std::string)"error creating cairo: " 
 		      +  cairo_status_to_string(status) ) );
 
-    // Set cairoplot canvas size and draw
+    // Clear canvas to white and draw frame
     _frame.set_geometry( _width, _height, 0, 0 );
     _frame.draw( cairo );
 
@@ -273,7 +276,6 @@ void Plotter::plot_pdf( const std::string &filename )
         throw( Error( ERROR_LOCATION, (std::string)"error creating cairo: " 
 		      +  cairo_status_to_string(status) ) );
 
-    // Set cairoplot canvas size and draw
     _frame.set_geometry( _width, _height, 0, 0 );
     _frame.draw( cairo );
 

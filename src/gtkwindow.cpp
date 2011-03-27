@@ -1,8 +1,8 @@
 /*! \file gtkwindow.cpp
- *  \brief Source code for gtkwindow.cpp
+ *  \brief Window for GTK plots
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -251,6 +251,17 @@ void GTKWindow::show( void )
 }
 
 
+void GTKWindow::frame_draw( void )
+{
+    // Clear window to white and draw frame
+    cairo_rectangle( _cairo, 0.0, 0.0, _width, _height );
+    cairo_set_source_rgba( _cairo, 1.0, 1.0, 1.0, 1.0 );
+    cairo_fill( _cairo );
+    _frame.set_geometry( _width, _height, 0, 0 );
+    _frame.draw( _cairo );
+}
+
+
 void GTKWindow::configure( void )
 {
     //std::cout << "Configure\n";
@@ -265,9 +276,7 @@ void GTKWindow::configure( void )
     _surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, _width, _height );
     _cairo = cairo_create( _surface );
 
-    // Draw
-    _frame.set_geometry( _width, _height, 0, 0 );
-    _frame.draw( _cairo );
+    frame_draw();
 }
 
 
@@ -331,8 +340,8 @@ void GTKWindow::zoom_fit( void )
     //_frame.ruler_autorange_enable( PLOT_AXIS_X1, false, false );
     //_frame.ruler_autorange_enable( PLOT_AXIS_Y1, false, false );
 
-    //Redraw and enforce expose
-    _frame.draw( _cairo );
+    // Redraw and enforce expose
+    frame_draw();
     expose( 0, 0, _width, _height );
 }
 
@@ -443,8 +452,8 @@ void GTKWindow::move( int action, double x, double y )
 	_frame.set_ranges( PLOT_AXIS_X1, range[0], range[2] );
 	_frame.set_ranges( PLOT_AXIS_Y1, range[1], range[3] );
 
-	//Redraw and enforce expose
-	_frame.draw( _cairo );
+	// Redraw and enforce expose
+	frame_draw();
 	expose( 0, 0, _width, _height );
     }
 
@@ -482,8 +491,8 @@ void GTKWindow::zoom_out( double x, double y )
     _frame.set_ranges( PLOT_AXIS_X2, range[0], range[2] );
     _frame.set_ranges( PLOT_AXIS_Y2, range[1], range[3] );
 
-    //Redraw and enforce expose
-    _frame.draw( _cairo );
+    // Redraw and enforce expose
+    frame_draw();
     expose( 0, 0, _width, _height );
 }
 
@@ -534,8 +543,8 @@ void GTKWindow::zoom_in( double x, double y )
     //std::cout << "range[2] = " << range[2] << "\n";
     //std::cout << "range[3] = " << range[3] << "\n";
 
-    //Redraw and enforce expose
-    _frame.draw( _cairo );
+    // Redraw and enforce expose
+    frame_draw();
     expose( 0, 0, _width, _height );
 }
 
@@ -603,8 +612,8 @@ void GTKWindow::zoom_window( int action, double x, double y )
 	_frame.set_ranges( PLOT_AXIS_X2, range[0], range[2] );
 	_frame.set_ranges( PLOT_AXIS_Y2, range[1], range[3] );
 
-	//Redraw and enforce expose
-	_frame.draw( _cairo );
+	// Redraw and enforce expose
+	frame_draw();
 	expose( 0, 0, _width, _height );
     }
 }
@@ -827,8 +836,8 @@ void GTKWindow::menuitem_zoom_fit_signal( GtkToolButton *button,
 
 void GTKWindow::draw_and_expose( void )
 {
-    //Redraw and enforce expose
-    _frame.draw( _cairo );
+    // Redraw and enforce expose
+    frame_draw();
     expose( 0, 0, _width, _height );
 }
 

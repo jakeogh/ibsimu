@@ -33,7 +33,7 @@
 
 #include <fstream>
 #include <iomanip>
-#include "bicgstab_solver.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "epot_gssolver.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
