@@ -47,13 +47,29 @@
 #include "epot_solver.hpp"
 
 
+/*! \brief Subroutine class for Multigrid
+ */
+class EpotMGSubSolver : public EpotSolver {
+
+    virtual void reset_problem( void );
+    virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge );
+
+public:
+
+    virtual ~EpotSolver() {}
+    virtual void debug_print( std::ostream &os ) const {}
+    virtual void save( std::ostream &s ) const {}
+
+};
+
+
 /*! \brief Multigrid solver for Electric potential problem.
  */
 class EpotMGSolver : public EpotSolver {
 
     std::vector<MeshScalarField *>   _epotv;
     std::vector<Geometry *>          _geomv;
-    std::vector<EpotSolver *>        _epotsolverv;
+    std::vector<EpotMGSubSolver *>   _epotsolverv;
     std::vector<MeshScalarField *>   _rhsv;
 
     bool             _geom_prepared;  /*!< \brief Is geometry prepared? */

@@ -81,13 +81,13 @@ void EpotMGSolver::reset_problem( void )
     for( uint32_t a = 0; a < _geomv.size(); a++ ) {
 	if( a >= 1 && _geomv[a] ) {
 	    delete _geomv[a];
-	    delete _epotsolverv[a];
+	    //delete _epotsolverv[a];
 	}
     }
 
     _epotv.clear();
     _geomv.clear();
-    _epotsolverv.clear();
+    //_epotsolverv.clear();
     _rhsv.clear();
     _res = 0.0;
     _geom_prepared = false;
@@ -338,7 +338,7 @@ void EpotMGSolver::prepare_mg_geom( void )
     for( uint32_t a = 0; a < _levels; a++ ) {
 	if( a == 0 ) {
 	    _geomv.push_back( &_geom );
-	    _epotsolverv.push_back( (EpotSolver *)this );
+	    //_epotsolverv.push_back( (EpotSolver *)this );
 	} else {
 
 	    // Build mesh density	    
@@ -362,10 +362,6 @@ void EpotMGSolver::prepare_mg_geom( void )
 	    }
 	    geom->build_mesh();
 	    _geomv.push_back( geom );
-
-	    // Build EpotSolver, parameters copied at preprocess
-	    EpotSolver *epotsolver = new EpotSolver( geom );
-	    _epotsolverv.push_back( epotsolver );
 	}
     }
 }
@@ -386,7 +382,8 @@ void EpotMGSolver::preprocess( MeshScalarField &epot, const MeshScalarField &sch
 	MeshScalarField *rhs = new MeshScalarField( (const Mesh)(*_geomv[a]) );
 	_rhsv.push_back( rhs );
 
-	_epotsolverv[a]->preprocess( _epotv[a] );
+	// Preprocess solid meshes
+	//_epotsolverv[a]->preprocess( _epotv[a] );
     }
 
     // Build rhs
@@ -430,6 +427,42 @@ void EpotMGSolver::postprocess( void )
 }
 
 
+void EpotMGSolver::mg_smooth( void )
+{
+    if( _geom.geom_mode() == MODE_3D )
+	_res = gs_loop_3d();
+    else if( _geom.geom_mode() == MODE_2D )
+	_res = gs_loop_2d();
+    else if( _geom.geom_mode() == MODE_CYL )
+	_res = gs_loop_cyl();
+    else if( _geom.geom_mode() == MODE_1D )
+	_res = gs_loop_1d();
+    else
+	throw( ErrorUnimplemented( ERROR_LOCATION ) );
+}
+
+
+void EpotMGSolver::mg_recurse( uint32_t level )
+{
+    // Do ncyc cycles of next level
+    for( uint32_t a = 0; a < _ncyc; a++ ) {
+
+	// Pre smoothing
+	mg_smooth();
+
+	if( level == _levels ) {
+	    // Last level, solve problem
+	} else {
+	    // Recurse to next level
+	    mg_recurse( level+1 );
+	}
+
+	// Post smoothing
+	mg_smooth();
+    }
+}
+
+
 void EpotMGSolver::subsolve( MeshScalarField &epot, const MeshScalarField &scharge )
 {
     if( ibsimu.get_verbose_output() ) {
@@ -446,28 +479,9 @@ void EpotMGSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 	prepare_mg_geom();
     preprocess( epot, scharge );
 
-    // Loop until converged
-    uint32_t iter = 0;
-    while( iter < _imax ) {
-	if( _geom.geom_mode() == MODE_3D )
-	    _res = gs_loop_3d();
-	else if( _geom.geom_mode() == MODE_2D )
-	    _res = gs_loop_2d();
-	else if( _geom.geom_mode() == MODE_CYL )
-	    _res = gs_loop_cyl();
-	else if( _geom.geom_mode() == MODE_1D )
-	    _res = gs_loop_1d();
-	else
-	    throw( ErrorUnimplemented( ERROR_LOCATION ) );
+    // Do first level iteration only once
+    mg_recurse( 1 );
 
-	iter++;
-	if( _res < _eps )
-	    break;
-	if( comp_isinf(_res) || comp_isnan(_res) )
-	    break;
-    }
-
-    // Postprocess
     postprocess();
 }
 
