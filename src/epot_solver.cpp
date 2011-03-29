@@ -111,6 +111,7 @@ void EpotSolver::set_initial_plasma( double Up,
 
 void EpotSolver::set_pexp_plasma( double rhoe, double Te, double Up )
 {
+    _init_plasma_func = NULL;
     _plasma     = PLASMA_PEXP;
     _rhoe       = -fabs(rhoe); // Ensure correct sign of charge density
     _Te         = Te;
@@ -155,7 +156,7 @@ void EpotSolver::set_nsimp_plasma( double rhop, double Ep,
 
 void EpotSolver::pexp_newton( double &rhs, double &drhs, double epot ) const
 {
-    rhs = _plA*exp( _plB*epot - _plC );
+    rhs  = _plA*exp( _plB*epot - _plC );
     drhs = _plB*rhs;
 }
 
@@ -164,12 +165,18 @@ void EpotSolver::nsimp_newton( double &rhs, double &drhs, double epot ) const
 {
     // fast
     double r = _plB*epot;
-    rhs = _plA*( 1.0 + erf( r ) );
-    drhs = _plC*exp( -r*r );
+    if( r > 0.0 ) {
+	rhs  = _plA*( 1.0 + 2.0/sqrt(M_PI)*r );
+	drhs = _plC;
+    } else {
+	rhs  = _plA*( 1.0 + erf( r ) );
+	drhs = _plC*exp( -r*r );
+    }
+
     // thermal
     for( size_t i = 0; i < _plD.size(); i++ ) {
 	double w = _plD[i]*exp( _plE[i]*epot );
-	rhs += w;
+	rhs  += w;
 	drhs += _plE[i]*w;
     }
 }

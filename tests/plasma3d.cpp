@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iomanip>
 #include "epot_gssolver.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "particledatabase.hpp"
 #include "geometry.hpp"
 #include "convergence.hpp"
@@ -46,7 +47,7 @@ bool solid2( double x, double y, double z )
 
 void test( int argc, char **argv )
 {
-    Geometry geom( MODE_3D, Int3D(121,141,141), Vec3D(0,-7e-3,-7e-3), 0.0001 );
+    Geometry geom( MODE_3D, Int3D(121,71,71), Vec3D(0,0,0), 0.0001 );
 
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
@@ -62,7 +63,8 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, -8.0e3) );
     geom.build_mesh();
 
-    EpotGSSolver solver( geom );
+    //EpotGSSolver solver( geom );
+    EpotBiCGSTABSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_initial_plasma( 5.0, &initp );
 
@@ -107,17 +109,19 @@ void test( int argc, char **argv )
 
 	conv.evaluate_iteration();
 
-	MeshScalarField tdens( geom );
-	pdb.build_trajectory_density_field( tdens );
-	GTKPlotter plotter( &argc, &argv );
-	plotter.set_geometry( &geom );
-	plotter.set_epot( &epot );
-	plotter.set_efield( &efield );
-	plotter.set_trajdens( &tdens );
-	plotter.set_scharge( &scharge );
-	plotter.set_particledatabase( &pdb );
-	plotter.new_geometry_plot_window();
-	plotter.run();
+	if( true ) {
+	    MeshScalarField tdens( geom );
+	    pdb.build_trajectory_density_field( tdens );
+	    GTKPlotter plotter( &argc, &argv );
+	    plotter.set_geometry( &geom );
+	    plotter.set_epot( &epot );
+	    plotter.set_efield( &efield );
+	    plotter.set_trajdens( &tdens );
+	    plotter.set_scharge( &scharge );
+	    plotter.set_particledatabase( &pdb );
+	    plotter.new_geometry_plot_window();
+	    plotter.run();
+	}
     }
 
     ofstream ofconv( "plasma3d_conv.dat" );
