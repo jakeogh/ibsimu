@@ -32,6 +32,8 @@ mesh_SOURCES = mesh.cpp
 multimeshvecfield_SOURCES = multimeshvecfield.cpp
 mvector_SOURCES = mvector.cpp
 nsimp_plasmacyl_SOURCES = nsimp_plasmacyl.cpp
+nsimp_plasma2d_SOURCES = nsimp_plasma2d.cpp
+nsimp_plasma3d_SOURCES = nsimp_plasma3d.cpp
 palette_SOURCES = palette.cpp
 particles_bfield2d_SOURCES = particles_bfield2d.cpp
 particles_bfieldcyl_SOURCES = particles_bfieldcyl.cpp
@@ -113,6 +115,8 @@ mesh \
 multimeshvecfield \
 mvector \
 nsimp_plasmacyl \
+nsimp_plasma2d \
+nsimp_plasma3d \
 palette \
 particles_bfield2d \
 particles_bfieldcyl \
