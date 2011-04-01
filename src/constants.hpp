@@ -47,10 +47,15 @@
 // Permittivity of space (F/m)
 // From NIST, official value of Apr 7 2008
 #define EPSILON0 8.854187817e-12
+
 // Atomic mass unit (kg)
 #define MASS_U        1.66053873e-27
+
 // Elementary charge (C)
 #define CHARGE_E      1.602176462e-19
+
+// Speed of light (m/s)
+#define SPEED_OF_LIGHT 299792458.0
 
 
 #endif
