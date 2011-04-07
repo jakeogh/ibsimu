@@ -76,7 +76,9 @@ double phi( double r )
 
 void test( int argc, char **argv )
 {
-    Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.008 );
+    //Geometry geom( MODE_2D, Int3D(21,21,1), Vec3D(-0.08,-0.08,0), 0.008 );
+    Geometry geom( MODE_2D, Int3D(15,15,1), Vec3D(-0.08,-0.08,0), 0.16/14.0 );
+    //Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.008 );
     //Geometry geom( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.002 );
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );

@@ -281,30 +281,13 @@ double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xou
 
     // If endpoints are the same, return zero
     return( 0.0 );
+    //xsurf = xin;
+    //return( 0.0 );
 }
 
 
 uint8_t Geometry::bracket_ndist( int32_t i, int32_t j, int32_t k, int32_t solid, int sign, int coord ) const
 {
-    // Floating point version of bracketing
-    /*
-    Vec3D vout( _origo[0]+i*_h, _origo[1]+j*_h, _origo[2]+k*_h );
-    double xsurf = 0.5;
-    double xin = 1.0;
-    double xout = 0.0;
-
-    // Do iteration
-    for( uint32_t a = 0; a < 8; a++ ) {
-	Vec3D vtest( vout );
-	vtest[coord] += sign*xsurf*_h;
-	if( inside( solid, vtest ) )
-	    xin = xsurf;
-	else
-	    xout = xsurf;
-	xsurf = 0.5*(xin+xout);
-    }
-    */
-
     Vec3D vout( _origo[0]+i*_h, _origo[1]+j*_h, _origo[2]+k*_h );
     uint32_t bp = 0x80;
     uint32_t surf = 0x80;
@@ -321,6 +304,7 @@ uint8_t Geometry::bracket_ndist( int32_t i, int32_t j, int32_t k, int32_t solid,
     }
 
     return( surf );
+    //return( 255 );
 }
 
 
