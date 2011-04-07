@@ -156,6 +156,7 @@ protected:
     int                       _iteration;   /*!< \brief Iteration number. */
     
     const CallbackFunctorD_V *_bfield_suppression; /*!< \brief Location dependent magnetic field suppression. */
+    const TrajectoryHandlerCallback *_trajhand;    /*!< \brief Trajectory handler callback. */
 
     /*! \brief Constructor.
      */
@@ -199,6 +200,10 @@ public:
      *  selected potential range.
      */
     void set_bfield_suppression( const CallbackFunctorD_V *functor );
+
+    /*! \brief Set trajectory handler callback. 
+     */
+    void set_trajectory_handler_callback( const TrajectoryHandlerCallback *trajhand );
 
     /*! \brief Set the interpolation type to polynomial(true) or linear(false).
      *
@@ -302,6 +307,10 @@ public:
      */
     virtual size_t traj_size( uint32_t i ) const = 0;
     
+    /*! \brief Gets the particle \a i trajectory point \a j as particle point.
+     */
+    virtual const ParticlePBase &trajectory_point( uint32_t i, uint32_t j ) const = 0;
+
     /*! \brief Gets the particle \a i trajectory point \a j into \a vel, \a loc and \a t.
      */
     virtual void trajectory_point( double &t, Vec3D &loc, Vec3D &vel, uint32_t i, uint32_t j ) const = 0;
@@ -484,6 +493,12 @@ public:
      */
     virtual size_t traj_size( uint32_t i ) const { return( _particles[i].traj_size() ); }
     
+    /*! \brief Gets the particle \a i trajectory point \a j as particle point.
+     */
+    virtual const PP &trajectory_point( uint32_t i, uint32_t j ) const {
+	return( _particles[i].traj(j) );
+    }
+
     /*! \brief Gets the particle \a i trajectory point \a j into \a vel, \a loc and \a t.
      */
     virtual void trajectory_point( double &t, Vec3D &loc, Vec3D &vel, uint32_t i, uint32_t j ) const {
@@ -688,7 +703,7 @@ public:
 	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
 							   _polyint, _maxsteps, _maxt, _trajdiv, 
 							   _mirror, &scharge, &scharge_mutex, &efield, &bfield, 
-							   &g, &_particles[0], _bfield_suppression ) );
+							   &g, &_particles[0], _bfield_suppression, _trajhand ) );
 	}
 
 	// Make Scheduler
@@ -779,7 +794,7 @@ public:
 	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
 							   _polyint, _maxsteps, _maxt, _trajdiv, 
 							   _mirror, schmap[a], &scharge_mutex, &efield, &bfield, 
-							   &g, &_particles[0], _bfield_suppression ) );
+							   &g, &_particles[0], _bfield_suppression, _trajhand ) );
 	}
 
 	// Make Scheduler

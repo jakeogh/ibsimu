@@ -48,7 +48,8 @@
 
 ParticleDataBase::ParticleDataBase()
     : _epsabs(1e-6), _epsrel(1e-6), _polyint(true), _maxsteps(1000), 
-      _maxt(1e-3), _trajdiv(1), _rhosum(0.0), _iteration(-1), _bfield_suppression(NULL) 
+      _maxt(1e-3), _trajdiv(1), _rhosum(0.0), _iteration(-1), 
+      _bfield_suppression(NULL), _trajhand(NULL)
 {
     _mirror[0] = false;
     _mirror[1] = false;
@@ -68,6 +69,12 @@ void ParticleDataBase::set_thread_count( uint32_t threadcount )
 void ParticleDataBase::set_bfield_suppression( const CallbackFunctorD_V *functor )
 {
     _bfield_suppression = functor;
+}
+
+
+void ParticleDataBase::set_trajectory_handler_callback( const TrajectoryHandlerCallback *trajhand )
+{
+    _trajhand = trajhand;
 }
 
 

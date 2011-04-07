@@ -63,6 +63,20 @@
 //#define DEBUG_PARTICLE_ITERATOR 1
 
 
+/*! \brief Trajectory handler callback.
+ */
+class TrajectoryHandlerCallback {
+public:
+
+    /*! \brief Virtual destructor.
+     */
+    virtual ~TrajectoryHandlerCallback() {}
+
+    virtual void operator()( ParticleBase *particle, ParticlePBase *xcur, ParticlePBase *xend ) const = 0;
+
+};
+
+
 /*! \brief %Particle iterator type.
  */
 enum particle_iterator_type_e {
@@ -317,7 +331,8 @@ template <class PP> class ParticleIterator {
 
     Particle<PP>              *_first;     /*!< \brief Pointer to first particle of the database. */    
     ParticleIteratorData       _pidata;    /*!< \brief User data provided to PP::get_derivatives(). */
-    pthread_mutex_t           *_scharge_mutex; 
+    const TrajectoryHandlerCallback *_trajhand; /*!< \brief Trajectory handler callback. */
+    pthread_mutex_t           *_scharge_mutex;  /*!< \brief Space charge mutex. */
 
     PP                         _xi;        /*!< \brief Previous mesh intersection coordinates 
 					    *   or starting point. */
@@ -359,7 +374,7 @@ template <class PP> class ParticleIterator {
 	}
 
 	// Save last trajectory point and update status
-	_traj.push_back( status_x );
+	//_traj.push_back( status_x );
 	particle.set_status( PARTICLE_COLL );
 
 	// Update collision statistics for boundary
@@ -454,7 +469,7 @@ template <class PP> class ParticleIterator {
 	std::cout << "    handle_collision()\n";
 #endif
 
-	_traj.push_back( _coldata[c]._x );
+	//_traj.push_back( _coldata[c]._x );
 	status_x = _coldata[c]._x;
 	particle.set_status( PARTICLE_OUT );
 	_stat.add_bound_collision( bound, particle.IQ() );
@@ -632,7 +647,7 @@ template <class PP> class ParticleIterator {
      *  step, false otherwise.
      */
     bool handle_trajectory( Particle<PP> &particle, const PP &x1, PP &x2, 
-			    bool force_linear=false ) {
+			    bool force_linear = false ) {
 
 #ifdef DEBUG_PARTICLE_ITERATOR
 	std::cout << "Handle trajectory from x1 to x2:\n";
@@ -688,6 +703,10 @@ template <class PP> class ParticleIterator {
 		scharge_add_from_trajectory( *_pidata._scharge, _scharge_mutex, particle.IQ(), 
 					     _xi, _coldata[a]._x );
 
+	    // Call trajectory handler callback
+	    if( _trajhand )
+		(*_trajhand)( &particle, &_coldata[a]._x, &x2 );
+
 #ifdef DEBUG_PARTICLE_ITERATOR
 	    if( particle.get_status() == PARTICLE_OUT ) {
 		std::cout << "  Particle out\n";
@@ -699,6 +718,7 @@ template <class PP> class ParticleIterator {
 #endif
 	    // Clear coldata and exit if particle collided.
 	    if( particle.get_status() != PARTICLE_OK ) {
+		_traj.push_back( x2 );
 		_coldata.clear();
 		return( false );
 	    }
@@ -898,10 +918,11 @@ public:
 		      pthread_mutex_t *scharge_mutex,
 		      const VectorField *efield, const VectorField *bfield, 
 		      const Geometry *g, Particle<PP> *first, 
-		      const CallbackFunctorD_V *bfield_suppression )
+		      const CallbackFunctorD_V *bfield_suppression,
+		      const TrajectoryHandlerCallback *trajhand )
 	: _type(type), _polyint(polyint), _epsabs(epsabs), _epsrel(epsrel), _maxsteps(maxsteps), _maxt(maxt), 
 	  _trajdiv(trajdiv), _first(first), _pidata(scharge,efield,bfield,g,bfield_suppression), 
-	  _scharge_mutex(scharge_mutex), _stat(g->number_of_boundaries()) {
+	  _trajhand(trajhand), _scharge_mutex(scharge_mutex), _stat(g->number_of_boundaries()) {
 
 	// Initialize mirroring
 	_mirror[0] = mirror[0];

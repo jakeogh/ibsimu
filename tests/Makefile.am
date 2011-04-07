@@ -33,6 +33,7 @@ multimeshvecfield_SOURCES = multimeshvecfield.cpp
 mvector_SOURCES = mvector.cpp
 nsimp_plasmacyl_SOURCES = nsimp_plasmacyl.cpp
 palette_SOURCES = palette.cpp
+particle_callback_SOURCES = particle_callback.cpp
 particles_bfield2d_SOURCES = particles_bfield2d.cpp
 particles_bfieldcyl_SOURCES = particles_bfieldcyl.cpp
 particles_cyl2_SOURCES = particles_cyl2.cpp
@@ -112,6 +113,7 @@ multimeshvecfield \
 mvector \
 nsimp_plasmacyl \
 palette \
+particle_callback \
 particles_bfield2d \
 particles_bfieldcyl \
 particles_cyl \
