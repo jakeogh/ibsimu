@@ -62,6 +62,19 @@ EpotSolver::EpotSolver( Geometry &geom )
 }
 
 
+EpotSolver::EpotSolver( const EpotSolver &epsolver, Geometry &geom )
+    : _geom(geom), _neumann_order(epsolver._neumann_order), _plasma(epsolver._plasma),
+      _rhoe(epsolver._rhoe), _Te(epsolver._Te), _Up(epsolver._Up),
+      _force_pot(epsolver._force_pot), _force_pot_func(epsolver._force_pot_func),
+      _init_plasma_func(epsolver._init_plasma_func)
+{
+    for( uint32_t i = 0; i < epsolver._rhoi.size(); i++ )
+	_rhoi.push_back( epsolver._rhoi[i] );
+    for( uint32_t i = 0; i < epsolver._Ei.size(); i++ )
+	_Ei.push_back( epsolver._Ei[i] );
+}
+
+
 EpotSolver::EpotSolver( Geometry &geom, std::istream &s )
     : _geom(geom)
 {
@@ -509,6 +522,12 @@ void EpotSolver::solve( MeshScalarField &epot, const ScalarField &__scharge )
 /* ************************************** *
  * Misc                                   *
  * ************************************** */
+
+
+const Geometry &EpotSolver::geometry( void ) const
+{
+    return( _geom );
+}
 
 
 void EpotSolver::debug_print( std::ostream &os ) const 

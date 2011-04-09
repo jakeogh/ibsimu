@@ -48,18 +48,37 @@
 
 
 /*! \brief Subroutine class for Multigrid
+ *
+ *  Preprocesses the solid mesh and does relaxation rounds on one
+ *  problem level.
  */
 class EpotMGSubSolver : public EpotSolver {
 
-    virtual void reset_problem( void );
-    virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge );
+    virtual void reset_problem( void ) {}
+    virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge ) {}
 
 public:
 
-    virtual ~EpotSolver() {}
-    virtual void debug_print( std::ostream &os ) const {}
-    virtual void save( std::ostream &s ) const {}
+    /*! \brief Constructor.
+     *
+     *  Construct subsolver for geometry \a geom. Use parameters from
+     *  main level potential solver \a epsolver.
+     */
+    EpotMGSubSolver( EpotSolver &epsolver, Geometry &geom );
 
+    /*! \brief Destructor.
+     */
+    virtual ~EpotMGSubSolver() {}
+
+
+
+    /*! \brief Print debugging information to os.
+     */
+    virtual void debug_print( std::ostream &os ) const {}
+
+    /*! \brief Saves problem data to stream.
+     */
+    virtual void save( std::ostream &s ) const {}
 };
 
 
@@ -68,8 +87,8 @@ public:
 class EpotMGSolver : public EpotSolver {
 
     std::vector<MeshScalarField *>   _epotv;
-    std::vector<Geometry *>          _geomv;
-    std::vector<EpotMGSubSolver *>   _epotsolverv;
+    std::vector<Geometry *>          _geomv;       // All geometries
+    std::vector<EpotMGSubSolver *>   _epotsolverv; // All solvers
     std::vector<MeshScalarField *>   _rhsv;
 
     bool             _geom_prepared;  /*!< \brief Is geometry prepared? */

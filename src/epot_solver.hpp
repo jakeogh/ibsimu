@@ -251,6 +251,11 @@ public:
      */
     EpotSolver( Geometry &geom );
 
+    /*! \brief Constructor for solver from \a geom. Parameters from \a
+     *  epsolver are copied to new solver.
+     */
+    EpotSolver( const EpotSolver &epsolver, Geometry &geom );
+
     /*! \brief Construct from file.
      */
     EpotSolver( Geometry &geom, std::istream &s );
@@ -353,6 +358,10 @@ public:
 /* ************************************** *
  * Misc                                   *
  * ************************************** */
+
+    /*! \brief Get pointer to geometry.
+     */
+    const Geometry &geometry( void ) const;
 
     /*! \brief Print debugging information to os.
      */

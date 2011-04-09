@@ -42,8 +42,6 @@ epot_gssolver.cpp \
 epot_gssolver.hpp \
 epot_matrixsolver.cpp \
 epot_matrixsolver.hpp \
-epot_mgsolver.cpp \
-epot_mgsolver.hpp \
 epot_rbgssolver.cpp \
 epot_rbgssolver.hpp \
 epot_solver.cpp \
@@ -205,6 +203,9 @@ vectorfield.hpp \
 xygraph.cpp \
 xygraph.hpp
 
+#epot_mgsolver.cpp 
+#epot_mgsolver.hpp 
+
 libibsimu_la_includedir=$(includedir)/ibsimu
 libibsimu_la_include_HEADERS = \
 bicgstab.hpp \
@@ -226,7 +227,6 @@ epot_efield.hpp \
 epot_field.hpp \
 epot_gssolver.hpp \
 epot_matrixsolver.hpp \
-epot_mgsolver.hpp \
 epot_rbgssolver.hpp \
 epot_solver.hpp \
 eqpotgraph.hpp \
@@ -299,6 +299,8 @@ vec3d.hpp \
 vec4d.hpp \
 vectorfield.hpp \
 xygraph.hpp
+
+#epot_mgsolver.hpp 
 
 if UMFPACK
 libibsimu_la_SOURCES += epot_umfpacksolver.cpp epot_umfpacksolver.hpp 

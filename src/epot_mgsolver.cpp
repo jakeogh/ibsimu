@@ -48,6 +48,26 @@
 #include "statusprint.hpp"
 
 
+
+
+/* *****************************************************************************
+ * EpotMGSubSolver
+ */
+
+EpotMGSubSolver::EpotMGSubSolver( EpotSolver &epsolver, Geometry &geom )
+    : EpotSolver( epsolver, geom )
+{
+}
+
+
+
+
+
+
+/* *****************************************************************************
+ * EpotMGSolver
+ */
+
 EpotMGSolver::EpotMGSolver( Geometry &geom )
     : EpotSolver( geom ), _geom_prepared(false), _levels(1), _npre(5), 
       _npost(5), _ncyc(1), _res(0.0), _eps(1.0e-6)
@@ -134,6 +154,7 @@ void EpotMGSolver::set_npost( uint32_t npost )
  * 2D
  */
 
+/*
 double EpotMGSolver::gs_process_near_solid_2d( const uint8_t *nearsolid_ptr, 
 					       uint32_t a, uint32_t dj ) const
 {
@@ -296,7 +317,7 @@ double EpotMGSolver::gs_loop_2d( void ) const
     }
     return( maxerr );
 }
-
+*/
 
 
 /* *****************************************************************************
@@ -334,11 +355,15 @@ void EpotMGSolver::prepare_mg_geom( void )
     Vec3D origo = _geom.origo();
     double h = _geom.h();
 
-    // _geom is given, construct _geomv vector
     for( uint32_t a = 0; a < _levels; a++ ) {
+
 	if( a == 0 ) {
+
+	    // First level
 	    _geomv.push_back( &_geom );
-	    //_epotsolverv.push_back( (EpotSolver *)this );
+	    EpotMGSubsolver *mgss = new EpotMGSubSolver( this, _geom );
+	    _epotsolverv.push_back( mgss );
+
 	} else {
 
 	    // Build mesh density	    
@@ -362,6 +387,10 @@ void EpotMGSolver::prepare_mg_geom( void )
 	    }
 	    geom->build_mesh();
 	    _geomv.push_back( geom );
+
+	    // Make sub-solver
+	    EpotMGSubsolver *mgss = new EpotMGSubSolver( this, _geomv.back() );
+	    _epotsolverv.push_back( mgss );
 	}
     }
 }
@@ -383,35 +412,35 @@ void EpotMGSolver::preprocess( MeshScalarField &epot, const MeshScalarField &sch
 	_rhsv.push_back( rhs );
 
 	// Preprocess solid meshes
-	//_epotsolverv[a]->preprocess( _epotv[a] );
-    }
+	_epotsolverv[a]->preprocess( _epotv[a] );
 
-    // Build rhs
-    for( uint32_t a = 0; a < _geom.nodecount(); a++ ) {
+	// Build rhs
+	for( uint32_t b = 0; b < _geom.nodecount(); b++ ) {
 
-	uint32_t mesh = _geom.mesh(a);
-	uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
-	if( node_id == SMESH_NODE_ID_NEAR_SOLID ||
-	    node_id == SMESH_NODE_ID_PURE_VACUUM ) {
-
-	    // Ordinary vacuum/near solid
-	    (*_rhs)(a) = -scharge(a)*_geom.h()*_geom.h()/EPSILON0;
-
-	} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
-
-	    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
-	    if( _geom.geom_mode() == MODE_CYL && boundary == 3 ) {
-			
-		// Symmetry axis (vacuum)
-		(*_rhs)(a) = -scharge(a)*_geom.h()*_geom.h()/EPSILON0;
-
-	    } else {
+	    uint32_t mesh = _geomv[a]->mesh(b);
+	    uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+	    if( node_id == SMESH_NODE_ID_NEAR_SOLID ||
+		node_id == SMESH_NODE_ID_PURE_VACUUM ) {
 		
-		// Ordinary Neumann node
-		if( _neumann_order == 2 )
-		    (*_rhs)(a) = 2.0*_geom.h()*_geom.get_boundary( boundary ).val;
-		else
-		    (*_rhs)(a) = _geom.h()*_geom.get_boundary( boundary ).val;
+		// Ordinary vacuum/near solid
+		(*rhs)(a) = -scharge(a)*_geom.h()*_geom.h()/EPSILON0;
+
+	    } else if( node_id == SMESH_NODE_ID_NEUMANN ) {
+		
+		uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
+		if( _geom.geom_mode() == MODE_CYL && boundary == 3 ) {
+		    
+		    // Symmetry axis (vacuum)
+		    (*_rhs)(a) = -scharge(a)*_geom.h()*_geom.h()/EPSILON0;
+		    
+		} else {
+		    
+		    // Ordinary Neumann node
+		    if( _neumann_order == 2 )
+			(*_rhs)(a) = 2.0*_geom.h()*_geom.get_boundary( boundary ).val;
+		    else
+			(*_rhs)(a) = _geom.h()*_geom.get_boundary( boundary ).val;
+		}
 	    }
 	}
     }
@@ -448,9 +477,10 @@ void EpotMGSolver::mg_recurse( uint32_t level )
     for( uint32_t a = 0; a < _ncyc; a++ ) {
 
 	// Pre smoothing
-	mg_smooth();
+	for( uint32_t a = 0; a < _npre; a++ )
+	    _epotsolverv[level]->mg_relax();
 
-	if( level == _levels ) {
+	if( level == _levels-1 ) {
 	    // Last level, solve problem
 	} else {
 	    // Recurse to next level
@@ -458,7 +488,8 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 	}
 
 	// Post smoothing
-	mg_smooth();
+	for( uint32_t a = 0; a < _npost; a++ )
+	    _epotsolverv[level]->mg_relax();
     }
 }
 
@@ -480,7 +511,7 @@ void EpotMGSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
     preprocess( epot, scharge );
 
     // Do first level iteration only once
-    mg_recurse( 1 );
+    mg_recurse( 0 );
 
     postprocess();
 }
