@@ -2,7 +2,7 @@
  *  \brief Source code for gtkwindow.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -110,7 +110,9 @@ GTKWindow::GTKWindow( class GTKPlotter *plotter )
     GdkPixbuf *pixbuf = gdk_pixbuf_new_from_inline( -1, icon_hardcopy_inline, FALSE, NULL );
     GtkWidget *icon = gtk_image_new_from_pixbuf( pixbuf );
     GtkToolItem *toolitem = gtk_tool_button_new( icon, "Hardcopy" );
+#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Hardcopy" );
+#endif
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "clicked",
 		      G_CALLBACK(menuitem_hardcopy_signal),
@@ -125,7 +127,9 @@ GTKWindow::GTKWindow( class GTKPlotter *plotter )
     icon = gtk_image_new_from_pixbuf( pixbuf );
     _radioitem = toolitem = gtk_radio_tool_button_new( NULL );
     gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Zoom in" );
+#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Zoom in" );
+#endif
     gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toggle_tool_button_set_active( GTK_TOGGLE_TOOL_BUTTON(toolitem), TRUE );
     _tool = TOOL_ZOOM_IN;
@@ -139,7 +143,9 @@ GTKWindow::GTKWindow( class GTKPlotter *plotter )
     icon = gtk_image_new_from_pixbuf( pixbuf );
     toolitem = gtk_radio_tool_button_new_from_widget( GTK_RADIO_TOOL_BUTTON(_radioitem) );
     gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Zoom out" );
+#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Zoom out" );
+#endif
     gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "toggled",
@@ -151,7 +157,9 @@ GTKWindow::GTKWindow( class GTKPlotter *plotter )
     icon = gtk_image_new_from_pixbuf( pixbuf );
     //toolitem = gtk_radio_tool_button_new_from_widget( GTK_RADIO_TOOL_BUTTON(radioitem) );
     toolitem = gtk_tool_button_new( icon, "Zoom fit" );
+#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Zoom fit" );
+#endif
     //gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Zoom fit" );
     //gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
@@ -164,7 +172,9 @@ GTKWindow::GTKWindow( class GTKPlotter *plotter )
     icon = gtk_image_new_from_pixbuf( pixbuf );
     toolitem = gtk_radio_tool_button_new_from_widget( GTK_RADIO_TOOL_BUTTON(_radioitem) );
     gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Move" );
+#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Move" );
+#endif
     gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "toggled",
@@ -180,7 +190,9 @@ GTKWindow::GTKWindow( class GTKPlotter *plotter )
     icon = gtk_image_new_from_pixbuf( pixbuf );
     toolitem = gtk_radio_tool_button_new_from_widget( GTK_RADIO_TOOL_BUTTON(_radioitem) );
     gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Track" );
+#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Track plot" );
+#endif
     gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "toggled",
