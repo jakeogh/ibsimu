@@ -1,12 +1,12 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
-includedir=@includedir@/ibsimu
+includedir=@includedir@/ibsimu-1.0.4dev
 
 Name: libibsimu
 Description: Ion Beam Simulation Package
 Version: @VERSION@
 Requires: cairo gtk+-2.0 gsl @CSG_COND@ @UMFPACK_COND@
-Libs: -L${libdir} -libsimu @freetype_LIBS@ @fontconfig_LIBS@ -lz @libpng_LIBS@ @PTHREAD_LIBS@ @PTHREAD_CFLAGS@ @rdynamic_flag@
+Libs: -L${libdir} -libsimu-1.0.4dev @freetype_LIBS@ @fontconfig_LIBS@ -lz @libpng_LIBS@ @PTHREAD_LIBS@ @PTHREAD_CFLAGS@ @rdynamic_flag@
 Libs.private: -lm
 Cflags: -I${includedir} @PTHREAD_CFLAGS@

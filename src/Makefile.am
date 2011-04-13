@@ -1,13 +1,11 @@
-lib_LTLIBRARIES = libibsimu.la
+lib_LTLIBRARIES = libibsimu-1.0.4dev.la
 
-libibsimu_la_LDFLAGS = -version-info 0:1:0
-#AM_LDFLAGS = -Wall -O3 -march=athlon64
-#AM_CPPFLAGS = -Wall -O3 -march=athlon64
+libibsimu_1_0_4dev_la_LDFLAGS = -version-info 0:1:0
 
 AM_LDFLAGS = -Wall @rdynamic_flag@
 AM_CPPFLAGS = -Wall
 
-libibsimu_la_SOURCES = \
+libibsimu_1_0_4dev_la_SOURCES = \
 bicgstab.cpp \
 bicgstab.hpp \
 bicgstab_solver.cpp \
@@ -195,8 +193,8 @@ vectorfield.hpp \
 xygraph.cpp \
 xygraph.hpp
 
-libibsimu_la_includedir=$(includedir)/ibsimu
-libibsimu_la_include_HEADERS = \
+libibsimu_1_0_4dev_la_includedir=$(includedir)/ibsimu-1.0.4dev
+libibsimu_1_0_4dev_la_include_HEADERS = \
 bicgstab.hpp \
 bicgstab_solver.hpp \
 callback.hpp \
@@ -282,13 +280,13 @@ vectorfield.hpp \
 xygraph.hpp
 
 if UMFPACK
-libibsimu_la_SOURCES += umfpack_solver.cpp umfpack_solver.hpp
-libibsimu_la_include_HEADERS += umfpack_solver.hpp
+libibsimu_1_0_4dev_la_SOURCES += umfpack_solver.cpp umfpack_solver.hpp
+libibsimu_1_0_4dev_la_include_HEADERS += umfpack_solver.hpp
 endif
 
 if CSG
-libibsimu_la_SOURCES += csgobject_solid.cpp csgobject_solid.hpp
-libibsimu_la_include_HEADERS += csgobject_solid.hpp
+libibsimu_1_0_4dev_la_SOURCES += csgobject_solid.cpp csgobject_solid.hpp
+libibsimu_1_0_4dev_la_include_HEADERS += csgobject_solid.hpp
 endif
 
 
