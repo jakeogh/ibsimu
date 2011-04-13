@@ -352,7 +352,7 @@ void Geometry::build_mesh( void )
 		    mesh(i,j,0) = a;
 	    }
 	}
-	// Mark ymax
+	// Mark zmax
 	if( _bound[5].type == BOUND_NEUMANN ) a = -6;
 	else a = 6;
 	for( j = 0; j < _size[1]; j++ ) {

@@ -290,8 +290,6 @@ void EpotProblem::add_neumann_node( signed char a, int32_t i, int32_t j, int32_t
 {
     double coef = 0.0;
 
-
-
     switch( a ) {
     case -1:
 	if( _neumann_order == 2 && 
@@ -396,7 +394,7 @@ void EpotProblem::add_neumann_node( signed char a, int32_t i, int32_t j, int32_t
     }
 
     // Add right hand side coefficient
-    B[n2d(i,j,k)] = coef * _g->h() * _g->get_boundary(-_g->mesh(i,j,k)).val;
+    B[n2d(i,j,k)] += coef * _g->h() * _g->get_boundary(-_g->mesh(i,j,k)).val;
 }
 
 
