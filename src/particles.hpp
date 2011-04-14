@@ -592,7 +592,7 @@ protected:
     ParticleBase( double IQ, double q, double m ) 
 	: _status(PARTICLE_OK), _q(q) {
 	_m = fabs(m);
-	if( _q/_m < 0 )
+	if( _q < 0 )
 	    _IQ = -fabs(IQ);
 	else
 	    _IQ = fabs(IQ);
