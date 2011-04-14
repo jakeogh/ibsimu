@@ -43,6 +43,7 @@
 #include <limits>
 #include <fstream>
 #include <cstring>
+#include <sstream>
 #include <cmath>
 #include <limits>
 #include <cstdlib>
@@ -212,9 +213,14 @@ MeshVectorField::MeshVectorField( geom_mode_e geom_mode, const bool fout[3], dou
 
     // Check number of records
     if( data.rows() != (uint32_t)size[0]*size[1]*size[2] ) {
-	throw( Error( ERROR_LOCATION, "number of records " + to_string(data.rows()) +
-		      " in file " + filename + " doesn\'t match expected mesh size " +
-		      to_string(size[0]) + "x" + to_string(size[1]) + "x" + to_string(size[2]) ) );
+	std::stringstream ss;
+	ss << "number of records " << data.rows() << " in file " << filename 
+	   << " doesn\'t match expected mesh size "
+	   << size[0] << "x" << size[1] << "x" << size[2] << "\n"
+	   << "origo = " << origo << "\n"
+	   << "max = " << max << "\n"
+	   << "h = " << h;
+	throw( Error( ERROR_LOCATION, ss.str() ) );
     }
 
     if( ibsimu.get_verbose_output() ) {
