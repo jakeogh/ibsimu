@@ -146,6 +146,16 @@ void MyDXFBlock::scale( class MyDXFFile *dxf, double s )
     _entities->scale( NULL, dxf, s );
 }
 
+
+void MyDXFBlock::translate( class MyDXFFile *dxf, const Vec3D &dx )
+{
+    if( !_entities )
+	return;
+
+    _entities->translate( NULL, dxf, dx );
+}
+
+
 std::ostream &operator<<( std::ostream &os, const MyDXFBlock &blk )
 {
     os << "BLOCK\n";

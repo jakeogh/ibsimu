@@ -120,6 +120,10 @@ public:
      */
     void scale( class MyDXFFile *dxf, double s );
     
+    /*! \brief Translate entity by \a dx.
+     */
+    void translate( class MyDXFFile *dxf, const Vec3D &dx );
+
     friend std::ostream &operator<<( std::ostream &os, const MyDXFBlock &blk );
 };
 

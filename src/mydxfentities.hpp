@@ -2,7 +2,7 @@
  *  \brief DXF Entities
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -120,6 +120,10 @@ public:
     /*! \brief Scale entity by factor \a s.
      */
     virtual void scale( class MyDXFFile *dxf, double s ) = 0;
+
+    /*! \brief Translate entity by \a dx.
+     */
+    virtual void translate( class MyDXFFile *dxf, const Vec3D &dx ) = 0;
 
     /*! \brief Set layer.
      */
@@ -310,6 +314,10 @@ public:
     /*! \brief Scale entity by factor \a s.
      */
     virtual void scale( class MyDXFFile *dxf, double s );
+
+    /*! \brief Translate entity by \a dx.
+     */
+    virtual void translate( class MyDXFFile *dxf, const Vec3D &dx );
 };
 
 
@@ -424,6 +432,10 @@ public:
     /*! \brief Scale entity by factor \a s.
      */
     virtual void scale( class MyDXFFile *dxf, double s );
+
+    /*! \brief Translate entity by \a dx.
+     */
+    virtual void translate( class MyDXFFile *dxf, const Vec3D &dx );
 };
 
 
@@ -581,6 +593,10 @@ public:
     /*! \brief Scale entity by factor \a s.
      */
     virtual void scale( class MyDXFFile *dxf, double s );
+
+    /*! \brief Translate entity by \a dx.
+     */
+    virtual void translate( class MyDXFFile *dxf, const Vec3D &dx );
 };
 
 
@@ -689,6 +705,10 @@ public:
     /*! \brief Scale entity by factor \a s.
      */
     virtual void scale( class MyDXFFile *dxf, double s );
+
+    /*! \brief Translate entity by \a dx.
+     */
+    virtual void translate( class MyDXFFile *dxf, const Vec3D &dx );
 };
 
 
@@ -777,6 +797,10 @@ public:
     /*! \brief Scale entity by factor \a s.
      */
     virtual void scale( class MyDXFFile *dxf, double s );
+
+    /*! \brief Translate entity by \a dx.
+     */
+    virtual void translate( class MyDXFFile *dxf, const Vec3D &dx );
 };
 
 
@@ -856,7 +880,11 @@ public:
      */
     virtual void scale( class MyDXFFile *dxf, double s );
 
-   /*! \brief Return name of the block inserted.
+    /*! \brief Translate entity by \a dx.
+     */
+    virtual void translate( class MyDXFFile *dxf, const Vec3D &dx );
+
+    /*! \brief Return name of the block inserted.
      */
     const std::string &block_name( void ) const { return( _block_name ); }
 };
@@ -1054,6 +1082,11 @@ public:
      *  Selection can be a NULL pointer to plot all entities.
      */
     void scale( MyDXFEntitySelection *selection, class MyDXFFile *dxf, double s );
+
+    /*! \brief Translate selected entities by  \a dx.
+     */
+    void translate( MyDXFEntitySelection *selection, class MyDXFFile *dxf, const Vec3D &dx );
+
 
 
     /*! \brief Remove selected entities.

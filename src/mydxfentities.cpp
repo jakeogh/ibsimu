@@ -2,7 +2,7 @@
  *  \brief DXF entities
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -229,6 +229,13 @@ void MyDXFLine::scale( class MyDXFFile *dxf, double s  )
 }
 
 
+void MyDXFLine::translate( class MyDXFFile *dxf, const Vec3D &dx  )
+{
+    _p1 += dx;
+    _p2 += dx;
+}
+
+
 int MyDXFLine::ray_cross( double x, double y ) const
 {
     if( (x > _p1[0] && x < _p2[0]) || 
@@ -413,6 +420,13 @@ void MyDXFLWPolyline::scale( class MyDXFFile *dxf, double s  )
 {
     for( uint32_t a = 0; a < _p.size(); a++ )
 	_p[a] *= s;
+}
+
+
+void MyDXFLWPolyline::translate( class MyDXFFile *dxf, const Vec3D &dx  )
+{
+    for( uint32_t a = 0; a < _p.size(); a++ )
+	_p[a] += dx;
 }
 
 
@@ -697,6 +711,12 @@ void MyDXFCircle::scale( class MyDXFFile *dxf, double s )
 }
 
 
+void MyDXFCircle::translate( class MyDXFFile *dxf, const Vec3D &dx )
+{
+    _pc += dx;
+}
+
+
 int MyDXFCircle::ray_cross( double x, double y ) const
 {
     if( (x <= _pc[0]-_r || x >= _pc[0]+_r) )
@@ -962,6 +982,12 @@ void MyDXFArc::scale( class MyDXFFile *dxf, double s )
 {
     _pc *= s;
     _r  *= s;
+}
+
+
+void MyDXFArc::translate( class MyDXFFile *dxf, const Vec3D &dx )
+{
+    _pc += dx;
 }
 
 
@@ -1233,6 +1259,12 @@ void MyDXFMText::scale( class MyDXFFile *dxf, double s )
 }
 
 
+void MyDXFMText::translate( class MyDXFFile *dxf, const Vec3D &dx )
+{
+    _p += dx;
+}
+
+
 void MyDXFMText::debug_print( std::ostream &os ) const
 {
     std::cout << "MTEXT\n";
@@ -1260,6 +1292,7 @@ MyDXFInsert::MyDXFInsert()
     // Default values
     _scale[0] = _scale[1] = _scale[2] = 1.0;
 }
+
 
 
 MyDXFInsert::MyDXFInsert( class MyDXFFile *dxf )
@@ -1423,6 +1456,18 @@ void MyDXFInsert::scale( class MyDXFFile *dxf, double s )
 	return;
 
     b->scale( dxf, s );
+}
+
+
+void MyDXFInsert::translate( class MyDXFFile *dxf, const Vec3D &dx )
+{
+    // Fetch block data
+    MyDXFBlocks *blocks = dxf->get_blocks();
+    MyDXFBlock *b = blocks->get_by_name( _block_name );
+    if( !b )
+	return;
+
+    b->translate( dxf, dx );
 }
 
 
@@ -1997,6 +2042,24 @@ void MyDXFEntities::scale( MyDXFEntitySelection *selection, class MyDXFFile *dxf
 	for( size_t a = 0; a < _entities.size(); a++ ) {
 	    MyDXFEntity *e = _entities[a];
 	    e->scale( dxf, s );
+	}
+    }
+}
+
+
+void MyDXFEntities::translate( MyDXFEntitySelection *selection, class MyDXFFile *dxf, const Vec3D &dx )
+{
+    if( selection ) {
+	// Go through selection
+	for( size_t a = 0; a < selection->size(); a++ ) {
+	    MyDXFEntity *e = _entities[(*selection)(a)];
+	    e->translate( dxf, dx );
+	}    
+    } else {
+	// Scale all entities 
+	for( size_t a = 0; a < _entities.size(); a++ ) {
+	    MyDXFEntity *e = _entities[a];
+	    e->translate( dxf, dx );
 	}
     }
 }
