@@ -40,6 +40,7 @@ particles_cyl_SOURCES = particles_cyl.cpp
 particles_diagnostic_SOURCES = particles_diagnostic.cpp
 particles_edip_SOURCES = particles_edip.cpp
 particles_mirror_SOURCES = particles_mirror.cpp
+particles_nofield_SOURCES = particles_nofield.cpp
 particles_trajectory_SOURCES = particles_trajectory.cpp
 plasma2d_SOURCES = plasma2d.cpp
 plasmacyl_SOURCES = plasmacyl.cpp
@@ -119,6 +120,7 @@ particles_cyl2 \
 particles_diagnostic \
 particles_edip \
 particles_mirror \
+particles_nofield \
 particles_trajectory \
 plasma2d \
 plasmacyl \
@@ -164,7 +166,7 @@ ibsimutest.hpp
 
 AM_CPPFLAGS = $(CPPFLAGS) -Wall -g -I$(top_srcdir)/src
 AM_LDFLAGS = $(LIBS) -L$(top_srcdir)/src @rdynamic_flag@
-LDADD = $(top_builddir)/src/libibsimu.la libibsimutest.la -lm
+LDADD = $(top_builddir)/src/libibsimu-1.0.4dev.la libibsimutest.la -lm
 
 if UMFPACK
 AM_CPPFLAGS += `pkg-config --cflags umfpack`
