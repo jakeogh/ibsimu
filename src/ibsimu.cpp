@@ -45,6 +45,7 @@
 #include <iostream>
 #include <signal.h>
 #include "ibsimu.hpp"
+#include "timer.hpp"
 #include "error.hpp"
 
 
@@ -52,6 +53,7 @@
 IBSimu::IBSimu()
     : _hello(false), _verbose_output(0), _threadcount(1)
 {
+    // Set a catch for segmentation fault
 #ifdef _GNU_SOURCE
     struct sigaction act;
     act.sa_sigaction = SignalHandler::signal_handler_SIGSEGV;
@@ -59,12 +61,31 @@ IBSimu::IBSimu()
     act.sa_flags = SA_SIGINFO;
     sigaction( SIGSEGV, &act, NULL );
 #endif
+
+    // Start timer for whole simulation
+    _t = new Timer;
+}
+
+
+IBSimu::~IBSimu()
+{
+    // End timer
+    _t->stop();
+    if( _verbose_output ) {
+	std::cout << "Ending simulation\n";
+	std::cout << "  time used = " << *_t << "\n";
+	std::cout << std::flush;
+    }
+    delete _t;
 }
 
 
 void IBSimu::set_verbose_output( int level )
 {
+    // Set verbosity level
     _verbose_output = level;
+
+    // If setting to verbose mode and no greeting has yet been shown
     if( level > 0 && !_hello ) {
 	_hello = true;
 	std::cout << "Ion Beam Simulator " << VERSION << "\n";
@@ -72,7 +93,8 @@ void IBSimu::set_verbose_output( int level )
 }
 
 
-void IBSimu::set_thread_count( int threadcount ) {
+void IBSimu::set_thread_count( int threadcount ) 
+{
     if( threadcount <= 0 )
 	throw( Error( ERROR_LOCATION, "invalid parameter" ) );
     _threadcount = threadcount;

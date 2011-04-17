@@ -45,6 +45,9 @@
 #define IBSIMU_HPP 1
 
 
+class Timer;
+
+
 /*! \brief Main class for %IBSimu.
  *
  *  Used to store global settings. One instance of the class is
@@ -52,15 +55,25 @@
  */
 class IBSimu 
 {
+    Timer   *_t;
+
     bool     _hello;
     int      _verbose_output;
     int      _threadcount;
+
+    IBSimu( const IBSimu &ibs ) {}
+
+    const IBSimu &operator=( const IBSimu &ibs ) { return( *this ); }
 
 public:
 
     /*! \brief Default constructor.
      */
     IBSimu();
+
+    /*! \brief Default destructor.
+     */
+    ~IBSimu();
 
     /*! \brief Set verbosity level.
      */
