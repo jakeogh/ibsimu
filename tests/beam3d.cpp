@@ -14,7 +14,7 @@
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
-#include "vectorfield.hpp"
+#include "meshvectorfield.hpp"
 #include "particledatabase.hpp"
 #include "ibsimu.hpp"
 #include "error.hpp"
@@ -46,7 +46,7 @@ bool electrode2_func( double x, double y, double z )
 void test( int argc, char **argv )
 {
     // 10x20x40 cm geometry with 0.25 cm mesh
-    Geometry geom( MODE_3D, Int3D(41,41,41), Vec3D(0,0,0), 0.0025 );
+    Geometry geom( MODE_3D, Int3D(81,41,41), Vec3D(0,0,0), 0.00125 );
     //Geometry geom( MODE_3D, Int3D(51,101,101), Vec3D(0,-0.1,-0.1), 0.002 );
 
     Solid *solid1 = new FuncSolid( electrode1_func );
@@ -73,7 +73,7 @@ void test( int argc, char **argv )
     p.set_solver( solver );
 
     EpotEfield efield( geom, epot );
-    VectorField bfield;
+    MeshVectorField bfield;
 
     ParticleDataBase3D pdb;
     pdb.set_thread_count( 4 );
@@ -84,7 +84,7 @@ void test( int argc, char **argv )
 	p.solve( epot, scharge );
 
 	pdb.clear();
-	pdb.add_cylindrical_beam_with_energy( 1000, 50.0, 1.0, 1.0, 
+	pdb.add_cylindrical_beam_with_energy( 4000, 50.0, 1.0, 1.0, 
 					      3.0e3, 0.0, 0.5,
 					      Vec3D(0,0,0), // center
 					      Vec3D(0,1,0), // dir1
@@ -107,17 +107,23 @@ void test( int argc, char **argv )
     gplotter.set_scharge( &scharge );
     gplotter.set_epot( &epot );
     gplotter.set_particle_database( &pdb );
-    gplotter.set_particle_div( 0 );
+    gplotter.set_particle_div( 11 );
     std::vector<double> pot;
     pot.push_back( +2 );
     pot.push_back( 0 );
     pot.push_back( -2 );
     pot.push_back( -20 );
     gplotter.set_eqlines_manual( pot );
-    gplotter.set_font_size( 15 );
+    gplotter.set_font_size( 16 );
     gplotter.set_view( VIEW_XY, 0 );
     gplotter.plot_png( "beam3d_xy.png" );
     gplotter.set_view( VIEW_YZ, 0 );
     gplotter.plot_png( "beam3d_yz.png" );
+
+    pdb.export_path_manager_data( "beam3d.path",
+				  4.0e3, 1.0, 1.0,
+				  Vec3D(0.09,0,0), 
+				  Vec3D(0,1,0), 
+				  Vec3D(0,0,1) );
 }
 

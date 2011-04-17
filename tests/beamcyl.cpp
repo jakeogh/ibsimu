@@ -13,6 +13,7 @@
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "geometry.hpp"
+#include "meshvectorfield.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
 #include "ibsimu.hpp"
@@ -45,7 +46,7 @@ void test( int argc, char **argv )
     p.solve( epot, scharge );
 
     EpotEfield efield( geom, epot );
-    VectorField bfield;
+    MeshVectorField bfield;
 
     ParticleDataBaseCyl pdb;
     pdb.set_thread_count( 1 );
