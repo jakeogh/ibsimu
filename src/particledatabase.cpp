@@ -40,131 +40,258 @@
  * permit others to do so.
  */
 
+
 #include "particledatabase.hpp"
-#include "polysolver.hpp"
-#include "qrandom.hpp"
-#include "mat3d.hpp"
+#include "particledatabaseimp.hpp"
+
 
 
 ParticleDataBase::ParticleDataBase()
-    : _epsabs(1e-6), _epsrel(1e-6), _polyint(true), _maxsteps(1000), 
-      _maxt(1e-3), _trajdiv(1), _rhosum(0.0), _iteration(-1), 
-      _bfield_suppression(NULL), _trajhand(NULL)
+    : _imp(0)
 {
-    _mirror[0] = false;
-    _mirror[1] = false;
-    _mirror[2] = false;
-    _mirror[3] = false;
-    _mirror[4] = false;
-    _mirror[5] = false;
 }
 
 
-void ParticleDataBase::set_thread_count( uint32_t threadcount )
+ParticleDataBase::ParticleDataBase( const ParticleDataBase &pdb )
+    : _imp(0)
 {
-
 }
 
 
-void ParticleDataBase::set_bfield_suppression( const CallbackFunctorD_V *functor )
+ParticleDataBase::~ParticleDataBase()
 {
-    _bfield_suppression = functor;
 }
 
 
-void ParticleDataBase::set_trajectory_handler_callback( const TrajectoryHandlerCallback *trajhand )
+const ParticleDataBase &ParticleDataBase::operator=( const ParticleDataBase &pdb )
 {
-    _trajhand = trajhand;
+    return( *this );
 }
 
 
-void ParticleDataBase::set_polyint( bool polyint ) 
+void ParticleDataBase::set_implementation_pointer( class ParticleDataBaseImp *imp )
 {
-    _polyint = polyint;
-}
-
-
-bool ParticleDataBase::get_polyint( void ) const 
-{
-    return( _polyint );
-}
-
-
-void ParticleDataBase::set_max_steps( uint32_t maxsteps ) 
-{
-    if( maxsteps <= 0 )
-	throw( Error( ERROR_LOCATION, "invalid parameter" ) );
-    _maxsteps = maxsteps;
-}
-
-void ParticleDataBase::set_max_time( double maxt ) 
-{
-    if( maxt <= 0.0 )
-	throw( Error( ERROR_LOCATION, "invalid parameter" ) );
-    _maxt = maxt;
-}
-
-
-void ParticleDataBase::set_save_trajectories( uint32_t div ) 
-{
-    _trajdiv = div;
-}
-
-
-uint32_t ParticleDataBase::get_save_trajectories( void ) const
-{
-    return( _trajdiv );
-}
-
-
-int ParticleDataBase::get_iteration_number( void ) const 
-{
-    return( _iteration );
-}
-
-
-double ParticleDataBase::get_rhosum( void ) const
-{
-    return( _rhosum );
-}
-
-
-const ParticleStatistics &ParticleDataBase::get_statistics( void ) const
-{
-    return( _stat );
-}
-
-void ParticleDataBase::set_mirror( const bool mirror[6] )
-{
-    _mirror[0] = mirror[0];
-    _mirror[1] = mirror[1];
-    _mirror[2] = mirror[2];
-    _mirror[3] = mirror[3];
-    if( geom_mode() == MODE_3D ) {
-	_mirror[4] = mirror[4];
-	_mirror[5] = mirror[5];
-    } else {
-	_mirror[4] = false;
-	_mirror[5] = false;
-    }
-}
-
-
-void ParticleDataBase::get_mirror( bool mirror[6] ) const 
-{
-    mirror[0] = _mirror[0];
-    mirror[1] = _mirror[1];
-    mirror[2] = _mirror[2];
-    mirror[3] = _mirror[3];
-    mirror[4] = _mirror[4];
-    mirror[5] = _mirror[5];
+    _imp = imp;
 }
 
 
 void ParticleDataBase::set_accuracy( double epsabs, double epsrel )
 {
-    _epsabs = epsabs;
-    _epsrel = epsrel;
+    _imp->set_accuracy( epsabs, epsrel );
+}
+
+
+void ParticleDataBase::set_bfield_suppression( const CallbackFunctorD_V *functor )
+{
+    _imp->set_bfield_suppression( functor );
+}
+
+
+void ParticleDataBase::set_trajectory_handler_callback( const TrajectoryHandlerCallback *trajhand )
+{
+    _imp->set_trajectory_handler_callback( trajhand );
+}
+
+
+void ParticleDataBase::set_polyint( bool polyint ) 
+{
+    _imp->set_polyint( polyint );
+}
+
+
+bool ParticleDataBase::get_polyint( void ) const 
+{
+    return( _imp->get_polyint() );
+}
+
+
+void ParticleDataBase::set_max_steps( uint32_t maxsteps ) 
+{
+    _imp->set_max_steps( maxsteps );
+}
+
+void ParticleDataBase::set_max_time( double maxt ) 
+{
+    _imp->set_max_time( maxt );
+}
+
+
+void ParticleDataBase::set_save_trajectories( uint32_t div ) 
+{
+    _imp->set_save_trajectories( div );
+}
+
+
+uint32_t ParticleDataBase::get_save_trajectories( void ) const
+{
+    return( _imp->get_save_trajectories() );
+}
+
+
+void ParticleDataBase::set_mirror( const bool mirror[6] )
+{
+    _imp->set_mirror( mirror );
+}
+
+
+void ParticleDataBase::get_mirror( bool mirror[6] ) const 
+{
+    _imp->get_mirror( mirror );
+}
+
+
+int ParticleDataBase::get_iteration_number( void ) const 
+{
+    return( _imp->get_iteration_number() );
+}
+
+
+double ParticleDataBase::get_rhosum( void ) const
+{
+    return( _imp->get_rhosum() );
+}
+
+
+const ParticleStatistics &ParticleDataBase::get_statistics( void ) const
+{
+    return( _imp->get_statistics() );
+}
+
+
+geom_mode_e ParticleDataBase::geom_mode() const
+{
+    return( _imp->geom_mode() );
+}
+
+
+size_t ParticleDataBase::size( void ) const
+{
+    return( _imp->size() );
+}
+
+
+size_t ParticleDataBase::traj_size( uint32_t i ) const
+{
+    return( _imp->traj_size( i ) );
+}
+
+
+void ParticleDataBase::trajectory_point( double &t, Vec3D &loc, Vec3D &vel, uint32_t i, uint32_t j ) const
+{
+    _imp->trajectory_point( t, loc, vel, i, j );
+}
+
+
+void ParticleDataBase::trajectories_at_plane( TrajectoryDiagnosticData &tdata, 
+					      coordinate_axis_e axis,
+					      double val,
+					      const std::vector<trajectory_diagnostic_e> &diagnostics ) const
+{
+    _imp->trajectories_at_plane( tdata, axis, val, diagnostics );
+}
+
+
+void ParticleDataBase::clear( void )
+{
+    _imp->clear();
+}
+
+
+void ParticleDataBase::clear_trajectories( void )
+{
+    _imp->clear_trajectories();
+}
+
+
+void ParticleDataBase::reserve( size_t size )
+{
+    _imp->reserve( size );
+}
+
+
+void ParticleDataBase::build_trajectory_density_field( ScalarField &tdens ) const
+{
+    _imp->build_trajectory_density_field( tdens );
+}
+
+
+void ParticleDataBase::iterate_trajectories( ScalarField &scharge, const VectorField &efield, 
+					     const VectorField &bfield, const Geometry &g )
+{
+    _imp->iterate_trajectories( scharge, efield, bfield, g );
+}
+
+
+void ParticleDataBase::step_particles( ScalarField &scharge, const VectorField &efield, 
+				       const VectorField &bfield, const Geometry &g, double dt )
+{
+    _imp->step_particles( scharge, efield, bfield, g, dt );
+}
+
+
+
+/* ******************************************************************************************* *
+ * ParticleDataBase2D                                                                          *
+ * ******************************************************************************************* */
+
+
+ParticleDataBase2D::ParticleDataBase2D()
+{
+    _imp = new ParticleDataBase2DImp;
+    set_implementation_pointer( (ParticleDataBaseImp *)_imp );
+}
+
+
+ParticleDataBase2D::ParticleDataBase2D( const ParticleDataBase2D &pdb )
+{
+    _imp = new ParticleDataBase2DImp( *pdb._imp );
+    set_implementation_pointer( (ParticleDataBaseImp *)_imp );
+}
+
+
+ParticleDataBase2D::~ParticleDataBase2D()
+{
+    delete _imp;
+}
+
+
+const ParticleDataBase2D &ParticleDataBase2D::operator=( const ParticleDataBase2D &pdb )
+{
+    delete _imp;
+    _imp = new ParticleDataBase2DImp( *pdb._imp );
+    set_implementation_pointer( (ParticleDataBaseImp *)_imp );
+
+    return( *this );
+}
+
+
+Particle2D &ParticleDataBase2D::particle( uint32_t i )
+{
+    return( _imp->particle( i ) );
+}
+
+
+const Particle2D &ParticleDataBase2D::particle( uint32_t i ) const
+{
+    return( _imp->particle( i ) ) ;
+}
+
+
+const ParticleP2D &ParticleDataBase2D::trajectory_point( uint32_t i, uint32_t j ) const
+{
+    return( _imp->trajectory_point( i, j ) );
+}
+
+
+void ParticleDataBase2D::add_particle( double IQ, double q, double m, const ParticleP2D &x )
+{
+    _imp->add_particle( IQ, q, m, x );
+}
+
+
+void ParticleDataBase2D::add_particle( const Particle2D &p )
+{
+    _imp->add_particle( p );
 }
 
 
@@ -172,42 +299,7 @@ void ParticleDataBase2D::add_2d_beam_with_velocity( uint32_t N, double J, double
 						    double v, double dvp, double dvt, 
 						    double x1, double y1, double x2, double y2 )
 {
-    if( ibsimu.get_verbose_output() )
-	std::cout << "Defining a 2d beam\n";
-
-    _particles.reserve( _particles.size()+N );
-
-    QRandom qrng( 2 );
-
-    m *= MASS_U;
-    q *= CHARGE_E;
-    double s = sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) );
-    _rhosum += J/v;
-    double IQ = J*s/N; // IQ is in units A/m for 2D
-    double vt[2], dv[2];
-    ParticleP2D x;
-    x[0] = 0.0;
-    Vec3D transverse( x2-x1, y2-y1, 0.0 );
-    transverse /= transverse.norm2();
-    Vec3D parallel( transverse[1], -transverse[0], 0.0 );
-
-    double Isum = 0.0;
-    for( uint32_t a = 0; a < N; a++ ) {
-	x[1] = x1 + (x2-x1)*(a+0.5)/((double)N);
-	x[3] = y1 + (y2-y1)*(a+0.5)/((double)N);
-
-	qrng.get_gaussian( vt );
-	dv[0] = transverse[0]*dvt*vt[0] + parallel[0]*dvp*vt[1];
-	dv[1] = transverse[1]*dvt*vt[0] + parallel[1]*dvp*vt[1];
-	x[2] = parallel[0]*v + dv[0];
-	x[4] = parallel[1]*v + dv[1];
-
-	_particles.push_back( Particle2D( IQ, q, m, x ) );
-	Isum += IQ;
-    }
-
-    if( ibsimu.get_verbose_output() )
-	std::cout << "  Total beam current " << Isum << " A/m\n";
+    _imp->add_2d_beam_with_velocity( N, J, q, m, v, dvp, dvt, x1, y1, x2, y2 );
 }
 
 
@@ -215,10 +307,7 @@ void ParticleDataBase2D::add_2d_beam_with_energy( uint32_t N, double J, double q
 						  double E, double Tp, double Tt, 
 						  double x1, double y1, double x2, double y2 )
 {
-    add_2d_beam_with_velocity( N, J, q, m, sqrt(2.0*E*CHARGE_E/(m*MASS_U)), 
-			       sqrt(Tp*CHARGE_E/(m*MASS_U)), 
-			       sqrt(Tt*CHARGE_E/(m*MASS_U)), 
-			       x1, y1, x2, y2 );
+    _imp->add_2d_beam_with_energy( N, J, q, m, E, Tp, Tt, x1, y1, x2, y2 );
 }
 
 
@@ -226,51 +315,7 @@ void ParticleDataBase2D::add_2d_KV_beam_with_emittance( uint32_t N, double I, do
 							double a, double b, double e,
 							double Ex, double x0, double y0 )
 {
-    if( ibsimu.get_verbose_output() )
-	std::cout << "Defining a 2d beam using Twiss parameters\n";
-
-    _particles.reserve( _particles.size()+N );
-
-    QRandom qrng( 2 );
-
-    e *= 4.0; // KV-distributed emittance limited inside 4*e_rms ellipse
-
-    m *= MASS_U;
-    q *= CHARGE_E;
-
-    double g = (1.0 + a*a)/b;
-    double ymax = sqrt( b*e );
-    double ypmax = sqrt( g*e );
-    double rn[2];
-    double IQ = I/N;
-
-    ParticleP2D x;
-    x[0] = 0.0;
-    x[1] = x0;
-    x[2] = sqrt(2.0*Ex*CHARGE_E/m);
-
-    uint32_t n = 0;
-    while( n < N ) {
-
-	qrng.get( rn );
-
-	// Randomize (y,y')
-	double y = -ymax + 2.0*ymax*rn[0];
-	double yp = -ypmax + 2.0*ypmax*rn[1];
-
-	// Check if inside ellipse
-	double yp1, yp2;
-	int nroots = solve_quadratic( b, 2.0*a*y, g*y*y-e, &yp1, &yp2 );
-	if( nroots != 2 || yp < yp1 || yp > yp2 )
-	    continue;
-	
-	// Set up particle
-	x[3] = y0 + y;
-	x[4] = x[2]*yp;
-
-	_particles.push_back( Particle2D( IQ, q, m, x ) );
-	n++;
-    }
+    _imp->add_2d_KV_beam_with_emittance( N, I, q, m, a, b, e, Ex, x0, y0 );
 }
 
 
@@ -278,120 +323,78 @@ void ParticleDataBase2D::add_2d_gaussian_beam_with_emittance( uint32_t N, double
 							      double a, double b, double e,
 							      double Ex, double x0, double y0 )
 {
-    if( ibsimu.get_verbose_output() )
-	std::cout << "Defining a 2d beam using Twiss parameters\n";
-
-    _particles.reserve( _particles.size()+N );
-
-    QRandom qrng( 2 );
-
-    m *= MASS_U;
-    q *= CHARGE_E;
-
-    double g = (1.0 + a*a)/b;
-    double h = 0.5*(b+g);
-    double rmaj = sqrt(0.5*e)*(sqrt(h+1.0)+sqrt(h-1.0));
-    double rmin = sqrt(0.5*e)*(sqrt(h+1.0)-sqrt(h-1.0));
-    double theta = 0.5*atan2( -2.0*a, b-g );
-    double w[2], rn[2];
-    double IQ = I/N;
-
-    ParticleP2D x;
-    x[0] = 0.0;
-    x[1] = x0;
-    x[2] = sqrt(2.0*Ex*CHARGE_E/m);
-
-    uint32_t n = 0;
-    while( n < N ) {
-
-	// Randomize point from gaussian distribution
-	qrng.get_gaussian( rn );
-	w[0] = rmaj*rn[0];
-	w[1] = rmin*rn[1];
-
-	// Rotate to correct angle
-	double y  = w[0]*cos(theta) - w[1]*sin(theta);
-	double yp = w[0]*sin(theta) + w[1]*cos(theta);
-
-	// Set up particle
-	x[3] = y0 + y;
-	x[4] = x[2]*yp;
-
-	_particles.push_back( Particle2D( IQ, q, m, x ) );
-	n++;
-    }
+    _imp->add_2d_gaussian_beam_with_emittance( N, I, q, m, a, b, e, Ex, x0, y0 );
 }
 
 
-void ParticleDataBase2D::add_tdens_from_segment( ScalarField &tdens, double IQ,
-						 ParticleP2D &x1, ParticleP2D &x2 ) const
+void ParticleDataBase2D::debug_print( std::ostream &os ) const
 {
-    double x[2];
-    double t[2];
-    int i[2];
-
-    for( size_t a = 0; a < 2; a++ ) {
-	x[a] = 0.5*( x1[2*a+1] + x2[2*a+1] );
-	i[a] = (int)floor( ( x[a]-tdens.origo(a) ) * tdens.div_h() );
-	t[a] = ( x[a]-(i[a]*tdens.h()+tdens.origo(a)) ) * tdens.div_h();
-	
-	if( i[a] < 0 || i[a] >= tdens.size(a)-1 )
-	    continue;
-    }
-
-    double J = IQ/tdens.h(); // J = I/area
-    int p = tdens.size(0)*i[1] + i[0];
-    tdens( p )                   += (1.0-t[0])*(1.0-t[1])*J;
-    tdens( p+tdens.size(0) )   += (1.0-t[0])*t[1]*J;
-    tdens( p+1 )                 += t[0]*(1.0-t[1])*J;
-    tdens( p+1+tdens.size(0) ) += t[0]*t[1]*J;
+    _imp->debug_print( os );
 }
 
 
-void ParticleDataBase2D::build_trajectory_density_field( ScalarField &tdens ) const
+/* ******************************************************************************************* *
+ * ParticleDataBaseCyl                                                                         *
+ * ******************************************************************************************* */
+
+
+ParticleDataBaseCyl::ParticleDataBaseCyl()
 {
-    tdens.clear();
+    _imp = new ParticleDataBaseCylImp;
+    set_implementation_pointer( (ParticleDataBaseImp *)_imp );
+}
 
-    // Go through all particle trajectories
-    std::vector< ColData<ParticleP2D> > coldata;
-    for( size_t a = 0; a < _particles.size(); a++ ) {
-	size_t N = _particles[a].traj_size();
-	if( N < 2 )
-	    continue;
-	ParticleP2D x1 = _particles[a].traj(0);
-	ParticleP2D xlast = x1;
-	double IQ = _particles[a].IQ();
-	for( size_t b = 1; b < N; b++ ) {
-	    ParticleP2D x2 = _particles[a].traj(b);
 
-	    // Mesh collision points from x1 to x2
-	    ColData<ParticleP2D>::build_coldata_linear( coldata, tdens, x1, x2 );
-	    if( coldata.size() == 0 )
-		continue;
+ParticleDataBaseCyl::ParticleDataBaseCyl( const ParticleDataBaseCyl &pdb )
+{
+    _imp = new ParticleDataBaseCylImp( *pdb._imp );
+    set_implementation_pointer( (ParticleDataBaseImp *)_imp );
+}
 
-	    // Process trajectory mesh collision points
-	    for( size_t c = 0; c < coldata.size(); c++ ) {
 
-		// Add contribution from segment from xlast to coldata[c]
-		add_tdens_from_segment( tdens, IQ, xlast, coldata[c]._x );	    
-		xlast = coldata[c]._x;
-	    }
+ParticleDataBaseCyl::~ParticleDataBaseCyl()
+{
+    delete _imp;
+}
 
-	    // Next trajectory line
-	    x1 = x2;
-	}
-    }
 
-    // Fix boundaries, which only get half of the contribution they should
-    // This should depend on mirroring properties!
-    for( int32_t i = 0; i < tdens.size(0); i++ ) {
-	tdens( i, 0 ) *= 2.0;
-	tdens( i, tdens.size(1)-1 ) *= 2.0;
-    }
-    for( int32_t j = 0; j < tdens.size(1); j++ ) {
-	tdens( 0, j ) *= 2.0;
-	tdens( tdens.size(0)-1, j ) *= 2.0;
-    }
+const ParticleDataBaseCyl &ParticleDataBaseCyl::operator=( const ParticleDataBaseCyl &pdb )
+{
+    delete _imp;
+    _imp = new ParticleDataBaseCylImp( *pdb._imp );
+    set_implementation_pointer( (ParticleDataBaseImp *)_imp );
+
+    return( *this );
+}
+
+
+ParticleCyl &ParticleDataBaseCyl::particle( uint32_t i )
+{
+    return( _imp->particle( i ) );
+}
+
+
+const ParticleCyl &ParticleDataBaseCyl::particle( uint32_t i ) const
+{
+    return( _imp->particle( i ) ) ;
+}
+
+
+const ParticlePCyl &ParticleDataBaseCyl::trajectory_point( uint32_t i, uint32_t j ) const
+{
+    return( _imp->trajectory_point( i, j ) );
+}
+
+
+void ParticleDataBaseCyl::add_particle( double IQ, double q, double m, const ParticlePCyl &x )
+{
+    _imp->add_particle( IQ, q, m, x );
+}
+
+
+void ParticleDataBaseCyl::add_particle( const ParticleCyl &p )
+{
+    _imp->add_particle( p );
 }
 
 
@@ -399,50 +402,7 @@ void ParticleDataBaseCyl::add_2d_beam_with_velocity( uint32_t N, double J, doubl
 						     double v, double dvp, double dvt, 
 						     double x1, double y1, double x2, double y2 )
 {
-    if( ibsimu.get_verbose_output() )
-	std::cout << "Defining a cylindrical beam\n";
 
-    _particles.reserve( _particles.size()+N );
-
-    // 0: temperature parallel to defining line (transverse to beam)
-    // 1: temperature perpendicular to line (parallel to beam)
-    // 2: temperature in angular direction (skew velocity)
-    QRandom qrng( 3 ); 
- 
-    m *= MASS_U;
-    q *= CHARGE_E;
-    double s = sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) );
-    _rhosum += J/v;
-    double IQ = 2.0*M_PI*J*s/N;
-    double vt[3], dv[3];
-    ParticlePCyl x;
-    x[0] = 0.0;
-    Vec3D transverse( x2-x1, y2-y1, 0.0 );
-    transverse /= transverse.norm2();
-    Vec3D parallel( transverse[1], -transverse[0], 0.0 );
-
-    double Isum = 0.0;
-    for( uint32_t a = 0; a < N; a++ ) {
-	x[1] = x1 + (x2-x1)*(a+0.5)/((double)N);
-	x[3] = y1 + (y2-y1)*(a+0.5)/((double)N);
-
-	qrng.get_gaussian( vt );
-	dv[0] = transverse[0]*dvt*vt[0] + parallel[0]*dvp*vt[1];
-	dv[1] = transverse[1]*dvt*vt[0] + parallel[1]*dvp*vt[1];
-	dv[2] = dvt*vt[2];
-	x[2] = parallel[0]*fabs(v) + dv[0];
-	x[4] = parallel[1]*fabs(v) + dv[1];
-	if( x[3] == 0.0 )
-	    x[5] = 0.0;
-	else
-	    x[5] = dv[2]/x[3];
-
-	_particles.push_back( ParticleCyl( IQ*x[3], q, m, x ) );
-	Isum += IQ*x[3];
-    }
-
-    if( ibsimu.get_verbose_output() )
-	std::cout << "  Total beam current " << Isum << " A\n";
 }
 
 
@@ -450,10 +410,7 @@ void ParticleDataBaseCyl::add_2d_beam_with_energy( uint32_t N, double J, double 
 						   double E, double Tp, double Tt, 
 						   double x1, double y1, double x2, double y2 )
 {
-    add_2d_beam_with_velocity( N, J, q, m, sqrt(2.0*E*CHARGE_E/(m*MASS_U)), 
-			       sqrt(Tp*CHARGE_E/(m*MASS_U)), 
-			       sqrt(Tt*CHARGE_E/(m*MASS_U)), 
-			       x1, y1, x2, y2 );
+
 }
 
 
@@ -461,64 +418,7 @@ void ParticleDataBaseCyl::add_2d_full_gaussian_beam( uint32_t N, double I, doubl
 						     double Ex, double Tp, double Tt, 
 						     double x0, double dr )
 {
-    if( ibsimu.get_verbose_output() )
-	std::cout << "Defining a cylindrical full gaussian beam.\n";
 
-    _particles.reserve( _particles.size()+N );
-
-    m *= MASS_U;
-    q *= CHARGE_E;
-
-    QRandom qrng( 5 ); // vx, y, vy, z, vz
-    double rn[5];
-
-    double IQ = I/N;
-    double Isum = 0.0;
-
-    double vx0 = sqrt(2.0*Ex*CHARGE_E/m);
-    double dp = sqrt(Tp*CHARGE_E/m);
-    double dt = sqrt(Tt*CHARGE_E/m);
-
-    ParticlePCyl x;
-    x[0] = 0.0;
-    x[1] = x0;
-
-    uint32_t n = 0;
-    while( n < N ) {
-
-	qrng.get_gaussian( rn );
-	if( rn[1] < 0 || rn[3] < 0 )
-	    continue;
-
-	double vx = vx0 + dp*rn[0];
-	double y = dr*rn[1];
-	double vy = dt*rn[2];
-	double z = dr*rn[3];
-	double vz = dt*rn[4];
-
-	// Convert to cylindrical coordinates
-	double r  = sqrt( y*y + z*z );
-	if( r == 0.0 )
-	    continue;
-	double alpha = atan2( z, y );
-	double sina = sin(alpha);
-	double cosa = cos(alpha);
-	double vr = vy*cosa + vz*sina;
-	double va = -vy*sina + vz*cosa;
-
-	// Set up particle
-	x[2] = vx;
-	x[3] = r;
-	x[4] = vr;
-	x[5] = va/r;
-
-	_particles.push_back( ParticleCyl( IQ, q, m, x ) );
-	Isum += IQ;
-	n++;
-    }
-
-    if( ibsimu.get_verbose_output() )
-	std::cout << "  Total beam current " << Isum << " A\n";
 }
 
 
@@ -526,153 +426,78 @@ void ParticleDataBaseCyl::add_2d_gaussian_beam_with_emittance( uint32_t N, doubl
 							       double a, double b, double e,
 							       double Ex, double x0 )
 {
-    if( ibsimu.get_verbose_output() )
-	std::cout << "Defining a cylindrical beam using Twiss parameters\n";
 
-    _particles.reserve( _particles.size()+N );
-
-    m *= MASS_U;
-    q *= CHARGE_E;
-
-    QRandom qrng( 4 );
-    double w[4], rn[4];
-
-    double g = (1.0 + a*a)/b;
-    double h = 0.5*(b+g);
-    double rmaj = sqrt(0.5*e)*(sqrt(h+1.0)+sqrt(h-1.0));
-    double rmin = sqrt(0.5*e)*(sqrt(h+1.0)-sqrt(h-1.0));
-    double theta = 0.5*atan2( -2.0*a, b-g );
-
-    double IQ = I/N;
-
-    ParticlePCyl x;
-    x[0] = 0.0;
-    x[1] = x0;
-    x[2] = sqrt(2.0*Ex*CHARGE_E/m);
-
-    uint32_t n = 0;
-    while( n < N ) {
-
-	// Randomize point from gaussian distribution
-	qrng.get_gaussian( rn );
-	w[0] = rmaj*rn[0];
-	w[1] = rmin*rn[1];
-	w[2] = rmaj*rn[2];
-	w[3] = rmin*rn[3];
-
-	// Rotate to correct angle
-	double sint = sin(theta);
-	double cost = cos(theta);
-	double y  = w[0]*cost - w[1]*sint;
-	double yp = w[0]*sint + w[1]*cost;
-	double z  = w[2]*cost - w[3]*sint;
-	double zp = w[2]*sint + w[3]*cost;
-
-	// Convert to cylindrical coordinates
-	double r  = sqrt( y*y + z*z );
-	double alpha = atan2( z, y );
-	double sina = sin(alpha);
-	double cosa = cos(alpha);
-	double rp = yp*cosa + zp*sina;
-	double ap = -yp*sina + zp*cosa;
-
-	// Set up particle
-	x[3] = r;
-	x[4] = x[2]*rp;
-	x[5] = x[2]*ap/r;
-
-	_particles.push_back( ParticleCyl( IQ, q, m, x ) );
-	n++;
-    }
 }
 
 
-void ParticleDataBaseCyl::add_tdens_from_segment( ScalarField &tdens, double IQ,
-						  ParticlePCyl &x1, ParticlePCyl &x2 ) const
+void ParticleDataBaseCyl::debug_print( std::ostream &os ) const
 {
-    double x[2];
-    double t[2];
-    int i[2];
-
-    // x-direction
-    x[0] = 0.5*( x1[1] + x2[1] );
-    i[0] = (int)floor( ( x[0]-tdens.origo(0) ) * tdens.div_h() );
-    t[0] = ( x[0]-(i[0]*tdens.h()+tdens.origo(0)) ) * tdens.div_h();
-
-    // r-direction
-    x[1] = 0.5*( x1[3] + x2[3] );
-    i[1] = (int)floor( ( x[1]-tdens.origo(1) ) * tdens.div_h() );
-    double rj1 = i[1]*tdens.h()+tdens.origo(1);
-    double rj2 = rj1+tdens.h();
-    rj1 = rj1*rj1;
-    rj2 = rj2*rj2;
-    t[1] = (x[1]*x[1]-rj1) / (rj2-rj1);
-    
-    for( size_t a = 0; a < 2; a++ ) {
-	// Add charge to boundaries when over simulation area
-	if( i[a] < 0 ) {
-	    i[a] = 0;
-	    t[a] = 0.0;
-	} else if( i[a] >= tdens.size(a)-1 ) {
-	    i[a] = tdens.size(a)-2;
-	    t[a] = 1.0;
-	}
-    }
-
-    double J = IQ/(M_PI*(rj2-rj1)); // J = I/area
-    int p = tdens.size(0)*i[1] + i[0];
-    tdens( p )                 += (1.0-t[0])*(1.0-t[1])*J;
-    tdens( p+tdens.size(0) )   += (1.0-t[0])*t[1]*J;
-    tdens( p+1 )               += t[0]*(1.0-t[1])*J;
-    tdens( p+1+tdens.size(0) ) += t[0]*t[1]*J;
+    _imp->debug_print( os );
 }
 
 
-void ParticleDataBaseCyl::build_trajectory_density_field( ScalarField &tdens ) const
+/* ******************************************************************************************* *
+ * ParticleDataBase3D                                                                          *
+ * ******************************************************************************************* */
+
+
+ParticleDataBase3D::ParticleDataBase3D()
 {
-    tdens.clear();
-
-    // Go through all particle trajectories
-    std::vector< ColData<ParticlePCyl> > coldata;
-    for( size_t a = 0; a < _particles.size(); a++ ) {
-	size_t N = _particles[a].traj_size();
-	if( N < 2 )
-	    continue;
-	ParticlePCyl x1 = _particles[a].traj(0);
-	ParticlePCyl xlast = x1;
-	double IQ = _particles[a].IQ();
-	for( size_t b = 1; b < N; b++ ) {
-	    ParticlePCyl x2 = _particles[a].traj(b);
-
-	    // Mesh collision points from x1 to x2
-	    ColData<ParticlePCyl>::build_coldata_linear( coldata, tdens, x1, x2 );
-	    if( coldata.size() == 0 )
-		continue;
-
-	    // Process trajectory mesh collision points
-	    for( size_t c = 0; c < coldata.size(); c++ ) {
-
-		// Add contribution from segment from xlast to coldata[c]
-		add_tdens_from_segment( tdens, IQ, xlast, coldata[c]._x );	    
-		xlast = coldata[c]._x;
-	    }
-
-	    // Next trajectory line
-	    x1 = x2;
-	}
-    }    
+    _imp = new ParticleDataBase3DImp;
+    set_implementation_pointer( (ParticleDataBaseImp *)_imp );
+}
 
 
-    // Fix boundaries, which only get half of the contribution they should
-    // This should depend on mirroring properties!
-    for( int32_t i = 0; i < tdens.size(0); i++ ) {
-	tdens( i, 0 ) *= 2.0;
-	tdens( i, tdens.size(1)-1 ) *= 2.0;
-    }
-    for( int32_t j = 0; j < tdens.size(1); j++ ) {
-	tdens( 0, j ) *= 2.0;
-	tdens( tdens.size(0)-1, j ) *= 2.0;
-    }
+ParticleDataBase3D::ParticleDataBase3D( const ParticleDataBase3D &pdb )
+{
+    _imp = new ParticleDataBase3DImp( *pdb._imp );
+    set_implementation_pointer( (ParticleDataBaseImp *)_imp );
+}
+
+
+ParticleDataBase3D::~ParticleDataBase3D()
+{
+    delete _imp;
+}
+
+
+const ParticleDataBase3D &ParticleDataBase3D::operator=( const ParticleDataBase3D &pdb )
+{
+    delete _imp;
+    _imp = new ParticleDataBase3DImp( *pdb._imp );
+    set_implementation_pointer( (ParticleDataBaseImp *)_imp );
+
+    return( *this );
+}
+
+
+Particle3D &ParticleDataBase3D::particle( uint32_t i )
+{
+    return( _imp->particle( i ) );
+}
+
+
+const Particle3D &ParticleDataBase3D::particle( uint32_t i ) const
+{
+    return( _imp->particle( i ) ) ;
+}
+
+
+const ParticleP3D &ParticleDataBase3D::trajectory_point( uint32_t i, uint32_t j ) const
+{
+    return( _imp->trajectory_point( i, j ) );
+}
+
+
+void ParticleDataBase3D::add_particle( double IQ, double q, double m, const ParticleP3D &x )
+{
+    _imp->add_particle( IQ, q, m, x );
+}
+
+
+void ParticleDataBase3D::add_particle( const Particle3D &p )
+{
+    _imp->add_particle( p );
 }
 
 
@@ -680,69 +505,7 @@ void ParticleDataBase3D::add_cylindrical_beam_with_velocity( uint32_t N, double 
 							     double v, double dvp, double dvt, Vec3D c, 
 							     Vec3D dir1, Vec3D dir2, double r )
 {
-    if( ibsimu.get_verbose_output() )
-	std::cout << "Defining a cylindrical beam\n";
-
-    _particles.reserve( _particles.size()+N );
-
-    // Random number generator for two positions and three velocities (gaussian)
-    QRandom qrng( 5 );
-    bool randmask[5] = {false, false, true, true, true};
-    double qx[5];
-    double px[6];
-
-    m *= MASS_U;
-    q *= CHARGE_E;
-    _rhosum += J/v;
-    double IQ = M_PI*r*r*J/N;
-
-    // Calculate and check base vectors
-    Vec3D dir3 = cross( dir1, dir2 );
-    dir2 = cross( dir1, dir3 );
-    dir1.normalize();
-    dir2.normalize();
-    dir3.normalize();
-    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] ) {
-	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
-    }
-
-    // Prepare particle
-    ParticleP3D x;
-    x[0] = 0.0;
-
-    double Isum = 0.0;
-    uint32_t a = 0;
-    while( a < N ) {
-
-	qrng.get_part_gaussian( randmask, qx );
-
-	// Calculate in natural (dir1,dir2,dir3) coordinates
-	px[0] = -r + 2.0*r*qx[0];
-	px[1] = -r + 2.0*r*qx[1];
-	px[2] = 0.0;
-	px[3] = dvt*qx[2];
-	px[4] = dvt*qx[3];
-	px[5] = dvp*qx[4] + v;
-
-	// Reject points outside unit radius circle
-	if( px[0]*px[0] + px[1]*px[1] > r*r )
-	    continue;
-
-	// Map to world coordinates
-	x[1] = dir1[0]*px[0] + dir2[0]*px[1] + dir3[0]*px[2] + c[0];
-	x[2] = dir1[0]*px[3] + dir2[0]*px[4] + dir3[0]*px[5];
-	x[3] = dir1[1]*px[0] + dir2[1]*px[1] + dir3[1]*px[2] + c[1];
-	x[4] = dir1[1]*px[3] + dir2[1]*px[4] + dir3[1]*px[5];
-	x[5] = dir1[2]*px[0] + dir2[2]*px[1] + dir3[2]*px[2] + c[2];
-	x[6] = dir1[2]*px[3] + dir2[2]*px[4] + dir3[2]*px[5];
-
-	_particles.push_back( Particle3D( IQ, q, m, x ) );
-	Isum += IQ;
-	a++;
-    }
-
-    if( ibsimu.get_verbose_output() )
-	std::cout << "  Total beam current " << Isum << " A\n";
+    _imp->add_cylindrical_beam_with_velocity( N, J, q, m, v, dvp, dvt, c, dir1, dir2, r );
 }
 
 
@@ -750,11 +513,7 @@ void ParticleDataBase3D::add_cylindrical_beam_with_energy( uint32_t N, double J,
 							   double E, double Tp, double Tt, Vec3D c,
 							   Vec3D dir1, Vec3D dir2, double r )
 {
-    add_cylindrical_beam_with_velocity( N, J, q, m, 
-					sqrt(2.0*E*CHARGE_E/(m*MASS_U)), 
-					sqrt(Tp*CHARGE_E/(m*MASS_U)),
-					sqrt(Tt*CHARGE_E/(m*MASS_U)),
-					c, dir1, dir2, r );
+    _imp->add_cylindrical_beam_with_energy( N, J, q, m, E, Tp, Tt, c, dir1, dir2, r );
 }
 
 
@@ -762,65 +521,7 @@ void ParticleDataBase3D::add_rectangular_beam_with_velocity( uint32_t N, double 
 							     double v, double dvp, double dvt, Vec3D c, 
 							     Vec3D dir1, Vec3D dir2, double size1, double size2 )
 {
-    if( ibsimu.get_verbose_output() )
-	std::cout << "Defining a rectangular beam\n";
-
-    _particles.reserve( _particles.size()+N );
-
-    // Random number generator for two positions and three velocities (gaussian)
-    QRandom qrng( 5 );
-    bool randmask[5] = {false, false, true, true, true};
-    double qx[5];
-    double px[6];
-
-    m *= MASS_U;
-    q *= CHARGE_E;
-    _rhosum += J/v;
-    double IQ = 4.0*size1*size2*J/N;
-
-    // Calculate and check base vectors
-    Vec3D dir3 = cross( dir1, dir2 );
-    dir2 = cross( dir1, dir3 );
-    dir1.normalize();
-    dir2.normalize();
-    dir3.normalize();
-    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] ) {
-	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
-    }
-
-    // Prepare particle
-    ParticleP3D x;
-    x[0] = 0.0;
-
-    double Isum = 0.0;
-    uint32_t a = 0;
-    while( a < N ) {
-
-	qrng.get_part_gaussian( randmask, qx );
-
-	// Calculate in natural (dir1,dir2,dir3) coordinates
-	px[0] = size1*(2.0*qx[0]-1.0);
-	px[1] = size2*(2.0*qx[1]-1.0);
-	px[2] = 0.0;
-	px[3] = dvt*qx[2];
-	px[4] = dvt*qx[3];
-	px[5] = dvp*qx[4] + v;
-
-	// Map to world coordinates
-	x[1] = dir1[0]*px[0] + dir2[0]*px[1] + dir3[0]*px[2] + c[0];
-	x[2] = dir1[0]*px[3] + dir2[0]*px[4] + dir3[0]*px[5];
-	x[3] = dir1[1]*px[0] + dir2[1]*px[1] + dir3[1]*px[2] + c[1];
-	x[4] = dir1[1]*px[3] + dir2[1]*px[4] + dir3[1]*px[5];
-	x[5] = dir1[2]*px[0] + dir2[2]*px[1] + dir3[2]*px[2] + c[2];
-	x[6] = dir1[2]*px[3] + dir2[2]*px[4] + dir3[2]*px[5];
-
-	_particles.push_back( Particle3D( IQ, q, m, x ) );
-	Isum += IQ;
-	a++;
-    }
-
-    if( ibsimu.get_verbose_output() )
-	std::cout << "  Total beam current " << Isum << " A\n";
+    _imp->add_rectangular_beam_with_velocity( N, J, q, m, v, dvp, dvt, c, dir1, dir2, size1, size2 );
 }
 
 
@@ -828,11 +529,7 @@ void ParticleDataBase3D::add_rectangular_beam_with_energy( uint32_t N, double J,
 							   double E, double Tp, double Tt, Vec3D c, 
 							   Vec3D dir1, Vec3D dir2, double size1, double size2 )
 {
-    add_rectangular_beam_with_velocity( N, J, q, m, 
-					sqrt(2.0*E*CHARGE_E/(m*MASS_U)), 
-					sqrt(Tp*CHARGE_E/(m*MASS_U)),
-					sqrt(Tt*CHARGE_E/(m*MASS_U)),
-					c, dir1, dir2, size1, size2 );
+    _imp->add_rectangular_beam_with_energy( N, J, q, m, E, Tp, Tt, c, dir1, dir2, size1, size2 );
 }
 
 
@@ -841,65 +538,7 @@ void ParticleDataBase3D::add_3d_KV_beam_with_emittance( uint32_t N, double I, do
 							double az, double bz, double ez,
 							double Ex, double x0, double y0, double z0 )
 {
-    if( ibsimu.get_verbose_output() )
-	std::cout << "Defining a 3d beam using Twiss parameters\n";
-
-    _particles.reserve( _particles.size()+N );
-
-    ey *= 4.0; // KV-distributed emittance limited inside 4*e_rms ellipse
-    ez *= 4.0; // KV-distributed emittance limited inside 4*e_rms ellipse
-
-    m *= MASS_U;
-    q *= CHARGE_E;
-
-    QRandom qrng( 4 );
-    double rn[4];
-
-    double gy = (1.0 + ay*ay)/by;
-    double gz = (1.0 + az*az)/bz;
-    
-    double ymax = sqrt( by*ey );
-    double ypmax = sqrt( gy*ey );
-    double zmax = sqrt( bz*ez );
-    double zpmax = sqrt( gz*ez );
-
-    double IQ = I/N;
-
-    ParticleP3D x;
-    x[0] = 0.0;
-    x[1] = x0;
-    x[2] = sqrt(2.0*Ex*CHARGE_E/m);
-
-    uint32_t n = 0;
-    while( n < N ) {
-
-	qrng.get( rn );
-
-	// Randomize (y,y',z,z')
-	double y = -ymax + 2.0*ymax*rn[0];
-	double yp = -ypmax + 2.0*ypmax*rn[1];
-	double z = -zmax + 2.0*zmax*rn[2];
-	double zp = -zpmax + 2.0*zpmax*rn[3];
-
-	// Check if inside ellipse
-	double yp1, yp2;
-	int nroots = solve_quadratic( by, 2.0*ay*y, gy*y*y-ey, &yp1, &yp2 );
-	if( nroots != 2 || yp < yp1 || yp > yp2 )
-	    continue;
-	double zp1, zp2;
-	nroots = solve_quadratic( bz, 2.0*az*z, gz*z*z-ez, &zp1, &zp2 );
-	if( nroots != 2 || zp < zp1 || zp > zp2 )
-	    continue;
-	
-	// Set up particle
-	x[3] = y0 + y;
-	x[4] = x[2]*yp;
-	x[5] = z0 + z;
-	x[6] = x[2]*zp;
-
-	_particles.push_back( Particle3D( IQ, q, m, x ) );
-	n++;
-    }
+    _imp->add_3d_KV_beam_with_emittance( N, I, q, m, ay, by, ey, az, bz, ez, Ex, x0, y0, z0 );
 }
 
 
@@ -908,314 +547,28 @@ void ParticleDataBase3D::add_3d_gaussian_beam_with_emittance( uint32_t N, double
 							      double az, double bz, double ez,
 							      double Ex, double x0, double y0, double z0 )
 {
-    if( ibsimu.get_verbose_output() )
-	std::cout << "Defining a 3d beam using Twiss parameters\n";
-
-    _particles.reserve( _particles.size()+N );
-
-    m *= MASS_U;
-    q *= CHARGE_E;
-
-    QRandom qrng( 4 );
-    double w[4], rn[4];
-
-    double gy = (1.0 + ay*ay)/by;
-    double hy = 0.5*(by+gy);
-    double rmajy = sqrt(0.5*ey)*(sqrt(hy+1.0)+sqrt(hy-1.0));
-    double rminy = sqrt(0.5*ey)*(sqrt(hy+1.0)-sqrt(hy-1.0));
-    double thetay = 0.5*atan2( -2.0*ay, by-gy );
-
-    double gz = (1.0 + az*az)/bz;
-    double hz = 0.5*(bz+gz);
-    double rmajz = sqrt(0.5*ez)*(sqrt(hz+1.0)+sqrt(hz-1.0));
-    double rminz = sqrt(0.5*ez)*(sqrt(hz+1.0)-sqrt(hz-1.0));
-    double thetaz = 0.5*atan2( -2.0*az, bz-gz );
-
-    double IQ = I/N;
-
-    ParticleP3D x;
-    x[0] = 0.0;
-    x[1] = x0;
-    x[2] = sqrt(2.0*Ex*CHARGE_E/m);
-
-    uint32_t n = 0;
-    while( n < N ) {
-
-	// Randomize point from gaussian distribution
-	qrng.get_gaussian( rn );
-	w[0] = rmajy*rn[0];
-	w[1] = rminy*rn[1];
-	w[2] = rmajz*rn[2];
-	w[3] = rminz*rn[3];
-
-	// Rotate to correct angle
-	double y  = w[0]*cos(thetay) - w[1]*sin(thetay);
-	double yp = w[0]*sin(thetay) + w[1]*cos(thetay);
-	double z  = w[2]*cos(thetaz) - w[3]*sin(thetaz);
-	double zp = w[2]*sin(thetaz) + w[3]*cos(thetaz);
-
-	// Set up particle
-	x[3] = y0 + y;
-	x[4] = x[2]*yp;
-	x[5] = z0 + z;
-	x[6] = x[2]*zp;
-
-	_particles.push_back( Particle3D( IQ, q, m, x ) );
-	n++;
-    }
+    _imp->add_3d_gaussian_beam_with_emittance( N, I, q, m, ay, by, ey, az, bz, ez, Ex, x0, y0, z0 );
 }
 
 
-void ParticleDataBase3D::
-trajectories_at_free_plane( TrajectoryDiagnosticData &tdata, 
-			    Vec3D c, Vec3D o, Vec3D p,
-			    const std::vector<trajectory_diagnostic_e> &diagnostics ) const
+void ParticleDataBase3D::trajectories_at_free_plane( TrajectoryDiagnosticData &tdata, 
+						     Vec3D c, Vec3D o, Vec3D p,
+						     const std::vector<trajectory_diagnostic_e> &diagnostics ) const
 {
-    // Check input
-    for( size_t a = 0; a < diagnostics.size(); a++ ) {
-	if( diagnostics[a] != DIAG_T && 
-	    diagnostics[a] != DIAG_X && diagnostics[a] != DIAG_VX && 
-	    diagnostics[a] != DIAG_Y && diagnostics[a] != DIAG_VY && 
-	    diagnostics[a] != DIAG_Z && diagnostics[a] != DIAG_VZ && 
-	    diagnostics[a] != DIAG_O && diagnostics[a] != DIAG_VO && 
-	    diagnostics[a] != DIAG_P && diagnostics[a] != DIAG_VP && 
-	    diagnostics[a] != DIAG_Q && diagnostics[a] != DIAG_VQ && 
-	    diagnostics[a] != DIAG_OP && diagnostics[a] != DIAG_PP && 
-	    diagnostics[a] != DIAG_CURR && diagnostics[a] != DIAG_EK && 
-	    diagnostics[a] != DIAG_QM )
-	    throw( Error( ERROR_LOCATION, "invalid diagnostic type " + to_string(diagnostics[a]) ) );
-    }
-
-    // Forward vector (normal to plane)
-    Vec3D q = cross(o,p);
-    if( q.norm2() == 0.0 )
-	throw( Error( ERROR_LOCATION, "invalid vectors defining plane" ) );
-
-    // Orthogonalize vector p
-    p = cross(q,o);
-
-    // Normalize vectors
-    o.normalize();
-    p.normalize();
-    q.normalize();
-
-    if( ibsimu.get_verbose_output() )
-	std::cout << "Making trajectory diagnostics at plane\n" 
-		  << "  c = " << c << "\n"
-		  << "  o = " << o << "\n"
-		  << "  p = " << p << "\n"
-		  << "  q = " << q << "\n";
-
-
-    // Prepare output vector
-    tdata.clear();
-    for( size_t a = 0; a < diagnostics.size(); a++ ) {
-	tdata.add_data_column( diagnostics[a] );
-    }
-
-    // Scan through particle trajectory points
-    double Isum = 0.0;
-    for( size_t a = 0; a < _particles.size(); a++ ) {
-	size_t N = _particles[a].traj_size();
-	if( N < 2 )
-	    continue;
-	ParticleP3D x1 = _particles[a].traj(0);
-	for( size_t b = 1; b < N; b++ ) {
-	    ParticleP3D x2 = _particles[a].traj(b);
-
-	    // Solve trajectory crossing point using linear interpolation of position
-	    // K[0]: parametric distance from x1 to x2
- 	    // K[1]: distance in direction o
-	    // K[2]: distance in direction p
-	    Vec3D K;
-	    try {
-		Mat3D m( x2[1]-x1[1], -o[0], -p[0],
-			 x2[3]-x1[3], -o[1], -p[1],
-			 x2[5]-x1[5], -o[2], -p[2] );
-		Mat3D minv = m.inverse();
-		Vec3D off( c[0]-x1[1], c[1]-x1[3], c[2]-x1[5] );
-		K = minv*off;
-	    } catch(...) {
-		continue;
-	    }
-	    
-	    if( K[0] >= 0.0 && K[0] < 1.0 ) {
-		// Crossing found between x1 and x2, accumulate total current
-		Isum += _particles[a].IQ();
-
-		// Position and velocity in xyz coordinates
-		double t = K[0];
-		double nt = 1.0-K[0];
-		Vec3D pos( nt*x1[1]+t*x2[1], nt*x1[3]+t*x2[3], nt*x1[5]+t*x2[5] );
-		Vec3D vel( nt*x1[2]+t*x2[2], nt*x1[4]+t*x2[4], nt*x1[6]+t*x2[6] );
-
-		// Position and velocity in opq coordinates
-		Vec3D pos_opq( K[1], K[2], 0.0 );
-		Vec3D vel_opq( vel*o, vel*p, vel*q );
-
-		// Fill diagnostic data
-		for( size_t a = 0; a < tdata.diag_size(); a++ ) {
-
-		    switch( tdata.diagnostic( a ) ) {
-		    case DIAG_T:
-			tdata.add_data( a, nt*x1[0]+t*x2[0] );
-			break;
-
-		    case DIAG_X:
-			tdata.add_data( a, pos[0] );
-			break;
-		    case DIAG_VX:
-			tdata.add_data( a, vel[0] );
-			break;
-		    case DIAG_Y:
-			tdata.add_data( a, pos[1] );
-			break;
-		    case DIAG_VY:
-			tdata.add_data( a, vel[1] );
-			break;
-		    case DIAG_Z:
-			tdata.add_data( a, pos[2] );
-			break;
-		    case DIAG_VZ:
-			tdata.add_data( a, vel[2] );
-			break;
-
-		    case DIAG_O:
-			tdata.add_data( a, pos_opq[0] );
-			break;
-		    case DIAG_VO:
-			tdata.add_data( a, vel_opq[0] );
-			break;
-		    case DIAG_P:
-			tdata.add_data( a, pos_opq[1] );
-			break;
-		    case DIAG_VP:
-			tdata.add_data( a, vel_opq[1] );
-			break;
-		    case DIAG_Q:
-			tdata.add_data( a, pos_opq[2] );
-			break;
-		    case DIAG_VQ:
-			tdata.add_data( a, vel_opq[2] );
-			break;
-
-		    case DIAG_OP:
-			tdata.add_data( a, vel_opq[0]/vel_opq[2] );
-			break;
-		    case DIAG_PP:
-			tdata.add_data( a, vel_opq[1]/vel_opq[2] );
-			break;
-
-		    case DIAG_CURR:
-			tdata.add_data( a, _particles[a].IQ() );
-			break;
-		    case DIAG_EK:
-			tdata.add_data( a, 0.5*_particles[a].m()*vel.ssqr() );
-			break;
-		    case DIAG_QM:
-			tdata.add_data( a, _particles[a].qm() );
-			break;
-
-		    default:
-			throw( ErrorUnimplemented( ERROR_LOCATION ) );
-			break;
-		    }
-		}
-	    }
-	    x1 = x2;
-	}
-    }
-
-    if( ibsimu.get_verbose_output() ) {
-	std::cout << "  number of trajectories = " << tdata.traj_size() << "\n";
-	std::cout << "  total current = " << Isum << " A\n";
-    }
+    _imp->trajectories_at_free_plane( tdata, c, o, p, diagnostics );
 }
 
 
-void ParticleDataBase3D::add_tdens_from_segment( ScalarField &tdens, double IQ,
-						 ParticleP3D &x1, ParticleP3D &x2 ) const
+void ParticleDataBase3D::export_path_manager_data( std::string filename, 
+						   double ref_E, double ref_q, double ref_m, 
+						   Vec3D c, Vec3D o, Vec3D p ) const
 {
-    double x[3];
-    double t[3];
-    int i[3];
-
-    for( size_t a = 0; a < 3; a++ ) {
-	x[a] = 0.5*( x1[2*a+1] + x2[2*a+1] );
-	i[a] = (int)floor( ( x[a]-tdens.origo(a) ) * tdens.div_h() );
-	t[a] = ( x[a]-(i[a]*tdens.h()+tdens.origo(a)) ) * tdens.div_h();
-	
-	if( i[a] < 0 || i[a] >= tdens.size(a)-1 )
-	    continue;
-    }
-
-    double J = IQ/(tdens.h()*tdens.h()); // J = I/area
-    int p = tdens.size(0)*tdens.size(1)*i[2] + tdens.size(0)*i[1] + i[0];
-    tdens( p )                 += (1.0-t[0])*(1.0-t[1])*(1.0-t[2])*J;
-    tdens( p+tdens.size(0) )   += (1.0-t[0])*t[1]*(1.0-t[2])*J;
-    tdens( p+1 )               += t[0]*(1.0-t[1])*(1.0-t[2])*J;
-    tdens( p+1+tdens.size(0) ) += t[0]*t[1]*(1.0-t[2])*J;
-    
-    p += tdens.size(0)*tdens.size(1);
-    tdens( p )                 += (1.0-t[0])*(1.0-t[1])*t[2]*J;
-    tdens( p+tdens.size(0) )   += (1.0-t[0])*t[1]*t[2]*J;
-    tdens( p+1 )               += t[0]*(1.0-t[1])*t[2]*J;
-    tdens( p+1+tdens.size(0) ) += t[0]*t[1]*t[2]*J;
+    _imp->export_path_manager_data( filename, ref_E, ref_q, ref_m, c, o, p );
 }
 
 
-void ParticleDataBase3D::build_trajectory_density_field( ScalarField &tdens ) const
+void ParticleDataBase3D::debug_print( std::ostream &os ) const
 {
-    tdens.clear();
-
-    // Go through all particle trajectories
-    std::vector< ColData<ParticleP3D> > coldata;
-    for( size_t a = 0; a < _particles.size(); a++ ) {
-	size_t N = _particles[a].traj_size();
-	if( N < 2 )
-	    continue;
-	ParticleP3D x1 = _particles[a].traj(0);
-	ParticleP3D xlast = x1;
-	double IQ = _particles[a].IQ();
-	for( size_t b = 1; b < N; b++ ) {
-	    ParticleP3D x2 = _particles[a].traj(b);
-
-	    // Mesh collision points from x1 to x2
-	    ColData<ParticleP3D>::build_coldata_linear( coldata, tdens, x1, x2 );
-	    if( coldata.size() == 0 )
-		continue;
-
-	    // Process trajectory mesh collision points
-	    for( size_t c = 0; c < coldata.size(); c++ ) {
-
-		// Add contribution from segment from xlast to coldata[c]
-		add_tdens_from_segment( tdens, IQ, xlast, coldata[c]._x );	    
-		xlast = coldata[c]._x;
-	    }
-
-	    // Next trajectory line
-	    x1 = x2;
-	}
-    }    
-
-    // Fix boundaries, which only get half of the contribution they should
-    // This should depend on mirroring properties!
-    for( int32_t i = 0; i < tdens.size(0); i++ ) {
-	for( int32_t j = 0; j < tdens.size(1); j++ ) {
-	    tdens( i, j, 0 ) *= 2.0;
-	    tdens( i, j, tdens.size(2)-1 ) *= 2.0;
-	}
-    }
-    for( int32_t i = 0; i < tdens.size(0); i++ ) {
-	for( int32_t k = 0; k < tdens.size(2); k++ ) {
-	    tdens( i, 0, k ) *= 2.0;
-	    tdens( i, tdens.size(1)-1, k ) *= 2.0;
-	}
-    }	
-    for( int32_t j = 0; j < tdens.size(1); j++ ) {
-	for( int32_t k = 0; k < tdens.size(2); k++ ) {
-	    tdens( 0, j, k ) *= 2.0;
-	    tdens( tdens.size(0)-1, j, k ) *= 2.0;
-	}
-    }
+    _imp->debug_print( os );
 }
+

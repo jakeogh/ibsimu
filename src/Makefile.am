@@ -22,6 +22,7 @@ config.h \
 config.hpp \
 convergence.cpp \
 convergence.hpp \
+constants.hpp \
 coordmapper.hpp \
 coordmatrix.cpp \
 coordmatrix.hpp \
@@ -140,6 +141,8 @@ palette.cpp \
 palette.hpp \
 particledatabase.cpp \
 particledatabase.hpp \
+particledatabaseimp.cpp \
+particledatabaseimp.hpp \
 particlediagplot.cpp \
 particlediagplot.hpp \
 particlediagplotter.cpp \
@@ -150,6 +153,8 @@ particleiterator.cpp \
 particleiterator.hpp \
 particles.cpp \
 particles.hpp \
+particlestatistics.cpp \
+particlestatistics.hpp \
 plotter.cpp \
 plotter.hpp \
 polysolver.cpp \
@@ -205,6 +210,7 @@ config.h \
 coordmapper.hpp \
 coordmatrix.hpp \
 convergence.hpp \
+constants.hpp \
 crowmatrix.hpp \
 diag_precond.hpp \
 dxf_solid.hpp \
@@ -254,6 +260,7 @@ particlediagplotter.hpp \
 particlegraph.hpp \
 particleiterator.hpp \
 particles.hpp \
+particlestatistics.hpp \
 plotter.hpp \
 polysolver.hpp \
 precond.hpp \

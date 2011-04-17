@@ -58,23 +58,10 @@
 #include "scharge.hpp"
 #include "scheduler.hpp"
 #include "polysolver.hpp"
+#include "particledatabase.hpp"
 
 
 //#define DEBUG_PARTICLE_ITERATOR 1
-
-
-/*! \brief Trajectory handler callback.
- */
-class TrajectoryHandlerCallback {
-public:
-
-    /*! \brief Virtual destructor.
-     */
-    virtual ~TrajectoryHandlerCallback() {}
-
-    virtual void operator()( ParticleBase *particle, ParticlePBase *xcur, ParticlePBase *xend ) const = 0;
-
-};
 
 
 /*! \brief %Particle iterator type.
@@ -248,58 +235,6 @@ public:
 	std::cout << "  Coldata built\n";
 #endif
     }
-
-};
-
-
-/*! \brief %Particle iteration statistics.
- *
- *  Stores statistics about the particle histories.
- *
- */
-class ParticleStatistics {
-
-    uint32_t      _nboundaries;      /*!< \brief Number of solids in geometry. */
-
-    uint32_t      _end_time;          /*!< \brief Number of time limited particle iterations. */
-    uint32_t      _end_step;          /*!< \brief Number of step count limited particle iterations. */
-    uint32_t      _end_baddef;        /*!< \brief Number of bad particle definitions. */
-    uint32_t      _sum_steps;         /*!< \brief Total number of steps taken. */
-
-    uint32_t     *_bound_collisions;  /*!< \brief Number of particles collided with electrodes. */
-    double       *_bound_current;     /*!< \brief Amount of current collided with electrodes. */
-
-public:
-
-    ParticleStatistics();
-    ParticleStatistics( const ParticleStatistics &stat );
-    ParticleStatistics( uint32_t nboundaries );
-    ~ParticleStatistics();
-
-    const ParticleStatistics &operator=( const ParticleStatistics &stat );
-    const ParticleStatistics &operator+=( const ParticleStatistics &stat );
-
-    void clear( void );
-    void reset( uint32_t nboundaries );
-    
-    uint32_t end_time( void ) const;
-    uint32_t end_step( void ) const;
-    uint32_t end_baddef( void ) const;
-    uint32_t sum_steps( void ) const;
-
-    uint32_t number_of_boundaries( void ) const;
-    uint32_t bound_collisions( uint32_t bound ) const;
-    uint32_t bound_collisions( void ) const;
-    double bound_current( uint32_t bound ) const;
-    double bound_current( void ) const;
-
-    void inc_end_time( void ) { _end_time++; }
-    void inc_end_step( void ) { _end_step++; }
-    void inc_end_baddef( void ) { _end_baddef++; }
-    void inc_sum_steps( void ) { _sum_steps++; }
-    void inc_sum_steps( uint32_t i ) { _sum_steps += i; }
-
-    void add_bound_collision( uint32_t bound, double IQ );
 
 };
 

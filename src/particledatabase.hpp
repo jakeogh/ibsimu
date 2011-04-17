@@ -44,14 +44,26 @@
 #define PARTICLEDATABASE_HPP 1
 
 
-#include <vector>
-#include "timer.hpp"
-#include "ibsimu.hpp"
-#include "callback.hpp"
-#include "trajectory.hpp"
+#include "scalarfield.hpp"
+#include "vectorfield.hpp"
 #include "particles.hpp"
-#include "particleiterator.hpp"
 #include "trajectorydiagnostics.hpp"
+#include "particlestatistics.hpp"
+#include "constants.hpp"
+
+
+/*! \brief Trajectory handler callback.
+ */
+class TrajectoryHandlerCallback {
+public:
+
+    /*! \brief Virtual destructor.
+     */
+    virtual ~TrajectoryHandlerCallback() {}
+
+    virtual void operator()( ParticleBase *particle, ParticlePBase *xcur, ParticlePBase *xend ) const = 0;
+
+};
 
 
 /*! \brief Magnetic field plasma suppression for positive ion extraction.
@@ -138,39 +150,37 @@ public:
  */
 class ParticleDataBase {
 
+    class ParticleDataBaseImp *_imp;
+    
 protected:
 
-    double                    _epsabs;      /*!< \brief Absolute error limit for calculation. */
-    double                    _epsrel;      /*!< \brief Relative error limit for calculation. */
-    bool                      _polyint;     /*!< \brief Use polynomial(true)/linear(false) interpolation. */
-    uint32_t                  _maxsteps;    /*!< \brief Maximum number of steps to calculate. */
-    double                    _maxt;        /*!< \brief Maximum particle time in simulation. */
-    uint32_t                  _trajdiv;     /*!< \brief Divisor for saved trajectories,
-					     * if 3, every third trajectory is saved. */
-    bool                      _mirror[6];   /*!< \brief Boundary particle mirroring. */
-
-    double                    _rhosum;      /*!< \brief Sum of space charge density in defined beams (C/m3). */
-
-    ParticleStatistics        _stat;        /*!< \brief Particle statistics. */
-
-    int                       _iteration;   /*!< \brief Iteration number. */
-    
-    const CallbackFunctorD_V *_bfield_suppression; /*!< \brief Location dependent magnetic field suppression. */
-    const TrajectoryHandlerCallback *_trajhand;    /*!< \brief Trajectory handler callback. */
+/* ************************************** *
+ * Constructors                           *
+ * ************************************** */
 
     /*! \brief Constructor.
      */
     ParticleDataBase();
 
+    /*! \brief Copy constructor.
+     */
+    ParticleDataBase( const ParticleDataBase &pdb );
+
+    /*! \brief Assignment.
+     */
+    const ParticleDataBase &operator=( const ParticleDataBase &pdb );
+
+    void set_implementation_pointer( class ParticleDataBaseImp *imp );
+
 public:
 
 /* ************************************** *
- * Constructors and destructor            *
+ * Destructor                             *
  * ************************************** */
 
     /*! \brief Virtual destructor.
      */
-    virtual ~ParticleDataBase() {}
+    virtual ~ParticleDataBase();
 
 /* ****************************************** *
  * Particle iteration settings and statictics *
@@ -181,7 +191,7 @@ public:
      *  \deprecated This function is deprecated (it does nothing) and
      *  is replaced by global IBSimu::set_thread_count().
      */
-    void set_thread_count( uint32_t threadcount );
+    void set_thread_count( uint32_t threadcount ) {}
 
     /*! \brief Set the accuracy requirement for calculation.
      *
@@ -262,6 +272,8 @@ public:
      */
     void get_mirror( bool mirror[6] ) const;
 
+    /*! \brief Get the number of iteration rounds done.
+     */
     int get_iteration_number( void ) const;
 
     /*! \brief Return sum of defined beam space charge density.
@@ -289,11 +301,11 @@ public:
 
     /*! \brief Return geometry mode.
      */
-    virtual geom_mode_e geom_mode() const = 0;
+    geom_mode_e geom_mode() const;
 
     /*! \brief Returns particle count.
      */
-    virtual size_t size( void ) const = 0;
+    size_t size( void ) const;
 
     /*! \brief Returns a reference to particle \a i.
      */
@@ -305,7 +317,7 @@ public:
 
     /*! \brief Returns number of trajectory points for particle \a i.
      */
-    virtual size_t traj_size( uint32_t i ) const = 0;
+    size_t traj_size( uint32_t i ) const;
     
     /*! \brief Gets the particle \a i trajectory point \a j as particle point.
      */
@@ -313,15 +325,21 @@ public:
 
     /*! \brief Gets the particle \a i trajectory point \a j into \a vel, \a loc and \a t.
      */
-    virtual void trajectory_point( double &t, Vec3D &loc, Vec3D &vel, uint32_t i, uint32_t j ) const = 0;
+    void trajectory_point( double &t, Vec3D &loc, Vec3D &vel, uint32_t i, uint32_t j ) const;
 
     /*! \brief Gets trajectory diagnostic \a diagnostics at plane \a
      *  axis = \a val in trajectory diagnostic data object \a tdata.
      */
-    virtual void trajectories_at_plane( TrajectoryDiagnosticData &tdata, 
-					coordinate_axis_e axis,
-					double val,
-					const std::vector<trajectory_diagnostic_e> &diagnostics ) const = 0;
+    void trajectories_at_plane( TrajectoryDiagnosticData &tdata, 
+				coordinate_axis_e axis,
+				double val,
+				const std::vector<trajectory_diagnostic_e> &diagnostics ) const;
+
+    /*! \brief Build trajectory density field.
+     *
+     *  The scalar field \a tdens can differ from geometry.
+     */
+    void build_trajectory_density_field( ScalarField &tdens ) const;
 
 /* ************************************** *
  * Particle and trajectory clearing       *
@@ -332,14 +350,14 @@ public:
      *  Clears the database of particles. Also clears beam space
      *  charge sum.
      */
-    virtual void clear( void ) = 0;
+    void clear( void );
 
     /*! \brief Clears the particle trajectory database.
      *
      *  The particle definitions are conserved, but existing
      *  trajectories are cleared.
      */
-    virtual void clear_trajectories( void ) = 0;
+    void clear_trajectories( void );
 
 /* ************************************** *
  * Particle definition                    *
@@ -347,317 +365,7 @@ public:
 
     /*! \brief Reserve memory for \a size particles.
      */
-    virtual void reserve( size_t size ) = 0;
-
-/* ************************************** *
- * Debugging, plotting and saving         *
- * ************************************** */
-
-    /*! \brief Print debugging information to os.
-     */
-    virtual void debug_print( std::ostream &os ) const = 0;
-};
-
-
-/*! \brief Templated particle database base class for different
-    dimensions.
- *
- *  %Particle database holds the definitions of particles, particle
- *  iteration parameters and possibly the trajectories of particles if
- *  the particle iterator has saved them. %Particle database also
- *  provides a variety of convenience functions for defining particle
- *  beams.
- *
- *  Specialized derived classes ParticleDataBase2D,
- *  ParticleDataBaseCyl and ParticleDataBase3D exist for use with
- *  different dimensionalities. The templated %ParticleDataBasePP
- *  class provides all the common functions.
- */
-template<class PP> class ParticleDataBasePP : public ParticleDataBase {
-
-    /*! \brief Add requested diagnostics to \a tdata from particle point \a x.
-     */
-    static void add_diagnostics( TrajectoryDiagnosticData &tdata, const PP &x, 
-				 const Particle<PP> &p, int crd ) {
-	//std::cout << "add_diagnostics():\n";
-	for( size_t a = 0; a < tdata.diag_size(); a++ ) {
-	    //std::cout << "  diagnostic[" << a << "] = " << tdata.diagnostic(a) << "\n";
-	    
-	    double data = 0.0;
-	    switch( tdata.diagnostic( a ) ) {
-	    case DIAG_NONE:
-		data = 0.0;
-		break;
-	    case DIAG_T:
-		data = x[0];
-		break;
-	    case DIAG_X:
-		data = x[1];
-		break;
-	    case DIAG_VX:
-		data = x[2];
-		break;
-	    case DIAG_Y:
-	    case DIAG_R:
-		data = x[3];
-		break;
-	    case DIAG_VY:
-	    case DIAG_VR:
-		data = x[4];
-		break;
-	    case DIAG_Z:
-		data = x[5];
-		break;
-	    case DIAG_VZ:
-		data = x[6];
-		break;
-	    case DIAG_W:
-		data = x[5];
-		break;
-	    case DIAG_VTHETA:
-		data = x[5]*x[3];
-		break;
-	    case DIAG_XP:
-		data = x[2]/x[2*crd+2];
-		break;
-	    case DIAG_YP:
-	    case DIAG_RP:
-		data = x[4]/x[2*crd+2];
-		break;
-	    case DIAG_AP:
-		data = x[3]*x[5]/x[2*crd+2];
-		break;
-	    case DIAG_ZP:
-		data = x[6]/x[2*crd+2];
-		break;
-	    case DIAG_CURR:
-		data = p.IQ();
-		break;
-	    case DIAG_QM:
-		data = p.qm();
-		break;
-	    case DIAG_EK:
-		// This is wrong - no mass dependence
-		// Vec3D velocity = x.velocity();
-		//data = velocity.norm2();
-		data = 0.0;
-		break;
-	    default:
-		throw( ErrorUnimplemented( ERROR_LOCATION ) );
-		break;
-	    }
-	    //std::cout << "  adding data = " << data << "\n";
-	    tdata.add_data( a, data );
-	}
-    }
-
-protected:
-
-    std::vector<Particle<PP> > _particles;      /*!< \brief Vector of type PP particles */
-
-    /*! \brief Constructor.
-     */
-    ParticleDataBasePP() {}
-
-public:
-
-/* ************************************** *
- * Constructors and destructor            *
- * ************************************** */
-
-    /*! \brief Destructor.
-     */
-    ~ParticleDataBasePP() {}
-
-/* ************************************** *
- * Information and queries                *
- * ************************************** */
-
-    /*! \brief Return geometry mode.
-     */
-    virtual geom_mode_e geom_mode() const { return( PP::geom_mode() ); }
-
-    /*! \brief Returns particle count.
-     */
-    virtual size_t size( void ) const { return( _particles.size() ); }
-
-    /*! \brief Returns a reference to particle \a i.
-     */
-    virtual Particle<PP> &particle( uint32_t i ) { return( _particles[i] ); }
-
-    /*! \brief Returns a const reference to particle \a i.
-     */
-    virtual const Particle<PP> &particle( uint32_t i ) const { return( _particles[i] ); }
-    
-    /*! \brief Returns number of trajectory points for particle \a i.
-     */
-    virtual size_t traj_size( uint32_t i ) const { return( _particles[i].traj_size() ); }
-    
-    /*! \brief Gets the particle \a i trajectory point \a j as particle point.
-     */
-    virtual const PP &trajectory_point( uint32_t i, uint32_t j ) const {
-	return( _particles[i].traj(j) );
-    }
-
-    /*! \brief Gets the particle \a i trajectory point \a j into \a vel, \a loc and \a t.
-     */
-    virtual void trajectory_point( double &t, Vec3D &loc, Vec3D &vel, uint32_t i, uint32_t j ) const {
-	PP x = _particles[i].traj(j); 
-	t = x[0];
-	loc = x.location();
-	vel = x.velocity();
-    }
-
-    /*! \brief Gets trajectory diagnostic \a diagnostics at plane \a
-     *  axis = \a val in trajectory diagnostic data object \a tdata.
-     */
-    virtual void trajectories_at_plane( TrajectoryDiagnosticData &tdata, 
-					coordinate_axis_e axis,
-					double val,
-					const std::vector<trajectory_diagnostic_e> &diagnostics ) const {
-
-	if( ibsimu.get_verbose_output() )
-	    std::cout << "Making trajectory diagnostics at " 
-		      << coordinate_axis_string[axis] << " = " << val << "\n";
-
-	// Check query
-	switch( PP::geom_mode() ) {
-	case MODE_1D:
-	    throw( Error( ERROR_LOCATION, "unsupported dimension number" ) );
-	    break;
-	case MODE_2D:
-	    if( axis == AXIS_R || axis == AXIS_Z )
-		throw( Error( ERROR_LOCATION, "nonexistent axis" ) );
-	    break;
-	case MODE_CYL:
-	    if( axis == AXIS_Y || axis == AXIS_Z )
-		throw( Error( ERROR_LOCATION, "nonexistent axis" ) );
-	    break;
-	case MODE_3D:
-	    if( axis == AXIS_R )
-		throw( Error( ERROR_LOCATION, "nonexistent axis" ) );
-	    break;
-	default:
-	    throw( Error( ERROR_LOCATION, "unsupported dimension number" ) );
-	}
-
-	// Check diagnostics query validity
-	for( size_t a = 0; a < diagnostics.size(); a++ ) {
-	    if( diagnostics[a] == DIAG_NONE )
-		throw( Error( ERROR_LOCATION, "invalid diagnostics query \'DIAG_NONE\'" ) );
-	    else if( PP::geom_mode() != MODE_CYL && (diagnostics[a] == DIAG_R ||
-						     diagnostics[a] == DIAG_VR ||
-						     diagnostics[a] == DIAG_RP ||
-						     diagnostics[a] == DIAG_W ||
-						     diagnostics[a] == DIAG_VTHETA ||
-						     diagnostics[a] == DIAG_AP) )
-		throw( Error( ERROR_LOCATION, "invalid diagnostics query for geometry type" ) );
-	}
-
-	// Prepare output vector
-	tdata.clear();
-	for( size_t a = 0; a < diagnostics.size(); a++ ) {
-	    tdata.add_data_column( diagnostics[a] );
-	}
-	
-	// Set coordinate index
-	int crd;
-	switch( axis ) {
-	case AXIS_X:
-	    crd = 0;
-	    break;
-	case AXIS_Y:
-	case AXIS_R:
-	    crd = 1;
-	    break;
-	case AXIS_Z:
-	    crd = 2;
-	    break;
-	default:
-	    throw( Error( ERROR_LOCATION, "unsupported axis" ) );
-	}
-
-	// Scan through particle trajectory points
-	double Isum = 0.0;
-	std::vector<PP> intsc;
-	for( size_t a = 0; a < _particles.size(); a++ ) {
-	    size_t N = _particles[a].traj_size();
-	    if( N < 2 )
-		continue;
-	    PP x1 = _particles[a].traj(0);
-	    for( size_t b = 1; b < N; b++ ) {
-		PP x2 = _particles[a].traj(b);
-		intsc.clear();
-		size_t nintsc = PP::trajectory_intersections_at_plane( intsc, crd, val, x1, x2 );
-		for( size_t c = 0; c < nintsc; c++ ) {
-		    Isum += _particles[a].IQ();
-		    add_diagnostics( tdata, intsc[c], _particles[a], crd );
-		}
-
-		x1 = x2;
-	    }
-	}
-
-	if( ibsimu.get_verbose_output() ) {
-	    std::cout << "  number of trajectories = " << tdata.traj_size() << "\n";
-	    if( PP::geom_mode() == MODE_2D )
-		std::cout << "  total current = " << Isum << " A/m\n";
-	    else
-		std::cout << "  total current = " << Isum << " A\n";
-	}
-    }
-
-/* ************************************** *
- * Particle and trajectory clearing       *
- * ************************************** */
-
-    /*! \brief Clears the particle database of all particles.
-     */
-    virtual void clear( void ) { 
-	_particles.clear();
-	_rhosum = 0.0;
-    }
-
-    /*! \brief Clears the particle trajectory database.
-     *
-     *  The particle definitions are conserved, but existing
-     *  trajectories are cleared.
-     */
-    virtual void clear_trajectories( void ) {
-	for( uint32_t a = 0; a < _particles.size(); a++ )
-	    _particles[a].clear_trajectory();
-    }
-
-/* ************************************** *
- * Particle definition                    *
- * ************************************** */
-
-    /*! \brief Reserve memory for \a size particles.
-     */
-    virtual void reserve( size_t size ) { _particles.reserve( size ); }
-
-    /*! \brief Add one particle.
-     *
-     *  Adds one particle to particle database. Particle properties
-     *  are: \a IQ is the current (A) in time-independent or charge
-     *  (C) in time-dependent simulations carried by the particle
-     *  cloud that the simulated particle represents, \a q is the
-     *  charge state of the microscopic particle (in multiples of e),
-     *  \a m is the mass of the microscopic particle (u) and \a x
-     *  contains the time, position (m) and velocity (m/s) of the
-     *  particle.
-     */
-    void add_particle( double IQ, double q, double m, const PP &x ) {
-	_particles.push_back( Particle<PP>( IQ, CHARGE_E*q, MASS_U*m, x ) );
-    }
-
-    /*! \brief Add one particle.
-     *
-     *  Adds one particle to database.
-     */
-    void add_particle( const Particle<PP> &pp ) {
-	_particles.push_back( pp );
-    }
+    void reserve( size_t size );
 
 /* ************************************** *
  * Particle iterators                     *
@@ -670,87 +378,8 @@ public:
      *  in geometry \a g. Space charge density field \a scharge is set
      *  from the particle trajectories.
      */
-    virtual void iterate_trajectories( ScalarField &scharge, const VectorField &efield, 
-				       const VectorField &bfield, const Geometry &g ) {
-
-	pthread_mutex_t                      scharge_mutex = PTHREAD_MUTEX_INITIALIZER;
-	std::vector<ParticleIterator<PP> *>  iterators;
-
-	Timer t;
-	if( ibsimu.get_verbose_output() )
-	    std::cout << "Calculating particle trajectories\n";
-	_iteration++;
-
-	// Check geometry mode
-	if( g.geom_mode() != PP::geom_mode() )
-	    throw( Error( ERROR_LOCATION, "Differing geometry modes" ) );
-
-	// Clear space charge
-	scharge.clear();
-
-	// Reset statistics
-	_stat.reset( g.number_of_boundaries() );
-
-	// Check number of particles
-	if( _particles.size() == 0 ) {
-	    std::cout << "  no particles to calculate\n";
-	    return;
-	}
-
-	// Make separate space charge maps for all threads and build iterators
-	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
-
-	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
-							   _polyint, _maxsteps, _maxt, _trajdiv, 
-							   _mirror, &scharge, &scharge_mutex, &efield, &bfield, 
-							   &g, &_particles[0], _bfield_suppression, _trajhand ) );
-	}
-
-	// Make Scheduler
-	Scheduler<ParticleIterator<PP>,Particle<PP>,Error> scheduler( iterators );
-
-	// Add problems
-	for( size_t a = 0; a < _particles.size(); a++ )
-	    scheduler.add_problem( &_particles[a] );
-
-	// Wait for completition
-	scheduler.run();
-	scheduler.finish();
-
-	if( scheduler.is_error() ) {
-	    // Throw the error
-	    std::vector<Error> err;
-	    std::vector<Particle<PP> *> part;
-	    scheduler.get_errors( err, part );
-	    throw( err[0] );
-	}
-
-	// Collectstatistics. Free all allocated memory.
-	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
-	    ParticleStatistics stat = iterators[a]->get_statistics();
-	    _stat += stat;
-	    delete iterators[a];
-	}
-
-	scharge_finalize( scharge );
-	
-	t.stop();
-	if( ibsimu.get_verbose_output() ) {
-	    std::cout << "  Particle histories (" << _particles.size() << " total):\n";
-	    std::cout << "    flown = " << _stat.bound_collisions() << "\n";
-	    std::cout << "    time limited = " << _stat.end_time() << "\n";
-	    std::cout << "    step count limited = " << _stat.end_step() << "\n";
-	    std::cout << "    bad definitions = " << _stat.end_baddef() << "\n";
-	    for( size_t a = 1; a <= _stat.number_of_boundaries(); a++ ) {
-		std::cout << "    beam to boundary " << a << " = " << _stat.bound_current(a)
-			  << " " << PP::IQ_unit() << " (" << _stat.bound_collisions(a) << " particles)" << "\n";
-	    }
-	    std::cout << "    total steps = " << _stat.sum_steps() << "\n";
-	    std::cout << "    steps per particle (ave) = " << 
-		_stat.sum_steps()/(double)_particles.size() << "\n";
-	    std::cout << "  time used = " << t << "\n";
-	}
-    }
+    void iterate_trajectories( ScalarField &scharge, const VectorField &efield, 
+			       const VectorField &bfield, const Geometry &g );
 
     /*! \brief Step particles forward by time step dt.
      *
@@ -758,95 +387,8 @@ public:
      *  forward one time step in electric field \a efield and geometry
      *  \a g.
      */
-    virtual void step_particles( ScalarField &scharge, const VectorField &efield, 
-				 const VectorField &bfield, const Geometry &g, double dt ) {
-
-	pthread_mutex_t                      scharge_mutex = PTHREAD_MUTEX_INITIALIZER;
-	ScalarField                         *schmap[ibsimu.get_thread_count()];
-	std::vector<ParticleIterator<PP> *>  iterators;
-
-	Timer t;
-	if( ibsimu.get_verbose_output() )
-	    std::cout << "Calculating particle trajectories\n";
-	_iteration++;
-
-	// Check geometry mode
-	if( g.geom_mode() != PP::geom_mode() )
-	    throw( Error( ERROR_LOCATION, "Differing geometry modes" ) );
-
-	// Clear space charge
-	scharge.clear();
-
-	// Reset statistics
-	_stat.reset( g.number_of_boundaries() );
-
-	// Check number of particles
-	if( _particles.size() == 0 ) {
-	    std::cout << "  no particles to calculate\n";
-	    return;
-	}
-
-	// Make separate space charge maps for all threads and build iterators
-	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
-	    if( a == 0 ) schmap[a] = &scharge;
-	    else schmap[a] = new ScalarField( scharge );
-
-	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
-							   _polyint, _maxsteps, _maxt, _trajdiv, 
-							   _mirror, schmap[a], &scharge_mutex, &efield, &bfield, 
-							   &g, &_particles[0], _bfield_suppression, _trajhand ) );
-	}
-
-	// Make Scheduler
-	Scheduler<ParticleIterator<PP>,Particle<PP>,Error> scheduler( iterators );
-
-	// Add problems
-	for( size_t a = 0; a < _particles.size(); a++ )
-	    scheduler.add_problem( &_particles[a] );
-
-	// Wait for completition
-	scheduler.run();
-	scheduler.finish();
-
-	if( scheduler.is_error() ) {
-	    // Throw the error
-	    std::vector<Error> err;
-	    std::vector<Particle<PP> *> part;
-	    scheduler.get_errors( err, part );
-	    throw( err[0] );
-	}
-
-	// Combine separate space charge maps and collect
-	// statistics. Free all allocated memory.
-	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
-	    if( a != 0 ) {
-		scharge += *schmap[a];
-		delete schmap[a];
-	    }
-	    ParticleStatistics stat = iterators[a]->get_statistics();
-	    _stat += stat;
-	    delete iterators[a];
-	}
-
-	scharge_finalize( scharge );
-	
-	t.stop();
-	if( ibsimu.get_verbose_output() ) {
-	    std::cout << "  Particle histories (" << _particles.size() << " total):\n";
-	    std::cout << "    flown = " << _stat.bound_collisions() << "\n";
-	    std::cout << "    time limited = " << _stat.end_time() << "\n";
-	    std::cout << "    step count limited = " << _stat.end_step() << "\n";
-	    std::cout << "    bad definitions = " << _stat.end_baddef() << "\n";
-	    for( size_t a = 1; a <= _stat.number_of_boundaries(); a++ ) {
-		std::cout << "    beam to boundary " << a << " = " << _stat.bound_current(a)
-			  << " " << PP::IQ_unit() << " (" << _stat.bound_collisions(a) << " particles)" << "\n";
-	    }
-	    std::cout << "    total steps = " << _stat.sum_steps() << "\n";
-	    std::cout << "    steps per particle (ave) = " << 
-		_stat.sum_steps()/(double)_particles.size() << "\n";
-	    std::cout << "  time used = " << t << "\n";
-	}
-    }
+    void step_particles( ScalarField &scharge, const VectorField &efield, 
+			 const VectorField &bfield, const Geometry &g, double dt );
 
 /* ************************************** *
  * Debugging, plotting and saving         *
@@ -854,25 +396,8 @@ public:
 
     /*! \brief Print debugging information to os.
      */
-    virtual void debug_print( std::ostream &os ) const {
-	os << "epsabs = "      << _epsabs << "\n";
-	os << "epsrel = "      << _epsrel << "\n";
-	os << "maxsteps = "    << _maxsteps << "\n";
-	os << "maxt = "        << _maxt << "\n";
-	os << "trajdiv = "     << _trajdiv << "\n";
-	os << "mirror = (";
-	for( uint32_t a = 0; a < 5; a++ )
-	    os << _mirror[a] << ", ";
-	os << _mirror[5] << ")\n";
-	
-	for( uint32_t a = 0; a < _particles.size(); a++ ) {
-	    os << "Particle " << a << ":\n";
-	    _particles[a].debug_print( os );
-	}
-    }
-
+    virtual void debug_print( std::ostream &os ) const = 0;
 };
-
 
 
 /*! \brief %Particle database class for two dimensions.
@@ -886,10 +411,9 @@ public:
  *  defined. When reading back the simulation results, the order can
  *  be used to identify the particles.
  */
-class ParticleDataBase2D : public ParticleDataBasePP<ParticleP2D> {
+class ParticleDataBase2D : public ParticleDataBase {
 
-    void add_tdens_from_segment( ScalarField &tdens, double IQ,
-				 ParticleP2D &x1, ParticleP2D &x2 ) const;
+    class ParticleDataBase2DImp *_imp;
 
 public:
 
@@ -899,11 +423,58 @@ public:
 
     /*! \brief Constructor.
      */
-    ParticleDataBase2D() {}
+    ParticleDataBase2D();
+
+    /*! \brief Copy constructor.
+     */
+    ParticleDataBase2D( const ParticleDataBase2D &pdb );
 
     /*! \brief Destructor.
      */
-    ~ParticleDataBase2D() {}
+    ~ParticleDataBase2D();
+
+    /*! \brief Assignment.
+     */
+    const ParticleDataBase2D &operator=( const ParticleDataBase2D &pdb );
+    
+/* ************************************** *
+ * Information and queries                *
+ * ************************************** */
+
+    /*! \brief Returns a reference to particle \a i.
+     */
+    virtual Particle2D &particle( uint32_t i );
+
+    /*! \brief Returns a const reference to particle \a i.
+     */
+    virtual const Particle2D &particle( uint32_t i ) const;
+    
+    /*! \brief Gets the particle \a i trajectory point \a j as particle point.
+     */
+    virtual const ParticleP2D &trajectory_point( uint32_t i, uint32_t j ) const;
+
+/* ************************************** *
+ * Particle definition                    *
+ * ************************************** */
+
+    /*! \brief Add one particle.
+     *
+     *  Adds one particle to particle database. Particle properties
+     *  are: \a IQ is the current (A) in time-independent or charge
+     *  (C) in time-dependent simulations carried by the particle
+     *  cloud that the simulated particle represents, \a q is the
+     *  charge state of the microscopic particle (in multiples of e),
+     *  \a m is the mass of the microscopic particle (u) and \a x
+     *  contains the time, position (m) and velocity (m/s) of the
+     *  particle.
+     */
+    void add_particle( double IQ, double q, double m, const ParticleP2D &x );
+
+    /*! \brief Add one particle.
+     *
+     *  Adds one particle to database.
+     */
+    void add_particle( const Particle2D &p );
 
 /* ************************************** *
  * Particle beam definition               *
@@ -991,11 +562,13 @@ public:
 					      double a, double b, double e,
 					      double Ex, double x0, double y0 );
 
-    /*! \brief Build trajectory density field.
-     *
-     *  The scalar field \a tdens can differ from geometry.
+/* ************************************** *
+ * Debugging, plotting and saving         *
+ * ************************************** */
+
+    /*! \brief Print debugging information to os.
      */
-    void build_trajectory_density_field( ScalarField &tdens ) const;
+    virtual void debug_print( std::ostream &os ) const;
 };
 
 
@@ -1012,10 +585,9 @@ public:
  *  defined. When reading back the simulation results, the order can
  *  be used to identify the particles.
  */
-class ParticleDataBaseCyl : public ParticleDataBasePP<ParticlePCyl> {
+class ParticleDataBaseCyl : public ParticleDataBase {
 
-    void add_tdens_from_segment( ScalarField &tdens, double IQ,
-				 ParticlePCyl &x1, ParticlePCyl &x2 ) const;
+    class ParticleDataBaseCylImp *_imp;
 
 public:
 
@@ -1025,11 +597,58 @@ public:
 
     /*! \brief Constructor.
      */
-    ParticleDataBaseCyl() {}
+    ParticleDataBaseCyl();
+
+    /*! \brief Copy constructor.
+     */
+    ParticleDataBaseCyl( const ParticleDataBaseCyl &pdb );
 
     /*! \brief Destructor.
      */
-    ~ParticleDataBaseCyl () {}
+    ~ParticleDataBaseCyl();
+
+    /*! \brief Assignment.
+     */
+    const ParticleDataBaseCyl &operator=( const ParticleDataBaseCyl &pdb );
+
+/* ************************************** *
+ * Information and queries                *
+ * ************************************** */
+
+    /*! \brief Returns a reference to particle \a i.
+     */
+    virtual ParticleCyl &particle( uint32_t i );
+
+    /*! \brief Returns a const reference to particle \a i.
+     */
+    virtual const ParticleCyl &particle( uint32_t i ) const;
+    
+    /*! \brief Gets the particle \a i trajectory point \a j as particle point.
+     */
+    virtual const ParticlePCyl &trajectory_point( uint32_t i, uint32_t j ) const;
+
+/* ************************************** *
+ * Particle definition                    *
+ * ************************************** */
+
+    /*! \brief Add one particle.
+     *
+     *  Adds one particle to particle database. Particle properties
+     *  are: \a IQ is the current (A) in time-independent or charge
+     *  (C) in time-dependent simulations carried by the particle
+     *  cloud that the simulated particle represents, \a q is the
+     *  charge state of the microscopic particle (in multiples of e),
+     *  \a m is the mass of the microscopic particle (u) and \a x
+     *  contains the time, position (m) and velocity (m/s) of the
+     *  particle.
+     */
+    void add_particle( double IQ, double q, double m, const ParticlePCyl &x );
+
+    /*! \brief Add one particle.
+     *
+     *  Adds one particle to database.
+     */
+    void add_particle( const ParticleCyl &p );
 
 /* ************************************** *
  * Particle beam definition               *
@@ -1105,11 +724,13 @@ public:
 					      double a, double b, double e,
 					      double Ex, double x0 );
 
-    /*! \brief Build trajectory density field.
-     *
-     *  The scalar field \a tdens can differ from geometry.
+/* ************************************** *
+ * Debugging, plotting and saving         *
+ * ************************************** */
+
+    /*! \brief Print debugging information to os.
      */
-    void build_trajectory_density_field( ScalarField &tdens ) const;
+    virtual void debug_print( std::ostream &os ) const;
 };
 
 
@@ -1125,10 +746,9 @@ public:
  *  defined. When reading back the simulation results, the order can
  *  be used to identify the particles.
  */
-class ParticleDataBase3D : public ParticleDataBasePP<ParticleP3D> {
+class ParticleDataBase3D : public ParticleDataBase {
 
-    void add_tdens_from_segment( ScalarField &tdens, double IQ,
-				 ParticleP3D &x1, ParticleP3D &x2 ) const;
+    class ParticleDataBase3DImp *_imp;
 
 public:
 
@@ -1138,11 +758,58 @@ public:
 
     /*! \brief Constructor.
      */
-    ParticleDataBase3D() {}
+    ParticleDataBase3D();
+
+    /*! \brief Copy constructor.
+     */
+    ParticleDataBase3D( const ParticleDataBase3D &pdb );
 
     /*! \brief Destructor.
      */
-    ~ParticleDataBase3D() {}
+    ~ParticleDataBase3D();
+
+    /*! \brief Assignment.
+     */
+    const ParticleDataBase3D &operator=( const ParticleDataBase3D &pdb );
+
+/* ************************************** *
+ * Information and queries                *
+ * ************************************** */
+
+    /*! \brief Returns a reference to particle \a i.
+     */
+    virtual Particle3D &particle( uint32_t i );
+
+    /*! \brief Returns a const reference to particle \a i.
+     */
+    virtual const Particle3D &particle( uint32_t i ) const;
+    
+    /*! \brief Gets the particle \a i trajectory point \a j as particle point.
+     */
+    virtual const ParticleP3D &trajectory_point( uint32_t i, uint32_t j ) const;
+
+/* ************************************** *
+ * Particle definition                    *
+ * ************************************** */
+
+    /*! \brief Add one particle.
+     *
+     *  Adds one particle to particle database. Particle properties
+     *  are: \a IQ is the current (A) in time-independent or charge
+     *  (C) in time-dependent simulations carried by the particle
+     *  cloud that the simulated particle represents, \a q is the
+     *  charge state of the microscopic particle (in multiples of e),
+     *  \a m is the mass of the microscopic particle (u) and \a x
+     *  contains the time, position (m) and velocity (m/s) of the
+     *  particle.
+     */
+    void add_particle( double IQ, double q, double m, const ParticleP3D &x );
+
+    /*! \brief Add one particle.
+     *
+     *  Adds one particle to database.
+     */
+    void add_particle( const Particle3D &p );
 
 /* ************************************** *
  * Particle beam definition               *
@@ -1271,6 +938,11 @@ public:
 					      double Ex, double x0, double y0, double z0 );
 
 
+/* ************************************** *
+ * Information and queries                *
+ * ************************************** */
+
+
     /*! \brief Get trajectory diagnostic on a plane.
      *
      *  Builds trajectory diagnostics on a plane defined in three
@@ -1278,8 +950,10 @@ public:
      *  vectors \a o and \a p. The vectors \a o and \a p are
      *  normalized and p is adjusted to be orthogonal to \a o. This is
      *  done by calculating \a q = \a cross(o,p) and \a p = \a
-     *  cross(q,o). The diagnostic gathered is defined by \a
-     *  diagnostics. Data is returned in \a tdata.
+     *  cross(q,o). 
+     *
+     *  The diagnostic gathered is defined by \a diagnostics. Data is
+     *  returned in \a tdata.
      *
      *  Valid diagnostic types are DIAG_T, DIAG_X, DIAG_VX, DIAG_Y,
      *  DIAG_VY, DIAG_Z, DIAG_VZ, DIAG_O, DIAG_VO, DIAG_P, DIAG_VP,
@@ -1290,11 +964,32 @@ public:
 				     Vec3D c, Vec3D o, Vec3D p,
 				     const std::vector<trajectory_diagnostic_e> &diagnostics ) const;
 
-    /*! \brief Build trajectory density field.
+
+    /*! \brief Export particle data as Path Manager data
      *
-     *  The scalar field \a tdens can differ from geometry.
+     *  Makes trajectory diagnostics on a plane defined in three
+     *  dimensional space by center point vector \a c and two basis
+     *  vectors \a o and \a p. The vectors \a o and \a p are
+     *  normalized and p is adjusted to be orthogonal to \a o. This is
+     *  done by calculating \a q = \a cross(o,p) and \a p = \a
+     *  cross(q,o).
+     *
+     *  The particle properties on the diagnostics plane are written
+     *  to file \a filename in the format required by the Path Manager
+     *  program. Reference particle has energy \a ref_E, charge state
+     *  \a ref_q and mass \a ref_m (in atomic mass units).
      */
-    void build_trajectory_density_field( ScalarField &tdens ) const;
+    void export_path_manager_data( std::string filename, 
+				   double ref_E, double ref_q, double ref_m, 
+				   Vec3D c, Vec3D o, Vec3D p ) const;
+
+/* ************************************** *
+ * Debugging, plotting and saving         *
+ * ************************************** */
+
+    /*! \brief Print debugging information to os.
+     */
+    virtual void debug_print( std::ostream &os ) const;
 };
 
 #endif

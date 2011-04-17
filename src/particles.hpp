@@ -75,13 +75,6 @@ enum particle_status_e {
 };
 
 
-/* Atomic mass unit */
-#define MASS_U        1.66053873e-27
-/* Elementary charge */
-#define CHARGE_E      1.602176462e-19
-
-
-
 
 /* ************************************************************************************* *
  * Particle point classes                                                                *
