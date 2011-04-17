@@ -2,7 +2,7 @@
  *  \brief Source code for particlediagplot.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -43,6 +43,7 @@
 #include <limits>
 #include <fstream>
 #include "particlediagplot.hpp"
+#include "ibsimu.hpp"
 
 
 ParticleDiagPlot::ParticleDiagPlot( Frame *frame, const Geometry *geom, const ParticleDataBase *pdb, 

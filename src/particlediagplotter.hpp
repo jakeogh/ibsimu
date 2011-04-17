@@ -61,6 +61,13 @@ class ParticleDiagPlotter : public Plotter, public ParticleDiagPlot {
 public:
 
     /*! \brief Constructor for particle diagnostic plotter.
+     *
+     *  Makes two or three dimensional particle diagnostics plots from
+     *  particle database at plane \a axis = \a val. Diagnostic made
+     *  is specified by selecting the plot \a type and diagnostic for
+     *  plot's x-axis \a diagx and y-axis \a diagy. For one
+     *  dimensional histograms the y-axis is intensity and \a diagy
+     *  can be left to DIAG_NONE.
      */
     ParticleDiagPlotter( const Geometry *geom, const ParticleDataBase *pdb, 
 			 coordinate_axis_e axis, double level, 
