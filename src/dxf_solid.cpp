@@ -110,8 +110,12 @@ Vec3D DXFSolid::rotz( const Vec3D &x )
 
 void DXFSolid::define_2x3_mapping( Vec3D (*func)(const Vec3D &) )
 {
-    _func = func;
+    if( func )
+	_func = func;
+    else
+	_func = unity;
 }
+
 
 bool DXFSolid::inside( const Vec3D &x ) const
 {
