@@ -117,7 +117,7 @@ void EqPotGraph::build_data( void )
     double min, max;
     _epot.epot_get_minmax( _g, min, max );
     for( size_t a = 0; a < _eqlines_auto; a++ )
-	_lines.push_back( new EqPotLines( min + a*(max-min)/(_eqlines_auto-1) ) );
+	_lines.push_back( new EqPotLines( min + (a+0.5)*(max-min)/(_eqlines_auto) ) );
 
     // Go through mesh
     size_t i[3];
