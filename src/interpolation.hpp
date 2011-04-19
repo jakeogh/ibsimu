@@ -2,7 +2,7 @@
  *  \brief Two dimensional interpolation
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,6 +45,7 @@
 
 
 #include <vector>
+#include <cstddef>
 
 
 /*! \brief Base class for 2d interpolation.
@@ -83,9 +84,6 @@ public:
      */
     virtual double operator()( double x, double y ) const = 0;
 };
-
-
-
 
 
 /*! \brief Closest point 2d interpolation.
@@ -139,9 +137,6 @@ public:
 };
 
 
-
-
-
 /*! \brief BiCubic 2d interpolation.
  *
  *  Calculates the derivatives of the function at mesh points using
@@ -189,22 +184,3 @@ public:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
