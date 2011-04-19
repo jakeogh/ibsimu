@@ -1,3 +1,4 @@
+transformation_SOURCES = transformation.cpp
 stl_SOURCES = stl.cpp
 beam2d_SOURCES = beam2d.cpp
 beam3d_SOURCES = beam3d.cpp
@@ -99,6 +100,7 @@ fileplot \
 fielddiagplot \
 fonts \
 frame \
+transformation \
 stl \
 frame_extend_range \
 frame_increase_margin \

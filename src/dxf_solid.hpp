@@ -46,8 +46,12 @@
 
 #include <iostream>
 #include "solid.hpp"
-#include "mydxffile.hpp"
 #include "transformation.hpp"
+
+
+class MyDXFFile;
+class MyDXFEntities;
+class MyDXFEntitySelection;
 
 
 /*! \brief %MyDXFFile solid class.
@@ -129,35 +133,44 @@ public:
      */
     void define_2x3_mapping( Vec3D (*func)(const Vec3D &) );
 
+    /*! \brief Set transformation to unity.
+     *
+     *  Resets the primary 3D to 3D transformation to unity.
+     */
+    void reset_transformation( void );
+
+    /*! \brief Set transformation.
+     *
+     *  Sets the primary 3D to 3D transformation as a copy of
+     *  transformation of \a T.
+     */
+    void set_transformation( const Transformation &T );
+
     /*! \brief Translate solid.
      */
-    void translate( const Vec3D &dx ) {
-        _T.translate( -1.0*dx );
-    }
+    void translate( const Vec3D &dx );
 
     /*! \brief Scale solid.
      */
-    void scale( const Vec3D &sx ) {
-        _T.scale( Vec3D(1.0/sx[0], 1.0/sx[1], 1.0/sx[2]) );
-    }
+    void scale( const Vec3D &sx );
 
     /*! \brief Rotate solid around x-axis.
+     *
+     *  Rotate around x-axis for \a a radians.
      */
-    void rotate_x( double a ) {
-        _T.rotate_x( -a );
-    }
+    void rotate_x( double a );
 
     /*! \brief Rotate solid around y-axis.
+     *
+     *  Rotate around y-axis for \a a radians.
      */
-    void rotate_y( double a ) {
-        _T.rotate_y( -a );
-    }
+    void rotate_y( double a );
 
     /*! \brief Rotate solid around z-axis.
+     *
+     *  Rotate around z-axis for \a a radians.
      */
-    void rotate_z( double a ) {
-        _T.rotate_z( -a );
-    }
+    void rotate_z( double a );
 
     /*! \brief Saves solid data to stream.
      */

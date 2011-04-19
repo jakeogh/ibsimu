@@ -2,7 +2,7 @@
  *  \brief Full transformation for three dimensional homogenous space
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -70,46 +70,22 @@ public:
 
     /*! \brief Constructor for identity transformation.
      */
-    Transformation() {
-	x[0] = x[5] = x[10] = x[15] = 1.0; 
-        x[1] = x[2] = x[3] = x[4] = x[6] = x[7] 
-	    = x[8] = x[9] = x[11] = x[12] = x[13]
-	    = x[14] = 0.0;
-    }
+    Transformation();
 
     /*! \brief Constructor for preset transformation matrix.
      */
     Transformation( double x11, double x12, double x13, double x14,
 		    double x21, double x22, double x23, double x24,
 		    double x31, double x32, double x33, double x34,
-		    double x41, double x42, double x43, double x44 ) { 
-        x[0]  = x11;
-        x[1]  = x12;
-        x[2]  = x13;
-        x[3]  = x14;
-        x[4]  = x21;
-        x[5]  = x22;
-        x[6]  = x23;
-        x[7]  = x24;
-        x[8]  = x31;
-        x[9]  = x32;
-        x[10] = x33;
-        x[11] = x34;
-        x[12] = x41;
-        x[13] = x42;
-        x[14] = x43;
-        x[15] = x44;
-    }
+		    double x41, double x42, double x43, double x44 );
 
     /*! \brief Copy constructor.
      */
-    Transformation( const Transformation &m ) { 
-        memcpy( x, m.x, 16*sizeof(double) );
-    }
+    Transformation( const Transformation &m );
 
     /*! \brief Destructor.
      */
-    ~Transformation() {}
+    ~Transformation();
 
 
 
@@ -215,107 +191,76 @@ public:
 
 
 
+    /*! \brief Reset transformation.
+     *
+     *  Reset transformation to unity.
+     */
+    void reset( void );
+
     /*! \brief Translate transformation.
      *
-     *  The effect of the new transformation is to first translate the
-     *  coordinates and then apply the old transformation.
+     *  The effect of the new transformation is to first do the old
+     *  transformation and then do the translation.
      */
-    void translate( const Vec3D &d ) {
-	Transformation t1 = translation( d );
-	Transformation t2 = *this * t1;
-	*this = t2;
-    }
+    void translate( const Vec3D &d );
 
     /*! \brief Scale transformation.
      *
-     *  The effect of the new transformation is to first scale the
-     *  coordinates and then apply the old transformation.
+     *  The effect of the new transformation is to first do the old
+     *  transformation and then do the scaling.
      */
-    void scale( const Vec3D &s ) {
-	Transformation t1 = scaling( s );
-	Transformation t2 = *this * t1;
-	*this = t2;
-    }
+    void scale( const Vec3D &s );
 
     /*! \brief Rotate transformation around x-axis.
      *
-     *  The effect of the new transformation is to first rotate the
-     *  coordinates and then apply the old transformation.
+     *  Rotate around x-axis for \a a radians.
+     *
+     *  The effect of the new transformation is to first do the old
+     *  transformation and then do the rotation.
      */
-    void rotate_x( double a ) {
-	Transformation t1 = rotation_x( a );
-	Transformation t2 = *this * t1;
-	*this = t2;
-    }
+    void rotate_x( double a );
 
     /*! \brief Rotate transformation around y-axis.
      *
-     *  The effect of the new transformation is to first rotate the
-     *  coordinates and then apply the old transformation.
+     *  Rotate around y-axis for \a a radians.
+     *
+     *  The effect of the new transformation is to first do the old
+     *  transformation and then do the rotation.
      */
-    void rotate_y( double a ) {
-	Transformation t1 = rotation_y( a );
-	Transformation t2 = *this * t1;
-	*this = t2;
-    }
+    void rotate_y( double a );
 
     /*! \brief Rotate transformation around z-axis.
      *
-     *  The effect of the new transformation is to first rotate the
-     *  coordinates and then apply the old transformation.
+     *  Rotate around z-axis for \a a radians.
+     *
+     *  The effect of the new transformation is to first do the old
+     *  transformation and then do the rotation.
      */
-    void rotate_z( double a ) {
-	Transformation t1 = rotation_z( a );
-	Transformation t2 = *this * t1;
-	*this = t2;
-    }
+    void rotate_z( double a );
 
-
+    /*! \brief Return unity transformation.
+     */
+    static Transformation unity( void );
 
     /*! \brief Return translation transformation.
      */
-    static Transformation translation( const Vec3D &d ) {
-	return( Transformation(  1,  0,  0, d[0],
-				 0,  1,  0, d[1],
-				 0,  0,  1, d[2],
-				 0,  0,  0,    1 ) );
-    }
+    static Transformation translation( const Vec3D &d );
 
     /*! \brief Return scaling transformation.
      */
-    static Transformation scaling( const Vec3D &s ) {
-	return( Transformation( s[0],    0,    0,  0,
-				   0, s[1],    0,  0,
-				   0,    0, s[2],  0,
-				   0,    0,    0,  1 ) );
-    }
+    static Transformation scaling( const Vec3D &s );
  
     /*! \brief Return rotation transformation rotating around x-axis.
      */
-    static Transformation rotation_x( double a ) {
-	return( Transformation(  1,      0,       0,  0,
-				 0, cos(a), -sin(a),  0,
-				 0, sin(a),  cos(a),  0,
-				 0,      0,       0,  1 ) );
-    }
+    static Transformation rotation_x( double a );
 
     /*! \brief Return rotation transformation rotating around y-axis.
      */
-    static Transformation rotation_y( double a ) {
-	return( Transformation(  cos(a),  0, sin(a),  0,
-			              0,  1,      0,  0,
-			        -sin(a),  0, cos(a),  0,
-			              0,  0,      0,  1 ) );
-    }
+    static Transformation rotation_y( double a );
 
     /*! \brief Return rotation transformation rotating around z-axis.
      */
-    static Transformation rotation_z( double a ) {
-	return( Transformation( cos(a), -sin(a),  0,  0,
-				sin(a),  cos(a),  0,  0,
-				     0,       0,  1,  0,
-				     0,       0,  0,  1 ) );
-    }
+    static Transformation rotation_z( double a );
 
     /*! \brief Outputting to stream.
      */
