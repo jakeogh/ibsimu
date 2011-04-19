@@ -179,6 +179,10 @@ solver.hpp \
 sort.hpp \
 statusprint.cpp \
 statusprint.hpp \
+stl_solid.cpp \
+stl_solid.hpp \
+stlfile.cpp \
+stlfile.hpp \
 symbols.hpp \
 timer.cpp \
 timer.hpp \
@@ -276,6 +280,7 @@ solidgraph.hpp \
 solver.hpp \
 sort.hpp \
 statusprint.hpp \
+stl_solid.hpp \
 timer.hpp \
 trajectory.hpp \
 trajectorydiagnostics.hpp \

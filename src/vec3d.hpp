@@ -230,6 +230,7 @@ inline double norm2( const Vec3D &vec ) {
     return( vec.norm2() );
 }
 
+
 inline Vec3D cross( const Vec3D &vec1, const Vec3D &vec2 ) { 
     return( Vec3D( vec1[1] * vec2[2] - vec1[2] * vec2[1], 
 		   vec1[2] * vec2[0] - vec1[0] * vec2[2],

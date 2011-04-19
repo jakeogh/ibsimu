@@ -1,0 +1,119 @@
+/*! \file stl_solid.hpp
+ *  \brief %Solid definition using Stereolithography CAD format
+ */
+
+/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+ *
+ * You can redistribute this software and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ * 
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this library (file "COPYING" included in the package);
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * 
+ * If you have questions about your rights to use or distribute this
+ * software, please contact Berkeley Lab's Technology Transfer
+ * Department at TTD@lbl.gov. Other questions, comments and bug
+ * reports should be sent directly to the author via email at
+ * taneli.kalvas@jyu.fi.
+ * 
+ * NOTICE. This software was developed under partial funding from the
+ * U.S.  Department of Energy.  As such, the U.S. Government has been
+ * granted for itself and others acting on its behalf a paid-up,
+ * nonexclusive, irrevocable, worldwide license in the Software to
+ * reproduce, prepare derivative works, and perform publicly and
+ * display publicly.  Beginning five (5) years after the date
+ * permission to assert copyright is obtained from the U.S. Department
+ * of Energy, and subject to any subsequent five (5) year renewals,
+ * the U.S. Government is granted for itself and others acting on its
+ * behalf a paid-up, nonexclusive, irrevocable, worldwide license in
+ * the Software to reproduce, prepare derivative works, distribute
+ * copies to the public, perform publicly and display publicly, and to
+ * permit others to do so.
+ */
+
+#ifndef STLSOLID_HPP
+#define STLSOLID_HPP 1
+
+
+#include <iostream>
+#include "solid.hpp"
+#include "transformation.hpp"
+
+
+/*! \brief %STL solid
+ *
+ */
+class STLSolid : public Solid {
+
+    Transformation         _T;
+    class STLFile         *_stl;
+    
+public:
+
+    /*! \brief Constructor for making a solid reading a STL-file.
+     */
+    STLSolid( const std::string &filename );
+
+    /*! \brief Destructor.
+     */
+    virtual ~STLSolid();
+
+    /*! \brief Return if 3D point \a x in simulation space is inside
+     *  solid.
+     */
+    virtual bool inside( const Vec3D &x ) const;
+
+    /*! \brief Return a pointer to the STL-file.
+     */
+    class STLFile *get_stl_file( void ) const;
+
+    /*! \brief Print debugging information to os.
+     */
+    void debug_print( std::ostream &os ) const;
+
+    /*! \brief Translate solid.
+     */
+    void translate( const Vec3D &dx ) {
+        _T.translate( -1.0*dx );
+    }
+
+    /*! \brief Scale solid.
+     */
+    void scale( const Vec3D &sx ) {
+        _T.scale( Vec3D(1.0/sx[0], 1.0/sx[1], 1.0/sx[2]) );
+    }
+
+    /*! \brief Rotate solid around x-axis.
+     */
+    void rotate_x( double a ) {
+        _T.rotate_x( -a );
+    }
+
+    /*! \brief Rotate solid around y-axis.
+     */
+    void rotate_y( double a ) {
+        _T.rotate_y( -a );
+    }
+
+    /*! \brief Rotate solid around z-axis.
+     */
+    void rotate_z( double a ) {
+        _T.rotate_z( -a );
+    }
+
+    /*! \brief Saves solid data to stream.
+     */
+    virtual void save( std::ostream &s ) const;
+};
+
+
+#endif

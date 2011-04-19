@@ -1,3 +1,4 @@
+stl_SOURCES = stl.cpp
 beam2d_SOURCES = beam2d.cpp
 beam3d_SOURCES = beam3d.cpp
 beamcyl_SOURCES = beamcyl.cpp
@@ -12,6 +13,7 @@ emittanceconv_SOURCES = emittanceconv.cpp
 emittancedef2d_SOURCES = emittancedef2d.cpp
 emittancedef3d_SOURCES = emittancedef3d.cpp
 emittancedefcyl_SOURCES = emittancedefcyl.cpp
+export_path_manager_SOURCES = export_path_manager.cpp
 fileplot_SOURCES = fileplot.cpp
 fonts_SOURCES = fonts.cpp
 fielddiagplot_SOURCES = fielddiagplot.cpp
@@ -92,10 +94,12 @@ emittanceconv \
 emittancedef2d \
 emittancedef3d \
 emittancedefcyl \
+export_path_manager \
 fileplot \
 fielddiagplot \
 fonts \
 frame \
+stl \
 frame_extend_range \
 frame_increase_margin \
 geometry \
