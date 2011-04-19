@@ -274,7 +274,7 @@ STLFile::STLFile( const std::string &filename )
     if( !strncmp( buf, "Solid ", 6 ) ) {
 	_ascii = true;
 	ifstr.seekg( 0 );
-	throw( ErrorUnimplemented( ERROR_LOCATION, "Ascii STL file unimplemented" ) );
+	throw( ErrorUnimplemented( ERROR_LOCATION, "Ascii STL file reader unimplemented" ) );
     } else {
 	_ascii = false;
 	read_binary( ifstr );

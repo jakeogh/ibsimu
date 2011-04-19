@@ -2,7 +2,7 @@
  *  \brief DXF File
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -117,8 +117,9 @@ public:
      *
      *  If \a wlevel is set to zero, no warnings will be printed. With
      *  increasing \a wlevel more warning messages are printed to
-     *  standard output. With \a wlevel = 1 all unsupported features
-     *  are reported.
+     *  standard output. With \a wlevel >= 1 problems handling
+     *  entities are reported. With \a wlevel >= 2 all unsupported
+     *  features are reported.
      */
     void set_warning_level( int wlevel ) { _wlevel = wlevel; }
 
@@ -236,6 +237,15 @@ public:
     /*! \brief Get a const pointer to the blocks of DXF file.
      */
     const class MyDXFBlocks *get_blocks( void ) const { return( _blocks ); };
+
+
+    /*! \brief Get a pointer to the tables of DXF file.
+     */
+    class MyDXFTables *get_tables( void ) { return( _tables ); };
+
+    /*! \brief Get a const pointer to the tables of DXF file.
+     */
+    const class MyDXFTables *get_tables( void ) const { return( _tables ); };
 
 
 

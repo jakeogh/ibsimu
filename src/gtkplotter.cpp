@@ -42,6 +42,7 @@
 
 #include <sstream>
 #include "ibsimu.hpp"
+#include "error.hpp"
 #include "gtkplotter.hpp"
 #include "gtkwindow.hpp"
 #include "gtkgeomwindow.hpp"
@@ -64,7 +65,7 @@ GTKPlotter::GTKPlotter( int *argc, char ***argv )
 {
     if( !_gtk_initialized ) {
 	if( gtk_init_check( argc, argv ) == FALSE )
-	    throw( (int)1 );
+	    throw( Error( ERROR_LOCATION, "Couldn't initialize GTK\n" ) );
 	_gtk_initialized = true;
     }
 }

@@ -2,7 +2,7 @@
  *  \brief DXF Tables 
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -51,13 +51,13 @@
  * DXF Entry                                                                  *
  * ************************************************************************** */
 
-MyDXFEntry::MyDXFEntry()
+MyDXFTableEntry::MyDXFTableEntry()
 {
 
 }
 
 
-void MyDXFEntry::process_group( class MyDXFFile *dxf )
+void MyDXFTableEntry::process_group( class MyDXFFile *dxf )
 {
     if( dxf->group_get_code() == 5 || dxf->group_get_code() == 105 )
 	_handle = dxf->group_get_string();
@@ -66,9 +66,9 @@ void MyDXFEntry::process_group( class MyDXFFile *dxf )
 }
 
 
-void MyDXFEntry::write_common( class MyDXFFile *dxf, std::ofstream &ostr )
+void MyDXFTableEntry::write_common( class MyDXFFile *dxf, std::ofstream &ostr )
 {
-    //if( dynamic_cast<MyDXFEntry_DimStyle *>( this ) )
+    //if( dynamic_cast<MyDXFTableEntryDimStyle *>( this ) )
     //dxf->write_group( 105, _handle.c_str() );
     //else
     dxf->write_group( 5, _handle.c_str() );
@@ -76,14 +76,14 @@ void MyDXFEntry::write_common( class MyDXFFile *dxf, std::ofstream &ostr )
 }
 
 
-void MyDXFEntry::debug_print_common( std::ostream &os ) const
+void MyDXFTableEntry::debug_print_common( std::ostream &os ) const
 {
     os << "  handle = \'" << _handle << "\'\n";
     os << "  handle_to_owner = \'" << _handle_to_owner << "\'\n";
 }
 
 
-std::ostream &operator<<( std::ostream &os, const MyDXFEntry &e )
+std::ostream &operator<<( std::ostream &os, const MyDXFTableEntry &e )
 {
     e.debug_print( os );
     e.debug_print_common( os );
@@ -95,7 +95,7 @@ std::ostream &operator<<( std::ostream &os, const MyDXFEntry &e )
  * DXF Entry BlockRecord                                                      *
  * ************************************************************************** */
 
-MyDXFEntry_BlockRecord::MyDXFEntry_BlockRecord( class MyDXFFile *dxf )
+MyDXFTableEntryBlockRecord::MyDXFTableEntryBlockRecord( class MyDXFFile *dxf )
     : _units(0), _explodability(0), _scalability(0)
 {
     while( dxf->read_group() != -1 ) {
@@ -121,13 +121,13 @@ MyDXFEntry_BlockRecord::MyDXFEntry_BlockRecord( class MyDXFFile *dxf )
 }
 
 
-MyDXFEntry_BlockRecord::~MyDXFEntry_BlockRecord()
+MyDXFTableEntryBlockRecord::~MyDXFTableEntryBlockRecord()
 {
 
 }
 
 
-void MyDXFEntry_BlockRecord::write( class MyDXFFile *dxf, std::ofstream &ostr )
+void MyDXFTableEntryBlockRecord::write( class MyDXFFile *dxf, std::ofstream &ostr )
 {
     dxf->write_group( 0, "BLOCK_RECORD" );
     write_common( dxf, ostr );
@@ -143,7 +143,7 @@ void MyDXFEntry_BlockRecord::write( class MyDXFFile *dxf, std::ofstream &ostr )
 }
 
 
-void MyDXFEntry_BlockRecord::debug_print( std::ostream &os ) const
+void MyDXFTableEntryBlockRecord::debug_print( std::ostream &os ) const
 {
     os << "  name = \'" << _name << "\'\n";
     os << "  units = " << _units << "\n";
@@ -157,7 +157,7 @@ void MyDXFEntry_BlockRecord::debug_print( std::ostream &os ) const
  * DXF Entry Layer                                                            *
  * ************************************************************************** */
 
-MyDXFEntry_Layer::MyDXFEntry_Layer( class MyDXFFile *dxf )
+MyDXFTableEntryLayer::MyDXFTableEntryLayer( class MyDXFFile *dxf )
     : _flags(0), _color(0), _plotting(true), _lineweight(0)
 {
     while( dxf->read_group() != -1 ) {
@@ -189,13 +189,13 @@ MyDXFEntry_Layer::MyDXFEntry_Layer( class MyDXFFile *dxf )
 }
 
 
-MyDXFEntry_Layer::~MyDXFEntry_Layer()
+MyDXFTableEntryLayer::~MyDXFTableEntryLayer()
 {
 
 }
 
 
-void MyDXFEntry_Layer::write( class MyDXFFile *dxf, std::ofstream &ostr )
+void MyDXFTableEntryLayer::write( class MyDXFFile *dxf, std::ofstream &ostr )
 {
     dxf->write_group( 0, "LAYER" );
     write_common( dxf, ostr );
@@ -214,7 +214,7 @@ void MyDXFEntry_Layer::write( class MyDXFFile *dxf, std::ofstream &ostr )
 }
 
 
-void MyDXFEntry_Layer::debug_print( std::ostream &os ) const
+void MyDXFTableEntryLayer::debug_print( std::ostream &os ) const
 {
     os << "  name = \'" << _name << "\'\n";
     os << "  linetype = \'" << _linetype << "\'\n";
@@ -245,9 +245,9 @@ MyDXFTable::MyDXFTable( const std::string &name, class MyDXFFile *dxf )
 		break; // Done with table
 	    if( dxf->group_get_string() == _name ) {
 		if( dxf->group_get_string() == "BLOCK_RECORD" ) 
-		    _entries.push_back( new MyDXFEntry_BlockRecord( dxf ) );
+		    _entries.push_back( new MyDXFTableEntryBlockRecord( dxf ) );
 		else if( dxf->group_get_string() == "LAYER" ) 
-		    _entries.push_back( new MyDXFEntry_Layer( dxf ) );
+		    _entries.push_back( new MyDXFTableEntryLayer( dxf ) );
 		else
 		    throw Error( ERROR_LOCATION, "Error reading table entry on line " + 
 				 to_string(dxf->linec()) );
@@ -348,7 +348,7 @@ MyDXFTables::MyDXFTables( class MyDXFFile *dxf )
 		_layer = new MyDXFTable( "LAYER", dxf );
 	    else {
 		// Unknown table
-		if( dxf->wlevel() )
+		if( dxf->wlevel() >= 2 )
 		    std::cout << "Skipping unknown table \'" << dxf->group_get_string() << "\'\n";
 
 		while( dxf->read_group() != -1 ) {

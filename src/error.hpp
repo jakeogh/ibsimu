@@ -253,7 +253,7 @@ public:
 
     /*! \brief Constructor for error message for two dimensional indexing error.
      *
-     *  The index \a i is supposed to be smaller than \a n and \j
+     *  The index \a i is supposed to be smaller than \a n and \a j
      *  smaller than \a m.
      */
     ErrorRange( const ErrorLocation &loc, 

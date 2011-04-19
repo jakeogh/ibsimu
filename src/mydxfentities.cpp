@@ -1574,7 +1574,7 @@ MyDXFEntities::MyDXFEntities( class MyDXFFile *dxf, bool reading_blocks )
 	} else if( dxf->group_get_string() == "LWPOLYLINE" ) {
 	    _entities.push_back( new MyDXFLWPolyline( dxf ) );
 	} else {
-	    if( dxf->wlevel() )
+	    if( dxf->wlevel() >= 2 )
 		std::cout << "Skipping unknown entity \'" << dxf->group_get_string() << "\'\n";
 	    dxf->read_group();
 	}

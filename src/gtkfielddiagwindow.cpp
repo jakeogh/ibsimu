@@ -75,7 +75,6 @@ GTKFieldDiagWindow::GTKFieldDiagWindow( GTKPlotter *plotter, const Geometry *geo
 	// Destroy window
 	gtk_widget_destroy( _window );
 	//plotter->delete_window( this ); Didn't work, still got window and pressing 'X' caused seg fault
-
 	throw e;
     }
     _frame.get_ranges( PLOT_AXIS_X1, _x1min, _x1max );

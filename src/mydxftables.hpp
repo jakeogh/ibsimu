@@ -2,7 +2,7 @@
  *  \brief DXF Tables
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -52,7 +52,7 @@
 
 /*! \brief DXF table entry
  */
-class MyDXFEntry
+class MyDXFTableEntry
 {
 
     std::string _handle;           // 5 (for others) or 105 (for DIMSTYLE)
@@ -62,7 +62,7 @@ protected:
 
     /*! \brief Constructor.
      */
-    MyDXFEntry();
+    MyDXFTableEntry();
 
     /*! \brief Process group not belonging to the child entry.
      */
@@ -80,24 +80,24 @@ public:
 
     /*! \brief Virtual destructor.
      */
-    virtual ~MyDXFEntry() {};
+    virtual ~MyDXFTableEntry() {};
 
     /*! \brief Write dxf file to stream.
      */
     virtual void write( class MyDXFFile *dxf, std::ofstream &ostr ) = 0;
 
-    /*! \brief Debug print.
+    /*! \brief Print debugging information to os.
      */
     virtual void debug_print( std::ostream &os ) const = 0;
     
-    friend std::ostream &operator<<( std::ostream &os, const MyDXFEntry &e );
+    friend std::ostream &operator<<( std::ostream &os, const MyDXFTableEntry &e );
 };
 
 
 
 /*! \brief DXF table entry for block record table.
  */
-class MyDXFEntry_BlockRecord : public MyDXFEntry
+class MyDXFTableEntryBlockRecord : public MyDXFTableEntry
 {
 
     std::string _name;             // 2
@@ -110,17 +110,17 @@ public:
 
     /*! \brief Construct entry by reading from DXF file.
      */
-    MyDXFEntry_BlockRecord( class MyDXFFile *dxf );
+    MyDXFTableEntryBlockRecord( class MyDXFFile *dxf );
 
     /*! \brief Virtual destructor.
      */
-    virtual ~MyDXFEntry_BlockRecord();
+    virtual ~MyDXFTableEntryBlockRecord();
 
     /*! \brief Write dxf file to stream.
      */
     virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
 
-    /*! \brief Debug print.
+    /*! \brief Print debugging information to os.
      */
     virtual void debug_print( std::ostream &os ) const;
 };
@@ -129,7 +129,7 @@ public:
 
 /*! \brief DXF table entry for layer table.
  */
-class MyDXFEntry_Layer : public MyDXFEntry
+class MyDXFTableEntryLayer : public MyDXFTableEntry
 {
 
     std::string _name;             // 2
@@ -146,17 +146,25 @@ public:
 
     /*! \brief Construct entry by reading from DXF file.
      */
-    MyDXFEntry_Layer( class MyDXFFile *dxf );
+    MyDXFTableEntryLayer( class MyDXFFile *dxf );
 
     /*! \brief Virtual destructor.
      */
-    virtual ~MyDXFEntry_Layer();
+    virtual ~MyDXFTableEntryLayer();
+
+    /*! \brief Return layer name
+     */
+    const std::string &name( void ) const { return( _name ); }
+
+    /*! \brief Return layer name
+     */
+    void set_name( const std::string &name ) { _name = name; }
 
     /*! \brief Write dxf file to stream.
      */
     virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
 
-    /*! \brief Debug print.
+    /*! \brief Print debugging information to os.
      */
     virtual void debug_print( std::ostream &os ) const;
 };
@@ -171,17 +179,31 @@ class MyDXFTable
     std::string               _handle;          // 5
     std::string               _handle_to_owner; // 330
 
-    std::vector<MyDXFEntry *> _entries;         // 70 (size)
+    std::vector<MyDXFTableEntry *> _entries;         // 70 (size)
 
 public:
 
     MyDXFTable( const std::string &name, class MyDXFFile *dxf );
     ~MyDXFTable();
 
+    /*! \brief Return number of table entries.
+     */
+    uint32_t size() const { return( _entries.size() ); }
+
+    /*! \brief Return const pointer to entry \a a.
+     */
+    const MyDXFTableEntry *get_entry( uint32_t a ) const { return( _entries[a] ); }
+
+    /*! \brief Return pointer to entry \a a.
+     */
+    MyDXFTableEntry *get_entry( uint32_t a ) { return( _entries[a] ); }
+
     /*! \brief Write dxf file to stream.
      */
     void write( class MyDXFFile *dxf, std::ofstream &ostr );
 
+    /*! \brief Print debugging information to os.
+     */
     void debug_print( std::ostream &os ) const;
 };
 
@@ -201,6 +223,14 @@ public:
 
     MyDXFTables( class MyDXFFile *dxf );
     ~MyDXFTables();
+
+    /*! \brief Return const pointer to layers table.
+     */
+    const MyDXFTable *get_layers_table( void ) const { return( _layer ); }
+
+    /*! \brief Return pointer to layers table.
+     */
+    MyDXFTable *get_layers_table( void ) { return( _layer ); }
 
     /*! \brief Write dxf file to stream.
      */

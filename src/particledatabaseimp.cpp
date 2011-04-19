@@ -1,4 +1,4 @@
-/*! \file particledatabase.cpp
+/*! \file particledatabaseimp.cpp
  *  \brief Particle database implementation
  */
 
