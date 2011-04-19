@@ -55,10 +55,11 @@
 
 ParticleDataBaseImp::ParticleDataBaseImp()
     : _epsabs(1e-6), _epsrel(1e-6), _polyint(true), _maxsteps(1000), 
-      _maxt(1e-3), _trajdiv(1), _rhosum(0.0), _iteration(-1), 
+      _maxt(1e-3), _trajdiv(1), _rhosum(0.0), _iteration(0), 
       _bfield_suppression(NULL), _trajhand(NULL)
 {
-    
+    for( size_t a = 0; a < 6; a++ )
+	_mirror[a] = false;
 }
 
 
@@ -1273,11 +1274,18 @@ void ParticleDataBase3DImp::export_path_manager_data( std::string filename,
     p.normalize();
     q.normalize();
 
+    // Calculate reference particle
+    ref_m *= MASS_U;
+    double ref_v = sqrt(2.0*ref_E*CHARGE_E/ref_m);
+    double ref_p = ref_m*ref_v;
+    const double m_to_gevc2 = SPEED_C*SPEED_C/CHARGE_E/1.0e9;
+    const double p_to_gevc = SPEED_C/CHARGE_E/1.0e9;
+
     if( ibsimu.get_verbose_output() ) {
 	std::cout << "Making trajectory diagnostics at plane for Path Manager output\n" 
 		  << "  ref_E = " << ref_E << " eV\n"
 		  << "  ref_q = " << ref_q << " e\n"
-		  << "  ref_m = " << ref_m << " u\n"
+		  << "  ref_m = " << ref_m/MASS_U << " u\n"
 		  << "  c = " << c << "\n"
 		  << "  o = " << o << "\n"
 		  << "  p = " << p << "\n"
@@ -1288,13 +1296,6 @@ void ParticleDataBase3DImp::export_path_manager_data( std::string filename,
     std::ofstream ofile( filename.c_str() );
     if( !ofile.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\'" ) );
-
-    // Calculate reference particle
-    ref_m *= MASS_U;
-    double ref_v = sqrt(2.0*ref_E*CHARGE_E/ref_m);
-    double ref_p = ref_m*ref_v;
-    const double m_to_gevc2 = SPEED_C*SPEED_C/CHARGE_E/1.0e9;
-    const double p_to_gevc = SPEED_C/CHARGE_E/1.0e9;
 
     // Scan through particle trajectory points and build data
     std::vector<double> data[7]; // x, x', y, y', dp/p, q, m
@@ -1365,7 +1366,7 @@ void ParticleDataBase3DImp::export_path_manager_data( std::string filename,
 		data[1].push_back( vel_opq[0]/vel_opq[2] );       // x' (rad)
 		data[2].push_back( pos_opq[1] );                  // y (m)
 		data[3].push_back( vel_opq[1]/vel_opq[2] );       // y' (rad)
-		data[4].push_back( (pm*pos_opq[2]-ref_p)/ref_p ); // dp/p
+		data[4].push_back( (pm*vel_opq[2]-ref_p)/ref_p ); // (p_z-p_ref)/p_ref
 		data[5].push_back( pq/CHARGE_E );                 // q (in e)
 		data[6].push_back( pm*m_to_gevc2 );               // m (in GeV/c2)
 
@@ -1383,24 +1384,24 @@ void ParticleDataBase3DImp::export_path_manager_data( std::string filename,
     ctime_r( &tt, timebuf );
     ofile << "Beam data from IBSimu, " << timebuf; // contains newline
     ofile << "Total beam: " << Isum << " A\n";
-    ofile << std::setw(12) << ref_p*p_to_gevc  << " !REFERENCE MOMENTUM [GeV/c]\n";
-    ofile << std::setw(12) << 0.0              << " !REFERENCE PHASE [rad]\n";
-    ofile << std::setw(12) << 0.0              << " !FREQUENCY [Hz]\n";
-    ofile << std::setw(12) << ref_m*m_to_gevc2 << " !REFERENCE MASS [GeV/c2]\n";
-    ofile << std::setw(12) << ref_q            << " !REFERENCE CHARGE STATE\n";
-    ofile << std::setw(12) << data[0].size()   << " !NUMBER OF PARTICLES\n";
+    ofile << std::setw(17) << ref_p*p_to_gevc  << " !REFERENCE MOMENTUM [GeV/c]\n";
+    ofile << std::setw(17) << 0.0              << " !REFERENCE PHASE [rad]\n";
+    ofile << std::setw(17) << 0.0              << " !FREQUENCY [Hz]\n";
+    ofile << std::setw(17) << ref_m*m_to_gevc2 << " !REFERENCE MASS [GeV/c2]\n";
+    ofile << std::setw(17) << ref_q            << " !REFERENCE CHARGE STATE\n";
+    ofile << std::setw(17) << data[0].size()   << " !NUMBER OF PARTICLES\n";
 
     for( size_t a = 0; a < data[0].size(); a++ ) {	
-	ofile << std::setw(13) << a << " ";       // particle number
-	ofile << std::setw(13) << std::scientific << std::setprecision(9) << data[0][a] << " "; // x
-	ofile << std::setw(13) << std::scientific << std::setprecision(9) << data[1][a] << " "; // x'
-	ofile << std::setw(13) << std::scientific << std::setprecision(9) << data[2][a] << " "; // y
-	ofile << std::setw(13) << std::scientific << std::setprecision(9) << data[3][a] << " "; // y'
-	ofile << std::setw(13) << std::scientific << std::setprecision(9) << -M_PI + 2.0*M_PI*rand() / RAND_MAX << " "; // phase
-	ofile << std::setw(13) << std::scientific << std::setprecision(9) << data[4][a] << " "; // dp/p
-	ofile << std::setw(13) << 0 << " "; // flag (alive=0)
-	ofile << std::setw(13) << std::scientific << std::setprecision(9) << data[5][a] << " "; // q
-	ofile << std::setw(13) << std::scientific << std::setprecision(9) << data[6][a] << " "; // m
+	ofile << std::setw(17) << a << " ";       // particle number
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << data[0][a] << " "; // x
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << data[1][a] << " "; // x'
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << data[2][a] << " "; // y
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << data[3][a] << " "; // y'
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << -M_PI + 2.0*M_PI*rand() / RAND_MAX << " "; // phase
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << data[4][a] << " "; // dp/p
+	ofile << std::setw(17) << 0 << " "; // flag (alive=0)
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << data[5][a] << " "; // q
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << data[6][a] << " "; // m
 	ofile << "\n";
     }
 

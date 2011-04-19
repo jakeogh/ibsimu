@@ -293,6 +293,10 @@ public:
 			     bool (*plasma_func)(double,double,double) );
 
     /*! \brief Enable plasma model for positive ion extraction problem.
+     *
+     *  Enable plasma model with background electron charge density of
+     *  \a rhoe and electron temperature \a Te. The plasma potential
+     *  is set to \a Up.
      */
     void set_pexp_plasma( double rhoe, double Te, double Up );
 

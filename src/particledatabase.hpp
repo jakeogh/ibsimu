@@ -245,6 +245,8 @@ public:
      *  If \a div is zero, no trajectories are saved.
      *  If \a div is one, every trajectory is saved.
      *  If \a div N>1, every Nth trajectory is saved.
+     *
+     *  By default, all trajectories are saved.
      */
     void set_save_trajectories( uint32_t div );
 
@@ -261,6 +263,8 @@ public:
      *  Mirroring is set for (xmin,xmax,ymin,ymax,zmin,zmax)
      *  borders. Mirroring is always false for directions that do not
      *  exist.
+     *
+     *  By default, mirroring is disabled for all boundaries.
      */
     void set_mirror( const bool mirror[6] );
 
@@ -976,8 +980,15 @@ public:
      *
      *  The particle properties on the diagnostics plane are written
      *  to file \a filename in the format required by the Path Manager
-     *  program. Reference particle has energy \a ref_E, charge state
-     *  \a ref_q and mass \a ref_m (in atomic mass units).
+     *  program. Reference particle for the output has energy \a ref_E
+     *  (in eV), charge state \a ref_q and mass \a ref_m (in atomic
+     *  mass units).
+     *
+     *  The file contains a header with information about the
+     *  reference particle. After the header, the file has a line for
+     *  each particle, which contain the following columns: \a x, \a
+     *  x', \a y, \a y', \a phase, \a (p_z-p_ref)/p_ref, \a 0-flag, \a
+     *  q, \a m.
      */
     void export_path_manager_data( std::string filename, 
 				   double ref_E, double ref_q, double ref_m, 

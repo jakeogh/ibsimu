@@ -112,20 +112,41 @@ public:
      */
     GeomPlot( Frame *frame, const Geometry *geom );
 
+    /*! \brief Destructor for geometry plotter.
+     */
     ~GeomPlot();
 
+    /*! \brief Disable plotting caches from use.
+     *
+     *  Used by the interactive plotter.
+     */
     void disable_cache( void );
 
+    /*! \brief Set the electric potential field.
+     */
     void set_epot( const ScalarField *epot );
 
+    /*! \brief Set a vector of manual equipotential lines.
+     */
     void set_eqlines_manual( const std::vector<double> &pot );
 
+    /*! \brief Get a vector of manual equipotential lines.
+     */
     std::vector<double> get_eqlines_manual( void ) const {
 	return( _eqlines_manual );
     }
 
+    /*! \brief Set the number of automatic equipotential lines.
+     *
+     *  The automatic lines are plotted at potentials pot = min +
+     *  (i+0.5)*(max-min)/N ), where i is running from 0 to N and min
+     *  is the minimum potential in the system and max is the maximum
+     *  potential in the system.
+     */
     void set_eqlines_auto( size_t N );
 
+    /*! \brief Get the number of automatic equipotential lines.
+     */
     size_t get_eqlines_auto( void ) const {
 	return( _eqlines_auto );
     }
@@ -182,26 +203,53 @@ public:
 	return( _fieldplot_logscale );
     }
 
+    /*! \brief Set particle database used for particle plotting.
+     */
     void set_particle_database( const ParticleDataBase *pdb ) {
 	set_particledatabase( pdb );
     }
 
+    /*! \brief Set particle database used for particle plotting.
+     */
     void set_particledatabase( const ParticleDataBase *pdb );
 
+    /*! \brief Set particle divisor.
+     *
+     *  Zero for no plotting, one for plotting every particle, two for
+     *  plotting every second particle, three for plotting every
+     *  third particle, etc. Defaults to 10.
+     */
     void set_particle_div( size_t particle_div );
 
+    /*! \brief Get particle divisor.
+     */
     size_t get_particle_div( void ) const {
 	return( _particle_div );
     }
 
+    /*! \brief Set q/m particle discretation.
+     *
+     *  If enabled, the different q/m values will be plotted with
+     *  different colors. Otherwise, all particles are plotted with
+     *  same color.
+     */
     void set_qm_discretation( bool enable );
 
+    /*! \brief Get q/m particle discretation.
+     */
     bool get_qm_discretation( void ) const {
 	return( _qm_discretation );
     }
 
+    /*! \brief Set mesh plotting.
+     *
+     *  If enabled, the mesh squares are plotted. Mesh plotting is
+     *  disabled by default.
+     */
     void set_mesh( bool enable );
 
+    /*! \brief Get mesh plotting.
+     */
     bool get_mesh( void ) const {
 	return( _mesh );
     }
@@ -215,22 +263,32 @@ public:
      */
     void set_view( view_e view, int level = -1 );
 
+    /*! \brief Get view.
+     */
     view_e get_view( void ) const {
 	return( _view );
     }
 
+    /*! \brief Get level of view in mesh squares.
+     */
     int get_level( void ) const {
 	return( _level );
     }
 
+    /*! \brief Get level of view in SI units.
+     */
     double get_level_si( void ) const {
 	return( _geom->origo(_vb[2])+_level*_geom->h() );
     }
 
+    /*! \brief Get component \a i of view base vector.
+     */
     int vb( int i ) const {
 	return( _vb[i] );
     }
 
+    /*! \brief Get the view base vector.
+     */
     void get_vb( int vb[3] ) const {
 	vb[0] = _vb[0];
 	vb[1] = _vb[1];
@@ -241,8 +299,3 @@ public:
 
 
 #endif
-
-
-
-
-

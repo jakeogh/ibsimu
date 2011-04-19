@@ -122,10 +122,10 @@ public:
     /*! \brief Define mapping from 3D space to 2D space.
      *
      *  The mapping function can be user defined or one of the
-     *  predefined functions: unity() or rotx(). The mapping function
-     *  can return a vector with NaN components for guaranteed inside
-     *  solid result. Similarly infinity is guaranteed to give free
-     *  space result.
+     *  predefined functions: unity(), rotx(), roty() or rotz(). The
+     *  mapping function can return a vector with NaN components for
+     *  guaranteed inside solid result. Similarly infinity is
+     *  guaranteed to give free space result.
      */
     void define_2x3_mapping( Vec3D (*func)(const Vec3D &) );
 
