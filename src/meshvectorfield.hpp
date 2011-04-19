@@ -44,6 +44,7 @@
 #define MESHVECTORFIELD_HPP 1
 
 
+#include "transformation.hpp"
 #include "vectorfield.hpp"
 #include "mesh.hpp"
 #include "types.hpp"
@@ -76,8 +77,9 @@ class MeshVectorField : public VectorField, public Mesh {
 				  *   is not stored.
 				  */
 
-    void transform( int ind[3] );
-    
+    Transformation   _T;         /*!< \brief Field transformation. */
+    Transformation   _Tinv;      /*!< \brief Field transformation inversed. */
+
     void check_definition();
 
 public:
@@ -176,25 +178,41 @@ public:
 	memcpy( _extrpl, extrpl, 6*sizeof(field_extrpl_e) );
     }
 
-    /*! \brief Translate field in coordinate system.
+    /*! \brief Set transformation to unity.
      */
-    void translate( Vec3D x );
+    void reset_transformation( void );
 
-    /*! \brief Scale field in coordinate system.
+    /*! \brief Set transformation as a copy of \a T.
      */
-    void scale( double s );
+    void set_transformation( const Transformation &T );
 
-    /*! \brief Rotate field in coordinate system around x-axis.
+    /*! \brief Translate field.
      */
-    void rotate_x( int a );
+    void translate( const Vec3D &dx );
 
+    /*! \brief Scale field.
+     */
+    void scale( const Vec3D &sx );
+
+    /*! \brief Rotate solid around x-axis.
+     *
+     *  Rotate around x-axis for \a a radians.
+     */
+    void rotate_x( double a );
+
+    /*! \brief Rotate solid around y-axis.
+     *
+     *  Rotate around y-axis for \a a radians.
+     */
     /*! \brief Rotate field in coordinate system around y-axis.
      */
-    void rotate_y( int a );
+    void rotate_y( double a );
 
-    /*! \brief Rotate field in coordinate system around z-axis.
+    /*! \brief Rotate solid around z-axis.
+     *
+     *  Rotate around z-axis for \a a radians.
      */
-    void rotate_z( int a );
+    void rotate_z( double a );
 
     /*! \brief Clears the field.
      */
@@ -202,8 +220,9 @@ public:
 
     /*! \brief Resets the field geometry.
      *
-     *  Sets the field geometry according to the parameters and clears
-     *  the field to zero in all locations.
+     *  Sets the field mesh geometry according to the parameters,
+     *  clears the field to zero in all locations and resets the
+     *  transformation.
      */
     void reset( geom_mode_e geom_mode, const bool fout[3], Int3D size, 
 		Vec3D origo, double h );

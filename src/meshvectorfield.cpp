@@ -285,15 +285,61 @@ MeshVectorField::~MeshVectorField()
 }
 
 
-void MeshVectorField::translate( Vec3D x )
+void MeshVectorField::reset_transformation( void )
 {
-    // Translate origo
-    _origo += x;
-
-    // Translate max
-    _max += x;
+    _T.reset();
+    _Tinv.reset();
 }
 
+
+void MeshVectorField::set_transformation( const Transformation &T )
+{
+    _T = T;
+    _Tinv = T.inverse();
+}
+
+
+void MeshVectorField::translate( const Vec3D &dx )
+{
+    _Tinv = _Tinv * Transformation::translation( -dx );
+    _T.translate( dx );
+}
+
+
+void MeshVectorField::scale( const Vec3D &sx )
+{
+    _Tinv = _Tinv * Transformation::scaling( Vec3D(1.0/sx[0], 1.0/sx[1], 1.0/sx[2]) );
+    _T.scale( sx );
+}
+
+
+void MeshVectorField::rotate_x( double a )
+{
+    _Tnv = _Tinv * Transformation::rotation_x( -a );
+    _T.rotate_x( a );
+}
+
+
+void MeshVectorField::rotate_y( double a )
+{
+    _Tinv = _Tinv * Transformation::rotation_y( -a );
+    _T.rotate_y( a );
+}
+
+
+void MeshVectorField::rotate_z( double a )
+{
+    _Tinv = _Tinv * Transformation::rotation_z( -a );
+    _T.rotate_z( a );
+}
+
+
+/* Old implementation for translate/rotation/scale
+void MeshVectorField::translate( Vec3D x )
+{
+    _origo += x;
+    _max += x;
+}
 
 void MeshVectorField::transform( int ind[3] )
 {
@@ -452,6 +498,7 @@ void MeshVectorField::rotate_z( int a )
 	throw( Error( ERROR_LOCATION, "rotation angle not a multiple of 90.0" ) );
     }
 }
+*/
 
 
 void MeshVectorField::clear()
@@ -464,10 +511,12 @@ void MeshVectorField::clear()
 
 
 void MeshVectorField::reset( geom_mode_e geom_mode, const bool fout[3], Int3D size, 
-			 Vec3D origo, double h )
+			     Vec3D origo, double h )
 {
     Mesh::reset( geom_mode, size, origo, h );
     check_definition();
+    _T.reset();
+    _Tinv.reset();
 
     for( size_t i = 0; i < 3; i++ ) {
 	if( _F[i] != NULL )
@@ -655,6 +704,9 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 
     if( _size[0] == 0 )
 	return( R );
+
+    // Transform input coordinate
+    x = _Tinv.transform_point( x );
 
     switch( _geom_mode ) {
     case MODE_1D:
@@ -904,6 +956,9 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 	break;
     }
     }
+
+    // Transform output vector
+    R = _T.transform_vector( R );
 
     return( R );
 }
