@@ -263,8 +263,10 @@ double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xou
     int a;
     double pdist;
     for( a = 0; a < 3; a++ ) {
-	if( xin[a] != xout[a] )
+	if( xin[a] != xout[a] ) {
 	    pdist = (xsurf[a] - xin[a]) / (xout[a] - xin[a]);
+	    break;
+	}
     }
     if( a == 3 ) 
 	throw( Error( ERROR_LOCATION, "xin and xout are the same point" ) );
