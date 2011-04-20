@@ -208,7 +208,7 @@ void GeomPlot::set_fieldgraph_plot( field_type_e fieldplot )
 	// No fieldgraph defined
 	break;
     default:
-	throw( ErrorUnimplemented( ERROR_LOCATION, "Unimplemented field plottingd" ) );
+	throw( ErrorUnimplemented( ERROR_LOCATION, "Unimplemented field plotting" ) );
 	break;
     }
 

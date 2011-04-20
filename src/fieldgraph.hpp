@@ -49,6 +49,8 @@
 #include "scalarfield.hpp"
 #include "colormap.hpp"
 #include "geometry.hpp"
+#include "vectorfield.hpp"
+#include "types.hpp"
 
 
 /*! \brief Class for drawing fields with colormap
@@ -57,7 +59,10 @@
  */
 class FieldGraph : public Graph3D {
 
+    field_type_e            _field_type;      /*!< \brief Field type used. */
+    const Geometry         *_geom;            /*!< \brief Geometry. */
     const ScalarField      *_scalarfield;     /*!< \brief Scalarfield for plotting. */
+    const VectorField      *_vectorfield;     /*!< \brief Vectorfield for plotting. */    
     Colormap               *_colormap;        /*!< \brief Colormap for field plot. */
 
     view_e                  _oview;
@@ -67,12 +72,17 @@ class FieldGraph : public Graph3D {
     bool                    _logscale;        /*!< \brief Logarithmic scaling */
 
     void build_scalarfield_plot( void );
+    void build_vectorfield_plot( void );
 
 public:
 
     /*! \brief Constructor for plotting ScalarField.
      */
     FieldGraph( const ScalarField *field );
+
+    /*! \brief Constructor for plotting a VectorField \a field in geometry \a geom.
+     */
+    FieldGraph( const Geometry *geom, const VectorField *field, field_type_e field_type );
 
     /*! \brief Destructor.
      */

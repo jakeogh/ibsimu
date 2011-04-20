@@ -248,7 +248,7 @@ double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xou
     Vec3D xh = xout;
 
     // Do iteration
-    for( int a = 0; a < 12; a++ ) {
+    for( int a = 0; a < 8; a++ ) {
 	xsurf = 0.5*(xl+xh);
 	if( inside( n, xsurf ) )
 	    xl = xsurf;
@@ -260,13 +260,20 @@ double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xou
     xsurf = 0.5*(xl+xh);
 
     // Return parametric distance
-    for( int a = 0; a < 3; a++ ) {
+    int a;
+    double pdist;
+    for( a = 0; a < 3; a++ ) {
 	if( xin[a] != xout[a] )
-	    return( (xsurf[a] - xin[a]) / (xout[a] - xin[a]) );
+	    pdist = (xsurf[a] - xin[a]) / (xout[a] - xin[a]);
     }
+    if( a == 3 ) 
+	throw( Error( ERROR_LOCATION, "xin and xout are the same point" ) );
+    if( pdist <= 0.0 )
+	throw( Error( ERROR_LOCATION, "pdist <= 0.0" ) );
+    if( pdist >= 1.0 )
+	throw( Error( ERROR_LOCATION, "pdist >= 1.0" ) );
 
-    // If endpoints are the same, return zero
-    return( 0.0 );
+    return( pdist );
 }
 
 

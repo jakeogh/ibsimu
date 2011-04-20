@@ -45,9 +45,18 @@
 
 
 FieldGraph::FieldGraph( const ScalarField *field )
-    : _scalarfield(field), _colormap(NULL), _enabled(true)
+    : _field_type(FIELD_NONE), _geom(NULL), _scalarfield(field), _vectorfield(NULL), 
+      _colormap(NULL), _enabled(true)
 {
     
+}
+
+
+FieldGraph::FieldGraph( const Geometry *geom, const VectorField *field, field_type_e field_type )
+    : _field_type(field_type), _geom(geom), _scalarfield(NULL), _vectorfield(field), 
+      _colormap(NULL), _enabled(true)
+{
+
 }
 
 
@@ -66,66 +75,106 @@ void FieldGraph::enable( bool enable )
 }
 
 
+void FieldGraph::build_vectorfield_plot( void )
+{
+    if( !_vectorfield )
+	return;
+    /*
+    // Build data for colormap based on geometry size
+    double range[4] = { _geom->origo( _vb[0] ),
+			_geom->origo( _vb[1] ),
+			_geom->max  ( _vb[0] ),
+			_geom->max  ( _vb[1] ) };
+    size_t n = _geom->size( _vb[0] );
+    size_t m = _geom->size( _vb[1] );
+
+    std::vector<double> data;
+    data.reserve( n*m );
+    size_t ind[3];
+    double loc[3];
+    ind[_vb[2]] = _level;
+    loc[_vb[2]] = _geom->origo(_vb[2]) +_level
+    for( size_t j = 0; j < m; j++ ) {
+	ind[_vb[1]] = j;
+	for( size_t i = 0; i < n; i++ ) {
+	    ind[_vb[0]] = i;
+
+	    // Make data for point (ind[0], ind[1], ind[2])
+	    data.push_back( (*_scalarfield)( ind[0], ind[1], ind[2] ) );
+	}
+    }
+
+    // Set up colormap
+    _colormap = new Colormap( range, n, m, data );
+    double zmin, zmax;
+    _scalarfield->get_minmax( zmin, zmax );
+    _colormap->set_zrange( zmin, zmax );
+    double zspan = zmax - zmin;
+    */
+
+}
+
+
 void FieldGraph::build_scalarfield_plot( void )
 {
-    if( _scalarfield ) {
+    if( !_scalarfield )
+	return;
 
-	// Build data for colormap
-	double range[4] = { _scalarfield->origo( _vb[0] ),
-			    _scalarfield->origo( _vb[1] ),
-			    _scalarfield->max  ( _vb[0] ),
-			    _scalarfield->max  ( _vb[1] ) };
-	size_t n = _scalarfield->size( _vb[0] );
-	size_t m = _scalarfield->size( _vb[1] );
+    // Build data for colormap based on scalarfield size
+    double range[4] = { _scalarfield->origo( _vb[0] ),
+			_scalarfield->origo( _vb[1] ),
+			_scalarfield->max  ( _vb[0] ),
+			_scalarfield->max  ( _vb[1] ) };
+    size_t n = _scalarfield->size( _vb[0] );
+    size_t m = _scalarfield->size( _vb[1] );
 
-	std::vector<double> data;
-	data.reserve( n*m );
-	size_t ind[3];
-	ind[_vb[2]] = (size_t)floor(_level+0.5);
-	for( size_t j = 0; j < m; j++ ) {
-	    ind[_vb[1]] = j;
-	    for( size_t i = 0; i < n; i++ ) {
-		ind[_vb[0]] = i;
-		data.push_back( (*_scalarfield)( ind[0], ind[1], ind[2] ) );
-	    }
+    std::vector<double> data;
+    data.reserve( n*m );
+    size_t ind[3];
+    ind[_vb[2]] = (size_t)floor(_level+0.5);
+    for( size_t j = 0; j < m; j++ ) {
+	ind[_vb[1]] = j;
+	for( size_t i = 0; i < n; i++ ) {
+	    ind[_vb[0]] = i;
+	    data.push_back( (*_scalarfield)( ind[0], ind[1], ind[2] ) );
 	}
-
-	// Set up colormap
-	_colormap = new Colormap( range, n, m, data );
-	double zmin, zmax;
-	_scalarfield->get_minmax( zmin, zmax );
-	_colormap->set_zrange( zmin, zmax );
-	double zspan = zmax - zmin;
-
-	// Set palette
-	std::vector<Palette::Entry> pentry;
-	if( zmin >= -1.0e-6*zspan && zmax >= 0.0 ) {
-	    // Palette for positive beam
-	    pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
-	    pentry.push_back( Palette::Entry( Color(1,1,0), 1 ) );
-	    pentry.push_back( Palette::Entry( Color(1,0,0), 2 ) );
-	    pentry.push_back( Palette::Entry( Color(0,0,0), 3 ) );
-	} else if( zmax <= 1.0e-6*zspan&& zmin <= 0.0 ) {
-	    // Palette for negative beam
-	    pentry.push_back( Palette::Entry( Color(1,1,1), 3 ) );
-	    pentry.push_back( Palette::Entry( Color(1,1,0), 2 ) );
-	    pentry.push_back( Palette::Entry( Color(1,0,0), 1 ) );
-	    pentry.push_back( Palette::Entry( Color(0,0,0), 0 ) );
-	} else {
-	    // Palette for positive and negative beam
-	    pentry.push_back( Palette::Entry( Color(0,0,0), zmin ) );
-	    pentry.push_back( Palette::Entry( Color(0,0,1), 0.67*zmin ) );
-	    pentry.push_back( Palette::Entry( Color(0,1,1), 0.33*zmin ) );
-	    pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
-	    pentry.push_back( Palette::Entry( Color(1,1,0), 0.33*zmax ) );
-	    pentry.push_back( Palette::Entry( Color(1,0,0), 0.67*zmax ) );
-	    pentry.push_back( Palette::Entry( Color(0,0,0), zmax ) );
-	}
-	Palette p( pentry );
-	_colormap->set_palette( p );
-	if( _logscale )
-	    _colormap->set_zscale( ZSCALE_RELLOG );
     }
+
+    // Set up colormap
+    _colormap = new Colormap( range, n, m, data );
+    double zmin, zmax;
+    _scalarfield->get_minmax( zmin, zmax );
+    _colormap->set_zrange( zmin, zmax );
+    double zspan = zmax - zmin;
+    
+    // Set palette
+    std::vector<Palette::Entry> pentry;
+    if( zmin >= -1.0e-6*zspan && zmax >= 0.0 ) {
+	// Palette for positive beam
+	pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
+	pentry.push_back( Palette::Entry( Color(1,1,0), 1 ) );
+	pentry.push_back( Palette::Entry( Color(1,0,0), 2 ) );
+	pentry.push_back( Palette::Entry( Color(0,0,0), 3 ) );
+    } else if( zmax <= 1.0e-6*zspan&& zmin <= 0.0 ) {
+	// Palette for negative beam
+	pentry.push_back( Palette::Entry( Color(1,1,1), 3 ) );
+	pentry.push_back( Palette::Entry( Color(1,1,0), 2 ) );
+	pentry.push_back( Palette::Entry( Color(1,0,0), 1 ) );
+	pentry.push_back( Palette::Entry( Color(0,0,0), 0 ) );
+    } else {
+	// Palette for positive and negative beam
+	pentry.push_back( Palette::Entry( Color(0,0,0), zmin ) );
+	pentry.push_back( Palette::Entry( Color(0,0,1), 0.67*zmin ) );
+	pentry.push_back( Palette::Entry( Color(0,1,1), 0.33*zmin ) );
+	pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
+	pentry.push_back( Palette::Entry( Color(1,1,0), 0.33*zmax ) );
+	pentry.push_back( Palette::Entry( Color(1,0,0), 0.67*zmax ) );
+	pentry.push_back( Palette::Entry( Color(0,0,0), zmax ) );
+    }
+    Palette p( pentry );
+    _colormap->set_palette( p );
+    if( _logscale )
+	_colormap->set_zscale( ZSCALE_RELLOG );
 }
 
 
@@ -136,8 +185,14 @@ void FieldGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
 
     if( _colormap == NULL || _oview != _view || _olevel != _level ) {
 	// First plot or changed view happened
+
+	// Scalarfield
 	if( _scalarfield && _enabled )
 	    build_scalarfield_plot();
+
+	// Vectorfield
+	else if( _vectorfield && _enabled )
+	    build_vectorfield_plot();
     }
     _oview = _view;
     _olevel = _level;

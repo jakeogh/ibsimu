@@ -46,10 +46,8 @@
 #include "epot_problem.hpp"
 #include "ibsimu.hpp"
 #include "error.hpp"
+#include "constants.hpp"
 
-
-// From NIST, official value of Apr 7 2008
-#define EPSILON0 8.854187817e-12
 
 
 /* ************************************** *
