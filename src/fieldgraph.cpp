@@ -79,7 +79,7 @@ void FieldGraph::build_vectorfield_plot( void )
 {
     if( !_vectorfield )
 	return;
-    /*
+
     // Build data for colormap based on geometry size
     double range[4] = { _geom->origo( _vb[0] ),
 			_geom->origo( _vb[1] ),
@@ -90,28 +90,66 @@ void FieldGraph::build_vectorfield_plot( void )
 
     std::vector<double> data;
     data.reserve( n*m );
-    size_t ind[3];
-    double loc[3];
-    ind[_vb[2]] = _level;
-    loc[_vb[2]] = _geom->origo(_vb[2]) +_level
+    //size_t ind[3];
+    Vec3D x;
+    //ind[_vb[2]] = _level;
+    x[_vb[2]] = _geom->origo(_vb[2]) + _level*_geom->h();
     for( size_t j = 0; j < m; j++ ) {
-	ind[_vb[1]] = j;
+	//ind[_vb[1]] = j;
+	x[_vb[1]] = _geom->origo(_vb[1]) + j*_geom->h();
 	for( size_t i = 0; i < n; i++ ) {
-	    ind[_vb[0]] = i;
+	    //ind[_vb[0]] = i;
+	    x[_vb[0]] = _geom->origo(_vb[0]) + i*_geom->h();
 
 	    // Make data for point (ind[0], ind[1], ind[2])
-	    data.push_back( (*_scalarfield)( ind[0], ind[1], ind[2] ) );
+	    //data.push_back( (*_scalarfield)( ind[0], ind[1], ind[2] ) );
+
+	    Vec3D F = (*_vectorfield)( x );
+
+	    switch( _field_type ) {
+	    case FIELD_EFIELD:
+	    case FIELD_BFIELD:
+		data.push_back( F.norm2() );
+		break;
+	    case FIELD_EFIELD_X:
+	    case FIELD_BFIELD_X:
+		data.push_back( F[0] );
+		break;
+	    case FIELD_EFIELD_Y:
+	    case FIELD_BFIELD_Y:
+		data.push_back( F[1] );
+		break;
+	    case FIELD_EFIELD_Z:
+	    case FIELD_BFIELD_Z:
+		data.push_back( F[2] );
+		break;
+	    default:
+		throw( Error( ERROR_LOCATION, "unknown field type" ) );
+		break;
+	    }
 	}
     }
 
     // Set up colormap
     _colormap = new Colormap( range, n, m, data );
-    double zmin, zmax;
-    _scalarfield->get_minmax( zmin, zmax );
-    _colormap->set_zrange( zmin, zmax );
-    double zspan = zmax - zmin;
-    */
+    //double zmin, zmax;
+    //_scalarfield->get_minmax( zmin, zmax );
+    //_colormap->set_zrange( zmin, zmax );
+    //double zspan = zmax - zmin;
 
+    // Set palette
+    std::vector<Palette::Entry> pentry;
+    pentry.push_back( Palette::Entry( Color(0,0,0), -1.00 ) );
+    pentry.push_back( Palette::Entry( Color(0,0,1), -0.67 ) );
+    pentry.push_back( Palette::Entry( Color(0,1,1), -0.33 ) );
+    pentry.push_back( Palette::Entry( Color(1,1,1),  0.00 ) );
+    pentry.push_back( Palette::Entry( Color(1,1,0),  0.33 ) );
+    pentry.push_back( Palette::Entry( Color(1,0,0),  0.67 ) );
+    pentry.push_back( Palette::Entry( Color(0,0,0),  1.00 ) );
+    Palette p( pentry );
+    _colormap->set_palette( p );
+    if( _logscale )
+	_colormap->set_zscale( ZSCALE_RELLOG );
 }
 
 

@@ -1,3 +1,4 @@
+fieldgraph_SOURCES = fieldgraph.cpp
 transformation_SOURCES = transformation.cpp
 stl_SOURCES = stl.cpp
 beam2d_SOURCES = beam2d.cpp
@@ -82,6 +83,7 @@ endif
 
 check_PROGRAMS = \
 beam2d \
+fieldgraph \
 beam3d \
 beamcyl \
 ccolmatrix \

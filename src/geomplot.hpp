@@ -75,6 +75,7 @@ class GeomPlot {
     const ScalarField       *_scharge;
     const ScalarField       *_tdens;
     const VectorField       *_bfield;
+    const VectorField       *_efield;
     const ParticleDataBase  *_pdb;
 
     SolidGraph              *_solidgraph;
@@ -161,6 +162,18 @@ public:
      */
     const VectorField *get_bfield( void ) const {
 	return( _bfield );
+    }
+
+    /*! \brief Set electric field.
+     */
+    void set_efield( const VectorField *efield ) {
+	_efield = efield;
+    }
+
+    /*! \brief Get electric field.
+     */
+    const VectorField *get_efield( void ) const {
+	return( _efield );
     }
 
     /*! \brief Set trajectory density field.

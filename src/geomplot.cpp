@@ -46,8 +46,8 @@
 
 GeomPlot::GeomPlot( Frame *frame, const Geometry *geom )
     : _frame(frame), _geom(geom), _epot(NULL), _scharge(NULL), _tdens(NULL), _bfield(NULL),
-      _pdb(NULL), _solidgraph(NULL), _fieldgraph(NULL), _eqpotgraph(NULL), _particlegraph(NULL),
-      _meshgraph(NULL), _view(VIEW_XY), _level(0),
+      _efield(NULL), _pdb(NULL), _solidgraph(NULL), _fieldgraph(NULL), _eqpotgraph(NULL), 
+      _particlegraph(NULL), _meshgraph(NULL), _view(VIEW_XY), _level(0),
       _eqlines_auto(20), _particle_div(10), _scharge_field(false), _qm_discretation(true), 
       _mesh(false), _fieldplot_sel(FIELD_NONE), _fieldplot_logscale(false), _cache(true)
 {
@@ -203,6 +203,20 @@ void GeomPlot::set_fieldgraph_plot( field_type_e fieldplot )
     case FIELD_TRAJDENS:
 	if( _tdens )
 	    _fieldgraph = new FieldGraph( _tdens );
+	break;
+    case FIELD_EFIELD:
+    case FIELD_EFIELD_X:
+    case FIELD_EFIELD_Y:
+    case FIELD_EFIELD_Z:
+	if( _efield )
+	    _fieldgraph = new FieldGraph( _geom, _efield, _fieldplot_sel );
+	break;
+    case FIELD_BFIELD:
+    case FIELD_BFIELD_X:
+    case FIELD_BFIELD_Y:
+    case FIELD_BFIELD_Z:
+	if( _bfield )
+	    _fieldgraph = new FieldGraph( _geom, _bfield, _fieldplot_sel );
 	break;
     case FIELD_NONE:
 	// No fieldgraph defined
