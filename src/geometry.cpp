@@ -405,7 +405,7 @@ void Geometry::build_mesh( void )
 	for( a = 0; a < nc; a++ ) {
 	    if( mesh(a) == 0 )
 		vac++;
-	    else if( (b = fabs(mesh(a))) >= 7 )
+	    else if( (b = abs(mesh(a))) >= 7 )
 		solid[b-7]++;
 	    else if( mesh(a) < 0 )
 		neu++;
