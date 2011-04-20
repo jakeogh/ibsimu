@@ -70,14 +70,14 @@ void FieldGraph::build_scalarfield_plot( void )
 {
     if( _scalarfield ) {
 
+	// Build data for colormap
 	double range[4] = { _scalarfield->origo( _vb[0] ),
 			    _scalarfield->origo( _vb[1] ),
 			    _scalarfield->max  ( _vb[0] ),
 			    _scalarfield->max  ( _vb[1] ) };
 	size_t n = _scalarfield->size( _vb[0] );
 	size_t m = _scalarfield->size( _vb[1] );
-	double min, max;
-	_scalarfield->get_minmax( min, max );
+
 	std::vector<double> data;
 	data.reserve( n*m );
 	size_t ind[3];
@@ -89,29 +89,37 @@ void FieldGraph::build_scalarfield_plot( void )
 		data.push_back( (*_scalarfield)( ind[0], ind[1], ind[2] ) );
 	    }
 	}
+
+	// Set up colormap
 	_colormap = new Colormap( range, n, m, data );
+	double zmin, zmax;
+	_scalarfield->get_minmax( zmin, zmax );
+	_colormap->set_zrange( zmin, zmax );
+	double zspan = zmax - zmin;
+
+	// Set palette
 	std::vector<Palette::Entry> pentry;
-	if( min == 0.0 && max >= 0.0 ) {
-	    // Palette for positive beam	    
+	if( zmin >= -1.0e-6*zspan && zmax >= 0.0 ) {
+	    // Palette for positive beam
 	    pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
 	    pentry.push_back( Palette::Entry( Color(1,1,0), 1 ) );
 	    pentry.push_back( Palette::Entry( Color(1,0,0), 2 ) );
 	    pentry.push_back( Palette::Entry( Color(0,0,0), 3 ) );
-	} else if( max == 0.0 && min <= 0.0 ) {
-	    // Palette for positive beam	    
+	} else if( zmax <= 1.0e-6*zspan&& zmin <= 0.0 ) {
+	    // Palette for negative beam
 	    pentry.push_back( Palette::Entry( Color(1,1,1), 3 ) );
 	    pentry.push_back( Palette::Entry( Color(1,1,0), 2 ) );
 	    pentry.push_back( Palette::Entry( Color(1,0,0), 1 ) );
 	    pentry.push_back( Palette::Entry( Color(0,0,0), 0 ) );
 	} else {
 	    // Palette for positive and negative beam
-	    pentry.push_back( Palette::Entry( Color(0,0,0), min ) );
-	    pentry.push_back( Palette::Entry( Color(0,0,1), 0.67*min ) );
-	    pentry.push_back( Palette::Entry( Color(0,1,1), 0.33*min ) );
+	    pentry.push_back( Palette::Entry( Color(0,0,0), zmin ) );
+	    pentry.push_back( Palette::Entry( Color(0,0,1), 0.67*zmin ) );
+	    pentry.push_back( Palette::Entry( Color(0,1,1), 0.33*zmin ) );
 	    pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
-	    pentry.push_back( Palette::Entry( Color(1,1,0), 0.33*max ) );
-	    pentry.push_back( Palette::Entry( Color(1,0,0), 0.67*max ) );
-	    pentry.push_back( Palette::Entry( Color(0,0,0), max ) );
+	    pentry.push_back( Palette::Entry( Color(1,1,0), 0.33*zmax ) );
+	    pentry.push_back( Palette::Entry( Color(1,0,0), 0.67*zmax ) );
+	    pentry.push_back( Palette::Entry( Color(0,0,0), zmax ) );
 	}
 	Palette p( pentry );
 	_colormap->set_palette( p );

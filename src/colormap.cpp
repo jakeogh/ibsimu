@@ -69,7 +69,7 @@ Colormap::Colormap( const double datarange[4], size_t n, size_t m,
 	throw( Error( ERROR_LOCATION, "data size not equal to n*m" ) );
     _f = data;
 
-    // Go through data to find minimum and maximum
+    // Default range is from minimum to maximum
     _zmin = std::numeric_limits<double>::infinity();
     _zmax = -std::numeric_limits<double>::infinity();
     for( size_t j = 0; j < _m; j++ ) {
@@ -181,7 +181,8 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 
 	    double val = get_value( x[0], x[1] );
 
-	    // Scale value to [0:1] maintaining monotonic rising property
+	    // Prescale value to nominal range [0:1] maintaining
+	    // monotonic rising property. Might go over range.
 	    if( _zscale == ZSCALE_LINEAR )
 		val = (val-_zmin)/(_zmax-_zmin);
 	    else if( _zscale == ZSCALE_LOG ) {
@@ -354,6 +355,13 @@ void Colormap::get_zrange( double &min, double &max ) const
 {
     min = _zmin;
     max = _zmax;
+}
+
+
+void Colormap::set_zrange( double min, double max )
+{
+    _zmin = min;
+    _zmax = max;
 }
 
 

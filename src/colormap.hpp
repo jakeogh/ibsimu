@@ -163,6 +163,13 @@ public:
      */
     void get_zrange( double &min, double &max ) const;
 
+    /*! \brief Set zrange for colormap plot.
+     *
+     *  The zrange defaults to automatically scaled ranging for
+     *  colormap input data.
+     */
+    void set_zrange( double min, double max );
+
     /*! \brief Get value of interpolated colormap data.
      */
     double get_value( double x, double y ) const;
