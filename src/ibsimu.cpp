@@ -88,7 +88,7 @@ void IBSimu::set_verbose_output( int level )
     // If setting to verbose mode and no greeting has yet been shown
     if( level > 0 && !_hello ) {
 	_hello = true;
-	std::cout << "Ion Beam Simulator " << VERSION << "\n";
+	std::cout << "Ion Beam Simulator " << VERSION << " (compiled " __DATE__ ")\n";
     }
 }
 
