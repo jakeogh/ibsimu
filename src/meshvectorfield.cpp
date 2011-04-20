@@ -315,7 +315,7 @@ void MeshVectorField::scale( const Vec3D &sx )
 
 void MeshVectorField::rotate_x( double a )
 {
-    _Tnv = _Tinv * Transformation::rotation_x( -a );
+    _Tinv = _Tinv * Transformation::rotation_x( -a );
     _T.rotate_x( a );
 }
 
