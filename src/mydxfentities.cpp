@@ -59,10 +59,8 @@
 
 
 //#define MYDXF_DEBUG_BBOX
-
-
-
 //#define MYDXF_DEBUG 1
+
 
 /* ************************************************************************** *
  * DXFEntity                                                                  *
@@ -350,16 +348,30 @@ MyDXFEntitySelection *MyDXFEntities::selection_path_loop( MyDXFEntitySelection *
 	std::cout << (*selection)(a) << ", ";
     std::cout << (*selection)(a) << "}";
     */
-
-    // Remove non-path objects and process self-looped path objects
+ 
+#ifdef MYDXF_DEBUG
+    std::cout << "Removing non-path objects and checking for self-looped objects\n";
+#endif
+   // Remove non-path objects and process self-looped path objects
     for( a = 0; a < selection->size(); a++ ) {
 	MyDXFEntity *e = _entities[(*selection)(a)];
 	MyDXFPathEntity *pe = dynamic_cast<MyDXFPathEntity *>( e );
-	if( !pe )
+	if( !pe ) {
 	    done[a] = true;
-	else if( pe->start() == pe->end() ) {
+	    continue;
+	}
+
+#ifdef MYDXF_DEBUG
+	std::cout << "Testing object " << (*selection)(a) << ":\n";
+	std::cout << "  start = " << pe->start() << "\n";
+	std::cout << "  end = " << pe->end() << "\n";
+#endif
+
+	if( pe->start() == pe->end() ) {
 	    // Add entity to list and remove duplicates
-	    //std::cout << "Adding " << (*selection)(a) << " to selection";
+#ifdef MYDXF_DEBUG
+	    std::cout << "Adding self-looped object " << (*selection)(a) << " to selection";
+#endif
 	    subsel->add_entity( (*selection)(a) );
 	    done[a] = true;
 	    for( uint32_t b = a+1; b < selection->size(); b++ ) {

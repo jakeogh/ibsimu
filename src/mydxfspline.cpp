@@ -353,31 +353,80 @@ void MyDXFSpline::write( class MyDXFFile *dxf, std::ofstream &ostr )
 
 Vec3D MyDXFSpline::start( void ) const
 {
-    return( _cont[0] );
+    return( _polyline[0] );
 }
 
 
 Vec3D MyDXFSpline::end( void ) const
 {
-    return( _cont[_cont.size()-1] );
+    return( _polyline.back() );
 }
 
 
 void MyDXFSpline::set_start( const Vec3D &s )
 {
-    _cont[0] = s;
+    _polyline[0] = s;
 }
 
 
 void MyDXFSpline::set_end( const Vec3D &s )
 {
-    _cont[_cont.size()-1] = s;
+    _polyline.back() = s;
 }
 
 
 int MyDXFSpline::ray_cross( double x, double y ) const
 {
-    return( false );
+#ifdef MYDXF_DEBUG
+    std::cout << "ray_cross( x = " << x << ", y = " << y << " )\n";
+    for( uint32_t a = 0; a < _polyline.size(); a++ )
+	std::cout << "  p[" << a << "] = " << _polyline[a] << "\n";
+    std::cout << "\n";
+#endif
+
+    Vec3D p1 = _polyline[0];
+
+    // Go through all lines 
+    int c = 0;
+    for( uint32_t a = 1; a < _polyline.size(); a++ ) {
+	Vec3D p2 = _polyline[a];
+
+#ifdef MYDXF_DEBUG
+	std::cout << "  Test against:\n";
+	std::cout << "  p1 = " << p1 << "\n";
+	std::cout << "  p2 = " << p2 << "\n";
+#endif
+
+	if( x == p1[0] && y >= p1[1] ) {
+	    // Exact crossing.
+#ifdef MYDXF_DEBUG
+	    std::cout << "  Exact crossing\n";
+#endif
+	    return( 2 );
+	} else if( (x > p1[0] && x < p2[0]) || 
+		   (x < p1[0] && x > p2[0]) ) {
+
+	    // Calculate crossing y-coordinate.
+	    double t = (x-p1[0])/(p2[0]-p1[0]);
+	    double cy = (1.0-t)*p1[1] + t*p2[1];
+	    // Boundary case y == cy is considered crossing.
+	    if( y >= cy ) {
+#ifdef MYDXF_DEBUG
+		std::cout << "  Crossing\n";
+#endif
+		c = !c;
+	    } else {
+#ifdef MYDXF_DEBUG
+		std::cout << "  No crossing\n";
+#endif
+	    }
+	    
+	}
+
+	p1 = p2;
+    }
+
+    return( c );
 }
 
 
@@ -597,7 +646,7 @@ void MyDXFSpline::build_polyline( void )
 	// Make ptc many points, +1 for last
 	uint32_t ptc = _degree*2;
 	uint32_t ptl = ptc;
-	if( a == _knot.size()-1 )
+	if( k2 == kend )
 	    ptl += 1;
 
 	for( uint32_t b = 0; b < ptl; b++ ) {
@@ -620,7 +669,8 @@ void MyDXFSpline::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 
     //plot_control_points( cairo, t );
     //plot_knot_points( cairo, t );
-    //plot_polyline_points( cairo, t );
+    plot_polyline_points( cairo, t );
+    return;
 
     // Plot using deBoor's algorithm
     x = t->transform( point( 0.0 ) );
@@ -684,25 +734,25 @@ void MyDXFSpline::get_bbox( Vec3D &min, Vec3D &max,
 
 void MyDXFSpline::scale( class MyDXFFile *dxf, double s )
 {
-    // Scale control and fit points
-    for( uint32_t a = 0; a < _cont.size(); a++ ) {
+    // Scale control, fit and polyline points
+    for( uint32_t a = 0; a < _cont.size(); a++ )
 	_cont[a] *= s;
-    }
-    for( uint32_t a = 0; a < _fit.size(); a++ ) {
+    for( uint32_t a = 0; a < _fit.size(); a++ )
 	_fit[a] *= s;
-    }
+    for( uint32_t a = 0; a < _polyline.size(); a++ )
+	_polyline[a] *= s;
 }
 
 
 void MyDXFSpline::translate( class MyDXFFile *dxf, const Vec3D &dx )
 {
-    // Translate control and fit points
-    for( uint32_t a = 0; a < _cont.size(); a++ ) {
+    // Translate control, fit and polyline points
+    for( uint32_t a = 0; a < _cont.size(); a++ )
 	_cont[a] += dx;
-    }
-    for( uint32_t a = 0; a < _fit.size(); a++ ) {
+    for( uint32_t a = 0; a < _fit.size(); a++ )
 	_fit[a] += dx;
-    }
+    for( uint32_t a = 0; a < _polyline.size(); a++ )
+	_polyline[a] += dx;
 }
 
 
