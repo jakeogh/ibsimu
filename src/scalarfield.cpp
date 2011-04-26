@@ -40,11 +40,12 @@
  * permit others to do so.
  */
 
-#include "scalarfield.hpp"
 #include <iostream>
+#include <fstream>
 #include <string.h>
 #include <cmath>
 #include <limits>
+#include "scalarfield.hpp"
 
 
 ScalarField::ScalarField()
@@ -287,6 +288,14 @@ double ScalarField::operator()( Vec3D x ) const
     }
     }
 
+}
+
+
+void ScalarField::save( const std::string &filename ) const
+{
+    std::ofstream os( filename.c_str() );
+    save( os );
+    os.close();
 }
 
 

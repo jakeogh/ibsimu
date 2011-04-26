@@ -63,6 +63,22 @@ ParticleDataBaseImp::ParticleDataBaseImp()
 }
 
 
+ParticleDataBaseImp::ParticleDataBaseImp( std::istream &s )
+{
+    _epsabs = read_double( s );
+    _epsrel = read_double( s );
+    _polyint = read_int8( s );
+    _maxsteps = read_int32( s );
+    _maxt = read_double( s );
+    _trajdiv = read_int32( s );
+    for( uint32_t a = 0; a < 6; a++ )
+	_mirror[a] = read_int8( s );
+    _rhosum = read_double( s );
+    _stat = ParticleStatistics( s );
+    _iteration = read_int32( s );
+}
+
+
 ParticleDataBaseImp::~ParticleDataBaseImp()
 {
 
@@ -173,6 +189,22 @@ const ParticleStatistics &ParticleDataBaseImp::get_statistics( void ) const
 }
 
 
+void ParticleDataBaseImp::save( std::ostream &s ) const
+{
+    write_double( s, _epsabs );
+    write_double( s, _epsrel );
+    write_int8( s, _polyint );
+    write_int32( s, _maxsteps );
+    write_double( s, _maxt );
+    write_int32( s, _trajdiv );
+    for( uint32_t a = 0; a < 6; a++ )
+	write_int8( s, _mirror[a] );
+    write_double( s, _rhosum );
+    _stat.save( s );
+    write_int32( s, _iteration );
+}
+
+
 void ParticleDataBaseImp::debug_print( std::ostream &os ) const 
 {
     os << "epsabs = "      << _epsabs << "\n";
@@ -204,6 +236,13 @@ ParticleDataBase2DImp::ParticleDataBase2DImp()
 ParticleDataBase2DImp::ParticleDataBase2DImp( const ParticleDataBase2DImp &pdb )
 {
 
+}
+
+
+ParticleDataBase2DImp::ParticleDataBase2DImp( std::istream &s )
+    : ParticleDataBasePPImp<ParticleP2D>( s )
+{
+    
 }
 
 
@@ -446,10 +485,23 @@ void ParticleDataBase2DImp::build_trajectory_density_field( ScalarField &tdens )
 }
 
 
+void ParticleDataBase2DImp::save( const std::string &filename ) const
+{
+    std::ofstream os( filename.c_str() );
+    save( os );
+    os.close();
+}
+
+
+void ParticleDataBase2DImp::save( std::ostream &s ) const
+{
+    ParticleDataBasePPImp<ParticleP2D>::save( s );
+}
+
+
 void ParticleDataBase2DImp::debug_print( std::ostream &os ) const 
 {
     os << "**ParticleDataBase2D\n";
-    ParticleDataBaseImp::debug_print( os );
     ParticleDataBasePPImp<ParticleP2D>::debug_print( os );
 }
 
@@ -468,6 +520,13 @@ ParticleDataBaseCylImp::ParticleDataBaseCylImp()
 ParticleDataBaseCylImp::ParticleDataBaseCylImp( const ParticleDataBaseCylImp &pdb )
 {
 
+}
+
+
+ParticleDataBaseCylImp::ParticleDataBaseCylImp( std::istream &s )
+    : ParticleDataBasePPImp<ParticlePCyl>( s )
+{
+    
 }
 
 
@@ -763,10 +822,23 @@ void ParticleDataBaseCylImp::add_2d_gaussian_beam_with_emittance( uint32_t N, do
 }
 
 
+void ParticleDataBaseCylImp::save( const std::string &filename ) const
+{
+    std::ofstream os( filename.c_str() );
+    save( os );
+    os.close();
+}
+
+
+void ParticleDataBaseCylImp::save( std::ostream &s ) const
+{
+    ParticleDataBasePPImp<ParticlePCyl>::save( s );
+}
+
+
 void ParticleDataBaseCylImp::debug_print( std::ostream &os ) const 
 {
     os << "**ParticleDataBaseCyl\n";
-    ParticleDataBaseImp::debug_print( os );
     ParticleDataBasePPImp<ParticlePCyl>::debug_print( os );
 }
 
@@ -783,6 +855,13 @@ ParticleDataBase3DImp::ParticleDataBase3DImp()
 
 
 ParticleDataBase3DImp::ParticleDataBase3DImp( const ParticleDataBase3DImp &pdb )
+{
+
+}
+
+
+ParticleDataBase3DImp::ParticleDataBase3DImp( std::istream &s )
+    : ParticleDataBasePPImp<ParticleP3D>( s )
 {
 
 }
@@ -1501,10 +1580,23 @@ void ParticleDataBase3DImp::build_trajectory_density_field( ScalarField &tdens )
 }
 
 
+void ParticleDataBase3DImp::save( const std::string &filename ) const
+{
+    std::ofstream os( filename.c_str() );
+    save( os );
+    os.close();
+}
+
+
+void ParticleDataBase3DImp::save( std::ostream &s ) const
+{
+    ParticleDataBasePPImp<ParticleP3D>::save( s );
+}
+
+
 void ParticleDataBase3DImp::debug_print( std::ostream &os ) const 
 {
     os << "**ParticleDataBase3D\n";
-    ParticleDataBaseImp::debug_print( os );
     ParticleDataBasePPImp<ParticleP3D>::debug_print( os );
 }
 

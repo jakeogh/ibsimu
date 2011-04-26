@@ -112,6 +112,16 @@ public:
 	_x[0] = t; _x[1] = x; _x[2] = vx; _x[3] = y; _x[4] = vy;
     }
 
+    /*! \brief Constructor for loading particle point from a file.
+     */
+    ParticleP2D( std::istream &s ) {
+	_x[0] = read_double( s );
+	_x[1] = read_double( s );
+	_x[2] = read_double( s );
+	_x[3] = read_double( s );
+	_x[4] = read_double( s );
+    }
+
     /*! \brief Returns geometry mode.
      */
     static geom_mode_e geom_mode() { return(MODE_2D); }
@@ -209,6 +219,16 @@ public:
 	return( res );
     }
 
+    /*! \brief Saves data to stream.
+     */
+    void save( std::ostream &s ) const {
+	write_double( s, _x[0] );
+	write_double( s, _x[1] );
+	write_double( s, _x[2] );
+	write_double( s, _x[3] );
+	write_double( s, _x[4] );
+    }
+    
     friend ParticleP2D operator*( double x, const ParticleP2D &pp );
 };
 
@@ -256,6 +276,17 @@ public:
      */
     ParticlePCyl( double t, double x, double vx, double r, double vr, double w ) {
 	_x[0] = t; _x[1] = x; _x[2] = vx; _x[3] = r; _x[4] = vr; _x[5] = w;
+    }
+
+    /*! \brief Constructor for loading particle point from a file.
+     */
+    ParticlePCyl( std::istream &s ) {
+	_x[0] = read_double( s );
+	_x[1] = read_double( s );
+	_x[2] = read_double( s );
+	_x[3] = read_double( s );
+	_x[4] = read_double( s );
+	_x[5] = read_double( s );
     }
 
     /*! \brief Returns geometry mode.
@@ -364,6 +395,17 @@ public:
 	return( res );
     }
 
+    /*! \brief Saves data to stream.
+     */
+    void save( std::ostream &s ) const {
+	write_double( s, _x[0] );
+	write_double( s, _x[1] );
+	write_double( s, _x[2] );
+	write_double( s, _x[3] );
+	write_double( s, _x[4] );
+	write_double( s, _x[5] );
+    }
+    
     friend ParticlePCyl operator*( double x, const ParticlePCyl &pp );
 };
 
@@ -413,6 +455,18 @@ public:
      */
     ParticleP3D( double t, double x, double vx, double y, double vy, double z, double vz ) {
 	_x[0] = t; _x[1] = x; _x[2] = vx; _x[3] = y; _x[4] = vy; _x[5] = z; _x[6] = vz;
+    }
+
+    /*! \brief Constructor for loading particle point from a file.
+     */
+    ParticleP3D( std::istream &s ) {
+	_x[0] = read_double( s );
+	_x[1] = read_double( s );
+	_x[2] = read_double( s );
+	_x[3] = read_double( s );
+	_x[4] = read_double( s );
+	_x[5] = read_double( s );
+	_x[6] = read_double( s );
     }
 
     /*! \brief Returns geometry mode.
@@ -520,6 +574,18 @@ public:
 	return( res );
     }
 
+    /*! \brief Saves data to stream.
+     */
+    void save( std::ostream &s ) const {
+	write_double( s, _x[0] );
+	write_double( s, _x[1] );
+	write_double( s, _x[2] );
+	write_double( s, _x[3] );
+	write_double( s, _x[4] );
+	write_double( s, _x[5] );
+	write_double( s, _x[6] );
+    }
+    
     friend ParticleP3D operator*( double x, const ParticleP3D &pp );
 };
 
@@ -591,6 +657,15 @@ protected:
 	    _IQ = fabs(IQ);
     }
 
+    /*! \brief Constructor for loading particle from a file.
+     */
+    ParticleBase( std::istream &s ) {
+	_status = (particle_status_e)read_int32( s );
+	_IQ = read_double( s );
+	_q = read_double( s );
+	_m = read_double( s );	
+    }
+
     ~ParticleBase() {}
 
 public:
@@ -621,6 +696,15 @@ public:
     /*! \brief Return charge per mass ratio (q/m) [C/kg].
      */
     double qm() const { return( _q/_m ); }
+
+    /*! \brief Saves data to stream.
+     */
+    void save( std::ostream &s ) const {
+	write_int32( s, _status );
+	write_double( s, _IQ );
+	write_double( s, _q );
+	write_double( s, _m );
+    }
 };
 
 
@@ -649,6 +733,18 @@ public:
      */
     Particle( double IQ, double q, double m, const PP &x ) 
 	: ParticleBase(IQ,q,m), _x(x) {}
+
+    /*! \brief Constructor for loading particle from a file.
+     */
+    Particle( std::istream &s ) 
+	: ParticleBase( s ) {
+
+	uint32_t N  = read_int32( s );
+	_trajectory.reserve( N );
+	for( uint32_t a = 0; a < N; a++ )
+	    _trajectory.push_back( PP( s ) );
+	_x = PP( s );
+    }
 
     /*! \brief Destructor.
      */
@@ -702,6 +798,16 @@ public:
      */
     void clear_trajectory( void ) { _trajectory.clear(); }
 
+    /*! \brief Saves data to stream.
+     */
+    void save( std::ostream &s ) const {
+	ParticleBase::save( s );
+	write_int32( s, _trajectory.size() );
+	for( uint32_t a = 0; a < _trajectory.size(); a++ )
+	    _trajectory[a].save( s );
+	_x.save( s );
+    }
+    
     /*! \brief Print debugging information to os.
      */
     void debug_print( std::ostream &os ) const {

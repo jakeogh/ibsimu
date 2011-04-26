@@ -170,6 +170,10 @@ protected:
      */
     const ParticleDataBase &operator=( const ParticleDataBase &pdb );
 
+    /*! \brief Set particle database implementation pointer.
+     *
+     *  Used by child constructors.
+     */
     void set_implementation_pointer( class ParticleDataBaseImp *imp );
 
 public:
@@ -398,6 +402,14 @@ public:
  * Debugging, plotting and saving         *
  * ************************************** */
 
+    /*! \brief Saves data to a new file \a filename.
+     */
+    virtual void save( const std::string &filename ) const = 0;
+
+    /*! \brief Saves data to stream.
+     */
+    virtual void save( std::ostream &s ) const = 0;
+
     /*! \brief Print debugging information to os.
      */
     virtual void debug_print( std::ostream &os ) const = 0;
@@ -432,6 +444,10 @@ public:
     /*! \brief Copy constructor.
      */
     ParticleDataBase2D( const ParticleDataBase2D &pdb );
+
+    /*! \brief Constructor for loading particle statistics from a file.
+     */
+    ParticleDataBase2D( std::istream &s );
 
     /*! \brief Destructor.
      */
@@ -570,6 +586,14 @@ public:
  * Debugging, plotting and saving         *
  * ************************************** */
 
+    /*! \brief Saves data to a new file \a filename.
+     */
+    virtual void save( const std::string &filename ) const;
+
+    /*! \brief Saves data to stream.
+     */
+    virtual void save( std::ostream &s ) const;
+
     /*! \brief Print debugging information to os.
      */
     virtual void debug_print( std::ostream &os ) const;
@@ -606,6 +630,10 @@ public:
     /*! \brief Copy constructor.
      */
     ParticleDataBaseCyl( const ParticleDataBaseCyl &pdb );
+
+    /*! \brief Constructor for loading particle statistics from a file.
+     */
+    ParticleDataBaseCyl( std::istream &s );
 
     /*! \brief Destructor.
      */
@@ -732,6 +760,14 @@ public:
  * Debugging, plotting and saving         *
  * ************************************** */
 
+    /*! \brief Saves data to a new file \a filename.
+     */
+    virtual void save( const std::string &filename ) const;
+
+    /*! \brief Saves data to stream.
+     */
+    virtual void save( std::ostream &s ) const;
+
     /*! \brief Print debugging information to os.
      */
     virtual void debug_print( std::ostream &os ) const;
@@ -767,6 +803,10 @@ public:
     /*! \brief Copy constructor.
      */
     ParticleDataBase3D( const ParticleDataBase3D &pdb );
+
+    /*! \brief Constructor for loading particle statistics from a file.
+     */
+    ParticleDataBase3D( std::istream &s );
 
     /*! \brief Destructor.
      */
@@ -997,6 +1037,14 @@ public:
 /* ************************************** *
  * Debugging, plotting and saving         *
  * ************************************** */
+
+    /*! \brief Saves data to a new file \a filename.
+     */
+    virtual void save( const std::string &filename ) const;
+
+    /*! \brief Saves data to stream.
+     */
+    virtual void save( std::ostream &s ) const;
 
     /*! \brief Print debugging information to os.
      */

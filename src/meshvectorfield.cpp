@@ -964,6 +964,14 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 }
 
 
+void MeshVectorField::save( const std::string &filename ) const
+{
+    std::ofstream os( filename.c_str() );
+    save( os );
+    os.close();
+}
+
+
 void MeshVectorField::save( std::ostream &s ) const
 {
     Mesh::save( s );

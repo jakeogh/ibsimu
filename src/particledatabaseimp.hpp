@@ -46,6 +46,7 @@
 
 #include "ibsimu.hpp"
 #include "timer.hpp"
+#include "file.hpp"
 #include "particles.hpp"
 #include "particleiterator.hpp"
 #include "trajectorydiagnostics.hpp"
@@ -80,12 +81,16 @@ protected:
 
     ParticleStatistics        _stat;        /*!< \brief Particle statistics. */
 
-    int                       _iteration;   /*!< \brief Iteration number. */
+    uint32_t                  _iteration;   /*!< \brief Iteration number. */
     
     const CallbackFunctorD_V *_bfield_suppression; /*!< \brief Location dependent magnetic field suppression. */
     const TrajectoryHandlerCallback *_trajhand;    /*!< \brief Trajectory handler callback. */
 
     ParticleDataBaseImp();
+
+    ParticleDataBaseImp( std::istream &s );
+
+    void save( std::ostream &s ) const;
 
 public:
 
@@ -233,6 +238,15 @@ protected:
     std::vector<Particle<PP> > _particles;
 
     ParticleDataBasePPImp() {}
+
+    ParticleDataBasePPImp( std::istream &s ) 
+	: ParticleDataBaseImp( s ) {
+
+	uint32_t N = read_int32( s );
+	_particles.reserve( N );
+	for( uint32_t a = 0; a < N; a++ )
+	    _particles.push_back( Particle<PP>( s ) );
+    }
 
 public:
 
@@ -560,7 +574,19 @@ public:
     }
 
 
+    void save( std::ostream &s ) const {
+
+	ParticleDataBaseImp::save( s );
+
+	write_int32( s, _particles.size() );
+	for( uint32_t a = 0; a < _particles.size(); a++ )
+	    _particles[a].save( s );
+    }
+
+
     void debug_print( std::ostream &os ) const {
+	ParticleDataBaseImp::debug_print( os );
+
 	for( uint32_t a = 0; a < _particles.size(); a++ ) {
 	    os << "Particle " << a << ":\n";
 	    _particles[a].debug_print( os );
@@ -585,6 +611,8 @@ public:
 
     ParticleDataBase2DImp( const ParticleDataBase2DImp &pdb );
 
+    ParticleDataBase2DImp( std::istream &s );
+
     virtual ~ParticleDataBase2DImp();
 
     const ParticleDataBase2DImp &operator=( const ParticleDataBase2DImp &pdb );
@@ -607,6 +635,9 @@ public:
 					      double a, double b, double e,
 					      double Ex, double x0, double y0 );
 
+    void save( const std::string &filename ) const;
+    void save( std::ostream &s ) const;
+
     void debug_print( std::ostream &os ) const;
 };
 
@@ -626,6 +657,8 @@ public:
     ParticleDataBaseCylImp();
 
     ParticleDataBaseCylImp( const ParticleDataBaseCylImp &pdb );
+
+    ParticleDataBaseCylImp( std::istream &s );
 
     virtual ~ParticleDataBaseCylImp();
 
@@ -649,6 +682,9 @@ public:
 					      double a, double b, double e,
 					      double Ex, double x0 );
 
+    void save( const std::string &filename ) const;
+    void save( std::ostream &s ) const;
+
     void debug_print( std::ostream &os ) const;
 };
 
@@ -667,6 +703,8 @@ public:
     ParticleDataBase3DImp();
 
     ParticleDataBase3DImp( const ParticleDataBase3DImp &pdb );
+
+    ParticleDataBase3DImp( std::istream &s );
 
     virtual ~ParticleDataBase3DImp();
 
@@ -707,6 +745,9 @@ public:
     void export_path_manager_data( std::string filename, 
 				   double ref_E, double ref_q, double ref_m, 
 				   Vec3D c, Vec3D o, Vec3D p ) const;    
+
+    void save( const std::string &filename ) const;
+    void save( std::ostream &s ) const;
 
     void debug_print( std::ostream &os ) const;
 };

@@ -45,6 +45,8 @@
 
 
 #include <stdint.h>
+#include <ostream>
+#include <vector>
 
 
 /*! \brief %Particle iteration statistics.
@@ -54,21 +56,24 @@
  */
 class ParticleStatistics {
 
-    uint32_t      _nboundaries;      /*!< \brief Number of solids in geometry. */
-
     uint32_t      _end_time;          /*!< \brief Number of time limited particle iterations. */
     uint32_t      _end_step;          /*!< \brief Number of step count limited particle iterations. */
     uint32_t      _end_baddef;        /*!< \brief Number of bad particle definitions. */
     uint32_t      _sum_steps;         /*!< \brief Total number of steps taken. */
 
-    uint32_t     *_bound_collisions;  /*!< \brief Number of particles collided with electrodes. */
-    double       *_bound_current;     /*!< \brief Amount of current collided with electrodes. */
+    std::vector<uint32_t> _bound_collisions;  /*!< \brief Number of particles collided with electrodes. */
+    std::vector<double>   _bound_current;     /*!< \brief Amount of current collided with electrodes. */
 
 public:
 
     ParticleStatistics();
     ParticleStatistics( const ParticleStatistics &stat );
     ParticleStatistics( uint32_t nboundaries );
+
+    /*! \brief Constructor for loading particle statistics from a file.
+     */
+    ParticleStatistics( std::istream &s );
+
     ~ParticleStatistics();
 
     const ParticleStatistics &operator=( const ParticleStatistics &stat );
@@ -96,6 +101,9 @@ public:
 
     void add_bound_collision( uint32_t bound, double IQ );
 
+    /*! \brief Saves data to stream.
+     */
+    void save( std::ostream &s ) const;
 };
 
 

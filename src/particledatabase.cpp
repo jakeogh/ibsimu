@@ -249,6 +249,13 @@ ParticleDataBase2D::ParticleDataBase2D( const ParticleDataBase2D &pdb )
 }
 
 
+ParticleDataBase2D::ParticleDataBase2D( std::istream &s )
+{
+    _imp = new ParticleDataBase2DImp( s );
+    set_implementation_pointer( (ParticleDataBaseImp *)_imp );
+}
+
+
 ParticleDataBase2D::~ParticleDataBase2D()
 {
     delete _imp;
@@ -327,6 +334,18 @@ void ParticleDataBase2D::add_2d_gaussian_beam_with_emittance( uint32_t N, double
 }
 
 
+void ParticleDataBase2D::save( const std::string &filename ) const
+{
+    _imp->save( filename );
+}
+
+
+void ParticleDataBase2D::save( std::ostream &s ) const
+{
+    _imp->save( s );
+}
+
+
 void ParticleDataBase2D::debug_print( std::ostream &os ) const
 {
     _imp->debug_print( os );
@@ -348,6 +367,13 @@ ParticleDataBaseCyl::ParticleDataBaseCyl()
 ParticleDataBaseCyl::ParticleDataBaseCyl( const ParticleDataBaseCyl &pdb )
 {
     _imp = new ParticleDataBaseCylImp( *pdb._imp );
+    set_implementation_pointer( (ParticleDataBaseImp *)_imp );
+}
+
+
+ParticleDataBaseCyl::ParticleDataBaseCyl( std::istream &s )
+{
+    _imp = new ParticleDataBaseCylImp( s );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
 
@@ -430,6 +456,18 @@ void ParticleDataBaseCyl::add_2d_gaussian_beam_with_emittance( uint32_t N, doubl
 }
 
 
+void ParticleDataBaseCyl::save( const std::string &filename ) const
+{
+    _imp->save( filename );
+}
+
+
+void ParticleDataBaseCyl::save( std::ostream &s ) const
+{
+    _imp->save( s );
+}
+
+
 void ParticleDataBaseCyl::debug_print( std::ostream &os ) const
 {
     _imp->debug_print( os );
@@ -451,6 +489,13 @@ ParticleDataBase3D::ParticleDataBase3D()
 ParticleDataBase3D::ParticleDataBase3D( const ParticleDataBase3D &pdb )
 {
     _imp = new ParticleDataBase3DImp( *pdb._imp );
+    set_implementation_pointer( (ParticleDataBaseImp *)_imp );
+}
+
+
+ParticleDataBase3D::ParticleDataBase3D( std::istream &s )
+{
+    _imp = new ParticleDataBase3DImp( s );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
 
@@ -564,6 +609,18 @@ void ParticleDataBase3D::export_path_manager_data( std::string filename,
 						   Vec3D c, Vec3D o, Vec3D p ) const
 {
     _imp->export_path_manager_data( filename, ref_E, ref_q, ref_m, c, o, p );
+}
+
+
+void ParticleDataBase3D::save( const std::string &filename ) const
+{
+    _imp->save( filename );
+}
+
+
+void ParticleDataBase3D::save( std::ostream &s ) const
+{
+    _imp->save( s );
 }
 
 

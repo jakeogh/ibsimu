@@ -42,6 +42,7 @@
 
 
 #include <limits>
+#include <fstream>
 #include "multimeshvectorfield.hpp"
 #include "ibsimu.hpp"
 #include "compmath.hpp"
@@ -229,6 +230,14 @@ const Vec3D MultiMeshVectorField::operator()( Vec3D x ) const
     // Use coarsest field 
     Vec3D R = (*_field[0])( x );
     return( R );
+}
+
+
+void MultiMeshVectorField::save( const std::string &filename ) const
+{
+    std::ofstream os( filename.c_str() );
+    save( os );
+    os.close();
 }
 
 
