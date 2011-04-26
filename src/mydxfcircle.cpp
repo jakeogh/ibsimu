@@ -85,9 +85,51 @@ MyDXFCircle::MyDXFCircle( class MyDXFFile *dxf )
 }
 
 
+void MyDXFCircle::set_center( const Vec3D &c )
+{
+    _pc = c;
+}
+
+
+void MyDXFCircle::set_radius( double r )
+{
+    _r = r;
+}
+
+
 void MyDXFCircle::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transformation *t ) const
 {
+    if( (*t)[0] == (*t)[5] && (*t)[0] == (*t)[10] ) {
+	// Representable as an circle
+	MyDXFCircle *circle = new MyDXFCircle( *this );
+	
+	// Transform points
+	Vec3D c = t->transform_point( _pc );
+	Vec3D r = t->transform_point( _pc + Vec3D(_r,0,0) );
+	circle->_pc = c;
+	circle->_r = norm2( c - r );
 
+	// Add to entities
+	ent->add_entity( circle );
+    } else {
+	// Not representable as circle
+
+	// Chop circle to 8 pieces
+	Vec3D old;
+	for( int i = 0; i < 8; i++ ) {
+	    double a = i*2.0*M_PI/7.0;
+	    Vec3D x = t->transform_point( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+
+	    // Add line to entities
+	    if( i > 0 ) {
+		MyDXFLine *line = new MyDXFLine( *this );
+		line->set_start( old );
+		line->set_end( x );
+		ent->add_entity( line );
+	    }
+	    old = x;
+	}
+    }
 }
 
 
@@ -174,7 +216,7 @@ void MyDXFCircle::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 	    
 	    // New point
 	    double a = i*cf;
-	    Vec4D p = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+	    Vec3D p = t->transform_point( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
 	    cx[i] = p[0];
 	    cy[i] = p[1];
 	    i--;

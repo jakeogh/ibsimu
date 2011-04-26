@@ -94,7 +94,16 @@ MyDXFMText::MyDXFMText( class MyDXFFile *dxf )
 
 void MyDXFMText::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transformation *t ) const
 {
+    MyDXFMText *text = new MyDXFMText( *this );
 
+    // Transform points
+    Vec3D p = t->transform_point( text->_p );
+    Vec3D h = text->_p + Vec3D(0,text->_text_height,0);
+    text->_p = p;
+    text->_text_height = norm2( h-p );
+
+    // Add to entities
+    ent->add_entity( text );
 }
 
 

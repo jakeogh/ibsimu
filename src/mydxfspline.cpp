@@ -174,11 +174,11 @@ MyDXFSpline::MyDXFSpline( class MyDXFFile *dxf )
     // possibility test non-periodic closed splines
     if( periodic() ) {
 
-	std::cout << "ORIG:\n";
-	for( size_t a = 0; a < _knot.size(); a++ )
-	    std::cout << "knot[" << a << "] = " << _knot[a] << "\n";
-	for( size_t a = 0; a < _cont.size(); a++ )
-	    std::cout << "cont[" << a << "] = " << _cont[a] << "\n";
+	//std::cout << "ORIG:\n";
+	//for( size_t a = 0; a < _knot.size(); a++ )
+	//    std::cout << "knot[" << a << "] = " << _knot[a] << "\n";
+	//for( size_t a = 0; a < _cont.size(); a++ )
+	//    std::cout << "cont[" << a << "] = " << _cont[a] << "\n";
 
 	// Add _degree amount of points
 	size_t addp = _degree;
@@ -187,54 +187,36 @@ MyDXFSpline::MyDXFSpline( class MyDXFFile *dxf )
 	for( a = 0; a < addp/2; a++ )
 	    add_to_end( _cont[a] );
 
-	std::cout << "ADDED END:\n";
-	for( size_t a = 0; a < _knot.size(); a++ )
-	    std::cout << "knot[" << a << "] = " << _knot[a] << "\n";
-	for( size_t a = 0; a < _cont.size(); a++ )
-	    std::cout << "cont[" << a << "] = " << _cont[a] << "\n";
+	//std::cout << "ADDED END:\n";
+	//for( size_t a = 0; a < _knot.size(); a++ )
+	//    std::cout << "knot[" << a << "] = " << _knot[a] << "\n";
+	//for( size_t a = 0; a < _cont.size(); a++ )
+	//    std::cout << "cont[" << a << "] = " << _cont[a] << "\n";
 
-	size_t added = a;
-	std::cout << "added = " << added << "\n";
+	//size_t added = a;
+	//std::cout << "added = " << added << "\n";
 	for( ; a < _degree; a++ )
 	    add_to_start( _cont[_cont.size()-1-a] );
 
-	std::cout << "ADDED START:\n";
-	for( size_t a = 0; a < _knot.size(); a++ )
-	    std::cout << "knot[" << a << "] = " << _knot[a] << "\n";
-	for( size_t a = 0; a < _cont.size(); a++ )
-	    std::cout << "cont[" << a << "] = " << _cont[a] << "\n";
+	//std::cout << "ADDED START:\n";
+	//for( size_t a = 0; a < _knot.size(); a++ )
+	//    std::cout << "knot[" << a << "] = " << _knot[a] << "\n";
+	//for( size_t a = 0; a < _cont.size(); a++ )
+	//    std::cout << "cont[" << a << "] = " << _cont[a] << "\n";
 
 	make_cyclic();
 
-	std::cout << "MADE CYCLIC:\n";
-	for( size_t a = 0; a < _knot.size(); a++ )
-	    std::cout << "knot[" << a << "] = " << _knot[a] << "\n";
-	for( size_t a = 0; a < _cont.size(); a++ )
-	    std::cout << "cont[" << a << "] = " << _cont[a] << "\n";
+	//std::cout << "MADE CYCLIC:\n";
+	//for( size_t a = 0; a < _knot.size(); a++ )
+	//    std::cout << "knot[" << a << "] = " << _knot[a] << "\n";
+	//for( size_t a = 0; a < _cont.size(); a++ )
+	//    std::cout << "cont[" << a << "] = " << _cont[a] << "\n";
     }
 
     if( rational() )
 	throw( ErrorUnimplemented( ERROR_LOCATION, "Rational spline unimplemented" ) );
 
-    /*
-    if( periodic() && _degree == 3 ) {
-
-	_knot.clear();
-	_knot.push_back( -2 );
-	_knot.push_back( -4 );
-	_knot.push_back( -3 );
-	_knot.push_back( -2 );
-	_knot.push_back( -1 );
-	_knot.push_back(  0 );
-	_knot.push_back(  1 );
-	_knot.push_back(  2 );
-	_knot.push_back(  3 );
-	_knot.push_back(  4 );
-	_knot.push_back(  2 );
-
-    }
-    */
-
+    // Make polyline approximation of spline
     build_polyline();
     
 #ifdef MYDXF_DEBUG
@@ -263,7 +245,7 @@ void MyDXFSpline::make_cyclic( void )
 // Add a new control point to end of spline
 void MyDXFSpline::add_to_end( const Vec3D &x )
 {
-    std::cout << "add_to_end( x = " << x << " )\n";
+    //std::cout << "add_to_end( x = " << x << " )\n";
 
     // Modify knots
     int32_t ref = _knot.size()-_degree-1;
@@ -281,7 +263,7 @@ void MyDXFSpline::add_to_end( const Vec3D &x )
 // Add a new control point to start of spline
 void MyDXFSpline::add_to_start( const Vec3D &x )
 {
-    std::cout << "add_to_start( x = " << x << " )\n";
+    //std::cout << "add_to_start( x = " << x << " )\n";
 
     // Modify knots
     int32_t ref = _degree;
@@ -311,7 +293,16 @@ void MyDXFSpline::check_knots( void ) const
 
 void MyDXFSpline::explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const
 {
-    std::cout << "WARNING: Spline explode unimplemented\n";
+    MyDXFSpline *spline = new MyDXFSpline( *this );
+
+    // Transform control and fit points
+    for( uint32_t a = 0; a < spline->_cont.size(); a++ )
+	spline->_cont[a] = t->transform_point( spline->_cont[a] );
+    for( uint32_t a = 0; a < spline->_fit.size(); a++ )
+	spline->_fit[a] = t->transform_point( spline->_fit[a] );
+
+    // Add to entities
+    ent->add_entity( spline );
 }
 
 
@@ -429,7 +420,7 @@ void MyDXFSpline::debug_print( std::ostream &os ) const
 // Return a point from the spline with parameter t in [0,1]
 Vec3D MyDXFSpline::point( double t ) const
 {
-    std::cout << "point( t = " << t << " )\n";
+    //std::cout << "point( t = " << t << " )\n";
 
     // Scale parameter to range
     t = t*_knot[_knot.size()-1] + (1.0-t)*_knot[0];
@@ -448,6 +439,7 @@ Vec3D MyDXFSpline::point( double t ) const
 // Implements deBoor's algorithm
 Vec3D MyDXFSpline::deboor( double t, int i, int k ) const
 {
+    /*
     for( size_t a = k; a < _degree; a++ )
 	std::cout << "  ";
     std::cout << "deboor( t = " << t << ", i = " << i << ", k = " << k <<  " )\n";
@@ -481,12 +473,26 @@ Vec3D MyDXFSpline::deboor( double t, int i, int k ) const
     std::cout << "ret = " << ret << "\n";
 
     return( ret );
+    */
+
+    if( k == 0 ) {
+	return( _cont[i] );
+    } else {
+	double diff = _knot[i+_degree+1-k] - _knot[i];
+	double alpha;
+	if( diff == 0.0 )
+	    alpha = 0.0;
+	else
+	    alpha = ( t - _knot[i] ) / diff;
+	return( deboor( t, i-1, k-1 ) * (1.0-alpha) + 
+		deboor( t, i,   k-1 ) * alpha );
+    }
 }
 
 
 void MyDXFSpline::plot_knot_points( cairo_t *cairo, const Transformation *t ) const
 {
-    std::cout << "plot_knot_points()\n";
+    //std::cout << "plot_knot_points()\n";
 
     cairo_save( cairo );
 
@@ -500,7 +506,7 @@ void MyDXFSpline::plot_knot_points( cairo_t *cairo, const Transformation *t ) co
 	double kk = (k-_knot[0]) / (_knot.back()-_knot[0]);
 	x = t->transform( point( kk ) );	
 	x.homogenize();
-	std::cout << "knot[" << a << "] = " << _knot[a] << ": x = " << x << "\n";
+	//std::cout << "knot[" << a << "] = " << _knot[a] << ": x = " << x << "\n";
 	cairo_move_to( cairo, x[0]+r, x[1] );
 	cairo_arc( cairo, x[0], x[1], r, 0.0, 2.0*M_PI );
 	cairo_fill( cairo );
@@ -512,7 +518,7 @@ void MyDXFSpline::plot_knot_points( cairo_t *cairo, const Transformation *t ) co
 
 void MyDXFSpline::plot_polyline_points( cairo_t *cairo, const Transformation *t ) const
 {
-    std::cout << "plot_polyline_points()\n";
+    //std::cout << "plot_polyline_points()\n";
 
     cairo_save( cairo );
 
@@ -539,7 +545,7 @@ void MyDXFSpline::plot_polyline_points( cairo_t *cairo, const Transformation *t 
 
 	x = t->transform( _polyline[a] );
 	x.homogenize();
-	std::cout << "polyline[" << a << "] = " << _polyline[a] << ": x = " << x << "\n";
+	//std::cout << "polyline[" << a << "] = " << _polyline[a] << ": x = " << x << "\n";
 	if( a == 0 )
 	    cairo_move_to( cairo, x[0], x[1] );
 	else
@@ -573,7 +579,6 @@ void MyDXFSpline::plot_control_points( cairo_t *cairo, const Transformation *t )
 
 void MyDXFSpline::build_polyline( void )
 {
-    std::cout << "build_polyline()\n";
     _polyline.clear();
 
     double kstart = _knot[0];
@@ -585,22 +590,23 @@ void MyDXFSpline::build_polyline( void )
 	double k1 = _knot[a];
 	double k2 = _knot[a+1];
 
+	// Avoid using connection nodes with periodic spline
 	if( k2 < kstart || k1 < kstart )
 	    continue;
 
-	// Make _degree many points, +1 for last
-	uint32_t count = _degree;
+	// Make ptc many points, +1 for last
+	uint32_t ptc = _degree*2;
+	uint32_t ptl = ptc;
 	if( a == _knot.size()-1 )
-	    count += 1;
+	    ptl += 1;
 
-	for( uint32_t b = 0; b < count; b++ ) {
-	    double k = k1+(k2-k1)*b/_degree;
+	for( uint32_t b = 0; b < ptl; b++ ) {
+	    double k = k1+(k2-k1)*b/ptc;
 	    double kk = (k-kstart) / (kend-_knot[0]);
-	    std::cout << "  b = " << b << ": k = " << k << ", kk = " << kk << "\n";
 	    _polyline.push_back( point( kk ) );
-	    std::cout << "  pt = " << _polyline.back() << "\n";
 	}
 
+	// Avoid using connection nodes with periodic spline
 	if( k2 == kend )
 	    break;
     }
@@ -612,22 +618,22 @@ void MyDXFSpline::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 {
     Vec4D x;
 
-    plot_control_points( cairo, t );
+    //plot_control_points( cairo, t );
     //plot_knot_points( cairo, t );
-    plot_polyline_points( cairo, t );
+    //plot_polyline_points( cairo, t );
 
     // Plot using deBoor's algorithm
     x = t->transform( point( 0.0 ) );
     x.homogenize();
     cairo_move_to( cairo, x[0], x[1] );
-    std::cout << "x = ( " << x[0] << ", " << x[1] << " )\n";
+    //std::cout << "x = ( " << x[0] << ", " << x[1] << " )\n";
 
     for( uint32_t a = 1; a < 101; a++ ) {
 	double tt = a/100.0;
 	x = t->transform( point( tt ) );
 	x.homogenize();
 	cairo_line_to( cairo, x[0], x[1] );
-	std::cout << "x = ( " << x[0] << ", " << x[1] << " )\n";
+	//std::cout << "x = ( " << x[0] << ", " << x[1] << " )\n";
     }
 
     /*

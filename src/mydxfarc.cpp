@@ -103,11 +103,13 @@ void MyDXFArc::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transfor
 	// Representable as an arc
 	MyDXFArc *arc = new MyDXFArc( *this );
 	
-	Vec4D s = t->transform( start() );
-	Vec4D e = t->transform( end() );
-	Vec4D c = t->transform( center() );
-	
+	// Transform points
+	Vec3D s = t->transform_point( start() );
+	Vec3D e = t->transform_point( end() );
+	Vec3D c = t->transform_point( center() );
 	arc->set_center_and_ends( c, s, e );
+
+	// Add to entities
 	ent->add_entity( arc );
     } else {
 	// Not representable as arc
@@ -117,13 +119,14 @@ void MyDXFArc::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transfor
 	if( adiff < 0.0 )
 	    adiff = 2.0*M_PI + adiff;
 	
-	Vec4D old;
+	Vec3D old;
 	for( int i = 0; i < 8; i++ ) {
 	    double a = _ang1 + i*adiff/7.0;
 	    if( a > 2.0*M_PI )
 		a -= 2.0*M_PI;
-	    Vec4D x = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+	    Vec3D x = t->transform_point( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
 
+	    // Add line to entities
 	    if( i > 0 ) {
 		MyDXFLine *line = new MyDXFLine( *this );
 		line->set_start( old );
@@ -174,7 +177,7 @@ void MyDXFArc::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 	double a = _ang1 + i*adiff/2.0;
 	if( a > 2.0*M_PI )
 	    a -= 2.0*M_PI;
-	Vec4D p = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+	Vec3D p = t->transform_point( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
 	//std::cout << "  a = " << a << "\n";
 	//std::cout << "  p = " << p[0] << "\t" << p[1] << "\n";
 	cx.push_back( p[0] );
@@ -219,7 +222,7 @@ void MyDXFArc::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 	    double a = _ang1 + i*cf;
 	    if( a > 2.0*M_PI )
 		a -= 2.0*M_PI;
-	    Vec4D p = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+	    Vec3D p = t->transform_point( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
 	    //std::cout << "  a = " << a << "\n";
 	    //std::cout << "  p = " << p[0] << "\t" << p[1] << "\n";
 	    cx[i] = p[0];
@@ -254,7 +257,7 @@ void MyDXFArc::get_bbox( Vec3D &min, Vec3D &max,
 	double a = _ang1 + i*adiff/7.0;
 	if( a > 2.0*M_PI )
 	    a -= 2.0*M_PI;
-	Vec4D x = t->transform( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
+	Vec3D x = t->transform_point( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
 	bbox_ppoint( min, max, x );
     }
 

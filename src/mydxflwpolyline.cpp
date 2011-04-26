@@ -96,7 +96,14 @@ MyDXFLWPolyline::MyDXFLWPolyline( class MyDXFFile *dxf )
 
 void MyDXFLWPolyline::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transformation *t ) const
 {
+    MyDXFLWPolyline *line = new MyDXFLWPolyline( *this );
 
+    // Transform points
+    for( uint32_t a = 0; a < line->_p.size(); a++ )
+	line->_p[a] = t->transform_point( line->_p[a] );
+
+    // Add to entities
+    ent->add_entity( line );
 }
 
 

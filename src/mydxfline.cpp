@@ -86,12 +86,11 @@ void MyDXFLine::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transfo
 {
     MyDXFLine *line = new MyDXFLine( *this );
 
-    Vec4D x1 = t->transform( _p1 );
-    Vec4D x2 = t->transform( _p2 );
+    // Transform points
+    line->_p1 = t->transform_point( line->_p1 );
+    line->_p2 = t->transform_point( line->_p2 );
 
-    line->_p1 = x1;
-    line->_p2 = x2;
-
+    // Add to entities
     ent->add_entity( line );
 }
 

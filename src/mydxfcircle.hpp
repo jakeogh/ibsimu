@@ -98,9 +98,17 @@ public:
      */
     Vec3D center( void ) const { return( _pc ); }
 
+    /*! \brief Set center point of circle.
+     */
+    void set_center( const Vec3D &c );
+
     /*! \brief Get radius of circle.
      */
     double radius( void ) const { return( _r ); }
+
+    /*! \brief Set radius of circle.
+     */
+    void set_radius( double r );
 
     /*! \brief Get start point of path entity.
      */
