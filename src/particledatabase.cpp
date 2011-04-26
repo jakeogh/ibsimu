@@ -428,7 +428,7 @@ void ParticleDataBaseCyl::add_2d_beam_with_velocity( uint32_t N, double J, doubl
 						     double v, double dvp, double dvt, 
 						     double x1, double y1, double x2, double y2 )
 {
-
+    _imp->add_2d_beam_with_velocity( N, J, q, m, v, dvp, dvt, x1, y1, x2, y2 );
 }
 
 
@@ -436,7 +436,7 @@ void ParticleDataBaseCyl::add_2d_beam_with_energy( uint32_t N, double J, double 
 						   double E, double Tp, double Tt, 
 						   double x1, double y1, double x2, double y2 )
 {
-
+    _imp->add_2d_beam_with_energy( N, J, q, m, E, Tp, Tt, x1, y1, x2, y2 );
 }
 
 
@@ -444,7 +444,7 @@ void ParticleDataBaseCyl::add_2d_full_gaussian_beam( uint32_t N, double I, doubl
 						     double Ex, double Tp, double Tt, 
 						     double x0, double dr )
 {
-
+    _imp->add_2d_full_gaussian_beam( N, I, q, m, Ex, Tp, Tt, x0, dr );
 }
 
 
@@ -452,7 +452,7 @@ void ParticleDataBaseCyl::add_2d_gaussian_beam_with_emittance( uint32_t N, doubl
 							       double a, double b, double e,
 							       double Ex, double x0 )
 {
-
+    _imp->add_2d_gaussian_beam_with_emittance( N, I, q, m, a, b, e, Ex, x0 );
 }
 
 
