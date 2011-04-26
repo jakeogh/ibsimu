@@ -161,7 +161,7 @@ void MyDXFFile::read( const std::string &filename )
 		_entities = new MyDXFEntities( this, false );
 	    } else {
 		// Unknown section
-		if( wlevel() )
+		if( wlevel() >= 2 )
 		    std::cout << "Skipping unknown section \'" << group_get_string() << "\'\n";
 
 		while( read_group() != -1 ) {

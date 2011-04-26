@@ -208,6 +208,7 @@ public:
 	p[0] *= inv_w;
 	p[1] *= inv_w;
 	p[2] *= inv_w;
+	p[3] = 1.0;
     }
 
     /*! \brief Normalize vector
