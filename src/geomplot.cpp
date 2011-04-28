@@ -318,6 +318,9 @@ void GeomPlot::set_view( view_e view, int level )
 	break;
 
     case VIEW_XZ:
+	if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
+	    throw( Error( ERROR_LOCATION, "VIEW_XZ is nonexistent" ) );
+
 	_vb[0] = 0;
 	_vb[1] = 2;
 	_vb[2] = 1;
@@ -338,6 +341,9 @@ void GeomPlot::set_view( view_e view, int level )
 	break;
 
     case VIEW_YZ:
+	if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
+	    throw( Error( ERROR_LOCATION, "VIEW_YZ is nonexistent" ) );
+
 	_vb[0] = 1;
 	_vb[1] = 2;
 	_vb[2] = 0;
@@ -348,6 +354,9 @@ void GeomPlot::set_view( view_e view, int level )
 	break;
 
     case VIEW_ZX:
+	if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
+	    throw( Error( ERROR_LOCATION, "VIEW_ZX is nonexistent" ) );
+
 	_vb[0] = 2;
 	_vb[1] = 0;
 	_vb[2] = 1;
@@ -358,6 +367,9 @@ void GeomPlot::set_view( view_e view, int level )
 	break;
 
     case VIEW_ZY:
+	if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
+	    throw( Error( ERROR_LOCATION, "VIEW_ZY is nonexistent" ) );
+
 	_vb[0] = 2;
 	_vb[1] = 1;
 	_vb[2] = 0;
