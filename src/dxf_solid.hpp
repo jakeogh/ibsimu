@@ -86,6 +86,10 @@ public:
      */
     DXFSolid( MyDXFFile *dxffile, const std::string &layername );
 
+    /*! \brief Constructor for loading solid data from stream \a is.
+     */
+    DXFSolid( std::istream &is );
+
     /*! \brief Destructor.
      */
     virtual ~DXFSolid();
@@ -95,7 +99,7 @@ public:
      */
     virtual bool inside( const Vec3D &x ) const;
 
-    /*! \brief Print debugging information to os.
+    /*! \brief Print debugging information to stream \a os.
      */
     void debug_print( std::ostream &os ) const;
 
@@ -172,9 +176,9 @@ public:
      */
     void rotate_z( double a );
 
-    /*! \brief Saves solid data to stream.
+    /*! \brief Saves solid data to stream \a os.
      */
-    virtual void save( std::ostream &s ) const;
+    virtual void save( std::ostream &os ) const;
 };
 
 

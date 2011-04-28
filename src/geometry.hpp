@@ -82,7 +82,7 @@ struct Bound
     	val = read_double( s );
     }
 
-    /*! \brief Saves boundary data to stream.
+    /*! \brief Saves data to stream \a s.
      */
     void save( std::ostream &fout ) const {
 	write_int32( fout, type );
@@ -157,9 +157,9 @@ public:
      */
     Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h );
 
-    /*! \brief Constructor for loading geometry from a file.
+    /*! \brief Constructor for loading geometry from a stream \a is.
      */
-    Geometry( std::istream &s );
+    Geometry( std::istream &is );
 
     /*! \brief Destructor for geometry.
      */
@@ -305,11 +305,15 @@ public:
      */
     signed char mesh_check( int32_t i, int32_t j, int32_t k ) const;
 
-    /*! \brief Saves geometry data to stream.
+    /*! \brief Saves data to a new file \a filename.
      */
-    void save( std::ostream &s ) const;
+    void save( const std::string &filename ) const;
 
-    /*! \brief Print debugging information to os.
+    /*! \brief Saves data to stream \a os.
+     */
+    void save( std::ostream &os ) const;
+
+    /*! \brief Print debugging information to stream \a os.
      */
     void debug_print( std::ostream &os ) const;
 };

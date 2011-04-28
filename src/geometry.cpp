@@ -42,9 +42,11 @@
 
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 #include <math.h>
 #include "geometry.hpp"
 #include "func_solid.hpp"
+#include "dxf_solid.hpp"
 #include "error.hpp"
 #include "ibsimu.hpp"
 #include "file.hpp"
@@ -88,26 +90,28 @@ Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
 }
 
 
-Geometry::Geometry( std::istream &s )
-    : Mesh(s)
+Geometry::Geometry( std::istream &is )
+    : Mesh(is)
 {
     check_definition();
 
-    _n = read_int32( s );
+    _n = read_int32( is );
     for( uint32_t a = 0; a < _n; a++ ) {
-	int32_t fileid = read_int32( s );
+	int32_t fileid = read_int32( is );
 	if( fileid == FILEID_FUNCSOLID )
-	    _sdata.push_back( new FuncSolid( s ) );
+	    _sdata.push_back( new FuncSolid( is ) );
+	else if( fileid == FILEID_DXFSOLID )
+	    _sdata.push_back( new DXFSolid( is ) );
 	else
 	    throw( Error( ERROR_LOCATION, "unknown solid type" ) );
     }
 
     for( uint32_t a = 0; a < _n+6; a++ )
-	_bound.push_back( Bound( s ) );
+	_bound.push_back( Bound( is ) );
 
-    _built = read_int8( s );
+    _built = read_int8( is );
     _smesh = new signed char[_size[0]*_size[1]*_size[2]];
-    read_compressed_block( s, _size[0]*_size[1]*_size[2], (int8_t *)_smesh );
+    read_compressed_block( is, _size[0]*_size[1]*_size[2], (int8_t *)_smesh );
 }
 
 
@@ -423,17 +427,27 @@ void Geometry::build_mesh( void )
 }
 
 
-void Geometry::save( std::ostream &s ) const
+void Geometry::save( const std::string &filename ) const
 {
-    Mesh::save( s );
-    write_int32( s, _n );
-    for( uint32_t a = 0; a < _n; a++ )
-	_sdata[a]->save( s );
-    for( uint32_t a = 0; a < _n+6; a++ )
-	_bound[a].save( s );
+    std::ofstream os( filename.c_str() );
+    if( !os.good() )
+	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
+    save( os );
+    os.close();
+}
 
-    write_int8( s, _built );
-    write_compressed_block( s, _size[0]*_size[1]*_size[2]*sizeof(signed char), _smesh );
+
+void Geometry::save( std::ostream &os ) const
+{
+    Mesh::save( os );
+    write_int32( os, _n );
+    for( uint32_t a = 0; a < _n; a++ )
+	_sdata[a]->save( os );
+    for( uint32_t a = 0; a < _n+6; a++ )
+	_bound[a].save( os );
+
+    write_int8( os, _built );
+    write_compressed_block( os, _size[0]*_size[1]*_size[2]*sizeof(signed char), _smesh );
 }
 
 

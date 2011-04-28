@@ -294,6 +294,8 @@ double ScalarField::operator()( Vec3D x ) const
 void ScalarField::save( const std::string &filename ) const
 {
     std::ofstream os( filename.c_str() );
+    if( !os.good() )
+	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
     save( os );
     os.close();
 }

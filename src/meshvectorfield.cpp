@@ -967,6 +967,8 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 void MeshVectorField::save( const std::string &filename ) const
 {
     std::ofstream os( filename.c_str() );
+    if( !os.good() )
+	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
     save( os );
     os.close();
 }

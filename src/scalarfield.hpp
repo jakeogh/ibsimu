@@ -101,7 +101,7 @@ public:
      */
     ScalarField( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h );
 
-    /*! \brief Constructor for loading scalar field from a file.
+    /*! \brief Constructor for loading scalar field from a stream \a s.
      */
     ScalarField( std::istream &s );
 
@@ -202,7 +202,7 @@ public:
      */
     void save( const std::string &filename ) const;
 
-    /*! \brief Saves scalar field data to stream.
+    /*! \brief Saves scalar field data to stream \a s.
      */
     void save( std::ostream &s ) const;
 

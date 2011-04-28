@@ -758,6 +758,14 @@ public:
      */
     const double &operator()( int i ) const { return( _x(i) ); }
 
+    /*! \brief Operator for pointing to coordinate data.
+     */
+    double &operator[]( int i ) { return( _x(i) ); }
+
+    /*! \brief Operator for pointing to coordinate data.
+     */
+    const double &operator[]( int i ) const { return( _x(i) ); }
+
     /*! \brief Returns the location of particle in Vec3D.
      */
     Vec3D location() const { return( _x.location() ); }

@@ -53,7 +53,7 @@ bool FuncSolid::inside( const Vec3D &x ) const
 }
 
 
-FuncSolid::FuncSolid( std::istream &s )
+FuncSolid::FuncSolid( std::istream &is )
 {
     _func = 0;
 }
@@ -66,25 +66,9 @@ void FuncSolid::debug_print( std::ostream &os ) const
 }
 
 
-void FuncSolid::save( std::ostream &fout ) const
+void FuncSolid::save( std::ostream &os ) const
 {
-    write_int32( fout, FILEID_FUNCSOLID );
+    write_int32( os, FILEID_FUNCSOLID );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

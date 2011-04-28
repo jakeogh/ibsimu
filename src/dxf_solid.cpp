@@ -94,6 +94,13 @@ DXFSolid::DXFSolid( MyDXFFile *dxffile, const std::string &layername )
 }
 
 
+DXFSolid::DXFSolid( std::istream &is )
+    : _func(&unity), _entities(NULL), _selection(NULL)
+{
+    
+}
+
+
 DXFSolid::~DXFSolid()
 {
     if( _entities )
@@ -138,6 +145,9 @@ void DXFSolid::define_2x3_mapping( Vec3D (*func)(const Vec3D &) )
 
 bool DXFSolid::inside( const Vec3D &x ) const
 {
+    if( !_entities )
+	return( false );
+
     // Transform 3D -> 3D
     // T is direct transformation
     Vec3D y = _T.transform_point( x );
@@ -204,13 +214,18 @@ void DXFSolid::rotate_z( double a )
 
 void DXFSolid::debug_print( std::ostream &os ) const
 {
+    os << "**DXFSolid\n";
+
+    if( !_entities )
+	return;
+
     for( size_t a = 0; a < _entities->size(); a++ ) {
 	os << _entities->get_entity( a );
     }
 }
 
 
-void DXFSolid::save( std::ostream &s ) const
+void DXFSolid::save( std::ostream &os ) const
 {
-    throw( ErrorUnimplemented( ERROR_LOCATION ) );
+    write_int32( os, FILEID_DXFSOLID );
 }

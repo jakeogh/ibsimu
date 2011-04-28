@@ -48,10 +48,6 @@
 #include "vec3d.hpp"
 
 
-#define FILEID_FUNCSOLID 2001
-#define FILEID_CSGSOLID 2002
-
-
 /*! \brief Abstract solid class.
  *
  *  %Solid class holds the definition for one solid. %Solid class is
