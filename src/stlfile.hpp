@@ -72,7 +72,8 @@ class STLFile {
 	const Vec3D &p1( void ) const;
 	const Vec3D &p2( void ) const;
 	const Vec3D &p3( void ) const;
-
+	const Vec3D &operator[]( int i ) const;
+	
 	void update_bbox( Vec3D &min, Vec3D &max ) const;
 
 	int ray_cross( const Vec3D &x, const Vec3D &l ) const;
@@ -80,10 +81,37 @@ class STLFile {
 	void debug_print( std::ostream &os ) const;
     };
 
+    class VTriangle {
+
+	uint32_t _v[3];
+	Vec3D    _normal;
+
+    public:
+
+	VTriangle( uint32_t v1, uint32_t v2, uint32_t v3, const Vec3D &normal );
+	VTriangle( const uint32_t v[3], const Vec3D &normal );
+	~VTriangle();
+
+	const Vec3D &normal( void ) const;
+	const uint32_t &operator[]( int i ) const;
+
+	bool inside( const Vec3D &x ) const;
+
+	void debug_print( std::ostream &os ) const;
+
+	/*! \brief Outputting to stream.
+	 */
+	friend std::ostream &operator<<( std::ostream &os, const VTriangle &vtri );
+    };
+
     bool                   _ascii;
-    std::vector<Triangle>  _triangle;
+    std::vector<Triangle>  _triangle;  // Original triangle data
+
+    std::vector<Vec3D>     _vertex;    // Vertex list
+    std::vector<VTriangle> _vtri;      // Vertex made triangles
 
     void read_binary( std::ifstream &ifstr );
+    void build_vtriangle_data( void );
 
 public:
 
@@ -102,6 +130,10 @@ public:
     /*! \brief Print debugging information to os.
      */
     void debug_print( std::ostream &os ) const;
+
+    /*! \brief Outputting to stream.
+     */
+    friend std::ostream &operator<<( std::ostream &os, const VTriangle &vtri );
 };
 
 

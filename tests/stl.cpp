@@ -21,11 +21,13 @@ using namespace std;
 
 void test( int argc, char **argv )
 {
-    //Geometry geom( MODE_3D, Int3D(21,21,21), Vec3D(-1e-3,-1e-3,-1e-3), 1e-3 );
+    //Geometry geom( MODE_3D, Int3D(21,21,21), Vec3D(-1.0e-3,-1.0e-3,-1.0e-3), 1e-3 );
     //STLSolid *s1 = new STLSolid( "stl_easy.stl" );
-    Geometry geom( MODE_3D, Int3D(21,21,21), Vec3D(-1e-3,-1e-3,-1e-3), 1e-3 );
+
+    //Geometry geom( MODE_3D, Int3D(31,71,21), Vec3D(-4e-3,-7e-3,-1e-3), 1e-4 );
+    Geometry geom( MODE_3D, Int3D(61,141,41), Vec3D(-4e-3,-7e-3,-1e-3), 5e-5 );
     STLSolid *s1 = new STLSolid( "stl_bin.stl" );
-    //s1->debug_print( cout );
+    s1->debug_print( cout );
 
     geom.set_solid( 7, s1 );
     geom.set_boundary( 1, Bound(BOUND_NEUMANN,    0.0) );
