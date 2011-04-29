@@ -1,8 +1,8 @@
 /*! \file histogram.cpp
- *  \brief Source code for histogram.cpp
+ *  \brief %Histogram data handling for 1D and 2D
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -170,6 +170,39 @@ void Histogram1D::accumulate_linear( double x, double weight )
 }
 
 
+double Histogram1D::coord( size_t i ) const 
+{
+    return( _range[0] + i*(_range[1]-_range[0]) / (_n-1.0) ); 
+}
+
+
+void Histogram1D::get_range( double range[2] ) const 
+{ 
+    range[0] =  _range[0];
+    range[1] =  _range[1];
+}
+
+
+void Histogram1D::convert_to_density( void )
+{
+    // Scale with inverse of area of histogram bin
+    double scale = 1.0/_step;
+
+    *this *= scale;
+}
+
+
+const Histogram1D &Histogram1D::operator*=( double x )
+{
+    // Go through the histogram
+    for( size_t i = 0; i < _n; i++ )
+	_data[i] *= x;
+
+    return( *this );
+}
+
+
+
 
 /* ****************************************************************************
  *
@@ -299,6 +332,47 @@ Histogram2D::~Histogram2D()
 }
 
 
+double Histogram2D::icoord( size_t i ) const 
+{
+    return( _range[0] + i*(_range[2]-_range[0]) / (_n-1.0) ); 
+}
+
+
+double Histogram2D::jcoord( size_t j ) const 
+{ 
+    return( _range[1] + j*(_range[3]-_range[1]) / (_m-1.0) ); 
+}
+
+
+void Histogram2D::get_range( double range[4] ) const 
+{ 
+    range[0] =  _range[0];
+    range[1] =  _range[1];
+    range[2] =  _range[2];
+    range[3] =  _range[3];
+}
+
+
+void Histogram2D::convert_to_density( void )
+{
+    // Scale with inverse of area of histogram bin
+    double scale = 1.0/(_nstep*_mstep);
+
+    *this *= scale;
+}
+
+
+const Histogram2D &Histogram2D::operator*=( double x )
+{
+    // Go through the histogram
+    size_t size = _n*_m;
+    for( size_t i = 0; i < size; i++ )
+	_data[i] *= x;
+
+    return( *this );
+}
+
+
 void Histogram2D::get_bin_range( double &min, double &max ) const
 {
     min = std::numeric_limits<double>::infinity();
@@ -343,21 +417,4 @@ void Histogram2D::accumulate_linear( double x, double y, double weight )
     if( i+1 >= 0 && j+1 >= 0 && i+1 < _n && j+1 < _m )
 	_data[i+1+(j+1)*_n] += weight*t*u;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

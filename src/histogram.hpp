@@ -98,7 +98,7 @@ public:
 
     /*! \brief Return the coordinate on bin \a i.
      */
-    double coord( size_t i ) const { return( _range[0] + i*(_range[1]-_range[0]) / (_n-1.0) ); }
+    double coord( size_t i ) const;
 
     /*! \brief Accumulate \a weight on bin \a i.
      *
@@ -119,12 +119,16 @@ public:
      */
     void accumulate_linear( double x, double weight );
 
+    /*! \brief Convert histogram to density.
+     *
+     *  Assuming the histogram has been filled with "counts", this
+     *  function scales the counts to count density.
+     */
+    void convert_to_density( void );
+
     /*! \brief Return data range.
      */
-    void get_range( double range[2] ) const { 
-	range[0] =  _range[0];
-	range[1] =  _range[1];
-    }
+    void get_range( double range[2] ) const;
     
     /*! \brief Return bin range.
      *
@@ -151,6 +155,10 @@ public:
     double &operator()( size_t i ) {
 	return( _data[i] );
     }
+
+    /*! \brief Scale histogram.
+     */
+    const Histogram1D &operator*=( double x );
 };
 
 
@@ -162,7 +170,7 @@ class Histogram2D : public Histogram
     int                 _m;         /*!< \brief Number of bins along second axis. */
     double              _range[4];  /*!< \brief Ranges: Amin, Bmin, Amax, Bmax. */
     double              _nstep;     /*!< \brief Step size along first axis. */
-    double              _mstep;     /*!< \brief Step size along first axis. */
+    double              _mstep;     /*!< \brief Step size along second axis. */
     std::vector<double> _data;      /*!< \brief Data of histogram. */
 
 public:
@@ -206,11 +214,11 @@ public:
 
     /*! \brief Return the coordinate along the first axis on bin \a i.
      */
-    double icoord( size_t i ) const { return( _range[0] + i*(_range[2]-_range[0]) / (_n-1.0) ); }
+    double icoord( size_t i ) const;
 
     /*! \brief Return the coordinate along the second axis on bin \a j.
      */
-    double jcoord( size_t j ) const { return( _range[1] + j*(_range[3]-_range[1]) / (_m-1.0) ); }
+    double jcoord( size_t j ) const;
 
     /*! \brief Accumulate \a weight on bin \a (i,j).
      *
@@ -231,14 +239,16 @@ public:
      */
     void accumulate_linear( double x, double y, double weight );
 
+    /*! \brief Convert histogram to density.
+     *
+     *  Assuming the histogram has been filled with "counts", this
+     *  function scales the counts to count density.
+     */
+    void convert_to_density( void );
+
     /*! \brief Return data range.
      */
-    void get_range( double range[4] ) const { 
-	range[0] =  _range[0];
-	range[1] =  _range[1];
-	range[2] =  _range[2];
-	range[3] =  _range[3];
-    }
+    void get_range( double range[4] ) const;
     
     /*! \brief Return bin range.
      *
@@ -265,25 +275,11 @@ public:
     double &operator()( size_t i, size_t j ) {
 	return( _data[i+j*_n] );
     }
+
+    /*! \brief Scale histogram.
+     */
+    const Histogram2D &operator*=( double x );
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
