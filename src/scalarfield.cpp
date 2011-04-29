@@ -117,7 +117,8 @@ void ScalarField::check_definition()
 
 void ScalarField::clear()
 {
-    memset( _F, 0, _size[0]*_size[1]*_size[2]*sizeof(double) );
+    if( _F )
+	memset( _F, 0, _size[0]*_size[1]*_size[2]*sizeof(double) );
 }
 
 
@@ -135,8 +136,46 @@ void ScalarField::reset( geom_mode_e geom_mode, Int3D size, Vec3D origo, double 
 
 void ScalarField::get_minmax( double &min, double &max ) const
 {
-    min = _F[0];
-    max = _F[0];
+    if( !_F ) {
+	min = max = 0.0;
+	return;
+    }
+
+    min = max = _F[0];
+
+    /*
+    size_t imin = 0, jmin = 0, kmin = 0;
+    size_t imax = 0, jmax = 0, kmax = 0;
+    size_t ncount = _size[0]*_size[1]*_size[2];
+    for( size_t k = 0; k < _size[2]; k++ ) {
+	for( size_t j = 0; j < _size[1]; j++ ) {
+	    for( size_t i = 0; i < _size[0]; i++ ) {
+		double F = _F[i+(j+k*_size[1])*_size[0]];
+		if( F < min ) {
+		    imin = i;
+		    jmin = j;
+		    kmin = k;
+		    min = F;
+		} if( F > max ) {
+		    imax = i;
+		    jmax = j;
+		    kmax = k;
+		    max = F;
+		}
+	    }
+	}
+    }
+
+    std::cout << "min  = " << min << "\n";
+    std::cout << "imin = " << imin << "\n";
+    std::cout << "jmin = " << jmin << "\n";
+    std::cout << "kmin = " << kmin << "\n";
+
+    std::cout << "max  = " << max << "\n";
+    std::cout << "imax = " << imax << "\n";
+    std::cout << "jmax = " << jmax << "\n";
+    std::cout << "kmax = " << kmax << "\n";
+    */
 
     size_t ncount = _size[0]*_size[1]*_size[2];
     for( size_t a = 1; a < ncount; a++ ) {

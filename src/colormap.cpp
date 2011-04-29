@@ -1,5 +1,5 @@
 /*! \file colormap.cpp
- *  \brief Source code for colormap.cpp
+ *  \brief %Colormap graph for plotting
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -158,12 +158,13 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 	throw( Error( ERROR_LOCATION, "zmin and zmax on different sides of zero" ) );
 
     int sign;
-    if( _zmax <= 0.0 ) {
-	// Completely on negative side
-	sign = -1;
-    } else if( _zmin >= 0.0 ) {
+    double zspan = _zmax - _zmin;
+    if( _zmin >= -1.0e-6*zspan && _zmax >= 0.0 ) {
 	// Completely on positive side
 	sign = +1;
+    } else if( _zmax <= 1.0e-6*zspan && _zmin <= 0.0 ) {
+	// Completely on negative side
+	sign = -1;
     } else {
 	// Both negative and positive
 	sign = 0;

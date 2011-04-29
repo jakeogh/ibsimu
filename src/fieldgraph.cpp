@@ -185,22 +185,29 @@ void FieldGraph::build_scalarfield_plot( void )
     _colormap->set_zrange( zmin, zmax );
     double zspan = zmax - zmin;
     
+    //std::cout << "Colormap zmin = " << zmin << "\n";
+    //std::cout << "Colormap zmax = " << zmax << "\n";
+    //std::cout << "Colormap zspan = " << zspan << "\n";
+
     // Set palette
     std::vector<Palette::Entry> pentry;
     if( zmin >= -1.0e-6*zspan && zmax >= 0.0 ) {
 	// Palette for positive beam
+	//std::cout << "Palette for positive beam\n";
 	pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
 	pentry.push_back( Palette::Entry( Color(1,1,0), 1 ) );
 	pentry.push_back( Palette::Entry( Color(1,0,0), 2 ) );
 	pentry.push_back( Palette::Entry( Color(0,0,0), 3 ) );
-    } else if( zmax <= 1.0e-6*zspan&& zmin <= 0.0 ) {
+    } else if( zmax <= 1.0e-6*zspan && zmin <= 0.0 ) {
 	// Palette for negative beam
+	//std::cout << "Palette for negative beam\n";
 	pentry.push_back( Palette::Entry( Color(1,1,1), 3 ) );
 	pentry.push_back( Palette::Entry( Color(1,1,0), 2 ) );
 	pentry.push_back( Palette::Entry( Color(1,0,0), 1 ) );
 	pentry.push_back( Palette::Entry( Color(0,0,0), 0 ) );
     } else {
 	// Palette for positive and negative beam
+	//std::cout << "Palette for dual polarity beam\n";
 	pentry.push_back( Palette::Entry( Color(0,0,0), zmin ) );
 	pentry.push_back( Palette::Entry( Color(0,0,1), 0.67*zmin ) );
 	pentry.push_back( Palette::Entry( Color(0,1,1), 0.33*zmin ) );
