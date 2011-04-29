@@ -545,7 +545,6 @@ void GTKGeomWindow::read_preferences( GtkWidget *notebook, void *_pdata )
 	    continue;
 	}
 	double val = strtod( str, &str );
-	std::cout << "Manual eqline: " << val << "\n";
 	eqlines_manual.push_back( val );
     }
     _geomplot.set_eqlines_manual( eqlines_manual );

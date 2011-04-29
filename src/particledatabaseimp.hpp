@@ -141,6 +141,8 @@ public:
 
     virtual void clear_trajectories( void ) = 0;
 
+    virtual void clear_trajectory( size_t a ) = 0;
+
     virtual void reserve( size_t size ) = 0;
 
     virtual void build_trajectory_density_field( ScalarField &tdens ) const = 0;
@@ -387,6 +389,12 @@ public:
     virtual void clear_trajectories( void ) {
 	for( uint32_t a = 0; a < _particles.size(); a++ )
 	    _particles[a].clear_trajectory();
+    }
+
+    virtual void clear_trajectory( size_t a ) {
+	if( a >= _particles.size() )
+	    throw( ErrorRange( ERROR_LOCATION, a, _particles.size() ) );	    
+	_particles[a].clear_trajectory();
     }
 
     virtual void reserve( size_t size ) { 

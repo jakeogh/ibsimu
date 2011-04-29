@@ -367,6 +367,13 @@ public:
      */
     void clear_trajectories( void );
 
+    /*! \brief Clears particle \a a in the particle trajectory database.
+     *
+     *  The particle definition is conserved, but existing trajectory
+     *  are cleared.
+     */
+    void clear_trajectory( size_t a );
+
 /* ************************************** *
  * Particle definition                    *
  * ************************************** */

@@ -203,6 +203,12 @@ void ParticleDataBase::clear_trajectories( void )
 }
 
 
+void ParticleDataBase::clear_trajectory( size_t a )
+{
+    _imp->clear_trajectory( a );
+}
+
+
 void ParticleDataBase::reserve( size_t size )
 {
     _imp->reserve( size );
