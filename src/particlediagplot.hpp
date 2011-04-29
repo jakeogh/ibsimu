@@ -2,7 +2,7 @@
  *  \brief %Particle diagnostic plot
  */
 
-/* Copyright (c) 2005-2010,2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -82,8 +82,14 @@ class ParticleDiagPlot {
     const Geometry            *_geom;
     const ParticleDataBase    *_pdb;
 
+    bool                       _free_plane;
+
     coordinate_axis_e          _axis;
     double                     _level;
+
+    Vec3D                      _c;
+    Vec3D                      _o;
+    Vec3D                      _p;
 
     particle_diag_plot_type_e  _type;
     trajectory_diagnostic_e    _diagx;
@@ -118,6 +124,11 @@ public:
 
     ParticleDiagPlot( Frame *frame, const Geometry *geom, const ParticleDataBase *pdb, 
 		      coordinate_axis_e axis, double level, 
+		      particle_diag_plot_type_e type,
+		      trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy = DIAG_NONE );
+
+    ParticleDiagPlot( Frame *frame, const Geometry *geom, const ParticleDataBase *pdb, 
+		      const Vec3D &c, const Vec3D &o, const Vec3D &p,
 		      particle_diag_plot_type_e type,
 		      trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy = DIAG_NONE );
 
@@ -231,8 +242,3 @@ public:
 
 
 #endif
-
-
-
-
-

@@ -50,8 +50,22 @@ ParticleDiagPlot::ParticleDiagPlot( Frame *frame, const Geometry *geom, const Pa
 				    coordinate_axis_e axis, double level, 
 				    particle_diag_plot_type_e type,
 				    trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy )
-    : _frame(frame), _geom(geom), _pdb(pdb), _axis(axis), _level(level), 
+    : _frame(frame), _geom(geom), _pdb(pdb), _free_plane(false), _axis(axis), _level(level), 
       _type(type), _diagx(diagx), _diagy(diagy), _diagz(DIAG_NONE),
+      _pdb_it_no(-1), _update(true), _tdata(NULL), _histo(NULL), _emit(NULL),
+      _scatter(NULL), _ellipse(NULL), _ellipse_enable(true), _colormap(NULL), _profile(NULL), 
+      _histogram_n(50), _histogram_m(50), _interpolation(INTERPOLATION_CLOSEST), _dot_size(1.0)
+{
+    
+}
+
+
+ParticleDiagPlot::ParticleDiagPlot( Frame *frame, const Geometry *geom, const ParticleDataBase *pdb, 
+				    const Vec3D &c, const Vec3D &o, const Vec3D &p,
+				    particle_diag_plot_type_e type,
+				    trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy )
+    : _frame(frame), _geom(geom), _pdb(pdb), _free_plane(true), _axis(AXIS_X), _level(0.0), 
+      _c(c), _o(o), _p(p), _type(type), _diagx(diagx), _diagy(diagy), _diagz(DIAG_NONE),
       _pdb_it_no(-1), _update(true), _tdata(NULL), _histo(NULL), _emit(NULL),
       _scatter(NULL), _ellipse(NULL), _ellipse_enable(true), _colormap(NULL), _profile(NULL), 
       _histogram_n(50), _histogram_m(50), _interpolation(INTERPOLATION_CLOSEST), _dot_size(1.0)
@@ -135,7 +149,14 @@ void ParticleDiagPlot::build_data( void )
 
     // Get diagnostic data
     _tdata = new TrajectoryDiagnosticData;
-    _pdb->trajectories_at_plane( *_tdata, _axis, _level, diagnostics );
+    if( _free_plane ) {
+	const ParticleDataBase3D *pdb3d = dynamic_cast<const ParticleDataBase3D *>( _pdb );
+	if( pdb3d == NULL )
+	    throw( Error( ERROR_LOCATION, "particle database not 3d and trying to use free plane diagnostic" ) );	
+	pdb3d->trajectories_at_free_plane( *_tdata, _c, _o, _p, diagnostics );
+    } else {
+	_pdb->trajectories_at_plane( *_tdata, _axis, _level, diagnostics );
+    }
 
     // Do data mirroring. Limited to only one mirroring per
     // axis-direction, lower end dominates if both edges have
@@ -210,20 +231,18 @@ void ParticleDiagPlot::build_data( void )
 		for( size_t j = 0; j < histo2d->m(); j++ )
 		    (*histo2d)(i,j) /= w;
 	    }
-	} else if( (_diagx == DIAG_X || _diagx == DIAG_Y || _diagx == DIAG_R || _diagx == DIAG_Z) && 
-		   (_diagy == DIAG_X || _diagy == DIAG_Y || _diagy == DIAG_R || _diagy == DIAG_Z) ) {
-	    // Profile plot: scale for A/m2 unit
-	    double w = 1.0/(histo2d->nstep()*histo2d->mstep());
-	    for( size_t i = 0; i < histo2d->n(); i++ )
-		for( size_t j = 0; j < histo2d->m(); j++ )
-		    (*histo2d)(i,j) *= w;
+	} else {
+	    // Scale for density unit (A/m2 for profile, A/(m*rad) for emittance, ...)
+	    histo2d->convert_to_density();
 	}
 
 	// Build emittance fit if applicable
 	if( (_diagx == DIAG_X && _diagy == DIAG_XP)  ||
 	    (_diagx == DIAG_Y && _diagy == DIAG_YP)  ||
 	    (_diagx == DIAG_R && _diagy == DIAG_RP)  ||
-	    (_diagx == DIAG_Z && _diagy == DIAG_ZP) ) {
+	    (_diagx == DIAG_Z && _diagy == DIAG_ZP)  ||
+	    (_diagx == DIAG_O && _diagy == DIAG_OP)  ||
+	    (_diagx == DIAG_P && _diagy == DIAG_PP)  ) {
 	    _emit = new Emittance( (*_tdata)(0).data(), 
 				   (*_tdata)(1).data(), 
 				   (*_tdata)(2).data() );
@@ -449,7 +468,9 @@ void ParticleDiagPlot::build_plot( void )
 	((_diagx == DIAG_X && _diagy == DIAG_XP)  ||
 	 (_diagx == DIAG_Y && _diagy == DIAG_YP)  ||
 	 (_diagx == DIAG_R && _diagy == DIAG_RP)  ||
-	 (_diagx == DIAG_Z && _diagy == DIAG_ZP)) && _ellipse_enable ) {
+	 (_diagx == DIAG_Z && _diagy == DIAG_ZP)  ||
+	 (_diagx == DIAG_O && _diagy == DIAG_OP)  ||
+	 (_diagx == DIAG_P && _diagy == DIAG_PP)  ) && _ellipse_enable ) {
 
 	// Plot emittance ellipse
 	double a = _emit->rmajor();
@@ -477,7 +498,7 @@ void ParticleDiagPlot::build_plot( void )
 	   << "\\alpha  = "   << _emit->alpha()   << ", "
 	   << "\\beta  = "    << _emit->beta()    << " m/rad, "
 	   << "\\gamma  = "   << _emit->gamma()   << " rad/m, "
-	   << "\\epsilon  = " << _emit->epsilon() << " \\pi \\cdot m\\cdot rad";
+	   << "\\epsilon  = " << _emit->epsilon() << " m\\cdot rad";
 	_frame->set_title( ss.str().c_str() );
 
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO1D && 

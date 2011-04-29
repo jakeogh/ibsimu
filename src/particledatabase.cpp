@@ -597,7 +597,7 @@ void ParticleDataBase3D::add_3d_gaussian_beam_with_emittance( uint32_t N, double
 
 
 void ParticleDataBase3D::trajectories_at_free_plane( TrajectoryDiagnosticData &tdata, 
-						     Vec3D c, Vec3D o, Vec3D p,
+						     const Vec3D &c, const Vec3D &o, const Vec3D &p,
 						     const std::vector<trajectory_diagnostic_e> &diagnostics ) const
 {
     _imp->trajectories_at_free_plane( tdata, c, o, p, diagnostics );
@@ -606,7 +606,7 @@ void ParticleDataBase3D::trajectories_at_free_plane( TrajectoryDiagnosticData &t
 
 void ParticleDataBase3D::export_path_manager_data( std::string filename, 
 						   double ref_E, double ref_q, double ref_m, 
-						   Vec3D c, Vec3D o, Vec3D p ) const
+						   const Vec3D &c, const Vec3D &o, const Vec3D &p ) const
 {
     _imp->export_path_manager_data( filename, ref_E, ref_q, ref_m, c, o, p );
 }

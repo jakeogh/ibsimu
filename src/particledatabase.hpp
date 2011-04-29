@@ -1005,7 +1005,7 @@ public:
      *  DIAG_QM.
      */
     void trajectories_at_free_plane( TrajectoryDiagnosticData &tdata, 
-				     Vec3D c, Vec3D o, Vec3D p,
+				     const Vec3D &c, const Vec3D &o, const Vec3D &p,
 				     const std::vector<trajectory_diagnostic_e> &diagnostics ) const;
 
 
@@ -1032,7 +1032,7 @@ public:
      */
     void export_path_manager_data( std::string filename, 
 				   double ref_E, double ref_q, double ref_m, 
-				   Vec3D c, Vec3D o, Vec3D p ) const;
+				   const Vec3D &c, const Vec3D &o, const Vec3D &p ) const;
 
 /* ************************************** *
  * Debugging, plotting and saving         *
