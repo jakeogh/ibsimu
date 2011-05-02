@@ -83,6 +83,10 @@ public:
      */
     Transformation( const Transformation &m );
 
+    /*! \brief Constructor for loading transformation from stream \a is.
+     */
+    Transformation( std::istream &is );
+
     /*! \brief Destructor.
      */
     ~Transformation();
@@ -265,6 +269,18 @@ public:
     /*! \brief Outputting to stream.
      */
     friend std::ostream &operator<<( std::ostream &os, const Transformation &t );
+
+    /*! \brief Saves data to a new file \a filename.
+     */
+    void save( const std::string &filename ) const;
+
+    /*! \brief Saves vector field data to stream \a os.
+     */
+    void save( std::ostream &os ) const;
+
+    /*! \brief Print debugging information to stream \a os.
+     */
+    void debug_print( std::ostream &os ) const;
 };
 
 

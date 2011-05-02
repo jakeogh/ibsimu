@@ -41,6 +41,9 @@
  */
 
 
+#include <iostream>
+#include <fstream>
+#include <iomanip>
 #include "transformation.hpp"
 
 
@@ -80,6 +83,13 @@ Transformation::Transformation( double x11, double x12, double x13, double x14,
 Transformation::Transformation( const Transformation &m )
 { 
     memcpy( x, m.x, 16*sizeof(double) );
+}
+
+
+Transformation::Transformation( std::istream &is )
+{
+    for( int i = 0; i < 16; i++ )
+	x[i] = read_double( is );
 }
 
 
@@ -260,32 +270,6 @@ Vec3D Transformation::inv_transform_vector( const Vec3D &xin ) const
 }
 
 
-std::ostream &operator<<( std::ostream &os, const Transformation &t ) 
-{
-    os << std::setw(12) << to_string(t[0]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[1]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[2]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[3]).substr(0,12) << "\n";
-
-    os << std::setw(12) << to_string(t[4]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[5]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[6]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[7]).substr(0,12) << "\n";
-
-    os << std::setw(12) << to_string(t[8]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[9]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[10]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[11]).substr(0,12) << "\n";
-
-    os << std::setw(12) << to_string(t[12]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[13]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[14]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[15]).substr(0,12) << "\n";
-
-    return( os );
-}
-
-
 void Transformation::reset( void ) 
 {
     Transformation t1 = unity();
@@ -391,3 +375,41 @@ Transformation Transformation::rotation_z( double a )
 			    0,       0,  0,  1 ) );
 }
 
+
+void Transformation::save( const std::string &filename ) const
+{
+    std::ofstream os( filename.c_str() );
+    if( !os.good() )
+	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
+    save( os );
+    os.close();
+}
+
+
+void Transformation::save( std::ostream &os ) const
+{
+    for( int i = 0; i < 16; i++ )
+	write_double( os, x[i] );
+}
+
+
+std::ostream &operator<<( std::ostream &os, const Transformation &t ) 
+{
+    for( size_t i = 0; i < 4; i++ ) {
+	for( size_t j = 0; j < 4; j++ ) {
+	    os << std::setw(12) << to_string(t.x[4*j+i]).substr(0,12) << " ";
+	}
+	os << "\n";
+    }
+
+    return( os );
+}
+
+
+void Transformation::debug_print( std::ostream &os ) const
+{
+    std::cout << "**Transformation\n";
+
+    os << "x = \n";
+    os << *this << "\n";
+}

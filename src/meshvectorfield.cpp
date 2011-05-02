@@ -984,11 +984,14 @@ void MeshVectorField::save( std::ostream &s ) const
     for( int i = 0; i < 3; i++ ) {
 	if( _F[i] ) {
 	    write_int8( s, 1 );
-	    write_compressed_block( s, _size[0]*_size[1]*_size[2]*sizeof(double), (int8_t *)_F );
+	    write_compressed_block( s, _size[0]*_size[1]*_size[2]*sizeof(double), (int8_t *)_F[i] );
 	} else {
 	    write_int8( s, 0 );
 	}
     }
+
+    _T.save( s );
+    _Tinv.save( s );
 }
 
 

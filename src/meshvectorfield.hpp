@@ -147,9 +147,9 @@ public:
      */
     MeshVectorField( const MeshVectorField &f );
 
-    /*! \brief Constructor for loading vector field from a file.
+    /*! \brief Constructor for loading vector field from stream \a is.
      */
-    MeshVectorField( std::istream &s );
+    MeshVectorField( std::istream &is );
 
     /*! \brief Destructor.
      */
@@ -285,11 +285,11 @@ public:
      */
     void save( const std::string &filename ) const;
 
-    /*! \brief Saves vector field data to stream.
+    /*! \brief Saves vector field data to stream \a os.
      */
-    void save( std::ostream &s ) const;
+    void save( std::ostream &os ) const;
 
-    /*! \brief Print debugging information to os.
+    /*! \brief Print debugging information to stream \a os.
      */
     void debug_print( std::ostream &os ) const;
 };
