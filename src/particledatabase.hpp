@@ -480,6 +480,8 @@ public:
      */
     virtual const ParticleP2D &trajectory_point( uint32_t i, uint32_t j ) const;
 
+    using ParticleDataBase::trajectory_point;
+
 /* ************************************** *
  * Particle definition                    *
  * ************************************** */
@@ -666,6 +668,8 @@ public:
      */
     virtual const ParticlePCyl &trajectory_point( uint32_t i, uint32_t j ) const;
 
+    using ParticleDataBase::trajectory_point;
+
 /* ************************************** *
  * Particle definition                    *
  * ************************************** */
@@ -838,6 +842,8 @@ public:
     /*! \brief Gets the particle \a i trajectory point \a j as particle point.
      */
     virtual const ParticleP3D &trajectory_point( uint32_t i, uint32_t j ) const;
+
+    using ParticleDataBase::trajectory_point;
 
 /* ************************************** *
  * Particle definition                    *
