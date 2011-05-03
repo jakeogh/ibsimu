@@ -139,7 +139,7 @@ void ExceptionTracer::print_trace( std::ostream &os )
 void SignalHandler::signal_handler_SIGTERM( int signum, siginfo_t *info, void *ptr )
 {
     std::cerr << "Terminate signal cought!\n";
-    ibsimu.halt();
+    //ibsimu.halt();
     exit( 1 );
 }
 
