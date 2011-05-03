@@ -46,6 +46,7 @@
 #include <cmath>
 #include <limits>
 #include "scalarfield.hpp"
+#include "ibsimu.hpp"
 
 
 ScalarField::ScalarField()
@@ -78,6 +79,9 @@ ScalarField::ScalarField( std::istream &s )
     : Mesh(s)
 {
     check_definition();
+
+    if( ibsimu.get_verbose_output() )
+	ibsimu.vout() << "Constructing ScalarField from stream\n";
 
     _F = new double[_size[0]*_size[1]*_size[2]];
     read_compressed_block( s, _size[0]*_size[1]*_size[2]*sizeof(double), (int8_t *)_F );

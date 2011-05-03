@@ -1,8 +1,8 @@
-/*! \file src/umfpack_solver.cpp
- *  \brief Source code for src/umfpack_solver.cpp
+/*! \file umfpack_solver.cpp
+ *  \brief UMFPack solver
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -147,7 +147,7 @@ void UMFPACKSolver::solve( const Problem &p, Vector &X )
 
         // Linear solver
         if( ibsimu.get_verbose_output() )
-            std::cout << "  Using UMFPACK solver\n";
+            ibsimu.vout() << "  Using UMFPACK solver\n";
 
 	const Matrix *A;
         const Vector *B;
@@ -157,13 +157,13 @@ void UMFPACKSolver::solve( const Problem &p, Vector &X )
 	umfpack_solve( Acol, *B, X );
 
         if( ibsimu.get_verbose_output() )
-            std::cout << "  Done\n";
+            ibsimu.vout() << "  Done\n";
 
     } else {
 
         // Nonlinear solver (Newton-Raphson)
         if( ibsimu.get_verbose_output() )
-            std::cout << "  Using Newton-Raphson UMFPACK solver\n";
+            ibsimu.vout() << "  Using Newton-Raphson UMFPACK solver\n";
 
 	int32_t a;
 	const Matrix *J;
@@ -172,7 +172,7 @@ void UMFPACKSolver::solve( const Problem &p, Vector &X )
 	Vector dX;
 
 	if( ibsimu.get_verbose_output() )
-	    std::cout << "    " 
+	    ibsimu.vout() << "    " 
 		      << std::setw(5) << "Iter" << " " 
 		      << std::setw(14) << "Step size" << " " 
 		      << std::setw(14) << "Residual" << "\n";
@@ -192,7 +192,7 @@ void UMFPACKSolver::solve( const Problem &p, Vector &X )
 	    accX = max_abs( dX );
 
 	    if( ibsimu.get_verbose_output() )
-		std::cout << "    " 
+		ibsimu.vout() << "    " 
 			  << std::setw(5) << a << " " 
 			  << std::setw(14) << accX << " " 
 			  << std::setw(14) << accR << "\n";
@@ -203,15 +203,15 @@ void UMFPACKSolver::solve( const Problem &p, Vector &X )
 
 	if( ibsimu.get_verbose_output() ) {
 	    if( accR < _newton_Reps || accX < _newton_dXeps )
-		std::cout << "  Newton-Raphson converged\n";
+		ibsimu.vout() << "  Newton-Raphson converged\n";
 	    else
-		std::cout << "  Maximum number of Newton-Raphson iterations\n";
+		ibsimu.vout() << "  Maximum number of Newton-Raphson iterations\n";
 	}
     }
 
     t.stop();
     if( ibsimu.get_verbose_output() )
-        std::cout << "  time used = " << t << "\n";
+        ibsimu.vout() << "  time used = " << t << "\n";
 }
 
 
@@ -221,12 +221,3 @@ void UMFPACKSolver::reset( void )
 	umfpack_di_free_numeric( &_numeric );
     _numeric = 0;
 }
-
-
-
-
-
-
-
-
-

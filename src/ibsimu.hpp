@@ -45,6 +45,11 @@
 #define IBSIMU_HPP 1
 
 
+#include <string>
+#include <iostream>
+#include <fstream>
+
+
 class Timer;
 
 
@@ -55,13 +60,18 @@ class Timer;
  */
 class IBSimu 
 {
-    Timer   *_t;
+    Timer        *_t;
 
-    bool     _hello;
-    int      _verbose_output;
-    int      _threadcount;
+    bool          _hello;
+    int           _verbose_output;
+    int           _threadcount;
 
-    IBSimu( const IBSimu &ibs ) {}
+    bool          _is_cout;         // True if vout is std::cout
+    std::ostream *_vout;            // Verbose output stream
+
+    std::ofstream _fout;            // Verbose output file
+
+    IBSimu( const IBSimu &ibs ) : _vout(ibs._vout) {}
 
     const IBSimu &operator=( const IBSimu &ibs ) { return( *this ); }
 
@@ -74,6 +84,30 @@ public:
     /*! \brief Default destructor.
      */
     ~IBSimu();
+
+    /*! \brief Set verbose output to stream \a vout
+     *
+     *  Returns a reference to the old output stream.
+     */
+    std::ostream &set_vout( std::ostream &vout );
+
+    /*! \brief Set verbose output to file \a filename.
+     *
+     *  Returns a reference to the old output stream. If the output
+     *  stream is redefined, the file is kept open in the
+     *  background. IBSimu can only have one output stream opened at
+     *  time with this function. The file is closed when the IBSimu
+     *  object is destructed.
+     */
+    std::ostream &set_vout( const std::string &filename );
+
+    /*! \brief Get a reference to verbose output stream.
+     */
+    std::ostream &vout( void );
+
+    /*! \brief Return if verbose output stream is std::cout.
+     */
+    bool vout_is_cout();
 
     /*! \brief Set verbosity level.
      */
@@ -90,6 +124,12 @@ public:
     /*! \brief Get the number of threads used for calculation.
      */
     int get_thread_count( void ) { return( _threadcount ); }
+
+    /*! \brief Halt execution
+     *
+     *  This function is called by the error handler in case of SIGTERM.
+     */
+    void halt( void );
 };
 
 

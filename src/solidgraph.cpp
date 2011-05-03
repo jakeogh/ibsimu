@@ -1,8 +1,8 @@
 /*! \file solidgraph.cpp
- *  \brief Source code for solidgraph.cpp
+ *  \brief Graph for plotting solids
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -315,9 +315,6 @@ void SolidGraph::disable_cache( void )
 
 void SolidGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
-    //if( ibsimu.get_verbose_output() )
-    //std::cout << "  Plotting solids\n";
-
     //std::cout << "--Plotting solids--\n";
     if( !_cache || _solid.size() == 0 || _oview != _view || _olevel != _level ) {
 	// First round or change happened

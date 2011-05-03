@@ -2,7 +2,7 @@
  *  \brief Subroutine for printing running status line on command line
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,21 +45,29 @@
 
 
 #include <time.h>
+#include <iostream>
 
 
 /*! \brief A tool for printing running status on command line.
  */
 class StatusPrint {
     
-    size_t _width;
-    time_t _time;
+    size_t        _width;
+    time_t        _time;
+    std::ostream &_os;
 
 public:
 
-    StatusPrint();
+    /*! \brief Constructor for printing status to stream \a os.
+     */
+    StatusPrint( std::ostream &os );
 
+    /*! \brief Destructor.
+     */
     ~StatusPrint();
 
+    /*! \brief Print string \a str.
+     */
     void print( const std::string &str );
     
 };

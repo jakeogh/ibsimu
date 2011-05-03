@@ -385,7 +385,7 @@ void FieldDiagPlot::export_data( const std::string &filename ) const
 {
     std::ofstream fstr( filename.c_str() );
     if( ibsimu.get_verbose_output() )
-	std::cout << "Exporting field diagnostic data to \'" << filename << "\'\n";
+	ibsimu.vout() << "Exporting field diagnostic data to \'" << filename << "\'\n";
 
     // Build data
     std::vector<double> coord[4];

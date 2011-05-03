@@ -291,7 +291,7 @@ public:
 					const std::vector<trajectory_diagnostic_e> &diagnostics ) const {
 
 	if( ibsimu.get_verbose_output() )
-	    std::cout << "Making trajectory diagnostics at " 
+	    ibsimu.vout() << "Making trajectory diagnostics at " 
 		      << coordinate_axis_string[axis] << " = " << val << "\n";
 
 	// Check query
@@ -373,11 +373,11 @@ public:
 	}
 
 	if( ibsimu.get_verbose_output() ) {
-	    std::cout << "  number of trajectories = " << tdata.traj_size() << "\n";
+	    ibsimu.vout() << "  number of trajectories = " << tdata.traj_size() << "\n";
 	    if( PP::geom_mode() == MODE_2D )
-		std::cout << "  total current = " << Isum << " A/m\n";
+		ibsimu.vout() << "  total current = " << Isum << " A/m\n";
 	    else
-		std::cout << "  total current = " << Isum << " A\n";
+		ibsimu.vout() << "  total current = " << Isum << " A\n";
 	}
     }
 
@@ -417,7 +417,7 @@ public:
 
 	Timer t;
 	if( ibsimu.get_verbose_output() )
-	    std::cout << "Calculating particle trajectories\n";
+	    ibsimu.vout() << "Calculating particle trajectories\n";
 	_iteration++;
 
 	// Check geometry mode
@@ -432,7 +432,7 @@ public:
 
 	// Check number of particles
 	if( _particles.size() == 0 ) {
-	    std::cout << "  no particles to calculate\n";
+	    ibsimu.vout() << "  no particles to calculate\n";
 	    return;
 	}
 
@@ -475,19 +475,19 @@ public:
 	
 	t.stop();
 	if( ibsimu.get_verbose_output() ) {
-	    std::cout << "  Particle histories (" << _particles.size() << " total):\n";
-	    std::cout << "    flown = " << _stat.bound_collisions() << "\n";
-	    std::cout << "    time limited = " << _stat.end_time() << "\n";
-	    std::cout << "    step count limited = " << _stat.end_step() << "\n";
-	    std::cout << "    bad definitions = " << _stat.end_baddef() << "\n";
+	    ibsimu.vout() << "  Particle histories (" << _particles.size() << " total):\n";
+	    ibsimu.vout() << "    flown = " << _stat.bound_collisions() << "\n";
+	    ibsimu.vout() << "    time limited = " << _stat.end_time() << "\n";
+	    ibsimu.vout() << "    step count limited = " << _stat.end_step() << "\n";
+	    ibsimu.vout() << "    bad definitions = " << _stat.end_baddef() << "\n";
 	    for( size_t a = 1; a <= _stat.number_of_boundaries(); a++ ) {
-		std::cout << "    beam to boundary " << a << " = " << _stat.bound_current(a)
+		ibsimu.vout() << "    beam to boundary " << a << " = " << _stat.bound_current(a)
 			  << " " << PP::IQ_unit() << " (" << _stat.bound_collisions(a) << " particles)" << "\n";
 	    }
-	    std::cout << "    total steps = " << _stat.sum_steps() << "\n";
-	    std::cout << "    steps per particle (ave) = " << 
+	    ibsimu.vout() << "    total steps = " << _stat.sum_steps() << "\n";
+	    ibsimu.vout() << "    steps per particle (ave) = " << 
 		_stat.sum_steps()/(double)_particles.size() << "\n";
-	    std::cout << "  time used = " << t << "\n";
+	    ibsimu.vout() << "  time used = " << t << "\n";
 	}
     }
 
@@ -500,7 +500,7 @@ public:
 
 	Timer t;
 	if( ibsimu.get_verbose_output() )
-	    std::cout << "Calculating particle trajectories\n";
+	    ibsimu.vout() << "Calculating particle trajectories\n";
 	_iteration++;
 
 	// Check geometry mode
@@ -515,7 +515,7 @@ public:
 
 	// Check number of particles
 	if( _particles.size() == 0 ) {
-	    std::cout << "  no particles to calculate\n";
+	    ibsimu.vout() << "  no particles to calculate\n";
 	    return;
 	}
 
@@ -565,19 +565,19 @@ public:
 	
 	t.stop();
 	if( ibsimu.get_verbose_output() ) {
-	    std::cout << "  Particle histories (" << _particles.size() << " total):\n";
-	    std::cout << "    flown = " << _stat.bound_collisions() << "\n";
-	    std::cout << "    time limited = " << _stat.end_time() << "\n";
-	    std::cout << "    step count limited = " << _stat.end_step() << "\n";
-	    std::cout << "    bad definitions = " << _stat.end_baddef() << "\n";
+	    ibsimu.vout() << "  Particle histories (" << _particles.size() << " total):\n";
+	    ibsimu.vout() << "    flown = " << _stat.bound_collisions() << "\n";
+	    ibsimu.vout() << "    time limited = " << _stat.end_time() << "\n";
+	    ibsimu.vout() << "    step count limited = " << _stat.end_step() << "\n";
+	    ibsimu.vout() << "    bad definitions = " << _stat.end_baddef() << "\n";
 	    for( size_t a = 1; a <= _stat.number_of_boundaries(); a++ ) {
-		std::cout << "    beam to boundary " << a << " = " << _stat.bound_current(a)
+		ibsimu.vout() << "    beam to boundary " << a << " = " << _stat.bound_current(a)
 			  << " " << PP::IQ_unit() << " (" << _stat.bound_collisions(a) << " particles)" << "\n";
 	    }
-	    std::cout << "    total steps = " << _stat.sum_steps() << "\n";
-	    std::cout << "    steps per particle (ave) = " << 
+	    ibsimu.vout() << "    total steps = " << _stat.sum_steps() << "\n";
+	    ibsimu.vout() << "    steps per particle (ave) = " << 
 		_stat.sum_steps()/(double)_particles.size() << "\n";
-	    std::cout << "  time used = " << t << "\n";
+	    ibsimu.vout() << "  time used = " << t << "\n";
 	}
     }
 

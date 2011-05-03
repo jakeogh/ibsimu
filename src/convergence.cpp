@@ -106,7 +106,7 @@ bool Convergence::evaluate_iteration( void )
 	convergence = false;
     
     if( ibsimu.get_verbose_output() )
-	std::cout << "Iteration round " << _iter << "\n";
+	ibsimu.vout() << "Iteration round " << _iter << "\n";
 
     // Calculate convergence estimate for epot
     if( _epot ) {
@@ -138,7 +138,7 @@ bool Convergence::evaluate_iteration( void )
 	}
 
 	if( ibsimu.get_verbose_output() )
-	    std::cout << "  Epot error = " << _epot_hist.back() << "\n";
+	    ibsimu.vout() << "  Epot error = " << _epot_hist.back() << "\n";
     }
     
     // Calculate convergence estimate for scharge
@@ -171,7 +171,7 @@ bool Convergence::evaluate_iteration( void )
 	}
 
 	if( ibsimu.get_verbose_output() )
-	    std::cout << "  Space charge error = " << _scharge_hist.back() << "\n";
+	    ibsimu.vout() << "  Space charge error = " << _scharge_hist.back() << "\n";
     }
     
     // Calculate convergence estimate for emittances
@@ -283,7 +283,7 @@ bool Convergence::evaluate_iteration( void )
 	}
 
 	if( ibsimu.get_verbose_output() )
-	    std::cout << "  Emittance " << i << " error = " << _emit_hist[i].back() << "\n";
+	    ibsimu.vout() << "  Emittance " << i << " error = " << _emit_hist[i].back() << "\n";
     }
 
     // Increase iteration counter

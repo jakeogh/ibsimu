@@ -101,6 +101,9 @@ MeshVectorField::MeshVectorField( std::istream &s )
 {
     check_definition();
 
+    if( ibsimu.get_verbose_output() )
+	ibsimu.vout() << "Constructing MeshVectorField from stream\n";
+
     for( int i = 0; i < 6; i++ )
 	_extrpl[i] = (field_extrpl_e)read_int32( s );
 
@@ -129,7 +132,7 @@ MeshVectorField::MeshVectorField( geom_mode_e geom_mode, const bool fout[3], dou
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
 
     if( ibsimu.get_verbose_output() )
-	std::cout << "Reading vector field from " << filename << "\n";
+	ibsimu.vout() << "Reading vector field from " << filename << "\n";
 
     // Set number of dimensions (cdim) 
     size_t cdim;
@@ -224,10 +227,10 @@ MeshVectorField::MeshVectorField( geom_mode_e geom_mode, const bool fout[3], dou
     }
 
     if( ibsimu.get_verbose_output() ) {
-	std::cout << "  origo = " << origo << "\n";
-	std::cout << "  size  = " << size << "\n";
-	std::cout << "  max   = " << max << "\n";
-	std::cout << "  h     = " << h << "\n";
+	ibsimu.vout() << "  origo = " << origo << "\n";
+	ibsimu.vout() << "  size  = " << size << "\n";
+	ibsimu.vout() << "  max   = " << max << "\n";
+	ibsimu.vout() << "  h     = " << h << "\n";
     }
 
     // Prepare MeshVectorField
@@ -999,32 +1002,32 @@ void MeshVectorField::debug_print( std::ostream &os ) const
 {
     Mesh::debug_print( os );
 
-    std::cout << "**MeshVectorField\n";
-    std::cout << "extrpl = (" 
-	      << _extrpl[0] << ", "
-	      << _extrpl[1] << ", "
-	      << _extrpl[2] << ", "
-	      << _extrpl[3] << ", "
-	      << _extrpl[4] << ", "
-	      << _extrpl[5] << ")\n";
+    os << "**MeshVectorField\n";
+    os << "extrpl = (" 
+       << _extrpl[0] << ", "
+       << _extrpl[1] << ", "
+       << _extrpl[2] << ", "
+       << _extrpl[3] << ", "
+       << _extrpl[4] << ", "
+       << _extrpl[5] << ")\n";
     for( size_t i = 0; i < 3; i++ ) {
-	std::cout << "F[" << i << "] = ";
+	os << "F[" << i << "] = ";
 	if( _F[i] == NULL ) {
-	    std::cout << "NULL\n";
+	    os << "NULL\n";
 	    continue;
 	}
-	std::cout << "(";
+	os << "(";
 	if( _size[0]*_size[1]*_size[2] < 10 ) {
 	    int a;
 	    for( a = 0; a < _size[0]*_size[1]*_size[2]-1; a++ )
-		std::cout << _F[i][a] << ", ";
+		os << _F[i][a] << ", ";
 	    if( a < _size[0]*_size[1]*_size[2] )
-		std::cout << _F[i][a] << ")\n";
+		os << _F[i][a] << ")\n";
 	} else {
 	    // Print only 10 first nodes
 	    for( int a = 0; a < 10; a++ )
-		std::cout << _F[i][a] << ", ";
-	    std::cout << "... )\n";
+		os << _F[i][a] << ", ";
+	    os << "... )\n";
 	}
     }
 }

@@ -1,5 +1,5 @@
 /*! \file scharge.cpp
- *  \brief Source code for scharge.cpp
+ *  \brief Space charge deposition functions
  */
 
 /* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
@@ -50,7 +50,7 @@
 void scharge_finalize( ScalarField &scharge )
 {
     if( ibsimu.get_verbose_output() )
-	std::cout << "  Finalizing space charge density map\n";
+	ibsimu.vout() << "  Finalizing space charge density map\n";
 
     switch( scharge.geom_mode() ) {
     case MODE_2D:

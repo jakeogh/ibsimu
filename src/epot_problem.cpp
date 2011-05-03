@@ -1050,11 +1050,11 @@ void EpotProblem::construct( const Geometry &g )
 
     if( ibsimu.get_verbose_output() ) {
 	if( _plasma == PLASMA_NONE )
-	    std::cout << "Constructing linear electric potential problem\n";
+	    ibsimu.vout() << "Constructing linear electric potential problem\n";
 	else if( _plasma == PLASMA_INITIAL )
-	    std::cout << "Constructing linear starting point for plasma problem\n";
+	    ibsimu.vout() << "Constructing linear starting point for plasma problem\n";
 	else
-	    std::cout << "Constructing nonlinear plasma problem\n";
+	    ibsimu.vout() << "Constructing nonlinear plasma problem\n";
     }
 
     if( !g.built() )
@@ -1064,19 +1064,19 @@ void EpotProblem::construct( const Geometry &g )
     _g = &g;
     if( _plasma == PLASMA_INITIAL ) {
 	if( ibsimu.get_verbose_output() )
-	    std::cout << "  Using initial plasma volume at Up = " << _Up << " V\n";
+	    ibsimu.vout() << "  Using initial plasma volume at Up = " << _Up << " V\n";
     } else if( _plasma == PLASMA_PEXP ) {
 	if( ibsimu.get_verbose_output() ) {
-	    std::cout << "  Using exponential plasma model for positive ion extraction\n";
-	    std::cout << "  Te = " << _Te << " eV, Up = " << _Up 
+	    ibsimu.vout() << "  Using exponential plasma model for positive ion extraction\n";
+	    ibsimu.vout() << "  Te = " << _Te << " eV, Up = " << _Up 
 		      << " V, rhoe = " << _rhoe << " C/m^3\n";
 	}
     } else if( _plasma == PLASMA_NSIMP ) {
 	if( ibsimu.get_verbose_output() ) {
-	    std::cout << "  Using negative ion extraction plasma model\n";
-	    std::cout << "  Ep = " << _Ei[0] << " eV, rhop = " << _rhoi[0] << " C/m^3\n";
+	    ibsimu.vout() << "  Using negative ion extraction plasma model\n";
+	    ibsimu.vout() << "  Ep = " << _Ei[0] << " eV, rhop = " << _rhoi[0] << " C/m^3\n";
 	    for( size_t a = 1; a < _Ei.size(); a++ )
-		std::cout << "  Ei[" << a << "] = " << _Ei[a] << " eV, rhop[" 
+		ibsimu.vout() << "  Ei[" << a << "] = " << _Ei[a] << " eV, rhop[" 
 			  << a << "] = " << _rhoi[a] << " C/m^3\n";
 	}
     }
@@ -1106,7 +1106,7 @@ void EpotProblem::construct( const Geometry &g )
     }
 
     if( ibsimu.get_verbose_output() ) {
-	std::cout << "  dof = " << _dof << "\n";
+	ibsimu.vout() << "  dof = " << _dof << "\n";
     }
 
     // Allocate problem matrix and vector
@@ -1161,7 +1161,7 @@ void EpotProblem::set_solver( Solver &s )
 void EpotProblem::solve( ScalarField &epot, const ScalarField &scharge ) const
 {
     if( ibsimu.get_verbose_output() ) {
-	std::cout << "Solving problem\n";
+	ibsimu.vout() << "Solving problem\n";
     }
 
     if( _solver == 0 )

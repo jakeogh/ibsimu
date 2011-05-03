@@ -279,6 +279,10 @@ public:
      */
     static void signal_handler_SIGSEGV( int signum, siginfo_t *info, void *ptr );
 #endif
+
+    /*! \brief Signal handler function for SIGTERM.
+     */
+    static void signal_handler_SIGTERM( int signum, siginfo_t *info, void *ptr );
 };
 
 

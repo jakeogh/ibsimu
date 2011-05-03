@@ -1,5 +1,5 @@
 /*! \file fieldgraph.cpp
- *  \brief Source code for fieldgraph.cpp
+ *  \brief %Graph for plotting fields
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -225,9 +225,6 @@ void FieldGraph::build_scalarfield_plot( void )
 
 void FieldGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
-    //if( ibsimu.get_verbose_output() )
-    //std::cout << "  Plotting field\n";
-
     if( _colormap == NULL || _oview != _view || _olevel != _level ) {
 	// First plot or changed view happened
 

@@ -1,8 +1,8 @@
 /*! \file meshgraph.cpp
- *  \brief Source code for meshgraph.cpp
+ *  \brief %Graph of rectangular mesh for geometry plots
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -60,7 +60,7 @@ MeshGraph::~MeshGraph()
 void MeshGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
     if( ibsimu.get_verbose_output() )
-        std::cout << "  Plotting mesh\n";
+        ibsimu.vout() << "  Plotting mesh\n";
 
     cairo_set_source_rgb( cairo, 0.5, 0.5, 0.5 );
     cairo_set_line_width( cairo, 1.0 );

@@ -4,6 +4,7 @@
 
 
 #include <iostream>
+#include <string>
 #include "ibsimutest.hpp"
 #include "ibsimu.hpp"
 
@@ -20,6 +21,16 @@ ErrorTest::ErrorTest( const ErrorLocation &loc, const std::string &str )
 int main( int argc, char **argv )
 {
     try {
+	// Libtool binary name is "lt-blah", strip the main part
+	std::string filename;
+	std::string bin = argv[0];
+	size_t loc = bin.rfind( "lt-" );
+	if( loc != std::string::npos )
+	    filename = bin.substr( loc+3 ) + "_vout.txt";
+	else
+	    filename = bin + "_vout.txt";
+
+	ibsimu.set_vout( filename );
 	ibsimu.set_verbose_output( 1 );
 	ibsimu.set_thread_count( 4 );
 	test( argc, argv );

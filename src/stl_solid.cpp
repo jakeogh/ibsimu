@@ -50,17 +50,17 @@
 STLSolid::STLSolid( const std::string &filename )
 {
     if( ibsimu.get_verbose_output() )
-	std::cout << "Defining electrode from STL file \'" << filename << "\'\n";
+	ibsimu.vout() << "Defining electrode from STL file \'" << filename << "\'\n";
 
     _stl = new STLFile( filename );
 
     if( _stl && ibsimu.get_verbose_output() ) {
-	std::cout << "  solid defined using " << _stl->size() << " triangles\n";
+	ibsimu.vout() << "  solid defined using " << _stl->size() << " triangles\n";
 	Vec3D min;
 	Vec3D max;
 	_stl->get_bbox( min, max );
-	std::cout << "  bbox min = " << min << "\n";
-	std::cout << "  bbox max = " << max << "\n";
+	ibsimu.vout() << "  bbox min = " << min << "\n";
+	ibsimu.vout() << "  bbox max = " << max << "\n";
     }
 }
 

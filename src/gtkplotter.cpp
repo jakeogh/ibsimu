@@ -80,12 +80,12 @@ GTKPlotter::~GTKPlotter()
 void GTKPlotter::run()
 {
     if( ibsimu.get_verbose_output() )
-	std::cout << "Running GTKPlotter\n";
+	ibsimu.vout() << "Running GTKPlotter\n";
 
     gtk_main();
 
     if( ibsimu.get_verbose_output() )
-	std::cout << "  Done\n";
+	ibsimu.vout() << "  Done\n";
 }
 
 

@@ -80,8 +80,8 @@ void bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
 	return;
     }
 
-    StatusPrint sp;
-    if( ibsimu.get_verbose_output() ) {
+    StatusPrint sp( ibsimu.vout() );
+    if( ibsimu.get_verbose_output() && ibsimu.vout_is_cout() ) {
 	std::stringstream ss;
 	ss << "  " << std::setw(5) << 0 << " " << std::scientific << std::setw(20) << resid;
 	sp.print( ss.str() );
@@ -127,7 +127,7 @@ void bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
 	    throw( Error( ERROR_LOCATION, "convergence failure" ) );
 	}
 
-	if( ibsimu.get_verbose_output() ) {
+	if( ibsimu.get_verbose_output() && ibsimu.vout_is_cout() ) {
 	    std::stringstream ss;
 	    ss << "  " << std::setw(5) << i << " " << std::scientific << std::setw(20) << resid;
 	    sp.print( ss.str() );

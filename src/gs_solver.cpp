@@ -1,8 +1,8 @@
 /*! \file gs_solver.cpp
- *  \brief Source code for gs_solver.cpp
+ *  \brief Gauss-Seidel solver
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -69,7 +69,7 @@ void GSSolver::solve( const Problem &p, Vector &X )
 
         // Linear solver
         if( ibsimu.get_verbose_output() )
-            std::cout << "  Using Gauss-Seidel solver\n";
+            ibsimu.vout() << "  Using Gauss-Seidel solver\n";
 
         const Matrix *A; // Matrix needs to be modified for smooth edges
         const Vector *B;
@@ -79,8 +79,8 @@ void GSSolver::solve( const Problem &p, Vector &X )
         gauss_seidel( *A, *B, X, imax, eps, _w );
 
         if( ibsimu.get_verbose_output() ) {
-            std::cout << "  iterations = " << imax << " (max " << _imax << ")\n";
-            std::cout << "  eps = " << eps << " (requested " << _eps << ")\n";
+            ibsimu.vout() << "  iterations = " << imax << " (max " << _imax << ")\n";
+            ibsimu.vout() << "  eps = " << eps << " (requested " << _eps << ")\n";
         }
     } else {
 	throw( ErrorUnimplemented( ERROR_LOCATION, "non-linear solver unimplemented" ) );
@@ -88,7 +88,7 @@ void GSSolver::solve( const Problem &p, Vector &X )
 
     t.stop();
     if( ibsimu.get_verbose_output() )
-	std::cout << "  time used = " << t << "\n";
+	ibsimu.vout() << "  time used = " << t << "\n";
 }
 
 

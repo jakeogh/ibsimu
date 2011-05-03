@@ -45,6 +45,7 @@
 #include <iostream>
 #include <iomanip>
 #include "error.hpp"
+#include "ibsimu.hpp"
 
 #ifdef _GNU_SOURCE
 #include <execinfo.h>
@@ -132,6 +133,14 @@ void ExceptionTracer::print_trace( std::ostream &os )
 #else
     os << "No backtrace capability\n";
 #endif
+}
+
+
+void SignalHandler::signal_handler_SIGTERM( int signum, siginfo_t *info, void *ptr )
+{
+    std::cerr << "Terminate signal cought!\n";
+    ibsimu.halt();
+    exit( 1 );
 }
 
 

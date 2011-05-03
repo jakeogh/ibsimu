@@ -73,7 +73,7 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 
 	// Linear solver
 	if( ibsimu.get_verbose_output() )
-	    std::cout << "  Using ILU0-BiCGSTAB solver\n";
+	    ibsimu.vout() << "  Using ILU0-BiCGSTAB solver\n";
 
 	const Matrix *A;
 	const Vector *B;
@@ -84,8 +84,8 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 	bicgstab( *A, *B, X, pc, imax, eps );
 
 	if( ibsimu.get_verbose_output() ) {
-	    std::cout << "  iterations = " << imax << " (max " << _imax << ")\n";
-	    std::cout << "  eps = " << eps << " (requested " << _eps << ")\n";
+	    ibsimu.vout() << "  iterations = " << imax << " (max " << _imax << ")\n";
+	    ibsimu.vout() << "  eps = " << eps << " (requested " << _eps << ")\n";
 	}
 
     } else {
@@ -93,18 +93,20 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 	// Nonlinear solver (Newton-Raphson)
 	if( ibsimu.get_verbose_output() ) {
 	    if( _gnewton ) {
-		std::cout << "  Using Global Newton-Raphson ILU0-BiCGSTAB solver\n";
-		std::cout << "    " 
-			  << std::setw(5) << "Iter" << " " 
-			  << std::setw(14) << "Step size" << " " 
-			  << std::setw(14) << "Step fac" << " " 
-			  << std::setw(14) << "Residual" << "\n";
+		ibsimu.vout() << "  Using Global Newton-Raphson ILU0-BiCGSTAB solver\n";
+		ibsimu.vout() << "    " 
+			      << std::setw(5) << "Round" << " " 
+			      << std::setw(8) << "Iter" << " " 
+			      << std::setw(14) << "Step size" << " " 
+			      << std::setw(14) << "Step fac" << " " 
+			      << std::setw(14) << "Residual" << "\n";
 	    } else {
-		std::cout << "  Using Newton-Raphson ILU0-BiCGSTAB solver\n";
-		std::cout << "    " 
-			  << std::setw(5) << "Iter" << " " 
-			  << std::setw(14) << "Step size" << " " 
-			  << std::setw(14) << "Residual" << "\n";
+		ibsimu.vout() << "  Using Newton-Raphson ILU0-BiCGSTAB solver\n";
+		ibsimu.vout() << "    " 
+			      << std::setw(5)  << "Round" << " " 
+			      << std::setw(8)  << "Iter" << " " 
+			      << std::setw(14) << "Step size" << " " 
+			      << std::setw(14) << "Residual" << "\n";
 	    }
 	}
 
@@ -153,11 +155,12 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 		accX = t*max_abs( dX );
 
 		if( ibsimu.get_verbose_output() )
-		    std::cout << "    " 
-			      << std::setw(5) << a << " " 
-			      << std::setw(14) << accX << " " 
-			      << std::setw(14) << t << " " 
-			      << std::setw(14) << accR << "\n";
+		    ibsimu.vout() << "    " 
+				  << std::setw(5)  << a << " " 
+				  << std::setw(8)  << imax << " " 
+				  << std::setw(14) << accX << " " 
+				  << std::setw(14) << t << " " 
+				  << std::setw(14) << accR << "\n";
 		
 		if( accR < _newton_Reps || (t == 1.0 && accX < _newton_dXeps) || imax_sum >= _imax )
 		    break;
@@ -184,10 +187,11 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 		accX = max_abs( dX );
 
 		if( ibsimu.get_verbose_output() )
-		    std::cout << "    " 
-			      << std::setw(5) << a << " " 
-			      << std::setw(14) << accX << " " 
-			      << std::setw(14) << accR << "\n";
+		    ibsimu.vout() << "    " 
+				  << std::setw(5)  << a << " " 
+				  << std::setw(8)  << imax << " " 
+				  << std::setw(14) << accX << " " 
+				  << std::setw(14) << accR << "\n";
 		
 		if( accR < _newton_Reps || accX < _newton_dXeps || imax_sum >= _imax )
 		    break;
@@ -196,21 +200,21 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 
 	if( ibsimu.get_verbose_output() ) {
 	    if( accR < _newton_Reps || accX < _newton_dXeps )
-		std::cout << "  Newton-Raphson converged\n";
+		ibsimu.vout() << "  Newton-Raphson converged\n";
 	    else if( imax_sum >= _imax )
-		std::cout << "  Maximum number of BiCGSTAB iterations\n";
+		ibsimu.vout() << "  Maximum number of BiCGSTAB iterations\n";
 	    else
-		std::cout << "  Maximum number of Newton-Raphson iterations\n";
+		ibsimu.vout() << "  Maximum number of Newton-Raphson iterations\n";
 
-	    std::cout << "  total iterations = " << imax_sum << " (max " << _imax << ")\n";
-	    std::cout << "  eps = " << eps << " (requested " << _eps << ")\n";
+	    ibsimu.vout() << "  total iterations = " << imax_sum << " (max " << _imax << ")\n";
+	    ibsimu.vout() << "  eps = " << eps << " (requested " << _eps << ")\n";
 	}
     }
 
     t.stop();
     if( ibsimu.get_verbose_output() ) {
-	std::cout << "  time used = " << t << "\n";
-	std::cout << std::flush;
+	ibsimu.vout() << "  time used = " << t << "\n";
+	ibsimu.vout() << std::flush;
     }
 }
 

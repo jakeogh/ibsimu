@@ -173,9 +173,17 @@ public:
 	return( *this );
     }
 
+    /*! \brief Calculate absolute value of each component.
+     */
+    void abs( void ) {
+	p[0] = fabs( p[0] );
+	p[1] = fabs( p[1] );
+	p[2] = fabs( p[2] );
+    }
+
     /*! \brief Normalize vector
      */
-    void normalize() {
+    void normalize( void ) {
 	double inv_norm = 1.0/sqrt( p[0]*p[0] + p[1]*p[1] + p[2]*p[2] );
 	p[0] *= inv_norm;
 	p[1] *= inv_norm;
@@ -186,7 +194,7 @@ public:
      *
      *  \f$ ||x||_2 = \sqrt{ \Sigma_{i=1}^n x_i^2 } \f$
      */
-    double norm2() const {
+    double norm2( void ) const {
 	return( sqrt( p[0]*p[0] + p[1]*p[1] + p[2]*p[2] ) );
     }
 
@@ -194,7 +202,7 @@ public:
      *
      *  \f$ (||x||_2)^2 = \Sigma_{i=1}^n x_i^2 \f$
      */
-    double ssqr() const {
+    double ssqr( void ) const {
 	return( p[0]*p[0] + p[1]*p[1] + p[2]*p[2] );
     }
 

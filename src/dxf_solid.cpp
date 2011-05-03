@@ -53,7 +53,7 @@ DXFSolid::DXFSolid( MyDXFFile *dxffile, const std::string &layername )
     : _func(&unity)
 {
     if( ibsimu.get_verbose_output() )
-	std::cout << "Defining electrode \'" << layername << "\'\n";
+	ibsimu.vout() << "Defining electrode \'" << layername << "\'\n";
 
     MyDXFEntities *ent = dxffile->get_entities();
     MyDXFEntitySelection *layer = ent->selection_layer( layername );
@@ -85,8 +85,8 @@ DXFSolid::DXFSolid( MyDXFFile *dxffile, const std::string &layername )
     
     if( ibsimu.get_verbose_output() ) {
 	if( (int)layer->size()-(int)loop->size() > 0 )
-	    std::cout << "  removed " << (int)layer->size()-(int)loop->size() << " entities\n";
-	std::cout << "  solid defined using " << _entities->size() << " entities\n";
+	    ibsimu.vout() << "  removed " << (int)layer->size()-(int)loop->size() << " entities\n";
+	ibsimu.vout() << "  solid defined using " << _entities->size() << " entities\n";
     }
 
     delete layer;
