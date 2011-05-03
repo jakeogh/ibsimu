@@ -69,12 +69,12 @@ Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
     check_definition();
 
     if( ibsimu.get_verbose_output() ) {
-	std::cout << "Constructing geometry\n";
-	std::cout << "  origo     = " << _origo << "\n";
-	std::cout << "  size      = " << _size << "\n";
-	std::cout << "  max       = " << _max << "\n";
-	std::cout << "  h         = " << _h << "\n";
-	std::cout << "  nodecount = " << nodecount() << "\n";
+	ibsimu.vout() << "Constructing geometry\n";
+	ibsimu.vout() << "  origo     = " << _origo << "\n";
+	ibsimu.vout() << "  size      = " << _size << "\n";
+	ibsimu.vout() << "  max       = " << _max << "\n";
+	ibsimu.vout() << "  h         = " << _h << "\n";
+	ibsimu.vout() << "  nodecount = " << nodecount() << "\n";
     }
 
     _n = 0;
@@ -95,6 +95,9 @@ Geometry::Geometry( std::istream &is )
 {
     check_definition();
 
+    if( ibsimu.get_verbose_output() )
+	ibsimu.vout() << "Constructing Geometry from stream\n";
+
     _n = read_int32( is );
     for( uint32_t a = 0; a < _n; a++ ) {
 	int32_t fileid = read_int32( is );
@@ -108,7 +111,7 @@ Geometry::Geometry( std::istream &is )
 
     for( uint32_t a = 0; a < _n+6; a++ )
 	_bound.push_back( Bound( is ) );
-
+    
     _built = read_int8( is );
     _smesh = new signed char[_size[0]*_size[1]*_size[2]];
     read_compressed_block( is, _size[0]*_size[1]*_size[2], (int8_t *)_smesh );
@@ -248,6 +251,9 @@ signed char Geometry::mesh_check( int32_t i, int32_t j, int32_t k ) const
 
 double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xout, Vec3D &xsurf ) const
 {
+    if( xin == xout ) 
+	throw( Error( ERROR_LOCATION, "xin and xout are the same point" ) );
+
     Vec3D xl = xin;
     Vec3D xh = xout;
 
@@ -263,23 +269,23 @@ double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xou
     // Calculate best guess, the midpoint
     xsurf = 0.5*(xl+xh);
 
-    // Return parametric distance
+    // Return parametric distance calculated using axis where
+    // coordinate difference is largest
     int a;
-    double pdist;
-    for( a = 0; a < 3; a++ ) {
-	if( xin[a] != xout[a] ) {
-	    pdist = (xsurf[a] - xin[a]) / (xout[a] - xin[a]);
-	    break;
-	}
+    Vec3D dif = xout - xin;
+    dif.abs();
+    if( dif[0] > dif[1] ) {
+	if( dif[0] > dif[2] )
+	    a = 0;
+	else
+	    a = 2;
+    } else {
+	if( dif[1] > dif[2] )
+	    a = 1;
+	else
+	    a = 2;
     }
-    if( a == 3 ) 
-	throw( Error( ERROR_LOCATION, "xin and xout are the same point" ) );
-    if( pdist <= 0.0 )
-	throw( Error( ERROR_LOCATION, "pdist <= 0.0" ) );
-    if( pdist >= 1.0 )
-	throw( Error( ERROR_LOCATION, "pdist >= 1.0" ) );
-
-    return( pdist );
+    return( (xsurf[a] - xin[a]) / (xout[a] - xin[a]) );
 }
 
 
@@ -299,7 +305,7 @@ void Geometry::build_mesh( void )
     double x, y, z;
 
     if( ibsimu.get_verbose_output() )
-	std::cout << "Building mesh\n";
+	ibsimu.vout() << "Building mesh\n";
 
     _built = true;
 
@@ -417,12 +423,12 @@ void Geometry::build_mesh( void )
 		dir++;
 	}
 	
-	std::cout << "  Done. Built mesh with:\n";
-	std::cout << "  " << vac << " vacuum nodes\n";
-	std::cout << "  " << neu << " neumann nodes\n";
-	std::cout << "  " << dir << " dirichlet nodes\n";
+	ibsimu.vout() << "  Done. Built mesh with:\n";
+	ibsimu.vout() << "  " << vac << " vacuum nodes\n";
+	ibsimu.vout() << "  " << neu << " neumann nodes\n";
+	ibsimu.vout() << "  " << dir << " dirichlet nodes\n";
 	for( a = 0; a < (int)_n; a++ )
-	    std::cout << "  " << solid[a] << " solid " << a+7 << " nodes\n";
+	    ibsimu.vout() << "  " << solid[a] << " solid " << a+7 << " nodes\n";
     }
 }
 
