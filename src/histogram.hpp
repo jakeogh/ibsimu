@@ -45,6 +45,7 @@
 
 
 #include <vector>
+#include <stdint.h>
 
 
 /*! \brief Base histogram class.
@@ -65,7 +66,7 @@ public:
  */
 class Histogram1D : public Histogram
 {
-    int                 _n;         /*!< \brief Number of bins. */
+    uint32_t            _n;         /*!< \brief Number of bins. */
     double              _range[2];  /*!< \brief Ranges: min, max. */
     double              _step;      /*!< \brief Step size. */
     std::vector<double> _data;      /*!< \brief Data of histogram. */
@@ -74,15 +75,15 @@ public:
 
     /*! \brief Constructor for \a n bin histogram with \a ranges.
      */
-    Histogram1D( size_t n, const double range[2] );
+    Histogram1D( uint32_t n, const double range[2] );
 
     /*! \brief Constructor for \a n bin histogram from scatter data with even weights.
      */
-    Histogram1D( size_t n, const std::vector<double> &xdata );
+    Histogram1D( uint32_t n, const std::vector<double> &xdata );
 
     /*! \brief Constructor for \a n bin histogram from scatter data with weights wrom \a wdata.
      */
-    Histogram1D( size_t n, const std::vector<double> &xdata, const std::vector<double> &wdata );
+    Histogram1D( uint32_t n, const std::vector<double> &xdata, const std::vector<double> &wdata );
 
     /*! \brief Destructor.
      */
@@ -90,7 +91,7 @@ public:
 
     /*! \brief Return the number of bins.
      */
-    size_t n( void ) const { return( _n ); }
+    uint32_t n( void ) const { return( _n ); }
 
     /*! \brief Return the step size.
      */
@@ -98,13 +99,13 @@ public:
 
     /*! \brief Return the coordinate on bin \a i.
      */
-    double coord( size_t i ) const;
+    double coord( uint32_t i ) const;
 
     /*! \brief Accumulate \a weight on bin \a i.
      *
      *  Not a safe function. Input not checked.
      */
-    void accumulate( size_t i, double weight ) {
+    void accumulate( uint32_t i, double weight ) {
 	_data[i] += weight;
     }
 
@@ -146,13 +147,13 @@ public:
 
     /*! \brief Return a const reference to the weight on bin \a i.
      */
-    const double &operator()( size_t i ) const {
+    const double &operator()( uint32_t i ) const {
 	return( _data[i] );
     }
 
     /*! \brief Return a reference to the weight on bin \a i.
      */
-    double &operator()( size_t i ) {
+    double &operator()( uint32_t i ) {
 	return( _data[i] );
     }
 
@@ -166,8 +167,8 @@ public:
  */
 class Histogram2D : public Histogram
 {
-    int                 _n;         /*!< \brief Number of bins along first axis. */
-    int                 _m;         /*!< \brief Number of bins along second axis. */
+    uint32_t            _n;         /*!< \brief Number of bins along first axis. */
+    uint32_t            _m;         /*!< \brief Number of bins along second axis. */
     double              _range[4];  /*!< \brief Ranges: Amin, Bmin, Amax, Bmax. */
     double              _nstep;     /*!< \brief Step size along first axis. */
     double              _mstep;     /*!< \brief Step size along second axis. */
@@ -177,17 +178,17 @@ public:
 
     /*! \brief Constructor for \a n x \a m histogram with \a ranges.
      */
-    Histogram2D( size_t n, size_t m, const double range[4] );
+    Histogram2D( uint32_t n, uint32_t m, const double range[4] );
 
     /*! \brief Constructor for \a n x \a m histogram from scatter xy-data with even weights.
      */
-    Histogram2D( size_t n, size_t m, 
+    Histogram2D( uint32_t n, uint32_t m, 
 		 const std::vector<double> &xdata,
 		 const std::vector<double> &ydata );
 
     /*! \brief Constructor for \a n x \a m histogram from scatter xy-data with weights from \a wdata.
      */
-    Histogram2D( size_t n, size_t m, 
+    Histogram2D( uint32_t n, uint32_t m, 
 		 const std::vector<double> &xdata,
 		 const std::vector<double> &ydata,
 		 const std::vector<double> &wdata );
@@ -198,11 +199,11 @@ public:
 
     /*! \brief Return the number of bins along the first axis.
      */
-    size_t n( void ) const { return( _n ); }
+    uint32_t n( void ) const { return( _n ); }
 
     /*! \brief Return the number of bins along the second axis.
      */
-    size_t m( void ) const { return( _m ); }
+    uint32_t m( void ) const { return( _m ); }
 
     /*! \brief Return the step size along along the first axis.
      */
@@ -214,17 +215,17 @@ public:
 
     /*! \brief Return the coordinate along the first axis on bin \a i.
      */
-    double icoord( size_t i ) const;
+    double icoord( uint32_t i ) const;
 
     /*! \brief Return the coordinate along the second axis on bin \a j.
      */
-    double jcoord( size_t j ) const;
+    double jcoord( uint32_t j ) const;
 
     /*! \brief Accumulate \a weight on bin \a (i,j).
      *
      *  Not a safe function. Input not checked.
      */
-    void accumulate( size_t i, size_t j, double weight ) {
+    void accumulate( uint32_t i, uint32_t j, double weight ) {
 	_data[i+j*_n] += weight;
     }
 
@@ -266,13 +267,13 @@ public:
 
     /*! \brief Return a const reference to the weight on bin \a (i,j).
      */
-    const double &operator()( size_t i, size_t j ) const {
+    const double &operator()( uint32_t i, uint32_t j ) const {
 	return( _data[i+j*_n] );
     }
 
     /*! \brief Return a reference to the weight on bin \a (i,j).
      */
-    double &operator()( size_t i, size_t j ) {
+    double &operator()( uint32_t i, uint32_t j ) {
 	return( _data[i+j*_n] );
     }
 
