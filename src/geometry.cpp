@@ -304,8 +304,10 @@ void Geometry::build_mesh( void )
     int32_t i, j, k;
     double x, y, z;
 
-    if( ibsimu.get_verbose_output() )
+    if( ibsimu.get_verbose_output() ) {
 	ibsimu.vout() << "Building mesh\n";
+	ibsimu.vout().flush();
+    }
 
     _built = true;
 

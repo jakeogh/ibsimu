@@ -416,8 +416,10 @@ public:
 	std::vector<ParticleIterator<PP> *>  iterators;
 
 	Timer t;
-	if( ibsimu.get_verbose_output() )
+	if( ibsimu.get_verbose_output() ) {
 	    ibsimu.vout() << "Calculating particle trajectories\n";
+	    ibsimu.vout().flush();
+	}
 	_iteration++;
 
 	// Check geometry mode
@@ -500,8 +502,10 @@ public:
 	std::vector<ParticleIterator<PP> *>  iterators;
 
 	Timer t;
-	if( ibsimu.get_verbose_output() )
+	if( ibsimu.get_verbose_output() ) {
 	    ibsimu.vout() << "Calculating particle trajectories\n";
+	    ibsimu.vout().flush();
+	}
 	_iteration++;
 
 	// Check geometry mode

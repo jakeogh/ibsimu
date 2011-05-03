@@ -72,8 +72,10 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
     if( p.linear() ) {
 
 	// Linear solver
-	if( ibsimu.get_verbose_output() )
+	if( ibsimu.get_verbose_output() ) {
 	    ibsimu.vout() << "  Using ILU0-BiCGSTAB solver\n";
+	    ibsimu.vout().flush();
+	}
 
 	const Matrix *A;
 	const Vector *B;
@@ -86,6 +88,7 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 	if( ibsimu.get_verbose_output() ) {
 	    ibsimu.vout() << "  iterations = " << imax << " (max " << _imax << ")\n";
 	    ibsimu.vout() << "  eps = " << eps << " (requested " << _eps << ")\n";
+	    ibsimu.vout().flush();
 	}
 
     } else {
@@ -100,6 +103,7 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 			      << std::setw(14) << "Step size" << " " 
 			      << std::setw(14) << "Step fac" << " " 
 			      << std::setw(14) << "Residual" << "\n";
+		    ibsimu.vout().flush();
 	    } else {
 		ibsimu.vout() << "  Using Newton-Raphson ILU0-BiCGSTAB solver\n";
 		ibsimu.vout() << "    " 
@@ -107,7 +111,7 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 			      << std::setw(8)  << "Iter" << " " 
 			      << std::setw(14) << "Step size" << " " 
 			      << std::setw(14) << "Residual" << "\n";
-		ibsimu.vout().flush();
+		    ibsimu.vout().flush();
 	    }
 	}
 
@@ -219,7 +223,7 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
     t.stop();
     if( ibsimu.get_verbose_output() ) {
 	ibsimu.vout() << "  time used = " << t << "\n";
-	ibsimu.vout() << std::flush;
+	ibsimu.vout().flush();
     }
 }
 

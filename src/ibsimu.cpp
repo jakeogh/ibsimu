@@ -138,7 +138,8 @@ std::ostream &IBSimu::set_vout( const std::string &filename )
 
 
 std::ostream &IBSimu::vout( void ) 
-{ 
+{
+    _vout->flush();
     return( *_vout ); 
 }
 

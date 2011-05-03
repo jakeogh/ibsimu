@@ -79,8 +79,10 @@ GTKPlotter::~GTKPlotter()
 
 void GTKPlotter::run()
 {
-    if( ibsimu.get_verbose_output() )
+    if( ibsimu.get_verbose_output() ) {
 	ibsimu.vout() << "Running GTKPlotter\n";
+	ibsimu.vout().flush();
+    }
 
     gtk_main();
 
