@@ -336,6 +336,9 @@ double ScalarField::operator()( Vec3D x ) const
 
 void ScalarField::save( const std::string &filename ) const
 {
+    if( ibsimu.get_verbose_output() )
+	ibsimu.vout() << "Saving ScalarField to file \'" << filename << "\'.\n";
+
     std::ofstream os( filename.c_str() );
     if( !os.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );

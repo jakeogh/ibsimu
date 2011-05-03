@@ -490,6 +490,9 @@ void ParticleDataBase2DImp::build_trajectory_density_field( ScalarField &tdens )
 
 void ParticleDataBase2DImp::save( const std::string &filename ) const
 {
+    if( ibsimu.get_verbose_output() )
+	ibsimu.vout() << "Saving ParticleDataBase2D to file \'" << filename << "\'.\n";
+
     std::ofstream os( filename.c_str() );
     if( !os.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
@@ -829,6 +832,9 @@ void ParticleDataBaseCylImp::add_2d_gaussian_beam_with_emittance( uint32_t N, do
 
 void ParticleDataBaseCylImp::save( const std::string &filename ) const
 {
+    if( ibsimu.get_verbose_output() )
+	ibsimu.vout() << "Saving ParticleDataBaseCyl to file \'" << filename << "\'.\n";
+
     std::ofstream os( filename.c_str() );
     if( !os.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
@@ -1589,6 +1595,9 @@ void ParticleDataBase3DImp::build_trajectory_density_field( ScalarField &tdens )
 
 void ParticleDataBase3DImp::save( const std::string &filename ) const
 {
+    if( ibsimu.get_verbose_output() )
+	ibsimu.vout() << "Saving ParticleDataBase3D to file \'" << filename << "\'.\n";
+
     std::ofstream os( filename.c_str() );
     if( !os.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );

@@ -435,6 +435,9 @@ void Geometry::build_mesh( void )
 
 void Geometry::save( const std::string &filename ) const
 {
+    if( ibsimu.get_verbose_output() )
+	ibsimu.vout() << "Saving Geometry to file \'" << filename << "\'.\n";
+
     std::ofstream os( filename.c_str() );
     if( !os.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );

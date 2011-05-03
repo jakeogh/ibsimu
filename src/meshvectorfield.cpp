@@ -132,7 +132,7 @@ MeshVectorField::MeshVectorField( geom_mode_e geom_mode, const bool fout[3], dou
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
 
     if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Reading vector field from " << filename << "\n";
+	ibsimu.vout() << "Reading vector field from \'" << filename << "\'\n";
 
     // Set number of dimensions (cdim) 
     size_t cdim;
@@ -969,6 +969,9 @@ const Vec3D MeshVectorField::operator()( Vec3D x ) const
 
 void MeshVectorField::save( const std::string &filename ) const
 {
+    if( ibsimu.get_verbose_output() )
+	ibsimu.vout() << "Saving MeshVectorField to file \'" << filename << "\'.\n";
+
     std::ofstream os( filename.c_str() );
     if( !os.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
