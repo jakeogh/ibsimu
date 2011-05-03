@@ -488,6 +488,7 @@ public:
 	    ibsimu.vout() << "    steps per particle (ave) = " << 
 		_stat.sum_steps()/(double)_particles.size() << "\n";
 	    ibsimu.vout() << "  time used = " << t << "\n";
+	    ibsimu.vout().flush();
 	}
     }
 
@@ -578,6 +579,7 @@ public:
 	    ibsimu.vout() << "    steps per particle (ave) = " << 
 		_stat.sum_steps()/(double)_particles.size() << "\n";
 	    ibsimu.vout() << "  time used = " << t << "\n";
+	    ibsimu.vout().flush();
 	}
     }
 

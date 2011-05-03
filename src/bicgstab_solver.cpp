@@ -107,6 +107,7 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 			      << std::setw(8)  << "Iter" << " " 
 			      << std::setw(14) << "Step size" << " " 
 			      << std::setw(14) << "Residual" << "\n";
+		ibsimu.vout().flush();
 	    }
 	}
 
@@ -154,13 +155,15 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 		accR = max_abs( *R );
 		accX = t*max_abs( dX );
 
-		if( ibsimu.get_verbose_output() )
+		if( ibsimu.get_verbose_output() ) {
 		    ibsimu.vout() << "    " 
 				  << std::setw(5)  << a << " " 
 				  << std::setw(8)  << imax << " " 
 				  << std::setw(14) << accX << " " 
 				  << std::setw(14) << t << " " 
 				  << std::setw(14) << accR << "\n";
+		    ibsimu.vout().flush();
+		}
 		
 		if( accR < _newton_Reps || (t == 1.0 && accX < _newton_dXeps) || imax_sum >= _imax )
 		    break;
@@ -186,12 +189,14 @@ void BiCGSTABSolver::solve( const Problem &p, Vector &X )
 		accR = max_abs( *R );
 		accX = max_abs( dX );
 
-		if( ibsimu.get_verbose_output() )
+		if( ibsimu.get_verbose_output() ) {
 		    ibsimu.vout() << "    " 
 				  << std::setw(5)  << a << " " 
 				  << std::setw(8)  << imax << " " 
 				  << std::setw(14) << accX << " " 
 				  << std::setw(14) << accR << "\n";
+		    ibsimu.vout().flush();
+		}
 		
 		if( accR < _newton_Reps || accX < _newton_dXeps || imax_sum >= _imax )
 		    break;
