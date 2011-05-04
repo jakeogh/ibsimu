@@ -96,23 +96,6 @@ IBSimu::~IBSimu()
 }
 
 
-void IBSimu::halt( void )
-{
-    // End timer
-    _t->stop();
-
-    if( _verbose_output ) {
-	vout() << "Ending simulation\n";
-	vout() << "  time used = " << *_t << "\n";
-	vout() << std::flush;
-    }
-
-    // Close the verbose output file if it is open
-    if( _fout.is_open() )
-	_fout.close();
-}
-
-
 std::ostream &IBSimu::set_vout( std::ostream &vout )
 {
     if( vout == std::cout )
