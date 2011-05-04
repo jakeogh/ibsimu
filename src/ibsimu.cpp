@@ -42,6 +42,7 @@
 
 
 #include "config.h"
+#include "id.hpp"
 #include <iostream>
 #include <signal.h>
 #include "ibsimu.hpp"
@@ -158,7 +159,7 @@ void IBSimu::set_verbose_output( int level )
     // If setting to verbose mode and no greeting has yet been shown
     if( level > 0 && !_hello ) {
 	_hello = true;
-	vout() << "Ion Beam Simulator " << VERSION << " (compiled " __DATE__ ")\n";
+	vout() << "Ion Beam Simulator " << VERSION << " (" IBSIMU_GIT_ID ")\n";
     }
 }
 
