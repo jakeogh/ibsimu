@@ -81,7 +81,8 @@ int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void 
 
 int ParticleP2D::trajectory_intersections_at_plane( std::vector<ParticleP2D> &intsc, 
 						    int crd, double val,
-						    const ParticleP2D &x1, const ParticleP2D &x2 )
+						    const ParticleP2D &x1, const ParticleP2D &x2,
+						    int extrapolate )
 {
     // Construct trajectory interpolation
     double dt = x2[0] - x1[0];
@@ -97,7 +98,7 @@ int ParticleP2D::trajectory_intersections_at_plane( std::vector<ParticleP2D> &in
     // Solve for intersections
     double K[3];
     //std::cout << "Solving for trep[" << crd << "] = " << val << ":\n";
-    int nroots = trep[crd].solve( K, val );
+    int nroots = trep[crd].solve( K, val, extrapolate );
     //std::cout << "found " << nroots << " roots: ";
 
     // Save intersection points
@@ -177,7 +178,8 @@ int ParticlePCyl::get_derivatives( double t, const double *x, double *dxdt, void
 
 int ParticlePCyl::trajectory_intersections_at_plane( std::vector<ParticlePCyl> &intsc, 
 						     int crd, double val,
-						     const ParticlePCyl &x1, const ParticlePCyl &x2 )
+						     const ParticlePCyl &x1, const ParticlePCyl &x2,
+						     int extrapolate )
 {
     // Construct trajectory interpolation
     double dt = x2[0] - x1[0];
@@ -187,7 +189,7 @@ int ParticlePCyl::trajectory_intersections_at_plane( std::vector<ParticlePCyl> &
 
     // Solve for intersections
     double K[3];
-    int nroots = trep[crd].solve( K, val );
+    int nroots = trep[crd].solve( K, val, extrapolate );
     
     // Save intersection points
     double x[2], v[2];
@@ -259,7 +261,8 @@ int ParticleP3D::get_derivatives( double t, const double *x, double *dxdt, void 
 
 int ParticleP3D::trajectory_intersections_at_plane( std::vector<ParticleP3D> &intsc, 
 						    int crd, double val,
-						    const ParticleP3D &x1, const ParticleP3D &x2 )
+						    const ParticleP3D &x1, const ParticleP3D &x2,
+						    int extrapolate )
 {
     // Construct trajectory interpolation
     double dt = x2[0] - x1[0];
@@ -270,7 +273,7 @@ int ParticleP3D::trajectory_intersections_at_plane( std::vector<ParticleP3D> &in
 
     // Solve for intersections
     double K[3];
-    int nroots = trep[crd].solve( K, val );
+    int nroots = trep[crd].solve( K, val, extrapolate );
     
     // Save intersection points
     double x[3], v[3];

@@ -3,6 +3,10 @@
  *
  *  \test Test with a beam in 3d system.
  *
+ *  Geometry is made with two electrodes with 1 kV voltage
+ *  difference. A 3 keV proton beam is accelerated through holes in
+ *  the electrodes. Diagnostics is made at the end and the number of
+ *  particles caught in the diagnostics is checked.
  */
 
 
@@ -18,7 +22,7 @@
 #include "particledatabase.hpp"
 #include "ibsimu.hpp"
 #include "error.hpp"
-
+#include "ibsimutest.hpp"
 #include "gtkplotter.hpp"
 #include "geomplotter.hpp"
 
@@ -45,9 +49,7 @@ bool electrode2_func( double x, double y, double z )
 
 void test( int argc, char **argv )
 {
-    // 10x20x40 cm geometry with 0.25 cm mesh
-    Geometry geom( MODE_3D, Int3D(81,41,41), Vec3D(0,0,0), 0.00125 );
-    //Geometry geom( MODE_3D, Int3D(51,101,101), Vec3D(0,-0.1,-0.1), 0.002 );
+    Geometry geom( MODE_3D, Int3D(26,26,26), Vec3D(0,-0.05,-0.05), 0.004 );
 
     Solid *solid1 = new FuncSolid( electrode1_func );
     geom.set_solid( 7, solid1 );
@@ -93,15 +95,15 @@ void test( int argc, char **argv )
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
     }
 
-    /*
-    GTKPlotter plotter( argc, argv );
+
+    GTKPlotter plotter( &argc, &argv );
     plotter.set_geometry( &geom );
     plotter.set_epot( &epot );
     plotter.set_scharge( &scharge );
     plotter.set_particledatabase( &pdb );
     plotter.new_geometry_plot_window();
     plotter.run();
-    */
+
 
     GeomPlotter gplotter( &geom );
     gplotter.set_scharge( &scharge );
@@ -115,13 +117,21 @@ void test( int argc, char **argv )
     pot.push_back( -20 );
     gplotter.set_eqlines_manual( pot );
     gplotter.set_font_size( 16 );
-    gplotter.set_view( VIEW_XY, 0 );
+    gplotter.set_view( VIEW_XY );
     gplotter.plot_png( "beam3d_xy.png" );
     gplotter.set_view( VIEW_YZ, 0 );
     gplotter.plot_png( "beam3d_yz.png" );
 
+    TrajectoryDiagnosticData tdata;
+    std::vector<trajectory_diagnostic_e> diag;
+    diag.push_back( DIAG_X );
+    diag.push_back( DIAG_XP );
+    pdb.trajectories_at_plane( tdata, AXIS_X, 0.1, diag );
+    //if( tdata.traj_size() != 4000 ) 
+    //throw( ErrorTest( ERROR_LOCATION, "incorrect number of particles caught: " + to_string(tdata.traj_size()) + " != 4000" ) );
+
     pdb.export_path_manager_data( "beam3d.path",
-				  4.0e3, 1.0, 1.0,
+ 				  4.0e3, 1.0, 1.0,
 				  Vec3D(0.09,0,0), 
 				  Vec3D(0,1,0), 
 				  Vec3D(0,0,1) );

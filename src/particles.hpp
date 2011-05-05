@@ -153,7 +153,9 @@ public:
      */
     static int trajectory_intersections_at_plane( std::vector<ParticleP2D> &intsc, 
 						  int crd, double val,
-						  const ParticleP2D &x1, const ParticleP2D &x2 );
+						  const ParticleP2D &x1, 
+						  const ParticleP2D &x2,
+						  int extrapolate = 0 );
 
     /*! \brief Return string representation for unit of current
      *
@@ -326,7 +328,8 @@ public:
     static int trajectory_intersections_at_plane( std::vector<ParticlePCyl> &intsc, 
 						  int crd, double val,
 						  const ParticlePCyl &x1,
-						  const ParticlePCyl &x2 );
+						  const ParticlePCyl &x2,
+						  int extrapolate = 0 );
 
     /*! \brief Return string representation for unit of current
      *
@@ -502,7 +505,9 @@ public:
      */
     static int trajectory_intersections_at_plane( std::vector<ParticleP3D> &intsc, 
 						  int crd, double val,
-						  const ParticleP3D &x1, const ParticleP3D &x2 );
+						  const ParticleP3D &x1, 
+						  const ParticleP3D &x2, 
+						  int extrapolate = 0 );
 
     /*! \brief Return string representation for unit of current
      *

@@ -52,18 +52,6 @@
 #include "trajectorydiagnostics.hpp"
 
 
-/*
- * Interface:
- *  ParticleDataBase -> pointer from here
- *  - ParticleDataBase2D -> pointer from here
- *
- * Implementation:
- * ParticleDataBaseImp <- pointer to here
- * ParticleDataBasePP (parent)
- *  - ParticleDataBase2DImp <- pointer to here
- *
- */
-
 class ParticleDataBaseImp {
 
 protected:
@@ -326,6 +314,20 @@ public:
 						     diagnostics[a] == DIAG_VTHETA ||
 						     diagnostics[a] == DIAG_AP) )
 		throw( Error( ERROR_LOCATION, "invalid diagnostics query for geometry type" ) );
+	    else if( PP::geom_mode() != MODE_3D && (diagnostics[a] == DIAG_Z ||
+						    diagnostics[a] == DIAG_VZ ||
+						    diagnostics[a] == DIAG_ZP) )
+		throw( Error( ERROR_LOCATION, "invalid diagnostics query for geometry type" ) );
+	    else if( diagnostics[a] == DIAG_O ||
+		     diagnostics[a] == DIAG_VO ||
+		     diagnostics[a] == DIAG_OP ||
+		     diagnostics[a] == DIAG_P ||
+		     diagnostics[a] == DIAG_VP ||
+		     diagnostics[a] == DIAG_PP ||
+		     diagnostics[a] == DIAG_Q ||
+		     diagnostics[a] == DIAG_VQ )
+		throw( Error( ERROR_LOCATION, "invalid diagnostics query for trajectories_at_plane()\n"
+			      "use trajectories_at_free_plane()" ) );
 	}
 
 	// Prepare output vector
@@ -362,7 +364,13 @@ public:
 	    for( size_t b = 1; b < N; b++ ) {
 		PP x2 = _particles[a].traj(b);
 		intsc.clear();
-		size_t nintsc = PP::trajectory_intersections_at_plane( intsc, crd, val, x1, x2 );
+		size_t nintsc;
+		if( b == 1 )
+		    nintsc = PP::trajectory_intersections_at_plane( intsc, crd, val, x1, x2, -1 );
+		else if( b == N-1 )
+		    nintsc = PP::trajectory_intersections_at_plane( intsc, crd, val, x1, x2, +1 );
+		else
+		    nintsc = PP::trajectory_intersections_at_plane( intsc, crd, val, x1, x2, 0 );
 		for( size_t c = 0; c < nintsc; c++ ) {
 		    Isum += _particles[a].IQ();
 		    add_diagnostics( tdata, intsc[c], _particles[a], crd );
