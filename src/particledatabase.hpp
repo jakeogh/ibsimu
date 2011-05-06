@@ -323,6 +323,10 @@ public:
      */
     virtual const ParticleBase &particle( uint32_t i ) const = 0;
 
+    /*! \brief Returns the length of trajectory \a i.
+     */
+    double traj_length( uint32_t i ) const;
+    
     /*! \brief Returns number of trajectory points for particle \a i.
      */
     size_t traj_size( uint32_t i ) const;

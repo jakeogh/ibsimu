@@ -170,6 +170,12 @@ size_t ParticleDataBase::size( void ) const
 }
 
 
+double ParticleDataBase::traj_length( uint32_t i ) const
+{
+    return( _imp->traj_length( i ) );
+}
+
+
 size_t ParticleDataBase::traj_size( uint32_t i ) const
 {
     return( _imp->traj_size( i ) );

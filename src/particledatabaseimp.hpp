@@ -118,6 +118,8 @@ public:
 
     virtual size_t traj_size( uint32_t i ) const = 0;
 
+    virtual double traj_length( uint32_t i ) const = 0;
+
     virtual void trajectory_point( double &t, Vec3D &loc, Vec3D &vel, uint32_t i, uint32_t j ) const = 0;
 
     virtual void trajectories_at_plane( TrajectoryDiagnosticData &tdata, 
@@ -258,6 +260,21 @@ public:
 	return( _particles[i] ); 
     }
     
+    virtual double traj_length( uint32_t i ) const {
+
+	size_t N = _particles[i].traj_size();
+	double len = 0.0;
+	if( N < 2 )
+	    return( 0.0 );
+	Vec3D x1 = _particles[i].traj(0).location();
+	for( size_t b = 1; b < N; b++ ) {
+	    Vec3D x2 = _particles[i].traj(b).location();
+	    len += norm2(x2-x1);
+	}
+
+	return( len );
+    }
+
     virtual size_t traj_size( uint32_t i ) const { 
 	return( _particles[i].traj_size() ); 
     }
