@@ -705,12 +705,20 @@ double EpotGSSolver::gs_process_neumann_1d( uint32_t boundary, uint32_t i ) cons
 {
     switch( boundary ) {
     case 1:
-	// (phi_i - phi_i+1) / h = q_0
-	return( (*_epot)(i+1) + (*_rhs)(i) );
+	if( _neumann_order == 2 )
+	    // (3*phi_i - 4*phi_i+1 + phi_i+2) / 2h = q_0
+	    return( (4.0*(*_epot)(i+1) - (*_epot)(i+2) + (*_rhs)(i))/3.0 );
+	else
+	    // (phi_i - phi_i+1) / h = q_0
+	    return( (*_epot)(i+1) + (*_rhs)(i) );
 	break;
     case 2:
-	// (phi_i-1 - phi_i) / h = q_0
-	return( (*_epot)(i-1) + (*_rhs)(i) );
+	if( _neumann_order == 2 )
+	    // (3*phi_i - 4*phi_i-1 + phi_i-2) / 2h = q_0
+	    return( (4.0*(*_epot)(i-1) - (*_epot)(i-2) + (*_rhs)(i))/3.0 );
+	else
+	    // (phi_i-1 - phi_i) / h = q_0
+	    return( (*_epot)(i-1) + (*_rhs)(i) );
 	break;
     }
 
