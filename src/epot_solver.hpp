@@ -228,7 +228,19 @@ protected:
     void pexp_newton( double &rhs, double &drhs, double epot ) const;
     void nsimp_newton( double &rhs, double &drhs, double epot ) const;
 
+    /*! \brief Do preprocessing action before solving.
+     *
+     *  Does precalculation of plasma paramters. Sets near solid
+     *  neumann points as neumann and saves distance to a vector. Mark
+     *  fixed and initial plasma nodes and set potentials.
+     */
     void preprocess( MeshScalarField &epot );
+
+    /*! \brief Do postprocessing action after solving.
+     *
+     *  Return near solid neumann points as near solid. Restore
+     *  distance data. Remove fixed node tags.
+     */
     void postprocess( void );
 
     /*! \brief Reset solver/problem settings.

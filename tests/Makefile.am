@@ -29,6 +29,9 @@ matvec3dtest_SOURCES = matvec3dtest.cpp
 matrixconv_SOURCES = matrixconv.cpp
 matrixsolver_SOURCES = matrixsolver.cpp
 mesh_SOURCES = mesh.cpp
+mgsolver2d_coax_SOURCES = mgsolver2d_coax.cpp
+mgsolver1d_dirichlet_SOURCES = mgsolver1d_dirichlet.cpp
+mgsolver1d_neumann_SOURCES = mgsolver1d_neumann.cpp
 multimeshvecfield_SOURCES = multimeshvecfield.cpp
 mvector_SOURCES = mvector.cpp
 nsimp_plasmacyl_SOURCES = nsimp_plasmacyl.cpp
@@ -112,6 +115,9 @@ matvec3dtest \
 matrixconv \
 matrixsolver \
 mesh \
+mgsolver2d_coax \
+mgsolver1d_dirichlet \
+mgsolver1d_neumann \
 multimeshvecfield \
 mvector \
 nsimp_plasmacyl \

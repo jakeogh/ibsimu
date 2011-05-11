@@ -201,10 +201,9 @@ vec4d.cpp \
 vec4d.hpp \
 vectorfield.hpp \
 xygraph.cpp \
-xygraph.hpp
-
-#epot_mgsolver.cpp 
-#epot_mgsolver.hpp 
+xygraph.hpp \
+epot_mgsolver.cpp \
+epot_mgsolver.hpp 
 
 libibsimu_la_includedir=$(includedir)/ibsimu
 libibsimu_la_include_HEADERS = \
@@ -298,9 +297,8 @@ types.hpp \
 vec3d.hpp \
 vec4d.hpp \
 vectorfield.hpp \
-xygraph.hpp
-
-#epot_mgsolver.hpp 
+xygraph.hpp \
+epot_mgsolver.hpp 
 
 if UMFPACK
 libibsimu_la_SOURCES += epot_umfpacksolver.cpp epot_umfpacksolver.hpp 

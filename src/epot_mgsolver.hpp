@@ -54,8 +54,40 @@
  */
 class EpotMGSubSolver : public EpotSolver {
 
+    MeshScalarField        *_defect;
+    MeshScalarField        *_epot;
+    const MeshScalarField  *_rhs;
+
     virtual void reset_problem( void ) {}
     virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge ) {}
+
+    // 1D
+    double rbgs_loop_1d( void ) const;
+    double sor_loop_1d( double w ) const;
+    double gs_process_near_solid_1d( const uint8_t *nearsolid_ptr, 
+				     uint32_t i ) const;
+    double gs_process_pure_vacuum_1d( uint32_t i ) const;
+    double gs_process_neumann_1d( uint32_t boundary, uint32_t i ) const;
+    double gs_process_neumann_special_1d( uint32_t boundary, uint32_t i ) const;
+
+    void   defect_1d( void ) const;
+    double defect_near_solid_1d( const uint8_t *nearsolid_ptr, uint32_t i ) const;
+    double defect_pure_vacuum_1d( uint32_t i ) const;
+    double defect_neumann_1d( uint32_t boundary, uint32_t i ) const;
+
+    // 2D
+    double rbgs_loop_2d( void ) const;
+    double sor_loop_2d( double w ) const;
+    double gs_process_near_solid_2d( const uint8_t *nearsolid_ptr, 
+				     uint32_t a, uint32_t dj ) const;
+    double gs_process_pure_vacuum_2d( uint32_t a, uint32_t dj ) const;
+    double gs_process_neumann_2d( uint32_t boundary, uint32_t a, uint32_t dj ) const;
+
+    void   defect_2d( void ) const;
+    double defect_near_solid_2d( const uint8_t *nearsolid_ptr, 
+				     uint32_t a, uint32_t dj ) const;
+    double defect_pure_vacuum_2d( uint32_t a, uint32_t dj ) const;
+    double defect_neumann_2d( uint32_t boundary, uint32_t a, uint32_t dj ) const;
 
 public:
 
@@ -64,13 +96,21 @@ public:
      *  Construct subsolver for geometry \a geom. Use parameters from
      *  main level potential solver \a epsolver.
      */
-    EpotMGSubSolver( EpotSolver &epsolver, Geometry &geom );
+    EpotMGSubSolver( const EpotSolver &epsolver, Geometry &geom );
 
     /*! \brief Destructor.
      */
     virtual ~EpotMGSubSolver() {}
 
+    /*! \brief Calculate defect
+     */
+    void defect( MeshScalarField *defect, MeshScalarField *epot, const MeshScalarField *rhs );
 
+    double mg_relax( MeshScalarField *epot, const MeshScalarField *rhs, double w = 1.0 );
+
+    void preprocess( MeshScalarField &epot );
+
+    void postprocess( void );
 
     /*! \brief Print debugging information to os.
      */
@@ -87,9 +127,10 @@ public:
 class EpotMGSolver : public EpotSolver {
 
     std::vector<MeshScalarField *>   _epotv;
-    std::vector<Geometry *>          _geomv;       // All geometries
-    std::vector<EpotMGSubSolver *>   _epotsolverv; // All solvers
+    std::vector<Geometry *>          _geomv;
+    std::vector<EpotMGSubSolver *>   _epotsolverv;
     std::vector<MeshScalarField *>   _rhsv;
+    std::vector<MeshScalarField *>   _workv;
 
     bool             _geom_prepared;  /*!< \brief Is geometry prepared? */
     uint32_t         _levels;         /*!< \brief Multigrid levels. */
@@ -98,13 +139,10 @@ class EpotMGSolver : public EpotSolver {
     uint32_t         _ncyc;           /*!< \brief Multigrid cycles. */
     double           _res;            /*!< \brief Residual error from top level. */
     double           _eps;            /*!< \brief Acceptable error for coarsest level. */
+    uint32_t         _imax;           /*!< \brief Maximum number of rounds for coarsest level. */
     
     
-    double gs_loop_2d( void ) const;
-    double gs_process_near_solid_2d( const uint8_t *nearsolid_ptr, 
-				     uint32_t a, uint32_t dj ) const;
-    double gs_process_pure_vacuum_2d( uint32_t a, uint32_t dj ) const;
-    double gs_process_neumann_2d( uint32_t boundary, uint32_t a, uint32_t dj ) const;
+    void print_field( const MeshScalarField *F );
 
     uint32_t number_of_dimensions( void ) const;
     void prepare_mg_geom( void );
@@ -112,6 +150,21 @@ class EpotMGSolver : public EpotSolver {
     void preprocess( MeshScalarField &epot, const MeshScalarField &scharge );
     void postprocess( void );
 
+    void prolong_add_2d( int level, int32_t i, int32_t j, double C );
+    void prolong_add_1d( int level, int32_t i, double C );
+
+    void defect( int level );
+    void correct( int level );
+
+    void restrict_2d( int level );
+    void restrict_1d( int level );
+    void restrict( int level );
+
+    void prolong_2d( int level );
+    void prolong_1d( int level );
+    void prolong( int level );
+
+    void mg_recurse( uint32_t level );
 
     /*! \brief Reset solver/problem settings.
      */
@@ -135,27 +188,43 @@ public:
      */
     virtual ~EpotMGSolver();
 
-    /*! \brief Sets the accuracy request.
+    /*! \brief Sets the accuracy request for coarsest level.
+     *
+     *  Default to 1e-6.
      */
     void set_eps( double eps );
+
+    /*! \brief Sets maximum number of iteration rounds for coarsest level.
+     *
+     *  Default to 1000.
+     */
+    void set_imax( uint32_t imax );
 
     /*! \brief Get estimate of residual error.
      */
     double get_residual( void ) const;
 
     /*! \brief Sets multigrid levels.
+     *
+     *  Default to 1.
      */
     void set_levels( uint32_t levels );
 
     /*! \brief Sets number of multigrid cycles.
+     *
+     *  Default to 1.
      */
     void set_ncyc( uint32_t ncyc );
 
     /*! \brief Sets number of pre cycle smoother rounds.
+     *
+     *  Default to 5.
      */
     void set_npre( uint32_t npre );
 
     /*! \brief Sets number of post cycle smoother rounds.
+     *
+     *  Default to 5.
      */
     void set_npost( uint32_t npost );
 
