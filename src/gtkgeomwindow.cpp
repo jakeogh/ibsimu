@@ -86,7 +86,9 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       *plotter,
     GtkWidget *icon = gtk_image_new_from_pixbuf( pixbuf );
     toolitem = gtk_radio_tool_button_new_from_widget( GTK_RADIO_TOOL_BUTTON(_radioitem) );
     gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Particle diagnostics" );
+#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Particle diagnostics" );
+#endif
     gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "toggled",
@@ -98,7 +100,9 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       *plotter,
     icon = gtk_image_new_from_pixbuf( pixbuf );
     toolitem = gtk_radio_tool_button_new_from_widget( GTK_RADIO_TOOL_BUTTON(_radioitem) );
     gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Field diagnostics" );
+#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Field diagnostics" );
+#endif
     gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "toggled",
@@ -132,13 +136,17 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       *plotter,
     toolitem = gtk_tool_item_new();
     gtk_container_add( GTK_CONTAINER(toolitem), _combobox );
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
+#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Select view direction" );
+#endif
 
     gtk_spin_button_set_digits( GTK_SPIN_BUTTON(_spinbutton), 0 );
     toolitem = gtk_tool_item_new();
     gtk_container_add( GTK_CONTAINER(toolitem), _spinbutton );
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
+#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Select view level" );
+#endif
     g_signal_connect( G_OBJECT(_combobox), "changed",
                       G_CALLBACK(combobox_signal),
                       (gpointer)this );
