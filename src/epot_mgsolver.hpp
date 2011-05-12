@@ -45,81 +45,7 @@
 
 
 #include "epot_solver.hpp"
-
-
-/*! \brief Subroutine class for Multigrid
- *
- *  Preprocesses the solid mesh and does relaxation rounds on one
- *  problem level.
- */
-class EpotMGSubSolver : public EpotSolver {
-
-    MeshScalarField        *_defect;
-    MeshScalarField        *_epot;
-    const MeshScalarField  *_rhs;
-
-    virtual void reset_problem( void ) {}
-    virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge ) {}
-
-    // 1D
-    double rbgs_loop_1d( void ) const;
-    double sor_loop_1d( double w ) const;
-    double gs_process_near_solid_1d( const uint8_t *nearsolid_ptr, 
-				     uint32_t i ) const;
-    double gs_process_pure_vacuum_1d( uint32_t i ) const;
-    double gs_process_neumann_1d( uint32_t boundary, uint32_t i ) const;
-    double gs_process_neumann_special_1d( uint32_t boundary, uint32_t i ) const;
-
-    void   defect_1d( void ) const;
-    double defect_near_solid_1d( const uint8_t *nearsolid_ptr, uint32_t i ) const;
-    double defect_pure_vacuum_1d( uint32_t i ) const;
-    double defect_neumann_1d( uint32_t boundary, uint32_t i ) const;
-
-    // 2D
-    double rbgs_loop_2d( void ) const;
-    double sor_loop_2d( double w ) const;
-    double gs_process_near_solid_2d( const uint8_t *nearsolid_ptr, 
-				     uint32_t a, uint32_t dj ) const;
-    double gs_process_pure_vacuum_2d( uint32_t a, uint32_t dj ) const;
-    double gs_process_neumann_2d( uint32_t boundary, uint32_t a, uint32_t dj ) const;
-
-    void   defect_2d( void ) const;
-    double defect_near_solid_2d( const uint8_t *nearsolid_ptr, 
-				     uint32_t a, uint32_t dj ) const;
-    double defect_pure_vacuum_2d( uint32_t a, uint32_t dj ) const;
-    double defect_neumann_2d( uint32_t boundary, uint32_t a, uint32_t dj ) const;
-
-public:
-
-    /*! \brief Constructor.
-     *
-     *  Construct subsolver for geometry \a geom. Use parameters from
-     *  main level potential solver \a epsolver.
-     */
-    EpotMGSubSolver( const EpotSolver &epsolver, Geometry &geom );
-
-    /*! \brief Destructor.
-     */
-    virtual ~EpotMGSubSolver() {}
-
-    /*! \brief Calculate defect
-     */
-    void defect( MeshScalarField *defect, MeshScalarField *epot, const MeshScalarField *rhs );
-
-    double mg_relax( MeshScalarField *epot, const MeshScalarField *rhs, double w = 1.0 );
-
-    void preprocess( MeshScalarField &epot );
-
-    void postprocess( void );
-
-    /*! \brief Print debugging information to os.
-     */
-    virtual void debug_print( std::ostream &os ) const {}
-
-    /*! \brief Saves problem data to stream.
-     */
-    virtual void save( std::ostream &s ) const {}
-};
+#include "epot_mgsubsolver.hpp"
 
 
 /*! \brief Multigrid solver for Electric potential problem.
@@ -131,14 +57,18 @@ class EpotMGSolver : public EpotSolver {
     std::vector<EpotMGSubSolver *>   _epotsolverv;
     std::vector<MeshScalarField *>   _rhsv;
     std::vector<MeshScalarField *>   _workv;
+    std::vector<MeshScalarField *>   _work2v;
 
     bool             _geom_prepared;  /*!< \brief Is geometry prepared? */
     uint32_t         _levels;         /*!< \brief Multigrid levels. */
     uint32_t         _npre;           /*!< \brief Pre cycle smoother rounds. */
     uint32_t         _npost;          /*!< \brief Post cycle smoother rounds. */
-    uint32_t         _ncyc;           /*!< \brief Multigrid cycles. */
+    uint32_t         _mgcyc;          /*!< \brief Multigrid cycles. */
+    double           _mgeps;          /*!< \brief Acceptable residual error from last multigrid cycle. */
+    uint32_t         _gamma;          /*!< \brief Multigrid cycle coefficient, 1 for V-cycles, 2 for W-cycles. */
     double           _res;            /*!< \brief Residual error from top level. */
     double           _eps;            /*!< \brief Acceptable error for coarsest level. */
+    double           _w;              /*!< \brief Over-relaxation factor for coarsest level. */
     uint32_t         _imax;           /*!< \brief Maximum number of rounds for coarsest level. */
     
     
@@ -150,19 +80,18 @@ class EpotMGSolver : public EpotSolver {
     void preprocess( MeshScalarField &epot, const MeshScalarField &scharge );
     void postprocess( void );
 
-    void prolong_add_2d( int level, int32_t i, int32_t j, double C );
-    void prolong_add_1d( int level, int32_t i, double C );
+    void prolong_add_2d( MeshScalarField *out, int32_t i, int32_t j, double C );
+    void prolong_add_1d( MeshScalarField *out, int32_t i, double C );
 
-    void defect( int level );
-    void correct( int level );
+    void correct( const Geometry *geom, MeshScalarField *sol, const MeshScalarField *corr );
 
-    void restrict_2d( int level );
-    void restrict_1d( int level );
-    void restrict( int level );
+    void restrict_2d( MeshScalarField *out, const MeshScalarField *in, bool defect );
+    void restrict_1d( MeshScalarField *out, const MeshScalarField *in, bool defect );
+    void restrict( MeshScalarField *out, const MeshScalarField *in, bool defect );
 
-    void prolong_2d( int level );
-    void prolong_1d( int level );
-    void prolong( int level );
+    void prolong_2d( MeshScalarField *out, const MeshScalarField *in );
+    void prolong_1d( MeshScalarField *out, const MeshScalarField *in );
+    void prolong( MeshScalarField *out, const MeshScalarField *in );
 
     void mg_recurse( uint32_t level );
 
@@ -188,15 +117,21 @@ public:
      */
     virtual ~EpotMGSolver();
 
-    /*! \brief Sets the accuracy request for coarsest level.
+    /*! \brief Sets the accuracy request for coarsest level SOR solver.
      *
-     *  Default to 1e-6.
+     *  Defaults to 1e-6.
      */
     void set_eps( double eps );
 
-    /*! \brief Sets maximum number of iteration rounds for coarsest level.
+    /*! \brief Sets the over-relaxation factor for coarsest level SOR solver.
      *
-     *  Default to 1000.
+     *  Defaults to 1.7.
+     */
+    void set_w( double w );
+
+    /*! \brief Sets maximum number of iteration rounds for coarsest level SOR solver.
+     *
+     *  Defaults to 10000.
      */
     void set_imax( uint32_t imax );
 
@@ -206,25 +141,41 @@ public:
 
     /*! \brief Sets multigrid levels.
      *
-     *  Default to 1.
+     *  Defaults to 1.
      */
     void set_levels( uint32_t levels );
 
     /*! \brief Sets number of multigrid cycles.
      *
-     *  Default to 1.
+     *  Defaults to 10. Multigrid cycles are done until the
+     *  residual error is less than \a mgeps or \a mgcyc cycles have
+     *  been made. 
      */
-    void set_ncyc( uint32_t ncyc );
+    void set_mgcyc( uint32_t mgcyc );
+
+    /*! \brief Sets the accuracy request for finest level.
+     *
+     *  Defaults to 1.0e-6. Multigrid cycles are done until the
+     *  residual error is less than \a mgeps or \a mgcyc cycles have
+     *  been made.
+     */
+    void set_mgeps( double mgeps );
+
+    /*! \brief Sets multigrid cycle coefficient.
+     *
+     *  Defaults to 1 (V-cycles). Use 2 for W-cycles.
+     */
+    void set_gamma( uint32_t gamma );
 
     /*! \brief Sets number of pre cycle smoother rounds.
      *
-     *  Default to 5.
+     *  Defaults to 5.
      */
     void set_npre( uint32_t npre );
 
     /*! \brief Sets number of post cycle smoother rounds.
      *
-     *  Default to 5.
+     *  Defaults to 5.
      */
     void set_npost( uint32_t npost );
 

@@ -111,8 +111,13 @@ public:
  *  equals to PLASMA_PEXP_INITIAL. It exists for backward compatibility.
  *
  */
-enum plasma_mode_e {PLASMA_NONE = 0, PLASMA_PEXP_INITIAL, PLASMA_PEXP, 
-		    PLASMA_NSIMP_INITIAL, PLASMA_NSIMP};
+enum plasma_mode_e {
+    PLASMA_NONE = 0,
+    PLASMA_PEXP_INITIAL,
+    PLASMA_NSIMP_INITIAL,
+    PLASMA_PEXP, 
+    PLASMA_NSIMP
+};
 
 #define PLASMA_INITIAL PLASMA_PEXP_INITIAL
 
@@ -279,6 +284,10 @@ public:
 /* ************************************** *
  * Problem constructing and solving       *
  * ************************************** */
+
+    /*! \brief Copy parameters from solver \a epsolver.
+     */
+    void set_parameters( const EpotSolver &epsolver );
 
     /*! \brief Set Neumann boundary order.
      *

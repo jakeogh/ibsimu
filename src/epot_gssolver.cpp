@@ -161,8 +161,8 @@ double EpotGSSolver::gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, uin
 	double rhst, drhst;
 	pexp_newton( rhst, drhst, p );
 	return( p + ( epf - cof*p - (*_rhs)(a) - rhst ) / ( cof + drhst ) );
-    } else if( _plasma == PLASMA_NSIMP ) 
-{	double p = (*_epot)(a);
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_epot)(a);
 	double rhst, drhst;
 	nsimp_newton( rhst, drhst, p );
 	return( p + ( epf - cof*p - (*_rhs)(a) - rhst ) / ( cof + drhst ) );
@@ -691,12 +691,38 @@ double EpotGSSolver::gs_process_near_solid_1d( const uint8_t *nearsolid_ptr,
     double cof = 2.0/(alpha*beta);
     double epf = 2.0/(alpha+beta)*( (*_epot)(i-1)/alpha + (*_epot)(i+1)/beta );
 
+    if( _plasma == PLASMA_PEXP ) {
+	double p = (*_epot)(i);
+	double rhst, drhst;
+	pexp_newton( rhst, drhst, p );
+	return( p + ( epf - cof*p - (*_rhs)(i) - rhst ) / ( cof + drhst ) );
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_epot)(i);
+	double rhst, drhst;
+	nsimp_newton( rhst, drhst, p );
+	return( p + ( epf - cof*p - (*_rhs)(i) - rhst ) / ( cof + drhst ) );
+    }
+
     return( (1.0/cof) * ( epf - (*_rhs)(i) ) );
 }
 
 
 double EpotGSSolver::gs_process_pure_vacuum_1d( uint32_t i ) const
 {
+    if( _plasma == PLASMA_PEXP ) {
+	double p = (*_epot)(i);
+	double rhst, drhst;
+	pexp_newton( rhst, drhst, p );
+	return( p + ( (*_epot)(i+1) + (*_epot)(i-1) 
+		      - 2.0*p - (*_rhs)(i) - rhst ) / ( 2.0 + drhst ) );
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_epot)(i);
+	double rhst, drhst;
+	nsimp_newton( rhst, drhst, p );
+	return( p + ( (*_epot)(i+1) + (*_epot)(i-1) 
+		      - 2.0*p - (*_rhs)(i) - rhst ) / ( 2.0 + drhst ) );
+    }
+
     return( (1.0/2.0) * ( (*_epot)(i+1) + (*_epot)(i-1) - (*_rhs)(i) ) );
 }
 

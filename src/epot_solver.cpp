@@ -65,13 +65,11 @@ EpotSolver::EpotSolver( Geometry &geom )
 EpotSolver::EpotSolver( const EpotSolver &epsolver, Geometry &geom )
     : _geom(geom), _neumann_order(epsolver._neumann_order), _plasma(epsolver._plasma),
       _rhoe(epsolver._rhoe), _Te(epsolver._Te), _Up(epsolver._Up),
+      _rhoi(epsolver._rhoi), _Ei(epsolver._Ei), 
       _force_pot(epsolver._force_pot), _force_pot_func(epsolver._force_pot_func),
       _init_plasma_func(epsolver._init_plasma_func)
 {
-    for( uint32_t i = 0; i < epsolver._rhoi.size(); i++ )
-	_rhoi.push_back( epsolver._rhoi[i] );
-    for( uint32_t i = 0; i < epsolver._Ei.size(); i++ )
-	_Ei.push_back( epsolver._Ei[i] );
+
 }
 
 
@@ -81,9 +79,25 @@ EpotSolver::EpotSolver( Geometry &geom, std::istream &s )
     throw( ErrorUnimplemented( ERROR_LOCATION ) );
 }
 
+
 /* ************************************** *
  * EpotSolver constructing               *
  * ************************************** */
+
+
+void EpotSolver::set_parameters( const EpotSolver &epsolver )
+{
+    _neumann_order = epsolver._neumann_order;
+    _plasma = epsolver._plasma;
+    _rhoe = epsolver._rhoe;
+    _Te = epsolver._Te;
+    _Up = epsolver._Up;
+    _rhoi = epsolver._rhoi;
+    _Ei = epsolver._Ei;
+    _force_pot = epsolver._force_pot;
+    _force_pot_func = epsolver._force_pot_func;
+    _init_plasma_func = epsolver._init_plasma_func;
+}
 
 
 void EpotSolver::set_neumann_order( uint32_t order )
@@ -454,6 +468,24 @@ void EpotSolver::postprocess( void )
 
     // Clear near solid indexes vector
     _nsind.clear();
+}
+
+
+bool EpotSolver::linear( void ) const
+{
+    switch( _plasma ) {
+    case PLASMA_NONE:
+    case PLASMA_PEXP_INITIAL:
+    case PLASMA_NSIMP_INITIAL:
+	return( true );
+	break;
+    case PLASMA_PEXP:
+    case PLASMA_NSIMP:
+	return( false );
+	break;
+    }
+
+    throw( ErrorAssert( ERROR_LOCATION ) );
 }
 
 
