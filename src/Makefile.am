@@ -71,8 +71,6 @@ geomplotter.cpp \
 geomplotter.hpp \
 graph.hpp \
 graph3d.hpp \
-gs_solver.cpp \
-gs_solver.hpp \
 gtkfielddiagdialog.cpp \
 gtkfielddiagdialog.hpp \
 gtkfielddiagexportdialog.cpp \
@@ -242,7 +240,6 @@ geomplot.hpp \
 geomplotter.hpp \
 graph.hpp \
 graph3d.hpp \
-gs_solver.hpp \
 gtkfielddiagexportdialog.hpp \
 gtkplotter.hpp \
 hbio.hpp \
