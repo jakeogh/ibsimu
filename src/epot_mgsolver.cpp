@@ -56,7 +56,7 @@
 
 EpotMGSolver::EpotMGSolver( Geometry &geom )
     : EpotSolver( geom ), _geom_prepared(false), _levels(1), _npre(5), 
-      _npost(5), _mgcyc(10), _mgeps(1.0e-6), _gamma(1), _res(0.0), 
+      _npost(5), _mgcycmax(100), _mgcyc(0), _mgeps(1.0e-6), _gamma(1), _res(0.0), 
       _eps(1.0e-6), _w(1.7), _imax(10000)
 {
 
@@ -131,6 +131,11 @@ double EpotMGSolver::get_residual( void ) const
 }
 
 
+uint32_t EpotMGSolver::get_mgcyc( void ) const
+{
+    return( _res );
+}
+
 void EpotMGSolver::set_levels( uint32_t levels )
 {
     if( levels < 1 )
@@ -140,9 +145,9 @@ void EpotMGSolver::set_levels( uint32_t levels )
 }
 
 
-void EpotMGSolver::set_mgcyc( uint32_t mgcyc )
+void EpotMGSolver::set_mgcycmax( uint32_t mgcycmax )
 {
-    _mgcyc = mgcyc;
+    _mgcycmax = mgcycmax;
 }
 
 
@@ -783,7 +788,7 @@ void EpotMGSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 		  << "levels = " << _levels
 		  << ", npre = " << _npre
 		  << ", npost = " << _npost
-		  << ", mgcyc = " << _mgcyc
+		  << ", mgcycmax = " << _mgcycmax
 		  << ", mgeps = " << _mgeps
 		  << ", gamma = " << _gamma
 		  << ", eps = " << _eps
@@ -811,6 +816,8 @@ void EpotMGSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 	if( _res < _mgeps )
 	    break;
     }
+    _mgcyc = a;
+
     if( ibsimu.get_verbose_output() ) {
 	if( a == _mgcyc )
 	    std::cout << "  Maximum number of cycles done\n";

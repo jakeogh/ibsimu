@@ -56,6 +56,9 @@ class EpotBiCGSTABSolver : public EpotMatrixSolver {
     double   _eps;          /*!< \brief Accuracy request. */
     uint32_t _imax;         /*!< \brief Maximum iteration count. */
 
+    uint32_t _iter;         /*!< \brief Number of iteration rounds done. */
+    double   _res;          /*!< \brief Residual error. */
+
     double   _newton_Reps;  /*!< \brief Accuracy request for Newton-Raphson residual. */
     double   _newton_dXeps; /*!< \brief Accuracy request for Newton-Raphson step. */
     uint32_t _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
@@ -106,6 +109,14 @@ public:
     /*! \brief Sets the accuracy request for Newton-Raphson step size.
      */
     void set_newton_step_eps( double newton_dXeps );
+
+    /*! \brief Get estimate of residual error.
+     */
+    double get_residual( void ) const;
+
+    /*! \brief Get number of iteration rounds done with last solve().
+     */
+    uint32_t get_iter( void ) const;
 
     /*! \brief Print debugging information to os.
      */

@@ -63,7 +63,8 @@ class EpotMGSolver : public EpotSolver {
     uint32_t         _levels;         /*!< \brief Multigrid levels. */
     uint32_t         _npre;           /*!< \brief Pre cycle smoother rounds. */
     uint32_t         _npost;          /*!< \brief Post cycle smoother rounds. */
-    uint32_t         _mgcyc;          /*!< \brief Multigrid cycles. */
+    uint32_t         _mgcycmax;       /*!< \brief Maximum number of multigrid cycles. */
+    uint32_t         _mgcyc;          /*!< \brief Number of multigrid cycles taken. */
     double           _mgeps;          /*!< \brief Acceptable residual error from last multigrid cycle. */
     uint32_t         _gamma;          /*!< \brief Multigrid cycle coefficient, 1 for V-cycles, 2 for W-cycles. */
     double           _res;            /*!< \brief Residual error from top level. */
@@ -135,23 +136,19 @@ public:
      */
     void set_imax( uint32_t imax );
 
-    /*! \brief Get estimate of residual error.
-     */
-    double get_residual( void ) const;
-
     /*! \brief Sets multigrid levels.
      *
      *  Defaults to 1.
      */
     void set_levels( uint32_t levels );
 
-    /*! \brief Sets number of multigrid cycles.
+    /*! \brief Sets maximum number of multigrid cycles to take.
      *
      *  Defaults to 10. Multigrid cycles are done until the
      *  residual error is less than \a mgeps or \a mgcyc cycles have
      *  been made. 
      */
-    void set_mgcyc( uint32_t mgcyc );
+    void set_mgcycmax( uint32_t mgcyc );
 
     /*! \brief Sets the accuracy request for finest level.
      *
@@ -178,6 +175,14 @@ public:
      *  Defaults to 5.
      */
     void set_npost( uint32_t npost );
+
+    /*! \brief Get estimate of residual error.
+     */
+    double get_residual( void ) const;
+
+    /*! \brief Get number of multigrid cycles done.
+     */
+    uint32_t get_mgcyc( void ) const;
 
     /*! \brief Print debugging information to os.
      */
