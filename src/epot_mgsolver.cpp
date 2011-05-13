@@ -809,7 +809,7 @@ void EpotMGSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 
     // Call iterator mgcyc times
     uint32_t a;
-    for( a = 0; a < _mgcyc; a++ ) {
+    for( a = 0; a < _mgcycmax; a++ ) {
 	if( ibsimu.get_verbose_output() )
 	    std::cout << "  Cycle " << a+1 << "\n";
 	mg_recurse( 0 );
