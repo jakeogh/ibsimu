@@ -133,7 +133,7 @@ double EpotMGSolver::get_residual( void ) const
 
 uint32_t EpotMGSolver::get_mgcyc( void ) const
 {
-    return( _res );
+    return( _mgcyc );
 }
 
 void EpotMGSolver::set_levels( uint32_t levels )
