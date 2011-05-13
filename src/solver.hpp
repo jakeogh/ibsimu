@@ -46,7 +46,6 @@
 
 #include <iostream>
 #include "geometry.hpp"
-#include "problem.hpp"
 #include "matrix.hpp"
 #include "mvector.hpp"
 

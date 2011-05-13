@@ -47,7 +47,6 @@
 #include <iostream>
 #include "solver.hpp"
 #include "geometry.hpp"
-#include "problem.hpp"
 #include "matrix.hpp"
 #include "crowmatrix.hpp"
 #include "mvector.hpp"

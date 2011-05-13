@@ -164,7 +164,6 @@ plotter.hpp \
 polysolver.cpp \
 polysolver.hpp \
 precond.hpp \
-problem.hpp \
 qrandom.cpp \
 qrandom.hpp \
 readascii.cpp \
@@ -277,7 +276,6 @@ particles.hpp \
 plotter.hpp \
 polysolver.hpp \
 precond.hpp \
-problem.hpp \
 qrandom.hpp \
 readascii.hpp \
 ruler.hpp \
