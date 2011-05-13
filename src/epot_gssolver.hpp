@@ -119,10 +119,6 @@ public:
      */
     void set_eps( double eps );
 
-    /*! \brief Get estimate of residual error.
-     */
-    double get_residual( void ) const;
-
     /*! \brief Sets maximum iteration count.
      */
     void set_imax( uint32_t imax );
@@ -130,6 +126,14 @@ public:
     /*! \brief Sets relaxation parameter.
      */
     void set_w( double w );
+
+    /*! \brief Get estimate of residual error.
+     */
+    double get_residual( void ) const;
+
+    /*! \brief Get number of iteration rounds done with last solve().
+     */
+    uint32_t get_iter( void ) const;
 
     /*! \brief Print debugging information to os.
      */

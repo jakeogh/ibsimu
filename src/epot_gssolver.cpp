@@ -49,8 +49,8 @@
 
 
 EpotGSSolver::EpotGSSolver( Geometry &geom )
-    : EpotSolver( geom ), _epot(NULL), _rhs(NULL), _imax(10000), 
-      _eps(1.0e-6), _w(1.66)
+    : EpotSolver( geom ), _epot(NULL), _rhs(NULL), _iter(0), _imax(10000), 
+      _eps(1.0e-6), _res(0.0), _w(1.66)
 {
     
 }
@@ -74,9 +74,16 @@ void EpotGSSolver::set_eps( double eps )
     _eps = eps;
 }
 
+
 double EpotGSSolver::get_residual( void ) const
 {
     return( _res );
+}
+
+
+uint32_t EpotGSSolver::get_iter( void ) const
+{
+    return( _iter );
 }
 
 
@@ -865,8 +872,8 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
     preprocess( scharge );
 
     // Loop until converged
-    uint32_t iter = 0;
-    while( iter < _imax ) {
+    _iter = 0;
+    while( _iter < _imax ) {
 	if( _geom.geom_mode() == MODE_3D )
 	    _res = gs_loop_3d();
 	else if( _geom.geom_mode() == MODE_2D )
@@ -880,11 +887,11 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 
 	if( ibsimu.get_verbose_output() ) {
 	    std::stringstream ss;
-	    ss << "  " << std::setw(5) << iter << " " << std::scientific << std::setw(20) << _res;
+	    ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
 	    sp.print( ss.str() );
 	}
 
-	iter++;
+	_iter++;
 	if( _res < _eps )
 	    break;
 	if( comp_isinf(_res) || comp_isnan(_res) )
@@ -896,13 +903,13 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 
     if( ibsimu.get_verbose_output() ) {
 	std::stringstream ss;
-	ss << "  " << std::setw(5) << iter << " " << std::scientific << std::setw(20) << _res;
+	ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
 	sp.print( ss.str(), true );
 	std::cout << "\n";
-	if( iter == _imax )
+	if( _iter == _imax )
 	    std::cout << "  Maximum number of iteration rounds done.\n";
 	std::cout << "  residual error = " << _res << "\n";
-	std::cout << "  iterations = " << iter << "\n";
+	std::cout << "  iterations = " << _iter << "\n";
     }
 }
 
