@@ -55,8 +55,8 @@ void compare_to_analytic( const std::string &fieldname, const EpotField &epot )
     size_t loci = 0, locj = 0;
     for( uint32_t i = 0; i < epot.size(0); i++ ) {
 	for( uint32_t j = 0; j < epot.size(1); j++ ) {
-	    double x = i*epot.h();
-	    double y = j*epot.h();
+	    double x = epot.origo(0)+i*epot.h();
+	    double y = epot.origo(0)+j*epot.h();
 	    double r = sqrt(x*x + y*y);
 	    if( r > 0.021 && r < 0.07 ) {
 	        double dif = fabs( epot(i,j) - phi(r) );
@@ -81,15 +81,30 @@ void test( int argc, char **argv )
     //Geometry geom( MODE_2D, Int3D(81,81,1), Vec3D(0,0,0), 0.001 );      // five levels possible
     //Geometry geom( MODE_2D, Int3D(161,161,1), Vec3D(0,0,0), 0.0005 );   // six levels possible
     //Geometry geom( MODE_2D, Int3D(321,321,1), Vec3D(0,0,0), 0.00025 );  // seven levels possible
-    Geometry geom( MODE_2D, Int3D(641,641,1), Vec3D(0,0,0), 0.000125 );   // 8 levels possible
+    //Geometry geom( MODE_2D, Int3D(641,641,1), Vec3D(0,0,0), 0.000125 );   // 8 levels possible
+    
+    //Geometry geom( MODE_2D, Int3D(641,641,1), Vec3D(-0.08,-0.08,0), 0.000125 );   // 8 levels possible
+ 
+    //Geometry geom( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.002 );           // 4 levels possible
+    //Geometry geom( MODE_2D, Int3D(41,41,1), Vec3D(-0.08,-0.08,0), 0.002 );   // 4 levels possible
+
+    Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(-0.08,-0.08,0), 0.008 );   // 2 levels possible
+
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
     geom.set_solid( 8, s2 );
+    /*
     geom.set_boundary( 1, Bound(BOUND_NEUMANN,    0.0) );
     geom.set_boundary( 2, Bound(BOUND_DIRICHLET,   V2) );
     geom.set_boundary( 3, Bound(BOUND_NEUMANN,    0.0) );
     geom.set_boundary( 4, Bound(BOUND_DIRICHLET,   V2) );
+    */
+    geom.set_boundary( 1, Bound(BOUND_DIRICHLET,   V2) );
+    geom.set_boundary( 2, Bound(BOUND_NEUMANN,    0.0) );
+    geom.set_boundary( 3, Bound(BOUND_DIRICHLET,   V2) );
+    geom.set_boundary( 4, Bound(BOUND_NEUMANN,    0.0) );
+
     geom.set_boundary( 7, Bound(BOUND_DIRICHLET,   V1) );
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET,   V2) );
     geom.build_mesh();
@@ -99,15 +114,17 @@ void test( int argc, char **argv )
 
     EpotField epot( geom );
     EpotMGSolver solver( geom );
-    solver.set_levels( 4 );
+    solver.set_neumann_order( 2 );
+    solver.set_levels( 2 );
     solver.set_npre( 5 );
     solver.set_npost( 5 );
-    solver.set_neumann_order( 2 );
     solver.solve( epot, scharge );
 
+    /*
     ifstream is( "mgsolver2d_coax.dat" );
     EpotField epot2( is, geom );
     is.close();
+    */
 
     /*
     //EpotField epot2( geom );
@@ -131,6 +148,7 @@ void test( int argc, char **argv )
     */
 
     // Compare numeric solutions
+    /*
     double eps = 0.0;
     size_t loci = 0, locj = 0;
     for( size_t j = 0; j < geom.size(1); j++ ) {
@@ -144,9 +162,9 @@ void test( int argc, char **argv )
 	}
     }
     std::cout << "Maximum difference between epot and epot2 is " << eps << " at " << loci << ", " << locj << "\n";
-
+    */
     compare_to_analytic( "epot", epot );
-    compare_to_analytic( "epot2", epot2 );
+    //compare_to_analytic( "epot2", epot2 );
 
     GTKPlotter plotter( &argc, &argv );
     plotter.set_geometry( &geom );
