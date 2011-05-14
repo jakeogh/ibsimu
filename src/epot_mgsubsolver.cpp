@@ -762,7 +762,7 @@ double EpotMGSubSolver::defect_neumann_2d( uint32_t boundary, uint32_t a, uint32
     case 4:
 	if( _neumann_order == 2 )
 	    // 3*phi_j - 4*phi_j-1 + phi_j-2 = 2h*q_0
-	    return( (*_epot)(a) - 4.0*(*_epot)(a-dj) + (*_epot)(a-2*dj) - (*_rhs)(a) );
+	    return( 3.0*(*_epot)(a) - 4.0*(*_epot)(a-dj) + (*_epot)(a-2*dj) - (*_rhs)(a) );
 	else
 	    // phi_j-1 - phi_j = h*q_0
 	    return( (*_epot)(a) - (*_epot)(a-dj) - (*_rhs)(a) );
