@@ -618,10 +618,9 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 	
 	// Last level, solve the roughest problem until convergence
 	uint32_t a = 0;
-	double res = 0.0;
 	for( a = 1; a <= _imax; a++ ) {
-	    res = _epotsolverv[level]->mg_solve( _epotv[level], _rhsv[level], _w );
-	    if( res < _eps )
+	    _res = _epotsolverv[level]->mg_solve( _epotv[level], _rhsv[level], _w );
+	    if( _res < _eps )
 		break;
 	}
 
@@ -634,8 +633,8 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 	    std::cout << "  " << a << " iterations done\n";
 	    for( uint32_t b = 0; b < level; b++ )
 		std::cout << "  ";
-	    std::cout << "  " << res << " accuracy reached\n";
-	    if( a == _imax ) {
+	    std::cout << "  " << _res << " accuracy reached\n";
+	    if( a >= _imax ) {
 		for( uint32_t b = 0; b < level; b++ )
 		    std::cout << "  ";
 		std::cout << "  maximum number of iterations done\n";
@@ -646,7 +645,6 @@ void EpotMGSolver::mg_recurse( uint32_t level )
     } 
 
     // Do gamma cycles of next level
-    double res = 0.0;
     for( uint32_t a = 0; a < _gamma; a++ ) {
 
 	if( ibsimu.get_verbose_output() ) {
@@ -753,7 +751,7 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 
 	// Post smoothing
 	for( uint32_t a = 0; a < _npost; a++ )
-	    res = _epotsolverv[level]->mg_smooth( _epotv[level], _rhsv[level] );
+	    _res = _epotsolverv[level]->mg_smooth( _epotv[level], _rhsv[level] );
 
 	//std::cout << "epot (level = " << level << ") post smoothed:\n";
 	//print_field( _epotv[level] );
@@ -761,12 +759,9 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 	if( ibsimu.get_verbose_output() ) {
 	    for( uint32_t b = 0; b < level; b++ )
 		std::cout << "  ";
-	    std::cout << "  " << res << " accuracy reached\n";
+	    std::cout << "  " << _res << " accuracy reached\n";
 	}
      }
-
-    // Save residual from last level
-    _res = res;
 }
 
 

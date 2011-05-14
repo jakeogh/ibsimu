@@ -73,7 +73,7 @@ double EpotMGSubSolver::mg_smooth( MeshScalarField *epot, const MeshScalarField 
 	break;
     }
 
-    return( 0.0 );
+    throw( ErrorAssert( ERROR_LOCATION ) );
 }
 
 
@@ -93,7 +93,7 @@ double EpotMGSubSolver::mg_solve( MeshScalarField *epot, const MeshScalarField *
 	break;
     }
 
-    return( 0.0 );
+    throw( ErrorAssert( ERROR_LOCATION ) );
 }
 
 
