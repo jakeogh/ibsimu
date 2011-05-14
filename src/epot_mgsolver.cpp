@@ -607,7 +607,9 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 
     if( level == _levels-1 ) {
  
-	if( linear() )
+	// Linear case: clear last field, expected result closer to zero than result 
+	// from last round. Never clear top level field.
+	if( linear() && level != 0 )
 	    _epotv[level]->clear();
 
 	if( ibsimu.get_verbose_output() ) {

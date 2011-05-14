@@ -609,7 +609,7 @@ double EpotMGSubSolver::sor_loop_2d( double w ) const
 
     for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	for( uint32_t i = 0; i < _geom.size(0); i++ ) {
-	    
+
 	    uint32_t a = j*dj+i;
 	    double Vold = (*_epot)(a);
 	    double Vnew;
