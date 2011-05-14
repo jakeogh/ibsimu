@@ -143,12 +143,12 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
     if( ibsimu.get_verbose_output() ) {
 	if( linear() )
 	    std::cout << "  Using BiCGSTAB solver( "
-		      << ", imax = " << _imax
+		      << "imax = " << _imax
 		      << ", eps = " << _eps
 		      << ")\n";
 	else
 	    std::cout << "  Using Newton-Raphson BiCGSTAB solver( "
-		      << ", imax = " << _imax
+		      << "imax = " << _imax
 		      << ", eps = " << _eps
 		      << ", newton_imax = " << _newton_imax
 		      << ", newton_reps = " << _newton_Reps
