@@ -76,9 +76,9 @@ public:
     /*! \brief Constructor.
      */
     EpotBiCGSTABSolver( Geometry &geom,
-			double eps = 1.0e-6, 
+			double eps = 1.0e-4, 
 			uint32_t imax = 10000,
-			double newton_Reps = 1.0e-5, 
+			double newton_Reps = 1.0e-4, 
 			double newton_dXeps = 1.0e-6, 
 			uint32_t newton_imax = 10 );
 

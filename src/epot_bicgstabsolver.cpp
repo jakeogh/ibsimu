@@ -170,10 +170,10 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 
 	ILU0_Precond pc( *A );
         imax = _imax;
-        eps = _eps;
+        eps = _eps / _res_coef;
         bicgstab( *A, *B, X, pc, imax, eps );
 	_iter = imax;
-	_res = eps;
+	_res = _res_coef * eps;
 
 	if( ibsimu.get_verbose_output() ) {
 	    if( _iter == _imax )
@@ -202,7 +202,7 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
             get_resjac( &J, &R, X );
 	    ILU0_Precond pc( *J );
             imax = _imax - imax_sum;
-            eps = _eps;
+            eps = _eps / _res_coef;
             dX.clear();
 	    bicgstab( *J, *R, dX, pc, imax, eps );
 	    imax_sum += imax;
@@ -218,14 +218,14 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
                 std::cout << "    " 
                           << std::setw(5) << a << " " 
                           << std::setw(14) << accX << " " 
-                          << std::setw(14) << accR << "\n";
+                          << std::setw(14) << _res_coef * accR << "\n";
 
             if( accR < _newton_Reps || accX < _newton_dXeps || imax_sum >= _imax )
                 break;
         }
 
 	_iter = imax_sum;
-	_res = accR;
+	_res = _res_coef * accR;
 
         if( ibsimu.get_verbose_output() ) {
             if( accR < _newton_Reps || accX < _newton_dXeps )

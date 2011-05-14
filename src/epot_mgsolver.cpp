@@ -57,7 +57,7 @@
 EpotMGSolver::EpotMGSolver( Geometry &geom )
     : EpotSolver( geom ), _geom_prepared(false), _levels(1), _npre(5), 
       _npost(5), _mgcycmax(100), _mgcyc(0), _mgeps(1.0e-6), _gamma(1), _res(0.0), 
-      _eps(1.0e-6), _w(1.7), _imax(10000)
+      _eps(1.0e-12), _w(1.7), _imax(10000)
 {
 
 }
@@ -621,7 +621,7 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 	// Last level, solve the roughest problem until convergence
 	uint32_t a = 0;
 	for( a = 1; a <= _imax; a++ ) {
-	    _res = _epotsolverv[level]->mg_solve( _epotv[level], _rhsv[level], _w );
+	    _res = _res_coef * _epotsolverv[level]->mg_solve( _epotv[level], _rhsv[level], _w );
 	    if( _res < _eps )
 		break;
 	}
@@ -753,7 +753,7 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 
 	// Post smoothing
 	for( uint32_t a = 0; a < _npost; a++ )
-	    _res = _epotsolverv[level]->mg_smooth( _epotv[level], _rhsv[level] );
+	    _res = _res_coef * _epotsolverv[level]->mg_smooth( _epotv[level], _rhsv[level] );
 
 	//std::cout << "epot (level = " << level << ") post smoothed:\n";
 	//print_field( _epotv[level] );
@@ -788,6 +788,7 @@ void EpotMGSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 		  << ", mgcycmax = " << _mgcycmax
 		  << ", mgeps = " << _mgeps
 		  << ", gamma = " << _gamma
+		  << ", w = " << _w
 		  << ", eps = " << _eps
 		  << ", imax = " << _imax
 		  << ")\n";

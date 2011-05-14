@@ -195,7 +195,8 @@ class EpotSolver {
 protected:
 
     Geometry           &_geom;             /*!< \brief Geometry reference. */
-    
+
+    double              _res_coef;         /*!< \brief Residual multiplication coefficient. */
     uint32_t            _neumann_order;    /*!< \brief Neumann boundary order (1 or 2). */
 
     plasma_mode_e       _plasma;           /*!< \brief Plasma simulation mode. */

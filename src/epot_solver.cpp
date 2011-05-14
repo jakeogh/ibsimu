@@ -58,7 +58,7 @@ EpotSolver::EpotSolver( Geometry &geom )
       _rhoe(0.0), _Te(0.0), _Up(0.0), 
       _force_pot(0.0), _force_pot_func(0), _init_plasma_func(0)
 {
-    
+    _res_coef = _geom.size().max();
 }
 
 
@@ -69,7 +69,7 @@ EpotSolver::EpotSolver( const EpotSolver &epsolver, Geometry &geom )
       _force_pot(epsolver._force_pot), _force_pot_func(epsolver._force_pot_func),
       _init_plasma_func(epsolver._init_plasma_func)
 {
-
+    _res_coef = _geom.size().max();
 }
 
 

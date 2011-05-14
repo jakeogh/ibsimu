@@ -50,7 +50,7 @@
 
 EpotGSSolver::EpotGSSolver( Geometry &geom )
     : EpotSolver( geom ), _epot(NULL), _rhs(NULL), _iter(0), _imax(10000), 
-      _eps(1.0e-6), _res(0.0), _w(1.66)
+      _eps(1.0e-4), _res(0.0), _w(1.66)
 {
     
 }
@@ -875,13 +875,13 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
     _iter = 0;
     while( _iter < _imax ) {
 	if( _geom.geom_mode() == MODE_3D )
-	    _res = gs_loop_3d();
+	    _res = _res_coef * gs_loop_3d();
 	else if( _geom.geom_mode() == MODE_2D )
-	    _res = gs_loop_2d();
+	    _res = _res_coef * gs_loop_2d();
 	else if( _geom.geom_mode() == MODE_CYL )
-	    _res = gs_loop_cyl();
+	    _res = _res_coef * gs_loop_cyl();
 	else if( _geom.geom_mode() == MODE_1D )
-	    _res = gs_loop_1d();
+	    _res = _res_coef * gs_loop_1d();
 	else
 	    throw( ErrorUnimplemented( ERROR_LOCATION ) );
 
