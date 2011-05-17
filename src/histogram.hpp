@@ -48,6 +48,14 @@
 #include <stdint.h>
 
 
+/*! \brief Histogram accumulation type.
+ */
+enum histogram_accumulation_e {
+    HISTOGRAM_ACCUMULATION_CLOSEST = 0, /*!< \brief Closest bin to point. */
+    HISTOGRAM_ACCUMULATION_LINEAR,      /*!< \brief Linear accumulation around point. */
+};
+
+
 /*! \brief Base histogram class.
  */
 class Histogram
@@ -78,12 +86,18 @@ public:
     Histogram1D( uint32_t n, const double range[2] );
 
     /*! \brief Constructor for \a n bin histogram from scatter data with even weights.
+     *
+     *  Selected accumulation operator \a type is used. Defaults to closest bin accumulation.
      */
-    Histogram1D( uint32_t n, const std::vector<double> &xdata );
+    Histogram1D( uint32_t n, const std::vector<double> &xdata,
+		 histogram_accumulation_e type = HISTOGRAM_ACCUMULATION_CLOSEST );
 
     /*! \brief Constructor for \a n bin histogram from scatter data with weights wrom \a wdata.
+     *
+     *  Selected accumulation operator \a type is used. Defaults to closest bin accumulation.
      */
-    Histogram1D( uint32_t n, const std::vector<double> &xdata, const std::vector<double> &wdata );
+    Histogram1D( uint32_t n, const std::vector<double> &xdata, const std::vector<double> &wdata,
+		 histogram_accumulation_e type = HISTOGRAM_ACCUMULATION_CLOSEST );
 
     /*! \brief Destructor.
      */
@@ -108,6 +122,10 @@ public:
     void accumulate( uint32_t i, double weight ) {
 	_data[i] += weight;
     }
+
+    /*! \brief Accumulate \a weight to closest bin to \a x.
+     */
+    void accumulate_closest( double x, double weight );
 
     /*! \brief Accumulate \a weight on bins around \a x linearly.
      *
@@ -181,17 +199,23 @@ public:
     Histogram2D( uint32_t n, uint32_t m, const double range[4] );
 
     /*! \brief Constructor for \a n x \a m histogram from scatter xy-data with even weights.
-     */
-    Histogram2D( uint32_t n, uint32_t m, 
-		 const std::vector<double> &xdata,
-		 const std::vector<double> &ydata );
-
-    /*! \brief Constructor for \a n x \a m histogram from scatter xy-data with weights from \a wdata.
+     *
+     *  Selected accumulation operator \a type is used. Defaults to closest bin accumulation.
      */
     Histogram2D( uint32_t n, uint32_t m, 
 		 const std::vector<double> &xdata,
 		 const std::vector<double> &ydata,
-		 const std::vector<double> &wdata );
+		 histogram_accumulation_e type = HISTOGRAM_ACCUMULATION_CLOSEST );
+
+    /*! \brief Constructor for \a n x \a m histogram from scatter xy-data with weights from \a wdata.
+     *
+     *  Selected accumulation operator \a type is used. Defaults to closest bin accumulation.
+     */
+    Histogram2D( uint32_t n, uint32_t m, 
+		 const std::vector<double> &xdata,
+		 const std::vector<double> &ydata,
+		 const std::vector<double> &wdata,
+		 histogram_accumulation_e type = HISTOGRAM_ACCUMULATION_CLOSEST );
 
     /*! \brief Destructor.
      */
@@ -229,6 +253,10 @@ public:
 	_data[i+j*_n] += weight;
     }
 
+    /*! \brief Accumulate \a weight to closest bin to \a (x,y).
+     */
+    void accumulate_closest( double x, double y, double weight );
+
     /*! \brief Accumulate \a weight on bins around \a (x,y) linearly.
      *
      *  Accumulation is done on four neighbouring bins around point \a
@@ -258,10 +286,14 @@ public:
     void get_bin_range( double &min, double &max ) const;
     
     /*! \brief Return a reference to the histogram data.
+     *
+     *  The data is sored in x major order (data[i+j*n]).
      */
     std::vector<double> &get_data( void ) { return( _data ); }
 
     /*! \brief Return a reference to the histogram data.
+     *
+     *  The data is sored in x major order (data[i+j*n]).
      */
     const std::vector<double> &get_data( void ) const { return( _data ); }
 

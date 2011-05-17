@@ -61,7 +61,9 @@ Histogram1D::Histogram1D( uint32_t n, const double range[2] )
 }
 
 
-Histogram1D::Histogram1D( uint32_t n, const std::vector<double> &xdata )
+Histogram1D::Histogram1D( uint32_t n, 
+			  const std::vector<double> &xdata,
+			  histogram_accumulation_e type )
     : _n(n), _data(n,0.0)
 {
     if( _n < 4 )
@@ -89,12 +91,20 @@ Histogram1D::Histogram1D( uint32_t n, const std::vector<double> &xdata )
     _step = (_range[1]-_range[0]) / (_n-1.0);
 
     // Add data
-    for( uint32_t a = 0; a < N; a++ )
-	accumulate_linear( xdata[a], 1.0 );
+    if( type == HISTOGRAM_ACCUMULATION_CLOSEST ) {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_closest( xdata[a], 1.0 );
+    } else {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_linear( xdata[a], 1.0 );
+    }
 }
 
 
-Histogram1D::Histogram1D( uint32_t n, const std::vector<double> &xdata, const std::vector<double> &wdata )
+Histogram1D::Histogram1D( uint32_t n, 
+			  const std::vector<double> &xdata, 
+			  const std::vector<double> &wdata,
+			  histogram_accumulation_e type )
     : _n(n), _data(n,0.0)
 {
     if( _n < 4 )
@@ -122,8 +132,13 @@ Histogram1D::Histogram1D( uint32_t n, const std::vector<double> &xdata, const st
     _step = (_range[1]-_range[0]) / (_n-1.0);
 
     // Add data
-    for( uint32_t a = 0; a < N; a++ )
-	accumulate_linear( xdata[a], wdata[a] );
+    if( type == HISTOGRAM_ACCUMULATION_CLOSEST ) {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_closest( xdata[a], wdata[a] );
+    } else {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_linear( xdata[a], wdata[a] );
+    }
 }
 
 
@@ -144,6 +159,15 @@ void Histogram1D::get_bin_range( double &min, double &max ) const
 	if( _data[a] > max ) 
 	    max = _data[a];
     }
+}
+
+
+void Histogram1D::accumulate_closest( double x, double weight )
+{
+    int32_t i = (int)floor( (x-_range[0]) / _step + 0.5 );
+
+    if( i < (int32_t)_n && i >= 0 )
+	_data[i] += weight;
 }
 
 
@@ -227,7 +251,8 @@ Histogram2D::Histogram2D( uint32_t n, uint32_t m, const double range[4] )
 
 Histogram2D::Histogram2D( uint32_t n, uint32_t m, 
 			  const std::vector<double> &xdata,
-			  const std::vector<double> &ydata )
+			  const std::vector<double> &ydata,
+			  histogram_accumulation_e type )
     : _n(n), _m(m), _data(n*m,0.0)
 {
     if( _n < 4 || _m < 4 )
@@ -273,15 +298,21 @@ Histogram2D::Histogram2D( uint32_t n, uint32_t m,
     _mstep = (_range[3]-_range[1]) / (_m-1.0);
 
     // Add data
-    for( uint32_t a = 0; a < N; a++ )
-	accumulate_linear( xdata[a], ydata[a], 1.0 );
+    if( type == HISTOGRAM_ACCUMULATION_CLOSEST ) {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_closest( xdata[a], ydata[a], 1.0 );
+    } else {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_linear( xdata[a], ydata[a], 1.0 );
+    }
 }
 
 
 Histogram2D::Histogram2D( uint32_t n, uint32_t m, 
 			  const std::vector<double> &xdata,
 			  const std::vector<double> &ydata,
-			  const std::vector<double> &wdata )
+			  const std::vector<double> &wdata,
+			  histogram_accumulation_e type )
     : _n(n), _m(m), _data(n*m,0.0)
 {
     if( _n < 4 || _m < 4 )
@@ -321,8 +352,13 @@ Histogram2D::Histogram2D( uint32_t n, uint32_t m,
     _mstep = (_range[3]-_range[1]) / (_m-1.0);
 
     // Add data
-    for( uint32_t a = 0; a < N; a++ )
-	accumulate_linear( xdata[a], ydata[a], wdata[a] );
+    if( type == HISTOGRAM_ACCUMULATION_CLOSEST ) {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_closest( xdata[a], ydata[a], wdata[a] );
+    } else {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_linear( xdata[a], ydata[a], wdata[a] );
+    }
 }
 
 
@@ -386,6 +422,17 @@ void Histogram2D::get_bin_range( double &min, double &max ) const
 	    max = _data[a];
     }
 }    
+
+
+void Histogram2D::accumulate_closest( double x, double y, double weight )
+{
+    int32_t i = (int)floor( (x-_range[0]) / _nstep + 0.5 );
+    int32_t j = (int)floor( (y-_range[1]) / _mstep + 0.5 );
+
+    if( i < (int32_t)_n && i >= 0 &&
+	j < (int32_t)_m && j >= 0 )
+	_data[i+j*_n] += weight;
+}
 
 
 void Histogram2D::accumulate_linear( double x, double y, double weight )
