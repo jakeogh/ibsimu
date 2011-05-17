@@ -148,6 +148,9 @@ class Geometry : public Mesh
      */
     void check_definition();
 
+    Vec3D surface_normal_2d( const Vec3D &x ) const;
+    Vec3D surface_normal_3d( const Vec3D &x ) const;
+
 public:
 
     /*! \brief Constructor for geometry class.
@@ -255,9 +258,15 @@ public:
      *  should be inside the solid and point \a xout should be outside
      *  the solid. Function saves the coordinates of the surface to
      *  xsurf and returns parametrical distance (value from 0 to 1)
-     *  from xin. %Vector \a xsurf is used as internal work space.
+     *  from xin.
      */
     double bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xout, Vec3D &xsurf ) const;
+
+    /*! \brief Find surface outward normal at location \a x.
+     *
+     *  Returns zero vector on failure.
+     */
+    Vec3D surface_normal( const Vec3D &x ) const;
 
     /*! \brief Is the solid mesh built?
      */

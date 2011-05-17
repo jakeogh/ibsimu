@@ -275,7 +275,7 @@ double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xou
     Vec3D dif = xout - xin;
     dif.abs();
     if( dif[0] > dif[1] ) {
-	if( dif[0] > dif[2] )
+ 	if( dif[0] > dif[2] )
 	    a = 0;
 	else
 	    a = 2;
@@ -286,6 +286,103 @@ double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xou
 	    a = 2;
     }
     return( (xsurf[a] - xin[a]) / (xout[a] - xin[a]) );
+}
+
+
+Vec3D Geometry::surface_normal( const Vec3D &x ) const
+{
+    switch( geom_mode() ) {
+    case MODE_2D:
+    case MODE_CYL:
+	return( surface_normal_2d( x ) );
+    case MODE_3D:
+	return( surface_normal_3d( x ) );
+    default:
+	throw( ErrorUnimplemented( ERROR_LOCATION ) );
+    }
+}
+
+
+Vec3D Geometry::surface_normal_3d( const Vec3D &x ) const
+{
+    throw( ErrorUnimplemented( ERROR_LOCATION ) );
+}
+
+
+Vec3D Geometry::surface_normal_2d( const Vec3D &x ) const
+{
+    double dx = 0.1*_h;
+
+    Vec3D px[4];
+    uint32_t p[4];
+    int surc;
+    bool sur[4];
+
+    do {
+	// Build corner coordinates
+	px[0] = x+Vec3D(-dx,-dx,0);
+	px[1] = x+Vec3D(-dx,+dx,0);
+	px[2] = x+Vec3D(+dx,+dx,0);
+	px[3] = x+Vec3D(+dx,-dx,0);
+
+	// Check inside() in corners
+	p[0] = inside( px[0] );
+	p[1] = inside( px[1] );
+	p[2] = inside( px[2] );
+	p[3] = inside( px[3] );
+
+	// Check if two intersections
+	surc = 0;
+	if( p[0] != p[1] ) {
+	    surc++;
+	    sur[0] = true;
+	} else {
+	    sur[0] = false;
+	}
+	if( p[1] != p[2] ) {
+	    surc++;
+	    sur[1] = true;
+	} else {
+	    sur[1] = false;
+	}
+	if( p[2] != p[3] ) {
+	    surc++;
+	    sur[2] = true;
+	} else {
+	    sur[2] = false;
+	}
+	if( p[3] != p[0] ) {
+	    surc++;
+	    sur[3] = true;
+	} else {
+	    sur[3] = false;
+	}
+
+	dx *= 2.0;
+	if( dx >= _h )
+	    return( Vec3D(0,0,0) );
+
+    } while( surc != 2 );
+
+    // Bracket surface locations
+    int pol = 0;
+    int b = 0;
+    Vec3D xs[2];
+    for( int a = 0; a < 4; a++ ) {
+	if( sur[a] ) {
+	    pol = p[a];
+	    if( p[a] )
+		bracket_surface( p[a], px[a], px[(a+1)%4], xs[b++] );
+	    else
+		bracket_surface( p[a], px[(a+1)%4], px[a], xs[b++] );
+	}
+    }
+
+    Vec3D n( xs[1][0]-xs[0][0], xs[0][1]-xs[1][1], 0.0 );
+    if( !pol )
+	n *= -1.0;
+
+    return( n );
 }
 
 
