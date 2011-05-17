@@ -122,46 +122,79 @@ class ParticleDiagPlot {
     
 public:
 
+    /*! \brief Constructor for particle diagnostic plot.
+     *
+     *  Make a diagnostic plot using plotter \a frame for making a
+     *  diagnostic at plane \a axis = \a level using particle data
+     *  from \a pdb in geometry \a geom. The particle diagnostic is
+     *  defined by diagnostic \a type and diagnostic axes \a diagx and
+     *  \a diagy.
+     */
     ParticleDiagPlot( Frame *frame, const Geometry *geom, const ParticleDataBase *pdb, 
 		      coordinate_axis_e axis, double level, 
 		      particle_diag_plot_type_e type,
 		      trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy = DIAG_NONE );
 
+    /*! \brief Constructor for particle diagnostic plot.
+     *
+     *  Make a diagnostic plot using plotter \a frame for making a
+     *  diagnostic at plane defined by center point \a c and two
+     *  vectors defining the coordinate axes \a o and \a p. The
+     *  diagnostics is made using particle data from \a pdb in
+     *  geometry \a geom. The particle diagnostic is defined by
+     *  diagnostic \a type and diagnostic axes \a diagx and \a diagy.
+     */
     ParticleDiagPlot( Frame *frame, const Geometry *geom, const ParticleDataBase *pdb, 
 		      const Vec3D &c, const Vec3D &o, const Vec3D &p,
 		      particle_diag_plot_type_e type,
 		      trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy = DIAG_NONE );
 
+    /*! \brief Destructor.
+     */
     ~ParticleDiagPlot();
 
+    /*! \brief Enable/disable emittance fit for emittance plots?
+     */
     void set_emittance_ellipse( bool enable ) {
 	_ellipse_enable = enable;
     }
 
+    /*! \brief Is emittance fit enabled for emittance plots?
+     */
     bool get_emittance_ellipse( void ) {
 	return( _ellipse_enable );
     }
 
+    /*! \brief Set diagnostic plane.
+     */
     void set_view( coordinate_axis_e axis, double level ) {	
 	_update = true;
 	_axis = axis;
 	_level = level;
     }
 
+    /*! \brief Get diagnostic plane definition if it an even coorinate plane.
+     */
     void get_view( coordinate_axis_e &axis, double &level ) {
 	axis = _axis;
 	level = _level;
     }
 
+    /*! \brief Set plot type.
+     */
     void set_type( particle_diag_plot_type_e type ) {
 	_update = true;
 	_type = type;
     }
 
+    /*! \brief Get plot type.
+     */
     particle_diag_plot_type_e get_type( void ) {
 	return( _type );
     }
 
+    /*! \brief Set plot type and diagnostic axes of plot.
+     */
     void set_plot( particle_diag_plot_type_e type,
 		   trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy ) {
 	_update = true;
@@ -170,6 +203,8 @@ public:
 	_diagy = diagy;
     }
 
+    /*! \brief Get plot type and diagnostic axes of plot.
+     */
     void get_plot( particle_diag_plot_type_e &type,
 		   trajectory_diagnostic_e &diagx, trajectory_diagnostic_e &diagy ) {
 	type = _type;
@@ -177,44 +212,62 @@ public:
 	diagy = _diagy;
     }
 
+    /*! \brief Set number of histogram bins in x-direction to use for colormap plot.
+     */
     void set_histogram_n( size_t n ) {
 	_update = true;
 	_histogram_n = n;
     }
 
+    /*! \brief Get number of histogram bins in x-direction to use for colormap plot.
+     */
     size_t get_histogram_n( void ) {
 	return( _histogram_n );
     }
 
+    /*! \brief Set number of histogram bins in y-direction to use for colormap plot.
+     */
     void set_histogram_m( size_t m ) {
 	_update = true;
 	_histogram_m = m;
     }
 
+    /*! \brief Get number of histogram bins in y-direction to use for colormap plot.
+     */
     size_t get_histogram_m( void ) {
 	return( _histogram_m );
     }
 
+    /*! \brief Set the type of interpolation used in colormap plot.
+     */
     void set_colormap_interpolation( interpolation_e interpolation ) {
 	_interpolation = interpolation;
 	if( _colormap )
 	    _colormap->set_interpolation( interpolation );
     }
 
+    /*! \brief Get the type of interpolation used in colormap plot.
+     */
     interpolation_e get_colormap_interpolation( void ) {
 	return( _interpolation );
     }
 
+    /*! \brief Get a pointer to histogram in the plot.
+     */
     const Colormap *get_colormap( void ) const {
 	return( _colormap );
     }
 
+    /*! \brief Set dot size for scatter plot.
+     */
     void set_dot_size( double size ) {
 	_dot_size = size;
 	if( _scatter )
 	    _scatter->set_point_style( XYGRAPH_POINT_CIRCLE, true, _dot_size );
     }
 
+    /*! \brief Get dot size for scatter plot.
+     */
     double get_dot_size( void ) {
 	return( _dot_size );
     }
@@ -232,6 +285,11 @@ public:
     const Emittance &calculate_emittance( void );
 
     /*! \brief Export plotted data as ASCII.
+     *
+     *  If the plot is a scatter plot, each particle is exported with
+     *  plotted coordinates and current it is carrying. If the plot is
+     *  a histogram a grid is outputted with coordinates and current
+     *  density in grid cells.
      */
     void export_data( const std::string &filename );
 
