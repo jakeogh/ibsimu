@@ -66,6 +66,22 @@ public:
 };
 
 
+/*! \brief Trajectory end callback.
+ */
+class TrajectoryEndCallback {
+public:
+
+    /*! \brief Virtual destructor.
+     */
+    virtual ~TrajectoryEndCallback() {}
+
+    /*! \brief Operator called when particle calculation ends.
+     */
+    virtual void operator()( ParticleBase *particle, class ParticleDataBase *pdb ) const = 0;
+
+};
+
+
 /*! \brief Magnetic field plasma suppression for positive ion extraction.
  *
  *  Defines a magnetic field suppression, which is dependent on
@@ -217,7 +233,11 @@ public:
 
     /*! \brief Set trajectory handler callback. 
      */
-    void set_trajectory_handler_callback( const TrajectoryHandlerCallback *trajhand );
+    void set_trajectory_handler_callback( const TrajectoryHandlerCallback *thand_cb );
+
+    /*! \brief Set trajectory end callback. 
+     */
+    void set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb );
 
     /*! \brief Set the interpolation type to polynomial(true) or linear(false).
      *

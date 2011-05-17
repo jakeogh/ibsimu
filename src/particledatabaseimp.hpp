@@ -71,10 +71,12 @@ protected:
 
     uint32_t                  _iteration;   /*!< \brief Iteration number. */
     
-    const CallbackFunctorD_V *_bfield_suppression; /*!< \brief Location dependent magnetic field suppression. */
-    const TrajectoryHandlerCallback *_trajhand;    /*!< \brief Trajectory handler callback. */
+    const CallbackFunctorD_V        *_bsup_cb;       /*!< \brief Location dependent magnetic field suppression. */
+    const TrajectoryHandlerCallback *_thand_cb;      /*!< \brief Trajectory handler callback. */
+    const TrajectoryEndCallback     *_tend_cb;       /*!< \brief Trajectory collision callback. */
+    ParticleDataBase                *_pdb;           /*!< \brief Particle database pointer. */
 
-    ParticleDataBaseImp();
+    ParticleDataBaseImp( ParticleDataBase *pdb );
 
     ParticleDataBaseImp( std::istream &s );
 
@@ -88,7 +90,9 @@ public:
 
     void set_bfield_suppression( const CallbackFunctorD_V *functor );
 
-    void set_trajectory_handler_callback( const TrajectoryHandlerCallback *trajhand );
+    void set_trajectory_handler_callback( const TrajectoryHandlerCallback *thand_cb );
+
+    void set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb );
 
     void set_polyint( bool polyint );
     
@@ -227,22 +231,28 @@ template<class PP> class ParticleDataBasePPImp : public ParticleDataBaseImp {
 
 protected:
 
-    std::vector<Particle<PP> > _particles;
+    std::vector<Particle<PP> *>                        _particles; /*!< \brief Particles. */
+    Scheduler<ParticleIterator<PP>,Particle<PP>,Error> _scheduler; /*!< \brief Scheduler for solver. */
 
-    ParticleDataBasePPImp() {}
+    ParticleDataBasePPImp( ParticleDataBase *pdb )
+	: ParticleDataBaseImp(pdb), _scheduler(_particles) {}
 
     ParticleDataBasePPImp( std::istream &s ) 
-	: ParticleDataBaseImp( s ) {
+	: ParticleDataBaseImp(s), _scheduler(_particles) {
 
 	uint32_t N = read_int32( s );
 	_particles.reserve( N );
 	for( uint32_t a = 0; a < N; a++ )
-	    _particles.push_back( Particle<PP>( s ) );
+	    _particles.push_back( new Particle<PP>( s ) );
     }
 
 public:
 
-    virtual ~ParticleDataBasePPImp() {}
+    virtual ~ParticleDataBasePPImp() {
+	// Delete particles
+	for( size_t a = 0; a < _particles.size(); a++ )
+	    delete( _particles[a] );
+    }
 
     virtual geom_mode_e geom_mode() const { 
 	return( PP::geom_mode() ); 
@@ -253,22 +263,22 @@ public:
     }
 
     Particle<PP> &particle( uint32_t i ) { 
-	return( _particles[i] ); 
+	return( *_particles[i] ); 
     }
 
     const Particle<PP> &particle( uint32_t i ) const { 
-	return( _particles[i] ); 
+	return( *_particles[i] ); 
     }
     
     virtual double traj_length( uint32_t i ) const {
 
-	size_t N = _particles[i].traj_size();
+	size_t N = _particles[i]->traj_size();
 	double len = 0.0;
 	if( N < 2 )
 	    return( 0.0 );
-	Vec3D x1 = _particles[i].traj(0).location();
+	Vec3D x1 = _particles[i]->traj(0).location();
 	for( size_t b = 1; b < N; b++ ) {
-	    Vec3D x2 = _particles[i].traj(b).location();
+	    Vec3D x2 = _particles[i]->traj(b).location();
 	    len += norm2(x2-x1);
 	}
 
@@ -276,15 +286,15 @@ public:
     }
 
     virtual size_t traj_size( uint32_t i ) const { 
-	return( _particles[i].traj_size() ); 
+	return( _particles[i]->traj_size() ); 
     }
 
     const PP &trajectory_point( uint32_t i, uint32_t j ) const {
-	return( _particles[i].traj(j) );
+	return( _particles[i]->traj(j) );
     }
 
     virtual void trajectory_point( double &t, Vec3D &loc, Vec3D &vel, uint32_t i, uint32_t j ) const {
-	PP x = _particles[i].traj(j); 
+	PP x = _particles[i]->traj(j); 
 	t = x[0];
 	loc = x.location();
 	vel = x.velocity();
@@ -374,12 +384,12 @@ public:
 	double Isum = 0.0;
 	std::vector<PP> intsc;
 	for( size_t a = 0; a < _particles.size(); a++ ) {
-	    size_t N = _particles[a].traj_size();
+	    size_t N = _particles[a]->traj_size();
 	    if( N < 2 )
 		continue;
-	    PP x1 = _particles[a].traj(0);
+	    PP x1 = _particles[a]->traj(0);
 	    for( size_t b = 1; b < N; b++ ) {
-		PP x2 = _particles[a].traj(b);
+		PP x2 = _particles[a]->traj(b);
 		intsc.clear();
 		size_t nintsc;
 		if( b == 1 )
@@ -389,8 +399,8 @@ public:
 		else
 		    nintsc = PP::trajectory_intersections_at_plane( intsc, crd, val, x1, x2, 0 );
 		for( size_t c = 0; c < nintsc; c++ ) {
-		    Isum += _particles[a].IQ();
-		    add_diagnostics( tdata, intsc[c], _particles[a], crd );
+		    Isum += _particles[a]->IQ();
+		    add_diagnostics( tdata, intsc[c], *_particles[a], crd );
 		}
 
 		x1 = x2;
@@ -407,38 +417,39 @@ public:
     }
 
     virtual void clear( void ) { 
+	for( size_t a = 0; a < _particles.size(); a++ )
+	    delete( _particles[a] );
 	_particles.clear();
 	_rhosum = 0.0;
     }
 
     virtual void clear_trajectories( void ) {
 	for( uint32_t a = 0; a < _particles.size(); a++ )
-	    _particles[a].clear_trajectory();
+	    _particles[a]->clear_trajectory();
     }
 
     virtual void clear_trajectory( size_t a ) {
 	if( a >= _particles.size() )
 	    throw( ErrorRange( ERROR_LOCATION, a, _particles.size() ) );	    
-	_particles[a].clear_trajectory();
+	_particles[a]->clear_trajectory();
     }
 
     virtual void reserve( size_t size ) { 
 	_particles.reserve( size ); 
     }
 
-    void add_particle( double IQ, double q, double m, const PP &x ) {
-	_particles.push_back( Particle<PP>( IQ, CHARGE_E*q, MASS_U*m, x ) );
+    void add_particle( const Particle<PP> &pp ) {
+	_scheduler.lock_mutex();
+	_particles.push_back( new Particle<PP>( pp ) );
+	_scheduler.unlock_mutex();
     }
 
-    void add_particle( const Particle<PP> &pp ) {
-	_particles.push_back( pp );
+    void add_particle( double IQ, double q, double m, const PP &x ) {	
+	add_particle( Particle<PP>( IQ, CHARGE_E*q, MASS_U*m, x ) );
     }
 
     virtual void iterate_trajectories( ScalarField &scharge, const VectorField &efield, 
-				       const VectorField &bfield, const Geometry &g ) {
-
-	pthread_mutex_t                      scharge_mutex = PTHREAD_MUTEX_INITIALIZER;
-	std::vector<ParticleIterator<PP> *>  iterators;
+				       const VectorField &bfield, const Geometry &geom ) {
 
 	Timer t;
 	if( ibsimu.get_verbose_output() ) {
@@ -448,14 +459,14 @@ public:
 	_iteration++;
 
 	// Check geometry mode
-	if( g.geom_mode() != PP::geom_mode() )
+	if( geom.geom_mode() != PP::geom_mode() )
 	    throw( Error( ERROR_LOCATION, "Differing geometry modes" ) );
 
 	// Clear space charge
 	scharge.clear();
 
 	// Reset statistics
-	_stat.reset( g.number_of_boundaries() );
+	_stat.reset( geom.number_of_boundaries() );
 
 	// Check number of particles
 	if( _particles.size() == 0 ) {
@@ -463,31 +474,29 @@ public:
 	    return;
 	}
 
-	// Make separate space charge maps for all threads and build iterators
+	// Make solvers
+	pthread_mutex_t                      scharge_mutex = PTHREAD_MUTEX_INITIALIZER;
+	std::vector<ParticleIterator<PP> *>  iterators;
 	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
 
 	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
 							   _polyint, _maxsteps, _maxt, _trajdiv, 
 							   _mirror, &scharge, &scharge_mutex, &efield, &bfield, 
-							   &g, &_particles[0], _bfield_suppression, _trajhand ) );
+							   &geom ) );
+	    iterators[a]->set_trajectory_handler_callback( _thand_cb );
+	    iterators[a]->set_trajectory_end_callback( _tend_cb, _pdb );
+	    iterators[a]->set_bfield_suppression_callback( _bsup_cb );
 	}
 
-	// Make Scheduler
-	Scheduler<ParticleIterator<PP>,Particle<PP>,Error> scheduler( iterators );
+	// Run scheduler
+	_scheduler.run( iterators );
+	_scheduler.finish();
 
-	// Add problems
-	for( size_t a = 0; a < _particles.size(); a++ )
-	    scheduler.add_problem( &_particles[a] );
-
-	// Wait for completition
-	scheduler.run();
-	scheduler.finish();
-
-	if( scheduler.is_error() ) {
+	if( _scheduler.is_error() ) {
 	    // Throw the error
 	    std::vector<Error> err;
-	    std::vector<Particle<PP> *> part;
-	    scheduler.get_errors( err, part );
+	    std::vector<int32_t> part;
+	    _scheduler.get_errors( err, part );
 	    throw( err[0] );
 	}
 
@@ -522,94 +531,7 @@ public:
     virtual void step_particles( ScalarField &scharge, const VectorField &efield, 
 				 const VectorField &bfield, const Geometry &g, double dt ) {
 
-	pthread_mutex_t                      scharge_mutex = PTHREAD_MUTEX_INITIALIZER;
-	ScalarField                         *schmap[ibsimu.get_thread_count()];
-	std::vector<ParticleIterator<PP> *>  iterators;
-
-	Timer t;
-	if( ibsimu.get_verbose_output() ) {
-	    ibsimu.vout() << "Calculating particle trajectories\n";
-	    ibsimu.vout().flush();
-	}
-	_iteration++;
-
-	// Check geometry mode
-	if( g.geom_mode() != PP::geom_mode() )
-	    throw( Error( ERROR_LOCATION, "Differing geometry modes" ) );
-
-	// Clear space charge
-	scharge.clear();
-
-	// Reset statistics
-	_stat.reset( g.number_of_boundaries() );
-
-	// Check number of particles
-	if( _particles.size() == 0 ) {
-	    ibsimu.vout() << "  no particles to calculate\n";
-	    return;
-	}
-
-	// Make separate space charge maps for all threads and build iterators
-	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
-	    if( a == 0 ) schmap[a] = &scharge;
-	    else schmap[a] = new ScalarField( scharge );
-
-	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
-							   _polyint, _maxsteps, _maxt, _trajdiv, 
-							   _mirror, schmap[a], &scharge_mutex, &efield, &bfield, 
-							   &g, &_particles[0], _bfield_suppression, _trajhand ) );
-	}
-
-	// Make Scheduler
-	Scheduler<ParticleIterator<PP>,Particle<PP>,Error> scheduler( iterators );
-
-	// Add problems
-	for( size_t a = 0; a < _particles.size(); a++ )
-	    scheduler.add_problem( &_particles[a] );
-
-	// Wait for completition
-	scheduler.run();
-	scheduler.finish();
-
-	if( scheduler.is_error() ) {
-	    // Throw the error
-	    std::vector<Error> err;
-	    std::vector<Particle<PP> *> part;
-	    scheduler.get_errors( err, part );
-	    throw( err[0] );
-	}
-
-	// Combine separate space charge maps and collect
-	// statistics. Free all allocated memory.
-	for( int a = 0; a < ibsimu.get_thread_count(); a++ ) {
-	    if( a != 0 ) {
-		scharge += *schmap[a];
-		delete schmap[a];
-	    }
-	    ParticleStatistics stat = iterators[a]->get_statistics();
-	    _stat += stat;
-	    delete iterators[a];
-	}
-
-	scharge_finalize( scharge );
-	
-	t.stop();
-	if( ibsimu.get_verbose_output() ) {
-	    ibsimu.vout() << "  Particle histories (" << _particles.size() << " total):\n";
-	    ibsimu.vout() << "    flown = " << _stat.bound_collisions() << "\n";
-	    ibsimu.vout() << "    time limited = " << _stat.end_time() << "\n";
-	    ibsimu.vout() << "    step count limited = " << _stat.end_step() << "\n";
-	    ibsimu.vout() << "    bad definitions = " << _stat.end_baddef() << "\n";
-	    for( size_t a = 1; a <= _stat.number_of_boundaries(); a++ ) {
-		ibsimu.vout() << "    beam to boundary " << a << " = " << _stat.bound_current(a)
-			  << " " << PP::IQ_unit() << " (" << _stat.bound_collisions(a) << " particles)" << "\n";
-	    }
-	    ibsimu.vout() << "    total steps = " << _stat.sum_steps() << "\n";
-	    ibsimu.vout() << "    steps per particle (ave) = " << 
-		_stat.sum_steps()/(double)_particles.size() << "\n";
-	    ibsimu.vout() << "  time used = " << t << "\n";
-	    ibsimu.vout().flush();
-	}
+	throw( ErrorUnimplemented( ERROR_LOCATION ) );
     }
 
 
@@ -619,7 +541,7 @@ public:
 
 	write_int32( s, _particles.size() );
 	for( uint32_t a = 0; a < _particles.size(); a++ )
-	    _particles[a].save( s );
+	    _particles[a]->save( s );
     }
 
 
@@ -628,7 +550,7 @@ public:
 
 	for( uint32_t a = 0; a < _particles.size(); a++ ) {
 	    os << "Particle " << a << ":\n";
-	    _particles[a].debug_print( os );
+	    _particles[a]->debug_print( os );
 	}
     }
 
@@ -646,7 +568,7 @@ class ParticleDataBase2DImp : public ParticleDataBasePPImp<ParticleP2D> {
 
 public:
 
-    ParticleDataBase2DImp();
+    ParticleDataBase2DImp( ParticleDataBase *pdb );
 
     ParticleDataBase2DImp( const ParticleDataBase2DImp &pdb );
 
@@ -693,7 +615,7 @@ class ParticleDataBaseCylImp : public ParticleDataBasePPImp<ParticlePCyl> {
 
 public:
 
-    ParticleDataBaseCylImp();
+    ParticleDataBaseCylImp( ParticleDataBase *pdb );
 
     ParticleDataBaseCylImp( const ParticleDataBaseCylImp &pdb );
 
@@ -739,7 +661,7 @@ class ParticleDataBase3DImp : public ParticleDataBasePPImp<ParticleP3D> {
 
 public:
 
-    ParticleDataBase3DImp();
+    ParticleDataBase3DImp( ParticleDataBase *pdb );
 
     ParticleDataBase3DImp( const ParticleDataBase3DImp &pdb );
 

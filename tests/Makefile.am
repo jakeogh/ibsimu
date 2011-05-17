@@ -1,3 +1,4 @@
+secondary_electron2d_SOURCES = secondary_electron2d.cpp
 fieldgraph_SOURCES = fieldgraph.cpp
 transformation_SOURCES = transformation.cpp
 stl_SOURCES = stl.cpp
@@ -82,6 +83,7 @@ csgobjectsolid_SOURCES = csgobjectsolid.cpp
 endif
 
 check_PROGRAMS = \
+secondary_electron2d \
 beam2d \
 fieldgraph \
 beam3d \

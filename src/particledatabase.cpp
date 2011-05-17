@@ -87,9 +87,15 @@ void ParticleDataBase::set_bfield_suppression( const CallbackFunctorD_V *functor
 }
 
 
-void ParticleDataBase::set_trajectory_handler_callback( const TrajectoryHandlerCallback *trajhand )
+void ParticleDataBase::set_trajectory_handler_callback( const TrajectoryHandlerCallback *thand_cb )
 {
-    _imp->set_trajectory_handler_callback( trajhand );
+    _imp->set_trajectory_handler_callback( thand_cb );
+}
+
+
+void ParticleDataBase::set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb )
+{
+    _imp->set_trajectory_end_callback( tend_cb );
 }
 
 
@@ -249,7 +255,7 @@ void ParticleDataBase::step_particles( ScalarField &scharge, const VectorField &
 
 ParticleDataBase2D::ParticleDataBase2D()
 {
-    _imp = new ParticleDataBase2DImp;
+    _imp = new ParticleDataBase2DImp( this );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
 
@@ -371,7 +377,7 @@ void ParticleDataBase2D::debug_print( std::ostream &os ) const
 
 ParticleDataBaseCyl::ParticleDataBaseCyl()
 {
-    _imp = new ParticleDataBaseCylImp;
+    _imp = new ParticleDataBaseCylImp( this );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
 
@@ -493,7 +499,7 @@ void ParticleDataBaseCyl::debug_print( std::ostream &os ) const
 
 ParticleDataBase3D::ParticleDataBase3D()
 {
-    _imp = new ParticleDataBase3DImp;
+    _imp = new ParticleDataBase3DImp( this );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
 

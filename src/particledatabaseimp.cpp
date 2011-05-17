@@ -53,10 +53,10 @@
  * ******************************************************************************************* */
 
 
-ParticleDataBaseImp::ParticleDataBaseImp()
+ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb )
     : _epsabs(1e-6), _epsrel(1e-6), _polyint(true), _maxsteps(1000), 
       _maxt(1e-3), _trajdiv(1), _rhosum(0.0), _iteration(0), 
-      _bfield_suppression(NULL), _trajhand(NULL)
+      _bsup_cb(NULL), _thand_cb(NULL), _tend_cb(NULL), _pdb(pdb)
 {
     for( size_t a = 0; a < 6; a++ )
 	_mirror[a] = false;
@@ -95,15 +95,21 @@ void ParticleDataBaseImp::set_accuracy( double epsabs, double epsrel )
 }
 
 
-void ParticleDataBaseImp::set_bfield_suppression( const CallbackFunctorD_V *functor )
+void ParticleDataBaseImp::set_bfield_suppression( const CallbackFunctorD_V *bsup_cb )
 {
-    _bfield_suppression = functor;
+    _bsup_cb = bsup_cb;
 }
 
 
-void ParticleDataBaseImp::set_trajectory_handler_callback( const TrajectoryHandlerCallback *trajhand )
+void ParticleDataBaseImp::set_trajectory_handler_callback( const TrajectoryHandlerCallback *thand_cb )
 {
-    _trajhand = trajhand;
+    _thand_cb = thand_cb;
+}
+
+
+void ParticleDataBaseImp::set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb )
+{
+    _tend_cb = tend_cb;
 }
 
 
@@ -230,13 +236,15 @@ void ParticleDataBaseImp::debug_print( std::ostream &os ) const
  * ******************************************************************************************* */
 
 
-ParticleDataBase2DImp::ParticleDataBase2DImp()
+ParticleDataBase2DImp::ParticleDataBase2DImp( ParticleDataBase *pdb )
+    : ParticleDataBasePPImp<ParticleP2D>(pdb)
 {
     
 }
 
 
 ParticleDataBase2DImp::ParticleDataBase2DImp( const ParticleDataBase2DImp &pdb )
+    : ParticleDataBasePPImp<ParticleP2D>(pdb)
 {
 
 }
@@ -295,7 +303,7 @@ void ParticleDataBase2DImp::add_2d_beam_with_velocity( uint32_t N, double J, dou
 	x[2] = parallel[0]*v + dv[0];
 	x[4] = parallel[1]*v + dv[1];
 
-	_particles.push_back( Particle2D( IQ, q, m, x ) );
+	add_particle( Particle2D( IQ, q, m, x ) );
 	Isum += IQ;
     }
 
@@ -361,7 +369,7 @@ void ParticleDataBase2DImp::add_2d_KV_beam_with_emittance( uint32_t N, double I,
 	x[3] = y0 + y;
 	x[4] = x[2]*yp;
 
-	_particles.push_back( Particle2D( IQ, q, m, x ) );
+	add_particle( Particle2D( IQ, q, m, x ) );
 	n++;
     }
 }
@@ -410,7 +418,7 @@ void ParticleDataBase2DImp::add_2d_gaussian_beam_with_emittance( uint32_t N, dou
 	x[3] = y0 + y;
 	x[4] = x[2]*yp;
 
-	_particles.push_back( Particle2D( IQ, q, m, x ) );
+	add_particle( Particle2D( IQ, q, m, x ) );
 	n++;
     }
 }
@@ -434,9 +442,9 @@ void ParticleDataBase2DImp::add_tdens_from_segment( ScalarField &tdens, double I
 
     double J = IQ/tdens.h(); // J = I/area
     int p = tdens.size(0)*i[1] + i[0];
-    tdens( p )                   += (1.0-t[0])*(1.0-t[1])*J;
+    tdens( p )                 += (1.0-t[0])*(1.0-t[1])*J;
     tdens( p+tdens.size(0) )   += (1.0-t[0])*t[1]*J;
-    tdens( p+1 )                 += t[0]*(1.0-t[1])*J;
+    tdens( p+1 )               += t[0]*(1.0-t[1])*J;
     tdens( p+1+tdens.size(0) ) += t[0]*t[1]*J;
 }
 
@@ -448,14 +456,14 @@ void ParticleDataBase2DImp::build_trajectory_density_field( ScalarField &tdens )
     // Go through all particle trajectories
     std::vector< ColData<ParticleP2D> > coldata;
     for( size_t a = 0; a < _particles.size(); a++ ) {
-	size_t N = _particles[a].traj_size();
+	size_t N = _particles[a]->traj_size();
 	if( N < 2 )
 	    continue;
-	ParticleP2D x1 = _particles[a].traj(0);
+	ParticleP2D x1 = _particles[a]->traj(0);
 	ParticleP2D xlast = x1;
-	double IQ = _particles[a].IQ();
+	double IQ = _particles[a]->IQ();
 	for( size_t b = 1; b < N; b++ ) {
-	    ParticleP2D x2 = _particles[a].traj(b);
+	    ParticleP2D x2 = _particles[a]->traj(b);
 
 	    // Mesh collision points from x1 to x2
 	    ColData<ParticleP2D>::build_coldata_linear( coldata, tdens, x1, x2 );
@@ -519,13 +527,15 @@ void ParticleDataBase2DImp::debug_print( std::ostream &os ) const
  * ******************************************************************************************* */
 
 
-ParticleDataBaseCylImp::ParticleDataBaseCylImp()
+ParticleDataBaseCylImp::ParticleDataBaseCylImp( ParticleDataBase *pdb )
+    : ParticleDataBasePPImp<ParticlePCyl>(pdb)
 {
     
 }
 
 
 ParticleDataBaseCylImp::ParticleDataBaseCylImp( const ParticleDataBaseCylImp &pdb )
+    : ParticleDataBasePPImp<ParticlePCyl>(pdb)
 {
 
 }
@@ -598,14 +608,14 @@ void ParticleDataBaseCylImp::build_trajectory_density_field( ScalarField &tdens 
     // Go through all particle trajectories
     std::vector< ColData<ParticlePCyl> > coldata;
     for( size_t a = 0; a < _particles.size(); a++ ) {
-	size_t N = _particles[a].traj_size();
+	size_t N = _particles[a]->traj_size();
 	if( N < 2 )
 	    continue;
-	ParticlePCyl x1 = _particles[a].traj(0);
+	ParticlePCyl x1 = _particles[a]->traj(0);
 	ParticlePCyl xlast = x1;
-	double IQ = _particles[a].IQ();
+	double IQ = _particles[a]->IQ();
 	for( size_t b = 1; b < N; b++ ) {
-	    ParticlePCyl x2 = _particles[a].traj(b);
+	    ParticlePCyl x2 = _particles[a]->traj(b);
 
 	    // Mesh collision points from x1 to x2
 	    ColData<ParticlePCyl>::build_coldata_linear( coldata, tdens, x1, x2 );
@@ -680,7 +690,7 @@ void ParticleDataBaseCylImp::add_2d_beam_with_velocity( uint32_t N, double J, do
 	else
 	    x[5] = dv[2]/x[3];
 
-	_particles.push_back( ParticleCyl( IQ*x[3], q, m, x ) );
+	add_particle( ParticleCyl( IQ*x[3], q, m, x ) );
 	Isum += IQ*x[3];
     }
 
@@ -755,7 +765,7 @@ void ParticleDataBaseCylImp::add_2d_full_gaussian_beam( uint32_t N, double I, do
 	x[4] = vr;
 	x[5] = va/r;
 
-	_particles.push_back( ParticleCyl( IQ, q, m, x ) );
+	add_particle( ParticleCyl( IQ, q, m, x ) );
 	Isum += IQ;
 	n++;
     }
@@ -824,7 +834,7 @@ void ParticleDataBaseCylImp::add_2d_gaussian_beam_with_emittance( uint32_t N, do
 	x[4] = x[2]*rp;
 	x[5] = x[2]*ap/r;
 
-	_particles.push_back( ParticleCyl( IQ, q, m, x ) );
+	add_particle( ParticleCyl( IQ, q, m, x ) );
 	n++;
     }
 }
@@ -861,13 +871,15 @@ void ParticleDataBaseCylImp::debug_print( std::ostream &os ) const
  * ******************************************************************************************* */
 
 
-ParticleDataBase3DImp::ParticleDataBase3DImp()
+ParticleDataBase3DImp::ParticleDataBase3DImp( ParticleDataBase *pdb )
+    : ParticleDataBasePPImp<ParticleP3D>(pdb)
 {
     
 }
 
 
 ParticleDataBase3DImp::ParticleDataBase3DImp( const ParticleDataBase3DImp &pdb )
+    : ParticleDataBasePPImp<ParticleP3D>(pdb)
 {
 
 }
@@ -952,7 +964,7 @@ void ParticleDataBase3DImp::add_cylindrical_beam_with_velocity( uint32_t N, doub
 	x[5] = dir1[2]*px[0] + dir2[2]*px[1] + dir3[2]*px[2] + c[2];
 	x[6] = dir1[2]*px[3] + dir2[2]*px[4] + dir3[2]*px[5];
 
-	_particles.push_back( Particle3D( IQ, q, m, x ) );
+	add_particle( Particle3D( IQ, q, m, x ) );
 	Isum += IQ;
 	a++;
     }
@@ -1029,7 +1041,7 @@ void ParticleDataBase3DImp::add_rectangular_beam_with_velocity( uint32_t N, doub
 	x[5] = dir1[2]*px[0] + dir2[2]*px[1] + dir3[2]*px[2] + c[2];
 	x[6] = dir1[2]*px[3] + dir2[2]*px[4] + dir3[2]*px[5];
 
-	_particles.push_back( Particle3D( IQ, q, m, x ) );
+	add_particle( Particle3D( IQ, q, m, x ) );
 	Isum += IQ;
 	a++;
     }
@@ -1112,7 +1124,7 @@ void ParticleDataBase3DImp::add_3d_KV_beam_with_emittance( uint32_t N, double I,
 	x[5] = z0 + z;
 	x[6] = x[2]*zp;
 
-	_particles.push_back( Particle3D( IQ, q, m, x ) );
+	add_particle( Particle3D( IQ, q, m, x ) );
 	n++;
     }
 }
@@ -1175,7 +1187,7 @@ void ParticleDataBase3DImp::add_3d_gaussian_beam_with_emittance( uint32_t N, dou
 	x[5] = z0 + z;
 	x[6] = x[2]*zp;
 
-	_particles.push_back( Particle3D( IQ, q, m, x ) );
+	add_particle( Particle3D( IQ, q, m, x ) );
 	n++;
     }
 }
@@ -1230,12 +1242,12 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
     // Scan through particle trajectory points
     double Isum = 0.0;
     for( size_t a = 0; a < _particles.size(); a++ ) {
-	size_t N = _particles[a].traj_size();
+	size_t N = _particles[a]->traj_size();
 	if( N < 2 )
 	    continue;
-	ParticleP3D x1 = _particles[a].traj(0);
+	ParticleP3D x1 = _particles[a]->traj(0);
 	for( size_t b = 1; b < N; b++ ) {
-	    ParticleP3D x2 = _particles[a].traj(b);
+	    ParticleP3D x2 = _particles[a]->traj(b);
 
 	    // Solve trajectory crossing point using linear interpolation of position
 	    // K[0]: parametric distance from x1 to x2
@@ -1255,7 +1267,7 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
 	    
 	    if( K[0] >= 0.0 && K[0] < 1.0 ) {
 		// Crossing found between x1 and x2, accumulate total current
-		Isum += _particles[a].IQ();
+		Isum += _particles[a]->IQ();
 
 		// Position and velocity in xyz coordinates
 		double t = K[0];
@@ -1321,13 +1333,13 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
 			break;
 
 		    case DIAG_CURR:
-			tdata.add_data( a, _particles[a].IQ() );
+			tdata.add_data( a, _particles[a]->IQ() );
 			break;
 		    case DIAG_EK:
-			tdata.add_data( a, 0.5*_particles[a].m()*vel.ssqr() );
+			tdata.add_data( a, 0.5*_particles[a]->m()*vel.ssqr() );
 			break;
 		    case DIAG_QM:
-			tdata.add_data( a, _particles[a].qm() );
+			tdata.add_data( a, _particles[a]->qm() );
 			break;
 
 		    default:
@@ -1396,12 +1408,12 @@ void ParticleDataBase3DImp::export_path_manager_data( std::string filename,
     bool IQ_warning = false;
     double Isum = 0.0;
     for( size_t a = 0; a < _particles.size(); a++ ) {
-	size_t N = _particles[a].traj_size();
+	size_t N = _particles[a]->traj_size();
 	if( N < 2 )
 	    continue;
-	ParticleP3D x1 = _particles[a].traj(0);
+	ParticleP3D x1 = _particles[a]->traj(0);
 	for( size_t b = 1; b < N; b++ ) {
-	    ParticleP3D x2 = _particles[a].traj(b);
+	    ParticleP3D x2 = _particles[a]->traj(b);
 
 	    // Solve trajectory crossing point using linear interpolation of position
 	    // K[0]: parametric distance from x1 to x2
@@ -1421,7 +1433,7 @@ void ParticleDataBase3DImp::export_path_manager_data( std::string filename,
 	    
 	    if( K[0] >= 0.0 && K[0] < 1.0 ) {
 		// Crossing found between x1 and x2, accumulate total current
-		Isum += _particles[a].IQ();
+		Isum += _particles[a]->IQ();
 
 		// Position and velocity in xyz coordinates
 		double t = K[0];
@@ -1435,24 +1447,24 @@ void ParticleDataBase3DImp::export_path_manager_data( std::string filename,
 
 		// Check IQ fixed
 		if( first ) {
-		    IQ_first = _particles[a].IQ();
+		    IQ_first = _particles[a]->IQ();
 		} else if( IQ_first == 0.0 ) {
 		    if( !IQ_warning && ibsimu.get_verbose_output() && 
-			_particles[a].IQ() != 0.0 ) {
+			_particles[a]->IQ() != 0.0 ) {
 			ibsimu.vout() << "  WARNING: Trajectory current is not constant.\n";
 			IQ_warning = true;
 		    }
 		} else {
 		    if( !IQ_warning && ibsimu.get_verbose_output() && 
-			fabs( ( IQ_first - _particles[a].IQ() ) / IQ_first ) > 1.0e-6 ) {
+			fabs( ( IQ_first - _particles[a]->IQ() ) / IQ_first ) > 1.0e-6 ) {
 			ibsimu.vout() << "  WARNING: Trajectory current is not constant.\n";
 			IQ_warning = true;
 		    }
 		}
 
 		// Save point
-		double pq = _particles[a].q();
-		double pm = _particles[a].m();
+		double pq = _particles[a]->q();
+		double pm = _particles[a]->m();
 
 		data[0].push_back( pos_opq[0] );                  // x (m)
 		data[1].push_back( vel_opq[0]/vel_opq[2] );       // x' (rad)
@@ -1543,14 +1555,14 @@ void ParticleDataBase3DImp::build_trajectory_density_field( ScalarField &tdens )
     // Go through all particle trajectories
     std::vector< ColData<ParticleP3D> > coldata;
     for( size_t a = 0; a < _particles.size(); a++ ) {
-	size_t N = _particles[a].traj_size();
+	size_t N = _particles[a]->traj_size();
 	if( N < 2 )
 	    continue;
-	ParticleP3D x1 = _particles[a].traj(0);
+	ParticleP3D x1 = _particles[a]->traj(0);
 	ParticleP3D xlast = x1;
-	double IQ = _particles[a].IQ();
+	double IQ = _particles[a]->IQ();
 	for( size_t b = 1; b < N; b++ ) {
-	    ParticleP3D x2 = _particles[a].traj(b);
+	    ParticleP3D x2 = _particles[a]->traj(b);
 
 	    // Mesh collision points from x1 to x2
 	    ColData<ParticleP3D>::build_coldata_linear( coldata, tdens, x1, x2 );
