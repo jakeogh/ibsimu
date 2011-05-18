@@ -1,4 +1,5 @@
 secondary_electron2d_SOURCES = secondary_electron2d.cpp
+secondary_electron3d_SOURCES = secondary_electron3d.cpp
 fieldgraph_SOURCES = fieldgraph.cpp
 transformation_SOURCES = transformation.cpp
 stl_SOURCES = stl.cpp
@@ -84,6 +85,7 @@ endif
 
 check_PROGRAMS = \
 secondary_electron2d \
+secondary_electron3d \
 beam2d \
 fieldgraph \
 beam3d \

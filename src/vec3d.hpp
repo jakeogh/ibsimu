@@ -153,7 +153,7 @@ public:
      *  Does not require exact equality, but absolute or relative
      *  error less than 1.0e-6.
      */
-    bool operator==( const Vec3D &x ) const;
+    bool operator==( const Vec3D &x ) const;    
 
     /*! \brief Assignment.
      */
@@ -206,11 +206,25 @@ public:
 	return( p[0]*p[0] + p[1]*p[1] + p[2]*p[2] );
     }
 
-    void save( std::ostream &s ) const { 
-	write_double( s, p[0] );
-	write_double( s, p[1] );
-	write_double( s, p[2] ); 
+    /*! \brief Returns the index of element with minimum magnitude (abs).
+     */
+    int min_element( void ) const;
+
+    /*! \brief Returns arbitrary vector perpendicular to input vector.
+     */
+    Vec3D arb_perpendicular( void ) const;
+
+    /*! \brief Saves data to stream \a os.
+     */
+    void save( std::ostream &os ) const { 
+	write_double( os, p[0] );
+	write_double( os, p[1] );
+	write_double( os, p[2] ); 
     }
+
+    /*! \brief Returns standard basis vector \a i.
+     */
+    static Vec3D standard_basis( int i );
 
     /*! \brief Cross product
      */
