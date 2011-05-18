@@ -580,11 +580,15 @@ template <class PP> class ParticleIterator {
      *  If \a force_linear is true, linear interpolation of trajectory
      *  is used regardless of interpolation settings.
      *
+     *  If \a first_step is true, this is the first step and the
+     *  particle is allowed to get into the simulation box if the
+     *  definition point (x1) was outside the geometry.
+     *
      *  Return true if particle status is PARTICLE_OK after trajectory
      *  step, false otherwise.
      */
     bool handle_trajectory( Particle<PP> &particle, const PP &x1, PP &x2, 
-			    bool force_linear = false ) {
+			    bool force_linear, bool first_step ) {
 
 #ifdef DEBUG_PARTICLE_ITERATOR
 	std::cout << "Handle trajectory from x1 to x2:\n";
@@ -602,6 +606,10 @@ template <class PP> class ParticleIterator {
 	    ColData<PP>::build_coldata_poly( _coldata, *_pidata._geom, x1, x2 );
 	else
 	    ColData<PP>::build_coldata_linear( _coldata, *_pidata._geom, x1, x2 );
+
+	// TODO
+	// Remove entrance to geometry if coming from outside or make
+	// code to skip the collision detection for these particles
 
 	// No intersections, nothing to do
 	if( _coldata.size() == 0 ) {
@@ -720,7 +728,7 @@ template <class PP> class ParticleIterator {
 #endif
 	
 	// Handle step with linear interpolation to avoid going to r<=0
-	if( !handle_trajectory( particle, x2, x3, true ) )
+	if( !handle_trajectory( particle, x2, x3, true, false ) )
 	    return( false ); // Particle done
 
 	// Save trajectory calculation points
@@ -757,7 +765,7 @@ template <class PP> class ParticleIterator {
 	std::cout << "  x = " << x << "\n";
 #endif
 
-	// Check if inside solids of outside geometry.
+	// Check if inside solids or outside simulation geometry box.
 	if( _pidata._geom->inside( x.location() ) )
 	    return( false );
 
@@ -991,7 +999,7 @@ public:
 	// Iterate ODEs until maximum steps are done, time is used 
 	// or particle collides.
 	PP x2;
-	size_t nstp = 0;
+	size_t nstp = 0; // Steps taken
 	while( nstp < _maxsteps && x[0] < _maxt ) {
 
 #ifdef DEBUG_PARTICLE_ITERATOR
@@ -1003,7 +1011,7 @@ public:
 	    // Take a step.
 	    x2 = x;
 
-	    while( nstp < _maxsteps ) {
+	    while( true ) {
 		int retval = gsl_odeiv_evolve_apply( _evolve, _control, _step, &_system, 
 						     &x2[0], _maxt, &dt, &x2[1] );
 		if( retval == IBSIMU_DERIV_ERROR ) {
@@ -1015,7 +1023,9 @@ public:
 		    x2[0] = x[0]; // Reset time (this shouldn't be necessary - there 
 		                  // is a bug in GSL-1.12, report has been sent)
 		    dt *= 0.5;
-		    nstp++;
+		    if( dt == 0.0 )
+			throw( Error( ERROR_LOCATION, "too small step size" ) );
+		    //nstp++;
 		    continue;
 		} else if( retval == GSL_SUCCESS ) {
 		    break;
@@ -1038,7 +1048,7 @@ public:
 #endif
 
 	    // Handle collisions and space charge of step.
-	    if( !handle_trajectory( *particle, x, x2 ) ) {
+	    if( !handle_trajectory( *particle, x, x2, false, nstp == 0 ) ) {
 		x = x2;
 		break; // Particle done
 	    }
