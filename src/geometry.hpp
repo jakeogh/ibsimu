@@ -82,11 +82,11 @@ struct Bound
     	val = read_double( s );
     }
 
-    /*! \brief Saves data to stream \a s.
+    /*! \brief Saves data to stream \a os.
      */
-    void save( std::ostream &fout ) const {
-	write_int32( fout, type );
-	write_double( fout, val );
+    void save( std::ostream &os ) const {
+	write_int32( os, type );
+	write_double( os, val );
     }
 
     /*! \brief Outputting to stream.
