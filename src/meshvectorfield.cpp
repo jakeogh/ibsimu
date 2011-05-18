@@ -279,6 +279,73 @@ MeshVectorField::MeshVectorField( const MeshVectorField &f )
 }
 
 
+void MeshVectorField::convert_cyl_to_3d( const MeshVectorField &fin )
+{
+    // Check that we have full B-components on output
+    if( !_F[0] || !_F[1] || !_F[2] )
+	throw( Error( ERROR_LOCATION, "insufficient vector components enabled" ) );
+
+    // Go through all x,y,z points
+    for( int32_t k = 0; k < size(2); k++ ) {
+	double z = k*h()+origo(2);
+	for( int32_t j = 0; j < size(1); j++ ) {
+	    double y = j*h()+origo(1);
+	    for( int32_t i = 0; i < size(0); i++ ) {
+		double x = i*h()+origo(0);
+
+		// Coordinates for cylindrical system
+		double cyl_r = sqrt( x*x + y*y );
+		double cyl_x = z;
+		double cyl_theta = atan2( y, x );
+
+		Vec3D cyl_B = fin( Vec3D(cyl_x,cyl_r) ); // cyl_B: (Bx,Br,Btheta)
+		Vec3D B( cos(cyl_theta)*cyl_B[1] - sin(cyl_theta)*cyl_B[2],
+			 sin(cyl_theta)*cyl_B[1] + cos(cyl_theta)*cyl_B[2],
+			 cyl_B[0] );
+		set( i, j, k, B );
+	    }   
+	}
+    }
+}
+
+
+MeshVectorField::MeshVectorField( geom_mode_e geom_mode, 
+				  const bool fout[3], 
+				  Int3D size, 
+				  Vec3D origo, 
+				  double h, 
+				  const MeshVectorField &fin )
+    : Mesh(geom_mode,size,origo,h)
+{
+    _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
+
+    check_definition();
+
+    if( ibsimu.get_verbose_output() ) {
+	ibsimu.vout() << "Making vector field from conversion\n";
+	ibsimu.vout() << "  origo = " << origo << "\n";
+	ibsimu.vout() << "  size  = " << size << "\n";
+	ibsimu.vout() << "  max   = " << max() << "\n";
+	ibsimu.vout() << "  h     = " << h << "\n";
+    }
+
+    for( size_t i = 0; i < 3; i++ ) {
+	if( fout[i] ) {
+	    _F[i] = new double[_size[0]*_size[1]*_size[2]];
+	    memset( _F[i], 0, _size[0]*_size[1]*_size[2]*sizeof(double) );
+	} else {
+	    _F[i] = NULL;
+	}
+    }
+
+    // Check input type
+    if( fin.geom_mode() == MODE_CYL )
+	convert_cyl_to_3d( fin );
+    else
+	throw( ErrorUnimplemented( ERROR_LOCATION, "conversion type unimplemented" ) );
+}
+
+
 MeshVectorField::~MeshVectorField()
 {
     for( size_t i = 0; i < 3; i++ ) {

@@ -82,6 +82,8 @@ class MeshVectorField : public VectorField, public Mesh {
 
     void check_definition();
 
+    void convert_cyl_to_3d( const MeshVectorField &fin );
+
 public:
 
 
@@ -142,6 +144,28 @@ public:
      */
     MeshVectorField( geom_mode_e geom_mode, const bool fout[3], double xscale, 
 		     double fscale, const std::string &filename );
+
+    /*! \brief Conversion constructor.
+     *
+     *  Returns a new vector field with geometry set according to
+     *  parameters: \a geom_mode is the geometry mode, \a size is the
+     *  size of the mesh, \a origo is the location of mesh point
+     *  (0,0,0) and \a h is the mesh cell size. The vector field
+     *  components marked \a true in array fout are to be defined in
+     *  the vector field. Components marked \a false are always
+     *  zero. The field content is copied from another mesh based
+     *  vector field \a fin.
+     *
+     *  Currently supports conversion from cylindrical
+     *  (x,r,Bx,Br,Btheta) to 3d (x,y,z,Bx,By,Bz), where x -> z and r
+     *  -> (x,y).
+     *
+     *  Conversion algorithm uses field evaluator ot the input field
+     *  and therefore the extrapolations settings affect the created
+     *  field outside the original definition volume.
+     */
+    MeshVectorField( geom_mode_e geom_mode, const bool fout[3], Int3D size, 
+		     Vec3D origo, double h, const MeshVectorField &fin );
 
     /*! \brief Copy constructor.
      */
