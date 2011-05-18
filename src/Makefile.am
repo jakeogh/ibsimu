@@ -175,8 +175,8 @@ polysolver.cpp \
 polysolver.hpp \
 precond.hpp \
 problem.hpp \
-qrandom.cpp \
-qrandom.hpp \
+random.cpp \
+random.hpp \
 readascii.cpp \
 readascii.hpp \
 ruler.cpp \
@@ -290,7 +290,7 @@ plotter.hpp \
 polysolver.hpp \
 precond.hpp \
 problem.hpp \
-qrandom.hpp \
+random.hpp \
 readascii.hpp \
 ruler.hpp \
 scalarfield.hpp \

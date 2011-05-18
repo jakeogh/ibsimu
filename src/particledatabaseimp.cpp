@@ -43,7 +43,7 @@
 
 #include <fstream>
 #include "particledatabaseimp.hpp"
-#include "qrandom.hpp"
+#include "random.hpp"
 #include "mat3d.hpp"
 
 
@@ -279,6 +279,8 @@ void ParticleDataBase2DImp::add_2d_beam_with_velocity( uint32_t N, double J, dou
     _particles.reserve( _particles.size()+N );
 
     QRandom qrng( 2 );
+    qrng.set_transformation( 0, Gaussian_Transformation() );
+    qrng.set_transformation( 1, Gaussian_Transformation() );
 
     m *= MASS_U;
     q *= CHARGE_E;
@@ -297,7 +299,7 @@ void ParticleDataBase2DImp::add_2d_beam_with_velocity( uint32_t N, double J, dou
 	x[1] = x1 + (x2-x1)*(a+0.5)/((double)N);
 	x[3] = y1 + (y2-y1)*(a+0.5)/((double)N);
 
-	qrng.get_gaussian( vt );
+	qrng.get( vt );
 	dv[0] = transverse[0]*dvt*vt[0] + parallel[0]*dvp*vt[1];
 	dv[1] = transverse[1]*dvt*vt[0] + parallel[1]*dvp*vt[1];
 	x[2] = parallel[0]*v + dv[0];
@@ -385,6 +387,8 @@ void ParticleDataBase2DImp::add_2d_gaussian_beam_with_emittance( uint32_t N, dou
     _particles.reserve( _particles.size()+N );
 
     QRandom qrng( 2 );
+    qrng.set_transformation( 0, Gaussian_Transformation() );
+    qrng.set_transformation( 1, Gaussian_Transformation() );
 
     m *= MASS_U;
     q *= CHARGE_E;
@@ -406,7 +410,7 @@ void ParticleDataBase2DImp::add_2d_gaussian_beam_with_emittance( uint32_t N, dou
     while( n < N ) {
 
 	// Randomize point from gaussian distribution
-	qrng.get_gaussian( rn );
+	qrng.get( rn );
 	w[0] = rmaj*rn[0];
 	w[1] = rmin*rn[1];
 
@@ -661,7 +665,10 @@ void ParticleDataBaseCylImp::add_2d_beam_with_velocity( uint32_t N, double J, do
     // 1: temperature perpendicular to line (parallel to beam)
     // 2: temperature in angular direction (skew velocity)
     QRandom qrng( 3 ); 
- 
+    qrng.set_transformation( 0, Gaussian_Transformation() );
+    qrng.set_transformation( 1, Gaussian_Transformation() );
+    qrng.set_transformation( 2, Gaussian_Transformation() ); 
+
     m *= MASS_U;
     q *= CHARGE_E;
     double s = sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) );
@@ -679,7 +686,7 @@ void ParticleDataBaseCylImp::add_2d_beam_with_velocity( uint32_t N, double J, do
 	x[1] = x1 + (x2-x1)*(a+0.5)/((double)N);
 	x[3] = y1 + (y2-y1)*(a+0.5)/((double)N);
 
-	qrng.get_gaussian( vt );
+	qrng.get( vt );
 	dv[0] = transverse[0]*dvt*vt[0] + parallel[0]*dvp*vt[1];
 	dv[1] = transverse[1]*dvt*vt[0] + parallel[1]*dvp*vt[1];
 	dv[2] = dvt*vt[2];
@@ -723,6 +730,11 @@ void ParticleDataBaseCylImp::add_2d_full_gaussian_beam( uint32_t N, double I, do
     q *= CHARGE_E;
 
     QRandom qrng( 5 ); // vx, y, vy, z, vz
+    qrng.set_transformation( 0, Gaussian_Transformation() );
+    qrng.set_transformation( 1, Gaussian_Transformation() );
+    qrng.set_transformation( 2, Gaussian_Transformation() );
+    qrng.set_transformation( 3, Gaussian_Transformation() );
+    qrng.set_transformation( 4, Gaussian_Transformation() );
     double rn[5];
 
     double IQ = I/N;
@@ -739,7 +751,7 @@ void ParticleDataBaseCylImp::add_2d_full_gaussian_beam( uint32_t N, double I, do
     uint32_t n = 0;
     while( n < N ) {
 
-	qrng.get_gaussian( rn );
+	qrng.get( rn );
 	if( rn[1] < 0 || rn[3] < 0 )
 	    continue;
 
@@ -788,6 +800,11 @@ void ParticleDataBaseCylImp::add_2d_gaussian_beam_with_emittance( uint32_t N, do
     q *= CHARGE_E;
 
     QRandom qrng( 4 );
+    qrng.set_transformation( 0, Gaussian_Transformation() );
+    qrng.set_transformation( 1, Gaussian_Transformation() );
+    qrng.set_transformation( 2, Gaussian_Transformation() );
+    qrng.set_transformation( 3, Gaussian_Transformation() );
+    qrng.set_transformation( 4, Gaussian_Transformation() );
     double w[4], rn[4];
 
     double g = (1.0 + a*a)/b;
@@ -807,7 +824,7 @@ void ParticleDataBaseCylImp::add_2d_gaussian_beam_with_emittance( uint32_t N, do
     while( n < N ) {
 
 	// Randomize point from gaussian distribution
-	qrng.get_gaussian( rn );
+	qrng.get( rn );
 	w[0] = rmaj*rn[0];
 	w[1] = rmin*rn[1];
 	w[2] = rmaj*rn[2];
@@ -915,7 +932,9 @@ void ParticleDataBase3DImp::add_cylindrical_beam_with_velocity( uint32_t N, doub
 
     // Random number generator for two positions and three velocities (gaussian)
     QRandom qrng( 5 );
-    bool randmask[5] = {false, false, true, true, true};
+    qrng.set_transformation( 2, Gaussian_Transformation() );
+    qrng.set_transformation( 3, Gaussian_Transformation() );
+    qrng.set_transformation( 4, Gaussian_Transformation() );
     double qx[5];
     double px[6];
 
@@ -942,7 +961,7 @@ void ParticleDataBase3DImp::add_cylindrical_beam_with_velocity( uint32_t N, doub
     uint32_t a = 0;
     while( a < N ) {
 
-	qrng.get_part_gaussian( randmask, qx );
+	qrng.get( qx );
 
 	// Calculate in natural (dir1,dir2,dir3) coordinates
 	px[0] = -r + 2.0*r*qx[0];
@@ -996,7 +1015,9 @@ void ParticleDataBase3DImp::add_rectangular_beam_with_velocity( uint32_t N, doub
 
     // Random number generator for two positions and three velocities (gaussian)
     QRandom qrng( 5 );
-    bool randmask[5] = {false, false, true, true, true};
+    qrng.set_transformation( 2, Gaussian_Transformation() );
+    qrng.set_transformation( 3, Gaussian_Transformation() );
+    qrng.set_transformation( 4, Gaussian_Transformation() );
     double qx[5];
     double px[6];
 
@@ -1023,7 +1044,7 @@ void ParticleDataBase3DImp::add_rectangular_beam_with_velocity( uint32_t N, doub
     uint32_t a = 0;
     while( a < N ) {
 
-	qrng.get_part_gaussian( randmask, qx );
+	qrng.get( qx );
 
 	// Calculate in natural (dir1,dir2,dir3) coordinates
 	px[0] = size1*(2.0*qx[0]-1.0);
@@ -1144,6 +1165,10 @@ void ParticleDataBase3DImp::add_3d_gaussian_beam_with_emittance( uint32_t N, dou
     q *= CHARGE_E;
 
     QRandom qrng( 4 );
+    qrng.set_transformation( 0, Gaussian_Transformation() );
+    qrng.set_transformation( 1, Gaussian_Transformation() );
+    qrng.set_transformation( 2, Gaussian_Transformation() );
+    qrng.set_transformation( 3, Gaussian_Transformation() );
     double w[4], rn[4];
 
     double gy = (1.0 + ay*ay)/by;
@@ -1169,7 +1194,7 @@ void ParticleDataBase3DImp::add_3d_gaussian_beam_with_emittance( uint32_t N, dou
     while( n < N ) {
 
 	// Randomize point from gaussian distribution
-	qrng.get_gaussian( rn );
+	qrng.get( rn );
 	w[0] = rmajy*rn[0];
 	w[1] = rminy*rn[1];
 	w[2] = rmajz*rn[2];
