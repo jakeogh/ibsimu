@@ -204,17 +204,18 @@ uint32_t Geometry::inside( const Vec3D &x ) const
 	if( _sdata[a]->inside( x ) )
 	    return( a+7 );
     }
-    if( x[2] > _max[2] )
+    double eps = 1.0e-6*h();
+    if( x[2] > _max[2]+eps )
 	return( 6 );
-    else if( x[2] < _origo[2] )
+    else if( x[2] < _origo[2]-eps )
 	return( 5 );
-    else if( x[1] > _max[1] )
+    else if( x[1] > _max[1]+eps )
 	return( 4 );
-    else if( x[1] < _origo[1] )
+    else if( x[1] < _origo[1]-eps )
 	return( 3 );
-    else if( x[0] > _max[0] )
+    else if( x[0] > _max[0]+eps )
 	return( 2 );
-    else if( x[0] < _origo[0] )
+    else if( x[0] < _origo[0]-eps )
 	return( 1 );
 
     return( 0 );
@@ -305,7 +306,207 @@ Vec3D Geometry::surface_normal( const Vec3D &x ) const
 
 Vec3D Geometry::surface_normal_3d( const Vec3D &x ) const
 {
-    throw( ErrorUnimplemented( ERROR_LOCATION ) );
+    double dx = 0.1*_h;
+
+    Vec3D px[8];
+    uint32_t p[8];
+    int surc;
+    bool sur[12];
+
+    do {
+	// Build corner coordinates
+	px[0] = x+Vec3D( -dx, -dx, -dx );
+	px[1] = x+Vec3D( -dx, +dx, -dx );
+	px[2] = x+Vec3D( +dx, +dx, -dx );
+	px[3] = x+Vec3D( +dx, -dx, -dx );
+	px[4] = x+Vec3D( -dx, -dx, +dx );
+	px[5] = x+Vec3D( -dx, +dx, +dx );
+	px[6] = x+Vec3D( +dx, +dx, +dx );
+	px[7] = x+Vec3D( +dx, -dx, +dx );
+
+	// Check inside() in corners
+	p[0] = inside( px[0] );
+	p[1] = inside( px[1] );
+	p[2] = inside( px[2] );
+	p[3] = inside( px[3] );
+	p[4] = inside( px[4] );
+	p[5] = inside( px[5] );
+	p[6] = inside( px[6] );
+	p[7] = inside( px[7] );
+
+	// Check if at least three intersections
+	surc = 0;
+	if( p[0] != p[1] ) {
+	    surc++;
+	    sur[0] = true;
+	} else {
+	    sur[0] = false;
+	}
+	if( p[1] != p[2] ) {
+	    surc++;
+	    sur[1] = true;
+	} else {
+	    sur[1] = false;
+	}
+	if( p[2] != p[3] ) {
+	    surc++;
+	    sur[2] = true;
+	} else {
+	    sur[2] = false;
+	}
+	if( p[3] != p[0] ) {
+	    surc++;
+	    sur[3] = true;
+	} else {
+	    sur[3] = false;
+	}
+	//
+	if( p[4] != p[5] ) {
+	    surc++;
+	    sur[4] = true;
+	} else {
+	    sur[4] = false;
+	}
+	if( p[5] != p[6] ) {
+	    surc++;
+	    sur[5] = true;
+	} else {
+	    sur[5] = false;
+	}
+	if( p[6] != p[7] ) {
+	    surc++;
+	    sur[6] = true;
+	} else {
+	    sur[6] = false;
+	}
+	if( p[7] != p[4] ) {
+	    surc++;
+	    sur[7] = true;
+	} else {
+	    sur[7] = false;
+	}
+	//
+	if( p[0] != p[4] ) {
+	    surc++;
+	    sur[8] = true;
+	} else {
+	    sur[8] = false;
+	}
+	if( p[1] != p[5] ) {
+	    surc++;
+	    sur[9] = true;
+	} else {
+	    sur[9] = false;
+	}
+	if( p[2] != p[6] ) {
+	    surc++;
+	    sur[10] = true;
+	} else {
+	    sur[10] = false;
+	}
+	if( p[3] != p[7] ) {
+	    surc++;
+	    sur[11] = true;
+	} else {
+	    sur[11] = false;
+	}
+
+	dx *= 2.0;
+	if( dx >= _h )
+	    return( Vec3D(0,0,0) );
+
+    } while( surc < 3 );
+
+    // Bracket surface locations
+    int b = 0;
+    Vec3D xs[12];
+    if( sur[0] ) {
+	if( p[0] )
+	    bracket_surface( p[0], px[0], px[1], xs[b++] );
+	else
+	    bracket_surface( p[1], px[1], px[0], xs[b++] );
+    }
+    if( sur[1] ) {
+	if( p[1] )
+	    bracket_surface( p[1], px[1], px[2], xs[b++] );
+	else
+	    bracket_surface( p[2], px[2], px[1], xs[b++] );
+    }
+    if( sur[2] ) {
+	if( p[2] )
+	    bracket_surface( p[2], px[2], px[3], xs[b++] );
+	else
+	    bracket_surface( p[3], px[3], px[2], xs[b++] );
+    }
+    if( sur[3] ) {
+	if( p[3] )
+	    bracket_surface( p[3], px[3], px[0], xs[b++] );
+	else
+	    bracket_surface( p[0], px[0], px[3], xs[b++] );
+    }
+    //
+    if( sur[4] ) {
+	if( p[4] )
+	    bracket_surface( p[4], px[4], px[5], xs[b++] );
+	else
+	    bracket_surface( p[5], px[5], px[4], xs[b++] );
+    }
+    if( sur[5] ) {
+	if( p[5] )
+	    bracket_surface( p[5], px[5], px[6], xs[b++] );
+	else
+	    bracket_surface( p[6], px[6], px[5], xs[b++] );
+    }
+    if( sur[6] ) {
+	if( p[6] )
+	    bracket_surface( p[6], px[6], px[7], xs[b++] );
+	else
+	    bracket_surface( p[7], px[7], px[6], xs[b++] );
+    }
+    if( sur[7] ) {
+	if( p[7] )
+	    bracket_surface( p[7], px[7], px[4], xs[b++] );
+	else
+	    bracket_surface( p[4], px[4], px[7], xs[b++] );
+    }
+    //
+    if( sur[8] ) {
+	if( p[0] )
+	    bracket_surface( p[0], px[0], px[4], xs[b++] );
+	else
+	    bracket_surface( p[4], px[4], px[0], xs[b++] );
+    }
+    if( sur[9] ) {
+	if( p[1] )
+	    bracket_surface( p[1], px[1], px[5], xs[b++] );
+	else
+	    bracket_surface( p[5], px[5], px[1], xs[b++] );
+    }
+    if( sur[10] ) {
+	if( p[2] )
+	    bracket_surface( p[2], px[2], px[6], xs[b++] );
+	else
+	    bracket_surface( p[6], px[6], px[2], xs[b++] );
+    }
+    if( sur[11] ) {
+	if( p[3] )
+	    bracket_surface( p[3], px[3], px[7], xs[b++] );
+	else
+	    bracket_surface( p[7], px[7], px[3], xs[b++] );
+    }
+
+    // Choose for three first intersections for normal
+    // Three points furthest from each other would be better, but more hassle to search
+    Vec3D v1 = xs[1]-xs[0];
+    Vec3D v2 = xs[2]-xs[0];
+    Vec3D n = cross( v1, v2 );
+    n.normalize();
+
+    // Check polarity
+    if( inside( x+0.1*h()*n ) )
+	n *= -1.0;
+
+    return( n );
 }
 
 
@@ -374,13 +575,17 @@ Vec3D Geometry::surface_normal_2d( const Vec3D &x ) const
 	    if( p[a] )
 		bracket_surface( p[a], px[a], px[(a+1)%4], xs[b++] );
 	    else
-		bracket_surface( p[a], px[(a+1)%4], px[a], xs[b++] );
+		bracket_surface( p[(a+1)%4], px[(a+1)%4], px[a], xs[b++] );
 	}
     }
 
-    Vec3D n( xs[1][0]-xs[0][0], xs[0][1]-xs[1][1], 0.0 );
+    Vec3D n( xs[1][1]-xs[0][1], xs[0][0]-xs[1][0], 0.0 );
     if( !pol )
 	n *= -1.0;
+
+    n.normalize();
+
+    //std::cout << "normal = " << n << "\n";
 
     return( n );
 }
