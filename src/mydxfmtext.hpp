@@ -77,8 +77,6 @@ class MyDXFMText : public MyDXFEntity
     int16_t     _attachment_point;
     int16_t     _drawing_direction;
 
-    virtual void debug_print( std::ostream &os ) const;
-
 public:
 
     /*! \brief Default constructor.
@@ -137,6 +135,10 @@ public:
     /*! \brief Translate entity by \a dx.
      */
     virtual void translate( class MyDXFFile *dxf, const Vec3D &dx );
+
+    /*! \brief Print debugging information to stream \a os.
+     */
+    virtual void debug_print( std::ostream &os ) const;
 };
 
 

@@ -44,6 +44,9 @@
 #include "mydxfline.hpp"
 
 
+//#define DEBUG_INSIDE_LOOP 1
+
+
 MyDXFLine::MyDXFLine( class MyDXFFile *dxf )
 {
 #ifdef MYDXF_DEBUG
@@ -163,12 +166,23 @@ void MyDXFLine::translate( class MyDXFFile *dxf, const Vec3D &dx  )
 
 int MyDXFLine::ray_cross( double x, double y ) const
 {
+#ifdef DEBUG_INSIDE_LOOP
+    std::cout << "  MyDXFLine::ray_cross( x = " << x << ", y = " << y << " )\n";
+    std::cout << "  p1 = " << _p1 << "\n";
+    std::cout << "  p2 = " << _p2 << "\n";
+#endif
+
     if( (x > _p1[0] && x < _p2[0]) || 
 	(x < _p1[0] && x > _p2[0]) ) {
 
 	// Calculate crossing y-coordinate.
 	double t = (x-_p1[0])/(_p2[0]-_p1[0]);
         double cy = (1.0-t)*_p1[1] + t*_p2[1];
+
+#ifdef DEBUG_INSIDE_LOOP
+	std::cout << "  cy = " << cy << "\n";
+#endif
+
         // Boundary case y == cy is considered crossing.
         if( y >= cy )
             return( 1 );
@@ -178,6 +192,10 @@ int MyDXFLine::ray_cross( double x, double y ) const
     if( x == _p1[0] && y >= _p1[1] )
         return( 2 );
     
+#ifdef DEBUG_INSIDE_LOOP
+	std::cout << "  no crossing\n";
+#endif
+
     // No crossing.
     return( 0 );
 }

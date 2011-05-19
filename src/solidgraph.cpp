@@ -52,6 +52,9 @@
 #include "ibsimu.hpp"
 
 
+//#define DEBUG_SOLIDGRAPH 1
+
+
 int SolidGraph::get_mesh( const int i[3], int offsetx, int offsety ) const
 {
     int j[3] = { i[0], i[1], i[2] };
@@ -78,6 +81,16 @@ bool SolidGraph::is_edge( int N, const int i[3] ) const
 }
 
 
+/* Algorithm goes through the level of solid mesh going through mesh
+ * nodes in ordered manner marking the processed nodes in done array
+ * until it finds a solid boundary. The solid boundary is then followed
+ * counterclockwise bracketing the exact location of surface at each node.
+ * Direction of travel is marked with integer number dir:
+ *
+ *   1 0 7
+ *   2 X 6
+ *   3 4 5
+ */
 void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, int lastN, int N )
 {
     int next[3]  = {j[0], j[1], j[2]};
@@ -85,8 +98,10 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
     int first[3] = {j[0], j[1], j[2]};
     int a, dir, save;
     int loop_done = 0;
-    
-    //std::cout << solid << "\n";
+
+#ifdef DEBUG_SOLIDGRAPH    
+    std::cout << "\nbuild_solid()\n";
+#endif
 
     // Initialize direction
     if( lastN != N )
@@ -94,10 +109,6 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
     else
 	dir = 3; // Going out of solid -> direction 0 first
 
-    //std::cout << "  Starting with from ("
-    // << i[0] << ","
-    // << i[1] << ","
-    // << i[2] << ") with dir= " << dir << "\n";
     while( 1 ) {
 
 	// Mark node done
@@ -108,10 +119,24 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
 	if( dir < 0 )
 	    dir += 8;
 	
+#ifdef DEBUG_SOLIDGRAPH
+	std::cout << "\nProcessing node\n";
+	std::cout << "  lastN = " << lastN << "\n";
+	std::cout << "  N = " << N << "\n";
+	std::cout << "  dir = " << dir << "\n";
+	std::cout << "  i = (" 
+		  << i[0] << ", "
+		  << i[1] << ", "
+		  << i[2] << ")\n";
+#endif
+
 	/* Go through directions */
 	for( a = 0; a < 8; a++ ) {
 
-	    //std::cout << "  Testing dir= " << dir << "\n";
+#ifdef DEBUG_SOLIDGRAPH
+	    std::cout << "  Testing dir = " << dir << "\n";
+#endif
+
 	    save = 0;
 	    switch( dir ) {
 	    case 0:
@@ -166,13 +191,29 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
 		throw( Error( ERROR_LOCATION, "algorithm error" ) );
 	    }
 
+#ifdef DEBUG_SOLIDGRAPH
+	    std::cout << "    save = " << save << "\n";
+	    std::cout << "    next = (" 
+		      << next[0] << ", "
+		      << next[1] << ", "
+		      << next[2] << ")\n";
+#endif
+
 	    // If loop is done and direction same as starting direction
-	    if( loop_done && ((dir == 6 && lastN != N) || (dir == 0 && lastN == N)) )
+	    if( loop_done && ((dir == 6 && lastN != N) || (dir == 0 && lastN == N)) ) {
+#ifdef DEBUG_SOLIDGRAPH
+		std::cout << "    Loop done - no save\n";
+#endif
 		break;
+	    }
 
 	    // If next point is an edge point, proceed to the next point without saving
-	    if( abs(_g.mesh_check( next[0], next[1], next[2] )) == N )
+	    if( abs(_g.mesh_check( next[0], next[1], next[2] )) == N ) {
+#ifdef DEBUG_SOLIDGRAPH
+		std::cout << "    Found edge - no save\n";
+#endif
 		break;
+	    }
 
 	    // Save solid edge point between i and next
 	    if( save ) {
@@ -182,16 +223,29 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
 		Vec3D x2( next[0]*_g.h()+_g.origo(0),
 			  next[1]*_g.h()+_g.origo(1),
 			  next[2]*_g.h()+_g.origo(2) );
+
+#ifdef DEBUG_SOLIDGRAPH
+		std::cout << "    Saving point, bracketing between x1 and x2\n";
+		std::cout << "    x1 = ("
+			  << x1[0] << ", "
+			  << x1[1] << ", "
+			  << x1[2] << ")\n";
+		std::cout << "    x2 = ("
+			  << x2[0] << ", "
+			  << x2[1] << ", "
+			  << x2[2] << ")\n";
+#endif
 		Vec3D xsurf;
 		_g.bracket_surface( N, x1, x2, xsurf );
-		//std::cout << "  Saving point (" 
-		//	  << xsurf(vb[0]) << ","
-		//	  << xsurf(vb[1]) << ")\n";
-		//std::cout << solid->N << "\n";
-		//solid->p.reserve( 10 );
-		//std::cout << solid->p.size() << " " << solid->p.capacity() << "\n";
+
+#ifdef DEBUG_SOLIDGRAPH
+		std::cout << "    xsurf = ("
+			  << xsurf[0] << ", "
+			  << xsurf[1] << ", "
+			  << xsurf[2] << ")\n";
+#endif
+
 		solid->p.push_back( Point( xsurf(_vb[0]), xsurf(_vb[1]) ) );
-		//std::cout << "  done\n";
 	    }
 
 	    // Progress direction counterclockwise
@@ -204,11 +258,6 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
 	    break;
 	}
 
-	// Advance to next point
-	//std::cout << "  Advance to (" 
-	//	  << i[0] << ","
-	//	  << i[1] << ","
-	//	  << i[2] << ")\n";
 	i[0] = next[0];
 	i[1] = next[1];
 	i[2] = next[2];

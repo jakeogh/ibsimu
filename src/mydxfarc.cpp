@@ -48,6 +48,7 @@
 
 
 #define MAX_ARC_CHOP 4
+///#define DEBUG_INSIDE_LOOP 1
 
 
 MyDXFArc::MyDXFArc( class MyDXFFile *dxf )
@@ -284,6 +285,13 @@ void MyDXFArc::translate( class MyDXFFile *dxf, const Vec3D &dx )
 
 int MyDXFArc::ray_cross( double x, double y ) const
 {
+#ifdef DEBUG_INSIDE_LOOP
+    std::cout << "  MyDXFArc::ray_cross( x = " << x << ", y = " << y << " )\n";
+    std::cout << "  pc = " << _pc << "\n";
+    std::cout << "  r  = " << _r << "\n";
+    std::cout << "  x-(pc[0]-r)  = " << x-(_pc[0]-_r) << "\n";
+#endif
+
     if( (x <= _pc[0]-_r || x >= _pc[0]+_r) )
 	// No crossing
 	return( 0 );
@@ -304,6 +312,11 @@ int MyDXFArc::ray_cross( double x, double y ) const
     double a2 = atan2( -dy,dx );
     if( a2 < 0.0 )
 	a2 += 2.0*M_PI;
+
+#ifdef DEBUG_INSIDE_LOOP
+    std::cout << "  a1 = " << a1 << "\n";
+    std::cout << "  a2 = " << a2 << "\n";
+#endif
 
     int c = 0;
     if( _ang1 < _ang2 ) {

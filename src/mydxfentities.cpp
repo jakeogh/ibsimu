@@ -60,6 +60,9 @@
 
 //#define MYDXF_DEBUG_BBOX
 //#define MYDXF_DEBUG 1
+//#define DEBUG_INSIDE_LOOP 1
+
+
 
 
 /* ************************************************************************** *
@@ -216,7 +219,15 @@ void MyDXFEntities::write_entities( class MyDXFFile *dxf, std::ofstream &ostr )
 
 bool MyDXFEntities::inside_loop( MyDXFEntitySelection *selection, double x, double y, double eps )
 {
+#ifdef DEBUG_INSIDE_LOOP
+    std::cout << "inside_loop( x = " << x << ", y = " << y << ", eps = " << eps << " )\n";
+#endif
+
     for( uint32_t b = 0; b < 2; b++ ) {
+
+#ifdef DEBUG_INSIDE_LOOP
+	std::cout << "b = " << b << "\n";
+#endif
 
 	int stat = 0;
         int par = 0;
@@ -225,7 +236,17 @@ bool MyDXFEntities::inside_loop( MyDXFEntitySelection *selection, double x, doub
 	    MyDXFPathEntity *pe = dynamic_cast<MyDXFPathEntity *>( e );
 	    if( !pe )
 		throw Error( ERROR_LOCATION, "Not a path entity" );
+
+#ifdef DEBUG_INSIDE_LOOP
+	    std::cout << "Entity " << a << "\n";
+	    pe->debug_print( std::cout );
+#endif
 	    stat = pe->ray_cross( x, y );
+
+#ifdef DEBUG_INSIDE_LOOP
+	    std::cout << "stat = " << stat << "\n";
+#endif
+
 	    if( stat == 1 ) 
 		par = !par;
 	    else if( stat == 2 ) 
@@ -234,6 +255,10 @@ bool MyDXFEntities::inside_loop( MyDXFEntitySelection *selection, double x, doub
         
         if( stat != 2 )
             return( par );
+
+#ifdef DEBUG_INSIDE_LOOP
+	std::cout << "Perturbation\n";
+#endif
 
 	// Perturbation
         x += eps;

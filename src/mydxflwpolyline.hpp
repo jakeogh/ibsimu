@@ -64,8 +64,6 @@ class MyDXFLWPolyline : public MyDXFPathEntity
 				  *   vertex and bulge as z coordinate */
     int16_t            _flags;
 
-    virtual void debug_print( std::ostream &os ) const;
-
 public:
 
     /*! \brief Construct line entity by reading from DXF file.
@@ -163,6 +161,10 @@ public:
     /*! \brief Translate entity by \a dx.
      */
     virtual void translate( class MyDXFFile *dxf, const Vec3D &dx );
+
+    /*! \brief Print debugging information to stream \a os.
+     */
+    virtual void debug_print( std::ostream &os ) const;
 };
 
 

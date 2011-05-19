@@ -77,8 +77,6 @@ class MyDXFSpline : public MyDXFPathEntity
 
     std::vector<Vec3D>   _polyline;   /*!< \brief Polyline points on curve. */
 
-    virtual void debug_print( std::ostream &os ) const;
-
     void make_cyclic( void );
     void add_to_start( const Vec3D &x );
     void add_to_end( const Vec3D &x );
@@ -188,6 +186,10 @@ public:
     /*! \brief Translate entity by \a dx.
      */
     virtual void translate( class MyDXFFile *dxf, const Vec3D &dx );
+
+    /*! \brief Print debugging information to stream \a os.
+     */
+    virtual void debug_print( std::ostream &os ) const;
 };
 
 

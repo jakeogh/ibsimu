@@ -58,8 +58,6 @@ class MyDXFLine : public MyDXFPathEntity
     Vec3D _p1;
     Vec3D _p2;
 
-    virtual void debug_print( std::ostream &os ) const;
-
 public:
 
     /*! \brief Default constructor.
@@ -153,6 +151,10 @@ public:
     /*! \brief Translate entity by \a dx.
      */
     virtual void translate( class MyDXFFile *dxf, const Vec3D &dx );
+
+    /*! \brief Print debugging information to stream \a os.
+     */
+    virtual void debug_print( std::ostream &os ) const;
 };
 
 

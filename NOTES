@@ -8,3 +8,10 @@ handle_trajectory() / build_coldata()
    mesh locations.
  - Also do the exception for particles entering the geometry as
    the first mesh intersection of the step.
+
+Geometry perturbation
+---------------------
+
+ - Fix needed to have a small range around critical tests, when a call
+   for perturbation algorithm is made! 
+ - Problem case: ~/Work/ibsimu/bugs/geometry_error/

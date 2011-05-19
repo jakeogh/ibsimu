@@ -61,8 +61,6 @@ class MyDXFArc : public MyDXFPathEntity
     double   _ang1; // Must be between 0 and 2 pi.
     double   _ang2; // Must be between 0 and 2 pi.
 
-    virtual void debug_print( std::ostream &os ) const;
-
 public:
 
     /*! \brief Default constructor.
@@ -206,6 +204,10 @@ public:
     /*! \brief Translate entity by \a dx.
      */
     virtual void translate( class MyDXFFile *dxf, const Vec3D &dx );
+
+    /*! \brief Print debugging information to stream \a os.
+     */
+    virtual void debug_print( std::ostream &os ) const;
 };
 
 

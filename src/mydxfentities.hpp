@@ -94,7 +94,6 @@ protected:
     void process_group( class MyDXFFile *dxf );
     void constructor_debug_print( void ) const;
     void debug_print_base( std::ostream &os ) const;
-    virtual void debug_print( std::ostream &os ) const = 0;
 
 public:
 
@@ -160,6 +159,10 @@ public:
      */
     virtual void get_bbox( Vec3D &min, Vec3D &max, 
 			   const class MyDXFFile *dxf, const Transformation *t ) const = 0;
+
+    /*! \brief Print debugging information to stream \a os.
+     */
+    virtual void debug_print( std::ostream &os ) const = 0;
 
     friend std::ostream &operator<<( std::ostream &os, const MyDXFEntity &ent );
 };

@@ -68,8 +68,6 @@ class MyDXFInsert : public MyDXFEntity
     double      _col_spacing;
     double      _row_spacing;
 
-    virtual void debug_print( std::ostream &os ) const;
-
 public:
 
     /*! \brief Default constructor.
@@ -130,6 +128,10 @@ public:
     /*! \brief Return name of the block inserted.
      */
     const std::string &block_name( void ) const { return( _block_name ); }
+
+    /*! \brief Print debugging information to stream \a os.
+     */
+    virtual void debug_print( std::ostream &os ) const;
 };
 
 

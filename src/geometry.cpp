@@ -52,6 +52,9 @@
 #include "file.hpp"
 
 
+//#define DEBUG_BRACKET_SURFACE 1
+
+
 std::ostream &operator<<( std::ostream &os, const Bound &b )
 {
     if( b.type == BOUND_NEUMANN )
@@ -145,7 +148,7 @@ void Geometry::check_definition()
 void Geometry::set_solid( uint32_t n, const Solid *s )
 {
     if( n <= 6 || n > _n+7 )
-	throw( Error( ERROR_LOCATION, "illegal solid number" + to_string(n) ) );
+	throw( Error( ERROR_LOCATION, "illegal solid number " + to_string(n) ) );
 
     if( n <= _n+6 ) {
 	delete _sdata[n-7];
@@ -258,17 +261,40 @@ double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xou
     Vec3D xl = xin;
     Vec3D xh = xout;
 
+#ifdef DEBUG_BRACKET_SURFACE
+    std::cout << "    Bracketing surface between xl and xh\n";
+#endif
+
     // Do iteration
     for( int a = 0; a < 8; a++ ) {
+
 	xsurf = 0.5*(xl+xh);
-	if( inside( n, xsurf ) )
+
+#ifdef DEBUG_BRACKET_SURFACE
+	std::cout << "      xl            = " << xl << "\n";
+	std::cout << "      xh            = " << xh << "\n";
+	std::cout << "      Testing xsurf = " << xsurf << "\n";
+#endif
+
+	if( inside( n, xsurf ) ) {
+#ifdef DEBUG_BRACKET_SURFACE
+	    std::cout << "        inside\n";
+#endif
 	    xl = xsurf;
-	else
+	} else {
+#ifdef DEBUG_BRACKET_SURFACE
+	    std::cout << "        outside\n";
+#endif
 	    xh = xsurf;
+	}
     }
 
     // Calculate best guess, the midpoint
     xsurf = 0.5*(xl+xh);
+
+#ifdef DEBUG_BRACKET_SURFACE
+	std::cout << "      Best guess    = " << xsurf << "\n";
+#endif
 
     // Return parametric distance calculated using axis where
     // coordinate difference is largest
