@@ -309,6 +309,27 @@ void MeshVectorField::convert_cyl_to_3d( const MeshVectorField &fin )
 }
 
 
+void MeshVectorField::convert_3d_to_3d( const MeshVectorField &fin )
+{
+    // Check that we have full B-components on output
+    if( !_F[0] || !_F[1] || !_F[2] )
+	throw( Error( ERROR_LOCATION, "insufficient vector components enabled" ) );
+
+    // Go through all x,y,z points
+    for( int32_t k = 0; k < size(2); k++ ) {
+	double z = k*h()+origo(2);
+	for( int32_t j = 0; j < size(1); j++ ) {
+	    double y = j*h()+origo(1);
+	    for( int32_t i = 0; i < size(0); i++ ) {
+		double x = i*h()+origo(0);
+
+		set( i, j, k, fin( Vec3D(x,y,z) ) );
+	    }   
+	}
+    }
+}
+
+
 MeshVectorField::MeshVectorField( geom_mode_e geom_mode, 
 				  const bool fout[3], 
 				  Int3D size, 
@@ -338,9 +359,11 @@ MeshVectorField::MeshVectorField( geom_mode_e geom_mode,
 	}
     }
 
-    // Check input type
-    if( fin.geom_mode() == MODE_CYL )
+    // Check geometry types
+    if( geom_mode == MODE_3D && fin.geom_mode() == MODE_CYL )
 	convert_cyl_to_3d( fin );
+    if( geom_mode == MODE_3D && fin.geom_mode() == MODE_3D )
+	convert_3d_to_3d( fin );
     else
 	throw( ErrorUnimplemented( ERROR_LOCATION, "conversion type unimplemented" ) );
 }
