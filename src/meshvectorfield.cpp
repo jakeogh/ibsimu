@@ -362,7 +362,7 @@ MeshVectorField::MeshVectorField( geom_mode_e geom_mode,
     // Check geometry types
     if( geom_mode == MODE_3D && fin.geom_mode() == MODE_CYL )
 	convert_cyl_to_3d( fin );
-    if( geom_mode == MODE_3D && fin.geom_mode() == MODE_3D )
+    else if( geom_mode == MODE_3D && fin.geom_mode() == MODE_3D )
 	convert_3d_to_3d( fin );
     else
 	throw( ErrorUnimplemented( ERROR_LOCATION, "conversion type unimplemented" ) );
