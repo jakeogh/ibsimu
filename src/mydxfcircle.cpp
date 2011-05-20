@@ -280,14 +280,20 @@ void MyDXFCircle::translate( class MyDXFFile *dxf, const Vec3D &dx )
 
 int MyDXFCircle::ray_cross( double x, double y ) const
 {
-    if( (x <= _pc[0]-_r || x >= _pc[0]+_r) )
-	// No crossing
-	return( 0 );
+    double dx = x-_pc[0];
 
-    double b = x-_pc[0];
-    double t = sqrt( _r*_r - b*b );
-    double cy1 = _pc[1] + t;
-    double cy2 = _pc[1] - t;
+    // Uncertainty regions at circle bounds in x-direction and close to arc ends
+    if( (fabs( dx-_r ) < MYDXF_PERT_EPS || fabs( dx+_r ) < MYDXF_PERT_EPS) && 
+	y >= _pc[1]-MYDXF_PERT_EPS )
+	return( 2 );
+
+    // Outside circle bounds in x-direction
+    if( (dx <= -_r || dx >= _r) )
+	return( 0 );	// No crossing
+
+    double dy = sqrt( _r*_r - dx*dx );
+    double cy1 = _pc[1] + dy;
+    double cy2 = _pc[1] - dy;
 
     if( y <= cy2 )
 	return( 0 );

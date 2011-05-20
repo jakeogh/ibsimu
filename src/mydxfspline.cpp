@@ -386,7 +386,11 @@ int MyDXFSpline::ray_cross( double x, double y ) const
 
     Vec3D p1 = _polyline[0];
 
-    // Go through all lines 
+    // Uncertainty region around p1
+    if( fabs( x - p1[0] ) < MYDXF_PERT_EPS && y >= p1[1]-MYDXF_PERT_EPS )
+	return( 2 );
+
+    // Go through all lines in polyline representation
     int c = 0;
     for( uint32_t a = 1; a < _polyline.size(); a++ ) {
 	Vec3D p2 = _polyline[a];
@@ -397,30 +401,22 @@ int MyDXFSpline::ray_cross( double x, double y ) const
 	std::cout << "  p2 = " << p2 << "\n";
 #endif
 
-	if( x == p1[0] && y >= p1[1] ) {
-	    // Exact crossing.
-#ifdef MYDXF_DEBUG
-	    std::cout << "  Exact crossing\n";
-#endif
+	// Uncertainty region around p2
+	if( fabs( x - p2[0] ) < MYDXF_PERT_EPS && y >= p2[1]-MYDXF_PERT_EPS )
 	    return( 2 );
-	} else if( (x > p1[0] && x < p2[0]) || 
-		   (x < p1[0] && x > p2[0]) ) {
+
+	if( (x > p1[0] && x < p2[0]) || 
+	    (x < p1[0] && x > p2[0]) ) {
 
 	    // Calculate crossing y-coordinate.
 	    double t = (x-p1[0])/(p2[0]-p1[0]);
 	    double cy = (1.0-t)*p1[1] + t*p2[1];
 	    // Boundary case y == cy is considered crossing.
 	    if( y >= cy ) {
-#ifdef MYDXF_DEBUG
-		std::cout << "  Crossing\n";
-#endif
-		c = !c;
+		c = !c; // Crossing
 	    } else {
-#ifdef MYDXF_DEBUG
-		std::cout << "  No crossing\n";
-#endif
+		// No crossing
 	    }
-	    
 	}
 
 	p1 = p2;

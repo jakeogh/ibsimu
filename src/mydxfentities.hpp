@@ -52,6 +52,9 @@
 #include "transformation.hpp"
 
 
+#define MYDXF_PERT_EPS 1.1e-12
+
+
 /*! \brief Entity type.
  */
 enum EntityType {

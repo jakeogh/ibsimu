@@ -223,7 +223,9 @@ bool MyDXFEntities::inside_loop( MyDXFEntitySelection *selection, double x, doub
     std::cout << "inside_loop( x = " << x << ", y = " << y << ", eps = " << eps << " )\n";
 #endif
 
-    for( uint32_t b = 0; b < 2; b++ ) {
+    // Worst case scenario: number of perturbations needed is the
+    // number of entities minus one
+    for( uint32_t b = 0; b < selection->size()-1; b++ ) {
 
 #ifdef DEBUG_INSIDE_LOOP
 	std::cout << "b = " << b << "\n";
@@ -260,8 +262,9 @@ bool MyDXFEntities::inside_loop( MyDXFEntitySelection *selection, double x, doub
 	std::cout << "Perturbation\n";
 #endif
 
-	// Perturbation
-        x += eps;
+	// Perturbation is more than double the uncertainity, which is
+	// used in ray_crossing routines.
+        x += 2.1*MYDXF_PERT_EPS;
     }
 
     throw Error( ERROR_LOCATION, "Perturbation failed" );

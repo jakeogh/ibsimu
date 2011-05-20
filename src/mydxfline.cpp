@@ -172,6 +172,12 @@ int MyDXFLine::ray_cross( double x, double y ) const
     std::cout << "  p2 = " << _p2 << "\n";
 #endif
 
+    // Uncertainty regions at line ends
+    if( (fabs( x - _p1[0] ) < MYDXF_PERT_EPS && y >= _p1[1]-MYDXF_PERT_EPS) ||
+	(fabs( x - _p2[0] ) < MYDXF_PERT_EPS && y >= _p2[1]-MYDXF_PERT_EPS) )
+	return( 2 );
+
+    // Ray within the line ends in x-direction
     if( (x > _p1[0] && x < _p2[0]) || 
 	(x < _p1[0] && x > _p2[0]) ) {
 
@@ -188,10 +194,6 @@ int MyDXFLine::ray_cross( double x, double y ) const
             return( 1 );
     }
 
-    // Exact crossing.
-    if( x == _p1[0] && y >= _p1[1] )
-        return( 2 );
-    
 #ifdef DEBUG_INSIDE_LOOP
 	std::cout << "  no crossing\n";
 #endif

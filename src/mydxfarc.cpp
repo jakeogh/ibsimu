@@ -289,14 +289,25 @@ int MyDXFArc::ray_cross( double x, double y ) const
     std::cout << "  MyDXFArc::ray_cross( x = " << x << ", y = " << y << " )\n";
     std::cout << "  pc = " << _pc << "\n";
     std::cout << "  r  = " << _r << "\n";
-    std::cout << "  x-(pc[0]-r)  = " << x-(_pc[0]-_r) << "\n";
 #endif
 
-    if( (x <= _pc[0]-_r || x >= _pc[0]+_r) )
-	// No crossing
+    // Quick test for points definitely under the circle -> no crossing
+    if( y <= _pc[1]-_r-MYDXF_PERT_EPS )
 	return( 0 );
 
     double dx = x-_pc[0];
+
+    // Uncertainty regions at circle bounds in x-direction and close to arc ends
+    if( ((fabs( dx-_r ) < MYDXF_PERT_EPS || fabs( dx+_r ) < MYDXF_PERT_EPS) && 
+	 y >= _pc[1]-MYDXF_PERT_EPS) ||
+	fabs( dx-_r*sin(_ang1) ) < MYDXF_PERT_EPS || 
+	fabs( dx-_r*sin(_ang2) ) < MYDXF_PERT_EPS )
+	return( 2 );
+
+    // Outside circle bounds in x-direction
+    if( (dx <= -_r || dx >= _r) )
+	return( 0 );	// No crossing
+
     double dy = sqrt( _r*_r - dx*dx );
     double cy1 = _pc[1] + dy;
     double cy2 = _pc[1] - dy;
