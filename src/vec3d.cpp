@@ -62,9 +62,12 @@ bool Vec3D::operator!=( const Vec3D &x ) const
 
 bool Vec3D::operator==( const Vec3D &x ) const
 {
-    if( p[0] == x.p[0] && p[1] == x.p[1] && p[2] == x.p[2] )
-	return( true );
-    return( false ); 
+    for( int a = 0; a < 3; a++ ) {
+	if( fabs( p[a] - x.p[a] ) > 1.0e-6 &&
+	    fabs( (p[a] - x.p[a]) / p[a] ) > 1.0e-6 )
+	    return( false );
+    }
+    return( true );
 }
 
 
