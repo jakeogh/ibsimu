@@ -82,6 +82,7 @@ class MeshVectorField : public VectorField, public Mesh {
 
     void check_definition();
 
+    void convert_3d_to_3d( const MeshVectorField &fin );
     void convert_cyl_to_3d( const MeshVectorField &fin );
 
 public:
@@ -156,13 +157,17 @@ public:
      *  zero. The field content is copied from another mesh based
      *  vector field \a fin.
      *
-     *  Currently supports conversion from cylindrical
-     *  (x,r,Bx,Br,Btheta) to 3d (x,y,z,Bx,By,Bz), where x -> z and r
-     *  -> (x,y).
+     *  Currently supports 
+     *
+     *  1. Conversion from cylindrical (x,r,Bx,Br,Btheta) to 3d 
+     *  (x,y,z,Bx,By,Bz), where x -> z and r -> (x,y).
+     *
+     *  2. Conversion from 3d to 3d. Allows change of mesh density and 
+     *  size of field, change of extrapolation effect...
      *
      *  Conversion algorithm uses field evaluator ot the input field
-     *  and therefore the extrapolations settings affect the created
-     *  field outside the original definition volume.
+     *  and therefore the extrapolation settings and the
+     *  transformation in the field affect the created field.
      */
     MeshVectorField( geom_mode_e geom_mode, const bool fout[3], Int3D size, 
 		     Vec3D origo, double h, const MeshVectorField &fin );
