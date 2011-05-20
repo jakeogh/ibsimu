@@ -149,6 +149,8 @@ MeshVectorField::MeshVectorField( geom_mode_e geom_mode, const bool fout[3], dou
     case MODE_1D:
 	cdim = 1;
 	break;
+    default:
+	throw( ErrorUnimplemented( ERROR_LOCATION ) );
     }
 
     // Set number of field components (fdim)
@@ -674,7 +676,7 @@ MeshVectorField &MeshVectorField::operator=( const MeshVectorField &f )
 
 MeshVectorField &MeshVectorField::operator+=( const MeshVectorField &f )
 {
-    if( (Mesh)(*this) == (Mesh)f )
+    if( (Mesh)(*this) != (Mesh)f )
 	throw( Error( ERROR_LOCATION, "non-matching fields" ) );
     for( size_t i = 0; i < 3; i++ ) {
 	if( (_F[i] == NULL) != (f._F[i] == NULL) )
