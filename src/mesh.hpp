@@ -154,6 +154,8 @@ public:
     void save( std::ostream &os ) const;
 
     /*! \brief Equality.
+     *
+     *  Allows small inequality.
      */
     bool operator==( const Mesh &m ) const;
 

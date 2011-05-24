@@ -140,7 +140,7 @@ bool Mesh::operator==( const Mesh &m ) const
 {
     if( _geom_mode == m._geom_mode && 
 	_size == m._size && 
-	_origo == m._origo && 
+	_origo.approx( m._origo, 1.0e-6 ) && 
 	fabs( (_h - m._h) / _h ) < 1.0e-6 )
 	return( true );
     return( false );
@@ -151,7 +151,7 @@ bool Mesh::operator!=( const Mesh &m ) const
 {
     if( _geom_mode != m._geom_mode ||
 	_size != m._size || 
-	_origo != m._origo || 
+	!_origo.approx( m._origo, 1.0e-6 ) || 
 	_h != m._h )
 	return( true );
     return( false );

@@ -255,9 +255,6 @@ signed char Geometry::mesh_check( int32_t i, int32_t j, int32_t k ) const
 
 double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xout, Vec3D &xsurf ) const
 {
-    if( xin == xout ) 
-	throw( Error( ERROR_LOCATION, "xin and xout are the same point" ) );
-
     Vec3D xl = xin;
     Vec3D xh = xout;
 
@@ -312,6 +309,10 @@ double Geometry::bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xou
 	else
 	    a = 2;
     }
+
+    if( xin[a] == xout[a]  )
+	throw( Error( ERROR_LOCATION, "xin and xout are the same point" ) );
+
     return( (xsurf[a] - xin[a]) / (xout[a] - xin[a]) );
 }
 

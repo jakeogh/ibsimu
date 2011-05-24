@@ -16,6 +16,13 @@ ErrorTest::ErrorTest( const ErrorLocation &loc, const std::string &str )
 }
 
 
+ErrorTest::ErrorTest( const ErrorLocation &loc )
+    : Error(loc)
+{
+    _error_str = "Test failure\n";
+}
+
+
 /* Main function for tests
  */
 int main( int argc, char **argv )

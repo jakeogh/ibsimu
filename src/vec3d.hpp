@@ -145,15 +145,24 @@ public:
     }
 
     /*! \brief Inequality test.
+     *
+     *  Require exact equality.
      */
     bool operator!=( const Vec3D &x ) const;
 
     /*! \brief Equality test.
      *
-     *  Does not require exact equality, but absolute or relative
-     *  error less than 1.0e-6.
+     *  Requires exact equality.
      */
-    bool operator==( const Vec3D &x ) const;    
+    bool operator==( const Vec3D &x ) const;
+
+    /*! \brief Approximate equality test.
+     *
+     *  Does not require exact equality, but absolute or relative
+     *  error less than eps (which ever is less strict). Be careful
+     *  using this function!
+     */
+    bool approx( const Vec3D &x, double eps = 1.0e-6 ) const;
 
     /*! \brief Assignment.
      */
