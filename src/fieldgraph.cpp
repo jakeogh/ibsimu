@@ -244,6 +244,12 @@ void FieldGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
 }
 
 
+void FieldGraph::plot_sample( cairo_t *cairo, double x[2] )
+{
+
+}
+
+
 void FieldGraph::get_bbox( double bbox[4] )
 {
     if( _scalarfield ) {

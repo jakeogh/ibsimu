@@ -337,6 +337,12 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 }
 
 
+void Colormap::plot_sample( cairo_t *cairo, double x[2] )
+{
+
+}
+
+
 void Colormap::get_bbox( double bbox[4] )
 {
     bbox[0] = _datarange[0];

@@ -1,8 +1,8 @@
 /*! \file eqpotgraph.cpp
- *  \brief Source code for eqpotgraph.cpp
+ *  \brief %Graph for plotting equipotential lines
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -249,6 +249,12 @@ void EqPotGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
 	    cairo_stroke( cairo );
 	}
     }
+}
+
+
+void EqPotGraph::plot_sample( cairo_t *cairo, double x[2] )
+{
+
 }
 
 

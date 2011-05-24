@@ -1,5 +1,5 @@
 /*! \file legend.cpp
- *  \brief Source code for legend.cpp
+ *  \brief Plot legends
  */
 
 /* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
@@ -56,6 +56,8 @@ void LegendEntry::get_size( double &width, double &height ) const
 
 
 
+/* ********************************************************************* */
+
 
 
 void MultiEntryLegend::add_entry( const LegendEntry &entry )
@@ -77,6 +79,7 @@ void MultiEntryLegend::get_size( double &width, double &height ) const
 
 
 
+/* ********************************************************************* */
 
 
 

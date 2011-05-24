@@ -284,6 +284,12 @@ void ParticleGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double ra
 }
 
 
+void ParticleGraph::plot_sample( cairo_t *cairo, double x[2] )
+{
+
+}
+
+
 void ParticleGraph::get_bbox( double bbox[4] )
 {
     bbox[0] = _g.origo( _vb[0] );

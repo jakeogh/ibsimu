@@ -2,7 +2,7 @@
  *  \brief %Graph for plotting equipotential lines
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -134,6 +134,12 @@ public:
      *  order xmin, ymin, xmax, ymax.
      */
     virtual void plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] );
+
+    /*! \brief Plot sample for legend.
+     *
+     *  Plot graph sample for legend at cairo coordinates \a x.
+     */
+    virtual void plot_sample( cairo_t *cairo, double x[2] );
 
     /*! \brief Get bounding box of drawable.
      *

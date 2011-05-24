@@ -52,14 +52,16 @@
 
 /*! \brief Class for legend entry.
  *
- *  The legend entries contain a reference to the drawable so that if
- *  the style used in the drawable is changed, the sample in legend is
- *  automatically changed.
+ *  The legend entries contain a reference to the graph drawn so that
+ *  if the style used in the graph is changed, the sample in legend
+ *  is automatically changed.
+ *
+ *  Plotting of graph sample is done by plot_sample() in Graph.
  */
 class LegendEntry {
     
-    Graph     &_drawable;
-    std::string   _label;
+    Graph        &_drawable;   /*!< \brief Reference to graph drawn. */
+    std::string   _label;      /*!< \brief Label for legend entry. */
 
 public:
     
@@ -99,11 +101,13 @@ public:
 /*! \brief Base class for legend definition.
  *
  *  Legend is an object that contains a key to the plot styles used in
- *  Graphs. The key contains a sample of the plot style used and a
- *  corresponding text label. 
+ *  graphs. The key contains a sample of the plot style used and a
+ *  corresponding text label.
  *
  *  The Colormap legend is a special case because in addition to the
  *  plot style, the plot z-range is shown in the legend.
+ *
+ *  The size of legend can be queried and the location can be set.
  */
 class Legend {
 
@@ -190,21 +194,3 @@ public:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

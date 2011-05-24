@@ -115,6 +115,11 @@ void XYGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4]
 }
 
 
+void XYGraph::plot_sample( cairo_t *cairo, double x[2] )
+{
+}
+
+
 void XYGraph::get_bbox( double bbox[4] )
 {
     size_t N = _xdata.size() < _ydata.size() ? _xdata.size() : _ydata.size();
