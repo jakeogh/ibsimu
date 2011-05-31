@@ -817,7 +817,7 @@ void EpotMGSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
     _mgcyc = a;
 
     if( ibsimu.get_verbose_output() ) {
-	if( a == _mgcyc )
+	if( a == _mgcycmax )
 	    std::cout << "  Maximum number of cycles done\n";
 	else
 	    std::cout << "  Convergence criterion reached\n";
