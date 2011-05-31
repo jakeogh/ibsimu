@@ -244,7 +244,7 @@ void FieldGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
 }
 
 
-void FieldGraph::plot_sample( cairo_t *cairo, double x[2] )
+void FieldGraph::plot_sample( cairo_t *cairo, double x, double y, double width, double height )
 {
 
 }
@@ -259,3 +259,5 @@ void FieldGraph::get_bbox( double bbox[4] )
 	bbox[3] = _scalarfield->max( _vb[1] );
     }
 }
+
+

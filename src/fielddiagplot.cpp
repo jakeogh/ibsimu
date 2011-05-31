@@ -56,6 +56,9 @@ FieldDiagPlot::FieldDiagPlot( Frame *frame, const Geometry *geom )
 
     _graph[0] = NULL;
     _graph[1] = NULL;
+
+    _legend[0] = NULL;
+    _legend[1] = NULL;
 }
 
 
@@ -65,6 +68,11 @@ FieldDiagPlot::~FieldDiagPlot()
 	delete _graph[0];
     if( _graph[1] )
 	delete _graph[1];
+
+    if( _legend[0] )
+	delete _legend[0];
+    if( _legend[1] )
+	delete _legend[1];
 }
 
 
@@ -259,10 +267,16 @@ void FieldDiagPlot::build_plot( void )
 {
     // Remove old graphs
     _frame->clear_graphs();
+
     if( _graph[0] )
 	delete _graph[0];
     if( _graph[1] )
 	delete _graph[1];
+
+    if( _legend[0] )
+	delete _legend[0];
+    if( _legend[1] )
+	delete _legend[1];
 
     // Build data
     std::vector<double> coord[4];
@@ -367,7 +381,11 @@ void FieldDiagPlot::build_plot( void )
 	    _graph[a]->set_color( Color(1,0,0) );
 	else
 	    _graph[a]->set_color( Color(0,0,1) );
-	_frame->add_graph( xaxis_use, yaxis, _graph[a] );
+
+	_legend[a] = new LegendEntry( *_graph[a], diagnostic_label( _diag[a] ) );
+	
+	// Add graph
+	_frame->add_graph( xaxis_use, yaxis, _graph[a], _legend[a] );
     }
 
     /*
@@ -422,6 +440,7 @@ void FieldDiagPlot::export_data( const std::string &filename ) const
 
     fstr.close();
 }
+
 
 
 

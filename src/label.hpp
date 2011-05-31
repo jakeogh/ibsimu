@@ -79,9 +79,9 @@ class Label
 
 
     void process_parsed( cairo_t *cairo, const std::string &text, cairo_text_extents_t *extents0, 
-			 double x0, double y0, double &x, double &y );
+			 double x0, double y0, double &x, double &y ) const;
     void parse_latex( cairo_t *cairo, const std::string &text, cairo_text_extents_t *extents0, 
-		      double x0, double y0, double &x, double &y );
+		      double x0, double y0, double &x, double &y ) const;
 
 public:
 
@@ -98,6 +98,10 @@ public:
     /*! \brief Set label font size. 
      */
     void set_font_size( double size );
+
+    /*! \brief Get label font size. 
+     */
+    double get_font_size( void ) const;
 
     /*! \brief Set label font family.
      */
@@ -165,13 +169,14 @@ public:
      *  aligment. The bounding box is always the size of the label
      *  in the direction of the axes. Bounding box is (xmin, ymin, xmax, ymax).
      */
-    void get_bbox( cairo_t *cairo, double bbox[4] );
+    void get_bbox( cairo_t *cairo, double bbox[4] ) const;
 
     friend std::ostream &operator<<( std::ostream &os, const Label &label );
 };
 
 
 #endif
+
 
 
 

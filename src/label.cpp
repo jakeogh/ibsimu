@@ -110,6 +110,12 @@ void Label::set_font_size( double size )
 }
 
 
+double Label::get_font_size( void ) const
+{
+    return( _size );
+}
+
+
 void Label::set_font_family( const std::string &family )
 {
     _family = family;
@@ -168,7 +174,7 @@ std::string Label::get_text( void ) const
 
 
 void Label::process_parsed( cairo_t *cairo, const std::string &text, cairo_text_extents_t *extents0, 
-			    double x0, double y0, double &x, double &y )
+			    double x0, double y0, double &x, double &y ) const
 {
     if( extents0 ) {
 	// Get extents
@@ -205,7 +211,7 @@ void Label::process_parsed( cairo_t *cairo, const std::string &text, cairo_text_
  *
  */
 void Label::parse_latex( cairo_t *cairo, const std::string &text, cairo_text_extents_t *extents0, 
-			 double x0, double y0, double &x, double &y )
+			 double x0, double y0, double &x, double &y ) const
 {
     std::string s;
     
@@ -379,7 +385,7 @@ void Label::get_extents( cairo_t *cairo, cairo_text_extents_t *extents )
 }
 
 
-void Label::get_bbox( cairo_t *cairo, double bbox[4] )
+void Label::get_bbox( cairo_t *cairo, double bbox[4] ) const
 {
     if( _text == "" ) {
 	bbox[0] = bbox[2] = _xlocation;
@@ -488,6 +494,7 @@ std::ostream &operator<<( std::ostream &os, const Label &label )
     os << label._text;
     return( os );
 }
+
 
 
 

@@ -1,8 +1,8 @@
 /*! \file frame.cpp
- *  \brief Source code for frame.cpp
+ *  \brief %Frame for plots
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -77,8 +77,11 @@ void Frame::unset_frame_clipping( cairo_t *cairo )
 Frame::Frame()
     : _offx(0), _offy(0), _width(640), _height(480), 
       _fontsize(12.0), _titlespace(10.0), _bg(Color(1,1,1)), _fg(Color(0,0,0)),
+      _legend_enable(true), _legend_pos(LEGEND_POS_TOP_RIGHT),
       _fixedaspect(PLOT_FIXED_ASPECT_DISABLED), _automargin(true)
 {
+    _legend.set_font_size( _fontsize );
+
     // Ruler X1
     _ruler[0].set_coord_index( 0 );
     _ruler[0].set_indir( true );
@@ -136,6 +139,7 @@ void Frame::set_font_size( double size )
     _ruler[2].set_font_size( size );
     _ruler[3].set_font_size( size );
     _title.set_font_size( size );
+    _legend.set_font_size( size );
     _fontsize = size;
     _titlespace = 10.0/12.0*size;
 }
@@ -152,15 +156,30 @@ void Frame::set_fixed_aspect( PlotFixedMode mode )
 }
 
 
-void Frame::add_graph( PlotAxis xaxis, PlotAxis yaxis, Graph *graph )
+void Frame::add_graph( PlotAxis xaxis, PlotAxis yaxis, 
+		       Graph *graph, LegendEntry *legend )
 {
     _dobj.push_back( DObj( xaxis, yaxis, graph ) );
+    _legend.add_entry( legend );
 }
 
 
 void Frame::clear_graphs( void )
 {
     _dobj.clear();
+    _legend.clear_entries();
+}
+
+
+void Frame::enable_legend( bool enable )
+{
+    _legend_enable = enable;
+}
+
+
+void Frame::set_legend_position( legend_position_e pos )
+{
+    _legend_pos = pos;
 }
 
 
@@ -648,6 +667,51 @@ void Frame::draw_frame( cairo_t *cairo )
 }
 
 
+void Frame::draw_legend( cairo_t *cairo )
+{
+    //std::cout << "draw_legend()\n";
+
+    if( !_legend_enable )
+	return;
+
+    double lw, lh;
+    _legend.get_size( cairo, lw, lh );
+
+    double x = 0.0;
+    double y = 0.0;
+
+    if( (_legend_pos & LEGEND_POS_VERTICAL_MASK) == LEGEND_POS_BOTTOM )
+	y = _offy+_height-_tmargin[1];
+    else if( (_legend_pos & LEGEND_POS_VERTICAL_MASK) == LEGEND_POS_MIDDLE )
+	y = _offy+_tmargin[3]+0.5*(_height-_tmargin[1]-_tmargin[3]+lh);
+    else if( (_legend_pos & LEGEND_POS_VERTICAL_MASK) == LEGEND_POS_TOP )
+	y = _offy+_tmargin[3]+lh;
+
+    if( (_legend_pos & LEGEND_POS_HORIZONTAL_MASK) == LEGEND_POS_LEFT )
+	x = _offx+_tmargin[0];
+    else if( (_legend_pos & LEGEND_POS_HORIZONTAL_MASK) == LEGEND_POS_CENTER )
+	x = _offx+_tmargin[0]+0.5*(_width-_tmargin[0]-_tmargin[2]-lw);
+    else if( (_legend_pos & LEGEND_POS_HORIZONTAL_MASK) == LEGEND_POS_RIGHT )
+	x = _offx+_width-_tmargin[2]-lw;
+
+    /*
+    std::cout << "  lw = " << lw << "\n";
+    std::cout << "  lh = " << lh << "\n";
+
+    std::cout << "  offx = " << _offx << "\n";
+    std::cout << "  offy = " << _offy << "\n";
+
+    std::cout << "  width = " << _width << "\n";
+    std::cout << "  height = " << _height << "\n";
+
+    std::cout << "  x = " << x << "\n";
+    std::cout << "  y = " << y << "\n";
+    */
+
+    _legend.plot( cairo, x, y );
+}
+
+
 void Frame::draw( cairo_t *cairo )
 {
 #ifdef FRAME_DEBUG
@@ -683,24 +747,9 @@ void Frame::draw( cairo_t *cairo )
     }
     unset_frame_clipping( cairo );
 
+    draw_legend( cairo );
+
     // Draw frame (on top of user drawn image)
     draw_frame( cairo );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

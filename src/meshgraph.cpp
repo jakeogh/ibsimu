@@ -105,7 +105,7 @@ void MeshGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[
 }
 
 
-void MeshGraph::plot_sample( cairo_t *cairo, double x[2] )
+void MeshGraph::plot_sample( cairo_t *cairo, double x, double y, double width, double height )
 {
 
 }
@@ -118,6 +118,8 @@ void MeshGraph::get_bbox( double bbox[4] )
     bbox[2] = _g.max( _vb[0] );
     bbox[3] = _g.max( _vb[1] );
 }
+
+
 
 
 

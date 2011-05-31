@@ -51,6 +51,7 @@
 #include "ruler.hpp"
 #include "coordmapper.hpp"
 #include "graph.hpp"
+#include "legend.hpp"
 
 
 
@@ -135,6 +136,10 @@ class Frame {
 
     std::vector<DObj>   _dobj;          /*!< \brief Graphs to plot in the frame. */
 
+    bool                _legend_enable; /*!< \brief Legend enable. */
+    legend_position_e   _legend_pos;    /*!< \brief Legend position. */
+    MultiEntryLegend    _legend;        /*!< \brief Graph legend. */
+
     Label               _title;         /*!< \brief Title for plot. */
 
     PlotFixedMode       _fixedaspect;   /*!< \brief Fixed aspect ration to 1:1, 0 = disabled, 
@@ -148,6 +153,7 @@ class Frame {
 				 	 * tics, labels, legends and titles (xmin, ymin, xmax, ymax). */
 
 
+    void draw_legend( cairo_t *cairo );
     void calculate_autoranging( void );
     void calculate_ruler_autoenable( void );
     void calculate_rulers( cairo_t *cairo, bool ruler_tic_bbox_test );
@@ -289,17 +295,29 @@ public:
 
     /*! \brief Add graph to frame.
      *
-     *  A pointer to the graph is added to frame. The graph is not
+     *  Add a \a graph to be plotted in the frame. The graph uses the
+     *  axes \a xaxis and \a yaxis. A \a legend for the graph may be
+     *  defined. Legend defaults to NULL (no legend). A pointers to
+     *  graph and legend is added to frame. The graph/legend is not
      *  freed by frame.
      */
-    void add_graph( PlotAxis xaxis, PlotAxis yaxis, Graph *drawable );
+    void add_graph( PlotAxis xaxis, PlotAxis yaxis, 
+		    Graph *graph, LegendEntry *legend = NULL );
 
     /*! \brief Clear all graphs from frame.
      *
-     *  The list of graphs is cleared. The graphs are not freed, only
-     *  the references to the graphs are erased.
+     *  The list of graphs and legend entries is cleared. The
+     *  graphs/legends are not freed, only the references are erased.
      */
     void clear_graphs( void );
+
+    /*! \brief Set legend enable/disable.
+     */
+    void enable_legend( bool enable );
+
+    /*! \brief Set legend position. 
+     */
+    void set_legend_position( legend_position_e pos );
 
     /*! \brief Draw frame and plot contents.
      *
@@ -310,9 +328,13 @@ public:
      *
      *  The frame guarantees to call Graph::get_bbox() once and
      *  Graph::plot() once for each call to this function.
+     *
+     *  Graphs are plotted in the order of definition. Last definition
+     *  is on the top.
      */
     void draw( cairo_t *cairo );
 };
 
 
 #endif
+
