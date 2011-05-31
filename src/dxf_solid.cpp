@@ -229,3 +229,4 @@ void DXFSolid::save( std::ostream &os ) const
 {
     write_int32( os, FILEID_DXFSOLID );
 }
+

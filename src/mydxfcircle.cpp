@@ -323,3 +323,4 @@ bool MyDXFCircle::geom_same( const MyDXFCircle &circle, double eps ) const
 
 
 
+

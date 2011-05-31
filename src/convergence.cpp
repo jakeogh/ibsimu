@@ -373,3 +373,4 @@ void Convergence::set_emittance( const Emittance *emit1, const Emittance *emit2 
     _emit[0] = emit1;
     _emit[1] = emit2;
 }
+

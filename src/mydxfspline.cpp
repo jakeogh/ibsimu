@@ -752,3 +752,4 @@ void MyDXFSpline::translate( class MyDXFFile *dxf, const Vec3D &dx )
 }
 
 
+

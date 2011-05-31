@@ -50,3 +50,4 @@ Vec4D::Vec4D( const class Vec3D &vec ) {
     p[2] = vec[2];
     p[3] = 1.0;
 }
+

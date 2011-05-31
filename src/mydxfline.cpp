@@ -237,3 +237,4 @@ bool MyDXFLine::geom_same( const MyDXFLine &line, double eps ) const
 	     norm2( _p1 - line._p2 ) < eps) );
 }
 
+

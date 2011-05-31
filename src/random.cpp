@@ -439,3 +439,4 @@ void MTRandom::get( double *x ) const
 	x[a] = _transformation[a]->transform( gsl_rng_uniform( _rng ) );
     pthread_mutex_unlock( &_mutex );
 }
+

@@ -135,3 +135,4 @@ uint32_t read_compressed_block( std::istream &is, uint32_t len, int8_t *dest );
 
 
 #endif
+

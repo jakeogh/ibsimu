@@ -337,3 +337,4 @@ ErrorRange::ErrorRange( const ErrorLocation &loc, uint32_t i, uint32_t n )
     ss << "index out of range ( " << i << " >= " << n << " )";
     _error_str = ss.str();
 }
+
