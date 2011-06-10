@@ -223,9 +223,9 @@ bool MyDXFEntities::inside_loop( MyDXFEntitySelection *selection, double x, doub
     std::cout << "inside_loop( x = " << x << ", y = " << y << ", eps = " << eps << " )\n";
 #endif
 
-    // Worst case scenario: number of perturbations needed is the
-    // number of entities minus one
-    for( uint32_t b = 0; b < selection->size()-1; b++ ) {
+    // Worst case scenario: number of perturbations needed is number
+    // of entities.
+    for( uint32_t b = 0; b < selection->size(); b++ ) {
 
 #ifdef DEBUG_INSIDE_LOOP
 	std::cout << "b = " << b << "\n";
