@@ -269,7 +269,7 @@ ParticleDataBase2D::ParticleDataBase2D( const ParticleDataBase2D &pdb )
 
 ParticleDataBase2D::ParticleDataBase2D( std::istream &s )
 {
-    _imp = new ParticleDataBase2DImp( s );
+    _imp = new ParticleDataBase2DImp( this, s );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
 
@@ -391,7 +391,7 @@ ParticleDataBaseCyl::ParticleDataBaseCyl( const ParticleDataBaseCyl &pdb )
 
 ParticleDataBaseCyl::ParticleDataBaseCyl( std::istream &s )
 {
-    _imp = new ParticleDataBaseCylImp( s );
+    _imp = new ParticleDataBaseCylImp( this, s );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
 
@@ -513,7 +513,7 @@ ParticleDataBase3D::ParticleDataBase3D( const ParticleDataBase3D &pdb )
 
 ParticleDataBase3D::ParticleDataBase3D( std::istream &s )
 {
-    _imp = new ParticleDataBase3DImp( s );
+    _imp = new ParticleDataBase3DImp( this, s );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
 
