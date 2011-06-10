@@ -270,8 +270,16 @@ std::string Error::get_error_message( void )
     return( _error_str );
 }   
 
+
 ErrorNoMem::ErrorNoMem( const ErrorLocation &loc )
   : Error( loc, "memory allocation error" ) 
+{
+
+}
+
+
+ErrorNoMem::ErrorNoMem( const ErrorLocation &loc, const std::string &str )
+  : Error( loc, str ) 
 {
 
 }

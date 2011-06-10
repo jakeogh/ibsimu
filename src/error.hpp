@@ -191,6 +191,10 @@ public:
      *  The error message is "memory allocation error".
      */
     ErrorNoMem( const ErrorLocation &loc );
+
+    /*! \brief Constructor for memory allocation error with custom error message.
+     */
+    ErrorNoMem( const ErrorLocation &loc, const std::string &str );
 };
 
 
