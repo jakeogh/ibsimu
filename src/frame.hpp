@@ -122,6 +122,8 @@ class Frame {
     bool                _enable[4];     /*!< \brief Ruler enabled. */
     bool                _fenable[4];    /*!< \brief Ruler force enable, false = auto, true = force enable. */
     bool                _autorange[8];  /*!< \brief Frame autorange enable for x1, y1, x2, y2 axes. */
+    double              _range_min[4];  /*!< \brief Range (auto or manual) value for x1, y1, x2, y2 axes.  */
+    double              _range_max[4];  /*!< \brief Range (auto or manual) value for x1, y1, x2, y2 axes.  */
 
     int                 _offx;          /*!< \brief Offset in x-direction. */
     int                 _offy;          /*!< \brief Offset in y-direction. */

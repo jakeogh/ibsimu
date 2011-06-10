@@ -48,7 +48,7 @@
 #include "ibsimu.hpp"
 
 
-//#define FRAME_DEBUG 1
+//#define DEBUG_FRAME 1
 
 
 #define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
@@ -305,7 +305,7 @@ void Frame::calculate_autoranging( void )
 {
     double range[8]; // x1min, x1max, y1min, y1max, x2min, x2max, y2min, y2max
 
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
     std::cout << "\nFRAME::CALCULATE_AUTORANGING()\n\n";
 #endif
 
@@ -372,9 +372,11 @@ void Frame::calculate_autoranging( void )
 	}
 
 	// Set new ranges
+	_range_min[a] = range_min;
+	_range_max[a] = range_max;
 	_ruler[a].set_ranges( range_min, range_max );
 
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
 	std::cout << "ruler[" << a << "] = {" << range_min << ", " << range_max << "}\n";
 #endif
     }
@@ -383,7 +385,7 @@ void Frame::calculate_autoranging( void )
 
 void Frame::calculate_rulers( cairo_t *cairo, bool ruler_tic_bbox_test )
 {
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
     std::cout << "\nFRAME::CALCULATE_RULERS()\n\n";
 #endif
 
@@ -442,7 +444,7 @@ void Frame::force_enable_ruler( PlotAxis axis, bool force )
 
 void Frame::calculate_frame( cairo_t *cairo )
 {
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
     std::cout << "\nFRAME::CALCULATE_FRAME()\n\n";
 #endif
 
@@ -561,6 +563,10 @@ void Frame::calculate_frame( cairo_t *cairo )
 	_ruler[3].set_endpoints( prec[2], prec[3], prec[2], prec[1] );
     }
 
+    // Reset autorange values
+    for( int a = 0; a < 4; a++ )
+	_ruler[a].set_ranges( _range_min[a], _range_max[a] );
+
     calculate_rulers( cairo, true );
     mirror_rulers();
 
@@ -581,7 +587,7 @@ void Frame::mirror_rulers( void )
 {
     // Set enable/disable and do mirroring of rulers if necessary
 
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
     std::cout << "\nFRAME::MIRROR_RULERS()\n\n";
 
     for( size_t a = 0; a < 4; a++ ) 
@@ -635,7 +641,7 @@ void Frame::mirror_rulers( void )
 	}
     }
 
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
     for( size_t a = 0; a < 4; a++ ) {
 	std::cout << "_ruler[" << a << "].debug_print():\n";
 	_ruler[a].debug_print( std::cout );
@@ -647,7 +653,7 @@ void Frame::mirror_rulers( void )
 
 void Frame::draw_frame( cairo_t *cairo )
 {
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
     std::cout << "\nFRAME::DRAW_FRAME()\n\n";
 #endif
 
@@ -714,7 +720,7 @@ void Frame::draw_legend( cairo_t *cairo )
 
 void Frame::draw( cairo_t *cairo )
 {
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
     std::cout << "\nFRAME::DRAW()\n\n";
     std::cout << "width = " << _width << "\n";
     std::cout << "height = " << _height << "\n";

@@ -135,7 +135,7 @@ public:
      */
     void set_ticlen( double inlen, double outlen );
 
-    /*! \brief Get ruler autoranging status
+    /*! \brief Set ruler autoranging status
      */
     void set_autorange( bool autorange_min, bool autorange_max );
 
