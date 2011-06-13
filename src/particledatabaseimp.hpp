@@ -440,7 +440,11 @@ public:
 
     void add_particle( const Particle<PP> &pp ) {
 	_scheduler.lock_mutex();
-	_particles.push_back( new Particle<PP>( pp ) );
+	try {
+	    _particles.push_back( new Particle<PP>( pp ) );
+	} catch( std::bad_alloc ) {
+	    throw( ErrorNoMem( ERROR_LOCATION, "Out of memory adding particle" ) );
+	}
 	_scheduler.unlock_mutex();
     }
 
