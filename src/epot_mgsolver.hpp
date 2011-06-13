@@ -120,7 +120,7 @@ public:
 
     /*! \brief Sets the accuracy request for coarsest level SOR solver.
      *
-     *  Defaults to 1e-6.
+     *  Defaults to 1e-12.
      */
     void set_eps( double eps );
 

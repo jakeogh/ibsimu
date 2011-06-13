@@ -47,6 +47,7 @@
 #include "compmath.hpp"
 
 
+//#define DEBUG_MGSOLVER 1
 
 
 /* *****************************************************************************
@@ -114,6 +115,7 @@ void EpotMGSolver::set_eps( double eps )
     _eps = eps;
 }
 
+
 void EpotMGSolver::set_w( double w )
 {
     _w = w;
@@ -125,6 +127,7 @@ void EpotMGSolver::set_imax( uint32_t imax )
     _imax = imax;
 }
 
+
 double EpotMGSolver::get_residual( void ) const
 {
     return( _res );
@@ -135,6 +138,7 @@ uint32_t EpotMGSolver::get_mgcyc( void ) const
 {
     return( _mgcyc );
 }
+
 
 void EpotMGSolver::set_levels( uint32_t levels )
 {
@@ -605,13 +609,13 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 {
     //std::cout << "MG recursion, level " << level << "\n";
 
+    // Linear case: clear last field, expected result closer to zero than result 
+    // from last round. Never clear top level field.
+    if( linear() && level != 0 )
+	_epotv[level]->clear();
+
     if( level == _levels-1 ) {
  
-	// Linear case: clear last field, expected result closer to zero than result 
-	// from last round. Never clear top level field.
-	if( linear() && level != 0 )
-	    _epotv[level]->clear();
-
 	if( ibsimu.get_verbose_output() ) {
 	    for( uint32_t b = 0; b < level; b++ )
 		std::cout << "  ";
@@ -626,8 +630,10 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 		break;
 	}
 
-	//std::cout << "epot (level = " << level << ") accurate solve:\n";
-	//print_field( _epotv[level] );
+#ifdef DEBUG_MGSOLVER
+	std::cout << "epot (level = " << level << ") accurate solve:\n";
+	print_field( _epotv[level] );
+#endif
 
 	if( ibsimu.get_verbose_output() ) {
 	    for( uint32_t b = 0; b < level; b++ )
@@ -647,33 +653,39 @@ void EpotMGSolver::mg_recurse( uint32_t level )
     } 
 
     // Do gamma cycles of next level
-    for( uint32_t a = 0; a < _gamma; a++ ) {
+    for( uint32_t gcyc = 0; gcyc < _gamma; gcyc++ ) {
 
 	if( ibsimu.get_verbose_output() ) {
 	    for( uint32_t b = 0; b < level; b++ )
 		std::cout << "  ";
 	    if( _gamma > 1 )
-		std::cout << "  Doing gamma cycle " << a+1 << "/" << _gamma << " at level " << level << "\n";
+		std::cout << "  Doing gamma cycle " << gcyc+1 << "/" << _gamma << " at level " << level << "\n";
 	    else
 		std::cout << "  Doing cycle at level " << level << "\n";
 	}
 
-	//std::cout << "epot (level = " << level << "):\n";
-	//print_field( _epotv[level] );
+#ifdef DEBUG_MGSOLVER
+	std::cout << "epot (level = " << level << "):\n";
+	print_field( _epotv[level] );
+#endif
 
 	// Pre smoothing
 	for( uint32_t a = 0; a < _npre; a++ )
 	    _epotsolverv[level]->mg_smooth( _epotv[level], _rhsv[level] );
 
-	//std::cout << "epot (level = " << level << ") pre smoothed:\n";
-	//print_field( _epotv[level] );
+#ifdef DEBUG_MGSOLVER
+	std::cout << "epot (level = " << level << ") pre smoothed:\n";
+	print_field( _epotv[level] );
+#endif
 
 	// Defect
 	//std::cout << "  Calculating defect for level " << level << "\n";
 	_epotsolverv[level]->defect( _workv[level], _epotv[level], _rhsv[level] );
 
-	//std::cout << "defect (level = " << level << "):\n";
-	//print_field( _workv[level] );
+#ifdef DEBUG_MGSOLVER
+	std::cout << "defect (level = " << level << "):\n";
+	print_field( _workv[level] );
+#endif
 
 	if( linear() ) {
 
@@ -682,8 +694,10 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 
 	    (*_rhsv[level+1]) *= -1.0;
 
-	    //std::cout << "defect (level = " << level+1 << "):\n";
-	    //print_field( _rhsv[level+1] );
+#ifdef DEBUG_MGSOLVER
+	    std::cout << "defect (level = " << level+1 << "):\n";
+	    print_field( _rhsv[level+1] );
+#endif
 
 	} else {
 
@@ -691,8 +705,10 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 	    //std::cout << "  Restricing defect from level " << level << " to level " << level+1 << "\n";
 	    restrict( _workv[level+1], _workv[level], true );
 
-	    //std::cout << "defect (level = " << level+1 << "):\n";
-	    //print_field( _workv[level+1] );
+#ifdef DEBUG_MGSOLVER
+	    std::cout << "defect (level = " << level+1 << "):\n";
+	    print_field( _workv[level+1] );
+#endif
 
 	    // Restrict solution approximation
 	    //std::cout << "  Restricing solution from level " << level << " to level " << level+1 << "\n";
@@ -701,15 +717,19 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 	    // Store solution
 	    (*_work2v[level+1]) = (*_epotv[level+1]);
 
-	    //std::cout << "solution (level = " << level+1 << "):\n";
-	    //print_field( _epotv[level+1] );
+#ifdef DEBUG_MGSOLVER
+	    std::cout << "solution (level = " << level+1 << "):\n";
+	    print_field( _epotv[level+1] );
+#endif
 
 	    // Calculate defect
 	    //std::cout << "  Calculating right hand side for level " << level+1 << "\n";
 	    _epotsolverv[level+1]->defect( _rhsv[level+1], _epotv[level+1], _workv[level+1] );
 
-	    //std::cout << "rhs (level = " << level+1 << "):\n";
-	    //print_field( _rhsv[level+1] );
+#ifdef DEBUG_MGSOLVER
+	    std::cout << "rhs (level = " << level+1 << "):\n";
+	    print_field( _rhsv[level+1] );
+#endif
 	}
 
 	// Recurse to next level to solve for correction V (epot)
@@ -718,8 +738,10 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 	
 	if( linear() ) {
 
-	    //std::cout << "correction (level = " << level+1 << "):\n";
-	    //print_field( _epotv[level+1] );
+#ifdef DEBUG_MGSOLVER
+	    std::cout << "correction (level = " << level+1 << "):\n";
+	    print_field( _epotv[level+1] );
+#endif
 
 	    // Prolong correction (epot) to work field
 	    //std::cout << "  Prolonging correction from level " << level+1 << " to level " << level << "\n";
@@ -727,36 +749,46 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 	    
 	} else {
 
-	    //std::cout << "refined solution (level = " << level+1 << "):\n";
-	    //print_field( _epotv[level+1] );
+#ifdef DEBUG_MGSOLVER
+	    std::cout << "refined solution (level = " << level+1 << "):\n";
+	    print_field( _epotv[level+1] );
+#endif
 
 	    // Compute correction
 	    (*_workv[level+1]) = (*_epotv[level+1]);
 	    (*_workv[level+1]) -= (*_work2v[level+1]);
 
-	    //std::cout << "correction (level = " << level+1 << "):\n";
-	    //print_field( _workv[level+1] );
+#ifdef DEBUG_MGSOLVER
+	    std::cout << "correction (level = " << level+1 << "):\n";
+	    print_field( _workv[level+1] );
+#endif
 
 	    //std::cout << "  Prolonging correction from level " << level+1 << " to level " << level << "\n";
 	    prolong( _workv[level], _workv[level+1] );
 	}
 
-	//std::cout << "correction (level = " << level << "):\n";
-	//print_field( _workv[level] );
+#ifdef DEBUG_MGSOLVER
+	std::cout << "correction (level = " << level << "):\n";
+	print_field( _workv[level] );
+#endif
 
 	// Make correction Xnew=X+V
 	//std::cout << "  Calculating correction for level " << level << "\n";
 	correct( _geomv[level], _epotv[level], _workv[level] );
 
-	//std::cout << "epot (level = " << level << "):\n";
-	//print_field( _epotv[level] );
+#ifdef DEBUG_MGSOLVER
+	std::cout << "epot (level = " << level << "):\n";
+	print_field( _epotv[level] );
+#endif
 
 	// Post smoothing
 	for( uint32_t a = 0; a < _npost; a++ )
 	    _res = _res_coef * _epotsolverv[level]->mg_smooth( _epotv[level], _rhsv[level] );
 
-	//std::cout << "epot (level = " << level << ") post smoothed:\n";
-	//print_field( _epotv[level] );
+#ifdef DEBUG_MGSOLVER
+	std::cout << "epot (level = " << level << ") post smoothed:\n";
+	print_field( _epotv[level] );
+#endif
 
 	if( ibsimu.get_verbose_output() ) {
 	    for( uint32_t b = 0; b < level; b++ )

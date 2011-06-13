@@ -37,7 +37,7 @@ void test( int argc, char **argv )
     EpotMGSolver solver( geom );
     MeshScalarField epot( geom );
     solver.set_levels( 2 );
-    solver.set_ncyc( 1 );
+    solver.set_gamma( 1 );
     solver.solve( epot, scharge );
     
     EpotGSSolver solver2( geom );
