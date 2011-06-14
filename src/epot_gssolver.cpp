@@ -151,7 +151,7 @@ double EpotGSSolver::gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, uin
 	alpha = *ptr/255.0;
 	ptr++;
     }
-
+    
     // Zmax direction
     beta = 1.0;
     if( sflag & 0x20 ) {

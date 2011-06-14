@@ -358,6 +358,566 @@ void EpotMGSolver::postprocess( void )
 }
 
 
+void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in, bool defect )
+{
+    // Go through internal nodes of rougher level (out)
+    int32_t s = out->size(0)-1;
+    int32_t t = out->size(1)-1;
+    int32_t u = out->size(2)-1;
+    for( int32_t k = 1; k < u; k++ ) {
+	for( int32_t j = 1; j < t; j++ ) {
+	    for( int32_t i = 1; i < s; i++ ) {
+
+		int32_t ii = 2*i;
+		int32_t jj = 2*j;
+		int32_t kk = 2*k;
+		double D = 
+		    1.0/64.0*(*in)( ii-1, jj-1, kk-1 ) + 
+		    1.0/32.0*(*in)( ii,   jj-1, kk-1 ) + 
+		    1.0/64.0*(*in)( ii+1, jj-1, kk-1 ) + 
+		    
+		    1.0/32.0*(*in)( ii-1, jj,   kk-1 ) + 
+		    1.0/16.0*(*in)( ii,   jj,   kk-1 ) + 
+		    1.0/32.0*(*in)( ii+1, jj,   kk-1 ) + 
+		    
+		    1.0/64.0*(*in)( ii-1, jj+1, kk-1 ) + 
+		    1.0/32.0*(*in)( ii,   jj+1, kk-1 ) + 
+		    1.0/64.0*(*in)( ii+1, jj+1, kk-1 ) + 
+
+		    //
+		    
+		    1.0/32.0*(*in)( ii-1, jj-1, kk   ) + 
+		    1.0/16.0*(*in)( ii,   jj-1, kk   ) + 
+		    1.0/32.0*(*in)( ii+1, jj-1, kk   ) + 
+		    
+		    1.0/16.0*(*in)( ii-1, jj,   kk   ) + 
+		    1.0/8.0 *(*in)( ii,   jj,   kk   ) + 
+		    1.0/16.0*(*in)( ii+1, jj,   kk   ) + 
+		    
+		    1.0/32.0*(*in)( ii-1, jj+1, kk   ) + 
+		    1.0/16.0*(*in)( ii,   jj+1, kk   ) + 
+		    1.0/32.0*(*in)( ii+1, jj+1, kk   ) + 
+
+		    //
+
+		    1.0/64.0*(*in)( ii-1, jj-1, kk+1 ) + 
+		    1.0/32.0*(*in)( ii,   jj-1, kk+1 ) + 
+		    1.0/64.0*(*in)( ii+1, jj-1, kk+1 ) + 
+		    
+		    1.0/32.0*(*in)( ii-1, jj,   kk+1 ) + 
+		    1.0/16.0*(*in)( ii,   jj,   kk+1 ) + 
+		    1.0/32.0*(*in)( ii+1, jj,   kk+1 ) + 
+		    
+		    1.0/64.0*(*in)( ii-1, jj+1, kk+1 ) + 
+		    1.0/32.0*(*in)( ii,   jj+1, kk+1 ) + 
+		    1.0/64.0*(*in)( ii+1, jj+1, kk+1 );
+		
+		if( defect )
+		    (*out)(i,j,k) = 4.0*D;
+		else
+		    (*out)(i,j,k) = D;
+	    }
+	}
+    }
+
+    double cof = 1.0;
+    if( _neumann_order == 1 && defect )
+	cof = 2.0;
+
+    // FACES
+
+    // i=0 boundary nodes of level+1
+    for( int32_t k = 1; k < u; k++ ) {
+	for( int32_t j = 1; j < t; j++ ) {
+
+	int32_t i = 0;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/16.0*(*in)( ii,   jj-1, kk-1 ) + 
+	    1.0/8.0 *(*in)( ii,   jj,   kk-1 ) + 
+	    1.0/16.0*(*in)( ii,   jj+1, kk-1 ) + 
+
+	    1.0/8.0 *(*in)( ii,   jj-1, kk   ) + 
+	    1.0/4.0 *(*in)( ii,   jj,   kk   ) + 
+	    1.0/8.0 *(*in)( ii,   jj+1, kk   ) + 
+
+	    1.0/16.0*(*in)( ii,   jj-1, kk+1 ) + 
+	    1.0/8.0 *(*in)( ii,   jj,   kk+1 ) + 
+	    1.0/16.0*(*in)( ii,   jj+1, kk+1 );
+	
+	(*out)(i,j,k) = cof*D;
+	}
+    }
+
+    // i=size(0)-1 boundary nodes of level+1
+    for( int32_t k = 1; k < u; k++ ) {
+	for( int32_t j = 1; j < t; j++ ) {
+
+	int32_t i = s;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/16.0*(*in)( ii,   jj-1, kk-1 ) + 
+	    1.0/8.0 *(*in)( ii,   jj,   kk-1 ) + 
+	    1.0/16.0*(*in)( ii,   jj+1, kk-1 ) + 
+
+	    1.0/8.0 *(*in)( ii,   jj-1, kk   ) + 
+	    1.0/4.0 *(*in)( ii,   jj,   kk   ) + 
+	    1.0/8.0 *(*in)( ii,   jj+1, kk   ) + 
+
+	    1.0/16.0*(*in)( ii,   jj-1, kk+1 ) + 
+	    1.0/8.0 *(*in)( ii,   jj,   kk+1 ) + 
+	    1.0/16.0*(*in)( ii,   jj+1, kk+1 );
+	
+	(*out)(i,j,k) = cof*D;
+	}
+    }
+
+    // j=0 boundary nodes of level+1
+    for( int32_t k = 1; k < u; k++ ) {
+	for( int32_t i = 1; i < s; i++ ) {
+
+	int32_t j = 0;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/16.0*(*in)( ii-1, jj,   kk-1 ) + 
+	    1.0/8.0 *(*in)( ii,   jj,   kk-1 ) + 
+	    1.0/16.0*(*in)( ii+1, jj,   kk-1 ) + 
+
+	    1.0/8.0 *(*in)( ii-1, jj,   kk   ) + 
+	    1.0/4.0 *(*in)( ii,   jj,   kk   ) + 
+	    1.0/8.0 *(*in)( ii+1, jj,   kk   ) + 
+
+	    1.0/16.0*(*in)( ii-1, jj,   kk+1 ) + 
+	    1.0/8.0 *(*in)( ii,   jj,   kk+1 ) + 
+	    1.0/16.0*(*in)( ii+1, jj,   kk+1 );
+	
+	(*out)(i,j,k) = cof*D;
+	}
+    }
+
+    // j=size(1)-1 boundary nodes of level+1
+    for( int32_t k = 1; k < u; k++ ) {
+	for( int32_t i = 1; i < s; i++ ) {
+
+	int32_t j = t;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/16.0*(*in)( ii-1, jj,   kk-1 ) + 
+	    1.0/8.0 *(*in)( ii,   jj,   kk-1 ) + 
+	    1.0/16.0*(*in)( ii+1, jj,   kk-1 ) + 
+
+	    1.0/8.0 *(*in)( ii-1, jj,   kk   ) + 
+	    1.0/4.0 *(*in)( ii,   jj,   kk   ) + 
+	    1.0/8.0 *(*in)( ii+1, jj,   kk   ) + 
+
+	    1.0/16.0*(*in)( ii-1, jj,   kk+1 ) + 
+	    1.0/8.0 *(*in)( ii,   jj,   kk+1 ) + 
+	    1.0/16.0*(*in)( ii+1, jj,   kk+1 );
+	
+	(*out)(i,j,k) = cof*D;
+	}
+    }
+
+    // k=0 boundary nodes of level+1
+    for( int32_t j = 1; j < t; j++ ) {
+	for( int32_t i = 1; i < s; i++ ) {
+
+	int32_t k = 0;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/16.0*(*in)( ii-1, jj-1, kk   ) + 
+	    1.0/8.0 *(*in)( ii,   jj-1, kk   ) + 
+	    1.0/16.0*(*in)( ii+1, jj-1, kk   ) + 
+
+	    1.0/8.0 *(*in)( ii-1, jj,   kk   ) + 
+	    1.0/4.0 *(*in)( ii,   jj,   kk   ) + 
+	    1.0/8.0 *(*in)( ii+1, jj,   kk   ) + 
+
+	    1.0/16.0*(*in)( ii-1, jj+1, kk   ) + 
+	    1.0/8.0 *(*in)( ii,   jj+1, kk   ) + 
+	    1.0/16.0*(*in)( ii+1, jj+1, kk   );
+	
+	(*out)(i,j,k) = cof*D;
+	}
+    }
+
+    // k=size(2)-1 boundary nodes of level+1
+    for( int32_t j = 1; j < t; j++ ) {
+	for( int32_t i = 1; i < s; i++ ) {
+
+	int32_t k = u;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/16.0*(*in)( ii-1, jj-1, kk   ) + 
+	    1.0/8.0 *(*in)( ii,   jj-1, kk   ) + 
+	    1.0/16.0*(*in)( ii+1, jj-1, kk   ) + 
+
+	    1.0/8.0 *(*in)( ii-1, jj,   kk   ) + 
+	    1.0/4.0 *(*in)( ii,   jj,   kk   ) + 
+	    1.0/8.0 *(*in)( ii+1, jj,   kk   ) + 
+
+	    1.0/16.0*(*in)( ii-1, jj+1, kk   ) + 
+	    1.0/8.0 *(*in)( ii,   jj+1, kk   ) + 
+	    1.0/16.0*(*in)( ii+1, jj+1, kk   );
+	
+	(*out)(i,j,k) = cof*D;
+	}
+    }
+
+    // EDGES
+
+    // i = 0, j = 0
+    for( int32_t k = 1; k < u; k++ ) {
+
+	int32_t i = 0;
+	int32_t j = 0;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/4.0*(*in)( ii,   jj,   kk-1 ) + 
+	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
+	    1.0/4.0*(*in)( ii,   jj,   kk+1 );
+	
+	(*out)(i,j,k) = cof*D;
+    }
+
+    // i = 0, j = t
+    for( int32_t k = 1; k < u; k++ ) {
+
+	int32_t i = 0;
+	int32_t j = t;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/4.0*(*in)( ii,   jj,   kk-1 ) + 
+	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
+	    1.0/4.0*(*in)( ii,   jj,   kk+1 );
+	
+	(*out)(i,j,k) = cof*D;
+    }
+
+    // i = s, j = 0
+    for( int32_t k = 1; k < u; k++ ) {
+
+	int32_t i = s;
+	int32_t j = 0;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/4.0*(*in)( ii,   jj,   kk-1 ) + 
+	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
+	    1.0/4.0*(*in)( ii,   jj,   kk+1 );
+	
+	(*out)(i,j,k) = cof*D;
+    }
+
+    // i = s, j = t
+    for( int32_t k = 1; k < u; k++ ) {
+
+	int32_t i = s;
+	int32_t j = t;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/4.0*(*in)( ii,   jj,   kk-1 ) + 
+	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
+	    1.0/4.0*(*in)( ii,   jj,   kk+1 );
+	
+	(*out)(i,j,k) = cof*D;
+    }
+
+    // i = 0, k = 0
+    for( int32_t j = 1; j < t; j++ ) {
+
+	int32_t i = 0;
+	int32_t k = 0;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/4.0*(*in)( ii,   jj-1, kk   ) + 
+	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
+	    1.0/4.0*(*in)( ii,   jj+1, kk   );
+	
+	(*out)(i,j,k) = cof*D;
+    }
+
+    // i = 0, k = u
+    for( int32_t j = 1; j < t; j++ ) {
+
+	int32_t i = 0;
+	int32_t k = u;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/4.0*(*in)( ii,   jj-1, kk   ) + 
+	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
+	    1.0/4.0*(*in)( ii,   jj+1, kk   );
+	
+	(*out)(i,j,k) = cof*D;
+    }
+
+    // i = s, k = 0
+    for( int32_t j = 1; j < t; j++ ) {
+
+	int32_t i = s;
+	int32_t k = 0;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/4.0*(*in)( ii,   jj-1, kk   ) + 
+	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
+	    1.0/4.0*(*in)( ii,   jj+1, kk   );
+	
+	(*out)(i,j,k) = cof*D;
+    }
+
+    // i = s, k = u
+    for( int32_t j = 1; j < t; j++ ) {
+
+	int32_t i = s;
+	int32_t k = u;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/4.0*(*in)( ii,   jj-1, kk   ) + 
+	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
+	    1.0/4.0*(*in)( ii,   jj+1, kk   );
+	
+	(*out)(i,j,k) = cof*D;
+    }
+
+    // j = 0, k = 0
+    for( int32_t i = 1; i < s; i++ ) {
+
+	int32_t j = 0;
+	int32_t k = 0;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/4.0*(*in)( ii-1, jj,   kk   ) + 
+	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
+	    1.0/4.0*(*in)( ii+1, jj,   kk   );
+	
+	(*out)(i,j,k) = cof*D;
+    }
+
+    // j = 0, k = u
+    for( int32_t i = 1; i < s; i++ ) {
+
+	int32_t j = 0;
+	int32_t k = u;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/4.0*(*in)( ii-1, jj,   kk   ) + 
+	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
+	    1.0/4.0*(*in)( ii+1, jj,   kk   );
+	
+	(*out)(i,j,k) = cof*D;
+    }
+
+    // j = t, k = 0
+    for( int32_t i = 1; i < s; i++ ) {
+
+	int32_t j = t;
+	int32_t k = 0;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/4.0*(*in)( ii-1, jj,   kk   ) + 
+	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
+	    1.0/4.0*(*in)( ii+1, jj,   kk   );
+	
+	(*out)(i,j,k) = cof*D;
+    }
+
+    // j = t, k = u
+    for( int32_t i = 1; i < s; i++ ) {
+
+	int32_t j = t;
+	int32_t k = u;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	int32_t kk = 2*k;
+	double D = 
+	    1.0/4.0*(*in)( ii-1, jj,   kk   ) + 
+	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
+	    1.0/4.0*(*in)( ii+1, jj,   kk   );
+	
+	(*out)(i,j,k) = cof*D;
+    }
+
+    // CORNERS
+
+    int32_t i = 0;
+    int32_t j = 0;
+    int32_t k = 0;
+    double D = (*in)( 2*i, 2*j, 2*k );
+    (*out)(i,j,k) = cof*D;
+
+    i = s;
+    D = (*in)( 2*i, 2*j, 2*k );
+    (*out)(i,j,k) = cof*D;
+
+    j = t;
+    D = (*in)( 2*i, 2*j, 2*k );
+    (*out)(i,j,k) = cof*D;
+
+    i = 0;
+    D = (*in)( 2*i, 2*j, 2*k );
+    (*out)(i,j,k) = cof*D;
+
+    k = u;
+    D = (*in)( 2*i, 2*j, 2*k );
+    (*out)(i,j,k) = cof*D;
+
+    i = s;
+    D = (*in)( 2*i, 2*j, 2*k );
+    (*out)(i,j,k) = cof*D;
+
+    j = 0;
+    D = (*in)( 2*i, 2*j, 2*k );
+    (*out)(i,j,k) = cof*D;
+
+    i = 0;
+    D = (*in)( 2*i, 2*j, 2*k );
+    (*out)(i,j,k) = cof*D;
+}
+
+
+void EpotMGSolver::restrict_cyl( MeshScalarField *out, const MeshScalarField *in, bool defect )
+{
+    // Go through internal nodes of rougher level (out)
+    int32_t s = out->size(0)-1;
+    int32_t t = out->size(1)-1;
+    for( int32_t j = 1; j < t; j++ ) {
+        for( int32_t i = 1; i < s; i++ ) {
+
+	    int32_t ii = 2*i;
+	    int32_t jj = 2*j;
+	    double D = 
+		1.0/16.0*(*in)( ii-1, jj-1 ) + 
+		1.0/8.0 *(*in)( ii-1, jj   ) + 
+		1.0/16.0*(*in)( ii-1, jj+1 ) + 
+
+		1.0/8.0 *(*in)( ii,   jj-1 ) + 
+		1.0/4.0 *(*in)( ii,   jj   ) + 
+		1.0/8.0 *(*in)( ii,   jj+1 ) + 
+
+		1.0/16.0*(*in)( ii+1, jj-1 ) + 
+		1.0/8.0 *(*in)( ii+1, jj   ) + 
+		1.0/16.0*(*in)( ii+1, jj+1 );
+
+	    if( defect )
+		(*out)(i,j) = 4.0*D;
+	    else
+		(*out)(i,j) = D;
+	}
+    }
+
+    double cof = 1.0;
+    if( _neumann_order == 1 && defect )
+	cof = 2.0;
+
+    // i=0 boundary nodes of level+1
+    for( int32_t j = 1; j < t; j++ ) {
+
+	int32_t i = 0;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	double D = 
+	    1.0/4.0*(*in)( ii, jj-1 ) + 
+	    1.0/2.0*(*in)( ii, jj   ) + 
+	    1.0/4.0*(*in)( ii, jj+1 );
+	
+	(*out)(i,j) = cof*D;
+    }
+
+    // i=size(0)-1 boundary nodes of level+1
+    for( int32_t j = 1; j < t; j++ ) {
+
+	int32_t i = s;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	double D = 
+	    1.0/4.0*(*in)( ii, jj-1 ) + 
+	    1.0/2.0*(*in)( ii, jj   ) + 
+	    1.0/4.0*(*in)( ii, jj+1 );
+	
+	(*out)(i,j) = cof*D;
+    }
+
+    // j=0 boundary nodes of level+1 (axis)
+    for( int32_t i = 1; i < s; i++ ) {
+
+	int32_t j = 0;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	double D = 
+	    1.0/4.0*(*in)( ii-1, jj ) + 
+	    1.0/2.0*(*in)( ii,   jj ) + 
+	    1.0/4.0*(*in)( ii+1, jj );
+	
+	(*out)(i,j) = cof*D;
+    }
+
+    // j=size(1)-1 boundary nodes of level+1
+    for( int32_t i = 1; i < s; i++ ) {
+
+	int32_t j = t;
+	int32_t ii = 2*i;
+	int32_t jj = 2*j;
+	double D = 
+	    1.0/4.0*(*in)( ii-1, jj ) + 
+	    1.0/2.0*(*in)( ii,   jj ) + 
+	    1.0/4.0*(*in)( ii+1, jj );
+	
+	(*out)(i,j) = cof*D;
+    }
+
+    // And corners
+    int32_t i = 0;
+    int32_t j = 0;
+    double D = (*in)( 2*i, 2*j );
+    (*out)(i,j) = cof*D;
+
+    i = s;
+    D = (*in)( 2*i, 2*j );
+    (*out)(i,j) = cof*D;
+
+    j = t;
+    D = (*in)( 2*i, 2*j );
+    (*out)(i,j) = cof*D;
+
+    i = 0;
+    D = (*in)( 2*i, 2*j );
+    (*out)(i,j) = cof*D;
+}
+
+
 void EpotMGSolver::restrict_2d( MeshScalarField *out, const MeshScalarField *in, bool defect )
 {
     // Go through internal nodes of rougher level (out)
@@ -506,9 +1066,125 @@ void EpotMGSolver::restrict( MeshScalarField *out, const MeshScalarField *in, bo
     case MODE_2D:
 	restrict_2d( out, in, defect );
 	break;
+    case MODE_CYL:
+	restrict_cyl( out, in, defect );
+	break;
+    case MODE_3D:
+	restrict_3d( out, in, defect );
+	break;
     default:
 	break;
     }
+}
+
+
+void EpotMGSolver::prolong_add_3d( MeshScalarField *out, int32_t i, int32_t j, int32_t k, double C )
+{
+    if( i >= 0 && i < (int32_t)out->size(0) &&
+	j >= 0 && j < (int32_t)out->size(1) &&
+	k >= 0 && k < (int32_t)out->size(2) )
+	(*out)(i,j,k) += C;
+}
+
+
+void EpotMGSolver::prolong_3d( MeshScalarField *out, const MeshScalarField *in )
+{
+    // Clear output field
+    out->clear();
+
+    // Loop through all input nodes
+    int32_t s = in->size(0);
+    int32_t t = in->size(1);
+    int32_t u = in->size(2);
+    for( int32_t k = 0; k < u; k++ ) {
+	for( int32_t j = 0; j < t; j++ ) {
+	    for( int32_t i = 0; i < s; i++ ) {
+
+		int32_t ii = 2*i;
+		int32_t jj = 2*j;
+		int32_t kk = 2*k;
+		double C = (*in)(i,j,k);
+
+		prolong_add_3d( out, ii-1, jj-1, kk-1, 1.0/8.0*C );
+		prolong_add_3d( out, ii  , jj-1, kk-1, 1.0/4.0*C );
+		prolong_add_3d( out, ii+1, jj-1, kk-1, 1.0/8.0*C );
+
+		prolong_add_3d( out, ii-1, jj,   kk-1, 1.0/4.0*C );
+		prolong_add_3d( out, ii,   jj,   kk-1, 1.0/2.0*C );
+		prolong_add_3d( out, ii+1, jj,   kk-1, 1.0/4.0*C );
+
+		prolong_add_3d( out, ii-1, jj+1, kk-1, 1.0/8.0*C );
+		prolong_add_3d( out, ii,   jj+1, kk-1, 1.0/4.0*C );
+		prolong_add_3d( out, ii+1, jj+1, kk-1, 1.0/8.0*C );
+
+		//
+
+		prolong_add_3d( out, ii-1, jj-1, kk,   1.0/4.0*C );
+		prolong_add_3d( out, ii  , jj-1, kk,   1.0/2.0*C );
+		prolong_add_3d( out, ii+1, jj-1, kk,   1.0/4.0*C );
+
+		prolong_add_3d( out, ii-1, jj,   kk,   1.0/2.0*C );
+		prolong_add_3d( out, ii,   jj,   kk,   1.0*C );
+		prolong_add_3d( out, ii+1, jj,   kk,   1.0/2.0*C );
+
+		prolong_add_3d( out, ii-1, jj+1, kk,   1.0/4.0*C );
+		prolong_add_3d( out, ii,   jj+1, kk,   1.0/2.0*C );
+		prolong_add_3d( out, ii+1, jj+1, kk,   1.0/4.0*C );
+		
+		//
+
+		prolong_add_3d( out, ii-1, jj-1, kk+1, 1.0/8.0*C );
+		prolong_add_3d( out, ii  , jj-1, kk+1, 1.0/4.0*C );
+		prolong_add_3d( out, ii+1, jj-1, kk+1, 1.0/8.0*C );
+
+		prolong_add_3d( out, ii-1, jj,   kk+1, 1.0/4.0*C );
+		prolong_add_3d( out, ii,   jj,   kk+1, 1.0/2.0*C );
+		prolong_add_3d( out, ii+1, jj,   kk+1, 1.0/4.0*C );
+
+		prolong_add_3d( out, ii-1, jj+1, kk+1, 1.0/8.0*C );
+		prolong_add_3d( out, ii,   jj+1, kk+1, 1.0/4.0*C );
+		prolong_add_3d( out, ii+1, jj+1, kk+1, 1.0/8.0*C );
+	    }
+	}
+    }    
+}
+
+
+void EpotMGSolver::prolong_add_cyl( MeshScalarField *out, int32_t i, int32_t j, double C )
+{
+    if( i >= 0 && i < (int32_t)out->size(0) &&
+	j >= 0 && j < (int32_t)out->size(1) )
+	(*out)(i,j) += C;
+}
+
+
+void EpotMGSolver::prolong_cyl( MeshScalarField *out, const MeshScalarField *in )
+{
+    // Clear output field
+    out->clear();
+
+    // Loop through all input nodes
+    int32_t s = in->size(0);
+    int32_t t = in->size(1);
+    for( int32_t j = 0; j < t; j++ ) {
+	for( int32_t i = 0; i < s; i++ ) {
+
+	    int32_t ii = 2*i;
+	    int32_t jj = 2*j;
+	    double C = (*in)(i,j);
+	    prolong_add_cyl( out, ii-1, jj-1, 1.0/4.0*C );
+	    prolong_add_cyl( out, ii-1, jj,   1.0/2.0*C );
+	    prolong_add_cyl( out, ii-1, jj+1, 1.0/4.0*C );
+
+	    prolong_add_cyl( out, ii,   jj-1, 1.0/2.0*C );
+	    prolong_add_cyl( out, ii,   jj,   1.0*C );
+	    prolong_add_cyl( out, ii,   jj+1, 1.0/2.0*C );
+
+	    prolong_add_cyl( out, ii+1, jj-1, 1.0/4.0*C );
+	    prolong_add_cyl( out, ii+1, jj,   1.0/2.0*C );
+	    prolong_add_cyl( out, ii+1, jj+1, 1.0/4.0*C );
+	}
+    }    
 }
 
 
@@ -584,10 +1260,17 @@ void EpotMGSolver::prolong( MeshScalarField *out, const MeshScalarField *in )
     case MODE_2D:
 	prolong_2d( out, in );
 	break;
+    case MODE_CYL:
+	prolong_cyl( out, in );
+	break;
+    case MODE_3D:
+	prolong_3d( out, in );
+	break;
     default:
 	break;
     }
 }
+
 
 // Make correction Xnew=X+V
 void EpotMGSolver::correct( const Geometry *geom, MeshScalarField *sol, const MeshScalarField *corr )
@@ -595,11 +1278,14 @@ void EpotMGSolver::correct( const Geometry *geom, MeshScalarField *sol, const Me
     // Loop through all nodes, only correct non-fixed nodes
     int32_t s = geom->size(0);
     int32_t t = geom->size(1);
-    for( int32_t j = 0; j < t; j++ ) {
-	for( int32_t i = 0; i < s; i++ ) {
+    int32_t u = geom->size(2);
+    for( int32_t k = 0; k < u; k++ ) {
+	for( int32_t j = 0; j < t; j++ ) {
+	    for( int32_t i = 0; i < s; i++ ) {
 
-	    if( !(geom->mesh(i,j) & SMESH_NODE_FIXED) )
-		(*sol)(i,j) += (*corr)(i,j);
+		if( !(geom->mesh(i,j,k) & SMESH_NODE_FIXED) )
+		    (*sol)(i,j,k) += (*corr)(i,j,k);
+	    }
 	}
     }
 }

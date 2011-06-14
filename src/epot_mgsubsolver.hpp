@@ -85,9 +85,37 @@ class EpotMGSubSolver : public EpotSolver {
 
     void   defect_2d( void ) const;
     double defect_near_solid_2d( const uint8_t *nearsolid_ptr, 
-				     uint32_t a, uint32_t dj ) const;
+				 uint32_t a, uint32_t dj ) const;
     double defect_pure_vacuum_2d( uint32_t a, uint32_t dj ) const;
     double defect_neumann_2d( uint32_t boundary, uint32_t a, uint32_t dj ) const;
+
+    // CYL
+    double rbgs_loop_cyl( void ) const;
+    double sor_loop_cyl( double w ) const;
+    double gs_process_near_solid_cyl( const uint8_t *nearsolid_ptr, 
+				     uint32_t i, uint32_t j ) const;
+    double gs_process_pure_vacuum_cyl( uint32_t i, uint32_t j ) const;
+    double gs_process_neumann_cyl( uint32_t boundary, uint32_t a, uint32_t dj ) const;
+
+    void   defect_cyl( void ) const;
+    double defect_near_solid_cyl( const uint8_t *nearsolid_ptr, 
+				  uint32_t i, uint32_t j ) const;
+    double defect_pure_vacuum_cyl( uint32_t i, uint32_t j ) const;
+    double defect_neumann_cyl( uint32_t boundary, uint32_t a, uint32_t dj ) const;
+
+    // 3D
+    double rbgs_loop_3d( void ) const;
+    double sor_loop_3d( double w ) const;
+    double gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, 
+				     uint32_t a, uint32_t dj, uint32_t dk ) const;
+    double gs_process_pure_vacuum_3d( uint32_t a, uint32_t dj, uint32_t dk ) const;
+    double gs_process_neumann_3d( uint32_t boundary, uint32_t a, uint32_t dj, uint32_t dk ) const;
+
+    void   defect_3d( void ) const;
+    double defect_near_solid_3d( const uint8_t *nearsolid_ptr, 
+				 uint32_t a, uint32_t dj, uint32_t dk ) const;
+    double defect_pure_vacuum_3d( uint32_t a, uint32_t dj, uint32_t dk ) const;
+    double defect_neumann_3d( uint32_t boundary, uint32_t a, uint32_t dj, uint32_t dk ) const;
 
 public:
 

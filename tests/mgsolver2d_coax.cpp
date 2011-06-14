@@ -12,7 +12,6 @@
 #include "epot_mgsolver.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
-#include "epot_field.hpp"
 #include "epot_efield.hpp"
 #include "gtkplotter.hpp"
 #include "error.hpp"
@@ -56,7 +55,7 @@ void compare_to_analytic( const std::string &fieldname, const EpotField &epot )
     for( uint32_t i = 0; i < epot.size(0); i++ ) {
 	for( uint32_t j = 0; j < epot.size(1); j++ ) {
 	    double x = epot.origo(0)+i*epot.h();
-	    double y = epot.origo(0)+j*epot.h();
+	    double y = epot.origo(1)+j*epot.h();
 	    double r = sqrt(x*x + y*y);
 	    if( r > 0.021 && r < 0.07 ) {
 	        double dif = fabs( epot(i,j) - phi(r) );

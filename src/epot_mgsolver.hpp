@@ -81,15 +81,21 @@ class EpotMGSolver : public EpotSolver {
     void preprocess( MeshScalarField &epot, const MeshScalarField &scharge );
     void postprocess( void );
 
+    void prolong_add_3d( MeshScalarField *out, int32_t i, int32_t j, int32_t k, double C );
+    void prolong_add_cyl( MeshScalarField *out, int32_t i, int32_t j, double C );
     void prolong_add_2d( MeshScalarField *out, int32_t i, int32_t j, double C );
     void prolong_add_1d( MeshScalarField *out, int32_t i, double C );
 
     void correct( const Geometry *geom, MeshScalarField *sol, const MeshScalarField *corr );
 
+    void restrict_3d( MeshScalarField *out, const MeshScalarField *in, bool defect );
+    void restrict_cyl( MeshScalarField *out, const MeshScalarField *in, bool defect );
     void restrict_2d( MeshScalarField *out, const MeshScalarField *in, bool defect );
     void restrict_1d( MeshScalarField *out, const MeshScalarField *in, bool defect );
     void restrict( MeshScalarField *out, const MeshScalarField *in, bool defect );
 
+    void prolong_3d( MeshScalarField *out, const MeshScalarField *in );
+    void prolong_cyl( MeshScalarField *out, const MeshScalarField *in );
     void prolong_2d( MeshScalarField *out, const MeshScalarField *in );
     void prolong_1d( MeshScalarField *out, const MeshScalarField *in );
     void prolong( MeshScalarField *out, const MeshScalarField *in );
@@ -144,7 +150,7 @@ public:
 
     /*! \brief Sets maximum number of multigrid cycles to take.
      *
-     *  Defaults to 10. Multigrid cycles are done until the
+     *  Defaults to 100. Multigrid cycles are done until the
      *  residual error is less than \a mgeps or \a mgcyc cycles have
      *  been made. 
      */
