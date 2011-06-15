@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iomanip>
 #include "epot_gssolver.hpp"
+#include "epot_mgsolver.hpp"
 #include "epot_bicgstabsolver.hpp"
 #include "particledatabase.hpp"
 #include "geometry.hpp"
@@ -47,7 +48,7 @@ bool solid2( double x, double y, double z )
 
 void test( int argc, char **argv )
 {
-    Geometry geom( MODE_3D, Int3D(121,71,71), Vec3D(0,0,0), 0.0001 );
+    Geometry geom( MODE_3D, Int3D(121,73,73), Vec3D(0,0,0), 0.0001 );
 
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
@@ -63,8 +64,9 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, -8.0e3) );
     geom.build_mesh();
 
-    //EpotGSSolver solver( geom );
-    EpotBiCGSTABSolver solver( geom );
+    EpotMGSolver solver( geom );
+    solver.set_levels( 4 );
+    //EpotBiCGSTABSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_initial_plasma( 5.0, &initp );
 
@@ -78,16 +80,18 @@ void test( int argc, char **argv )
     efield.set_extrapolation( efldextrpl );
 
     ParticleDataBase3D pdb;
-    bool pmirror[6] = { false, false, true, false, false, false };
+    bool pmirror[6] = { false, false, true, false, true, false };
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
 
-    Convergence conv;
-    conv.add_epot( epot, 1, 1, 1.0e-6 );
-    conv.add_scharge( scharge, 1, 1, 1.0e-6 );
-    conv.add_tdiag( pdb, AXIS_X, 11.9e-3, 1, 1, 1.0e-6 );
+    Emittance emit;
 
-    for( size_t i = 0; i < 8; i++ ) {
+    Convergence conv;
+    conv.add_epot( epot );
+    conv.add_scharge( scharge );
+    conv.add_emittance( 0, emit );
+	
+    for( size_t i = 0; i < 30; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
@@ -107,9 +111,12 @@ void test( int argc, char **argv )
 					      Vec3D(0,0,1), 0.001 );
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
+	ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 0.0119, PARTICLE_DIAG_PLOT_SCATTER,
+				      DIAG_Y, DIAG_YP );
+	emit = pplotter.calculate_emittance();
 	conv.evaluate_iteration();
 
-	if( true ) {
+	if( false ) {
 	    MeshScalarField tdens( geom );
 	    pdb.build_trajectory_density_field( tdens );
 	    GTKPlotter plotter( &argc, &argv );
@@ -133,6 +140,7 @@ void test( int argc, char **argv )
 
     GeomPlotter gplotter( &geom );
     gplotter.set_size( 1024, 768 );
+    gplotter.set_view( VIEW_XY, 0 );
     gplotter.set_epot( &epot );
     std::vector<double> eqlines;
     eqlines.push_back( -4.0 );
@@ -145,6 +153,7 @@ void test( int argc, char **argv )
     gplotter.set_particle_div( 0 );
     gplotter.set_trajdens( &tdens );
     gplotter.set_fieldgraph_plot( FIELD_TRAJDENS );
+    gplotter.set_fieldgraph_logscale( true );
     gplotter.plot_png( "plasma3d.png" );
 }
 

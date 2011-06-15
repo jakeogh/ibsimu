@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iomanip>
 #include "epot_gssolver.hpp"
+#include "epot_mgsolver.hpp"
 #include "particledatabase.hpp"
 #include "geometry.hpp"
 #include "convergence.hpp"
@@ -44,7 +45,7 @@ void test( int argc, char **argv )
 {
     // 12x7 mm geometry with 0.05 mm mesh size
     //Geometry geom( MODE_CYL, Int3D(241,141,1), Vec3D(0,0,0), 0.00005 );
-    Geometry geom( MODE_CYL, Int3D(121,71,1), Vec3D(0,0,0), 0.0001 );
+    Geometry geom( MODE_CYL, Int3D(121,73,1), Vec3D(0,0,0), 0.0001 );
 
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
@@ -58,7 +59,9 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, -8.0e3) );
     geom.build_mesh();
     
-    EpotGSSolver solver( geom );
+    EpotMGSolver solver( geom );
+    solver.set_levels( 2 );
+    //EpotGSSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_initial_plasma( 5.0, &initp );
 
@@ -76,10 +79,12 @@ void test( int argc, char **argv )
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
 
+    Emittance emit1;
+
     Convergence conv;
-    conv.add_epot( epot, 1, 1, 1.0e-6 );
-    conv.add_scharge( scharge, 1, 1, 1.0e-6 );
-    conv.add_tdiag( pdb, AXIS_X, 11.9e-3, 1, 1, 1.0e-6 );
+    conv.add_epot( epot );
+    conv.add_scharge( scharge );
+    conv.add_emittance( 1, emit1 );
 
     for( size_t i = 0; i < 8; i++ ) {
 
@@ -98,6 +103,9 @@ void test( int argc, char **argv )
 				     0.0, 0.0015 );
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
+	ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 0.0119, PARTICLE_DIAG_PLOT_SCATTER,
+				      DIAG_R, DIAG_RP );
+	emit1 = pplotter.calculate_emittance();
 	conv.evaluate_iteration();
 
 	MeshScalarField tdens( geom );
