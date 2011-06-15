@@ -61,6 +61,8 @@ void test( int argc, char **argv )
     
     EpotMGSolver solver( geom );
     solver.set_levels( 2 );
+    solver.set_neumann_order( 1 );
+    solver.set_mgcycmax( 1 );
     //EpotGSSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_initial_plasma( 5.0, &initp );
@@ -79,12 +81,12 @@ void test( int argc, char **argv )
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
 
-    Emittance emit1;
+    Emittance emit;
 
     Convergence conv;
     conv.add_epot( epot );
     conv.add_scharge( scharge );
-    conv.add_emittance( 1, emit1 );
+    conv.add_emittance( 0, emit );
 
     for( size_t i = 0; i < 8; i++ ) {
 
@@ -105,7 +107,7 @@ void test( int argc, char **argv )
 
 	ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 0.0119, PARTICLE_DIAG_PLOT_SCATTER,
 				      DIAG_R, DIAG_RP );
-	emit1 = pplotter.calculate_emittance();
+	emit = pplotter.calculate_emittance();
 	conv.evaluate_iteration();
 
 	MeshScalarField tdens( geom );

@@ -938,7 +938,7 @@ double EpotMGSubSolver::gs_process_neumann_cyl( uint32_t boundary, uint32_t a, u
 	    return( p + ( (*_epot)(a+1) + (*_epot)(a-1) 
 			  + 4.0*(*_epot)(a+dj) - 6.0*p
 			  - (*_rhs)(a) - rhst ) / ( 6.0 + drhst ) );
-	}  else if( _plasma == PLASMA_NSIMP ) {
+	} else if( _plasma == PLASMA_NSIMP ) {
 	    double p = (*_epot)(a);
 	    double rhst, drhst;
 	    nsimp_newton( rhst, drhst, p );
@@ -966,10 +966,10 @@ double EpotMGSubSolver::gs_process_neumann_cyl( uint32_t boundary, uint32_t a, u
 double EpotMGSubSolver::rbgs_loop_cyl( void ) const
 {
     double maxerr = 0.0;
+    const uint32_t dj = _geom.size(0);
 
     // Go through all nodes once using Red-Black ordering
     for( uint32_t rb = 0; rb < 2; rb++ ) {
-	const uint32_t dj = _geom.size(0);
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	    
 	    uint32_t i = j % 2;
@@ -1133,24 +1133,21 @@ double EpotMGSubSolver::defect_pure_vacuum_cyl( uint32_t i, uint32_t j ) const
 	double p = (*_epot)(i,j);
 	double rhst, drhst;
 	pexp_newton( rhst, drhst, p );
-	return( p + ( (*_epot)(i+1,j) + (*_epot)(i-1,j) 
-		      + (1.0+0.5/j)*(*_epot)(i,j+1) 
-		      + (1.0-0.5/j)*(*_epot)(i,j-1) - 4.0*p
-		      - (*_rhs)(i,j) - rhst ) / ( 4.0 + drhst ) );
+	return( (*_epot)(i+1,j) + (*_epot)(i-1,j)
+		+ (1.0+0.5/j)*(*_epot)(i,j+1) + (1.0-0.5/j)*(*_epot)(i,j-1) 
+		- 4.0*p - (*_rhs)(i,j) - rhst );
     } else if( _plasma == PLASMA_NSIMP ) {
 	double p = (*_epot)(i,j);
 	double rhst, drhst;
 	nsimp_newton( rhst, drhst, p );
-	return( p + ( (*_epot)(i+1,j) + (*_epot)(i-1,j) 
-		      + (1.0+0.5/j)*(*_epot)(i,j+1) 
-		      + (1.0-0.5/j)*(*_epot)(i,j-1) - 4.0*p
-		      - (*_rhs)(i,j) - rhst ) / ( 4.0 + drhst ) );
+	return( (*_epot)(i+1,j) + (*_epot)(i-1,j) 
+		+ (1.0+0.5/j)*(*_epot)(i,j+1) + (1.0-0.5/j)*(*_epot)(i,j-1) 
+		- 4.0*p - (*_rhs)(i,j) - rhst );
     }
  
-    return( (1.0/4.0) * ( (*_epot)(i+1,j) + (*_epot)(i-1,j)
-			  + (1.0+0.5/j)*(*_epot)(i,j+1)
-			  + (1.0-0.5/j)*(*_epot)(i,j-1) 
-			  - (*_rhs)(i,j) ) );
+    return( (*_epot)(i+1,j) + (*_epot)(i-1,j)
+	    + (1.0+0.5/j)*(*_epot)(i,j+1) + (1.0-0.5/j)*(*_epot)(i,j-1) 
+	    - 4.0*(*_epot)(i,j) - (*_rhs)(i,j) );
 }
 
 
@@ -1181,15 +1178,16 @@ double EpotMGSubSolver::defect_neumann_cyl( uint32_t boundary, uint32_t a, uint3
             pexp_newton( rhst, drhst, p );
 	    return( (*_epot)(a+1) + (*_epot)(a-1) + 4.0*(*_epot)(a+dj) 
 		    - 6.0*p - (*_rhs)(a) - rhst );
-        }  else if( _plasma == PLASMA_NSIMP ) {
+        } else if( _plasma == PLASMA_NSIMP ) {
             double p = (*_epot)(a);
 	    double rhst, drhst;
             nsimp_newton( rhst, drhst, p );
 	    return( (*_epot)(a+1) + (*_epot)(a-1) + 4.0*(*_epot)(a+dj) 
 		    - 6.0*p - (*_rhs)(a) - rhst );
         } else {
-	    return( (*_epot)(a-1) + (*_epot)(a+1) + 4.0*(*_epot)(a+dj) - 6*(*_epot)(a) - (*_rhs)(a) );
-        }                                                                                                                            
+	    return( (*_epot)(a-1) + (*_epot)(a+1) + 4.0*(*_epot)(a+dj) 
+		    - 6.0*(*_epot)(a) - (*_rhs)(a) );
+        }
         break;                       
     case 4:
 	if( _neumann_order == 2 )
@@ -1218,12 +1216,12 @@ void EpotMGSubSolver::defect_cyl( void ) const
 	    double D;
 	    if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
 		const uint8_t *nearsolid_ptr = _geom.nearsolid_ptr( mesh & SMESH_NEAR_SOLID_INDEX_MASK );
-		D = defect_near_solid_2d( nearsolid_ptr, i, j );
+		D = defect_near_solid_cyl( nearsolid_ptr, i, j );
 	    } else if( node_id == SMESH_NODE_ID_PURE_VACUUM ) {
-		D = defect_pure_vacuum_2d( i, j );
+		D = defect_pure_vacuum_cyl( i, j );
 	    } else if( node_id == SMESH_NODE_ID_NEUMANN ) {
 		uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
-		D = defect_neumann_2d( boundary, a, dj );
+		D = defect_neumann_cyl( boundary, a, dj );
 	    } else {
 		D = 0.0;
 	    }
