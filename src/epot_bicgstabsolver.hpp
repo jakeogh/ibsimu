@@ -63,6 +63,8 @@ class EpotBiCGSTABSolver : public EpotMatrixSolver {
     double   _newton_dXeps; /*!< \brief Accuracy request for Newton-Raphson step. */
     uint32_t _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
 
+    bool     _gnewton;      /*!< \brief Globally convergent version of Newton-Raphson. */
+
     /*! \brief Reset solver/problem settings.
      */
     virtual void reset_problem( void );
@@ -80,7 +82,8 @@ public:
 			uint32_t imax = 10000,
 			double newton_Reps = 1.0e-4, 
 			double newton_dXeps = 1.0e-6, 
-			uint32_t newton_imax = 10 );
+			uint32_t newton_imax = 10,
+			bool gnewton = false );
 
     /*! \brief Construct from file.
      */
@@ -89,6 +92,10 @@ public:
     /*! \brief Destructor.
      */
     virtual ~EpotBiCGSTABSolver();
+
+    /*! \brief Enable/disable globally convergent Newton-Raphson.
+     */
+    void set_gnewton( bool enable );
 
     /*! \brief Sets the accuracy request for BiCGSTAB solver.
      */
