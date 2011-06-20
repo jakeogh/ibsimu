@@ -59,11 +59,44 @@ bool Vec3D::operator!=( const Vec3D &x ) const
     return( false ); 
 }
 
+
 bool Vec3D::operator==( const Vec3D &x ) const
 {
     if( p[0] == x.p[0] && p[1] == x.p[1] && p[2] == x.p[2] )
 	return( true );
     return( false ); 
+}
+
+
+double Vec3D::max( void ) const
+{
+    if( p[0] > p[1] ) {
+	if( p[0] > p[2] )
+	    return( p[0] );
+	else
+	    return( p[2] );
+    } else {
+	if( p[1] > p[2] )
+	    return( p[1] );
+	else
+	    return( p[2] );
+    }
+}
+
+
+int32_t Int3D::max( void ) const
+{
+    if( l[0] > l[1] ) {
+	if( l[0] > l[2] )
+	    return( l[0] );
+	else
+	    return( l[2] );
+    } else {
+	if( l[1] > l[2] )
+	    return( l[1] );
+	else
+	    return( l[2] );
+    }
 }
 
 /*

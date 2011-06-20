@@ -1,13 +1,11 @@
-lib_LTLIBRARIES = libibsimu.la
+lib_LTLIBRARIES = libibsimu-1.0.4new_solver.la
 
-libibsimu_la_LDFLAGS = -version-info 0:1:0
-#AM_LDFLAGS = -Wall -O3 -march=athlon64
-#AM_CPPFLAGS = -Wall -O3 -march=athlon64
+libibsimu_1_0_4new_solver_la_LDFLAGS = -version-info 0:1:0
 
 AM_LDFLAGS = -Wall @rdynamic_flag@
 AM_CPPFLAGS = -Wall
 
-libibsimu_la_SOURCES = \
+libibsimu_1_0_4new_solver_la_SOURCES = \
 bicgstab.cpp \
 bicgstab.hpp \
 callback.hpp \
@@ -73,8 +71,6 @@ geomplotter.cpp \
 geomplotter.hpp \
 graph.hpp \
 graph3d.hpp \
-gs_solver.cpp \
-gs_solver.hpp \
 gtkfielddiagdialog.cpp \
 gtkfielddiagdialog.hpp \
 gtkfielddiagexportdialog.cpp \
@@ -166,7 +162,6 @@ plotter.hpp \
 polysolver.cpp \
 polysolver.hpp \
 precond.hpp \
-problem.hpp \
 qrandom.cpp \
 qrandom.hpp \
 readascii.cpp \
@@ -201,10 +196,14 @@ vec4d.cpp \
 vec4d.hpp \
 vectorfield.hpp \
 xygraph.cpp \
-xygraph.hpp
+xygraph.hpp \
+epot_mgsolver.cpp \
+epot_mgsolver.hpp \
+epot_mgsubsolver.cpp \
+epot_mgsubsolver.hpp 
 
-libibsimu_la_includedir=$(includedir)/ibsimu
-libibsimu_la_include_HEADERS = \
+libibsimu_1_0_4new_solver_la_includedir=$(includedir)/ibsimu-1.0.4new_solver
+libibsimu_1_0_4new_solver_la_include_HEADERS = \
 bicgstab.hpp \
 callback.hpp \
 ccolmatrix.hpp \
@@ -241,7 +240,6 @@ geomplot.hpp \
 geomplotter.hpp \
 graph.hpp \
 graph3d.hpp \
-gs_solver.hpp \
 gtkfielddiagexportdialog.hpp \
 gtkplotter.hpp \
 hbio.hpp \
@@ -275,7 +273,6 @@ particles.hpp \
 plotter.hpp \
 polysolver.hpp \
 precond.hpp \
-problem.hpp \
 qrandom.hpp \
 readascii.hpp \
 ruler.hpp \
@@ -295,16 +292,18 @@ types.hpp \
 vec3d.hpp \
 vec4d.hpp \
 vectorfield.hpp \
-xygraph.hpp
+xygraph.hpp \
+epot_mgsolver.hpp \
+epot_mgsubsolver.hpp 
 
 if UMFPACK
-libibsimu_la_SOURCES += epot_umfpacksolver.cpp epot_umfpacksolver.hpp 
-libibsimu_la_include_HEADERS += epot_umfpacksolver.hpp 
+libibsimu_1_0_4new_solver_la_SOURCES += epot_umfpacksolver.cpp epot_umfpacksolver.hpp 
+libibsimu_1_0_4new_solver_la_include_HEADERS += epot_umfpacksolver.hpp 
 endif
 
 if CSG
-libibsimu_la_SOURCES += csgobject_solid.cpp csgobject_solid.hpp
-libibsimu_la_include_HEADERS += csgobject_solid.hpp
+libibsimu_1_0_4new_solver_la_SOURCES += csgobject_solid.cpp csgobject_solid.hpp
+libibsimu_1_0_4new_solver_la_include_HEADERS += csgobject_solid.hpp
 endif
 
 

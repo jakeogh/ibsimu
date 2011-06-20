@@ -56,9 +56,14 @@ class EpotBiCGSTABSolver : public EpotMatrixSolver {
     double   _eps;          /*!< \brief Accuracy request. */
     uint32_t _imax;         /*!< \brief Maximum iteration count. */
 
+    uint32_t _iter;         /*!< \brief Number of iteration rounds done. */
+    double   _res;          /*!< \brief Residual error. */
+
     double   _newton_Reps;  /*!< \brief Accuracy request for Newton-Raphson residual. */
     double   _newton_dXeps; /*!< \brief Accuracy request for Newton-Raphson step. */
     uint32_t _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
+
+    bool     _gnewton;      /*!< \brief Globally convergent version of Newton-Raphson. */
 
     /*! \brief Reset solver/problem settings.
      */
@@ -73,11 +78,12 @@ public:
     /*! \brief Constructor.
      */
     EpotBiCGSTABSolver( Geometry &geom,
-			double eps = 1.0e-6, 
+			double eps = 1.0e-4, 
 			uint32_t imax = 10000,
-			double newton_Reps = 1.0e-5, 
+			double newton_Reps = 1.0e-4, 
 			double newton_dXeps = 1.0e-6, 
-			uint32_t newton_imax = 10 );
+			uint32_t newton_imax = 10,
+			bool gnewton = false );
 
     /*! \brief Construct from file.
      */
@@ -86,6 +92,10 @@ public:
     /*! \brief Destructor.
      */
     virtual ~EpotBiCGSTABSolver();
+
+    /*! \brief Enable/disable globally convergent Newton-Raphson.
+     */
+    void set_gnewton( bool enable );
 
     /*! \brief Sets the accuracy request for BiCGSTAB solver.
      */
@@ -106,6 +116,14 @@ public:
     /*! \brief Sets the accuracy request for Newton-Raphson step size.
      */
     void set_newton_step_eps( double newton_dXeps );
+
+    /*! \brief Get estimate of residual error.
+     */
+    double get_residual( void ) const;
+
+    /*! \brief Get number of iteration rounds done with last solve().
+     */
+    uint32_t get_iter( void ) const;
 
     /*! \brief Print debugging information to os.
      */

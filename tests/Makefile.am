@@ -29,6 +29,10 @@ matvec3dtest_SOURCES = matvec3dtest.cpp
 matrixconv_SOURCES = matrixconv.cpp
 matrixsolver_SOURCES = matrixsolver.cpp
 mesh_SOURCES = mesh.cpp
+mgsolver3d_sphere_SOURCES = mgsolver3d_sphere.cpp
+mgsolver2d_coax_SOURCES = mgsolver2d_coax.cpp
+mgsolver1d_dirichlet_SOURCES = mgsolver1d_dirichlet.cpp
+mgsolver1d_neumann_SOURCES = mgsolver1d_neumann.cpp
 multimeshvecfield_SOURCES = multimeshvecfield.cpp
 mvector_SOURCES = mvector.cpp
 nsimp_plasmacyl_SOURCES = nsimp_plasmacyl.cpp
@@ -43,6 +47,7 @@ particles_diagnostic_SOURCES = particles_diagnostic.cpp
 particles_edip_SOURCES = particles_edip.cpp
 particles_mirror_SOURCES = particles_mirror.cpp
 particles_trajectory_SOURCES = particles_trajectory.cpp
+plasma1d_SOURCES = plasma1d.cpp
 plasma2d_SOURCES = plasma2d.cpp
 plasma3d_SOURCES = plasma3d.cpp
 plasmacyl_SOURCES = plasmacyl.cpp
@@ -112,6 +117,10 @@ matvec3dtest \
 matrixconv \
 matrixsolver \
 mesh \
+mgsolver3d_sphere \
+mgsolver2d_coax \
+mgsolver1d_dirichlet \
+mgsolver1d_neumann \
 multimeshvecfield \
 mvector \
 nsimp_plasmacyl \
@@ -126,6 +135,7 @@ particles_diagnostic \
 particles_edip \
 particles_mirror \
 particles_trajectory \
+plasma1d \
 plasma2d \
 plasma3d \
 plasmacyl \
@@ -172,7 +182,7 @@ ibsimutest.hpp
 
 AM_CPPFLAGS = $(CPPFLAGS) -Wall -g -I$(top_srcdir)/src
 AM_LDFLAGS = $(LIBS) -L$(top_srcdir)/src @rdynamic_flag@
-LDADD = $(top_builddir)/src/libibsimu.la libibsimutest.la -lm
+LDADD = $(top_builddir)/src/libibsimu-1.0.4new_solver.la libibsimutest.la -lm
 
 if UMFPACK
 AM_CPPFLAGS += `pkg-config --cflags umfpack`

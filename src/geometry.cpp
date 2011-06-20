@@ -120,8 +120,6 @@ Geometry::Geometry( std::istream &s )
 
 Geometry::~Geometry()
 {
-    for( uint32_t a = 0; a < _n; a++ )
-	delete _sdata[a];
     delete [] _smesh;
 }
 

@@ -235,7 +235,7 @@ public:
      *  Solids have to be defined in incresing order. %Solid number \a
      *  n should be >= 7. This function can also be used to overwrite
      *  a previous solid definition. Pointer to solid \a s is saved to
-     *  geometry structure. %Solid will be deleted when geometry is
+     *  geometry structure. %Solid will not be deleted when geometry is
      *  deleted. The newly defined defined solids default to Dirichlet
      *  boundary with potential zero.
      */

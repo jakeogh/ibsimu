@@ -1,4 +1,4 @@
-AC_INIT([libibsimu], [1.0.4new_solver], [taneli.kalvas@jyu.fi])
+AC_INIT([libibsimu-1.0.4new_solver], [1.0.4new_solver], [taneli.kalvas@jyu.fi])
 AM_CONFIG_HEADER(src/config.h)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE
@@ -46,6 +46,11 @@ if test "x$PKG_CONFIG" = x; then
 found (http://pkgconfig.freedesktop.org/)])
 fi
 
+dnl -------------
+dnl zlib
+
+CHECK_ZLIB()
+
 dnl ---------------------------------
 dnl Check for selectable compilation
 dnl ---------------------------------
@@ -92,11 +97,6 @@ dnl libm
 AC_CHECK_LIBM
 CPPFLAGS="$CFLAGS $CPPFLAGS"
 LIBS="$LIBS $LIBM"
-
-dnl -------------
-dnl zlib
-
-CHECK_ZLIB()
 
 dnl -------------
 dnl gtk+-2.0
@@ -150,7 +150,7 @@ dnl -------------
 dnl Cairo
 
 if $PKG_CONFIG --exists cairo ; then
-  PKG_CHECK_MODULES(cairo, cairo >= 1.4.0 )
+  PKG_CHECK_MODULES(cairo, cairo >= 1.2.4 )
 else
   AC_MSG_ERROR([required library cairo not found])
 fi
@@ -207,7 +207,7 @@ dnl ---------------------------------
 dnl Output
 dnl ---------------------------------
 
-AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile doc/Doxyfile doc/Doxyfile_web ibsimu.pc])
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile doc/Doxyfile doc/Doxyfile_web ibsimu-1.0.4new_solver.pc])
 AC_OUTPUT
 
 	

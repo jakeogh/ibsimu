@@ -175,7 +175,7 @@ public:
 
     /*! \brief Normalize vector
      */
-    void normalize() {
+    void normalize( void ) {
 	double inv_norm = 1.0/sqrt( p[0]*p[0] + p[1]*p[1] + p[2]*p[2] );
 	p[0] *= inv_norm;
 	p[1] *= inv_norm;
@@ -186,15 +186,21 @@ public:
      *
      *  \f$ ||x||_2 = \sqrt{ \Sigma_{i=1}^n x_i^2 } \f$
      */
-    double norm2() const {
+    double norm2( void ) const {
 	return( sqrt( p[0]*p[0] + p[1]*p[1] + p[2]*p[2] ) );
     }
+
+    /*! \brief Returns inf-norm of vector
+     *
+     *  Returns maximum component of vector.
+     */
+    double max( void ) const;
 
     /*! \brief Returns square of 2-norm of vector
      *
      *  \f$ (||x||_2)^2 = \Sigma_{i=1}^n x_i^2 \f$
      */
-    double ssqr() const {
+    double ssqr( void ) const {
 	return( p[0]*p[0] + p[1]*p[1] + p[2]*p[2] );
     }
 
@@ -300,6 +306,11 @@ public:
 	    return( true );
 	return( false ); 
     }
+
+
+    /*!  \brief Returns maximum component of vector.
+     */
+    int32_t max( void ) const;
 
     void save( std::ostream &s ) const { 
 	write_int32( s, l[0] );

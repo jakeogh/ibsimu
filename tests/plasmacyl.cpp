@@ -12,6 +12,7 @@
 #include "epot_gssolver.hpp"
 #include "epot_umfpacksolver.hpp"
 #include "epot_bicgstabsolver.hpp"
+#include "epot_mgsolver.hpp"
 #include "particledatabase.hpp"
 #include "geometry.hpp"
 #include "convergence.hpp"
@@ -59,9 +60,13 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, -8.0e3) );
     geom.build_mesh();
     
-    //EpotGSSolver solver( geom );
-    EpotUMFPACKSolver solver( geom );
+    //EpotUMFPACKSolver solver( geom );
     //EpotBiCGSTABSolver solver( geom );
+    EpotMGSolver solver( geom );
+    solver.set_levels( 2 );
+    solver.set_neumann_order( 1 );
+    solver.set_mgcycmax( 1 );
+    //EpotGSSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_initial_plasma( 5.0, &initp );
 
@@ -79,10 +84,12 @@ void test( int argc, char **argv )
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
 
+    Emittance emit;
+
     Convergence conv;
-    conv.add_epot( epot, 1, 1, 1.0e-6 );
-    conv.add_scharge( scharge, 1, 1, 1.0e-6 );
-    conv.add_tdiag( pdb, AXIS_X, 11.9e-3, 1, 1, 1.0e-6 );
+    conv.add_epot( epot );
+    conv.add_scharge( scharge );
+    conv.add_emittance( 0, emit );
 
     for( size_t i = 0; i < 30; i++ ) {
 
@@ -103,6 +110,9 @@ void test( int argc, char **argv )
 				     0.0, 1.5e-3 );
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
+	ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 0.0119, PARTICLE_DIAG_PLOT_SCATTER,
+				      DIAG_R, DIAG_RP );
+	emit = pplotter.calculate_emittance();
 	conv.evaluate_iteration();
 
 	/*

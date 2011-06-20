@@ -49,8 +49,8 @@
 
 
 EpotGSSolver::EpotGSSolver( Geometry &geom )
-    : EpotSolver( geom ), _epot(NULL), _rhs(NULL), _imax(10000), 
-      _eps(1.0e-6), _w(1.66)
+    : EpotSolver( geom ), _epot(NULL), _rhs(NULL), _iter(0), _imax(10000), 
+      _eps(1.0e-4), _res(0.0), _w(1.66)
 {
     
 }
@@ -74,9 +74,16 @@ void EpotGSSolver::set_eps( double eps )
     _eps = eps;
 }
 
+
 double EpotGSSolver::get_residual( void ) const
 {
     return( _res );
+}
+
+
+uint32_t EpotGSSolver::get_iter( void ) const
+{
+    return( _iter );
 }
 
 
@@ -144,7 +151,7 @@ double EpotGSSolver::gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, uin
 	alpha = *ptr/255.0;
 	ptr++;
     }
-
+    
     // Zmax direction
     beta = 1.0;
     if( sflag & 0x20 ) {
@@ -161,8 +168,8 @@ double EpotGSSolver::gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, uin
 	double rhst, drhst;
 	pexp_newton( rhst, drhst, p );
 	return( p + ( epf - cof*p - (*_rhs)(a) - rhst ) / ( cof + drhst ) );
-    } else if( _plasma == PLASMA_NSIMP ) 
-{	double p = (*_epot)(a);
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_epot)(a);
 	double rhst, drhst;
 	nsimp_newton( rhst, drhst, p );
 	return( p + ( epf - cof*p - (*_rhs)(a) - rhst ) / ( cof + drhst ) );
@@ -691,12 +698,38 @@ double EpotGSSolver::gs_process_near_solid_1d( const uint8_t *nearsolid_ptr,
     double cof = 2.0/(alpha*beta);
     double epf = 2.0/(alpha+beta)*( (*_epot)(i-1)/alpha + (*_epot)(i+1)/beta );
 
+    if( _plasma == PLASMA_PEXP ) {
+	double p = (*_epot)(i);
+	double rhst, drhst;
+	pexp_newton( rhst, drhst, p );
+	return( p + ( epf - cof*p - (*_rhs)(i) - rhst ) / ( cof + drhst ) );
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_epot)(i);
+	double rhst, drhst;
+	nsimp_newton( rhst, drhst, p );
+	return( p + ( epf - cof*p - (*_rhs)(i) - rhst ) / ( cof + drhst ) );
+    }
+
     return( (1.0/cof) * ( epf - (*_rhs)(i) ) );
 }
 
 
 double EpotGSSolver::gs_process_pure_vacuum_1d( uint32_t i ) const
 {
+    if( _plasma == PLASMA_PEXP ) {
+	double p = (*_epot)(i);
+	double rhst, drhst;
+	pexp_newton( rhst, drhst, p );
+	return( p + ( (*_epot)(i+1) + (*_epot)(i-1) 
+		      - 2.0*p - (*_rhs)(i) - rhst ) / ( 2.0 + drhst ) );
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_epot)(i);
+	double rhst, drhst;
+	nsimp_newton( rhst, drhst, p );
+	return( p + ( (*_epot)(i+1) + (*_epot)(i-1) 
+		      - 2.0*p - (*_rhs)(i) - rhst ) / ( 2.0 + drhst ) );
+    }
+
     return( (1.0/2.0) * ( (*_epot)(i+1) + (*_epot)(i-1) - (*_rhs)(i) ) );
 }
 
@@ -705,12 +738,20 @@ double EpotGSSolver::gs_process_neumann_1d( uint32_t boundary, uint32_t i ) cons
 {
     switch( boundary ) {
     case 1:
-	// (phi_i - phi_i+1) / h = q_0
-	return( (*_epot)(i+1) + (*_rhs)(i) );
+	if( _neumann_order == 2 )
+	    // (3*phi_i - 4*phi_i+1 + phi_i+2) / 2h = q_0
+	    return( (4.0*(*_epot)(i+1) - (*_epot)(i+2) + (*_rhs)(i))/3.0 );
+	else
+	    // (phi_i - phi_i+1) / h = q_0
+	    return( (*_epot)(i+1) + (*_rhs)(i) );
 	break;
     case 2:
-	// (phi_i-1 - phi_i) / h = q_0
-	return( (*_epot)(i-1) + (*_rhs)(i) );
+	if( _neumann_order == 2 )
+	    // (3*phi_i - 4*phi_i-1 + phi_i-2) / 2h = q_0
+	    return( (4.0*(*_epot)(i-1) - (*_epot)(i-2) + (*_rhs)(i))/3.0 );
+	else
+	    // (phi_i-1 - phi_i) / h = q_0
+	    return( (*_epot)(i-1) + (*_rhs)(i) );
 	break;
     }
 
@@ -831,26 +872,26 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
     preprocess( scharge );
 
     // Loop until converged
-    uint32_t iter = 0;
-    while( iter < _imax ) {
+    _iter = 0;
+    while( _iter < _imax ) {
 	if( _geom.geom_mode() == MODE_3D )
-	    _res = gs_loop_3d();
+	    _res = _res_coef * gs_loop_3d();
 	else if( _geom.geom_mode() == MODE_2D )
-	    _res = gs_loop_2d();
+	    _res = _res_coef * gs_loop_2d();
 	else if( _geom.geom_mode() == MODE_CYL )
-	    _res = gs_loop_cyl();
+	    _res = _res_coef * gs_loop_cyl();
 	else if( _geom.geom_mode() == MODE_1D )
-	    _res = gs_loop_1d();
+	    _res = _res_coef * gs_loop_1d();
 	else
 	    throw( ErrorUnimplemented( ERROR_LOCATION ) );
 
 	if( ibsimu.get_verbose_output() ) {
 	    std::stringstream ss;
-	    ss << "  " << std::setw(5) << iter << " " << std::scientific << std::setw(20) << _res;
+	    ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
 	    sp.print( ss.str() );
 	}
 
-	iter++;
+	_iter++;
 	if( _res < _eps )
 	    break;
 	if( comp_isinf(_res) || comp_isnan(_res) )
@@ -862,13 +903,13 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 
     if( ibsimu.get_verbose_output() ) {
 	std::stringstream ss;
-	ss << "  " << std::setw(5) << iter << " " << std::scientific << std::setw(20) << _res;
+	ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
 	sp.print( ss.str(), true );
 	std::cout << "\n";
-	if( iter == _imax )
+	if( _iter == _imax )
 	    std::cout << "  Maximum number of iteration rounds done.\n";
 	std::cout << "  residual error = " << _res << "\n";
-	std::cout << "  iterations = " << iter << "\n";
+	std::cout << "  iterations = " << _iter << "\n";
     }
 }
 

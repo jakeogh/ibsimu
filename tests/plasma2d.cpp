@@ -9,6 +9,7 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+#include "epot_mgsolver.hpp"
 #include "epot_gssolver.hpp"
 #include "epot_umfpacksolver.hpp"
 #include "epot_bicgstabsolver.hpp"
@@ -59,8 +60,11 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, -8.0e3) );
     geom.build_mesh();
     
-    //EpotGSSolver solver( geom );
+    EpotMGSolver solver( geom );
+    //solver.set_mgcycmax( 2 );
+    solver.set_levels( 4 );
     EpotUMFPACKSolver solver( geom );
+    //EpotGSSolver solver( geom );
     //EpotBiCGSTABSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_initial_plasma( 5.0, &initp );
@@ -84,7 +88,7 @@ void test( int argc, char **argv )
     conv.add_scharge( scharge, 1, 1, 1.0e-6 );
     conv.add_tdiag( pdb, AXIS_X, 11.9e-3, 1, 1, 1.0e-6 );
 
-    for( size_t i = 0; i < 30; i++ ) {
+    for( size_t i = 0; i < 5; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();

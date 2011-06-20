@@ -56,6 +56,13 @@ EpotField::EpotField( const EpotField &f )
 }
 
 
+EpotField::EpotField( std::istream &s, const Geometry &geom )
+    : MeshScalarField(s), _geom(&geom)
+{
+
+}
+
+
 EpotField::~EpotField()
 {
 }

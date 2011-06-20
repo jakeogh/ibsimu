@@ -41,6 +41,7 @@
  */
 
 
+#include <limits>
 #include "bicgstab.hpp"
 #include "ilu0_precond.hpp"
 #include "epot_bicgstabsolver.hpp"
@@ -52,9 +53,11 @@ EpotBiCGSTABSolver::EpotBiCGSTABSolver( Geometry &geom,
 					uint32_t imax,
 					double newton_Reps, 
 					double newton_dXeps, 
-					uint32_t newton_imax )
-    : EpotMatrixSolver(geom), _eps(eps), _imax(imax), _newton_Reps(newton_Reps), 
-      _newton_dXeps(newton_dXeps), _newton_imax(newton_imax)
+					uint32_t newton_imax,
+					bool gnewton )
+    : EpotMatrixSolver(geom), _eps(eps), _imax(imax), _iter(0), _res(0.0),
+      _newton_Reps(newton_Reps), _newton_dXeps(newton_dXeps), _newton_imax(newton_imax), 
+      _gnewton(gnewton)
 {
     if( eps <= 0.0 || newton_Reps <= 0.0 || newton_dXeps <= 0.0 )
         throw( ErrorDim( ERROR_LOCATION, "invalid accuracy request" ) );
@@ -78,6 +81,12 @@ void EpotBiCGSTABSolver::save( std::ostream &s ) const
 EpotBiCGSTABSolver::~EpotBiCGSTABSolver()
 {
 
+}
+
+
+void EpotBiCGSTABSolver::set_gnewton( bool enable ) 
+{
+    _gnewton = enable;
 }
 
 
@@ -117,6 +126,18 @@ void EpotBiCGSTABSolver::set_newton_step_eps( double newton_dXeps )
 }
 
 
+double EpotBiCGSTABSolver::get_residual( void ) const
+{
+    return( _res );
+}
+
+
+uint32_t EpotBiCGSTABSolver::get_iter( void ) const
+{
+    return( _iter );
+}
+
+
 void EpotBiCGSTABSolver::reset_problem( void )
 {
     reset_matrix();
@@ -128,13 +149,6 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
     uint32_t imax;
     double eps;
 
-    if( ibsimu.get_verbose_output() ) {
-	if( linear() )
-	    std::cout << "  Using BiCGSTAB solver\n";
-	else
-	    std::cout << "  Using Newton-Raphson BiCGSTAB solver\n";
-    }
-
     // Preprocess and set starting guess
     preprocess( epot, scharge );
     Vector X;
@@ -142,6 +156,13 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 
     if( linear() ) {
 
+	if( ibsimu.get_verbose_output() ) {
+	    std::cout << "  Using BiCGSTAB solver("
+		      << " imax = " << _imax
+		      << ", eps = " << _eps
+		      << " )\n";
+	}
+	    
 	// Fetch matrix form of problem
 	const Matrix *A;
 	const Vector *B;
@@ -149,12 +170,16 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 
 	ILU0_Precond pc( *A );
         imax = _imax;
-        eps = _eps;
+        eps = _eps / _res_coef;
         bicgstab( *A, *B, X, pc, imax, eps );
+	_iter = imax;
+	_res = _res_coef * eps;
 
 	if( ibsimu.get_verbose_output() ) {
-            std::cout << "  iterations = " << imax << " (max " << _imax << ")\n";
-            std::cout << "  eps = " << eps << " (requested " << _eps << ")\n";
+	    if( _iter == _imax )
+		std::cout << "  Maximum number of iteration rounds done.\n";
+            std::cout << "  residual error = " << _res << "\n";
+            std::cout << "  iterations = " << _iter << "\n";
         }
 
     } else {
@@ -166,38 +191,121 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
         double accR = 0.0, accX = 0.0;
         Vector dX;
 
-        if( ibsimu.get_verbose_output() )
-            std::cout << "    " 
-                      << std::setw(5) << "Iter" << " " 
-                      << std::setw(14) << "Step size" << " " 
-                      << std::setw(14) << "Residual" << "\n";
+	if( _gnewton ) {
 
-        for( a = 0; a < (int)_newton_imax; a++ ) {
-            // Calculate dX = J^{-1}*R
+	    if( ibsimu.get_verbose_output() ) {
+		std::cout << "  Using Newton-Raphson BiCGSTAB solver("
+			  << " imax = " << _imax
+			  << ", eps = " << _eps
+			  << ", newton_imax = " << _newton_imax
+			  << ", newton_reps = " << _newton_Reps
+			  << ", newton_dxeps = " << _newton_dXeps
+			  << " )\n";
+		std::cout << "    " 
+			  << std::setw(5)  << "Round" << " " 
+			  << std::setw(8)  << "Iter" << " " 
+			  << std::setw(14) << "Step size" << " " 
+			  << std::setw(14) << "Step fac" << " " 
+			  << std::setw(14) << "Residual" << "\n";
+	    }
+
+	    // Globally convergent Newton-Raphson
+            Vector Xold( X.size() );
+
+            // First jacobian and residual
             get_resjac( &J, &R, X );
-	    ILU0_Precond pc( *J );
-            imax = _imax - imax_sum;
-            eps = _eps;
-            dX.clear();
-	    bicgstab( *J, *R, dX, pc, imax, eps );
-	    imax_sum += imax;
+            double f = ssqr( *R );
 
-            // Take step
-            X -= dX;
+	    for( a = 0; a < (int)_newton_imax; a++ ) {
 
-            // Check for convergence
-            accR = max_abs( *R );
-            accX = max_abs( dX );
+                // Calculate dX = J^{-1}*R
+                ILU0_Precond pc( *J );
+                imax = _imax - imax_sum;
+                eps = _eps / _res_coef;
+                dX.clear();
+                bicgstab( *J, *R, dX, pc, imax, eps );
+                imax_sum += imax;
 
-            if( ibsimu.get_verbose_output() )
-                std::cout << "    " 
-                          << std::setw(5) << a << " " 
-                          << std::setw(14) << accX << " " 
-                          << std::setw(14) << accR << "\n";
+                // Search for acceptable step for which residual decreases
+                double t = 2.0;
+                double fold = f;
+                Xold = X;
+                while( f >= fold ) {
 
-            if( accR < _newton_Reps || accX < _newton_dXeps || imax_sum >= _imax )
-                break;
+                    t *= 0.5;
+                    X = Xold - t*dX;
+                    get_resjac( &J, &R, X );
+                    f = ssqr( *R );
+                    if( t <= std::numeric_limits<double>::epsilon() )
+                        break;
+                }
+
+                // Check for convergence
+                accR = max_abs( *R );
+                accX = t*max_abs( dX );
+
+                if( ibsimu.get_verbose_output() ) {
+		    std::cout << "    " 
+			      << std::setw(5)  << a << " " 
+			      << std::setw(8)  << imax << " " 
+			      << std::setw(14) << accX << " " 
+			      << std::setw(14) << t << " " 
+			      << std::setw(14) << accR << "\n";
+                }
+                
+                if( accR < _newton_Reps || (t == 1.0 && accX < _newton_dXeps) || imax_sum >= _imax )
+                    break;
+            }
+
+	} else {
+
+	    if( ibsimu.get_verbose_output() ) {
+		std::cout << "  Using Newton-Raphson BiCGSTAB solver("
+			  << " imax = " << _imax
+			  << ", eps = " << _eps
+			  << ", newton_imax = " << _newton_imax
+			  << ", newton_reps = " << _newton_Reps
+			  << ", newton_dxeps = " << _newton_dXeps
+			  << " )\n";
+		std::cout << "    " 
+			  << std::setw(5)  << "Round" << " " 
+			  << std::setw(8)  << "Iter" << " " 
+			  << std::setw(14) << "Step size" << " " 
+			  << std::setw(14) << "Residual" << "\n";
+	    }
+
+	    for( a = 0; a < (int)_newton_imax; a++ ) {
+
+		// Calculate dX = J^{-1}*R
+		get_resjac( &J, &R, X );
+		ILU0_Precond pc( *J );
+		imax = _imax - imax_sum;
+		eps = _eps / _res_coef;
+		dX.clear();
+		bicgstab( *J, *R, dX, pc, imax, eps );
+		imax_sum += imax;
+		
+		// Take step
+		X -= dX;
+
+		// Check for convergence
+		accR = max_abs( *R );
+		accX = max_abs( dX );
+
+		if( ibsimu.get_verbose_output() )
+		    std::cout << "    " 
+			      << std::setw(5) << a << " " 
+			      << std::setw(5) << imax << " " 
+			      << std::setw(14) << accX << " " 
+			      << std::setw(14) << _res_coef * accR << "\n";
+		
+		if( accR < _newton_Reps || accX < _newton_dXeps || imax_sum >= _imax )
+		    break;
+	    }
         }
+
+	_iter = imax_sum;
+	_res = _res_coef * accR;
 
         if( ibsimu.get_verbose_output() ) {
             if( accR < _newton_Reps || accX < _newton_dXeps )
@@ -207,8 +315,8 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
             else
                 std::cout << "  Maximum number of Newton-Raphson iterations\n";
 
-	    std::cout << "  total iterations = " << imax_sum << " (max " << _imax << ")\n";
-            std::cout << "  eps = " << eps << " (requested " << _eps << ")\n";
+            std::cout << "  residual error = " << _res << "\n";
+            std::cout << "  total iterations = " << _iter << "\n";
         }
 
     }

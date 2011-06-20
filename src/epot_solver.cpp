@@ -54,11 +54,22 @@
 
 
 EpotSolver::EpotSolver( Geometry &geom ) 
-    : _geom(geom), _neumann_order(2), _smooth_solid(true), _plasma(PLASMA_NONE), 
+    : _geom(geom), _neumann_order(2), _plasma(PLASMA_NONE), 
       _rhoe(0.0), _Te(0.0), _Up(0.0), 
       _force_pot(0.0), _force_pot_func(0), _init_plasma_func(0)
 {
-    
+    _res_coef = _geom.size().max();
+}
+
+
+EpotSolver::EpotSolver( const EpotSolver &epsolver, Geometry &geom )
+    : _geom(geom), _neumann_order(epsolver._neumann_order), _plasma(epsolver._plasma),
+      _rhoe(epsolver._rhoe), _Te(epsolver._Te), _Up(epsolver._Up),
+      _rhoi(epsolver._rhoi), _Ei(epsolver._Ei), 
+      _force_pot(epsolver._force_pot), _force_pot_func(epsolver._force_pot_func),
+      _init_plasma_func(epsolver._init_plasma_func)
+{
+    _res_coef = _geom.size().max();
 }
 
 
@@ -68,9 +79,25 @@ EpotSolver::EpotSolver( Geometry &geom, std::istream &s )
     throw( ErrorUnimplemented( ERROR_LOCATION ) );
 }
 
+
 /* ************************************** *
  * EpotSolver constructing               *
  * ************************************** */
+
+
+void EpotSolver::set_parameters( const EpotSolver &epsolver )
+{
+    _neumann_order = epsolver._neumann_order;
+    _plasma = epsolver._plasma;
+    _rhoe = epsolver._rhoe;
+    _Te = epsolver._Te;
+    _Up = epsolver._Up;
+    _rhoi = epsolver._rhoi;
+    _Ei = epsolver._Ei;
+    _force_pot = epsolver._force_pot;
+    _force_pot_func = epsolver._force_pot_func;
+    _init_plasma_func = epsolver._init_plasma_func;
+}
 
 
 void EpotSolver::set_neumann_order( uint32_t order )
@@ -78,13 +105,6 @@ void EpotSolver::set_neumann_order( uint32_t order )
     if( order < 1 || order > 2 )
 	throw( Error( ERROR_LOCATION, "illegal neumann order" ) );
     _neumann_order = order;
-    reset_problem();
-}
-
-
-void EpotSolver::set_smooth_solids( bool enable )
-{
-    _smooth_solid = enable;
     reset_problem();
 }
 
@@ -451,6 +471,24 @@ void EpotSolver::postprocess( void )
 }
 
 
+bool EpotSolver::linear( void ) const
+{
+    switch( _plasma ) {
+    case PLASMA_NONE:
+    case PLASMA_PEXP_INITIAL:
+    case PLASMA_NSIMP_INITIAL:
+	return( true );
+	break;
+    case PLASMA_PEXP:
+    case PLASMA_NSIMP:
+	return( false );
+	break;
+    }
+
+    throw( ErrorAssert( ERROR_LOCATION ) );
+}
+
+
 /* ************************************** *
  * Solver                                 *
  * ************************************** */
@@ -516,6 +554,12 @@ void EpotSolver::solve( MeshScalarField &epot, const ScalarField &__scharge )
 /* ************************************** *
  * Misc                                   *
  * ************************************** */
+
+
+const Geometry &EpotSolver::geometry( void ) const
+{
+    return( _geom );
+}
 
 
 void EpotSolver::debug_print( std::ostream &os ) const 

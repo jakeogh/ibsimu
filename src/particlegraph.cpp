@@ -256,7 +256,8 @@ void ParticleGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double ra
 	    size_t c;
 	    const ParticleBase &p = _pdb.particle(a);
 	    for( c = 0; c < qm_set.size(); c++ ) {
-		if( p.qm() == qm_set[c] )
+		volatile double pqm = p.qm();
+		if( pqm == qm_set[c] )
 		    break;
 	    }
 	    if( c == qm_set.size() )

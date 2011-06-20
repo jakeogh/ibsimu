@@ -56,6 +56,9 @@ class EpotField : public MeshScalarField {
 
     const Geometry *_geom;      /*!< \brief Pointer to geometry. */
 
+    // Forbidden
+    EpotField( std::istream &s ) {}
+
 public:
 
     /*! \brief Constructor.
@@ -68,6 +71,11 @@ public:
     /*! \brief Copy constructor.
      */
     EpotField( const EpotField &f );
+
+    /*! \brief Constructor for loading EpotField field data from a
+     *  file and using solid definitions from \a geom.
+     */
+    EpotField( std::istream &s, const Geometry &geom );
 
     /*! \brief Destructor.
      */

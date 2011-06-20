@@ -1,5 +1,5 @@
 /*! \file convergence.hpp
- *  \brief Vlasov system convergence tester
+ *  \brief Vlasov system convergence follower
  */
 
 /* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
@@ -47,54 +47,45 @@
 #include <iostream>
 #include <stdint.h>
 #include <vector>
-#include "scalarfield.hpp"
+#include "meshscalarfield.hpp"
 #include "trajectorydiagnostics.hpp"
-#include "particledatabase.hpp"
 
 
-/*! \brief Vlasov system convergence tester.
+/*! \brief Vlasov system convergence follower.
  */
 class Convergence {
 
-    int32_t                 _iter;              /*!< \brief Iteration counter. */
+    int32_t                 _iter;                 /*!< \brief Iteration counter. */
 
-    std::vector<double>     _epot_hist;         /*!< \brief Convergence history of epot. */
-    double                  _epot_lim;          /*!< \brief Convergence limit. */
-    double                  _epot_absf;         /*!< \brief Absolute error coefficient. */
-    double                  _epot_relf;         /*!< \brief Relative error coefficient. */
-    MeshScalarField        *_epot_old;          /*!< \brief Epot of last round. */
-    const MeshScalarField  *_epot;              /*!< \brief Epot pointer. */
+    struct ConvergenceField {
+	MeshScalarField        *_field_old;        /*!< \brief Epot of last round. */
+	const MeshScalarField  *_field;            /*!< \brief Epot pointer. */
+	std::vector<double>     _field_diff_max;   /*!< \brief Convergence history of epot. */
+	std::vector<double>     _field_diff_norm2; /*!< \brief Convergence history of epot. */
 
-    std::vector<double>     _scharge_hist;      /*!< \brief Convergence history of scharge. */
-    double                  _scharge_lim;       /*!< \brief Convergence limit. */
-    double                  _scharge_absf;      /*!< \brief Absolute error coefficient. */
-    double                  _scharge_relf;      /*!< \brief Relative error coefficient. */
-    MeshScalarField        *_scharge_old;       /*!< \brief Scharge of last round. */
-    const MeshScalarField  *_scharge;           /*!< \brief Scharge pointer. */
+	ConvergenceField();
+	~ConvergenceField();
 
-    struct EmitPoint {
-	double              _epsilon;           /*!< \brief Epsilon. */
-	double              _alpha;             /*!< \brief Alpha. */
-	double              _beta;              /*!< \brief Beta. */
-	double              _xave;              /*!< \brief x average. */
-	double              _xpave;             /*!< \brief x' average. */
-
-	EmitPoint();
-	EmitPoint( double x );
-	EmitPoint( const Emittance &emit );
-
-	double &operator[]( int i );
+	void evaluate_iteration( void );
+	void clear( void );
     };
 
-    std::vector<double>     _emit_hist[2];      /*!< \brief Convergence history of emittance. */
-    double                  _emit_lim;          /*!< \brief Convergence limit. */
-    double                  _emit_absf;         /*!< \brief Absolute error coefficient. */
-    double                  _emit_relf;         /*!< \brief Relative error coefficient. */
-    EmitPoint               _emit_old[2];       /*!< \brief Emittances of last round. */
-    const ParticleDataBase *_emit_pdb;          /*!< \brief Particle database pointer. */
-    coordinate_axis_e       _emit_axis;         /*!< \brief Emittance plane axis. */
-    double                  _emit_val;          /*!< \brief Emittance plane location. */
-    const Emittance        *_emit[2];           /*!< \brief Emittance pointers. */
+    ConvergenceField        _epot;                 /*!< \brief Convergence of epot. */
+    ConvergenceField        _scharge;              /*!< \brief Convergence of scharge. */
+
+    struct ConvergenceEmittance {
+	std::vector<Emittance>  _emit_hist;        /*!< \brief Convergence history of emittance. */
+	const Emittance        *_emit;             /*!< \brief Emittance pointer. */
+
+	ConvergenceEmittance();
+	ConvergenceEmittance( const Emittance *emit );
+	~ConvergenceEmittance();
+
+	void evaluate_iteration( void );
+	void clear( void );
+    };
+
+    std::vector<ConvergenceEmittance> _emit;
    
 public:
 
@@ -107,47 +98,35 @@ public:
     ~Convergence();
 
     /*! \brief Evaluate convergence of iteration round.
-     *
-     *  Increase iteration round counter and calculate convergence
-     *  estimates for each followed feature. Returns true if
-     *  convergence limits are reached. False is returned otherwise.
-     *  Convergence estimates are saved to be analyzed. A summary is
-     *  printed to cout if verbose printing is enabled.
      */
-    bool evaluate_iteration( void );
+    void evaluate_iteration( void );
 
-    /*! \brief Print the history of convergence to stream.
+    /*! \brief Print the history of convergence to stream \a os.
      */
     void print_history( std::ostream &os ) const;
 
-    /*! \brief Add electric potential to be followed.
+    /*! \brief Add a reference to electric potential to be followed.
      */
-    void add_epot( const MeshScalarField &epot, double absf, double relf, double lim );
+    void add_epot( const MeshScalarField &epot );
 
-    /*! \brief Add space charge density to be followed.
+    /*! \brief Add a reference to space charge density to be followed.
      */
-    void add_scharge( const MeshScalarField &scharge, double absf, double relf, double lim );
+    void add_scharge( const MeshScalarField &scharge );
 
-    /*! \brief Add trajectory diagnostics to be followed.
+    /*! \brief Add a reference to emittance to be followed.
+     *
+     *  Multiple emittances can be followed. Emittances must be
+     *  referenced with running numbers \a i starting from
+     *  0. Overwriting a definition is possible.
      */
-    void add_tdiag( const ParticleDataBase &pdb, coordinate_axis_e axis,
-		    double val, double absf, double relf, double lim );
+    void add_emittance( uint32_t i, const Emittance &emit );
 
-    /*! \brief Add trajectory diagnostics to be followed.
+    /*! \brief Clear.
+     *
+     *  Clears references to followed objects, clears history and
+     *  clears iteration counter.
      */
-    void add_tdiag( const Emittance *emit1, double absf, double relf, double lim ) {
-	add_tdiag( emit1, NULL, absf, relf, lim );
-    }
-
-    /*! \brief Add trajectory diagnostics to be followed.
-     */
-    void add_tdiag( const Emittance *emit1, const Emittance *emit2, 
-		    double absf, double relf, double lim );
-
-    /*! \brief Set emittance for trajectory diagnostics.
-     */
-    void set_emittance( const Emittance *emit1, const Emittance *emit2 = NULL );
-
+    void clear( void );
 };
 
 
