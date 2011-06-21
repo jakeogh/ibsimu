@@ -63,6 +63,8 @@ class TrajectoryRep1D {
     trajectory_rep_e _rep;
     double           _A, _B, _C, _D, _E;
 
+    static bool in( double K, int extrapolate );
+
 public:
 
     /*! \brief Default constructor for empty representation.
@@ -102,11 +104,12 @@ public:
      *
      *  Solves the trajectory intersection with location \a x. Saves
      *  the valid solutions to array \a K in increasing order and
-     *  returns the number of solutions saved. The allowed limit for
-     *  parametric time \a K is 0 < K =< 1, if \a include_start is
-     *  false or 0 <= K =< 1, if \a include_start is true.
+     *  returns the number of solutions saved. The accepted limit for
+     *  parametric time \a K is 0 < K =< 1 if extrapolate is 0,
+     *  -1.0e-6 < K =< 1 if extrapolate is less than 0 or 0.0 < K <=
+     *  1+1.0e-6 if extrapolate is more than 0.
      */
-    int solve( double K[3], double x );
+    int solve( double K[3], double x, int extrapolate = 0 );
 
     /*! \brief Print debugging information to os.
      */
@@ -115,6 +118,7 @@ public:
 
 
 #endif
+
 
 
 

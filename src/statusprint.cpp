@@ -54,7 +54,7 @@ StatusPrint::StatusPrint( std::ostream &os )
 StatusPrint::~StatusPrint()
 {
     for( size_t i = 0; i < _width; i++ )
-	std::cout << "\b";
+	_os << "\b";
 }
 
 
@@ -69,23 +69,5 @@ void StatusPrint::print( const std::string &str, bool force )
 	_os << str << std::flush;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

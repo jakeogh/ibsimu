@@ -74,6 +74,12 @@ public:
      */
     virtual void plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] );
 
+    /*! \brief Plot sample for legend.
+     *
+     *  Plot graph sample for legend at cairo coordinates \a x.
+     */
+    virtual void plot_sample( cairo_t *cairo, double x, double y, double width, double height );
+
     /*! \brief Get bounding box of graph.
      *
      *  Returns the bounding box of the graph in array \a bbox in
@@ -84,6 +90,8 @@ public:
 
 
 #endif
+
+
 
 
 

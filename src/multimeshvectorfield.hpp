@@ -249,6 +249,10 @@ public:
      */
     virtual const Vec3D operator()( Vec3D x ) const;
 
+    /*! \brief Saves data to a new file \a filename.
+     */
+    void save( const std::string &filename ) const;
+
     /*! \brief Saves vector field data to stream.
      */
     void save( std::ostream &s ) const;
@@ -260,3 +264,4 @@ public:
 
 
 #endif
+

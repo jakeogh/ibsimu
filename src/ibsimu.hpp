@@ -46,6 +46,12 @@
 
 
 #include <stdint.h>
+#include <string>
+#include <iostream>
+#include <fstream>
+
+
+class Timer;
 
 
 /*! \brief Main class for %IBSimu.
@@ -55,9 +61,20 @@
  */
 class IBSimu 
 {
-    bool     _hello;
-    int32_t  _verbose_output;
-    uint32_t _threadcount;
+    Timer        *_t;
+
+    bool          _hello;
+    int32_t       _verbose_output;
+    uint32_t      _threadcount;
+    
+    bool          _is_cout;         // True if vout is std::cout
+    std::ostream *_vout;            // Verbose output stream
+
+    std::ofstream _fout;            // Verbose output file
+
+    IBSimu( const IBSimu &ibs ) : _vout(ibs._vout) {}
+
+    const IBSimu &operator=( const IBSimu &ibs ) { return( *this ); }
 
 public:
 
@@ -65,11 +82,45 @@ public:
      */
     IBSimu();
 
+    /*! \brief Default destructor.
+     */
+    ~IBSimu();
+
+    /*! \brief Set verbose output to stream \a vout
+     *
+     *  Returns a reference to the old output stream.
+     */
+    std::ostream &set_vout( std::ostream &vout );
+
+    /*! \brief Set verbose output to file \a filename.
+     *
+     *  Returns a reference to the old output stream. If the output
+     *  stream is redefined, the file is kept open in the
+     *  background. IBSimu can only have one output stream opened at
+     *  time with this function. The file is closed when the IBSimu
+     *  object is destructed.
+     */
+    std::ostream &set_vout( const std::string &filename );
+
+    /*! \brief Get a reference to verbose output stream.
+     */
+    std::ostream &vout( void );
+
+    /*! \brief Return if verbose output stream is std::cout.
+     */
+    bool vout_is_cout();
+
     /*! \brief Set verbosity level.
+     *
+     *  Values less than or equal to zero mean no output will be
+     *  printed. A value of 1 is used for standard amount of verbose
+     *  output. Values of 2 for extended amount of output.
      */
     void set_verbose_output( int32_t level );
 
     /*! \brief Get verbosity level.
+     *
+     *  Values less than or equal to zero mean no output will be printed.
      */
     int32_t get_verbose_output( void ) { return( _verbose_output ); }
 
@@ -80,6 +131,12 @@ public:
     /*! \brief Get the number of threads used for calculation.
      */
     uint32_t get_thread_count( void ) { return( _threadcount ); }
+
+    /*! \brief Halt execution
+     *
+     *  This function is called by the error handler in case of SIGTERM.
+     */
+    void halt( void );
 };
 
 
@@ -89,3 +146,4 @@ extern IBSimu ibsimu;
 
 
 #endif
+

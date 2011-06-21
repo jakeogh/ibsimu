@@ -2,7 +2,7 @@
  *  \brief Job scheduler for parallel processing
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011 Taneli Kalvas, Jan Sarén. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,10 +45,14 @@
 
 
 #include <pthread.h>
+#include <stdint.h>
 #include <iostream>
 #include <vector>
 #include <deque>
 //#include <sys/time.h>
+
+
+//#define SCHEDULER_DEBUG 1
 
 
 //pthread_mutex_t cout_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -60,12 +64,8 @@
  *  %Scheduler uses a manager thread and a given number of working
  *  threads for solving problems. %Scheduler is templated with Solver,
  *  Problem and Error classes. Solver class has to provide an operator
- *  \code void operator()( Problem *p, Scheduler<Solver,Problem,Error> &s ) \endcode 
- *  to solve problem p. Handle to scheduler itself in
- *  this function is provided to solver so that solver can access
- *  add_problems() for hierarchial construction of problems. Problem
- *  is only used by user defined solver class and Scheduler does not
- *  pose any requirements to it.
+ *  \code void operator()( Problem *p, int32_t pi ) \endcode 
+ *  to solve problem p with index location pi.
  *
  *  Error class has to have a default constructor. Scheduler catches
  *  the errors of this type from the working threads and saves caught
@@ -76,9 +76,11 @@
  *  can be fetched from the internal containers with get_errors().
  *
  *  The %Scheduler can be used for static and dynamic problems. All
- *  threads can add problems using add_problems(). The functions are
- *  mutex protected. %Scheduler provides functions to diagnose the
- *  ending and status of the process.
+ *  threads can add problems. The problem vector is a shared resource
+ *  so it must be protected with lock_mutex() and unlock_mutex().
+ *
+ *  Parallel processing is started with run() function and the end of
+ *  processing can be waited with finish().
  */
 template <class Solv, class Prob, class Err>
 class Scheduler {
@@ -93,38 +95,44 @@ class Scheduler {
 	};
 	*/
 
-	//pthread_mutex_t      _mutex;            //!< \brief Mutex for active check
-	pthread_t            _thread;
-	Solv                *_solver;
-	Scheduler           *_scheduler;
+	//pthread_mutex_t      _mutex;             //!< \brief Mutex for active check
+	pthread_t            _thread;            //!< \brief POSIX thread handle
+	Solv                *_solver;            //!< \brief Solver of this consumer
+	Scheduler           *_scheduler;         //!< \brief Pointer to scheduler
 	//struct timeval       _t0;
 	//std::vector<struct timeval> _t;
     
 	void *consumer_main( void ) {
-	    Prob *p;
 	    //struct timeval t;
 	    
+#ifdef SCHEDULER_DEBUG
+	    std::cout << "Consumer main entrance\n";
+#endif
 	    //pthread_mutex_lock( &_mutex );
 	    //_status = CONSUMER_RUNNING;
 	    //pthread_mutex_unlock( &_mutex );
 
-	    while( (p = _scheduler->get_next_problem()) ) {
+	    Prob *p;
+	    uint32_t pi;
+	    while( (p = _scheduler->get_next_problem( pi )) ) {
 		try {
 		    //gettimeofday( &t, NULL );
 		    //_t.push_back( t );
-		    (*_solver)( p, *_scheduler );
+		    (*_solver)( p, pi );
 		    //gettimeofday( &t, NULL );
 		    //_t.push_back( t );
 		} catch( Err e ) {
 		    //std::cout << "on_error\n";
 		    // Handle error and stop solving
-		    _scheduler->on_error( e, p );
+		    _scheduler->on_error( e, pi );
 		    break;
 		};
-		_scheduler->put_solved_problem( p );
+		_scheduler->inc_solved_problem();
 	    }
-      
-	    //std::cout << "Exiting consumer\n";
+
+#ifdef SCHEDULER_DEBUG
+	    std::cout << "Exiting consumer\n";
+#endif
 	    //pthread_mutex_lock( &_mutex );
 	    //_status = CONSUMER_FINISHED;
 	    //pthread_mutex_unlock( &_mutex );
@@ -141,13 +149,17 @@ class Scheduler {
 	Consumer( Solv *solver, Scheduler *scheduler ) : _solver(solver), _scheduler(scheduler) { 
 
 	    //pthread_mutex_init( &_mutex, NULL );
-	    //std::cout << "Start\n";
+#ifdef SCHEDULER_DEBUG
+	    std::cout << "Consumer constructor\n";
+#endif
 	    //gettimeofday( &_t0, NULL );
 	}
 
 	~Consumer() {
 	    //pthread_mutex_lock( &cout_mutex );
-	    //std::cout << "End\n";
+#ifdef SCHEDULER_DEBUG
+	    std::cout << "Consumer destructor\n";
+#endif
 	    //for( size_t a = 0; a < _t.size(); a++ ) {
 	    //std::cout << (_t[a].tv_sec-_t0.tv_sec) + 
 	    //(_t[a].tv_usec-_t0.tv_usec)/1e6 << "\n";
@@ -163,6 +175,10 @@ class Scheduler {
 	}
 
 	void join( void ) {
+
+#ifdef SCHEDULER_DEBUG
+	    std::cout << "Consumer join\n";
+#endif
 	    //pthread_mutex_lock( &_mutex );
 	    //if( _status == CONSUMER_FINISHED ) {
 	    //pthread_mutex_unlock( &_mutex );
@@ -182,81 +198,113 @@ class Scheduler {
     pthread_cond_t          _producer_cond;    //!< \brief Wake up producer
     pthread_cond_t          _consumer_cond;    //!< \brief Wake up consumer
 
-    size_t                  _problems_in_c;    //!< \brief Total problems in count
-    size_t                  _problems_out_c;   //!< \brief Total problems out count
-    size_t                  _problems_err_c;   //!< \brief Total error problems out count
-    std::deque<Prob*>       _problems_in;      //!< \brief Problems to be solved
-    std::deque<Prob*>       _problems_out;     //!< \brief Problems already solved
+    //size_t                  _problems_in_c;    //!< \brief Total problems in count
+    //size_t                  _problems_err_c;   //!< \brief Total error problems out count
+    //std::deque<Prob*>       _problems_out;     //!< \brief Problems already solved
+
+    uint32_t                _read_c;           //!< \brief Read problems count
+    uint32_t                _solved_c;         //!< \brief Solved problems count
+    std::vector<Prob *>    &_problems;         //!< \brief Vector of problems
 
     pthread_t               _scheduler_thread; //!< \brief Scheduler main thread
     std::vector<Consumer *> _consumers;        //!< \brief Consumer objects
 
+    bool                    _join;             //!< \brief Is join needed?
     bool                    _running;          //!< \brief Are we running
     bool                    _error;            //!< \brief Finish as soon as possible
     bool                    _done;             //!< \brief Exit after current problem
     bool                    _finish;           //!< \brief Finish all problems and exit
-    std::vector<Err>        _err;              //!< \brief Error class
-    std::vector<Prob *>     _prob;             //!< \brief Problem causing error
+    std::vector<Err>        _err;              //!< \brief Errors encountered
+    std::vector<int32_t>    _eprob;            //!< \brief Indices for problems causing errors
 
 
     /*! \brief %Error handler
      *
-     *  Saves caught error \a e and problem causing the error \a p and
-     *  broadcasts other threads signalling about the error condition.
+     *  Saves caught error \a e and index \a pi of problem causing the
+     *  error and broadcasts other threads signalling about the
+     *  error condition.
      */
-    void on_error( Err &e, Prob *p ) {
+    void on_error( Err &e, uint32_t pi ) {
 	pthread_mutex_lock( &_mutex );
 	_err.push_back( e );
-	_prob.push_back( p );
-	_problems_err_c++;
+	_eprob.push_back( pi );
 	_error = true;
 	pthread_cond_broadcast( &_scheduler_cond );
 	pthread_mutex_unlock( &_mutex );
     }
 
 
-    Prob *get_next_problem( void ) {
-	Prob *ret;
+    /*! \brief Increase the counter of solved problems
+     */
+    void inc_solved_problem( void ) {
+	pthread_mutex_lock( &_mutex );
+	_solved_c++;
+	pthread_mutex_unlock( &_mutex );
+    }
+
+    /*! \brief Get pointer to next problem.
+     *
+     *  Returns pointer to the next problem from vector of
+     *  problems. Increases read problems counter. Returns NULL if
+     *  no problem returned. Also returns problem index in \a pi
+     */
+    Prob *get_next_problem( uint32_t &pi ) {
+#ifdef SCHEDULER_DEBUG
+	    std::cout << "get_next_problem()\n";
+#endif
 	pthread_mutex_lock( &_mutex );
     
 	if( _done || _error ) {
 	    pthread_mutex_unlock( &_mutex );
+#ifdef SCHEDULER_DEBUG
+	    std::cout << "get_next_problem(): Returning NULL\n";
+#endif
+	    pi = -1;
 	    return( NULL );
 	}
 
-	if( _problems_in.empty() ) {
+	if( _problems.size() == _read_c ) {
+#ifdef SCHEDULER_DEBUG
+	    std::cout << "get_next_problem(): No problem to return... waiting\n";
+#endif
 	    // Signal producer that problems are spent
 	    pthread_cond_signal( &_scheduler_cond );
-	    while( _problems_in.empty() ) {
+	    while( _problems.size() == _read_c ) {
 		// Wait for new problems
 		pthread_cond_wait( &_consumer_cond, &_mutex );
 		if( _done || _error ) {
 		    pthread_mutex_unlock( &_mutex );
+#ifdef SCHEDULER_DEBUG
+		    std::cout << "get_next_problem(): Returning NULL\n";
+#endif
+		    pi = -1;
 		    return( NULL );
 		}
 	    }
 	}
 
 	// Return next problem
-	ret = _problems_in.front();
-	_problems_in.pop_front();
+	pi = _read_c++;
+	Prob *ret = _problems[pi];
+
+#ifdef SCHEDULER_DEBUG
+	std::cout << "get_next_problem(): Returning problem " << pi << "\n";
+#endif
+
 	pthread_mutex_unlock( &_mutex );
 	return( ret );
     }
 
-
-    void put_solved_problem( Prob *p ) {
-	pthread_mutex_lock( &_mutex );
-	_problems_out_c++;
-	//std::cout << "put_solved_problem(): " << _problems_out_c << "\n";	
-	_problems_out.push_back( p );
-	pthread_mutex_unlock( &_mutex );
-    }
-
-
+    
+    /*! \brief Scheduler main.
+     */
     void *scheduler_main( void ) {
 
-	// Moved from
+#ifdef SCHEDULER_DEBUG
+	std::cout << "Running scheduler_main()\n";
+#endif
+
+	// Start consumer threads
 	for( size_t a = 0; a < _consumers.size(); a++ )
 	    _consumers[a]->run();
 
@@ -264,13 +312,12 @@ class Scheduler {
 
 	while( 1 ) {
 	    // Wait until all consumers are done with all problems or error occurs
-	    while( !(_problems_in.empty() || _done || _error) ) {
+	    while( !(_problems.size() == _solved_c || _done || _error) ) {
 		//std::cout << "scheduler_main(): scheduler_cond wait 1\n";
 		pthread_cond_wait( &_scheduler_cond, &_mutex );
 	    }
 
-	    if( (_finish && _problems_in_c == _problems_out_c+_problems_err_c) || 
-		_done || _error )
+	    if( (_finish && _problems.size() == _solved_c) || _done || _error )
 		break;
 
 	    // Problems temporarily done
@@ -283,8 +330,9 @@ class Scheduler {
 	    pthread_cond_broadcast( &_consumer_cond );
 	}
 
-	// Broadcast done
+	// Broadcast: done
 	_done = true;
+	_running = false;
 	pthread_cond_broadcast( &_consumer_cond );
 	pthread_mutex_unlock( &_mutex );
 
@@ -295,13 +343,12 @@ class Scheduler {
 
 	pthread_cond_broadcast( &_producer_cond );
 	//std::cout << "scheduler_main(): Exiting scheduler\n";
-	_running = false;
 	return( NULL );
     }
 
 
-
-
+    /*! \brief Scheduler main loop entry point.
+     */
     static void *scheduler_entry( void *data ) {
 	Scheduler *scheduler = (Scheduler *)data;
 	return( scheduler->scheduler_main() );
@@ -313,58 +360,35 @@ public:
 
     /*! \brief Constructor
      *
-     *  \param s Vector of solvers to be used by \a N problem
-     *  consumers, where \a N is the size of the vector.
+     *  Constructor for scheduler solving problems in vector \a prob.
      */
-    Scheduler( std::vector<Solv *> s )
-	: _problems_in_c(0), _problems_out_c(0), _problems_err_c(0), _running(false) {
+    Scheduler( std::vector<Prob *> &prob ) 
+	: _read_c(0), _solved_c(0), _problems(prob), _join(false), _running(false), 
+	  _error(false), _done(false), _finish(false) {
 
+	// Initialize pthread objects
 	pthread_mutex_init( &_mutex, NULL );
 	pthread_cond_init( &_scheduler_cond, NULL );
 	pthread_cond_init( &_consumer_cond, NULL );
 	pthread_cond_init( &_producer_cond, NULL );
-
-	// Create consumer threads
-	for( size_t a = 0; a < s.size(); a++ )
-	    _consumers.push_back( new Consumer( s[a], this ) );
     }
 
 
     /*! \brief Destructor
      */
     ~Scheduler() {
+
+	// Force exit
+	_done = true;
 	finish();
-	pthread_join( _scheduler_thread, NULL );
 
 	pthread_mutex_destroy( &_mutex );
 	pthread_cond_destroy( &_scheduler_cond );
 	pthread_cond_destroy( &_consumer_cond );
 	pthread_cond_destroy( &_producer_cond );
-
-	// Delete consumer threads
-	for( size_t a = 0; a < _consumers.size(); a++ )
-	    delete _consumers[a];
     }
 
 
-    /*! \brief Fetch solved problems
-     *
-     *  \param c Container object where pointers to solved problems
-     *  are appended.
-     */
-    template <class Cont>
-    size_t get_solved_problems( Cont &c ) {
-	pthread_mutex_lock( &_mutex );
-	size_t r = _problems_out.size();
-	while( !_problems_out.empty() ) {
-	    c.push_back( _problems_out.front() );
-	    _problems_out.pop_front();
-	}
-	pthread_mutex_unlock( &_mutex );
-	return( r );
-    }
-
-    
     /*! \brief Return true on errors.
      */
     bool is_error( void ) {
@@ -381,95 +405,136 @@ public:
     }
 
 
-    /*! \brief Fetch errors and corresponding problems.
+    /*! \brief Return number of solved problems.
+     */
+    uint32_t get_solved_count( void ) {
+	pthread_mutex_lock( &_mutex );
+	uint32_t ret = _solved_c;
+	pthread_mutex_unlock( &_mutex );
+	return( ret );
+    }
+
+
+    /*! \brief Fetch errors and indices of corresponding problems.
      *
      *  \param e Container where errors are appended
      *  \param p Container where problems are appended
-     *  \return Number of error problems
+     *  \return Number of error problems added to containers
+     *
+     *  Errors are removed from %Scheduler.
      */
     template <class Cont1, class Cont2>
-    size_t get_errors( Cont1 &e, Cont2 &p ) {
+    size_t get_errors( Cont1 &e, Cont2 &pi ) {
 	pthread_mutex_lock( &_mutex );
 	size_t r = _err.size();
 	for( size_t a = 0; a < _err.size(); a++ ) {
 	    e.push_back( _err[a] );
-	    p.push_back( _prob[a] );
+	    pi.push_back( _eprob[a] );
 	}
 	_err.clear();
-	_prob.clear();
+	_eprob.clear();
 	pthread_mutex_unlock( &_mutex );
 	return( r );
     }    
 
-    /*! \brief Run threads.
+
+    /*! \brief Run threads with \a N solvers.
      *
      *  Returns immediately after creating working threads. Use
      *  finish() or destructor of class to wait for work to be
      *  completed.
      */
-    void run( void ) {
+    void run( std::vector<Solv *> solv ) {
 
+	// Do nothing if already running
 	if( _running )
 	    return;
+
+	// Create consumer threads
+	for( size_t a = 0; a < solv.size(); a++ )
+	    _consumers.push_back( new Consumer( solv[a], this ) );
+
+	_read_c = 0;
+	_solved_c = 0;
+	_join = true;
 	_running = true;
 	_error = false;
 	_done = false;
 	_finish = false;
 	_err.clear();
-	_prob.clear();
+	_eprob.clear();
+
+	// Create scheduler thread
 	pthread_create( &_scheduler_thread, NULL, scheduler_entry, (void *)this );
     }
 
 
-    /*! \brief Add problem to input queue.
+    /*! \brief Lock mutex for adding problems.
      */
-    void add_problem( Prob *p ) {
+    void lock_mutex( void ) {
 
 	pthread_mutex_lock( &_mutex );
-	_problems_in_c++;
-	_problems_in.push_back( p );
+    }
+
+    
+    /*! \brief Unlock mutex.
+     */
+    void unlock_mutex( void ) {
+
 	pthread_cond_broadcast( &_scheduler_cond );	
 	pthread_mutex_unlock( &_mutex );
     }
+    
 
-
-    /*! \brief Add multiple problems to input queue.
+    /*! \brief Force exit from scheduler.
+     *
+     *  Waits for the solvers to finish the problems under progress
+     *  after, which all threads are stopped and resources
+     *  freed. Returns false if any error occured during last
+     *  run. Otherwise returns true.
      */
-    void add_problems( std::vector<Prob *> p ) {
+    bool force_exit( void ) {
 
-	pthread_mutex_lock( &_mutex );
-	_problems_in_c += p.size();
-	_problems_in.insert( _problems_in.end(), p.begin(), p.end() );
-	pthread_cond_broadcast( &_scheduler_cond );	
-	pthread_mutex_unlock( &_mutex );
+	_done = true;
+	return( finish() );
     }
-
 
     /*! \brief Wait for all problems to be solved.
      *
-     *  \return True if finished already or finish() already called. 
-     *  False if any error occured during run or scheduler not running.
+     *  Waits for all solvers to finish. Stops all threads and frees
+     *  resources. Returns false if any error occured during last
+     *  run. Otherwise returns true.
+     *
+     *  Solver is prematurely exited if an error occurs.
      */
     bool finish( void ) {
-	if( _finish )
-	    return( true );
-	if( !_running )
-	    return( false );
 
 	pthread_mutex_lock( &_mutex );
-	_finish = true;
-	//std::cout << "finish(): scheduler_cond broadcast\n";
-	pthread_cond_broadcast( &_scheduler_cond );
-
-	//std::cout << "finish(): producer_cond wait\n";
-	pthread_cond_wait( &_producer_cond, &_mutex );
+	if( _running ) {
+	    _finish = true;
+	    //std::cout << "finish(): scheduler_cond broadcast\n";
+	    pthread_cond_broadcast( &_scheduler_cond );
+	
+	    //std::cout << "finish(): producer_cond wait\n";
+	    pthread_cond_wait( &_producer_cond, &_mutex );
+	}
 	pthread_mutex_unlock( &_mutex );
 
+	if( _join ) {
+	    // Delete consumer threads
+	    for( size_t a = 0; a < _consumers.size(); a++ )
+		delete _consumers[a];
+	    _consumers.clear();
+
+	    pthread_join( _scheduler_thread, NULL );
+	    _join = false;
+	}
+	
 	if( _error )
 	    return( false );
+
 	return( true );
     }
-
 
     friend class Consumer;
 };
@@ -477,22 +542,4 @@ public:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

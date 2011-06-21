@@ -54,17 +54,22 @@ Vec3D::Vec3D( const class Vec4D &vec )
 
 bool Vec3D::operator!=( const Vec3D &x ) const 
 { 
-    if( p[0] != x.p[0] || p[1] != x.p[1] || p[2] != x.p[2] )
-	return( true );
-    return( false ); 
+    for( int a = 0; a < 3; a++ ) {
+	if( p[a] != x.p[a] )
+	    return( true );
+    }
+    return( false );
 }
 
 
 bool Vec3D::operator==( const Vec3D &x ) const
 {
-    if( p[0] == x.p[0] && p[1] == x.p[1] && p[2] == x.p[2] )
-	return( true );
-    return( false ); 
+   for( int a = 0; a < 3; a++ ) {
+       if( p[a] != x.p[a] )
+	   return( false );
+   }
+
+   return( true );
 }
 
 
@@ -99,16 +104,46 @@ int32_t Int3D::max( void ) const
     }
 }
 
-/*
+
+bool Vec3D::approx( const Vec3D &x, double eps ) const
+{
     for( int a = 0; a < 3; a++ ) {
-	double df = p[a]-x.p[a];
-	if( fabs(df) < 1.0e-6 )
-	    continue;
-	else if( fabs(df/p[a]) < 1.0e-6 )
-	    continue;
-	else
-	    return( false );
+        if( fabs( p[a] - x.p[a] ) > 1.0e-6 &&
+            fabs( (p[a] - x.p[a]) / p[a] ) > 1.0e-6 ) {
+            return( false );
+        }
     }
-    return( true ); 
+    return( true );
 }
-*/
+
+
+int Vec3D::min_element( void ) const
+{
+    int imin = 0;
+    double min = fabs( p[0] );
+    for( int b = 1; b < 3; b++ ) {
+	if( fabs( p[b] ) < min ) {
+	    min = fabs( p[b] );
+	    imin = b;
+	}
+    }
+    return( imin );
+}
+
+
+Vec3D Vec3D::standard_basis( int i )
+{
+    Vec3D x;
+    x[i] = 1.0;
+    return( x );
+}
+
+
+Vec3D Vec3D::arb_perpendicular( void ) const
+{
+    int i = min_element();
+    Vec3D x = Vec3D::standard_basis(i);
+    return( cross( *this, x ) );
+}
+
+

@@ -63,9 +63,9 @@ void test( int argc, char **argv )
     //EpotUMFPACKSolver solver( geom );
     //EpotBiCGSTABSolver solver( geom );
     EpotMGSolver solver( geom );
-    solver.set_levels( 2 );
-    solver.set_neumann_order( 1 );
-    solver.set_mgcycmax( 1 );
+    solver.set_levels( 3 );
+    solver.set_neumann_order( 2 );
+    //solver.set_mgcycmax( 1 );
     //EpotGSSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_initial_plasma( 5.0, &initp );
@@ -91,7 +91,7 @@ void test( int argc, char **argv )
     conv.add_scharge( scharge );
     conv.add_emittance( 0, emit );
 
-    for( size_t i = 0; i < 30; i++ ) {
+    for( size_t i = 0; i < 2; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
@@ -115,7 +115,6 @@ void test( int argc, char **argv )
 	emit = pplotter.calculate_emittance();
 	conv.evaluate_iteration();
 
-	/*
 	MeshScalarField tdens( geom );
 	pdb.build_trajectory_density_field( tdens );
 	GTKPlotter plotter( &argc, &argv );
@@ -127,7 +126,6 @@ void test( int argc, char **argv )
 	plotter.set_particledatabase( &pdb );
 	plotter.new_geometry_plot_window();
 	plotter.run();
-	*/
     }
 
     if( true ) {

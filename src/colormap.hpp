@@ -148,6 +148,12 @@ public:
      */
     virtual void plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] );
 
+    /*! \brief Plot sample for legend.
+     *
+     *  Plot graph sample for legend at cairo coordinates \a (x,y).
+     */
+    virtual void plot_sample( cairo_t *cairo, double x, double y, double width, double height );
+
     /*! \brief Get bounding box of graph.
      *
      *  Returns the bounding box of the graph in array \a bbox in
@@ -163,6 +169,13 @@ public:
      */
     void get_zrange( double &min, double &max ) const;
 
+    /*! \brief Set zrange for colormap plot.
+     *
+     *  The zrange defaults to automatically scaled ranging for
+     *  colormap input data.
+     */
+    void set_zrange( double min, double max );
+
     /*! \brief Get value of interpolated colormap data.
      */
     double get_value( double x, double y ) const;
@@ -170,3 +183,4 @@ public:
 
 
 #endif
+

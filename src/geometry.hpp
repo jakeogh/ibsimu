@@ -77,16 +77,16 @@ struct Bound
 
     /*! \brief Constructor for loading boundary condition from a file.
      */
-    Bound( std::istream &s ) {
-    	type = (bound_e)read_int32( s );
-    	val = read_double( s );
+    Bound( std::istream &is ) {
+    	type = (bound_e)read_int32( is );
+    	val = read_double( is );
     }
 
-    /*! \brief Saves boundary data to stream.
+    /*! \brief Saves data to stream \a os.
      */
-    void save( std::ostream &fout ) const {
-	write_int32( fout, type );
-	write_double( fout, val );
+    void save( std::ostream &os ) const {
+	write_int32( os, type );
+	write_double( os, val );
     }
 
     /*! \brief Outputting to stream.
@@ -203,6 +203,9 @@ class Geometry : public Mesh
      */
     void check_definition();
 
+    Vec3D surface_normal_2d( const Vec3D &x ) const;
+    Vec3D surface_normal_3d( const Vec3D &x ) const;
+
 public:
 
     /*! \brief Constructor for geometry class.
@@ -212,9 +215,9 @@ public:
      */
     Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h );
 
-    /*! \brief Constructor for loading geometry from a file.
+    /*! \brief Constructor for loading geometry from a stream \a is.
      */
-    Geometry( std::istream &s );
+    Geometry( std::istream &is );
 
     /*! \brief Destructor for geometry.
      */
@@ -291,9 +294,15 @@ public:
      *  should be inside the solid and point \a xout should be outside
      *  the solid. Function saves the coordinates of the surface to
      *  xsurf and returns parametrical distance (value from 0 to 1)
-     *  from xin. %Vector \a xsurf is used as internal work space.
+     *  from xin.
      */
     double bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xout, Vec3D &xsurf ) const;
+
+    /*! \brief Find surface outward normal at location \a x.
+     *
+     *  Returns zero vector on failure.
+     */
+    Vec3D surface_normal( const Vec3D &x ) const;
 
     /*! \brief Is the solid mesh built?
      */
@@ -390,14 +399,19 @@ public:
      */
     uint8_t solid_dist( uint32_t i, uint32_t dir ) const;
 
-    /*! \brief Saves geometry data to stream.
+    /*! \brief Saves data to a new file \a filename.
      */
-    void save( std::ostream &s ) const;
+    void save( const std::string &filename ) const;
 
-    /*! \brief Print debugging information to os.
+    /*! \brief Saves data to stream \a os.
+     */
+    void save( std::ostream &os ) const;
+
+    /*! \brief Print debugging information to stream \a os.
      */
     void debug_print( std::ostream &os ) const;
 };
 
 
 #endif
+

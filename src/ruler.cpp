@@ -451,18 +451,18 @@ void Ruler::calculate( cairo_t *cairo, Coordmapper1D &cm, bool ruler_tic_bbox_te
 	// Do autoranges according to tic spacing
 	double x = 0.0;
 	if( stepdir )
-	    x = step*floor(_range[0]/step+0.01); // Allow 1% error for inaccurate arithmetic
+	    // Allow 1% of step size error for inaccurate arithmetic
+	    x = step*floor(_range[0]/step+0.01); 
 	else
 	    x = step*ceil(_range[0]/step-0.01);
 	if( _autorange[0] )
 	    _range[0] = x;
 	if( _autorange[1] ) {
 	    int i = 0;
-	    while( (stepdir && x < _range[1]) || (!stepdir && x > _range[1]) ) {
+	    while( (stepdir && x <= _range[1]+0.01*step) || (!stepdir && x >= _range[1]-0.01*step) ) {
 		i++;
 		x = _range[0] + i*step;
 	    }
-	    //if( (stepdir && x > _range[1]) || (!stepdir && x < _range[1]) )
 	    _range[1] = x;
 	}
 
@@ -491,11 +491,11 @@ void Ruler::calculate( cairo_t *cairo, Coordmapper1D &cm, bool ruler_tic_bbox_te
 	double startx = step*floor(_range[0]/step);
 	x = startx;
 	int i = 0;
-	while( (stepdir && x < _range[0]) || (!stepdir && x > _range[0]) ) {
+	while( (stepdir && x < _range[0]-0.01*step) || (!stepdir && x > _range[0]+0.01*step) ) {
 	    i++;
 	    x = startx + i*step;
 	}
-	while( (stepdir && x <= _range[1]) || (!stepdir && x >= _range[1]) ) {
+	while( (stepdir && x <= _range[1]+0.01*step) || (!stepdir && x >= _range[1]-0.01*step) ) {
 
 	    // Make a tic and set parameters and make bounding box
 	    // test enabled. Returns true if bbox test reports a crash.
@@ -755,6 +755,7 @@ void Ruler::debug_print( std::ostream &os ) const
 	os << "    tic[" << a << "] = {" << _tic[a]._x << ", \"" << _tic[a]._label << "\"}\n";
     }
 }
+
 
 
 

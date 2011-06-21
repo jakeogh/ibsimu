@@ -66,9 +66,9 @@ public:
      */
     FuncSolid( bool (*func)(double,double,double) ) : _func(func) {}
 
-    /*! \brief Constructor for loading solid data from a file.
+    /*! \brief Constructor for loading solid data from stream \a is.
      */
-    FuncSolid( std::istream &s );
+    FuncSolid( std::istream &is );
 
     /*! \brief Destructor.
      */
@@ -78,17 +78,18 @@ public:
      */
     bool inside( const Vec3D &x ) const;
 
-    /*! \brief Print debugging information to os.
+    /*! \brief Print debugging information to \a os.
      */
     void debug_print( std::ostream &os ) const;
 
-    /*! \brief Saves solid data to stream.
+    /*! \brief Saves solid data to stream \a os
      */
-    void save( std::ostream &fout ) const;
+    void save( std::ostream &os ) const;
 };
 
 
 #endif
+
 
 
 

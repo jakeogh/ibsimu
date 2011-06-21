@@ -2,7 +2,7 @@
  *  \brief BiCGSTAB matrix solver for electric potential problem
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -59,11 +59,10 @@ class EpotBiCGSTABSolver : public EpotMatrixSolver {
     uint32_t _iter;         /*!< \brief Number of iteration rounds done. */
     double   _res;          /*!< \brief Residual error. */
 
+    bool     _gnewton;      /*!< \brief Globally convergent version of Newton-Raphson. */
     double   _newton_Reps;  /*!< \brief Accuracy request for Newton-Raphson residual. */
     double   _newton_dXeps; /*!< \brief Accuracy request for Newton-Raphson step. */
     uint32_t _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
-
-    bool     _gnewton;      /*!< \brief Globally convergent version of Newton-Raphson. */
 
     /*! \brief Reset solver/problem settings.
      */
@@ -85,7 +84,7 @@ public:
 			uint32_t newton_imax = 10,
 			bool gnewton = false );
 
-    /*! \brief Construct from file.
+    /*! \brief Destructor.
      */
     EpotBiCGSTABSolver( Geometry &geom, std::istream &s );
 

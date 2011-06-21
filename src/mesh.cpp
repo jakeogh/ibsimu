@@ -93,12 +93,12 @@ void Mesh::reset( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
 }
 
 
-Mesh::Mesh( std::istream &s )
+Mesh::Mesh( std::istream &is )
 {
-    _geom_mode = (geom_mode_e)read_int32( s );
-    _size      = Int3D( s );
-    _origo     = Vec3D( s );
-    _h         = read_double( s );
+    _geom_mode = (geom_mode_e)read_int32( is );
+    _size      = Int3D( is );
+    _origo     = Vec3D( is );
+    _h         = read_double( is );
 
     // Calculate vector max and reciprocal of h
     _div_h = 1.0/_h;
@@ -127,12 +127,12 @@ int32_t Mesh::dim( void ) const
 }
 
 
-void Mesh::save( std::ostream &s ) const
+void Mesh::save( std::ostream &os ) const
 {
-    write_int32( s, _geom_mode );
-    _size.save( s );
-    _origo.save( s );
-    write_double( s, _h );
+    write_int32( os, _geom_mode );
+    _size.save( os );
+    _origo.save( os );
+    write_double( os, _h );
 }
 
 
@@ -140,8 +140,8 @@ bool Mesh::operator==( const Mesh &m ) const
 {
     if( _geom_mode == m._geom_mode && 
 	_size == m._size && 
-	_origo == m._origo && 
-	_h == m._h )
+	_origo.approx( m._origo, 1.0e-6 ) && 
+	fabs( (_h - m._h) / _h ) < 1.0e-6 )
 	return( true );
     return( false );
 }
@@ -151,7 +151,7 @@ bool Mesh::operator!=( const Mesh &m ) const
 {
     if( _geom_mode != m._geom_mode ||
 	_size != m._size || 
-	_origo != m._origo || 
+	!_origo.approx( m._origo, 1.0e-6 ) || 
 	_h != m._h )
 	return( true );
     return( false );
@@ -190,5 +190,6 @@ void Mesh::debug_print( std::ostream &os ) const
        << _max[2] << ")\n";
     os << "h = " << _h << "\n";
 }
+
 
 

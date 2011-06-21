@@ -59,24 +59,6 @@
 #define IBSIMU_DERIV_ERROR 201
 
 
-/*! \brief Temporary data bundle for particle iterators.
- */
-struct ParticleIteratorData {
-    MeshScalarField          *_scharge;            /*!< \brief Space charge field or NULL. */
-    const VectorField        *_efield;             /*!< \brief Electric field or NULL. */
-    const VectorField        *_bfield;             /*!< \brief Magnetic field or NULL. */
-    const Geometry           *_g;                  /*!< \brief Geometry. */
-    double                    _qm;                 /*!< \brief Precalculated q/m. */
-    const CallbackFunctorD_V *_bfield_suppression; /*!< \brief Location dependent magnetic field suppression. */
-
-    ParticleIteratorData( MeshScalarField *scharge, const VectorField *efield, 
-			  const VectorField *bfield, const Geometry *g, 
-			  const CallbackFunctorD_V *bfield_suppression )
-	: _scharge(scharge), _efield(efield), _bfield(bfield), 
-	  _g(g), _qm(0.0), _bfield_suppression(bfield_suppression) {}
-};
-
-
 /*! \brief %Particle status enum.
  *
  *  %Particle status can be either OK (\a PARTICLE_OK), out of geometry
@@ -131,6 +113,16 @@ public:
 	_x[0] = t; _x[1] = x; _x[2] = vx; _x[3] = y; _x[4] = vy;
     }
 
+    /*! \brief Constructor for loading particle point from a file.
+     */
+    ParticleP2D( std::istream &s ) {
+	_x[0] = read_double( s );
+	_x[1] = read_double( s );
+	_x[2] = read_double( s );
+	_x[3] = read_double( s );
+	_x[4] = read_double( s );
+    }
+
     /*! \brief Returns geometry mode.
      */
     static geom_mode_e geom_mode() { return(MODE_2D); }
@@ -162,7 +154,9 @@ public:
      */
     static int trajectory_intersections_at_plane( std::vector<ParticleP2D> &intsc, 
 						  int crd, double val,
-						  const ParticleP2D &x1, const ParticleP2D &x2 );
+						  const ParticleP2D &x1, 
+						  const ParticleP2D &x2,
+						  int extrapolate = 0 );
 
     /*! \brief Return string representation for unit of current
      *
@@ -228,6 +222,16 @@ public:
 	return( res );
     }
 
+    /*! \brief Saves data to stream.
+     */
+    void save( std::ostream &s ) const {
+	write_double( s, _x[0] );
+	write_double( s, _x[1] );
+	write_double( s, _x[2] );
+	write_double( s, _x[3] );
+	write_double( s, _x[4] );
+    }
+    
     friend ParticleP2D operator*( double x, const ParticleP2D &pp );
 };
 
@@ -277,6 +281,17 @@ public:
 	_x[0] = t; _x[1] = x; _x[2] = vx; _x[3] = r; _x[4] = vr; _x[5] = w;
     }
 
+    /*! \brief Constructor for loading particle point from a file.
+     */
+    ParticlePCyl( std::istream &s ) {
+	_x[0] = read_double( s );
+	_x[1] = read_double( s );
+	_x[2] = read_double( s );
+	_x[3] = read_double( s );
+	_x[4] = read_double( s );
+	_x[5] = read_double( s );
+    }
+
     /*! \brief Returns geometry mode.
      */
     static geom_mode_e geom_mode() { return(MODE_CYL); }
@@ -314,7 +329,8 @@ public:
     static int trajectory_intersections_at_plane( std::vector<ParticlePCyl> &intsc, 
 						  int crd, double val,
 						  const ParticlePCyl &x1,
-						  const ParticlePCyl &x2 );
+						  const ParticlePCyl &x2,
+						  int extrapolate = 0 );
 
     /*! \brief Return string representation for unit of current
      *
@@ -383,6 +399,17 @@ public:
 	return( res );
     }
 
+    /*! \brief Saves data to stream.
+     */
+    void save( std::ostream &s ) const {
+	write_double( s, _x[0] );
+	write_double( s, _x[1] );
+	write_double( s, _x[2] );
+	write_double( s, _x[3] );
+	write_double( s, _x[4] );
+	write_double( s, _x[5] );
+    }
+    
     friend ParticlePCyl operator*( double x, const ParticlePCyl &pp );
 };
 
@@ -434,6 +461,18 @@ public:
 	_x[0] = t; _x[1] = x; _x[2] = vx; _x[3] = y; _x[4] = vy; _x[5] = z; _x[6] = vz;
     }
 
+    /*! \brief Constructor for loading particle point from a file.
+     */
+    ParticleP3D( std::istream &s ) {
+	_x[0] = read_double( s );
+	_x[1] = read_double( s );
+	_x[2] = read_double( s );
+	_x[3] = read_double( s );
+	_x[4] = read_double( s );
+	_x[5] = read_double( s );
+	_x[6] = read_double( s );
+    }
+
     /*! \brief Returns geometry mode.
      */
     static geom_mode_e geom_mode() { return(MODE_3D); }
@@ -467,7 +506,9 @@ public:
      */
     static int trajectory_intersections_at_plane( std::vector<ParticleP3D> &intsc, 
 						  int crd, double val,
-						  const ParticleP3D &x1, const ParticleP3D &x2 );
+						  const ParticleP3D &x1, 
+						  const ParticleP3D &x2, 
+						  int extrapolate = 0 );
 
     /*! \brief Return string representation for unit of current
      *
@@ -539,6 +580,18 @@ public:
 	return( res );
     }
 
+    /*! \brief Saves data to stream.
+     */
+    void save( std::ostream &s ) const {
+	write_double( s, _x[0] );
+	write_double( s, _x[1] );
+	write_double( s, _x[2] );
+	write_double( s, _x[3] );
+	write_double( s, _x[4] );
+	write_double( s, _x[5] );
+	write_double( s, _x[6] );
+    }
+    
     friend ParticleP3D operator*( double x, const ParticleP3D &pp );
 };
 
@@ -604,10 +657,19 @@ protected:
     ParticleBase( double IQ, double q, double m ) 
 	: _status(PARTICLE_OK), _q(q) {
 	_m = fabs(m);
-	if( _q/_m < 0 )
+	if( _q < 0 )
 	    _IQ = -fabs(IQ);
 	else
 	    _IQ = fabs(IQ);
+    }
+
+    /*! \brief Constructor for loading particle from a file.
+     */
+    ParticleBase( std::istream &s ) {
+	_status = (particle_status_e)read_int32( s );
+	_IQ = read_double( s );
+	_q = read_double( s );
+	_m = read_double( s );	
     }
 
     ~ParticleBase() {}
@@ -640,6 +702,15 @@ public:
     /*! \brief Return charge per mass ratio (q/m) [C/kg].
      */
     double qm() const { return( _q/_m ); }
+
+    /*! \brief Saves data to stream.
+     */
+    void save( std::ostream &s ) const {
+	write_int32( s, _status );
+	write_double( s, _IQ );
+	write_double( s, _q );
+	write_double( s, _m );
+    }
 };
 
 
@@ -669,6 +740,18 @@ public:
     Particle( double IQ, double q, double m, const PP &x ) 
 	: ParticleBase(IQ,q,m), _x(x) {}
 
+    /*! \brief Constructor for loading particle from a file.
+     */
+    Particle( std::istream &s ) 
+	: ParticleBase( s ) {
+
+	uint32_t N  = read_int32( s );
+	_trajectory.reserve( N );
+	for( uint32_t a = 0; a < N; a++ )
+	    _trajectory.push_back( PP( s ) );
+	_x = PP( s );
+    }
+
     /*! \brief Destructor.
      */
     ~Particle() {}
@@ -680,6 +763,14 @@ public:
     /*! \brief Operator for pointing to coordinate data.
      */
     const double &operator()( int i ) const { return( _x(i) ); }
+
+    /*! \brief Operator for pointing to coordinate data.
+     */
+    double &operator[]( int i ) { return( _x(i) ); }
+
+    /*! \brief Operator for pointing to coordinate data.
+     */
+    const double &operator[]( int i ) const { return( _x(i) ); }
 
     /*! \brief Returns the location of particle in Vec3D.
      */
@@ -721,6 +812,16 @@ public:
      */
     void clear_trajectory( void ) { _trajectory.clear(); }
 
+    /*! \brief Saves data to stream.
+     */
+    void save( std::ostream &s ) const {
+	ParticleBase::save( s );
+	write_int32( s, _trajectory.size() );
+	for( uint32_t a = 0; a < _trajectory.size(); a++ )
+	    _trajectory[a].save( s );
+	_x.save( s );
+    }
+    
     /*! \brief Print debugging information to os.
      */
     void debug_print( std::ostream &os ) const {
@@ -795,4 +896,29 @@ typedef Particle<ParticleP3D>  Particle3D;
 
 
 
+/*! \brief Temporary data bundle for particle iterators.
+ */
+struct ParticleIteratorData {
+    MeshScalarField          *_scharge;  /*!< \brief Space charge field or NULL. */
+    const VectorField        *_efield;   /*!< \brief Electric field or NULL. */
+    const VectorField        *_bfield;   /*!< \brief Magnetic field or NULL. */
+    const Geometry           *_geom;     /*!< \brief Geometry. */
+    double                    _qm;       /*!< \brief Precalculated q/m. */
+    const CallbackFunctorD_V *_bsup_cb;  /*!< \brief B-field plasma suppression callback. */
+
+    ParticleIteratorData( MeshScalarField *scharge, const VectorField *efield, 
+			  const VectorField *bfield, const Geometry *geom ) 
+	: _scharge(scharge), _efield(efield), _bfield(bfield), 
+	  _geom(geom), _qm(0.0), _bsup_cb(0) {}
+
+    /*! \brief Set B-field potential dependent suppression callback.
+     */
+    void set_bfield_suppression_callback( const CallbackFunctorD_V *bsup_cb ) {
+	_bsup_cb = bsup_cb;
+    }
+
+};
+
+
 #endif
+

@@ -2,7 +2,7 @@
  *  \brief Source code for interpolation.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -330,6 +330,7 @@ double BiCubicInterpolation2D::operator()( double x, double y ) const
 
     return( val );
 }
+
 
 
 

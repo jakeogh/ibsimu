@@ -44,6 +44,7 @@
 #define MESHVECTORFIELD_HPP 1
 
 
+#include "transformation.hpp"
 #include "vectorfield.hpp"
 #include "mesh.hpp"
 #include "types.hpp"
@@ -76,9 +77,13 @@ class MeshVectorField : public VectorField, public Mesh {
 				  *   is not stored.
 				  */
 
-    void transform( int ind[3] );
-    
+    Transformation   _T;         /*!< \brief Field transformation. */
+    Transformation   _Tinv;      /*!< \brief Field transformation inversed. */
+
     void check_definition();
+
+    void convert_3d_to_3d( const MeshVectorField &fin );
+    void convert_cyl_to_3d( const MeshVectorField &fin );
 
 public:
 
@@ -141,13 +146,39 @@ public:
     MeshVectorField( geom_mode_e geom_mode, const bool fout[3], double xscale, 
 		     double fscale, const std::string &filename );
 
+    /*! \brief Conversion constructor.
+     *
+     *  Returns a new vector field with geometry set according to
+     *  parameters: \a geom_mode is the geometry mode, \a size is the
+     *  size of the mesh, \a origo is the location of mesh point
+     *  (0,0,0) and \a h is the mesh cell size. The vector field
+     *  components marked \a true in array fout are to be defined in
+     *  the vector field. Components marked \a false are always
+     *  zero. The field content is copied from another mesh based
+     *  vector field \a fin.
+     *
+     *  Currently supports 
+     *
+     *  1. Conversion from cylindrical (x,r,Bx,Br,Btheta) to 3d 
+     *  (x,y,z,Bx,By,Bz), where x -> z and r -> (x,y).
+     *
+     *  2. Conversion from 3d to 3d. Allows change of mesh density and 
+     *  size of field, change of extrapolation effect...
+     *
+     *  Conversion algorithm uses field evaluator ot the input field
+     *  and therefore the extrapolation settings and the
+     *  transformation in the field affect the created field.
+     */
+    MeshVectorField( geom_mode_e geom_mode, const bool fout[3], Int3D size, 
+		     Vec3D origo, double h, const MeshVectorField &fin );
+
     /*! \brief Copy constructor.
      */
     MeshVectorField( const MeshVectorField &f );
 
-    /*! \brief Constructor for loading vector field from a file.
+    /*! \brief Constructor for loading vector field from stream \a is.
      */
-    MeshVectorField( std::istream &s );
+    MeshVectorField( std::istream &is );
 
     /*! \brief Destructor.
      */
@@ -176,25 +207,41 @@ public:
 	memcpy( _extrpl, extrpl, 6*sizeof(field_extrpl_e) );
     }
 
-    /*! \brief Translate field in coordinate system.
+    /*! \brief Set transformation to unity.
      */
-    void translate( Vec3D x );
+    void reset_transformation( void );
 
-    /*! \brief Scale field in coordinate system.
+    /*! \brief Set transformation as a copy of \a T.
      */
-    void scale( double s );
+    void set_transformation( const Transformation &T );
 
-    /*! \brief Rotate field in coordinate system around x-axis.
+    /*! \brief Translate field.
      */
-    void rotate_x( int a );
+    void translate( const Vec3D &dx );
 
+    /*! \brief Scale field.
+     */
+    void scale( const Vec3D &sx );
+
+    /*! \brief Rotate solid around x-axis.
+     *
+     *  Rotate around x-axis for \a a radians.
+     */
+    void rotate_x( double a );
+
+    /*! \brief Rotate solid around y-axis.
+     *
+     *  Rotate around y-axis for \a a radians.
+     */
     /*! \brief Rotate field in coordinate system around y-axis.
      */
-    void rotate_y( int a );
+    void rotate_y( double a );
 
-    /*! \brief Rotate field in coordinate system around z-axis.
+    /*! \brief Rotate solid around z-axis.
+     *
+     *  Rotate around z-axis for \a a radians.
      */
-    void rotate_z( int a );
+    void rotate_z( double a );
 
     /*! \brief Clears the field.
      */
@@ -202,8 +249,9 @@ public:
 
     /*! \brief Resets the field geometry.
      *
-     *  Sets the field geometry according to the parameters and clears
-     *  the field to zero in all locations.
+     *  Sets the field mesh geometry according to the parameters,
+     *  clears the field to zero in all locations and resets the
+     *  transformation.
      */
     void reset( geom_mode_e geom_mode, const bool fout[3], Int3D size, 
 		Vec3D origo, double h );
@@ -262,14 +310,19 @@ public:
      */
     virtual const Vec3D operator()( const Vec3D &x ) const;
 
-    /*! \brief Saves vector field data to stream.
+    /*! \brief Saves data to a new file \a filename.
      */
-    void save( std::ostream &s ) const;
+    void save( const std::string &filename ) const;
 
-    /*! \brief Print debugging information to os.
+    /*! \brief Saves vector field data to stream \a os.
+     */
+    void save( std::ostream &os ) const;
+
+    /*! \brief Print debugging information to stream \a os.
      */
     void debug_print( std::ostream &os ) const;
 };
 
 
 #endif
+

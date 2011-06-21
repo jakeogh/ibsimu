@@ -14,6 +14,7 @@
 #include "epot_bicgstabsolver.hpp"
 #include "epot_umfpacksolver.hpp"
 #include "epot_gssolver.hpp"
+#include "epot_mgsolver.hpp"
 #include "particledatabase.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
@@ -65,7 +66,7 @@ void test( int argc, char **argv )
     //Geometry geom( MODE_3D, Int3D(101,133,133), Vec3D(-0.001,-1.98e-2,-1.98e-2), 3.0e-4 );
 
    // -889 V, x=3mm
-    Geometry geom( MODE_3D, Int3D(61,79,79), Vec3D(-0.001,-1.95e-2,-1.95e-2), 5.0e-4 );
+    Geometry geom( MODE_3D, Int3D(61,81,81), Vec3D(-0.001,-2.0e-2,-2.0e-2), 5.0e-4 );
 
 
     Solid *s1 = new FuncSolid( solid1 );
@@ -82,7 +83,9 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, +6.0e3) );
     geom.build_mesh();
 
-    EpotGSSolver solver( geom );
+    EpotMGSolver solver( geom );
+    solver.set_levels( 3 );
+    //EpotGSSolver solver( geom );
     //solver.set_w( 1.93 );
     //EpotUMFPACKSolver solver( geom );
     //EpotBiCGSTABSolver solver( geom );

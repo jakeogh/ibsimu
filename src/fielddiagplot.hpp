@@ -1,8 +1,8 @@
 /*! \file fielddiagplot.hpp
- *  \brief Field diagnostic plotter
+ *  \brief %Field diagnostic plotter.
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -98,7 +98,7 @@ class FieldDiagPlot {
     field_loc_type_e    _loc[2];
 
     XYGraph            *_graph[2];
-
+    LegendEntry        *_legend[2];
 
     void build_data( std::vector<double> coord[4], 
 		     std::vector<double> fielddata[2] ) const;
@@ -206,6 +206,7 @@ public:
 
 
 #endif
+
 
 
 

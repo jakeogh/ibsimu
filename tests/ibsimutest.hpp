@@ -7,7 +7,11 @@ class ErrorTest : public Error {
 
 public:
 
-    /*! \brief Constructor for test error.
+    /*! \brief Constructor for test error with default message.
+     */
+    ErrorTest( const ErrorLocation &loc );
+
+    /*! \brief Constructor for test error with custom message
      */
     ErrorTest( const ErrorLocation &loc, const std::string &str );
 };

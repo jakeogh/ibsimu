@@ -43,6 +43,7 @@
 #include <limits>
 #include <fstream>
 #include <cstring>
+#include <sstream>
 #include <cmath>
 #include <limits>
 #include <cstdlib>
@@ -100,6 +101,9 @@ MeshVectorField::MeshVectorField( std::istream &s )
 {
     check_definition();
 
+    if( ibsimu.get_verbose_output() )
+	ibsimu.vout() << "Constructing MeshVectorField from stream\n";
+
     for( int i = 0; i < 6; i++ )
 	_extrpl[i] = (field_extrpl_e)read_int32( s );
 
@@ -128,7 +132,7 @@ MeshVectorField::MeshVectorField( geom_mode_e geom_mode, const bool fout[3], dou
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
 
     if( ibsimu.get_verbose_output() )
-	std::cout << "Reading vector field from " << filename << "\n";
+	ibsimu.vout() << "Reading vector field from \'" << filename << "\'\n";
 
     // Set number of dimensions (cdim) 
     size_t cdim;
@@ -145,6 +149,8 @@ MeshVectorField::MeshVectorField( geom_mode_e geom_mode, const bool fout[3], dou
     case MODE_1D:
 	cdim = 1;
 	break;
+    default:
+	throw( ErrorUnimplemented( ERROR_LOCATION ) );
     }
 
     // Set number of field components (fdim)
@@ -212,16 +218,21 @@ MeshVectorField::MeshVectorField( geom_mode_e geom_mode, const bool fout[3], dou
 
     // Check number of records
     if( data.rows() != (uint32_t)size[0]*size[1]*size[2] ) {
-	throw( Error( ERROR_LOCATION, "number of records " + to_string(data.rows()) +
-		      " in file " + filename + " doesn\'t match expected mesh size " +
-		      to_string(size[0]) + "x" + to_string(size[1]) + "x" + to_string(size[2]) ) );
+	std::stringstream ss;
+	ss << "number of records " << data.rows() << " in file " << filename 
+	   << " doesn\'t match expected mesh size "
+	   << size[0] << "x" << size[1] << "x" << size[2] << "\n"
+	   << "origo = " << origo << "\n"
+	   << "max = " << max << "\n"
+	   << "h = " << h;
+	throw( Error( ERROR_LOCATION, ss.str() ) );
     }
 
     if( ibsimu.get_verbose_output() ) {
-	std::cout << "  origo = " << origo << "\n";
-	std::cout << "  size  = " << size << "\n";
-	std::cout << "  max   = " << max << "\n";
-	std::cout << "  h     = " << h << "\n";
+	ibsimu.vout() << "  origo = " << origo << "\n";
+	ibsimu.vout() << "  size  = " << size << "\n";
+	ibsimu.vout() << "  max   = " << max << "\n";
+	ibsimu.vout() << "  h     = " << h << "\n";
     }
 
     // Prepare MeshVectorField
@@ -270,6 +281,96 @@ MeshVectorField::MeshVectorField( const MeshVectorField &f )
 }
 
 
+void MeshVectorField::convert_cyl_to_3d( const MeshVectorField &fin )
+{
+    // Check that we have full B-components on output
+    if( !_F[0] || !_F[1] || !_F[2] )
+	throw( Error( ERROR_LOCATION, "insufficient vector components enabled" ) );
+
+    // Go through all x,y,z points
+    for( uint32_t k = 0; k < size(2); k++ ) {
+	double z = k*h()+origo(2);
+	for( uint32_t j = 0; j < size(1); j++ ) {
+	    double y = j*h()+origo(1);
+	    for( uint32_t i = 0; i < size(0); i++ ) {
+		double x = i*h()+origo(0);
+
+		// Coordinates for cylindrical system
+		double cyl_r = sqrt( x*x + y*y );
+		double cyl_x = z;
+		double cyl_theta = atan2( y, x );
+
+		Vec3D cyl_B = fin( Vec3D(cyl_x,cyl_r) ); // cyl_B: (Bx,Br,Btheta)
+		Vec3D B( cos(cyl_theta)*cyl_B[1] - sin(cyl_theta)*cyl_B[2],
+			 sin(cyl_theta)*cyl_B[1] + cos(cyl_theta)*cyl_B[2],
+			 cyl_B[0] );
+		set( i, j, k, B );
+	    }   
+	}
+    }
+}
+
+
+void MeshVectorField::convert_3d_to_3d( const MeshVectorField &fin )
+{
+    // Check that we have full B-components on output
+    if( !_F[0] || !_F[1] || !_F[2] )
+	throw( Error( ERROR_LOCATION, "insufficient vector components enabled" ) );
+
+    // Go through all x,y,z points
+    for( uint32_t k = 0; k < size(2); k++ ) {
+	double z = k*h()+origo(2);
+	for( uint32_t j = 0; j < size(1); j++ ) {
+	    double y = j*h()+origo(1);
+	    for( uint32_t i = 0; i < size(0); i++ ) {
+		double x = i*h()+origo(0);
+
+		set( i, j, k, fin( Vec3D(x,y,z) ) );
+	    }   
+	}
+    }
+}
+
+
+MeshVectorField::MeshVectorField( geom_mode_e geom_mode, 
+				  const bool fout[3], 
+				  Int3D size, 
+				  Vec3D origo, 
+				  double h, 
+				  const MeshVectorField &fin )
+    : Mesh(geom_mode,size,origo,h)
+{
+    _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
+
+    check_definition();
+
+    if( ibsimu.get_verbose_output() ) {
+	ibsimu.vout() << "Making vector field from conversion\n";
+	ibsimu.vout() << "  origo = " << origo << "\n";
+	ibsimu.vout() << "  size  = " << size << "\n";
+	ibsimu.vout() << "  max   = " << max() << "\n";
+	ibsimu.vout() << "  h     = " << h << "\n";
+    }
+
+    for( size_t i = 0; i < 3; i++ ) {
+	if( fout[i] ) {
+	    _F[i] = new double[_size[0]*_size[1]*_size[2]];
+	    memset( _F[i], 0, _size[0]*_size[1]*_size[2]*sizeof(double) );
+	} else {
+	    _F[i] = NULL;
+	}
+    }
+
+    // Check geometry types
+    if( geom_mode == MODE_3D && fin.geom_mode() == MODE_CYL )
+	convert_cyl_to_3d( fin );
+    else if( geom_mode == MODE_3D && fin.geom_mode() == MODE_3D )
+	convert_3d_to_3d( fin );
+    else
+	throw( ErrorUnimplemented( ERROR_LOCATION, "conversion type unimplemented" ) );
+}
+
+
 MeshVectorField::~MeshVectorField()
 {
     for( size_t i = 0; i < 3; i++ ) {
@@ -279,15 +380,61 @@ MeshVectorField::~MeshVectorField()
 }
 
 
-void MeshVectorField::translate( Vec3D x )
+void MeshVectorField::reset_transformation( void )
 {
-    // Translate origo
-    _origo += x;
-
-    // Translate max
-    _max += x;
+    _T.reset();
+    _Tinv.reset();
 }
 
+
+void MeshVectorField::set_transformation( const Transformation &T )
+{
+    _T = T;
+    _Tinv = T.inverse();
+}
+
+
+void MeshVectorField::translate( const Vec3D &dx )
+{
+    _Tinv = _Tinv * Transformation::translation( -dx );
+    _T.translate( dx );
+}
+
+
+void MeshVectorField::scale( const Vec3D &sx )
+{
+    _Tinv = _Tinv * Transformation::scaling( Vec3D(1.0/sx[0], 1.0/sx[1], 1.0/sx[2]) );
+    _T.scale( sx );
+}
+
+
+void MeshVectorField::rotate_x( double a )
+{
+    _Tinv = _Tinv * Transformation::rotation_x( -a );
+    _T.rotate_x( a );
+}
+
+
+void MeshVectorField::rotate_y( double a )
+{
+    _Tinv = _Tinv * Transformation::rotation_y( -a );
+    _T.rotate_y( a );
+}
+
+
+void MeshVectorField::rotate_z( double a )
+{
+    _Tinv = _Tinv * Transformation::rotation_z( -a );
+    _T.rotate_z( a );
+}
+
+
+/* Old implementation for translate/rotation/scale
+void MeshVectorField::translate( Vec3D x )
+{
+    _origo += x;
+    _max += x;
+}
 
 void MeshVectorField::transform( int ind[3] )
 {
@@ -446,6 +593,7 @@ void MeshVectorField::rotate_z( int a )
 	throw( Error( ERROR_LOCATION, "rotation angle not a multiple of 90.0" ) );
     }
 }
+*/
 
 
 void MeshVectorField::clear()
@@ -458,10 +606,12 @@ void MeshVectorField::clear()
 
 
 void MeshVectorField::reset( geom_mode_e geom_mode, const bool fout[3], Int3D size, 
-			 Vec3D origo, double h )
+			     Vec3D origo, double h )
 {
     Mesh::reset( geom_mode, size, origo, h );
     check_definition();
+    _T.reset();
+    _Tinv.reset();
 
     for( size_t i = 0; i < 3; i++ ) {
 	if( _F[i] != NULL )
@@ -526,7 +676,7 @@ MeshVectorField &MeshVectorField::operator=( const MeshVectorField &f )
 
 MeshVectorField &MeshVectorField::operator+=( const MeshVectorField &f )
 {
-    if( (Mesh)(*this) == (Mesh)f )
+    if( (Mesh)(*this) != (Mesh)f )
 	throw( Error( ERROR_LOCATION, "non-matching fields" ) );
     for( size_t i = 0; i < 3; i++ ) {
 	if( (_F[i] == NULL) != (f._F[i] == NULL) )
@@ -644,11 +794,14 @@ void MeshVectorField::set( int32_t i, int32_t j, int32_t k, const Vec3D &v )
 
 const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
 {
-    Vec3D R, X(x);
+    Vec3D R, X;
     Vec3D sign( 1.0, 1.0, 1.0 );
 
     if( _size[0] == 0 )
 	return( R );
+
+    // Transform input coordinate
+    X = _Tinv.transform_point( x );
 
     switch( _geom_mode ) {
     case MODE_1D:
@@ -899,7 +1052,23 @@ const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
     }
     }
 
+    // Transform output vector
+    R = _T.transform_vector( R );
+
     return( R );
+}
+
+
+void MeshVectorField::save( const std::string &filename ) const
+{
+    if( ibsimu.get_verbose_output() )
+	ibsimu.vout() << "Saving MeshVectorField to file \'" << filename << "\'.\n";
+
+    std::ofstream os( filename.c_str() );
+    if( !os.good() )
+	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
+    save( os );
+    os.close();
 }
 
 
@@ -913,11 +1082,14 @@ void MeshVectorField::save( std::ostream &s ) const
     for( int i = 0; i < 3; i++ ) {
 	if( _F[i] ) {
 	    write_int8( s, 1 );
-	    write_compressed_block( s, _size[0]*_size[1]*_size[2]*sizeof(double), (int8_t *)_F );
+	    write_compressed_block( s, _size[0]*_size[1]*_size[2]*sizeof(double), (int8_t *)_F[i] );
 	} else {
 	    write_int8( s, 0 );
 	}
     }
+
+    _T.save( s );
+    _Tinv.save( s );
 }
 
 
@@ -925,33 +1097,34 @@ void MeshVectorField::debug_print( std::ostream &os ) const
 {
     Mesh::debug_print( os );
 
-    std::cout << "**MeshVectorField\n";
-    std::cout << "extrpl = (" 
-	      << _extrpl[0] << ", "
-	      << _extrpl[1] << ", "
-	      << _extrpl[2] << ", "
-	      << _extrpl[3] << ", "
-	      << _extrpl[4] << ", "
-	      << _extrpl[5] << ")\n";
+    os << "**MeshVectorField\n";
+    os << "extrpl = (" 
+       << _extrpl[0] << ", "
+       << _extrpl[1] << ", "
+       << _extrpl[2] << ", "
+       << _extrpl[3] << ", "
+       << _extrpl[4] << ", "
+       << _extrpl[5] << ")\n";
     for( size_t i = 0; i < 3; i++ ) {
-	std::cout << "F[" << i << "] = ";
+	os << "F[" << i << "] = ";
 	if( _F[i] == NULL ) {
-	    std::cout << "NULL\n";
+	    os << "NULL\n";
 	    continue;
 	}
-	std::cout << "(";
+	os << "(";
 	if( _size[0]*_size[1]*_size[2] < 10 ) {
 	    int a;
 	    for( a = 0; a < _size[0]*_size[1]*_size[2]-1; a++ )
-		std::cout << _F[i][a] << ", ";
+		os << _F[i][a] << ", ";
 	    if( a < _size[0]*_size[1]*_size[2] )
-		std::cout << _F[i][a] << ")\n";
+		os << _F[i][a] << ")\n";
 	} else {
 	    // Print only 10 first nodes
 	    for( int a = 0; a < 10; a++ )
-		std::cout << _F[i][a] << ", ";
-	    std::cout << "... )\n";
+		os << _F[i][a] << ", ";
+	    os << "... )\n";
 	}
     }
 }
+
 

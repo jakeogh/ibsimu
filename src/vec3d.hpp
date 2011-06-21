@@ -145,15 +145,24 @@ public:
     }
 
     /*! \brief Inequality test.
+     *
+     *  Require exact equality.
      */
     bool operator!=( const Vec3D &x ) const;
 
     /*! \brief Equality test.
      *
-     *  Does not require exact equality, but absolute or relative
-     *  error less than 1.0e-6.
+     *  Requires exact equality.
      */
     bool operator==( const Vec3D &x ) const;
+
+    /*! \brief Approximate equality test.
+     *
+     *  Does not require exact equality, but absolute or relative
+     *  error less than eps (which ever is less strict). Be careful
+     *  using this function!
+     */
+    bool approx( const Vec3D &x, double eps = 1.0e-6 ) const;
 
     /*! \brief Assignment.
      */
@@ -171,6 +180,14 @@ public:
 	p[1] = x;
 	p[2] = x;
 	return( *this );
+    }
+
+    /*! \brief Calculate absolute value of each component.
+     */
+    void abs( void ) {
+	p[0] = fabs( p[0] );
+	p[1] = fabs( p[1] );
+	p[2] = fabs( p[2] );
     }
 
     /*! \brief Normalize vector
@@ -204,11 +221,25 @@ public:
 	return( p[0]*p[0] + p[1]*p[1] + p[2]*p[2] );
     }
 
-    void save( std::ostream &s ) const { 
-	write_double( s, p[0] );
-	write_double( s, p[1] );
-	write_double( s, p[2] ); 
+    /*! \brief Returns the index of element with minimum magnitude (abs).
+     */
+    int min_element( void ) const;
+
+    /*! \brief Returns arbitrary vector perpendicular to input vector.
+     */
+    Vec3D arb_perpendicular( void ) const;
+
+    /*! \brief Saves data to stream \a os.
+     */
+    void save( std::ostream &os ) const { 
+	write_double( os, p[0] );
+	write_double( os, p[1] );
+	write_double( os, p[2] ); 
     }
+
+    /*! \brief Returns standard basis vector \a i.
+     */
+    static Vec3D standard_basis( int i );
 
     /*! \brief Cross product
      */
@@ -235,6 +266,7 @@ public:
 inline double norm2( const Vec3D &vec ) {
     return( vec.norm2() );
 }
+
 
 inline Vec3D cross( const Vec3D &vec1, const Vec3D &vec2 ) { 
     return( Vec3D( vec1[1] * vec2[2] - vec1[2] * vec2[1], 
@@ -343,3 +375,4 @@ inline std::ostream &operator<<( std::ostream &os, const Int3D &vec )
 
 
 #endif
+

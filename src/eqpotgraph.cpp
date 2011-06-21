@@ -265,9 +265,6 @@ void EqPotGraph::disable_cache( void )
 
 void EqPotGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
-    //if( ibsimu.get_verbose_output() )
-    //std::cout << "  Plotting equipotentials\n";
-
     if( !_data_built || _oview != _view || _olevel != _level || !_cache ) {
 	// First round or change happened
 	//_ilevel = (int)floor( (_level - _g.origo(_vb[2])) / _g.h() + 0.5 );
@@ -297,6 +294,12 @@ void EqPotGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
 }
 
 
+void EqPotGraph::plot_sample( cairo_t *cairo, double x, double y, double width, double height )
+{
+
+}
+
+
 void EqPotGraph::get_bbox( double bbox[4] )
 {
     bbox[0] = _g.origo( _vb[0] );
@@ -304,6 +307,8 @@ void EqPotGraph::get_bbox( double bbox[4] )
     bbox[2] = _g.max( _vb[0] );
     bbox[3] = _g.max( _vb[1] );
 }
+
+
 
 
 

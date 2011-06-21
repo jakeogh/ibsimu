@@ -577,7 +577,6 @@ void GTKGeomWindow::read_preferences( GtkWidget *notebook, void *_pdata )
 	    continue;
 	}
 	double val = strtod( str, &str );
-	//std::cout << "Manual eqline: " << val << "\n";
 	eqlines_manual.push_back( val );
     }
     _geomplot.set_eqlines_manual( eqlines_manual );
@@ -785,6 +784,7 @@ void GTKGeomWindow::menuitem_tool_change_signal( GtkToolButton *button,
     GTKGeomWindow *plotter = (GTKGeomWindow *)object;
     plotter->menuitem_tool_change( button );
 }
+
 
 
 

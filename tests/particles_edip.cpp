@@ -34,6 +34,7 @@
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "func_solid.hpp"
+#include "meshvectorfield.hpp"
 #include "epot_efield.hpp"
 #include "particles.hpp"
 #include "error.hpp"
@@ -94,7 +95,7 @@ void test( int argc, char **argv )
     p.solve( epot, scharge );
 
     EpotEfield efield( geom, epot );
-    VectorField bfield;
+    MeshVectorField bfield;
 
     ParticleDataBase2D pdb;
     //pdb.set_accuracy( 1.0e-8, 1.0e-8 );

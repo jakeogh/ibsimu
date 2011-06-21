@@ -2,7 +2,7 @@
  *  \brief DXF Entities
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -52,12 +52,16 @@
 #include "transformation.hpp"
 
 
+#define MYDXF_PERT_EPS 1.1e-12
+
+
 /*! \brief Entity type.
  */
 enum EntityType {
     ENTITY_UNKNOWN = 0,
     ENTITY_LINE,
     ENTITY_LWPOLYLINE,
+    ENTITY_SPLINE,
     ENTITY_ARC,
     ENTITY_CIRCLE,
     ENTITY_MTEXT,
@@ -93,7 +97,6 @@ protected:
     void process_group( class MyDXFFile *dxf );
     void constructor_debug_print( void ) const;
     void debug_print_base( std::ostream &os ) const;
-    virtual void debug_print( std::ostream &os ) const = 0;
 
 public:
 
@@ -120,6 +123,10 @@ public:
     /*! \brief Scale entity by factor \a s.
      */
     virtual void scale( class MyDXFFile *dxf, double s ) = 0;
+
+    /*! \brief Translate entity by \a dx.
+     */
+    virtual void translate( class MyDXFFile *dxf, const Vec3D &dx ) = 0;
 
     /*! \brief Set layer.
      */
@@ -155,6 +162,10 @@ public:
      */
     virtual void get_bbox( Vec3D &min, Vec3D &max, 
 			   const class MyDXFFile *dxf, const Transformation *t ) const = 0;
+
+    /*! \brief Print debugging information to stream \a os.
+     */
+    virtual void debug_print( std::ostream &os ) const = 0;
 
     friend std::ostream &operator<<( std::ostream &os, const MyDXFEntity &ent );
 };
@@ -208,658 +219,6 @@ public:
     virtual int ray_cross( double x, double y ) const = 0;
 };
 
-
-/*! \brief DXF line entity class.
- *
- *  
- */
-class MyDXFLine : public MyDXFPathEntity
-{
-
-    Vec3D _p1;
-    Vec3D _p2;
-
-    virtual void debug_print( std::ostream &os ) const;
-
-public:
-
-    /*! \brief Default constructor.
-     */
-    MyDXFLine() {}
-
-    /*! \brief Constructor for copying MyDXFEntity properties.
-     */
-    MyDXFLine( const MyDXFEntity &ent ) : MyDXFPathEntity(ent) {}
-
-    /*! \brief Construct line entity by reading from DXF file.
-     */
-    MyDXFLine( class MyDXFFile *dxf );
-
-    /*! \brief Virtual destructor.
-     */
-    virtual ~MyDXFLine() {}
-
-    /*! \brief Get a new copy of entity.
-     */
-    virtual MyDXFLine *copy( void ) const { return( new MyDXFLine( *this ) ); }
-
-    /*! \brief Explode into entities.
-     *
-     *  Break entity into atomic entities and tranform entities them
-     *  with tranformation \a t. Add the tranformed entities to the
-     *  database \a ent.
-     */
-    virtual void explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const;
-
-    /*! \brief Write dxf file to stream.
-     */
-    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
-
-    /*! \brief Get entity type.
-     */
-    virtual EntityType get_type( void ) const { return( ENTITY_LINE ); }
-
-    /*! \brief Get start point of path entity.
-     */
-    virtual Vec3D start( void ) const { return( _p1 ); }
-
-    /*! \brief Get end point of path entity.
-     */
-    virtual Vec3D end( void ) const { return( _p2 ); }
-
-    /*! \brief Set start point of path entity.
-     */
-    virtual void set_start( const Vec3D &s );
-
-    /*! \brief Set end point of path entity.
-     */
-    virtual void set_end( const Vec3D &e );
-
-    /*! \brief Check for ray crossing.
-     *
-     *  Check if ray going from point (x,y) downwards (negative y
-     *  direction) crosses the entity. Return 1 if crosses odd number
-     *  of times and 0 if even number of times. Return 2 in case of
-     *  exact crossing at boundaries. This function is used as a
-     *  subroutine to inside_loop().
-     */
-    virtual int ray_cross( double x, double y ) const;
-
-    /*! \brief Check if two entities are geometrically same.
-     *
-     *   Checks if entity \a a is the geometrically same as entity \a
-     *   b within error limit \a eps.
-     */
-    bool geom_same( const MyDXFLine &line, double eps = 1.0e-6 ) const;
-
-    /*! \brief Plot entity with cairo
-     *
-     *  Plot the entity using the transformation \a from from the
-     *  object space to cairo coordinates. The visible range is
-     *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
-     *  coordinates.
-     */
-    virtual void plot( const class MyDXFFile *dxf, cairo_t *cairo, 
-		       const Transformation *t, const double range[4] ) const;
-
-   /*! \brief Return bounding box of entity
-     */
-    virtual void get_bbox( Vec3D &min, Vec3D &max, 
-			   const class MyDXFFile *dxf, const Transformation *t ) const;
-
-    /*! \brief Scale entity by factor \a s.
-     */
-    virtual void scale( class MyDXFFile *dxf, double s );
-};
-
-
-/* Polyline flags */
-#define LWPOLYLINE_CLOSED_MASK  1
-#define LWPOLYLINE_LINEGEN_MASK 128
-
-
-/*! \brief DXF LW polyline entity class.
- *
- *  
- */
-class MyDXFLWPolyline : public MyDXFPathEntity
-{
-
-    std::vector<Vec3D> _p;       /*!< \brief Vector with x and y coordinates of 
-				  *   vertex and bulge as z coordinate */
-    int16_t            _flags;
-
-    virtual void debug_print( std::ostream &os ) const;
-
-public:
-
-    /*! \brief Construct line entity by reading from DXF file.
-     */
-    MyDXFLWPolyline( class MyDXFFile *dxf );
-
-    /*! \brief Virtual destructor.
-     */
-    virtual ~MyDXFLWPolyline() {}
-
-    /*! \brief Get a new copy of entity.
-     */
-    virtual MyDXFLWPolyline *copy( void ) const { return( new MyDXFLWPolyline( *this ) ); }
-
-    /*! \brief Explode into entities.
-     *
-     *  Break entity into atomic entities and tranform entities them
-     *  with tranformation \a t. Add the tranformed entities to the
-     *  database \a ent.
-     */
-    virtual void explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const;
-
-    /*! \brief Write dxf file to stream.
-     */
-    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
-
-    /*! \brief Get entity type.
-     */
-    virtual EntityType get_type( void ) const { return( ENTITY_LWPOLYLINE ); }
-
-    /*! \brief Get start point of path entity.
-     */
-    virtual Vec3D start( void ) const { return( _p[0] ); }
-
-    /*! \brief Get end point of path entity.
-     */
-    virtual Vec3D end( void ) const { return( _p[_p.size()-1] ); }
-
-    /*! \brief Set start point of path entity.
-     */
-    virtual void set_start( const Vec3D &s );
-
-    /*! \brief Set end point of path entity.
-     */
-    virtual void set_end( const Vec3D &e );
-
-    /*! \brief Check for ray crossing.
-     *
-     *  Check if ray going from point (x,y) downwards (negative y
-     *  direction) crosses the entity. Return 1 if crosses odd number
-     *  of times and 0 if even number of times. Return 2 in case of
-     *  exact crossing at boundaries. This function is used as a
-     *  subroutine to inside_loop().
-     */
-    virtual int ray_cross( double x, double y ) const;
-
-    /*! \brief Check if two entities are geometrically same.
-     *
-     *   Checks if entity \a a is the geometrically same as entity \a
-     *   b within error limit \a eps.
-     */
-    bool geom_same( const MyDXFLWPolyline &line, double eps = 1.0e-6 ) const;
-
-    /*! \brief Get number of vertices in entity.
-     */
-    uint32_t size() const { return( _p.size() ); }
-
-    /*! \brief Get vertix \a i.
-     */
-    Vec3D vertex( uint32_t i ) const { return( _p[i] ); }
-
-    /*! \brief Is entity closed path?
-     */
-    bool closed( void ) const { return( _flags & LWPOLYLINE_CLOSED_MASK ); }
-
-    /*! \brief Plot entity with cairo
-     *
-     *  Plot the entity using the transformation \a from from the
-     *  object space to cairo coordinates. The visible range is
-     *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
-     *  coordinates.
-     */
-    virtual void plot( const class MyDXFFile *dxf, cairo_t *cairo,
-		       const Transformation *t, const double range[4] ) const;
-
-    /*! \brief Return bounding box of entity.
-     */
-    virtual void get_bbox( Vec3D &min, Vec3D &max, 
-			   const class MyDXFFile *dxf, const Transformation *t ) const;
-
-    /*! \brief Scale entity by factor \a s.
-     */
-    virtual void scale( class MyDXFFile *dxf, double s );
-};
-
-
-/*! \brief DXF arc entity class.
- *
- *  An arc entity is defined with a center point of the arc, radius,
- *  starting angle and ending angle.
- */
-class MyDXFArc : public MyDXFPathEntity
-{
-
-    Vec3D    _pc;
-    double   _r;
-    double   _ang1; // Must be between 0 and 2 pi.
-    double   _ang2; // Must be between 0 and 2 pi.
-
-    virtual void debug_print( std::ostream &os ) const;
-
-public:
-
-    /*! \brief Default constructor.
-     */
-    MyDXFArc() : _r(1.0), _ang1(0.0), _ang2(2.0*M_PI) {};
-
-    /*! \brief Construct arc entity by reading from DXF file.
-     */
-    MyDXFArc( class MyDXFFile *dxf );
-
-    /*! \brief Virtual destructor.
-     */
-    virtual ~MyDXFArc() {}
-
-    /*! \brief Get a new copy of entity.
-     */
-    virtual MyDXFArc *copy( void ) const { return( new MyDXFArc( *this ) ); }
-
-    /*! \brief Explode into entities.
-     *
-     *  Break entity into atomic entities and tranform entities them
-     *  with tranformation \a t. Add the tranformed entities to the
-     *  database \a ent.
-     */
-    virtual void explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const;
-
-    /*! \brief Write dxf file to stream.
-     */
-    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
-
-    /*! \brief Get entity type.
-     */
-    virtual EntityType get_type( void ) const { return( ENTITY_ARC ); }
-
-    /*! \brief Get center point of arc.
-     */
-    Vec3D center( void ) const { return( _pc ); }
-
-    /*! \brief Get radius of arc.
-     */
-    double radius( void ) const { return( _r ); }
-
-    /*! \brief Get start point of path entity.
-     */
-    virtual Vec3D start( void ) const {
-	return( Vec3D(_pc[0] + _r*cos(_ang1), _pc[1] + _r*sin(_ang1), _pc[2] ) ); 
-    }
-
-    /*! \brief Get end point of path entity.
-     */
-    virtual Vec3D end( void ) const { 
-	return( Vec3D(_pc[0] + _r*cos(_ang2), _pc[1] + _r*sin(_ang2), _pc[2] ) ); 
-    }
-
-    /*! \brief Set center point.
-     */
-    void set_pc( const Vec3D &pc ) { _pc = pc; }
-
-    /*! \brief Set radius.
-     */
-    void set_r( double r ) { _r = r; }
-
-    /*! \brief Set start angle.
-     */
-    void set_ang1( double ang1 );
-
-    /*! \brief Set end angle.
-     */
-    void set_ang2( double ang2 );
-    
-    /*! \brief Get start angle.
-     */
-    double get_ang1( void ) const { return( _ang1 ); }
-
-    /*! \brief Get end angle.
-     */
-    double get_ang2( void ) const { return( _ang2 ); }
-
-    /*! \brief Set arc according to center and end points.
-     *
-     *  End point is only used for the angle.
-     */
-    void set_center_and_ends( const Vec3D &c, const Vec3D &s, const Vec3D &e );
-
-    /*! \brief Set arc according to end points.
-     *
-     *  Resets the center point and angles according to starting point
-     *  \a s and ending point \a e.  Arc is assumed to go in
-     *  counter-clockwise direction from start to end. Radius of arc
-     *  is kept constant if distance from \a s to \a e is less than
-     *  double the radius. Otherwise the center point is set to the
-     *  middle of start and end and the radius is set to half of the
-     *  distance of start to end.
-     */
-    void set_center_point( const Vec3D &s, const Vec3D &e );
-
-    /*! \brief Set start point of path entity.
-     */
-    virtual void set_start( const Vec3D &s );
-
-    /*! \brief Set end point of path entity.
-     */
-    virtual void set_end( const Vec3D &e );
-
-    /*! \brief Check for ray crossing.
-     *
-     *  Check if ray going from point (x,y) downwards (negative y
-     *  direction) crosses the entity. Return 1 if crosses odd number
-     *  of times and 0 if even number of times. Return 2 in case of
-     *  exact crossing at boundaries. This function is used as a
-     *  subroutine to inside_loop().
-     */
-    virtual int ray_cross( double x, double y ) const;
-
-    /*! \brief Check if two entities are geometrically same.
-     *
-     *   Checks if entity \a a is the geometrically same as entity \a
-     *   b within error limit \a eps.
-     */
-    bool geom_same( const MyDXFArc &arc, double eps = 1.0e-6 ) const;
-
-    /*! \brief Plot entity with cairo
-     *
-     *  Plot the entity using the transformation \a from from the
-     *  object space to cairo coordinates. The visible range is
-     *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
-     *  coordinates.
-     */
-    virtual void plot( const class MyDXFFile *dxf, cairo_t *cairo, 
-		       const Transformation *t, const double range[4] ) const;
-
-    /*! \brief Return bounding box of entity
-     */
-    virtual void get_bbox( Vec3D &min, Vec3D &max, 
-			   const class MyDXFFile *dxf, const Transformation *t ) const;
-
-    /*! \brief Scale entity by factor \a s.
-     */
-    virtual void scale( class MyDXFFile *dxf, double s );
-};
-
-
-/*! \brief DXF circle entity class.
- *
- *
- */
-class MyDXFCircle : public MyDXFPathEntity
-{
-
-    Vec3D    _pc;
-    double   _r;
-
-    virtual void debug_print( std::ostream &os ) const;
-
-public:
-
-    /*! \brief Default constructor.
-     */
-    MyDXFCircle() : _r(1.0) {};
-
-    /*! \brief Construct circle entity by reading from DXF file.
-     */
-    MyDXFCircle( class MyDXFFile *dxf );
-
-    /*! \brief Virtual destructor.
-     */
-    virtual ~MyDXFCircle() {}
-
-    /*! \brief Get a new copy of entity.
-     */
-    virtual MyDXFCircle *copy( void ) const { return( new MyDXFCircle( *this ) ); }
-
-    /*! \brief Explode into entities.
-     *
-     *  Break entity into atomic entities and tranform entities them
-     *  with tranformation \a t. Add the tranformed entities to the
-     *  database \a ent.
-     */
-    virtual void explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const;
-
-    /*! \brief Write dxf file to stream.
-     */
-    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
-
-    /*! \brief Get entity type.
-     */
-    virtual EntityType get_type( void ) const { return( ENTITY_CIRCLE ); }
-
-    /*! \brief Get center point of circle.
-     */
-    Vec3D center( void ) const { return( _pc ); }
-
-    /*! \brief Get radius of circle.
-     */
-    double radius( void ) const { return( _r ); }
-
-    /*! \brief Get start point of path entity.
-     */
-    virtual Vec3D start( void ) const { return( _pc+Vec3D(_r,0) ); }
-
-    /*! \brief Get end point of path entity.
-     */
-    virtual Vec3D end( void ) const { return( _pc+Vec3D(_r,0) ); }
-
-    /*! \brief Set start point of path entity.
-     */
-    virtual void set_start( const Vec3D &s ) {}
-
-    /*! \brief Set end point of path entity.
-     */
-    virtual void set_end( const Vec3D &e ) {}
-
-    /*! \brief Check for ray crossing.
-     *
-     *   Check if ray going from point (x,y) downwards (negative y
-     *   direction) crosses the entity. Return 1 if crosses odd number
-     *   of times and 0 if even number of times. Return 2 in case of
-     *   exact crossing at boundaries. This function is used as a
-     *   subroutine to inside_loop().
-     */
-    virtual int ray_cross( double x, double y ) const;
-
-    /*! \brief Check if two entities are geometrically same.
-     *
-     *   Checks if entity \a a is the geometrically same as entity \a
-     *   b within error limit \a eps.
-     */
-    bool geom_same( const MyDXFCircle &circle, double eps = 1.0e-6 ) const;
-
-    /*! \brief Plot entity with cairo
-     *
-     *  Plot the entity using the transformation \a from from the
-     *  object space to cairo coordinates. The visible range is
-     *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
-     *  coordinates.
-     */
-    virtual void plot( const class MyDXFFile *dxf, cairo_t *cairo, 
-		       const Transformation *t, const double range[4] ) const;
-
-    /*! \brief Return bounding box of entity
-     */
-    virtual void get_bbox( Vec3D &min, Vec3D &max, 
-			   const class MyDXFFile *dxf, const Transformation *t ) const;
-
-    /*! \brief Scale entity by factor \a s.
-     */
-    virtual void scale( class MyDXFFile *dxf, double s );
-};
-
-
-#define ATTACHMENT_POINT_TOP_LEFT       1
-#define ATTACHMENT_POINT_TOP_CENTER     2
-#define ATTACHMENT_POINT_TOP_RIGHT      3
-#define ATTACHMENT_POINT_MIDDLE_LEFT    4
-#define ATTACHMENT_POINT_MIDDLE_CENTER  5
-#define ATTACHMENT_POINT_MIDDLE_RIGHT   6
-#define ATTACHMENT_POINT_BOTTOM_LEFT    7
-#define ATTACHMENT_POINT_BOTTOM_CENTER  8
-#define ATTACHMENT_POINT_BOTTOM_RIGHT   9
-
-#define DRAWING_DIRECTION_LEFT_TO_RIGHT 1
-#define DRAWING_DIRECTION_TOP_TO_BOTTOM 3
-#define DRAWING_DIRECTION_BY_STYLE      5
-
-
-/*! \brief DXF text entity class.
- *
- *
- */
-class MyDXFMText : public MyDXFEntity
-{
-
-    std::string _text;
-    Vec3D       _p;
-    double      _text_height;
-    double      _rect_width;
-    int16_t     _attachment_point;
-    int16_t     _drawing_direction;
-
-    virtual void debug_print( std::ostream &os ) const;
-
-public:
-
-    /*! \brief Default constructor.
-     */
-    MyDXFMText() : _text_height(1.0), _rect_width(1.0), 
-		   _attachment_point(ATTACHMENT_POINT_TOP_LEFT),
-		   _drawing_direction(DRAWING_DIRECTION_LEFT_TO_RIGHT) {};
-
-    /*! \brief Construct line entity by reading from DXF file.
-     */
-    MyDXFMText( class MyDXFFile *dxf );
-
-    /*! \brief Virtual destructor.
-     */
-    virtual ~MyDXFMText() {}
-
-    /*! \brief Get a new copy of entity.
-     */
-    virtual MyDXFMText *copy( void ) const { return( new MyDXFMText( *this ) ); }
-
-    /*! \brief Explode into entities.
-     *
-     *  Break entity into atomic entities and tranform entities them
-     *  with tranformation \a t. Add the tranformed entities to the
-     *  database \a ent.
-     */
-    virtual void explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const;
-
-    /*! \brief Write dxf file to stream.
-     */
-    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
-
-    /*! \brief Get entity type.
-     */
-    virtual EntityType get_type( void ) const { return( ENTITY_MTEXT ); }
-
-    /*! \brief Plot entity with cairo
-     *
-     *  Plot the entity using the transformation \a from from the
-     *  object space to cairo coordinates. The visible range is
-     *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
-     *  coordinates.
-     */
-    virtual void plot( const class MyDXFFile *dxf, cairo_t *cairo, 
-		       const Transformation *t, const double range[4] ) const;
-
-    /*! \brief Return bounding box of entity
-     */
-    virtual void get_bbox( Vec3D &min, Vec3D &max, 
-			   const class MyDXFFile *dxf, const Transformation *t ) const;
-
-    /*! \brief Scale entity by factor \a s.
-     */
-    virtual void scale( class MyDXFFile *dxf, double s );
-};
-
-
-
-/*! \brief DXF insert entity class.
- *
- *
- */
-class MyDXFInsert : public MyDXFEntity
-{
-
-    std::string _block_name;
-
-    Vec3D       _p;        // Insertion point
-    Vec3D       _scale;
-
-    double      _rotation;
-
-    int16_t     _col_count;
-    int16_t     _row_count;
-
-    double      _col_spacing;
-    double      _row_spacing;
-
-    virtual void debug_print( std::ostream &os ) const;
-
-public:
-
-    /*! \brief Default constructor.
-     */
-    MyDXFInsert();
-
-    /*! \brief Construct entity by reading from DXF file.
-     */
-    MyDXFInsert( class MyDXFFile *dxf );
-
-    /*! \brief Virtual destructor.
-     */
-    virtual ~MyDXFInsert() {}
-
-    /*! \brief Get a new copy of entity.
-     */
-    virtual MyDXFInsert *copy( void ) const { return( new MyDXFInsert( *this ) ); }
-
-    /*! \brief Explode into entities.
-     *
-     *  Break entity into atomic entities and tranform entities them
-     *  with tranformation \a t. Add the tranformed entities to the
-     *  database \a ent.
-     */
-    virtual void explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Transformation *t ) const;
-
-    /*! \brief Write dxf file to stream.
-     */
-    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
-
-    /*! \brief Get entity type.
-     */
-    virtual EntityType get_type( void ) const { return( ENTITY_INSERT ); }
-
-    /*! \brief Plot entity with cairo
-     *
-     *  Plot the entity using the transformation \a from from the
-     *  object space to cairo coordinates. The visible range is
-     *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
-     *  coordinates.
-     */
-    virtual void plot( const class MyDXFFile *dxf, cairo_t *cairo, 
-		       const Transformation *t, const double range[4] ) const;
-
-    /*! \brief Return bounding box of entity
-     */
-    virtual void get_bbox( Vec3D &min, Vec3D &max, 
-			   const class MyDXFFile *dxf, const Transformation *t ) const;
-
-    /*! \brief Scale entity by factor \a s.
-     */
-    virtual void scale( class MyDXFFile *dxf, double s );
-
-   /*! \brief Return name of the block inserted.
-     */
-    const std::string &block_name( void ) const { return( _block_name ); }
-};
 
 
 
@@ -1055,6 +414,11 @@ public:
      */
     void scale( MyDXFEntitySelection *selection, class MyDXFFile *dxf, double s );
 
+    /*! \brief Translate selected entities by  \a dx.
+     */
+    void translate( MyDXFEntitySelection *selection, class MyDXFFile *dxf, const Vec3D &dx );
+
+
 
     /*! \brief Remove selected entities.
      *
@@ -1093,6 +457,7 @@ public:
 
 
 #endif
+
 
 
 

@@ -58,6 +58,7 @@
 #include "scharge.hpp"
 #include "scheduler.hpp"
 #include "polysolver.hpp"
+#include "particledatabase.hpp"
 
 
 //#define DEBUG_PARTICLE_ITERATOR 1
@@ -239,58 +240,6 @@ public:
 };
 
 
-/*! \brief %Particle iteration statistics.
- *
- *  Stores statistics about the particle histories.
- *
- */
-class ParticleStatistics {
-
-    uint32_t      _nboundaries;      /*!< \brief Number of solids in geometry. */
-
-    uint32_t      _end_time;          /*!< \brief Number of time limited particle iterations. */
-    uint32_t      _end_step;          /*!< \brief Number of step count limited particle iterations. */
-    uint32_t      _end_baddef;        /*!< \brief Number of bad particle definitions. */
-    uint32_t      _sum_steps;         /*!< \brief Total number of steps taken. */
-
-    uint32_t     *_bound_collisions;  /*!< \brief Number of particles collided with electrodes. */
-    double       *_bound_current;     /*!< \brief Amount of current collided with electrodes. */
-
-public:
-
-    ParticleStatistics();
-    ParticleStatistics( const ParticleStatistics &stat );
-    ParticleStatistics( uint32_t nboundaries );
-    ~ParticleStatistics();
-
-    const ParticleStatistics &operator=( const ParticleStatistics &stat );
-    const ParticleStatistics &operator+=( const ParticleStatistics &stat );
-
-    void clear( void );
-    void reset( uint32_t nboundaries );
-    
-    uint32_t end_time( void ) const;
-    uint32_t end_step( void ) const;
-    uint32_t end_baddef( void ) const;
-    uint32_t sum_steps( void ) const;
-
-    uint32_t number_of_boundaries( void ) const;
-    uint32_t bound_collisions( uint32_t bound ) const;
-    uint32_t bound_collisions( void ) const;
-    double bound_current( uint32_t bound ) const;
-    double bound_current( void ) const;
-
-    void inc_end_time( void ) { _end_time++; }
-    void inc_end_step( void ) { _end_step++; }
-    void inc_end_baddef( void ) { _end_baddef++; }
-    void inc_sum_steps( void ) { _sum_steps++; }
-    void inc_sum_steps( uint32_t i ) { _sum_steps += i; }
-
-    void add_bound_collision( uint32_t bound, double IQ );
-
-};
-
-
 /*! \brief %Particle iterator class for continuous Vlasov-type iteration.
  *
  * Templated for particle point type (see ParticlePBase).
@@ -316,8 +265,12 @@ template <class PP> class ParticleIterator {
 					    * if 3, every third trajectory is saved. */
     bool                       _mirror[6]; /*!< \brief Is particle mirrored on boundary? */
 
-    Particle<PP>              *_first;     /*!< \brief Pointer to first particle of the database. */
     ParticleIteratorData       _pidata;    /*!< \brief User data provided to PP::get_derivatives(). */
+    const TrajectoryHandlerCallback *_thand_cb; /*!< \brief Trajectory handler callback. */
+    const TrajectoryEndCallback     *_tend_cb;  /*!< \brief Trajectory end callback. */
+    const TrajectoryEndCallback     *_bsup_cb;  /*!< \brief B-field plasma suppression callback. */
+    ParticleDataBase          *_pdb;            /*!< \brief Particle database pointer for adding secondary particles. */
+    pthread_mutex_t           *_scharge_mutex;  /*!< \brief Space charge mutex. */
 
     PP                         _xi;        /*!< \brief Previous mesh intersection coordinates 
 					    *   or starting point. */
@@ -326,6 +279,20 @@ template <class PP> class ParticleIterator {
 
     ParticleStatistics         _stat;      /*!< \brief Particle statistics. */
 
+
+
+    /*! \brief Save trajectory point \a x.
+     *
+     *  Throw error if run out of memory.
+     */
+    void save_trajectory_point( PP x ) {
+
+	try {
+	    _traj.push_back( x );
+	} catch( std::bad_alloc ) {
+	    throw( ErrorNoMem( ERROR_LOCATION, "Out of memory saving trajectory" ) );
+	}
+    }
 
     /*! \brief Check for particle collision with solid
      *
@@ -339,12 +306,12 @@ template <class PP> class ParticleIterator {
 
 	// If inside solid, bracket for collision point
 	Vec3D v2 = x2.location();
-	int32_t bound = _pidata._g->inside( v2 );
+	int32_t bound = _pidata._geom->inside( v2 );
 	if( bound < 7 )
 	    return( true ); // No collision happened.
 	Vec3D vc;
 	Vec3D v1 = x1.location();
-	double K = _pidata._g->bracket_surface( bound, v2, v1, vc );
+	double K = _pidata._geom->bracket_surface( bound, v2, v1, vc );
 
 	// Calculate new PP
 	for( size_t a = 0; a < PP::size(); a++ )
@@ -359,7 +326,7 @@ template <class PP> class ParticleIterator {
 	}
 
 	// Save last trajectory point and update status
-	_traj.push_back( status_x );
+	//save_trajectory_point( status_x );
 	particle.set_status( PARTICLE_COLL );
 
 	// Update collision statistics for boundary
@@ -387,11 +354,11 @@ template <class PP> class ParticleIterator {
 
 	double xmirror;
 	if( border < 0 ) {
-	    xmirror = _pidata._g->origo(a);
+	    xmirror = _pidata._geom->origo(a);
 	    i[a] = -i[a]-1;
 	} else {
-	    xmirror = _pidata._g->max(a);
-	    i[a] = 2*_pidata._g->size(a)-i[a]-3;
+	    xmirror = _pidata._geom->max(a);
+	    i[a] = 2*_pidata._geom->size(a)-i[a]-3;
 	}
 
 #ifdef DEBUG_PARTICLE_ITERATOR
@@ -403,7 +370,7 @@ template <class PP> class ParticleIterator {
 	// Check if found edge at first encounter
 	bool caught_at_boundary = false;
 	if( _coldata[c]._dir == border*((int)a+1) && 
-	    ( i[a] == 0 || i[a] == (int)_pidata._g->size(a)-2 ) ) {
+	    ( i[a] == 0 || i[a] == (int)_pidata._geom->size(a)-2 ) ) {
 	    caught_at_boundary = true;
 #ifdef DEBUG_PARTICLE_ITERATOR
 	    std::cout << "   caught_at_boundary\n";
@@ -412,7 +379,7 @@ template <class PP> class ParticleIterator {
 
 	// Mirror traj back to _xi
 	if( caught_at_boundary ) {
-	    _traj.push_back( _coldata[c]._x );
+	    save_trajectory_point( _coldata[c]._x );
 	} else {
 	    for( int b = _traj.size()-1; b > 0; b-- ) {
 		if( _traj[b][0] >= _xi[0] ) {
@@ -436,7 +403,7 @@ template <class PP> class ParticleIterator {
 	}
 
 	if( caught_at_boundary )
-	    _traj.push_back( _coldata[c]._x );
+	    save_trajectory_point( _coldata[c]._x );
 
 	// Mirror calculation point
 	x2[2*a+1] = 2.0*xmirror - x2[2*a+1];
@@ -454,7 +421,7 @@ template <class PP> class ParticleIterator {
 	std::cout << "    handle_collision()\n";
 #endif
 
-	_traj.push_back( _coldata[c]._x );
+	//save_trajectory_point( _coldata[c]._x );
 	status_x = _coldata[c]._x;
 	particle.set_status( PARTICLE_OUT );
 	_stat.add_bound_collision( bound, particle.IQ() );
@@ -474,76 +441,76 @@ template <class PP> class ParticleIterator {
 	// Check for collisions with solids and advance coordinates i.
 	if( PP::dim() == 2 ) {
 	    if( _coldata[c]._dir == -1 ) {
-		if( ( abs(_pidata._g->mesh(i[0],  i[1]  )) >= 7 || 
-		      abs(_pidata._g->mesh(i[0],  i[1]+1)) >= 7 ) &&
+		if( ( abs(_pidata._geom->mesh(i[0],  i[1]  )) >= 7 || 
+		      abs(_pidata._geom->mesh(i[0],  i[1]+1)) >= 7 ) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[0]--;
 	    } else if( _coldata[c]._dir == +1 ) {
-		if( ( abs(_pidata._g->mesh(i[0]+1,i[1]  )) >= 7 || 
-		      abs(_pidata._g->mesh(i[0]+1,i[1]+1)) >= 7 ) &&
+		if( ( abs(_pidata._geom->mesh(i[0]+1,i[1]  )) >= 7 || 
+		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1)) >= 7 ) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[0]++;
 	    } else if( _coldata[c]._dir == -2 ) {
-		if( ( abs(_pidata._g->mesh(i[0],  i[1]  )) >= 7 || 
-		      abs(_pidata._g->mesh(i[0]+1,i[1]  )) >= 7 ) &&
+		if( ( abs(_pidata._geom->mesh(i[0],  i[1]  )) >= 7 || 
+		      abs(_pidata._geom->mesh(i[0]+1,i[1]  )) >= 7 ) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[1]--;
 	    } else {
-		if( ( abs(_pidata._g->mesh(i[0],  i[1]+1)) >= 7 || 
-		      abs(_pidata._g->mesh(i[0]+1,i[1]+1)) >= 7 ) &&
+		if( ( abs(_pidata._geom->mesh(i[0],  i[1]+1)) >= 7 || 
+		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1)) >= 7 ) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[1]++;
 	    }
 	} else if( PP::dim() == 3 ) {
 	    if( _coldata[c]._dir == -1 ) {
-		if( ( abs(_pidata._g->mesh(i[0],  i[1],  i[2]  )) >= 7 || 
-		      abs(_pidata._g->mesh(i[0],  i[1]+1,i[2]  )) >= 7 ||
-		      abs(_pidata._g->mesh(i[0],  i[1],  i[2]+1)) >= 7 ||
-		      abs(_pidata._g->mesh(i[0],  i[1]+1,i[2]+1)) >= 7 ) &&
+		if( ( abs(_pidata._geom->mesh(i[0],  i[1],  i[2]  )) >= 7 || 
+		      abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2]  )) >= 7 ||
+		      abs(_pidata._geom->mesh(i[0],  i[1],  i[2]+1)) >= 7 ||
+		      abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2]+1)) >= 7 ) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[0]--;
 	    } else if( _coldata[c]._dir == +1 ) {
-		if( ( abs(_pidata._g->mesh(i[0]+1,i[1],  i[2]  )) >= 7 || 
-		      abs(_pidata._g->mesh(i[0]+1,i[1]+1,i[2]  )) >= 7 ||
-		      abs(_pidata._g->mesh(i[0]+1,i[1],  i[2]+1)) >= 7 ||
-		      abs(_pidata._g->mesh(i[0]+1,i[1]+1,i[2]+1)) >= 7 ) &&
+		if( ( abs(_pidata._geom->mesh(i[0]+1,i[1],  i[2]  )) >= 7 || 
+		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2]  )) >= 7 ||
+		      abs(_pidata._geom->mesh(i[0]+1,i[1],  i[2]+1)) >= 7 ||
+		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2]+1)) >= 7 ) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[0]++;
 	    } else if( _coldata[c]._dir == -2 ) {
-		if( ( abs(_pidata._g->mesh(i[0],  i[1],i[2]  )) >= 7 || 
-		      abs(_pidata._g->mesh(i[0]+1,i[1],i[2]  )) >= 7 ||
-		      abs(_pidata._g->mesh(i[0],  i[1],i[2]+1)) >= 7 ||
-		      abs(_pidata._g->mesh(i[0]+1,i[1],i[2]+1)) >= 7 ) &&
+		if( ( abs(_pidata._geom->mesh(i[0],  i[1],i[2]  )) >= 7 || 
+		      abs(_pidata._geom->mesh(i[0]+1,i[1],i[2]  )) >= 7 ||
+		      abs(_pidata._geom->mesh(i[0],  i[1],i[2]+1)) >= 7 ||
+		      abs(_pidata._geom->mesh(i[0]+1,i[1],i[2]+1)) >= 7 ) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[1]--;
 	    } else if( _coldata[c]._dir == +2 ) {
-		if( ( abs(_pidata._g->mesh(i[0],  i[1]+1,i[2]  )) >= 7 || 
-		      abs(_pidata._g->mesh(i[0]+1,i[1]+1,i[2]  )) >= 7 ||
-		      abs(_pidata._g->mesh(i[0],  i[1]+1,i[2]+1)) >= 7 ||
-		      abs(_pidata._g->mesh(i[0]+1,i[1]+1,i[2]+1)) >= 7 ) &&
+		if( ( abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2]  )) >= 7 || 
+		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2]  )) >= 7 ||
+		      abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2]+1)) >= 7 ||
+		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2]+1)) >= 7 ) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[1]++;
 	    } else if( _coldata[c]._dir == -3 ) {
-		if( ( abs(_pidata._g->mesh(i[0],  i[1],  i[2]  )) >= 7 || 
-		      abs(_pidata._g->mesh(i[0]+1,i[1],  i[2]  )) >= 7 ||
-		      abs(_pidata._g->mesh(i[0],  i[1]+1,i[2])) >= 7 ||
-		      abs(_pidata._g->mesh(i[0]+1,i[1]+1,i[2])) >= 7 ) &&
+		if( ( abs(_pidata._geom->mesh(i[0],  i[1],  i[2]  )) >= 7 || 
+		      abs(_pidata._geom->mesh(i[0]+1,i[1],  i[2]  )) >= 7 ||
+		      abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2])) >= 7 ||
+		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2])) >= 7 ) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[2]--;
 	    } else {
-		if( ( abs(_pidata._g->mesh(i[0],  i[1],  i[2]+1)) >= 7 || 
-		      abs(_pidata._g->mesh(i[0]+1,i[1],  i[2]+1)) >= 7 ||
-		      abs(_pidata._g->mesh(i[0],  i[1]+1,i[2]+1)) >= 7 ||
-		      abs(_pidata._g->mesh(i[0]+1,i[1]+1,i[2]+1)) >= 7 ) &&
+		if( ( abs(_pidata._geom->mesh(i[0],  i[1],  i[2]+1)) >= 7 || 
+		      abs(_pidata._geom->mesh(i[0]+1,i[1],  i[2]+1)) >= 7 ||
+		      abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2]+1)) >= 7 ||
+		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2]+1)) >= 7 ) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[2]++;
@@ -563,7 +530,7 @@ template <class PP> class ParticleIterator {
 		    handle_collision( particle, 1+2*a, c, x2 );
 		    return( false );
 		}
-	    } else if( i[a] >= (int32_t)(_pidata._g->size(a)-1) ) {
+	    } else if( i[a] >= (int32_t)(_pidata._geom->size(a)-1) ) {
 		if( _mirror[2*a+1] )
 		    handle_mirror( c, i, a, +1, x2 );
 		else {
@@ -587,10 +554,10 @@ template <class PP> class ParticleIterator {
 
 	for( size_t a = 0; a < PP::dim(); a++ ) {
 
-	    double lim1 = _pidata._g->origo(a) - 
-		(_pidata._g->size(a)-1)*_pidata._g->h();
-	    double lim2 = _pidata._g->origo(a) + 
-		2*(_pidata._g->size(a)-1)*_pidata._g->h();
+	    double lim1 = _pidata._geom->origo(a) - 
+		(_pidata._geom->size(a)-1)*_pidata._geom->h();
+	    double lim2 = _pidata._geom->origo(a) + 
+		2*(_pidata._geom->size(a)-1)*_pidata._geom->h();
 
 	    if( x2[2*a+1] < lim1 ) {
 		
@@ -616,6 +583,23 @@ template <class PP> class ParticleIterator {
 	return( touched );
     }
 
+    /*! \brief Build coldata.
+     *
+     *  Throw error if run out of memory.
+     */
+    void build_coldata( bool force_linear, const PP &x1, const PP &x2 ) {
+
+	try {
+	    if( _polyint && !force_linear )
+		ColData<PP>::build_coldata_poly( _coldata, *_pidata._geom, x1, x2 );
+	    else
+		ColData<PP>::build_coldata_linear( _coldata, *_pidata._geom, x1, x2 );
+	} catch( std::bad_alloc ) {
+	    throw( ErrorNoMem( ERROR_LOCATION, "Out of memory building ColData" ) );
+	}
+
+    }
+
     /*! \brief Handle particle iteration step from coordinates \a x1 to \a x2.
      *
      *  Searches mesh intersections between points \a x1 and \a x2 and
@@ -628,11 +612,15 @@ template <class PP> class ParticleIterator {
      *  If \a force_linear is true, linear interpolation of trajectory
      *  is used regardless of interpolation settings.
      *
+     *  If \a first_step is true, this is the first step and the
+     *  particle is allowed to get into the simulation box if the
+     *  definition point (x1) was outside the geometry.
+     *
      *  Return true if particle status is PARTICLE_OK after trajectory
      *  step, false otherwise.
      */
     bool handle_trajectory( Particle<PP> &particle, const PP &x1, PP &x2, 
-			    bool force_linear=false ) {
+			    bool force_linear, bool first_step ) {
 
 #ifdef DEBUG_PARTICLE_ITERATOR
 	std::cout << "Handle trajectory from x1 to x2:\n";
@@ -645,11 +633,11 @@ template <class PP> class ParticleIterator {
 	if( limit_trajectory_advance( x1, x2 ) )
 	    force_linear = true;
 
-	// Make coldata
-	if( _polyint && !force_linear )
-	    ColData<PP>::build_coldata_poly( _coldata, *_pidata._g, x1, x2 );
-	else
-	    ColData<PP>::build_coldata_linear( _coldata, *_pidata._g, x1, x2 );
+	build_coldata( force_linear, x1, x2 );
+
+	// TODO
+	// Remove entrance to geometry if coming from outside or make
+	// code to skip the collision detection for these particles
 
 	// No intersections, nothing to do
 	if( _coldata.size() == 0 ) {
@@ -662,7 +650,7 @@ template <class PP> class ParticleIterator {
 	// Starting mesh index
 	int i[3] = {0, 0, 0};
 	for( size_t cdir = 0; cdir < PP::dim(); cdir++ )
-	    i[cdir] = (int)floor( (x1[2*cdir+1]-_pidata._g->origo(cdir))/_pidata._g->h() );
+	    i[cdir] = (int)floor( (x1[2*cdir+1]-_pidata._geom->origo(cdir))/_pidata._geom->h() );
 
 	// Process intersection points
 #ifdef DEBUG_PARTICLE_ITERATOR
@@ -685,8 +673,12 @@ template <class PP> class ParticleIterator {
 
 	    // Update space charge for one mesh.
 	    if( _pidata._scharge )
-		scharge_add_from_trajectory( *_pidata._scharge, particle.IQ(), 
+		scharge_add_from_trajectory( *_pidata._scharge, _scharge_mutex, particle.IQ(), 
 					     _xi, _coldata[a]._x );
+
+	    // Call trajectory handler callback
+	    if( _thand_cb )
+		(*_thand_cb)( &particle, &_coldata[a]._x, &x2 );
 
 #ifdef DEBUG_PARTICLE_ITERATOR
 	    if( particle.get_status() == PARTICLE_OUT ) {
@@ -699,6 +691,7 @@ template <class PP> class ParticleIterator {
 #endif
 	    // Clear coldata and exit if particle collided.
 	    if( particle.get_status() != PARTICLE_OK ) {
+		save_trajectory_point( x2 );
 		_coldata.clear();
 		return( false );
 	    }
@@ -718,9 +711,9 @@ template <class PP> class ParticleIterator {
     /*! \brief Is particle mirroring required at axis in cylindrical symmetry?
      */
      bool axis_mirror_required( const PP &x2 ) {
-	 return( _pidata._g->geom_mode() == MODE_CYL && 
+	 return( _pidata._geom->geom_mode() == MODE_CYL && 
 		 x2[4] < 0.0 && 
-		 x2[3] <= 0.01*_pidata._g->h() &&
+		 x2[3] <= 0.01*_pidata._geom->h() &&
 		 x2[3]*fabs(x2[5]) <= 1.0e-9*fabs(x2[4]) );
 		 
      }
@@ -763,15 +756,15 @@ template <class PP> class ParticleIterator {
 #endif
 	
 	// Handle step with linear interpolation to avoid going to r<=0
-	if( !handle_trajectory( particle, x2, x3, true ) )
+	if( !handle_trajectory( particle, x2, x3, true, false ) )
 	    return( false ); // Particle done
 
 	// Save trajectory calculation points
-	_traj.push_back( x2 );
-	_traj.push_back( xc );
+	save_trajectory_point( x2 );
+	save_trajectory_point( xc );
 	xc[4] *= -1.0;
 	xc[5] *= -1.0;
-	_traj.push_back( xc );
+	save_trajectory_point( xc );
 	
 	// Next step not a continuation of previous one, reset
 	// integrator
@@ -800,14 +793,14 @@ template <class PP> class ParticleIterator {
 	std::cout << "  x = " << x << "\n";
 #endif
 
-	// Check if inside solids of outside geometry.
-	if( _pidata._g->inside( x.location() ) )
+	// Check if inside solids or outside simulation geometry box.
+	if( _pidata._geom->inside( x.location() ) )
 	    return( false );
 
 	// Check if particle on simulation geometry border and directed outwards
 	/*
 	for( size_t a = 0; a < PP::dim(); a++ ) {
-	    if( x[2*a+1] == _pidata._g->origo(a) && x[2*a+2] < 0.0 ) {
+	    if( x[2*a+1] == _pidata._geom->origo(a) && x[2*a+2] < 0.0 ) {
 		if( _mirror[2*a] ) {
 		    x[2*a+2] *= -1.0;
 #ifdef DEBUG_PARTICLE_ITERATOR
@@ -818,7 +811,7 @@ template <class PP> class ParticleIterator {
 		    return( false );
 		}
 
-	    } else if( x[2*a+1] == _pidata._g->max(a) & x[2*a+2] > 0.0 ) {
+	    } else if( x[2*a+1] == _pidata._geom->max(a) & x[2*a+2] > 0.0 ) {
 		if( _mirror[2*a+1] ) {
 		    x[2*a+2] *= -1.0;
 #ifdef DEBUG_PARTICLE_ITERATOR
@@ -849,7 +842,7 @@ template <class PP> class ParticleIterator {
 	    //std::cout << "acc += " << dxdt[2*a+1]*dxdt[2*a+1] << "\n";
 	    acc += dxdt[2*a+1]*dxdt[2*a+1];
 	}
-	if( _pidata._g->geom_mode() == MODE_CYL ) {
+	if( _pidata._geom->geom_mode() == MODE_CYL ) {
 	    //std::cout << "MODE_CYL\n";
 	    //std::cout << "spd += " << x[3]*x[3]*x[5]*x[5] << "\n";
 	    spd += x[3]*x[3]*x[5]*x[5];
@@ -858,8 +851,8 @@ template <class PP> class ParticleIterator {
 	}
 	//std::cout << "spd = " << sqrt(spd) << "\n";
 	//std::cout << "acc = " << sqrt(acc) << "\n";
-	spd = _pidata._g->h() / sqrt(spd);
-	acc = sqrt( 2.0*_pidata._g->h() / sqrt(acc) );
+	spd = _pidata._geom->h() / sqrt(spd);
+	acc = sqrt( 2.0*_pidata._geom->h() / sqrt(acc) );
 
 	return( spd < acc ? spd : acc );
     }
@@ -895,13 +888,14 @@ public:
     ParticleIterator( particle_iterator_type_e type, double epsabs, double epsrel, 
 		      bool polyint, uint32_t maxsteps, double maxt, 
 		      uint32_t trajdiv, bool mirror[6], MeshScalarField *scharge, 
+		      pthread_mutex_t *scharge_mutex,
 		      const VectorField *efield, const VectorField *bfield, 
-		      const Geometry *g, Particle<PP> *first, 
-		      const CallbackFunctorD_V *bfield_suppression )
+		      const Geometry *geom ) 
 	: _type(type), _polyint(polyint), _epsabs(epsabs), _epsrel(epsrel), _maxsteps(maxsteps), _maxt(maxt), 
-	  _trajdiv(trajdiv), _first(first), _pidata(scharge,efield,bfield,g,bfield_suppression), 
-	  _stat(g->number_of_boundaries()) {
-
+	  _trajdiv(trajdiv), _pidata(scharge,efield,bfield,geom), 
+	  _thand_cb(0), _tend_cb(0), _bsup_cb(0), _pdb(0), _scharge_mutex(scharge_mutex), 
+	  _stat(geom->number_of_boundaries()) {
+	
 	// Initialize mirroring
 	_mirror[0] = mirror[0];
 	_mirror[1] = mirror[1];
@@ -925,7 +919,7 @@ public:
 	    scale_abs[a+0] = 1.0;
 	    scale_abs[a+1] = 1.0e6;
 	}
-	if( _pidata._g->geom_mode() == MODE_CYL )
+	if( _pidata._geom->geom_mode() == MODE_CYL )
 	    scale_abs[4] = 1.0;
 
 	// Initialize ODE solver
@@ -945,11 +939,33 @@ public:
     }
 
 
+    /*! \brief Set trajectory handler callback. 
+     */
+    void set_trajectory_handler_callback( const TrajectoryHandlerCallback *thand_cb ) {
+	_thand_cb = thand_cb;
+    }
+
+
+    /*! \brief Set trajectory end callback. 
+     */
+    void set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb, ParticleDataBase *pdb ) {
+	_tend_cb = tend_cb;
+	_pdb = pdb;
+    }
+
+
+    /*! \brief Set B-field potential dependent suppression callback.
+     */
+    void set_bfield_suppression_callback( const CallbackFunctorD_V *bsup_cb ) {
+	_pidata.set_bfield_suppression_callback( bsup_cb );
+    }
+
     /*! \brief Get particle iterator statistics.
      */
     const ParticleStatistics &get_statistics( void ) const {
 	return( _stat );
     }
+
     
     /*! \brief Iterate a particle from start to end.
      *
@@ -959,8 +975,11 @@ public:
      *  for the possibility to add secondary particles to particle
      *  database.
      */
-    void operator()( Particle<PP> *particle,
-		     Scheduler<ParticleIterator<PP>,Particle<PP>,Error> &scheduler ) {
+    void operator()( Particle<PP> *particle, uint32_t pi ) {
+
+	// Check particle status
+	if( particle->get_status() != PARTICLE_OK )
+	    return;
 
 	// Copy starting point to x and 
 	PP x = particle->x();
@@ -975,7 +994,7 @@ public:
 
 	// Reset trajectory and save first trajectory point.
 	_traj.clear();
-	_traj.push_back( x );
+	save_trajectory_point( x );
 #ifdef DEBUG_PARTICLE_ITERATOR
 	std::cout << x[0] << " " 
 		  << x[1] << " " 
@@ -1008,7 +1027,7 @@ public:
 	// Iterate ODEs until maximum steps are done, time is used 
 	// or particle collides.
 	PP x2;
-	size_t nstp = 0;
+	size_t nstp = 0; // Steps taken
 	while( nstp < _maxsteps && x[0] < _maxt ) {
 
 #ifdef DEBUG_PARTICLE_ITERATOR
@@ -1020,7 +1039,7 @@ public:
 	    // Take a step.
 	    x2 = x;
 
-	    while( nstp < _maxsteps ) {
+	    while( true ) {
 		int retval = gsl_odeiv_evolve_apply( _evolve, _control, _step, &_system, 
 						     &x2[0], _maxt, &dt, &x2[1] );
 		if( retval == IBSIMU_DERIV_ERROR ) {
@@ -1032,7 +1051,9 @@ public:
 		    x2[0] = x[0]; // Reset time (this shouldn't be necessary - there 
 		                  // is a bug in GSL-1.12, report has been sent)
 		    dt *= 0.5;
-		    nstp++;
+		    if( dt == 0.0 )
+			throw( Error( ERROR_LOCATION, "too small step size" ) );
+		    //nstp++;
 		    continue;
 		} else if( retval == GSL_SUCCESS ) {
 		    break;
@@ -1055,7 +1076,7 @@ public:
 #endif
 
 	    // Handle collisions and space charge of step.
-	    if( !handle_trajectory( *particle, x, x2 ) ) {
+	    if( !handle_trajectory( *particle, x, x2, false, nstp == 0 ) ) {
 		x = x2;
 		break; // Particle done
 	    }
@@ -1071,7 +1092,7 @@ public:
 	    x = x2;
 
 	    // Save trajectory point
-	    _traj.push_back( x2 );
+	    save_trajectory_point( x2 );
 	    
 	    // Increase step count.
 	    nstp++;
@@ -1094,20 +1115,19 @@ public:
 	_stat.inc_sum_steps( nstp );
 
 	// Save trajectory of current particle
-	if( _trajdiv != 0 && (particle-_first) % _trajdiv == 0 )
+	if( _trajdiv != 0 && pi % _trajdiv == 0 )
 	    particle->copy_trajectory( _traj );
 
 	// Save last particle location
 	particle->x() = x;
+
+	// Call trajectory end callback
+	if( _tend_cb )
+	    (*_tend_cb)( particle, _pdb );
     }
 
-/*
-    std::cout << "Kala\n";
-
-    std::cout << _coldata.capacity() << "\n";
-    std::cout << _traj.capacity() << "\n";
-*/
 };
 
 
 #endif
+

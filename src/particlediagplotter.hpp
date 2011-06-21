@@ -2,7 +2,7 @@
  *  \brief Non-interactive particle diagnostic plotter
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -61,9 +61,21 @@ class ParticleDiagPlotter : public Plotter, public ParticleDiagPlot {
 public:
 
     /*! \brief Constructor for particle diagnostic plotter.
+     *
+     *  Makes two or three dimensional particle diagnostics plots from
+     *  particle database at plane \a axis = \a val. Diagnostic made
+     *  is specified by selecting the plot \a type and diagnostic for
+     *  plot's x-axis \a diagx and y-axis \a diagy. For one
+     *  dimensional histograms the y-axis is intensity and \a diagy
+     *  can be left to DIAG_NONE.
      */
     ParticleDiagPlotter( const Geometry *geom, const ParticleDataBase *pdb, 
 			 coordinate_axis_e axis, double level, 
+			 particle_diag_plot_type_e type,
+			 trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy = DIAG_NONE );
+
+    ParticleDiagPlotter( const Geometry *geom, const ParticleDataBase *pdb, 
+			 const Vec3D &c, const Vec3D &o, const Vec3D &p,
 			 particle_diag_plot_type_e type,
 			 trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy = DIAG_NONE );
 
@@ -75,6 +87,7 @@ public:
 
 
 #endif
+
 
 
 

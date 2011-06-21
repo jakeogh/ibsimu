@@ -46,8 +46,12 @@
 
 #include <iostream>
 #include "solid.hpp"
-#include "mydxffile.hpp"
 #include "transformation.hpp"
+
+
+class MyDXFFile;
+class MyDXFEntities;
+class MyDXFEntitySelection;
 
 
 /*! \brief %MyDXFFile solid class.
@@ -82,6 +86,10 @@ public:
      */
     DXFSolid( MyDXFFile *dxffile, const std::string &layername );
 
+    /*! \brief Constructor for loading solid data from stream \a is.
+     */
+    DXFSolid( std::istream &is );
+
     /*! \brief Destructor.
      */
     virtual ~DXFSolid();
@@ -91,7 +99,7 @@ public:
      */
     virtual bool inside( const Vec3D &x ) const;
 
-    /*! \brief Print debugging information to os.
+    /*! \brief Print debugging information to stream \a os.
      */
     void debug_print( std::ostream &os ) const;
 
@@ -122,47 +130,57 @@ public:
     /*! \brief Define mapping from 3D space to 2D space.
      *
      *  The mapping function can be user defined or one of the
-     *  predefined functions: unity() or rotx(). The mapping function
-     *  can return a vector with NaN components for guaranteed inside
-     *  solid result. Similarly infinity is guaranteed to give free
-     *  space result.
+     *  predefined functions: unity(), rotx(), roty() or rotz(). The
+     *  mapping function can return a vector with NaN components for
+     *  guaranteed inside solid result. Similarly infinity is
+     *  guaranteed to give free space result.
      */
     void define_2x3_mapping( Vec3D (*func)(const Vec3D &) );
 
+    /*! \brief Set transformation to unity.
+     *
+     *  Resets the primary 3D to 3D transformation to unity.
+     */
+    void reset_transformation( void );
+
+    /*! \brief Set transformation.
+     *
+     *  Sets the primary 3D to 3D transformation as a copy of
+     *  transformation of \a T.
+     */
+    void set_transformation( const Transformation &T );
+
     /*! \brief Translate solid.
      */
-    void translate( const Vec3D &dx ) {
-        _T.translate( -1.0*dx );
-    }
+    void translate( const Vec3D &dx );
 
     /*! \brief Scale solid.
      */
-    void scale( const Vec3D &sx ) {
-        _T.scale( Vec3D(1.0/sx[0], 1.0/sx[1], 1.0/sx[2]) );
-    }
+    void scale( const Vec3D &sx );
 
     /*! \brief Rotate solid around x-axis.
+     *
+     *  Rotate around x-axis for \a a radians.
      */
-    void rotate_x( double a ) {
-        _T.rotate_x( -a );
-    }
+    void rotate_x( double a );
 
     /*! \brief Rotate solid around y-axis.
+     *
+     *  Rotate around y-axis for \a a radians.
      */
-    void rotate_y( double a ) {
-        _T.rotate_y( -a );
-    }
+    void rotate_y( double a );
 
     /*! \brief Rotate solid around z-axis.
+     *
+     *  Rotate around z-axis for \a a radians.
      */
-    void rotate_z( double a ) {
-        _T.rotate_z( -a );
-    }
+    void rotate_z( double a );
 
-    /*! \brief Saves solid data to stream.
+    /*! \brief Saves solid data to stream \a os.
      */
-    virtual void save( std::ostream &s ) const;
+    virtual void save( std::ostream &os ) const;
 };
 
 
 #endif
+

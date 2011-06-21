@@ -1,5 +1,5 @@
 /*! \file colormap.cpp
- *  \brief Source code for colormap.cpp
+ *  \brief %Colormap graph for plotting
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -42,6 +42,8 @@
 
 #include <cmath>
 #include <limits>
+#include <iomanip>
+#include <iostream>
 #include "compmath.hpp"
 #include "colormap.hpp"
 
@@ -69,7 +71,7 @@ Colormap::Colormap( const double datarange[4], size_t n, size_t m,
 	throw( Error( ERROR_LOCATION, "data size not equal to n*m" ) );
     _f = data;
 
-    // Go through data to find minimum and maximum
+    // Default range is from minimum to maximum
     _zmin = std::numeric_limits<double>::infinity();
     _zmax = -std::numeric_limits<double>::infinity();
     for( size_t j = 0; j < _m; j++ ) {
@@ -155,20 +157,25 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
     // Go through pixel limits
     // Error if either end is at zero with LOG scaling
     if( _zscale == ZSCALE_LOG && _zmin <= 0.0 && _zmax >= 0.0 )
-	throw( Error( ERROR_LOCATION, "zmin and zmax on different sides of zero" ) );
+	throw( Error( ERROR_LOCATION, "zmin and zmax on different sides of zero and using logscale" ) );
+
+    //std::cout << "zmin = " << std::scientific << _zmin << "\n";
+    //std::cout << "zmax = " << std::scientific << _zmax << "\n";
+    //std::cout << "1.0e-6*zspan = " << std::scientific << 1.0e-6*(_zmax - _zmin) << "\n";
 
     int sign;
-    if( _zmax <= 0.0 ) {
-	// Completely on negative side
-	sign = -1;
-    } else if( _zmin >= 0.0 ) {
+    double zspan = _zmax - _zmin;
+    if( _zmin >= -1.0e-6*zspan && _zmax >= 0.0 ) {
 	// Completely on positive side
 	sign = +1;
+    } else if( _zmax <= 1.0e-6*zspan && _zmin <= 0.0 ) {
+	// Completely on negative side
+	sign = -1;
     } else {
 	// Both negative and positive
 	sign = 0;
     }
-	
+    
     // flush to ensure all writing to the image was done
     cairo_surface_flush( surface );
 
@@ -181,7 +188,8 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 
 	    double val = get_value( x[0], x[1] );
 
-	    // Scale value to [0:1] maintaining monotonic rising property
+	    // Prescale value to nominal range [0:1] maintaining
+	    // monotonic rising property. Might go over range.
 	    if( _zscale == ZSCALE_LINEAR )
 		val = (val-_zmin)/(_zmax-_zmin);
 	    else if( _zscale == ZSCALE_LOG ) {
@@ -335,6 +343,12 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 }
 
 
+void Colormap::plot_sample( cairo_t *cairo, double x, double y, double width, double height )
+{
+
+}
+
+
 void Colormap::get_bbox( double bbox[4] )
 {
     bbox[0] = _datarange[0];
@@ -354,6 +368,13 @@ void Colormap::get_zrange( double &min, double &max ) const
 {
     min = _zmin;
     max = _zmax;
+}
+
+
+void Colormap::set_zrange( double min, double max )
+{
+    _zmin = min;
+    _zmax = max;
 }
 
 
@@ -388,6 +409,7 @@ double Colormap::get_value( double x, double y ) const
     
     return( (*_intrp)( t, u ) );
 }
+
 
 
 

@@ -127,12 +127,6 @@ public:
     void reset( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h );
 
     /*! \brief Search minimum and maximum values of scalar field.
-     *
-     *  It should be noted that %ScalarField object itself doesn't
-     *  know about virtual potentials at electrode edges and therefore
-     *  this function doesn't know how to separate these points from
-     *  other points. For electric potential fields use
-     *  epot_get_minmax() instead.
      */
     void get_minmax( double &min, double &max ) const;
 
@@ -195,9 +189,13 @@ public:
      */
     virtual double operator()( const Vec3D &x ) const;
 
-    /*! \brief Saves scalar field data to stream.
+    /*! \brief Saves scalar field data to file \a filename.
      */
-    void save( std::ostream &s ) const;
+    void save( const std::string &filename ) const;
+
+    /*! \brief Saves scalar field data to stream \a os.
+     */
+    void save( std::ostream &os ) const;
 
     /*! \brief Print debugging information to os.
      */

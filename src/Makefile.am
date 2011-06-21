@@ -18,6 +18,7 @@ compmath.cpp \
 compmath.hpp \
 config.h \
 config.hpp \
+constants.hpp \
 convergence.cpp \
 convergence.hpp \
 coordmapper.hpp \
@@ -32,14 +33,18 @@ dxf_solid.hpp \
 empty_precond.hpp \
 epot_bicgstabsolver.cpp \
 epot_bicgstabsolver.hpp \
-epot_field.cpp \
-epot_field.hpp \
 epot_efield.cpp \
 epot_efield.hpp \
+epot_field.cpp \
+epot_field.hpp \
 epot_gssolver.cpp \
 epot_gssolver.hpp \
 epot_matrixsolver.cpp \
 epot_matrixsolver.hpp \
+epot_mgsolver.cpp \
+epot_mgsolver.hpp \
+epot_mgsubsolver.cpp \
+epot_mgsubsolver.hpp \
 epot_rbgssolver.cpp \
 epot_rbgssolver.hpp \
 epot_solver.cpp \
@@ -83,6 +88,8 @@ gtkhardcopy.cpp \
 gtkhardcopy.hpp \
 gtkparticlediagdialog.cpp \
 gtkparticlediagdialog.hpp \
+gtkparticlediagexportdialog.cpp \
+gtkparticlediagexportdialog.hpp \
 gtkparticlediagwindow.cpp \
 gtkparticlediagwindow.hpp \
 gtkplotter.cpp \
@@ -129,24 +136,40 @@ meshscalarfield.cpp \
 meshscalarfield.hpp \
 meshvectorfield.cpp \
 meshvectorfield.hpp \
-mvector.cpp \
-mvector.hpp \
 multimeshvectorfield.cpp \
 multimeshvectorfield.hpp \
+mvector.cpp \
+mvector.hpp \
+mydxfarc.cpp \
+mydxfarc.hpp \
 mydxfblocks.cpp \
 mydxfblocks.hpp \
+mydxfcircle.cpp \
+mydxfcircle.hpp \
 mydxfentities.cpp \
 mydxfentities.hpp \
 mydxffile.cpp \
 mydxffile.hpp \
 mydxfheader.cpp \
 mydxfheader.hpp \
+mydxfinsert.cpp \
+mydxfinsert.hpp \
+mydxfline.cpp \
+mydxfline.hpp \
+mydxflwpolyline.cpp \
+mydxflwpolyline.hpp \
+mydxfmtext.cpp \
+mydxfmtext.hpp \
+mydxfspline.cpp \
+mydxfspline.hpp \
 mydxftables.cpp \
 mydxftables.hpp \
 palette.cpp \
 palette.hpp \
 particledatabase.cpp \
 particledatabase.hpp \
+particledatabaseimp.cpp \
+particledatabaseimp.hpp \
 particlediagplot.cpp \
 particlediagplot.hpp \
 particlediagplotter.cpp \
@@ -157,13 +180,16 @@ particleiterator.cpp \
 particleiterator.hpp \
 particles.cpp \
 particles.hpp \
+particlestatistics.cpp \
+particlestatistics.hpp \
 plotter.cpp \
 plotter.hpp \
 polysolver.cpp \
 polysolver.hpp \
 precond.hpp \
-qrandom.cpp \
-qrandom.hpp \
+problem.hpp \
+random.cpp \
+random.hpp \
 readascii.cpp \
 readascii.hpp \
 ruler.cpp \
@@ -179,6 +205,10 @@ solver.hpp \
 sort.hpp \
 statusprint.cpp \
 statusprint.hpp \
+stl_solid.cpp \
+stl_solid.hpp \
+stlfile.cpp \
+stlfile.hpp \
 symbols.hpp \
 timer.cpp \
 timer.hpp \
@@ -196,11 +226,7 @@ vec4d.cpp \
 vec4d.hpp \
 vectorfield.hpp \
 xygraph.cpp \
-xygraph.hpp \
-epot_mgsolver.cpp \
-epot_mgsolver.hpp \
-epot_mgsubsolver.cpp \
-epot_mgsubsolver.hpp 
+xygraph.hpp
 
 libibsimu_1_0_4new_solver_la_includedir=$(includedir)/ibsimu-1.0.4new_solver
 libibsimu_1_0_4new_solver_la_include_HEADERS = \
@@ -211,9 +237,9 @@ color.hpp \
 colormap.hpp \
 config.h \
 constants.hpp \
+convergence.hpp \
 coordmapper.hpp \
 coordmatrix.hpp \
-convergence.hpp \
 crowmatrix.hpp \
 diag_precond.hpp \
 dxf_solid.hpp \
@@ -223,6 +249,8 @@ epot_efield.hpp \
 epot_field.hpp \
 epot_gssolver.hpp \
 epot_matrixsolver.hpp \
+epot_mgsolver.hpp \
+epot_mgsubsolver.hpp \
 epot_rbgssolver.hpp \
 epot_solver.hpp \
 eqpotgraph.hpp \
@@ -256,12 +284,19 @@ mesh.hpp \
 meshgraph.hpp \
 meshscalarfield.hpp \
 meshvectorfield.hpp \
-mvector.hpp \
 multimeshvectorfield.hpp \
+mvector.hpp \
+mydxfarc.hpp \
 mydxfblocks.hpp \
+mydxfcircle.hpp \
 mydxfentities.hpp \
 mydxffile.hpp \
 mydxfheader.hpp \
+mydxfinsert.hpp \
+mydxfline.hpp \
+mydxflwpolyline.hpp \
+mydxfmtext.hpp \
+mydxfspline.hpp \
 mydxftables.hpp \
 palette.hpp \
 particledatabase.hpp \
@@ -270,10 +305,11 @@ particlediagplotter.hpp \
 particlegraph.hpp \
 particleiterator.hpp \
 particles.hpp \
+particlestatistics.hpp \
 plotter.hpp \
 polysolver.hpp \
 precond.hpp \
-qrandom.hpp \
+random.hpp \
 readascii.hpp \
 ruler.hpp \
 scalarfield.hpp \
@@ -284,6 +320,7 @@ solidgraph.hpp \
 solver.hpp \
 sort.hpp \
 statusprint.hpp \
+stl_solid.hpp \
 timer.hpp \
 trajectory.hpp \
 trajectorydiagnostics.hpp \
@@ -292,9 +329,7 @@ types.hpp \
 vec3d.hpp \
 vec4d.hpp \
 vectorfield.hpp \
-xygraph.hpp \
-epot_mgsolver.hpp \
-epot_mgsubsolver.hpp 
+xygraph.hpp
 
 if UMFPACK
 libibsimu_1_0_4new_solver_la_SOURCES += epot_umfpacksolver.cpp epot_umfpacksolver.hpp 

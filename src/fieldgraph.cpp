@@ -1,5 +1,5 @@
 /*! \file fieldgraph.cpp
- *  \brief Source code for fieldgraph.cpp
+ *  \brief %Graph for plotting fields
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -40,14 +40,20 @@
  * permit others to do so.
  */
 
+#include <limits>
 #include "fieldgraph.hpp"
+#include "scalarfield.hpp"
+#include "vectorfield.hpp"
+#include "meshscalarfield.hpp"
+#include "meshvectorfield.hpp"
 #include "ibsimu.hpp"
 
 
-FieldGraph::FieldGraph( const MeshScalarField *field )
-    : _scalarfield(field), _colormap(NULL), _enabled(true)
+FieldGraph::FieldGraph( const Geometry *geom, const Field *field, field_type_e field_type )
+    : _field_type(field_type), _geom(geom), _field(field), _colormap(NULL),
+      _oview(VIEW_XY), _olevel(0), _enabled(true), _logscale(false)
 {
-    
+
 }
 
 
@@ -66,70 +72,146 @@ void FieldGraph::enable( bool enable )
 }
 
 
-void FieldGraph::build_scalarfield_plot( void )
+void FieldGraph::set_logscale( bool enable ) 
 {
-    if( _scalarfield ) {
+    _logscale = enable;
+}
 
-	double range[4] = { _scalarfield->origo( _vb[0] ),
-			    _scalarfield->origo( _vb[1] ),
-			    _scalarfield->max  ( _vb[0] ),
-			    _scalarfield->max  ( _vb[1] ) };
-	size_t n = _scalarfield->size( _vb[0] );
-	size_t m = _scalarfield->size( _vb[1] );
-	double min, max;
-	_scalarfield->get_minmax( min, max );
-	std::vector<double> data;
-	data.reserve( n*m );
-	size_t ind[3];
-	ind[_vb[2]] = (size_t)floor(_level+0.5);
-	for( size_t j = 0; j < m; j++ ) {
-	    ind[_vb[1]] = j;
-	    for( size_t i = 0; i < n; i++ ) {
-		ind[_vb[0]] = i;
-		data.push_back( (*_scalarfield)( ind[0], ind[1], ind[2] ) );
+
+void FieldGraph::build_plot( void )
+{
+    if( !_field || !_geom )
+	return;
+
+    const VectorField *vfield = dynamic_cast<const VectorField *>( _field );
+    const ScalarField *sfield = dynamic_cast<const ScalarField *>( _field );
+
+    // Build data for colormap based on geometry size
+    double range[4] = { _geom->origo( _vb[0] ),
+			_geom->origo( _vb[1] ),
+			_geom->max  ( _vb[0] ),
+			_geom->max  ( _vb[1] ) };
+    size_t n = _geom->size( _vb[0] );
+    size_t m = _geom->size( _vb[1] );
+
+    std::vector<double> data;
+    double datamin = std::numeric_limits<double>::infinity();
+    double datamax = -std::numeric_limits<double>::infinity();
+    data.reserve( n*m );
+    //size_t ind[3];
+    Vec3D x;
+    //ind[_vb[2]] = _level;
+    x[_vb[2]] = _geom->origo(_vb[2]) + _level*_geom->h();
+    for( size_t j = 0; j < m; j++ ) {
+	//ind[_vb[1]] = j;
+	x[_vb[1]] = _geom->origo(_vb[1]) + j*_geom->h();
+	for( size_t i = 0; i < n; i++ ) {
+	    //ind[_vb[0]] = i;
+	    x[_vb[0]] = _geom->origo(_vb[0]) + i*_geom->h();
+
+	    // Make data for point (ind[0], ind[1], ind[2])
+	    //data.push_back( (*_scalarfield)( ind[0], ind[1], ind[2] ) );
+
+	    Vec3D F;
+	    double dataent;
+	    switch( _field_type ) {
+	    case FIELD_NONE:
+		break;
+	    case FIELD_EPOT:
+	    case FIELD_SCHARGE:
+	    case FIELD_TRAJDENS:
+		dataent = (*sfield)( x );
+		break;
+	    case FIELD_EFIELD:
+	    case FIELD_BFIELD:
+		F = (*vfield)( x );
+		dataent = F.norm2();
+		break;
+	    case FIELD_EFIELD_X:
+	    case FIELD_BFIELD_X:
+		F = (*vfield)( x );
+		dataent = F[0];
+		break;
+	    case FIELD_EFIELD_Y:
+	    case FIELD_BFIELD_Y:
+		F = (*vfield)( x );
+		dataent = F[1];
+		break;
+	    case FIELD_EFIELD_Z:
+	    case FIELD_BFIELD_Z:
+		F = (*vfield)( x );
+		dataent = F[2];
+		break;
+	    default:
+		throw( Error( ERROR_LOCATION, "unknown field type" ) );
+		break;
 	    }
+
+	    data.push_back( dataent );
+	    if( dataent < datamin )
+		datamin = dataent;
+	    if( dataent > datamax )
+		datamax = dataent;
 	}
-	_colormap = new Colormap( range, n, m, data );
-	std::vector<Palette::Entry> pentry;
-	if( min == 0.0 && max >= 0.0 ) {
-	    // Palette for positive beam	    
-	    pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
-	    pentry.push_back( Palette::Entry( Color(1,1,0), 1 ) );
-	    pentry.push_back( Palette::Entry( Color(1,0,0), 2 ) );
-	    pentry.push_back( Palette::Entry( Color(0,0,0), 3 ) );
-	} else if( max == 0.0 && min <= 0.0 ) {
-	    // Palette for positive beam	    
-	    pentry.push_back( Palette::Entry( Color(1,1,1), 3 ) );
-	    pentry.push_back( Palette::Entry( Color(1,1,0), 2 ) );
-	    pentry.push_back( Palette::Entry( Color(1,0,0), 1 ) );
-	    pentry.push_back( Palette::Entry( Color(0,0,0), 0 ) );
-	} else {
-	    // Palette for positive and negative beam
-	    pentry.push_back( Palette::Entry( Color(0,0,0), min ) );
-	    pentry.push_back( Palette::Entry( Color(0,0,1), 0.67*min ) );
-	    pentry.push_back( Palette::Entry( Color(0,1,1), 0.33*min ) );
-	    pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
-	    pentry.push_back( Palette::Entry( Color(1,1,0), 0.33*max ) );
-	    pentry.push_back( Palette::Entry( Color(1,0,0), 0.67*max ) );
-	    pentry.push_back( Palette::Entry( Color(0,0,0), max ) );
-	}
-	Palette p( pentry );
-	_colormap->set_palette( p );
-	if( _logscale )
-	    _colormap->set_zscale( ZSCALE_RELLOG );
     }
+
+    // Use global minimum and maximum if possible, otherwise use
+    // (datamin, datamax), which is the local extremes in this level.
+    double zmin, zmax;
+    const MeshScalarField *msfield = dynamic_cast<const MeshScalarField *>( _field );
+    const MeshVectorField *mvfield = dynamic_cast<const MeshVectorField *>( _field );
+    if( msfield ) {
+	msfield->get_minmax( zmin, zmax );
+    } else if( mvfield ) {
+	mvfield->get_minmax( zmin, zmax );
+	zmin = -zmax; // Symmetric around zero for vector fields
+    } else {
+	zmin = datamin;
+	zmax = datamax;
+    }
+
+    // Set up colormap
+    _colormap = new Colormap( range, n, m, data );
+    _colormap->set_zrange( zmin, zmax );
+
+    // Set palette
+    std::vector<Palette::Entry> pentry;
+    double zspan = zmax - zmin;
+    if( zmin >= -1.0e-6*zspan && zmax >= 0.0 ) {
+	// "Positive" palette
+	pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
+	pentry.push_back( Palette::Entry( Color(1,1,0), 1 ) );
+	pentry.push_back( Palette::Entry( Color(1,0,0), 2 ) );
+	pentry.push_back( Palette::Entry( Color(0,0,0), 3 ) );
+    } else if( zmax <= 1.0e-6*zspan && zmin <= 0.0 ) {
+	// "Negative" palette
+	pentry.push_back( Palette::Entry( Color(1,1,1), 3 ) );
+	pentry.push_back( Palette::Entry( Color(1,1,0), 2 ) );
+	pentry.push_back( Palette::Entry( Color(1,0,0), 1 ) );
+	pentry.push_back( Palette::Entry( Color(0,0,0), 0 ) );
+    } else {
+	// "Mixed" palette
+	pentry.push_back( Palette::Entry( Color(0,0,0), zmin ) );
+	pentry.push_back( Palette::Entry( Color(0,0,1), 0.67*zmin ) );
+	pentry.push_back( Palette::Entry( Color(0,1,1), 0.33*zmin ) );
+	pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
+	pentry.push_back( Palette::Entry( Color(1,1,0), 0.33*zmax ) );
+	pentry.push_back( Palette::Entry( Color(1,0,0), 0.67*zmax ) );
+	pentry.push_back( Palette::Entry( Color(0,0,0), zmax ) );
+    }
+
+    Palette p( pentry );
+    _colormap->set_palette( p );
+    if( _logscale )
+	_colormap->set_zscale( ZSCALE_RELLOG );
 }
 
 
 void FieldGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
-    //if( ibsimu.get_verbose_output() )
-    //std::cout << "  Plotting field\n";
-
     if( _colormap == NULL || _oview != _view || _olevel != _level ) {
 	// First plot or changed view happened
-	if( _scalarfield && _enabled )
-	    build_scalarfield_plot();
+	build_plot();
     }
     _oview = _view;
     _olevel = _level;
@@ -139,12 +221,18 @@ void FieldGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
 }
 
 
+void FieldGraph::plot_sample( cairo_t *cairo, double x, double y, double width, double height )
+{
+
+}
+
+
 void FieldGraph::get_bbox( double bbox[4] )
 {
-    if( _scalarfield ) {
-	bbox[0] = _scalarfield->origo( _vb[0] );
-	bbox[1] = _scalarfield->origo( _vb[1] );
-	bbox[2] = _scalarfield->max( _vb[0] );
-	bbox[3] = _scalarfield->max( _vb[1] );
-    }
+    bbox[0] = _geom->origo( _vb[0] );
+    bbox[1] = _geom->origo( _vb[1] );
+    bbox[2] = _geom->max( _vb[0] );
+    bbox[3] = _geom->max( _vb[1] );
 }
+
+

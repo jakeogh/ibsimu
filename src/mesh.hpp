@@ -91,9 +91,9 @@ public:
      */
     Mesh( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h );
 
-    /*! \brief Constructor for loading mesh from a file.
+    /*! \brief Constructoer for loading mesh from a stream \a is.
      */
-    Mesh( std::istream &s );
+    Mesh( std::istream &is );
 
     /*! \brief Destructor.
      */
@@ -149,11 +149,13 @@ public:
      */
     double div_h( void ) const { return( _div_h ); }
 
-    /*! \brief Saves geometry data to stream.
+    /*! \brief Saves geometry data to stream \a os.
      */
-    void save( std::ostream &s ) const;
+    void save( std::ostream &os ) const;
 
     /*! \brief Equality.
+     *
+     *  Allows small inequality.
      */
     bool operator==( const Mesh &m ) const;
 
@@ -161,10 +163,11 @@ public:
      */
     bool operator!=( const Mesh &m ) const;
 
-    /*! \brief Print debugging information to os.
+    /*! \brief Print debugging information to stream \a os.
      */
     void debug_print( std::ostream &os ) const;
 };
 
 
 #endif
+

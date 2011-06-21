@@ -42,6 +42,7 @@
 
 
 #include <limits>
+#include <fstream>
 #include "multimeshvectorfield.hpp"
 #include "ibsimu.hpp"
 #include "compmath.hpp"
@@ -232,6 +233,19 @@ const Vec3D MultiMeshVectorField::operator()( Vec3D x ) const
 }
 
 
+void MultiMeshVectorField::save( const std::string &filename ) const
+{
+    if( ibsimu.get_verbose_output() )
+	ibsimu.vout() << "Saving MultiMeshVectorField to file \'" << filename << "\'.\n";
+
+    std::ofstream os( filename.c_str() );
+    if( !os.good() )
+	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
+    save( os );
+    os.close();
+}
+
+
 void MultiMeshVectorField::save( std::ostream &s ) const
 {
     write_int32( s, _field.size() );
@@ -248,4 +262,5 @@ void MultiMeshVectorField::debug_print( std::ostream &os ) const
     for( size_t i = 0; i < _field.size(); i++ )
 	_field[i]->debug_print( os );
 }
+
 

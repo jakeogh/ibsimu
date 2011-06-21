@@ -52,12 +52,12 @@
 int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void *data )
 {
     Vec3D E, B, xc( x[0], x[2], 0.0 );
-    ParticleIteratorData *pi = (ParticleIteratorData *)data;
+    ParticleIteratorData *pidata = (ParticleIteratorData *)data;
     
-    if( pi->_efield )
-	E = (*pi->_efield)( xc );
-    if( pi->_bfield )
-	B = (*pi->_bfield)( xc );
+    if( pidata->_efield )
+	E = (*pidata->_efield)( xc );
+    if( pidata->_bfield )
+	B = (*pidata->_bfield)( xc );
 #ifdef DEBUG_PARTICLE_DERIVATIVES
     std::cout << "E=(" << E << ") at x=(" << xc << ")\n";
 #endif
@@ -66,8 +66,8 @@ int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void 
     dxdt[2] = x[3];
     
     /* Velocities dvx/dt = ax, dvy/dt = ay */
-    dxdt[1] = pi->_qm * (E[0] + x[3]*B[2]);
-    dxdt[3] = pi->_qm * (E[1] - x[1]*B[2]);
+    dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2]);
+    dxdt[3] = pidata->_qm * (E[1] - x[1]*B[2]);
 
     //std::cout << "dxdt=(" 
     //<< dxdt[0] << " "
@@ -81,7 +81,8 @@ int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void 
 
 int ParticleP2D::trajectory_intersections_at_plane( std::vector<ParticleP2D> &intsc, 
 						    int crd, double val,
-						    const ParticleP2D &x1, const ParticleP2D &x2 )
+						    const ParticleP2D &x1, const ParticleP2D &x2,
+						    int extrapolate )
 {
     // Construct trajectory interpolation
     double dt = x2[0] - x1[0];
@@ -97,7 +98,7 @@ int ParticleP2D::trajectory_intersections_at_plane( std::vector<ParticleP2D> &in
     // Solve for intersections
     double K[3];
     //std::cout << "Solving for trep[" << crd << "] = " << val << ":\n";
-    int nroots = trep[crd].solve( K, val );
+    int nroots = trep[crd].solve( K, val, extrapolate );
     //std::cout << "found " << nroots << " roots: ";
 
     // Save intersection points
@@ -117,7 +118,7 @@ int ParticleP2D::trajectory_intersections_at_plane( std::vector<ParticleP2D> &in
 int ParticlePCyl::get_derivatives( double t, const double *x, double *dxdt, void *data )
 {
     Vec3D E, B, xc( x[0], x[2], 0.0 );
-    ParticleIteratorData *pi = (ParticleIteratorData *)data;
+    ParticleIteratorData *pidata = (ParticleIteratorData *)data;
 
 #ifdef DEBUG_PARTICLE_DERIVATIVES
     std::cout << "Particle get_derivatives query\n";
@@ -136,10 +137,15 @@ int ParticlePCyl::get_derivatives( double t, const double *x, double *dxdt, void
 	return( IBSIMU_DERIV_ERROR );
     }
     
-    if( pi->_efield )
-	E = (*pi->_efield)( xc );
-    if( pi->_bfield )
-	B = (*pi->_bfield)( xc );
+    if( pidata->_efield )
+	E = (*pidata->_efield)( xc );
+    if( pidata->_bfield ) {
+	B = (*pidata->_bfield)( xc );
+	if( pidata->_bsup_cb ) {
+	    double factor = (*pidata->_bsup_cb)( xc );
+	    B *= factor;
+	}
+    }
 
 #ifdef DEBUG_PARTICLE_DERIVATIVES
     std::cout << "  E    = " << E << "\n";
@@ -155,12 +161,12 @@ int ParticlePCyl::get_derivatives( double t, const double *x, double *dxdt, void
      * dvr/dt = ar+r*(dtheta/dt)^2 
      * d^2theta/dt^2 = (a_theta-dr/dt*dtheta/dt)/r 
      */
-    dxdt[1] = pi->_qm * (E[0] + x[3]*B[2] - x[2]*x[4]*B[1]);
-    dxdt[3] = pi->_qm * (E[1] + x[2]*x[4]*B[0] - x[1]*B[2]) + x[2]*x[4]*x[4];
+    dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2] - x[2]*x[4]*B[1]);
+    dxdt[3] = pidata->_qm * (E[1] + x[2]*x[4]*B[0] - x[1]*B[2]) + x[2]*x[4]*x[4];
     if( x[2] == 0.0 )
         dxdt[4] = 0.0;
     else
-        dxdt[4] = (pi->_qm * (x[1]*B[1] - x[3]*B[0]) - 2.0*x[3]*x[4]) / x[2];
+        dxdt[4] = (pidata->_qm * (x[1]*B[1] - x[3]*B[0]) - 2.0*x[3]*x[4]) / x[2];
     
 #ifdef DEBUG_PARTICLE_DERIVATIVES
     std::cout << "  dxdt = " 
@@ -177,7 +183,8 @@ int ParticlePCyl::get_derivatives( double t, const double *x, double *dxdt, void
 
 int ParticlePCyl::trajectory_intersections_at_plane( std::vector<ParticlePCyl> &intsc, 
 						     int crd, double val,
-						     const ParticlePCyl &x1, const ParticlePCyl &x2 )
+						     const ParticlePCyl &x1, const ParticlePCyl &x2,
+						     int extrapolate )
 {
     // Construct trajectory interpolation
     double dt = x2[0] - x1[0];
@@ -187,7 +194,7 @@ int ParticlePCyl::trajectory_intersections_at_plane( std::vector<ParticlePCyl> &
 
     // Solve for intersections
     double K[3];
-    int nroots = trep[crd].solve( K, val );
+    int nroots = trep[crd].solve( K, val, extrapolate );
     
     // Save intersection points
     double x[2], v[2];
@@ -204,7 +211,7 @@ int ParticlePCyl::trajectory_intersections_at_plane( std::vector<ParticlePCyl> &
 int ParticleP3D::get_derivatives( double t, const double *x, double *dxdt, void *data )
 {
     Vec3D E, B, xc( x[0], x[2], x[4] );
-    ParticleIteratorData *pi = (ParticleIteratorData *)data;
+    ParticleIteratorData *pidata = (ParticleIteratorData *)data;
 
 #ifdef DEBUG_PARTICLE_DERIVATIVES
     std::cout << "Particle get_derivatives query\n";
@@ -218,12 +225,12 @@ int ParticleP3D::get_derivatives( double t, const double *x, double *dxdt, void 
 	      << std::setw(12) << x[5] << "\n";
 #endif
 
-    if( pi->_efield )
-	E = (*pi->_efield)( xc );
-    if( pi->_bfield ) {
-	B = (*pi->_bfield)( xc );
-	if( pi->_bfield_suppression ) {
-	    double factor = (*pi->_bfield_suppression)( xc );
+    if( pidata->_efield )
+	E = (*pidata->_efield)( xc );
+    if( pidata->_bfield ) {
+	B = (*pidata->_bfield)( xc );
+	if( pidata->_bsup_cb ) {
+	    double factor = (*pidata->_bsup_cb)( xc );
 	    B *= factor;
 	}
     }
@@ -231,7 +238,7 @@ int ParticleP3D::get_derivatives( double t, const double *x, double *dxdt, void 
 #ifdef DEBUG_PARTICLE_DERIVATIVES
     std::cout << "  E    = " << E << "\n";
     std::cout << "  B    = " << B << "\n";
-    std::cout << "  qm   = " << pi->_qm << "\n";    
+    std::cout << "  qm   = " << pidata->_qm << "\n";    
 #endif
 
     /* Positions: dx/dt = vx, dy/dt = vy, dz/dt = vz */
@@ -240,9 +247,9 @@ int ParticleP3D::get_derivatives( double t, const double *x, double *dxdt, void 
     dxdt[4] = x[5];
     
     /* Velocities: dvx/dt = ax, dvy/dt = ay, dvz/dt = az */
-    dxdt[1] = pi->_qm * (E[0] + x[3]*B[2] - x[5]*B[1]);
-    dxdt[3] = pi->_qm * (E[1] + x[5]*B[0] - x[1]*B[2]);
-    dxdt[5] = pi->_qm * (E[2] + x[1]*B[1] - x[3]*B[0]);
+    dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2] - x[5]*B[1]);
+    dxdt[3] = pidata->_qm * (E[1] + x[5]*B[0] - x[1]*B[2]);
+    dxdt[5] = pidata->_qm * (E[2] + x[1]*B[1] - x[3]*B[0]);
     
 #ifdef DEBUG_PARTICLE_DERIVATIVES
     std::cout << "  dxdt = " 
@@ -259,7 +266,8 @@ int ParticleP3D::get_derivatives( double t, const double *x, double *dxdt, void 
 
 int ParticleP3D::trajectory_intersections_at_plane( std::vector<ParticleP3D> &intsc, 
 						    int crd, double val,
-						    const ParticleP3D &x1, const ParticleP3D &x2 )
+						    const ParticleP3D &x1, const ParticleP3D &x2,
+						    int extrapolate )
 {
     // Construct trajectory interpolation
     double dt = x2[0] - x1[0];
@@ -270,7 +278,7 @@ int ParticleP3D::trajectory_intersections_at_plane( std::vector<ParticleP3D> &in
 
     // Solve for intersections
     double K[3];
-    int nroots = trep[crd].solve( K, val );
+    int nroots = trep[crd].solve( K, val, extrapolate );
     
     // Save intersection points
     double x[3], v[3];
@@ -283,6 +291,7 @@ int ParticleP3D::trajectory_intersections_at_plane( std::vector<ParticleP3D> &in
 
     return( nroots );
 }
+
 
 
 

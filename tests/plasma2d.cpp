@@ -19,7 +19,6 @@
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
 #include "meshvectorfield.hpp"
-#include "meshvectorfield.hpp"
 #include "ibsimu.hpp"
 #include "error.hpp"
 #include "particlediagplotter.hpp"
@@ -60,9 +59,9 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, -8.0e3) );
     geom.build_mesh();
     
-    EpotMGSolver solver( geom );
+    //EpotMGSolver solver( geom );
     //solver.set_mgcycmax( 2 );
-    solver.set_levels( 4 );
+    //solver.set_levels( 4 );
     EpotUMFPACKSolver solver( geom );
     //EpotGSSolver solver( geom );
     //EpotBiCGSTABSolver solver( geom );
@@ -84,11 +83,12 @@ void test( int argc, char **argv )
     pdb.set_polyint( true );
 
     Convergence conv;
-    conv.add_epot( epot, 1, 1, 1.0e-6 );
-    conv.add_scharge( scharge, 1, 1, 1.0e-6 );
-    conv.add_tdiag( pdb, AXIS_X, 11.9e-3, 1, 1, 1.0e-6 );
+    conv.add_epot( epot );
+    conv.add_scharge( scharge );
+    Emittance emit;
+    conv.add_emittance( 0, emit );
 
-    for( size_t i = 0; i < 5; i++ ) {
+    for( size_t i = 0; i < 2; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
@@ -107,6 +107,11 @@ void test( int argc, char **argv )
 				     0.0, 1.5e-3 );
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
+	ParticleDiagPlotter pp( &geom, &pdb, AXIS_X, 11.90e-3, 
+				PARTICLE_DIAG_PLOT_SCATTER, 
+				DIAG_Y, DIAG_YP );
+	emit = pp.calculate_emittance();
+
 	conv.evaluate_iteration();
 
 	/*
@@ -124,7 +129,7 @@ void test( int argc, char **argv )
 	*/
     }
 
-    if( true ) {
+    if( false ) {
 	MeshScalarField tdens( geom );
 	pdb.build_trajectory_density_field( tdens );
 	GTKPlotter plotter( &argc, &argv );

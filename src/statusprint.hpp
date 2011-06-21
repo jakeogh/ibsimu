@@ -46,6 +46,7 @@
 
 #include <iostream>
 #include <time.h>
+#include <iostream>
 
 
 /*! \brief A tool for printing running status on command line.
@@ -58,7 +59,7 @@ class StatusPrint {
 
 public:
 
-    /*! \brief Constructor for status printer for output stream \a os.
+    /*! \brief Constructor for printing status to stream \a os.
      */
     StatusPrint( std::ostream &os );
 
@@ -73,26 +74,7 @@ public:
      *  per second. If \a force is true the printing is done
      *  regardless of time.
      */
-    void print( const std::string &str, bool force = false );
-    
+    void print( const std::string &str, bool force = false );    
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

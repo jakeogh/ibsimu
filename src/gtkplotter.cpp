@@ -41,6 +41,8 @@
  */
 
 #include <sstream>
+#include "ibsimu.hpp"
+#include "error.hpp"
 #include "gtkplotter.hpp"
 #include "gtkwindow.hpp"
 #include "gtkgeomwindow.hpp"
@@ -63,7 +65,7 @@ GTKPlotter::GTKPlotter( int *argc, char ***argv )
 {
     if( !_gtk_initialized ) {
 	if( gtk_init_check( argc, argv ) == FALSE )
-	    throw( (int)1 );
+	    throw( Error( ERROR_LOCATION, "Couldn't initialize GTK\n" ) );
 	_gtk_initialized = true;
     }
 }
@@ -77,7 +79,15 @@ GTKPlotter::~GTKPlotter()
 
 void GTKPlotter::run()
 {
+    if( ibsimu.get_verbose_output() ) {
+	ibsimu.vout() << "Running GTKPlotter\n";
+	ibsimu.vout().flush();
+    }
+
     gtk_main();
+
+    if( ibsimu.get_verbose_output() )
+	ibsimu.vout() << "  Done\n";
 }
 
 
@@ -213,6 +223,7 @@ void GTKPlotter::set_particledatabase( const ParticleDataBase *pdb )
 {
     _pdb = pdb;
 }
+
 
 
 

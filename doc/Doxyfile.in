@@ -608,8 +608,109 @@ WARN_LOGFILE           =
 # "myfile.cpp" or directories like "/usr/src/myproject". Separate the
 # files or directories with spaces.
 
-INPUT                  = ../src \
-                         .
+INPUT                  = \
+../src/bicgstab_solver.hpp \
+../src/callback.hpp \
+../src/ccolmatrix.hpp \
+../src/color.hpp \
+../src/colormap.hpp \
+../src/compmath.hpp \
+../src/config.hpp \
+../src/constants.hpp \
+../src/convergence.hpp \
+../src/coordmapper.hpp \
+../src/coordmatrix.hpp \
+../src/crowmatrix.hpp \
+../src/csgobject_solid.hpp \
+../src/diag_precond.hpp \
+../src/dxf_solid.hpp \
+../src/empty_precond.hpp \
+../src/epot_efield.hpp \
+../src/epot_problem.hpp \
+../src/eqpotgraph.hpp \
+../src/error.hpp \
+../src/fielddiagplot.hpp \
+../src/fielddiagplotter.hpp \
+../src/fieldgraph.hpp \
+../src/file.hpp \
+../src/fonts.hpp \
+../src/frame.hpp \
+../src/func_solid.hpp \
+../src/geometry.hpp \
+../src/geomplot.hpp \
+../src/geomplotter.hpp \
+../src/graph3d.hpp \
+../src/graph.hpp \
+../src/gs_solver.hpp \
+../src/gtkfielddiagdialog.hpp \
+../src/gtkfielddiagexportdialog.hpp \
+../src/gtkfielddiagwindow.hpp \
+../src/gtkgeomwindow.hpp \
+../src/gtkhardcopy.hpp \
+../src/gtkparticlediagdialog.hpp \
+../src/gtkparticlediagexportdialog.hpp \
+../src/gtkparticlediagwindow.hpp \
+../src/gtkplotter.hpp \
+../src/gtkpreferences.hpp \
+../src/gtkwindow.hpp \
+../src/hbio.hpp \
+../src/histogram.hpp \
+../src/ibsimu.hpp \
+../src/ilu0_precond.hpp \
+../src/interpolation.hpp \
+../src/label.hpp \
+../src/legend.hpp \
+../src/lineclip.hpp \
+../src/mat3d.hpp \
+../src/matrix.hpp \
+../src/meshgraph.hpp \
+../src/mesh.hpp \
+../src/meshvectorfield.hpp \
+../src/multimeshvectorfield.hpp \
+../src/mvector.hpp \
+../src/mydxfblocks.hpp \
+../src/mydxfentities.hpp \
+../src/mydxffile.hpp \
+../src/mydxfheader.hpp \
+../src/mydxftables.hpp \
+../src/palette.hpp \
+../src/particledatabase.hpp \
+../src/particlediagplot.hpp \
+../src/particlediagplotter.hpp \
+../src/particlegraph.hpp \
+../src/particleiterator.hpp \
+../src/particles.hpp \
+../src/particlestatistics.hpp \
+../src/plotter.hpp \
+../src/polysolver.hpp \
+../src/precond.hpp \
+../src/problem.hpp \
+../src/qrandom.hpp \
+../src/readascii.hpp \
+../src/ruler.hpp \
+../src/scalarfield.hpp \
+../src/scharge.hpp \
+../src/scheduler.hpp \
+../src/solidgraph.hpp \
+../src/solid.hpp \
+../src/solver.hpp \
+../src/sort.hpp \
+../src/statusprint.hpp \
+../src/stlfile.hpp \
+../src/stl_solid.hpp \
+../src/symbols.hpp \
+../src/timer.hpp \
+../src/trajectorydiagnostics.hpp \
+../src/trajectoryhandler.hpp \
+../src/trajectory.hpp \
+../src/transformation.hpp \
+../src/types.hpp \
+../src/umfpack_solver.hpp \
+../src/vec3d.hpp \
+../src/vec4d.hpp \
+../src/vectorfield.hpp \
+../src/xygraph.hpp \
+main_dev.dxy
 
 # This tag can be used to specify the character encoding of the source
 # files that doxygen parses. Internally doxygen uses the UTF-8
@@ -627,8 +728,7 @@ INPUT_ENCODING         = UTF-8
 # *.c++ *.java *.ii *.ixx *.ipp *.i++ *.inl *.h *.hh *.hxx *.hpp *.h++
 # *.idl *.odl *.cs *.php *.php3 *.inc *.m *.mm *.py *.f90
 
-FILE_PATTERNS          = *.hpp \
-                         *.dxy
+FILE_PATTERNS          = 
 
 # The RECURSIVE tag can be used to turn specify whether or not
 # subdirectories should be searched for input files as well. Possible

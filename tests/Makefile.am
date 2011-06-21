@@ -1,3 +1,8 @@
+secondary_electron2d_SOURCES = secondary_electron2d.cpp
+secondary_electron3d_SOURCES = secondary_electron3d.cpp
+fieldgraph_SOURCES = fieldgraph.cpp
+transformation_SOURCES = transformation.cpp
+stl_SOURCES = stl.cpp
 beam2d_SOURCES = beam2d.cpp
 beam3d_SOURCES = beam3d.cpp
 beamcyl_SOURCES = beamcyl.cpp
@@ -12,6 +17,7 @@ emittanceconv_SOURCES = emittanceconv.cpp
 emittancedef2d_SOURCES = emittancedef2d.cpp
 emittancedef3d_SOURCES = emittancedef3d.cpp
 emittancedefcyl_SOURCES = emittancedefcyl.cpp
+export_path_manager_SOURCES = export_path_manager.cpp
 fileplot_SOURCES = fileplot.cpp
 fonts_SOURCES = fonts.cpp
 fielddiagplot_SOURCES = fielddiagplot.cpp
@@ -39,6 +45,7 @@ nsimp_plasmacyl_SOURCES = nsimp_plasmacyl.cpp
 nsimp_plasma2d_SOURCES = nsimp_plasma2d.cpp
 nsimp_plasma3d_SOURCES = nsimp_plasma3d.cpp
 palette_SOURCES = palette.cpp
+particle_callback_SOURCES = particle_callback.cpp
 particles_bfield2d_SOURCES = particles_bfield2d.cpp
 particles_bfieldcyl_SOURCES = particles_bfieldcyl.cpp
 particles_cyl2_SOURCES = particles_cyl2.cpp
@@ -46,6 +53,7 @@ particles_cyl_SOURCES = particles_cyl.cpp
 particles_diagnostic_SOURCES = particles_diagnostic.cpp
 particles_edip_SOURCES = particles_edip.cpp
 particles_mirror_SOURCES = particles_mirror.cpp
+particles_nofield_SOURCES = particles_nofield.cpp
 particles_trajectory_SOURCES = particles_trajectory.cpp
 plasma1d_SOURCES = plasma1d.cpp
 plasma2d_SOURCES = plasma2d.cpp
@@ -86,7 +94,10 @@ csgobjectsolid_SOURCES = csgobjectsolid.cpp
 endif
 
 check_PROGRAMS = \
+secondary_electron2d \
+secondary_electron3d \
 beam2d \
+fieldgraph \
 beam3d \
 beamcyl \
 ccolmatrix \
@@ -100,10 +111,13 @@ emittanceconv \
 emittancedef2d \
 emittancedef3d \
 emittancedefcyl \
+export_path_manager \
 fileplot \
 fielddiagplot \
 fonts \
 frame \
+transformation \
+stl \
 frame_extend_range \
 frame_increase_margin \
 geometry \
@@ -127,6 +141,7 @@ nsimp_plasmacyl \
 nsimp_plasma2d \
 nsimp_plasma3d \
 palette \
+particle_callback \
 particles_bfield2d \
 particles_bfieldcyl \
 particles_cyl \
@@ -134,6 +149,7 @@ particles_cyl2 \
 particles_diagnostic \
 particles_edip \
 particles_mirror \
+particles_nofield \
 particles_trajectory \
 plasma1d \
 plasma2d \

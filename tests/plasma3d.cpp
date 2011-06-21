@@ -91,7 +91,7 @@ void test( int argc, char **argv )
     conv.add_scharge( scharge );
     conv.add_emittance( 0, emit );
 	
-    for( size_t i = 0; i < 30; i++ ) {
+    for( size_t i = 0; i < 5; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();

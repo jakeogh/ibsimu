@@ -2,7 +2,7 @@
  *  \brief Affine transformation
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -41,7 +41,62 @@
  */
 
 
+#include <iostream>
+#include <fstream>
+#include <iomanip>
 #include "transformation.hpp"
+
+
+Transformation::Transformation() 
+{
+    x[0] = x[5] = x[10] = x[15] = 1.0; 
+
+    x[1] = x[2] = x[3] = x[4] = x[6] = x[7] = x[8] = x[9] 
+	= x[11] = x[12] = x[13] = x[14] = 0.0;
+}
+
+
+Transformation::Transformation( double x11, double x12, double x13, double x14,
+				double x21, double x22, double x23, double x24,
+				double x31, double x32, double x33, double x34,
+				double x41, double x42, double x43, double x44 ) 
+{ 
+    x[0]  = x11;
+    x[1]  = x12;
+    x[2]  = x13;
+    x[3]  = x14;
+    x[4]  = x21;
+    x[5]  = x22;
+    x[6]  = x23;
+    x[7]  = x24;
+    x[8]  = x31;
+    x[9]  = x32;
+    x[10] = x33;
+    x[11] = x34;
+    x[12] = x41;
+    x[13] = x42;
+    x[14] = x43;
+    x[15] = x44;
+}
+
+
+Transformation::Transformation( const Transformation &m )
+{ 
+    memcpy( x, m.x, 16*sizeof(double) );
+}
+
+
+Transformation::Transformation( std::istream &is )
+{
+    for( int i = 0; i < 16; i++ )
+	x[i] = read_double( is );
+}
+
+
+Transformation::~Transformation()
+{
+
+}
 
 
 double Transformation::determinant( void ) const
@@ -215,27 +270,147 @@ Vec3D Transformation::inv_transform_vector( const Vec3D &xin ) const
 }
 
 
+void Transformation::reset( void ) 
+{
+    Transformation t1 = unity();
+    *this = t1;
+}
+
+
+void Transformation::translate( const Vec3D &d ) 
+{
+    *this = translation( d ) * (*this);
+    //Transformation t1 = translation( d );
+    //Transformation t2 = *this * t1;
+    //*this = t2;
+}
+
+
+void Transformation::scale( const Vec3D &s ) 
+{
+    *this = scaling( s ) * (*this);
+    //Transformation t1 = scaling( s );
+    //Transformation t2 = *this * t1;
+    //*this = t2;
+}
+
+
+void Transformation::rotate_x( double a ) 
+{
+    *this = rotation_x( a ) * (*this);
+    //Transformation t1 = rotation_x( a );
+    //Transformation t2 = *this * t1;
+    //*this = t2;
+}
+
+
+void Transformation::rotate_y( double a ) 
+{
+    *this = rotation_y( a ) * (*this);
+    //Transformation t1 = rotation_y( a );
+    //Transformation t2 = *this * t1;
+    //*this = t2;
+}
+
+
+void Transformation::rotate_z( double a ) 
+{
+    *this = rotation_z( a ) * (*this);
+    //Transformation t1 = rotation_z( a );
+    //Transformation t2 = *this * t1;
+    //*this = t2;
+}
+
+
+Transformation Transformation::unity( void ) 
+{
+    return( Transformation(  1,  0,  0,  0,
+			     0,  1,  0,  0,
+			     0,  0,  1,  0,
+			     0,  0,  0,  1 ) );
+}
+
+
+Transformation Transformation::translation( const Vec3D &d ) 
+{
+    return( Transformation(  1,  0,  0, d[0],
+			     0,  1,  0, d[1],
+			     0,  0,  1, d[2],
+			     0,  0,  0,    1 ) );
+}
+
+
+Transformation Transformation::scaling( const Vec3D &s ) 
+{
+    return( Transformation( s[0],    0,    0,  0,
+			    0, s[1],    0,  0,
+			    0,    0, s[2],  0,
+			    0,    0,    0,  1 ) );
+}
+ 
+
+Transformation Transformation::rotation_x( double a ) 
+{
+    return( Transformation(  1,      0,       0,  0,
+			     0, cos(a), -sin(a),  0,
+			     0, sin(a),  cos(a),  0,
+			     0,      0,       0,  1 ) );
+}
+
+
+Transformation Transformation::rotation_y( double a ) 
+{
+    return( Transformation(  cos(a),  0, sin(a),  0,
+			     0,  1,      0,  0,
+			     -sin(a),  0, cos(a),  0,
+			     0,  0,      0,  1 ) );
+}
+
+
+Transformation Transformation::rotation_z( double a ) 
+{
+    return( Transformation( cos(a), -sin(a),  0,  0,
+			    sin(a),  cos(a),  0,  0,
+			    0,       0,  1,  0,
+			    0,       0,  0,  1 ) );
+}
+
+
+void Transformation::save( const std::string &filename ) const
+{
+    std::ofstream os( filename.c_str() );
+    if( !os.good() )
+	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
+    save( os );
+    os.close();
+}
+
+
+void Transformation::save( std::ostream &os ) const
+{
+    for( int i = 0; i < 16; i++ )
+	write_double( os, x[i] );
+}
+
+
 std::ostream &operator<<( std::ostream &os, const Transformation &t ) 
 {
-    os << std::setw(12) << to_string(t[0]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[1]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[2]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[3]).substr(0,12) << "\n";
-
-    os << std::setw(12) << to_string(t[4]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[5]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[6]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[7]).substr(0,12) << "\n";
-
-    os << std::setw(12) << to_string(t[8]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[9]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[10]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[11]).substr(0,12) << "\n";
-
-    os << std::setw(12) << to_string(t[12]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[13]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[14]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(t[15]).substr(0,12) << "\n";
+    for( size_t i = 0; i < 4; i++ ) {
+	for( size_t j = 0; j < 4; j++ ) {
+	    os << std::setw(12) << to_string(t.x[4*j+i]).substr(0,12) << " ";
+	}
+	os << "\n";
+    }
 
     return( os );
 }
+
+
+void Transformation::debug_print( std::ostream &os ) const
+{
+    std::cout << "**Transformation\n";
+
+    os << "x = \n";
+    os << *this << "\n";
+}
+

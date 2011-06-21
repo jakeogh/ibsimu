@@ -1,8 +1,8 @@
 /*! \file histogram.cpp
- *  \brief Source code for histogram.cpp
+ *  \brief %Histogram data handling for 1D and 2D
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -48,7 +48,7 @@
 #include "error.hpp"
 
 
-Histogram1D::Histogram1D( size_t n, const double range[2] )
+Histogram1D::Histogram1D( uint32_t n, const double range[2] )
     : _n(n), _data(n,0.0)
 {
     if( _n < 4 )
@@ -61,20 +61,22 @@ Histogram1D::Histogram1D( size_t n, const double range[2] )
 }
 
 
-Histogram1D::Histogram1D( size_t n, const std::vector<double> &xdata )
+Histogram1D::Histogram1D( uint32_t n, 
+			  const std::vector<double> &xdata,
+			  histogram_accumulation_e type )
     : _n(n), _data(n,0.0)
 {
     if( _n < 4 )
 	throw( Error( ERROR_LOCATION, "too small histogram size" ) );
 
-    size_t N = xdata.size();
+    uint32_t N = xdata.size();
 
     // Find range limits so that the furthest points will receive no
     // contribution from data.
     double bbox[2];
     bbox[0] = std::numeric_limits<double>::infinity();
     bbox[1] = -std::numeric_limits<double>::infinity();
-    for( size_t a = 0; a < N; a++ ) {
+    for( uint32_t a = 0; a < N; a++ ) {
 	if( xdata[a] < bbox[0] )
 	    bbox[0] = xdata[a];
 	if( xdata[a] >bbox[1] )
@@ -89,25 +91,33 @@ Histogram1D::Histogram1D( size_t n, const std::vector<double> &xdata )
     _step = (_range[1]-_range[0]) / (_n-1.0);
 
     // Add data
-    for( size_t a = 0; a < N; a++ )
-	accumulate_linear( xdata[a], 1.0 );
+    if( type == HISTOGRAM_ACCUMULATION_CLOSEST ) {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_closest( xdata[a], 1.0 );
+    } else {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_linear( xdata[a], 1.0 );
+    }
 }
 
 
-Histogram1D::Histogram1D( size_t n, const std::vector<double> &xdata, const std::vector<double> &wdata )
+Histogram1D::Histogram1D( uint32_t n, 
+			  const std::vector<double> &xdata, 
+			  const std::vector<double> &wdata,
+			  histogram_accumulation_e type )
     : _n(n), _data(n,0.0)
 {
     if( _n < 4 )
 	throw( Error( ERROR_LOCATION, "too small histogram size" ) );
 
-    size_t N = xdata.size() < wdata.size() ? xdata.size() : wdata.size();
+    uint32_t N = xdata.size() < wdata.size() ? xdata.size() : wdata.size();
 
     // Find range limits so that the furthest points will receive no
     // contribution from data.
     double bbox[2];
     bbox[0] = std::numeric_limits<double>::infinity();
     bbox[1] = -std::numeric_limits<double>::infinity();
-    for( size_t a = 0; a < N; a++ ) {
+    for( uint32_t a = 0; a < N; a++ ) {
 	if( xdata[a] < bbox[0] )
 	    bbox[0] = xdata[a];
 	if( xdata[a] >bbox[1] )
@@ -122,8 +132,13 @@ Histogram1D::Histogram1D( size_t n, const std::vector<double> &xdata, const std:
     _step = (_range[1]-_range[0]) / (_n-1.0);
 
     // Add data
-    for( size_t a = 0; a < N; a++ )
-	accumulate_linear( xdata[a], wdata[a] );
+    if( type == HISTOGRAM_ACCUMULATION_CLOSEST ) {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_closest( xdata[a], wdata[a] );
+    } else {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_linear( xdata[a], wdata[a] );
+    }
 }
 
 
@@ -138,7 +153,7 @@ void Histogram1D::get_bin_range( double &min, double &max ) const
     min = std::numeric_limits<double>::infinity();
     max = -std::numeric_limits<double>::infinity();
 
-    for( int a = 0; a < _n; a++ ) {
+    for( uint32_t a = 0; a < _n; a++ ) {
 	if( _data[a] < min ) 
 	    min = _data[a];
 	if( _data[a] > max ) 
@@ -147,15 +162,24 @@ void Histogram1D::get_bin_range( double &min, double &max ) const
 }
 
 
+void Histogram1D::accumulate_closest( double x, double weight )
+{
+    int32_t i = (int)floor( (x-_range[0]) / _step + 0.5 );
+
+    if( i < (int32_t)_n && i >= 0 )
+	_data[i] += weight;
+}
+
+
 void Histogram1D::accumulate_linear( double x, double weight )
 {
     //std::cout << "(x,y) = (" << x << "," << y << ")\n";
-    int i = (int)floor( (x-_range[0]) / _step );
+    int32_t i = (int)floor( (x-_range[0]) / _step );
     //std::cout << "(i,j) = (" << i << "," << j << ")\n";
     double t = (x - _range[0])/_step - i;
     //std::cout << "(t,u) = (" << t << "," << u << ")\n";
 
-    if( i < _n-1 && i >= 0 ) {
+    if( i < (int32_t)_n-1 && i >= 0 ) {
 	// No checks necessary 
 	_data[i  ] += weight*(1.0-t);
 	_data[i+1] += weight*t;
@@ -163,11 +187,44 @@ void Histogram1D::accumulate_linear( double x, double weight )
     }
 	
     // Thorough checks needed
-    if( i >= 0 && i < _n )
+    if( i >= 0 && i < (int32_t)_n )
 	_data[i]   += weight*(1.0-t);
-    if( i+1 >= 0 && i+1 < _n )
+    if( i+1 >= 0 && i+1 < (int32_t)_n )
 	_data[i+1] += weight*t;
 }
+
+
+double Histogram1D::coord( uint32_t i ) const 
+{
+    return( _range[0] + i*(_range[1]-_range[0]) / (_n-1.0) ); 
+}
+
+
+void Histogram1D::get_range( double range[2] ) const 
+{ 
+    range[0] =  _range[0];
+    range[1] =  _range[1];
+}
+
+
+void Histogram1D::convert_to_density( void )
+{
+    // Scale with inverse of area of histogram bin
+    double scale = 1.0/_step;
+
+    *this *= scale;
+}
+
+
+const Histogram1D &Histogram1D::operator*=( double x )
+{
+    // Go through the histogram
+    for( uint32_t i = 0; i < _n; i++ )
+	_data[i] *= x;
+
+    return( *this );
+}
+
 
 
 
@@ -176,7 +233,7 @@ void Histogram1D::accumulate_linear( double x, double weight )
  */
 
 
-Histogram2D::Histogram2D( size_t n, size_t m, const double range[4] )
+Histogram2D::Histogram2D( uint32_t n, uint32_t m, const double range[4] )
     : _n(n), _m(m), _data(n*m,0.0)
 {
     if( _n < 4 || _m < 4 )
@@ -192,15 +249,16 @@ Histogram2D::Histogram2D( size_t n, size_t m, const double range[4] )
 }
 
 
-Histogram2D::Histogram2D( size_t n, size_t m, 
+Histogram2D::Histogram2D( uint32_t n, uint32_t m, 
 			  const std::vector<double> &xdata,
-			  const std::vector<double> &ydata )
+			  const std::vector<double> &ydata,
+			  histogram_accumulation_e type )
     : _n(n), _m(m), _data(n*m,0.0)
 {
     if( _n < 4 || _m < 4 )
 	throw( Error( ERROR_LOCATION, "too small histogram size" ) );
 
-    size_t N = xdata.size() < ydata.size() ? xdata.size() : ydata.size();
+    uint32_t N = xdata.size() < ydata.size() ? xdata.size() : ydata.size();
     if( N == 0 ) {
 	// No input data -> return empty histogram
 	_range[0] = _range[1] = -1.0;
@@ -217,7 +275,7 @@ Histogram2D::Histogram2D( size_t n, size_t m,
     bbox[1] = std::numeric_limits<double>::infinity();
     bbox[2] = -std::numeric_limits<double>::infinity();
     bbox[3] = -std::numeric_limits<double>::infinity();
-    for( size_t a = 0; a < N; a++ ) {
+    for( uint32_t a = 0; a < N; a++ ) {
 	if( xdata[a] < bbox[0] )
 	    bbox[0] = xdata[a];
 	if( xdata[a] >bbox[2] )
@@ -240,21 +298,27 @@ Histogram2D::Histogram2D( size_t n, size_t m,
     _mstep = (_range[3]-_range[1]) / (_m-1.0);
 
     // Add data
-    for( size_t a = 0; a < N; a++ )
-	accumulate_linear( xdata[a], ydata[a], 1.0 );
+    if( type == HISTOGRAM_ACCUMULATION_CLOSEST ) {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_closest( xdata[a], ydata[a], 1.0 );
+    } else {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_linear( xdata[a], ydata[a], 1.0 );
+    }
 }
 
 
-Histogram2D::Histogram2D( size_t n, size_t m, 
+Histogram2D::Histogram2D( uint32_t n, uint32_t m, 
 			  const std::vector<double> &xdata,
 			  const std::vector<double> &ydata,
-			  const std::vector<double> &wdata )
+			  const std::vector<double> &wdata,
+			  histogram_accumulation_e type )
     : _n(n), _m(m), _data(n*m,0.0)
 {
     if( _n < 4 || _m < 4 )
 	throw( Error( ERROR_LOCATION, "too small histogram size" ) );
 
-    size_t N = xdata.size() < ydata.size() ? 
+    uint32_t N = xdata.size() < ydata.size() ? 
 	(xdata.size() < wdata.size() ? xdata.size() : wdata.size()) :
 	(ydata.size() < wdata.size() ? ydata.size() : wdata.size());
 
@@ -265,7 +329,7 @@ Histogram2D::Histogram2D( size_t n, size_t m,
     bbox[1] = std::numeric_limits<double>::infinity();
     bbox[2] = -std::numeric_limits<double>::infinity();
     bbox[3] = -std::numeric_limits<double>::infinity();
-    for( size_t a = 0; a < N; a++ ) {
+    for( uint32_t a = 0; a < N; a++ ) {
 	if( xdata[a] < bbox[0] )
 	    bbox[0] = xdata[a];
 	if( xdata[a] >bbox[2] )
@@ -288,8 +352,13 @@ Histogram2D::Histogram2D( size_t n, size_t m,
     _mstep = (_range[3]-_range[1]) / (_m-1.0);
 
     // Add data
-    for( size_t a = 0; a < N; a++ )
-	accumulate_linear( xdata[a], ydata[a], wdata[a] );
+    if( type == HISTOGRAM_ACCUMULATION_CLOSEST ) {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_closest( xdata[a], ydata[a], wdata[a] );
+    } else {
+	for( uint32_t a = 0; a < N; a++ )
+	    accumulate_linear( xdata[a], ydata[a], wdata[a] );
+    }
 }
 
 
@@ -299,13 +368,54 @@ Histogram2D::~Histogram2D()
 }
 
 
+double Histogram2D::icoord( uint32_t i ) const 
+{
+    return( _range[0] + i*(_range[2]-_range[0]) / (_n-1.0) ); 
+}
+
+
+double Histogram2D::jcoord( uint32_t j ) const 
+{ 
+    return( _range[1] + j*(_range[3]-_range[1]) / (_m-1.0) ); 
+}
+
+
+void Histogram2D::get_range( double range[4] ) const 
+{ 
+    range[0] =  _range[0];
+    range[1] =  _range[1];
+    range[2] =  _range[2];
+    range[3] =  _range[3];
+}
+
+
+void Histogram2D::convert_to_density( void )
+{
+    // Scale with inverse of area of histogram bin
+    double scale = 1.0/(_nstep*_mstep);
+
+    *this *= scale;
+}
+
+
+const Histogram2D &Histogram2D::operator*=( double x )
+{
+    // Go through the histogram
+    uint32_t size = _n*_m;
+    for( uint32_t i = 0; i < size; i++ )
+	_data[i] *= x;
+
+    return( *this );
+}
+
+
 void Histogram2D::get_bin_range( double &min, double &max ) const
 {
     min = std::numeric_limits<double>::infinity();
     max = -std::numeric_limits<double>::infinity();
 
-    int size = _n*_m;
-    for( int a = 0; a < size; a++ ) {
+    uint32_t size = _n*_m;
+    for( uint32_t a = 0; a < size; a++ ) {
 	if( _data[a] < min )
 	    min = _data[a];
 	if( _data[a] > max )
@@ -314,17 +424,28 @@ void Histogram2D::get_bin_range( double &min, double &max ) const
 }    
 
 
+void Histogram2D::accumulate_closest( double x, double y, double weight )
+{
+    int32_t i = (int)floor( (x-_range[0]) / _nstep + 0.5 );
+    int32_t j = (int)floor( (y-_range[1]) / _mstep + 0.5 );
+
+    if( i < (int32_t)_n && i >= 0 &&
+	j < (int32_t)_m && j >= 0 )
+	_data[i+j*_n] += weight;
+}
+
+
 void Histogram2D::accumulate_linear( double x, double y, double weight )
 {
     //std::cout << "(x,y) = (" << x << "," << y << ")\n";
-    int i = (int)floor( (x-_range[0]) / _nstep );
-    int j = (int)floor( (y-_range[1]) / _mstep );
+    int32_t i = (int32_t)floor( (x-_range[0]) / _nstep );
+    int32_t j = (int32_t)floor( (y-_range[1]) / _mstep );
     //std::cout << "(i,j) = (" << i << "," << j << ")\n";
     double t = (x - _range[0])/_nstep - i;
     double u = (y - _range[1])/_mstep - j;
     //std::cout << "(t,u) = (" << t << "," << u << ")\n";
 
-    if( i < _n-1 && j < _m-1 && i >= 0 && j >= 0 ) {
+    if( i < (int32_t)_n-1 && j < (int32_t)_m-1 && i >= 0 && j >= 0 ) {
 	// No checks necessary 
 	_data[i  +    j*_n] += weight*(1.0-t)*(1.0-u);
 	_data[i+1+    j*_n] += weight*t*(1.0-u);
@@ -334,30 +455,14 @@ void Histogram2D::accumulate_linear( double x, double y, double weight )
     }
 	
     // Thorough checks needed
-    if( i >= 0 && j >= 0 && i < _n && j < _m )
+    if( i >= 0 && j >= 0 && i < (int32_t)_n && j < (int32_t)_m )
 	_data[i  +    j*_n] += weight*(1.0-t)*(1.0-u);
-    if( i+1 >= 0 && j >= 0 && i+1 < _n && j < _m )
+    if( i+1 >= 0 && j >= 0 && i+1 < (int32_t)_n && j < (int32_t)_m )
 	_data[i+1+    j*_n] += weight*t*(1.0-u);
-    if( i >= 0 && j+1 >= 0 && i < _n && j+1 < _m )
+    if( i >= 0 && j+1 >= 0 && i < (int32_t)_n && j+1 < (int32_t)_m )
 	_data[i  +(j+1)*_n] += weight*(1.0-t)*u;
-    if( i+1 >= 0 && j+1 >= 0 && i+1 < _n && j+1 < _m )
+    if( i+1 >= 0 && j+1 >= 0 && i+1 <(int32_t) _n && j+1 < (int32_t)_m )
 	_data[i+1+(j+1)*_n] += weight*t*u;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

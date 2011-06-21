@@ -68,8 +68,8 @@ void scharge_finalize( MeshScalarField &scharge );
  *  supposed to be used so that \a x1 and \a x2 are at the mesh
  *  intersection points, through which particle trajectory has passed.
  */
-void scharge_add_from_trajectory( MeshScalarField &scharge, double IQ, 
-				  const ParticleP2D &x1, const ParticleP2D &x2 );
+void scharge_add_from_trajectory( MeshScalarField &scharge, pthread_mutex_t *mutex, 
+				  double IQ, const ParticleP2D &x1, const ParticleP2D &x2 );
 
 
 /*! \brief Function for adding charge to space charge density map from
@@ -78,8 +78,8 @@ void scharge_add_from_trajectory( MeshScalarField &scharge, double IQ,
  *  Same as for scharge_add_from_trajectory(). Now IQ is real current
  *  (A).
  */
-void scharge_add_from_trajectory( MeshScalarField &scharge, double IQ, 
-				  const ParticlePCyl &x1, const ParticlePCyl &x2 );
+void scharge_add_from_trajectory( MeshScalarField &scharge, pthread_mutex_t *mutex, 
+				  double IQ, const ParticlePCyl &x1, const ParticlePCyl &x2 );
 
 
 /*! \brief Function for adding charge to space charge density map from
@@ -88,11 +88,12 @@ void scharge_add_from_trajectory( MeshScalarField &scharge, double IQ,
  *  Same as for scharge_add_from_trajectory(). Now IQ is real current
  *  (A).
  */
-void scharge_add_from_trajectory( MeshScalarField &scharge, double IQ, 
-				  const ParticleP3D &x1, const ParticleP3D &x2 );
+void scharge_add_from_trajectory( MeshScalarField &scharge, pthread_mutex_t *mutex, 
+				  double IQ, const ParticleP3D &x1, const ParticleP3D &x2 );
 
 
 #endif
+
 
 
 

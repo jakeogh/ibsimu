@@ -2,7 +2,7 @@
  *  \brief BiCGSTAB matrix solver for electric potential problem
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -55,9 +55,8 @@ EpotBiCGSTABSolver::EpotBiCGSTABSolver( Geometry &geom,
 					double newton_dXeps, 
 					uint32_t newton_imax,
 					bool gnewton )
-    : EpotMatrixSolver(geom), _eps(eps), _imax(imax), _iter(0), _res(0.0),
-      _newton_Reps(newton_Reps), _newton_dXeps(newton_dXeps), _newton_imax(newton_imax), 
-      _gnewton(gnewton)
+    : EpotMatrixSolver(geom), _eps(eps), _imax(imax), _iter(0), _res(0.0), _gnewton(gnewton),
+      _newton_Reps(newton_Reps), _newton_dXeps(newton_dXeps), _newton_imax(newton_imax)      
 {
     if( eps <= 0.0 || newton_Reps <= 0.0 || newton_dXeps <= 0.0 )
         throw( ErrorDim( ERROR_LOCATION, "invalid accuracy request" ) );

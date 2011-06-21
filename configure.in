@@ -148,6 +148,9 @@ CPPFLAGS="$CPPFLAGS $freetype_CFLAGS"
 
 dnl -------------
 dnl Cairo
+dnl
+dnl No accurate information about required cairo version. 
+dnl Tested to work down to 1.2.4.
 
 if $PKG_CONFIG --exists cairo ; then
   PKG_CHECK_MODULES(cairo, cairo >= 1.2.4 )

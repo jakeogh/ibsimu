@@ -32,7 +32,7 @@ using namespace std;
 bool solid1( double x, double y, double z )
 {
     if( x <= 0.0 && y <= 0.005 )
-        return( false );
+	return( false );
 
     return( x <= 0.004 && y >= 0.0030 && 
 	    y >= 4.8*x - 0.003 );
@@ -56,8 +56,8 @@ void test( int argc, char **argv )
 {
     // 30x20 mm geometry with 0.05 mm mesh size
     //Geometry geom( MODE_CYL, Int3D(601,401,1), Vec3D(0,0,0), 0.00005 );
-    //Geometry geom( MODE_CYL, Int3D(301,201,1), Vec3D(0,0,0), 0.0001 );
-    Geometry geom( MODE_CYL, Int3D(151,101,1), Vec3D(-0.001,0,0), 0.0002 );
+    Geometry geom( MODE_CYL, Int3D(301,201,1), Vec3D(-0.001,0,0), 0.0001 );
+
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
@@ -79,6 +79,7 @@ void test( int argc, char **argv )
     MeshScalarField scharge( geom );
     MeshVectorField bfield;
     EpotEfield efield( epot );
+
     field_extrpl_e efldextrpl[6] = { FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE, 
 				     FIELD_MIRROR,      FIELD_EXTRAPOLATE,
 				     FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE };
@@ -152,18 +153,18 @@ void test( int argc, char **argv )
 	*/
     }
 
-	MeshScalarField tdens( geom );
-	pdb.build_trajectory_density_field( tdens );
-	GTKPlotter plotter( &argc, &argv );
-	plotter.set_geometry( &geom );
-	plotter.set_epot( &epot );
-	plotter.set_efield( &efield );
-	plotter.set_trajdens( &tdens );
-	plotter.set_scharge( &scharge );
-	plotter.set_particledatabase( &pdb );
-	plotter.new_geometry_plot_window();
-	plotter.run();	
-
+    MeshScalarField tdens( geom );
+    pdb.build_trajectory_density_field( tdens );
+    GTKPlotter plotter( &argc, &argv );
+    plotter.set_geometry( &geom );
+    plotter.set_epot( &epot );
+    plotter.set_efield( &efield );
+    plotter.set_trajdens( &tdens );
+    plotter.set_scharge( &scharge );
+    plotter.set_particledatabase( &pdb );
+    plotter.new_geometry_plot_window();
+    plotter.run();	
+    
     GeomPlotter gplotter( &geom );
     gplotter.set_size( 1024, 768 );
     gplotter.set_epot( &epot );

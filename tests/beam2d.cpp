@@ -67,11 +67,14 @@ void test( int argc, char **argv )
          << setw(14) << "scharge (C/m3)" << "\n";
     bool err = false;
     for( uint32_t j = 0; j < geom.size(1); j++ ) {
+
 	Vec3D x( 0.05, geom.h()*j, 0.0  );
 	ostr2 << setw(14) << x[1] << " "
 	      << setw(14) << epot( x ) << " "
 	      << setw(14) << scharge( x ) << "\n";
+
 	for( uint32_t i = 0; i < geom.size(0); i++ ) {
+
 	    Vec3D x( geom.h()*i, geom.h()*j, 0.0  );
 	    // Check space charge density on axis
 	    if( j == 0 && fabs(scharge(x)-6.57148899428e-5) > 1e-8 )

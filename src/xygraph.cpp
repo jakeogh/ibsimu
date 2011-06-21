@@ -1,5 +1,5 @@
 /*! \file xygraph.cpp
- *  \brief Source code for xygraph.cpp
+ *  \brief XY-graph
  */
 
 /* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
@@ -63,6 +63,27 @@ XYGraph::XYGraph( const std::vector<double> &xdata,
 }
 
 
+void XYGraph::plot_point( cairo_t *cairo, double x, double y )
+{
+    cairo_save( cairo );
+    cairo_translate( cairo, x, y );
+    cairo_scale( cairo, _point_scale, _point_scale );
+    
+    if( _pointstyle == XYGRAPH_POINT_CIRCLE ) {
+	cairo_move_to( cairo, 1.0, 0.0 );
+	cairo_arc( cairo, 0.0, 0.0, 1.0, 0.0, 2.0*M_PI );
+    } else if( _pointstyle == XYGRAPH_POINT_BOX ) {
+	cairo_rectangle( cairo, -1.0, -1.0, 2.0, 2.0 );
+    }
+
+    cairo_restore( cairo );
+    if( _point_filled )
+	cairo_fill( cairo );
+    else
+	cairo_stroke( cairo );
+}
+
+
 void XYGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] ) 
 {
     size_t N = _xdata.size() < _ydata.size() ? _xdata.size() : _ydata.size();
@@ -96,21 +117,27 @@ void XYGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4]
 		continue;
 
 	    cm->transform( x, y );
-	    cairo_save( cairo );
-	    cairo_translate( cairo, x, y );
-	    cairo_scale( cairo, _point_scale, _point_scale );
-
-	    if( _pointstyle == XYGRAPH_POINT_CIRCLE ) {
-		cairo_move_to( cairo, 1.0, 0.0 );
-		cairo_arc( cairo, 0.0, 0.0, 1.0, 0.0, 2.0*M_PI );
-	    }
-
-	    cairo_restore( cairo );
-	    if( _point_filled )
-		cairo_fill( cairo );
-	    else
-		cairo_stroke( cairo );
+	    plot_point( cairo, x, y );
 	}
+    }
+}
+
+
+void XYGraph::plot_sample( cairo_t *cairo, double x, double y, double width, double height )
+{
+    cairo_set_line_width( cairo, _linewidth );
+    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], _color[3] );
+
+    if( _linestyle == XYGRAPH_LINE_SOLID ) {
+
+	cairo_move_to( cairo, x, y-0.5*height );
+	cairo_line_to( cairo, x+width, y-0.5*height );
+	cairo_stroke( cairo );
+
+    }
+    if( _pointstyle != XYGRAPH_POINT_DISABLE ) {
+
+	plot_point( cairo, x+0.5*width, y-0.5*height );
     }
 }
 
@@ -168,6 +195,8 @@ void XYGraph::set_point_style( point_style_e pointstyle, bool filled, double sca
     _point_filled = filled;
     _point_scale = scale;
 }
+
+
 
 
 

@@ -191,6 +191,10 @@ public:
      *  The error message is "memory allocation error".
      */
     ErrorNoMem( const ErrorLocation &loc );
+
+    /*! \brief Constructor for memory allocation error with custom error message.
+     */
+    ErrorNoMem( const ErrorLocation &loc, const std::string &str );
 };
 
 
@@ -271,7 +275,7 @@ public:
 
     /*! \brief Constructor for error message for two dimensional indexing error.
      *
-     *  The index \a i is supposed to be smaller than \a n and \j
+     *  The index \a i is supposed to be smaller than \a n and \a j
      *  smaller than \a m.
      */
     ErrorRange( const ErrorLocation &loc, 
@@ -297,7 +301,12 @@ public:
      */
     static void signal_handler_SIGSEGV( int signum, siginfo_t *info, void *ptr );
 #endif
+
+    /*! \brief Signal handler function for SIGTERM.
+     */
+    static void signal_handler_SIGTERM( int signum, siginfo_t *info, void *ptr );
 };
 
 
 #endif
+

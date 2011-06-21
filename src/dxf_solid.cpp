@@ -1,5 +1,5 @@
 /*! \file dxf_solid.cpp
- *  \brief Source code for dxf_solid.hpp
+ *  \brief %Solid definition using MyDXF
  */
 
 /* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
@@ -42,7 +42,9 @@
 
 
 #include <iostream>
+#include <sstream>
 #include "dxf_solid.hpp"
+#include "mydxffile.hpp"
 #include "compmath.hpp"
 #include "ibsimu.hpp"
 
@@ -51,27 +53,51 @@ DXFSolid::DXFSolid( MyDXFFile *dxffile, const std::string &layername )
     : _func(&unity)
 {
     if( ibsimu.get_verbose_output() )
-	std::cout << "Defining electrode \'" << layername << "\'\n";
+	ibsimu.vout() << "Defining electrode \'" << layername << "\'\n";
 
     MyDXFEntities *ent = dxffile->get_entities();
     MyDXFEntitySelection *layer = ent->selection_layer( layername );
-    if( layer->size() == 0 )
-	throw( Error( ERROR_LOCATION, "No entities in layer" ) );
+    if( layer->size() == 0 ) {
+	delete layer;
+	std::stringstream se;
+	se << "No entities in layer\n. Layers in dxf-file:\n";
+	
+	// Add list of layer names
+	MyDXFTables *tables = dxffile->get_tables();
+	MyDXFTable *layers = tables->get_layers_table();
+	for( size_t a = 0; a < layers->size(); a++ ) {
+	    MyDXFTableEntry *entry = layers->get_entry( a );
+	    MyDXFTableEntryLayer *layer = dynamic_cast<MyDXFTableEntryLayer *>( entry );
+	    se << "a: \'" << layer->name() << "\'\n";
+	}
+
+	throw( Error( ERROR_LOCATION, se.str() ) );
+    }
     MyDXFEntitySelection *loop = ent->selection_path_loop( layer );
-    if( loop->size() == 0 )
+    if( loop->size() == 0 ) {
+	delete layer;
+	delete loop;
 	throw( Error( ERROR_LOCATION, "No loops defined in layer" ) );
+    }
 
     _entities = new MyDXFEntities( dxffile, ent, loop );
     _selection = _entities->selection_all();
-
+    
     if( ibsimu.get_verbose_output() ) {
 	if( (int)layer->size()-(int)loop->size() > 0 )
-	    std::cout << "  removed " << (int)layer->size()-(int)loop->size() << " entities\n";
-	std::cout << "  solid defined using " << _entities->size() << " entities\n";
+	    ibsimu.vout() << "  removed " << (int)layer->size()-(int)loop->size() << " entities\n";
+	ibsimu.vout() << "  solid defined using " << _entities->size() << " entities\n";
     }
 
     delete layer;
     delete loop;
+}
+
+
+DXFSolid::DXFSolid( std::istream &is )
+    : _func(&unity), _entities(NULL), _selection(NULL)
+{
+    
 }
 
 
@@ -110,12 +136,20 @@ Vec3D DXFSolid::rotz( const Vec3D &x )
 
 void DXFSolid::define_2x3_mapping( Vec3D (*func)(const Vec3D &) )
 {
-    _func = func;
+    if( func )
+	_func = func;
+    else
+	_func = unity;
 }
+
 
 bool DXFSolid::inside( const Vec3D &x ) const
 {
+    if( !_entities )
+	return( false );
+
     // Transform 3D -> 3D
+    // T is direct transformation
     Vec3D y = _T.transform_point( x );
 
     // Transform 3D -> 2D
@@ -130,20 +164,69 @@ bool DXFSolid::inside( const Vec3D &x ) const
 }
 
 
+void DXFSolid::reset_transformation( void ) 
+{
+    _T.reset();
+}
+
+
+void DXFSolid::set_transformation( const Transformation &T ) 
+{
+    // T is inverse the matrix presented to user
+    _T = T.inverse();
+}
+
+
+void DXFSolid::translate( const Vec3D &dx ) 
+{
+    _T = _T * Transformation::translation( -dx );
+    //_T.translate( dx ); wrong way
+}
+
+
+void DXFSolid::scale( const Vec3D &sx ) 
+{
+    _T = _T * Transformation::scaling( Vec3D(1.0/sx[0], 1.0/sx[1], 1.0/sx[2]) );
+    //_T.scale( sx ); wrong way
+}
+
+
+void DXFSolid::rotate_x( double a ) 
+{
+    _T = _T * Transformation::rotation_x( -a );
+    //_T.rotate_x( a ); wrong way
+}
+
+
+void DXFSolid::rotate_y( double a ) 
+{
+    _T = _T * Transformation::rotation_y( -a );
+    //_T.rotate_y( a ); wrong way
+}
+
+
+void DXFSolid::rotate_z( double a ) 
+{
+    _T = _T * Transformation::rotation_z( -a );
+    //_T.rotate_z( a ); wrong way
+}
+
+
 void DXFSolid::debug_print( std::ostream &os ) const
 {
+    os << "**DXFSolid\n";
+
+    if( !_entities )
+	return;
+
     for( size_t a = 0; a < _entities->size(); a++ ) {
 	os << _entities->get_entity( a );
     }
 }
 
 
-void DXFSolid::save( std::ostream &s ) const
+void DXFSolid::save( std::ostream &os ) const
 {
-    throw( ErrorUnimplemented( ERROR_LOCATION ) );
+    write_int32( os, FILEID_DXFSOLID );
 }
-
-
-
-
 

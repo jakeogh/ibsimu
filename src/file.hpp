@@ -47,41 +47,56 @@
 #include <iostream>
 #include <stdint.h>
 
+#define FILEID_GEOMETRY  1001
+
+#define FILEID_FUNCSOLID 2001
+#define FILEID_CSGSOLID  2002
+#define FILEID_DXFSOLID  2003
+#define FILEID_STLSOLID  2004
+
+#define FILEID_PARTICLEDB2D  3001
+#define FILEID_PARTICLEDBCYL 3002
+#define FILEID_PARTICLEDB3D  3003
+
+#define FILEID_SCALARFIELD  4001
+
+#define FILEID_VECTORFIELD  5001
+
 
 /* **************** *
  * Write            *
  * **************** */
 
 
-/*! \brief Write int8_t \a value into stream \a s.
+/*! \brief Write int8_t \a value into stream \a os.
  */
-void write_int8( std::ostream &s, int8_t value );
+void write_int8( std::ostream &os, int8_t value );
 
 
-/*! \brief Write int16_t \a value into stream \a s.
+/*! \brief Write int16_t \a value into stream \a os.
  */
-void write_int16( std::ostream &s, int16_t value );
+void write_int16( std::ostream &os, int16_t value );
 
 
-/*! \brief Write int32_t \a value into stream \a s.
+/*! \brief Write int32_t \a value into stream \a os.
  */
-void write_int32( std::ostream &s, int32_t value );
+void write_int32( std::ostream &os, int32_t value );
 
 
-/*! \brief Write uint32_t \a value into stream \a s.
+/*! \brief Write uint32_t \a value into stream \a os.
  */
-void write_uint32( std::ostream &s, uint32_t value );
+void write_uint32( std::ostream &os, uint32_t value );
 
 
-/*! \brief Write double \a value into stream \a s.
+/*! \brief Write double \a value into stream \a os.
  */
-void write_double( std::ostream &s, double value );
+void write_double( std::ostream &os, double value );
 
 
 /*! \brief Write data block \a data of length \a len bytes into stream
- *  \a s in compressed form.
+ *  \a os in compressed form.
  */
-void write_compressed_block( std::ostream &s, uint32_t len, const int8_t *data );
+void write_compressed_block( std::ostream &os, uint32_t len, const int8_t *data );
 
 
 /* **************** *
@@ -89,22 +104,35 @@ void write_compressed_block( std::ostream &s, uint32_t len, const int8_t *data )
  * **************** */
 
 
-int8_t read_int8( std::istream &s );
+/*! \brief Read int8_t from stream \a is.
+ */
+int8_t read_int8( std::istream &is );
 
 
-int16_t read_int16( std::istream &s );
+/*! \brief Read int16_t from stream \a is.
+ */
+int16_t read_int16( std::istream &is );
 
 
-int32_t read_int32( std::istream &s );
+/*! \brief Read int32_t from stream \a is.
+ */
+int32_t read_int32( std::istream &is );
 
 
-uint32_t read_uint32( std::istream &s );
+/*! \brief Read uint32_t from stream \a is.
+ */
+uint32_t read_uint32( std::istream &is );
 
 
-double read_double( std::istream &s );
+/*! \brief Readd double from stream \a is.
+ */
+double read_double( std::istream &is );
 
 
-uint32_t read_compressed_block( std::istream &s, uint32_t len, int8_t *dest );
+/*! \brief Read compressed data block of length \a len bytes from stream \a is.
+ */
+uint32_t read_compressed_block( std::istream &is, uint32_t len, int8_t *dest );
 
 
 #endif
+

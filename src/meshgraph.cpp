@@ -1,8 +1,8 @@
 /*! \file meshgraph.cpp
- *  \brief Source code for meshgraph.cpp
+ *  \brief %Graph of rectangular mesh for geometry plots
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -105,6 +105,12 @@ void MeshGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[
 }
 
 
+void MeshGraph::plot_sample( cairo_t *cairo, double x, double y, double width, double height )
+{
+
+}
+
+
 void MeshGraph::get_bbox( double bbox[4] )
 {
     bbox[0] = _g.origo( _vb[0] );
@@ -112,6 +118,8 @@ void MeshGraph::get_bbox( double bbox[4] )
     bbox[2] = _g.max( _vb[0] );
     bbox[3] = _g.max( _vb[1] );
 }
+
+
 
 
 

@@ -125,7 +125,6 @@ Convergence::ConvergenceEmittance::~ConvergenceEmittance()
 void Convergence::ConvergenceEmittance::evaluate_iteration( void )
 {
     if( _emit ) {
-
 	_emit_hist.push_back( *_emit );
     }
 }

@@ -171,7 +171,19 @@ void TrajectoryRep1D::coord( double &x, double &v, double K )
 }
 
 
-int TrajectoryRep1D::solve( double K[3], double x )
+bool TrajectoryRep1D::in( double K, int extrapolate )
+{
+    if( extrapolate == 0 && K > 0.0 && K <= 1.0 )
+	return( true );
+    else if( extrapolate < 0 && K > -1.0e-6 && K <= 1.0 )
+	return( true );
+    else if( K > 0.0 && K <= 1.0+1.0e-6 )
+	return( true );
+    return( false );
+}
+
+
+int TrajectoryRep1D::solve( double K[3], double x, int extrapolate )
 {
 #ifdef DEBUG_TRAJECTORY
     std::cout << "solve( x = " << x << " ):\n";
@@ -204,7 +216,7 @@ int TrajectoryRep1D::solve( double K[3], double x )
 	// This is really not the way to go... temporary
 	volatile double KT = (x-_B) / _A;
 	K[0] = KT;
-	if( K[0] > 0.0 && K[0] <= 1.0 )
+	if( in( K[0], extrapolate ) )
 	    return( 1 );
 	break;
     }
@@ -219,20 +231,20 @@ int TrajectoryRep1D::solve( double K[3], double x )
 	if( nroots == 0 ) {
 	    return( 0 );
 	} else if( nroots == 1 ) {
-	    if( K[0] > 0.0 && K[0] <= 1.0 ) {
+	    if( in( K[0], extrapolate ) ) {
 		return( 1 );
 	    } else {
 		return( 0 );
 	    }
 	} else /* nroots = 2 */ {
-	    if( K[0] > 0.0 && K[0] <= 1.0 ) {
-		if( K[1] > 0.0 && K[1] <= 1.0 ) {
+	    if( in( K[0], extrapolate ) ) {
+		if( in( K[1], extrapolate ) ) {
 		    return( 2 );
 		} else {
 		    return( 1 );
 		}
 	    } else {
-		if( K[1] > 0.0 && K[1] <= 1.0 ) {
+		if( in( K[1], extrapolate ) ) {
 		    K[0] = K[1];
 		    return( 1 );
 		} else {
@@ -248,18 +260,18 @@ int TrajectoryRep1D::solve( double K[3], double x )
 	if( nroots == 0 ) {
 	    return( 0 );
 	} else if( nroots == 1 ) {
-	    if( K[0] > 0.0 && K[0] <= 1.0 ) {
+	    if( in( K[0], extrapolate ) ) {
 		return( 1 );
 	    }
 	} else if( nroots == 2 ) {
-	    if( K[0] > 0.0 && K[0] <= 1.0 ) {
-		if( K[1] > 0.0 && K[1] <= 1.0 ) {
+	    if( in( K[0], extrapolate ) ) {
+		if( in( K[1], extrapolate ) ) {
 		    return( 2 );
 		} else {
 		    return( 1 );
 		}
 	    } else {
-		if( K[1] > 0.0 && K[1] <= 1.0 ) {
+		if( in( K[1], extrapolate ) ) {
 		    K[0] = K[1];
 		    return( 1 );
 		} else {
@@ -267,15 +279,15 @@ int TrajectoryRep1D::solve( double K[3], double x )
 		}
 	    }
 	} else /* nroots = 3 */ {
-	    if( K[0] > 0.0 && K[0] <= 1.0 ) {
-		if( K[1] > 0.0 && K[1] <= 1.0 ) {
-		    if( K[2] > 0.0 && K[2] <= 1.0 ) {
+	    if( in( K[0], extrapolate ) ) {
+		if( in( K[1], extrapolate ) ) {
+		    if( in( K[2], extrapolate ) ) {
 			return( 3 );
 		    } else {
 			return( 2 );
 		    }
 		} else {
-		    if( K[2] > 0.0 && K[2] <= 1.0 ) {
+		    if( in( K[2], extrapolate ) ) {
 			K[1] = K[2];
 			return( 2 );
 		    } else {
@@ -283,8 +295,8 @@ int TrajectoryRep1D::solve( double K[3], double x )
 		    }
 		}
 	    } else {
-		if( K[1] > 0.0 && K[1] <= 1.0 ) {
-		    if( K[2] > 0.0 && K[2] <= 1.0 ) {
+		if( in( K[1], extrapolate ) ) {
+		    if( in( K[2], extrapolate ) ) {
 			K[0] = K[1];
 			K[1] = K[2];
 			return( 2 );
@@ -293,7 +305,7 @@ int TrajectoryRep1D::solve( double K[3], double x )
 			return( 1 );
 		    }
 		} else {
-		    if( K[2] > 0.0 && K[2] <= 1.0 ) {
+		    if( in( K[2], extrapolate ) ) {
 			K[0] = K[2];
 			return( 1 );
 		    } else {
@@ -347,6 +359,7 @@ void TrajectoryRep1D::debug_print( std::ostream &os ) const
 	break;
     }
 }
+
 
 
 

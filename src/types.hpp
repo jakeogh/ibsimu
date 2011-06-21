@@ -2,7 +2,7 @@
  *  \brief Base types
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -57,10 +57,10 @@
  *  the x- and y- and z-axes are active (axes 0, 1 and 2).
  */
 enum geom_mode_e {
-    MODE_1D = 0,
-    MODE_2D,
-    MODE_CYL, 
-    MODE_3D
+    MODE_1D = 0, /*!< \brief 1D geometry */
+    MODE_2D,     /*!< \brief 2D geometry */
+    MODE_CYL,    /*!< \brief Cylindrically symmetric geometry */
+    MODE_3D      /*!< \brief 3D geometry */
 };
 
 
@@ -74,10 +74,10 @@ enum geom_mode_e {
  *  field evaluator can return not-a-number, NaN (\a FIELD_NAN ).
  */
 enum field_extrpl_e {
-    FIELD_EXTRAPOLATE = 0,
-    FIELD_MIRROR,
-    FIELD_ZERO,
-    FIELD_NAN
+    FIELD_EXTRAPOLATE = 0,  /*!< \brief Extrapolate field outside boundary */
+    FIELD_MIRROR,           /*!< \brief Mirror field on boundary */
+    FIELD_ZERO,             /*!< \brief Return zero outside boundary */
+    FIELD_NAN               /*!< \brief Return not-a-number outside boundary */
 };
 
 
@@ -86,18 +86,18 @@ enum field_extrpl_e {
  *  Indicator for field type.
  */
 enum field_type_e {
-    FIELD_NONE = 0,
-    FIELD_EPOT,
-    FIELD_SCHARGE,
-    FIELD_TRAJDENS,
-    FIELD_EFIELD,
-    FIELD_EFIELD_X,
-    FIELD_EFIELD_Y,
-    FIELD_EFIELD_Z,
-    FIELD_BFIELD,
-    FIELD_BFIELD_X,
-    FIELD_BFIELD_Y,
-    FIELD_BFIELD_Z
+    FIELD_NONE = 0,   /*!< \brief Dummy field */
+    FIELD_EPOT,       /*!< \brief Electric potential field */
+    FIELD_SCHARGE,    /*!< \brief Space charge density field */
+    FIELD_TRAJDENS,   /*!< \brief Trajectory density field */
+    FIELD_EFIELD,     /*!< \brief Electric vector field */
+    FIELD_EFIELD_X,   /*!< \brief Scalar field containing X component of electric vector field */
+    FIELD_EFIELD_Y,   /*!< \brief Scalar field containing Y component of electric vector field */
+    FIELD_EFIELD_Z,   /*!< \brief Scalar field containing Z component of electric vector field */
+    FIELD_BFIELD,     /*!< \brief Magnetic vector field */
+    FIELD_BFIELD_X,   /*!< \brief Scalar field containing X component of magnetic vector field */
+    FIELD_BFIELD_Y,   /*!< \brief Scalar field containing Y component of magnetic vector field */
+    FIELD_BFIELD_Z    /*!< \brief Scalar field containing Z component of magnetic vector field */
 };
 
 
@@ -118,6 +118,20 @@ enum bound_e {
     BOUND_DIRICHLET = 0, /*!< \brief Dirichlet boundary condition */
     BOUND_NEUMANN        /*!< \brief Neumann (or natural) boundary condition */
 };
+
+
+/*! \brief Defined keywords for accessing particle point coordinates.
+ */
+#define PARTICLE_T   0
+#define PARTICLE_X   1
+#define PARTICLE_VX  2
+#define PARTICLE_Y   3
+#define PARTICLE_VY  4
+#define PARTICLE_R   3
+#define PARTICLE_VR  4
+#define PARTICLE_W   5
+#define PARTICLE_Z   5
+#define PARTICLE_VZ  6
 
 
 /*! \brief Coordinate axis identifier.
@@ -198,3 +212,4 @@ extern const char *trajectory_diagnostic_string_with_unit[];
 
 
 #endif
+

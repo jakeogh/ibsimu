@@ -42,37 +42,114 @@
 
 
 #include "config.h"
+#include "id.hpp"
 #include <iostream>
 #include <signal.h>
 #include "ibsimu.hpp"
+#include "timer.hpp"
 #include "error.hpp"
 
 
 
 IBSimu::IBSimu()
-    : _hello(false), _verbose_output(0), _threadcount(1)
+    : _hello(false), _verbose_output(0), _threadcount(1), _is_cout(true), _vout(&std::cout)
 {
 #ifdef _GNU_SOURCE
-    struct sigaction act;
-    act.sa_sigaction = SignalHandler::signal_handler_SIGSEGV;
-    sigemptyset( &act.sa_mask );
-    act.sa_flags = SA_SIGINFO;
-    sigaction( SIGSEGV, &act, NULL );
+    // Set a catch for segmentation fault
+    struct sigaction act_sigsegv;
+    act_sigsegv.sa_sigaction = SignalHandler::signal_handler_SIGSEGV;
+    sigemptyset( &act_sigsegv.sa_mask );
+    act_sigsegv.sa_flags = SA_SIGINFO;
+    sigaction( SIGSEGV, &act_sigsegv, NULL );
 #endif
+
+    // Set a catch for terminate/kill/int
+    struct sigaction act_sigterm;
+    act_sigterm.sa_sigaction = SignalHandler::signal_handler_SIGTERM;
+    sigemptyset( &act_sigterm.sa_mask );
+    act_sigterm.sa_flags = SA_SIGINFO;
+    sigaction( SIGTERM, &act_sigterm, NULL );
+    sigaction( SIGQUIT, &act_sigterm, NULL );
+    sigaction( SIGINT, &act_sigterm, NULL );
+
+    // Start timer for whole simulation
+    _t = new Timer;
+}
+
+
+IBSimu::~IBSimu()
+{
+    // End timer
+    _t->stop();
+
+    if( _verbose_output ) {
+	vout() << "Ending simulation\n";
+	vout() << "  time used = " << *_t << "\n";
+	vout() << std::flush;
+    }
+
+    // Close the verbose output file if it is open
+    if( _fout.is_open() )
+	_fout.close();
+
+    delete _t;
+}
+
+
+std::ostream &IBSimu::set_vout( std::ostream &vout )
+{
+    if( vout == std::cout )
+	_is_cout = true;
+    std::ostream &vout_old = *_vout;
+    _vout = &vout;
+    return( vout_old );
+}
+
+
+std::ostream &IBSimu::set_vout( const std::string &filename )
+{
+    if( _fout.is_open() )
+	throw( Error( ERROR_LOCATION, "Trying to open verbose output "
+		      "file with previous file still open" ) );
+	
+    std::ostream &vout_old = *_vout;
+    _fout.open( filename.c_str() );
+    if( !_fout.good() )
+	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
+    _vout = &_fout;
+    _is_cout = false;
+    return( vout_old );
+}
+
+
+std::ostream &IBSimu::vout( void ) 
+{
+    _vout->flush();
+    return( *_vout ); 
+}
+
+
+bool IBSimu::vout_is_cout()
+{
+    return( _is_cout ); 
 }
 
 
 void IBSimu::set_verbose_output( int32_t level )
 {
+    // Set verbosity level
     _verbose_output = level;
+
+    // If setting to verbose mode and no greeting has yet been shown
     if( level > 0 && !_hello ) {
 	_hello = true;
-	std::cout << "Ion Beam Simulator " << VERSION << "\n";
+	vout() << "Ion Beam Simulator " << VERSION << " (" IBSIMU_GIT_ID ")\n";
     }
 }
 
 
-void IBSimu::set_thread_count( uint32_t threadcount ) {
+void IBSimu::set_thread_count( uint32_t threadcount ) 
+{
     if( threadcount <= 0 )
 	throw( Error( ERROR_LOCATION, "invalid parameter" ) );
     _threadcount = threadcount;
@@ -81,18 +158,5 @@ void IBSimu::set_thread_count( uint32_t threadcount ) {
 
 /* Global instance */
 IBSimu ibsimu;
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

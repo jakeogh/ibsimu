@@ -2,7 +2,7 @@
  *  \brief Plot legends
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,31 +47,65 @@
 #include <vector>
 #include <string>
 #include "graph.hpp"
+#include "label.hpp"
 #include "colormap.hpp"
+
+
+/*! \brief Legend position. 
+ *
+ *  Legend location enum/bitmask.
+ */
+enum legend_position_e {
+    LEGEND_POS_BOTTOM_LEFT   = 0,
+    LEGEND_POS_BOTTOM_CENTER = 1,
+    LEGEND_POS_BOTTOM_RIGHT  = 2,
+
+    LEGEND_POS_MIDDLE_LEFT   = 4+0,
+    LEGEND_POS_MIDDLE_CENTER = 4+1,
+    LEGEND_POS_MIDDLE_RIGHT  = 4+2,
+
+    LEGEND_POS_TOP_LEFT      = 8+0,
+    LEGEND_POS_TOP_CENTER    = 8+1,
+    LEGEND_POS_TOP_RIGHT     = 8+2
+};
+
+
+#define LEGEND_POS_VERTICAL_MASK   12
+#define LEGEND_POS_HORIZONTAL_MASK 3
+
+#define LEGEND_POS_BOTTOM 0
+#define LEGEND_POS_MIDDLE 4
+#define LEGEND_POS_TOP    8
+
+#define LEGEND_POS_LEFT   0
+#define LEGEND_POS_CENTER 1
+#define LEGEND_POS_RIGHT  2
 
 
 /*! \brief Class for legend entry.
  *
- *  The legend entries contain a reference to the drawable so that if
- *  the style used in the drawable is changed, the sample in legend is
- *  automatically changed.
+ *  The legend entries contain a reference to the graph drawn so that
+ *  if the style used in the graph is changed, the sample in legend
+ *  is automatically changed.
+ *
+ *  Plotting of graph sample is done by plot_sample() in Graph.
  */
 class LegendEntry {
     
-    Graph     &_drawable;
-    std::string   _label;
+    Graph        &_graph;      /*!< \brief Reference to graph drawn. */
+    Label         _label;      /*!< \brief Label for legend entry. */
 
 public:
     
     /*! \brief Contructor for legend entry.
      */
-    LegendEntry( Graph &drawable, std::string &label ) 
-	: _drawable(drawable), _label(label) {}
+    LegendEntry( Graph &graph, const std::string &label ) 
+	: _graph(graph), _label(label) {}
 
     /*! \brief Copy constructor.
      */
     LegendEntry( const LegendEntry &le ) 
-	: _drawable(le._drawable), _label(le._label) {}
+	: _graph(le._graph), _label(le._label) {}
 
     /*! \brief Destructor.
      */
@@ -80,30 +114,37 @@ public:
     /*! \brief Assignment operator.
      */
     LegendEntry &operator=( const LegendEntry &le ) {
-	_drawable = le._drawable;
+	_graph = le._graph;
 	_label = le._label;
 	return( *this );
     }
 
-    /*! \brief Plot legend entry.
+    /*! \brief Plot legend entry at \a (x,y).
+     *
+     *  The point \a (x,y) is the lower left point of the entry.
      */
-    void plot( cairo_t *cairo, double x, double y ) const;
+    void plot( cairo_t *cairo, double x, double y );
 
     /*! \brief Get size of legend entry.
      */
-    void get_size( double &width, double &height ) const;
+    void get_size( cairo_t *cairo, double &width, double &height ) const;
 
+    /*! \brief Set font size for legend labels.
+     */
+    void set_font_size( double fontsize );
 };
 
 
 /*! \brief Base class for legend definition.
  *
  *  Legend is an object that contains a key to the plot styles used in
- *  Graphs. The key contains a sample of the plot style used and a
- *  corresponding text label. 
+ *  graphs. The key contains a sample of the plot style used and a
+ *  corresponding text label.
  *
  *  The Colormap legend is a special case because in addition to the
  *  plot style, the plot z-range is shown in the legend.
+ *
+ *  The size of legend can be queried and the location can be set.
  */
 class Legend {
 
@@ -117,13 +158,15 @@ public:
      */
     virtual ~Legend() {}    
 
-    /*! \brief Plot legend at (x,y).
+    /*! \brief Plot legend at \a (x,y).
+     *
+     *  The point \a (x,y) is the lower left point of the entry.
      */
-    virtual void plot( cairo_t *cairo, double x, double y ) const = 0;
+    virtual void plot( cairo_t *cairo, double x, double y ) = 0;
 
     /*! \brief Get size of legend.
      */
-    virtual void get_size( double &width, double &height ) const = 0;
+    virtual void get_size( cairo_t *cairo, double &width, double &height ) const = 0;
 };
 
 
@@ -131,29 +174,40 @@ public:
  */
 class MultiEntryLegend {
 
-    std::vector<LegendEntry> _entry;    /*!< \brief Legend entries. */
+    double                     _fontsize; /*!< \brief Font size for labels. */
+    std::vector<LegendEntry *> _entry;    /*!< \brief Legend entries. */
 
 public:
 
     /*! \brief Default constructor for legend.
      */
-    MultiEntryLegend() {}
+    MultiEntryLegend();
     
     /*! \brief Virtual destructor.
      */
     virtual ~MultiEntryLegend() {}    
 
-    /*! \brief Plot legend at (x,y).
+    /*! \brief Plot legend at \a (x,y).
+     *
+     *  The point \a (x,y) is the lower left point of the entry.
      */
-    virtual void plot( cairo_t *cairo, double x, double y ) const;
+    virtual void plot( cairo_t *cairo, double x, double y );
 
     /*! \brief Get size of legend.
      */
-    virtual void get_size( double &width, double &height ) const;
+    virtual void get_size( cairo_t *cairo, double &width, double &height ) const;
+
+    /*! \brief Set font size for legend labels.
+     */
+    void set_font_size( double fontsize );
 
     /*! \brief Add entry to legend.
      */
-    void add_entry( const LegendEntry &entry );
+    void add_entry( LegendEntry *entry );
+
+    /*! \brief Clear legend entries.
+     */
+    void clear_entries( void );
 };
 
 
@@ -175,13 +229,15 @@ public:
      */
     virtual ~ColormapLegend() {}
 
-    /*! \brief Plot legend at (x,y).
+    /*! \brief Plot legend at \a (x,y).
+     *
+     *  The point \a (x,y) is the lower left point of the entry.
      */
-    virtual void plot( cairo_t *cairo, double x, double y ) const;
+    virtual void plot( cairo_t *cairo, double x, double y );
 
     /*! \brief Get size of legend.
      */
-    virtual void get_size( double &width, double &height ) const;
+    virtual void get_size( cairo_t *cairo, double &width, double &height ) const;
 
     /*! \brief Set height of legend.
      */
@@ -190,21 +246,4 @@ public:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

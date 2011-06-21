@@ -2,7 +2,7 @@
  *  \brief UMFPACK matrix solver for electric potential problem
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -261,5 +261,7 @@ void EpotUMFPACKSolver::debug_print( std::ostream &os ) const
     EpotMatrixSolver::debug_print( os );
     os << "**EpotUMFPACKSolver\n";
 
-
+    os << "newton_Reps = " << _newton_Reps << "\n";
+    os << "newton_dXeps = " << _newton_dXeps << "\n";
+    os << "newton_imax = " << _newton_imax << "\n";
 }

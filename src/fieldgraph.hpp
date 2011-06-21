@@ -46,9 +46,10 @@
 
 #include <vector>
 #include "graph3d.hpp"
-#include "meshscalarfield.hpp"
 #include "colormap.hpp"
 #include "geometry.hpp"
+#include "field.hpp"
+#include "types.hpp"
 
 
 /*! \brief Class for drawing fields with colormap
@@ -57,7 +58,9 @@
  */
 class FieldGraph : public Graph3D {
 
-    const MeshScalarField  *_scalarfield;     /*!< \brief MeshScalarfield for plotting. */
+    field_type_e            _field_type;      /*!< \brief Field type used. */
+    const Geometry         *_geom;            /*!< \brief Geometry. */
+    const Field            *_field;           /*!< \brief Field to be plotted. */
     Colormap               *_colormap;        /*!< \brief Colormap for field plot. */
 
     view_e                  _oview;
@@ -66,13 +69,14 @@ class FieldGraph : public Graph3D {
     bool                    _enabled;         /*!< \brief Is plotting enabled */
     bool                    _logscale;        /*!< \brief Logarithmic scaling */
 
-    void build_scalarfield_plot( void );
-
+    void build_plot( void );
+    //void build_vectorfield_plot( void );
+    
 public:
 
-    /*! \brief Constructor for plotting MeshScalarField.
+    /*! \brief Constructor for plotting \a field.
      */
-    FieldGraph( const MeshScalarField *field );
+    FieldGraph( const Geometry *geom, const Field *field, field_type_e field_type );
 
     /*! \brief Destructor.
      */
@@ -84,9 +88,7 @@ public:
 
     /*! \brief Set logarithmic scale.
      */
-    void set_logscale( bool enable ) {
-	_logscale = enable;
-    }
+    void set_logscale( bool enable );
 
     /*! \brief Plot drawable with cairo.
 
@@ -95,6 +97,12 @@ public:
      *  xmin, ymin, xmax, ymax.
      */
     virtual void plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] );
+
+    /*! \brief Plot sample for legend.
+     *
+     *  Plot graph sample for legend at cairo coordinates \a x.
+     */
+    virtual void plot_sample( cairo_t *cairo, double x, double y, double width, double height );
 
     /*! \brief Get bounding box of drawable.
      *
@@ -106,6 +114,8 @@ public:
 
 
 #endif
+
+
 
 
 

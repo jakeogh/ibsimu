@@ -52,6 +52,9 @@
 #include "ibsimu.hpp"
 
 
+//#define DEBUG_SOLIDGRAPH 1
+
+
 uint32_t SolidGraph::get_mesh( const int32_t i[3], int offsetx, int offsety ) const
 {
     int j[3] = { i[0], i[1], i[2] };
@@ -78,6 +81,16 @@ bool SolidGraph::is_edge( uint32_t node, const int32_t i[3] ) const
 }
 
 
+/* Algorithm goes through the level of solid mesh going through mesh
+ * nodes in ordered manner marking the processed nodes in done array
+ * until it finds a solid boundary. The solid boundary is then followed
+ * counterclockwise bracketing the exact location of surface at each node.
+ * Direction of travel is marked with integer number dir:
+ *
+ *   1 0 7
+ *   2 X 6
+ *   3 4 5
+ */
 void SolidGraph::build_solid( SolidPoints *solid, const int32_t j[3], char *done, bool out, uint32_t node )
 {
     int32_t next[3]  = {j[0], j[1], j[2]};
@@ -85,8 +98,10 @@ void SolidGraph::build_solid( SolidPoints *solid, const int32_t j[3], char *done
     int32_t first[3] = {j[0], j[1], j[2]};
     int a, dir, save;
     int loop_done = 0;
-    
-    //std::cout << solid << "\n";
+
+#ifdef DEBUG_SOLIDGRAPH    
+    std::cout << "\nbuild_solid()\n";
+#endif
 
     // Initialize direction
     if( out )
@@ -94,10 +109,6 @@ void SolidGraph::build_solid( SolidPoints *solid, const int32_t j[3], char *done
     else
 	dir = 9; // Going into solid -> direction 6 first (3 will be subtracted later)
 
-    //std::cout << "  Starting with from ("
-    // << i[0] << ","
-    // << i[1] << ","
-    // << i[2] << ") with dir= " << dir << "\n";
     while( 1 ) {
 
 	// Mark node done
@@ -111,7 +122,10 @@ void SolidGraph::build_solid( SolidPoints *solid, const int32_t j[3], char *done
 	/* Go through directions */
 	for( a = 0; a < 8; a++ ) {
 
-	    //std::cout << "  Testing dir= " << dir << "\n";
+#ifdef DEBUG_SOLIDGRAPH
+	    std::cout << "  Testing dir = " << dir << "\n";
+#endif
+
 	    save = 0;
 	    switch( dir ) {
 	    case 0:
@@ -166,13 +180,20 @@ void SolidGraph::build_solid( SolidPoints *solid, const int32_t j[3], char *done
 		throw( Error( ERROR_LOCATION, "algorithm error" ) );
 	    }
 
+#ifdef DEBUG_SOLIDGRAPH
+	    std::cout << "    save = " << save << "\n";
+	    std::cout << "    next = (" 
+		      << next[0] << ", "
+		      << next[1] << ", "
+		      << next[2] << ")\n";
+#endif
+
 	    // If loop is done and direction same as starting direction
 	    if( loop_done && ((dir == 6 && !out) || (dir == 0 && out)) )
 		break;
 
 	    // If next point is an edge point, proceed to the next
 	    // point without saving a point
-	    //if( _g.mesh_check( next[0], next[1], next[2] ) == node )
 	    if( is_edge( node, next ) )
 		break;
 
@@ -184,6 +205,18 @@ void SolidGraph::build_solid( SolidPoints *solid, const int32_t j[3], char *done
 		Vec3D x2( next[0]*_g.h()+_g.origo(0),
 			  next[1]*_g.h()+_g.origo(1),
 			  next[2]*_g.h()+_g.origo(2) );
+
+#ifdef DEBUG_SOLIDGRAPH
+		std::cout << "    Saving point, bracketing between x1 and x2\n";
+		std::cout << "    x1 = ("
+			  << x1[0] << ", "
+			  << x1[1] << ", "
+			  << x1[2] << ")\n";
+		std::cout << "    x2 = ("
+			  << x2[0] << ", "
+			  << x2[1] << ", "
+			  << x2[2] << ")\n";
+#endif
 		Vec3D xsurf;
 		_g.bracket_surface( node & SMESH_BOUNDARY_NUMBER_MASK, x1, x2, xsurf );
 		//std::cout << "  Saving point (" 
@@ -193,7 +226,6 @@ void SolidGraph::build_solid( SolidPoints *solid, const int32_t j[3], char *done
 		//solid->p.reserve( 10 );
 		//std::cout << solid->p.size() << " " << solid->p.capacity() << "\n";
 		solid->p.push_back( Point( xsurf(_vb[0]), xsurf(_vb[1]) ) );
-		//std::cout << "  done\n";
 	    }
 
 	    // Progress direction counterclockwise
@@ -206,11 +238,6 @@ void SolidGraph::build_solid( SolidPoints *solid, const int32_t j[3], char *done
 	    break;
 	}
 
-	// Advance to next point
-	//std::cout << "  Advance to (" 
-	//	  << i[0] << ","
-	//	  << i[1] << ","
-	//	  << i[2] << ")\n";
 	i[0] = next[0];
 	i[1] = next[1];
 	i[2] = next[2];
@@ -324,9 +351,6 @@ void SolidGraph::disable_cache( void )
 
 void SolidGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
-    //if( ibsimu.get_verbose_output() )
-    //std::cout << "  Plotting solids\n";
-
     //std::cout << "--Plotting solids--\n";
     if( !_cache || _solid.size() == 0 || _oview != _view || _olevel != _level ) {
 	// First round or change happened
@@ -373,6 +397,12 @@ void SolidGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
 
 	lc.fill();
     }
+
+}
+
+
+void SolidGraph::plot_sample( cairo_t *cairo, double x, double y, double width, double height )
+{
 
 }
 

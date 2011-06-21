@@ -238,7 +238,7 @@ void EpotMGSolver::prepare_mg_geom( void )
 	    for( uint32_t b = 0; b < number_of_dimensions(); b++ ) {
 		if( size[b] % 2 == 0 )
 		    throw( Error( ERROR_LOCATION, "Incorrect parity of mesh size " + 
-				  to_string(size[b]) + "in direction " + to_string(b) + 
+				  to_string(size[b]) + " in direction " + to_string(b) + 
 				  " at level " + to_string(a) ) );		    
 		size[b] = (size[b]+1)/2;
 	    }
@@ -1310,8 +1310,9 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 	
 	// Last level, solve the roughest problem until convergence
 	uint32_t a = 0;
-	for( a = 1; a <= _imax; a++ ) {
+	while( a < _imax ) {
 	    _res = _res_coef * _epotsolverv[level]->mg_solve( _epotv[level], _rhsv[level], _w );
+	    a++;
 	    if( _res < _eps )
 		break;
 	}

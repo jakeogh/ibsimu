@@ -29,7 +29,7 @@ MyDXFHeader::MyDXFHeader( class MyDXFFile *dxf )
 	else if( dxf->group_get_code() == 1 && field == "$ACADVER" )
 	    acadver = dxf->group_get_string();
 	else if( dxf->group_get_code() == 50 && field == "$ANGBASE" )
-	    angdir = dxf->group_get_double();
+	    angbase = dxf->group_get_double();
 	else if( dxf->group_get_code() == 70 && field == "$ANGDIR" )
 	    angdir = dxf->group_get_int16();
 	else if( dxf->group_get_code() == 70 && field == "$INSUNITS" )
@@ -135,6 +135,7 @@ void MyDXFHeader::debug_print( std::ostream &os ) const
 
     os << "\n";
 }
+
 
 
 
