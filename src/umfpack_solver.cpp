@@ -221,3 +221,4 @@ void UMFPACKSolver::reset( void )
 	umfpack_di_free_numeric( &_numeric );
     _numeric = 0;
 }
+

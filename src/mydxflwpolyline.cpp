@@ -272,3 +272,4 @@ bool MyDXFLWPolyline::geom_same( const MyDXFLWPolyline &line, double eps ) const
     return( 0 );
 }
 
+

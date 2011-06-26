@@ -465,3 +465,4 @@ void Histogram2D::accumulate_linear( double x, double y, double weight )
 	_data[i+1+(j+1)*_n] += weight*t*u;
 }
 
+

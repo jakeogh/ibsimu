@@ -63,7 +63,8 @@ ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb )
 }
 
 
-ParticleDataBaseImp::ParticleDataBaseImp( std::istream &s )
+ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s )
+    : _pdb(pdb)
 {
     if( ibsimu.get_verbose_output() )
 	ibsimu.vout() << "Constructing ParticleDataBase from stream\n";
@@ -256,8 +257,8 @@ ParticleDataBase2DImp::ParticleDataBase2DImp( const ParticleDataBase2DImp &pdb )
 }
 
 
-ParticleDataBase2DImp::ParticleDataBase2DImp( std::istream &s )
-    : ParticleDataBasePPImp<ParticleP2D>( s )
+ParticleDataBase2DImp::ParticleDataBase2DImp( ParticleDataBase *pdb, std::istream &s )
+    : ParticleDataBasePPImp<ParticleP2D>(pdb,s)
 {
     
 }
@@ -551,8 +552,8 @@ ParticleDataBaseCylImp::ParticleDataBaseCylImp( const ParticleDataBaseCylImp &pd
 }
 
 
-ParticleDataBaseCylImp::ParticleDataBaseCylImp( std::istream &s )
-    : ParticleDataBasePPImp<ParticlePCyl>( s )
+ParticleDataBaseCylImp::ParticleDataBaseCylImp( ParticleDataBase *pdb, std::istream &s )
+    : ParticleDataBasePPImp<ParticlePCyl>(pdb,s)
 {
     
 }
@@ -908,8 +909,8 @@ ParticleDataBase3DImp::ParticleDataBase3DImp( const ParticleDataBase3DImp &pdb )
 }
 
 
-ParticleDataBase3DImp::ParticleDataBase3DImp( std::istream &s )
-    : ParticleDataBasePPImp<ParticleP3D>( s )
+ParticleDataBase3DImp::ParticleDataBase3DImp( ParticleDataBase *pdb, std::istream &s )
+    : ParticleDataBasePPImp<ParticleP3D>(pdb,s)
 {
 
 }
@@ -1660,5 +1661,6 @@ void ParticleDataBase3DImp::debug_print( std::ostream &os ) const
     os << "**ParticleDataBase3D\n";
     ParticleDataBasePPImp<ParticleP3D>::debug_print( os );
 }
+
 
 

@@ -317,17 +317,17 @@ void ParticleDiagPlot::export_data( const std::string &filename )
 	fstr << std::setw(11) << trajectory_diagnostic_string_with_unit[_diagx];
 	fstr << std::setw(14) << trajectory_diagnostic_string_with_unit[_diagy];
 	if( _type == PARTICLE_DIAG_PLOT_HISTO2D ) {
-	    if( _diagx == DIAG_X && _diagy == DIAG_XP ||
-		_diagx == DIAG_Y && _diagy == DIAG_YP ||
-		_diagx == DIAG_R && _diagy == DIAG_RP ||
-		_diagx == DIAG_Z && _diagy == DIAG_ZP )
+	    if( (_diagx == DIAG_X && _diagy == DIAG_XP) ||
+		(_diagx == DIAG_Y && _diagy == DIAG_YP) ||
+		(_diagx == DIAG_R && _diagy == DIAG_RP) ||
+		(_diagx == DIAG_Z && _diagy == DIAG_ZP) )
 		fstr << std::setw(14) << "Int (A/m/rad)";
-	    else if( _diagx == DIAG_X && _diagy == DIAG_Y ||
-		     _diagx == DIAG_X && _diagy == DIAG_Z ||
-		     _diagx == DIAG_Y && _diagy == DIAG_X ||
-		     _diagx == DIAG_Y && _diagy == DIAG_Z ||
-		     _diagx == DIAG_Z && _diagy == DIAG_X ||
-		     _diagx == DIAG_Z && _diagy == DIAG_Y )
+	    else if( (_diagx == DIAG_X && _diagy == DIAG_Y) ||
+		     (_diagx == DIAG_X && _diagy == DIAG_Z) ||
+		     (_diagx == DIAG_Y && _diagy == DIAG_X) ||
+		     (_diagx == DIAG_Y && _diagy == DIAG_Z) ||
+		     (_diagx == DIAG_Z && _diagy == DIAG_X) ||
+		     (_diagx == DIAG_Z && _diagy == DIAG_Y) )
 		fstr << std::setw(14) << "Int (A/m^2)";
 	    else
 		fstr << std::setw(14) << "Int (a.u.)";
@@ -534,6 +534,7 @@ void ParticleDiagPlot::build_plot( void )
 
     }
 }
+
 
 
 

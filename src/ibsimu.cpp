@@ -158,3 +158,4 @@ void IBSimu::set_thread_count( int threadcount )
 /* Global instance */
 IBSimu ibsimu;
 
+

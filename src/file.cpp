@@ -147,3 +147,4 @@ uint32_t read_compressed_block( std::istream &s, uint32_t len, int8_t *dest )
 
     return( datalen );
 }
+

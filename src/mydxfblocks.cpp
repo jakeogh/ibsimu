@@ -283,3 +283,4 @@ void MyDXFBlocks::clear( void )
 	delete _blocks[i];
     _blocks.resize( 0 );
 }
+

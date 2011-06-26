@@ -270,8 +270,16 @@ std::string Error::get_error_message( void )
     return( _error_str );
 }   
 
+
 ErrorNoMem::ErrorNoMem( const ErrorLocation &loc )
   : Error( loc, "memory allocation error" ) 
+{
+
+}
+
+
+ErrorNoMem::ErrorNoMem( const ErrorLocation &loc, const std::string &str )
+  : Error( loc, str ) 
 {
 
 }
@@ -337,3 +345,4 @@ ErrorRange::ErrorRange( const ErrorLocation &loc, uint32_t i, uint32_t n )
     ss << "index out of range ( " << i << " >= " << n << " )";
     _error_str = ss.str();
 }
+

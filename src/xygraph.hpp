@@ -59,7 +59,8 @@ enum line_style_e {
 
 enum point_style_e {
     XYGRAPH_POINT_DISABLE = 0,
-    XYGRAPH_POINT_CIRCLE
+    XYGRAPH_POINT_CIRCLE,
+    XYGRAPH_POINT_BOX
 };
 
 
@@ -78,6 +79,8 @@ class XYGraph : public Graph {
     
     std::vector<double>    _xdata;
     std::vector<double>    _ydata;
+
+    void plot_point( cairo_t *cairo, double x, double y );
 
 public:
 
@@ -107,9 +110,9 @@ public:
 
     /*! \brief Plot sample for legend.
      *
-     *  Plot graph sample for legend at cairo coordinates \a x.
+     *  Plot graph sample for legend at cairo coordinates \a (x,y).
      */
-    virtual void plot_sample( cairo_t *cairo, double x[2] );
+    virtual void plot_sample( cairo_t *cairo, double x, double y, double width, double height );
 
     /*! \brief Get bounding box of graph.
      *
@@ -146,6 +149,8 @@ public:
 
 
 #endif
+
+
 
 
 

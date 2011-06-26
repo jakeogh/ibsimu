@@ -621,3 +621,4 @@ void FontLib::draw_text( cairo_t *cairo, const std::string &str, double &x, doub
 
 
 
+

@@ -287,3 +287,4 @@ void scharge_add_from_trajectory( ScalarField &scharge, pthread_mutex_t *mutex, 
 
 
 
+

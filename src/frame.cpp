@@ -1,8 +1,8 @@
 /*! \file frame.cpp
- *  \brief Source code for frame.cpp
+ *  \brief %Frame for plots
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -48,7 +48,7 @@
 #include "ibsimu.hpp"
 
 
-//#define FRAME_DEBUG 1
+//#define DEBUG_FRAME 1
 
 
 #define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
@@ -77,8 +77,11 @@ void Frame::unset_frame_clipping( cairo_t *cairo )
 Frame::Frame()
     : _offx(0), _offy(0), _width(640), _height(480), 
       _fontsize(12.0), _titlespace(10.0), _bg(Color(1,1,1)), _fg(Color(0,0,0)),
+      _legend_enable(true), _legend_pos(LEGEND_POS_TOP_RIGHT),
       _fixedaspect(PLOT_FIXED_ASPECT_DISABLED), _automargin(true)
 {
+    _legend.set_font_size( _fontsize );
+
     // Ruler X1
     _ruler[0].set_coord_index( 0 );
     _ruler[0].set_indir( true );
@@ -136,6 +139,7 @@ void Frame::set_font_size( double size )
     _ruler[2].set_font_size( size );
     _ruler[3].set_font_size( size );
     _title.set_font_size( size );
+    _legend.set_font_size( size );
     _fontsize = size;
     _titlespace = 10.0/12.0*size;
 }
@@ -152,15 +156,30 @@ void Frame::set_fixed_aspect( PlotFixedMode mode )
 }
 
 
-void Frame::add_graph( PlotAxis xaxis, PlotAxis yaxis, Graph *graph )
+void Frame::add_graph( PlotAxis xaxis, PlotAxis yaxis, 
+		       Graph *graph, LegendEntry *legend )
 {
     _dobj.push_back( DObj( xaxis, yaxis, graph ) );
+    _legend.add_entry( legend );
 }
 
 
 void Frame::clear_graphs( void )
 {
     _dobj.clear();
+    _legend.clear_entries();
+}
+
+
+void Frame::enable_legend( bool enable )
+{
+    _legend_enable = enable;
+}
+
+
+void Frame::set_legend_position( legend_position_e pos )
+{
+    _legend_pos = pos;
 }
 
 
@@ -286,7 +305,7 @@ void Frame::calculate_autoranging( void )
 {
     double range[8]; // x1min, x1max, y1min, y1max, x2min, x2max, y2min, y2max
 
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
     std::cout << "\nFRAME::CALCULATE_AUTORANGING()\n\n";
 #endif
 
@@ -353,9 +372,11 @@ void Frame::calculate_autoranging( void )
 	}
 
 	// Set new ranges
+	_range_min[a] = range_min;
+	_range_max[a] = range_max;
 	_ruler[a].set_ranges( range_min, range_max );
 
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
 	std::cout << "ruler[" << a << "] = {" << range_min << ", " << range_max << "}\n";
 #endif
     }
@@ -364,7 +385,7 @@ void Frame::calculate_autoranging( void )
 
 void Frame::calculate_rulers( cairo_t *cairo, bool ruler_tic_bbox_test )
 {
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
     std::cout << "\nFRAME::CALCULATE_RULERS()\n\n";
 #endif
 
@@ -423,7 +444,7 @@ void Frame::force_enable_ruler( PlotAxis axis, bool force )
 
 void Frame::calculate_frame( cairo_t *cairo )
 {
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
     std::cout << "\nFRAME::CALCULATE_FRAME()\n\n";
 #endif
 
@@ -542,6 +563,10 @@ void Frame::calculate_frame( cairo_t *cairo )
 	_ruler[3].set_endpoints( prec[2], prec[3], prec[2], prec[1] );
     }
 
+    // Reset autorange values
+    for( int a = 0; a < 4; a++ )
+	_ruler[a].set_ranges( _range_min[a], _range_max[a] );
+
     calculate_rulers( cairo, true );
     mirror_rulers();
 
@@ -562,7 +587,7 @@ void Frame::mirror_rulers( void )
 {
     // Set enable/disable and do mirroring of rulers if necessary
 
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
     std::cout << "\nFRAME::MIRROR_RULERS()\n\n";
 
     for( size_t a = 0; a < 4; a++ ) 
@@ -616,7 +641,7 @@ void Frame::mirror_rulers( void )
 	}
     }
 
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
     for( size_t a = 0; a < 4; a++ ) {
 	std::cout << "_ruler[" << a << "].debug_print():\n";
 	_ruler[a].debug_print( std::cout );
@@ -628,7 +653,7 @@ void Frame::mirror_rulers( void )
 
 void Frame::draw_frame( cairo_t *cairo )
 {
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
     std::cout << "\nFRAME::DRAW_FRAME()\n\n";
 #endif
 
@@ -648,9 +673,54 @@ void Frame::draw_frame( cairo_t *cairo )
 }
 
 
+void Frame::draw_legend( cairo_t *cairo )
+{
+    //std::cout << "draw_legend()\n";
+
+    if( !_legend_enable )
+	return;
+
+    double lw, lh;
+    _legend.get_size( cairo, lw, lh );
+
+    double x = 0.0;
+    double y = 0.0;
+
+    if( (_legend_pos & LEGEND_POS_VERTICAL_MASK) == LEGEND_POS_BOTTOM )
+	y = _offy+_height-_tmargin[1];
+    else if( (_legend_pos & LEGEND_POS_VERTICAL_MASK) == LEGEND_POS_MIDDLE )
+	y = _offy+_tmargin[3]+0.5*(_height-_tmargin[1]-_tmargin[3]+lh);
+    else if( (_legend_pos & LEGEND_POS_VERTICAL_MASK) == LEGEND_POS_TOP )
+	y = _offy+_tmargin[3]+lh;
+
+    if( (_legend_pos & LEGEND_POS_HORIZONTAL_MASK) == LEGEND_POS_LEFT )
+	x = _offx+_tmargin[0];
+    else if( (_legend_pos & LEGEND_POS_HORIZONTAL_MASK) == LEGEND_POS_CENTER )
+	x = _offx+_tmargin[0]+0.5*(_width-_tmargin[0]-_tmargin[2]-lw);
+    else if( (_legend_pos & LEGEND_POS_HORIZONTAL_MASK) == LEGEND_POS_RIGHT )
+	x = _offx+_width-_tmargin[2]-lw;
+
+    /*
+    std::cout << "  lw = " << lw << "\n";
+    std::cout << "  lh = " << lh << "\n";
+
+    std::cout << "  offx = " << _offx << "\n";
+    std::cout << "  offy = " << _offy << "\n";
+
+    std::cout << "  width = " << _width << "\n";
+    std::cout << "  height = " << _height << "\n";
+
+    std::cout << "  x = " << x << "\n";
+    std::cout << "  y = " << y << "\n";
+    */
+
+    _legend.plot( cairo, x, y );
+}
+
+
 void Frame::draw( cairo_t *cairo )
 {
-#ifdef FRAME_DEBUG
+#ifdef DEBUG_FRAME
     std::cout << "\nFRAME::DRAW()\n\n";
     std::cout << "width = " << _width << "\n";
     std::cout << "height = " << _height << "\n";
@@ -683,24 +753,9 @@ void Frame::draw( cairo_t *cairo )
     }
     unset_frame_clipping( cairo );
 
+    draw_legend( cairo );
+
     // Draw frame (on top of user drawn image)
     draw_frame( cairo );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

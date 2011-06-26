@@ -170,3 +170,4 @@ const std::vector<double> &ReadAscii::operator[]( uint32_t i ) const
 	return( *_data[i] );
     throw( ErrorRange( ERROR_LOCATION, i, _N ) );
 }
+

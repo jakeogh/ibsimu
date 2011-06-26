@@ -98,7 +98,7 @@ class FieldDiagPlot {
     field_loc_type_e    _loc[2];
 
     XYGraph            *_graph[2];
-
+    LegendEntry        *_legend[2];
 
     void build_data( std::vector<double> coord[4], 
 		     std::vector<double> fielddata[2] ) const;
@@ -206,6 +206,7 @@ public:
 
 
 #endif
+
 
 
 

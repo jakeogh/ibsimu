@@ -231,3 +231,4 @@ void ParticleStatistics::save( std::ostream &s ) const
 	write_double( s, _bound_current[a] );
     }
 }
+

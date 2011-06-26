@@ -284,7 +284,7 @@ void ParticleGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double ra
 }
 
 
-void ParticleGraph::plot_sample( cairo_t *cairo, double x[2] )
+void ParticleGraph::plot_sample( cairo_t *cairo, double x, double y, double width, double height )
 {
 
 }
@@ -309,6 +309,8 @@ void ParticleGraph::clear_colors( void )
 {
     _color.clear();
 }
+
+
 
 
 

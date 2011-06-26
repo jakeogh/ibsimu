@@ -78,7 +78,7 @@ public:
      *
      *  Plot graph sample for legend at cairo coordinates \a x.
      */
-    virtual void plot_sample( cairo_t *cairo, double x[2] );
+    virtual void plot_sample( cairo_t *cairo, double x, double y, double width, double height );
 
     /*! \brief Get bounding box of graph.
      *
@@ -90,6 +90,8 @@ public:
 
 
 #endif
+
+
 
 
 

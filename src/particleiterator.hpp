@@ -279,6 +279,20 @@ template <class PP> class ParticleIterator {
     ParticleStatistics         _stat;      /*!< \brief Particle statistics. */
 
 
+
+    /*! \brief Save trajectory point \a x.
+     *
+     *  Throw error if run out of memory.
+     */
+    void save_trajectory_point( PP x ) {
+
+	try {
+	    _traj.push_back( x );
+	} catch( std::bad_alloc ) {
+	    throw( ErrorNoMem( ERROR_LOCATION, "Out of memory saving trajectory" ) );
+	}
+    }
+
     /*! \brief Check for particle collision with solid
      *
      *  Particle propagates from x1 to x2, where x1 is in
@@ -311,7 +325,7 @@ template <class PP> class ParticleIterator {
 	}
 
 	// Save last trajectory point and update status
-	//_traj.push_back( status_x );
+	//save_trajectory_point( status_x );
 	particle.set_status( PARTICLE_COLL );
 
 	// Update collision statistics for boundary
@@ -364,7 +378,7 @@ template <class PP> class ParticleIterator {
 
 	// Mirror traj back to _xi
 	if( caught_at_boundary ) {
-	    _traj.push_back( _coldata[c]._x );
+	    save_trajectory_point( _coldata[c]._x );
 	} else {
 	    for( int b = _traj.size()-1; b > 0; b-- ) {
 		if( _traj[b][0] >= _xi[0] ) {
@@ -388,7 +402,7 @@ template <class PP> class ParticleIterator {
 	}
 
 	if( caught_at_boundary )
-	    _traj.push_back( _coldata[c]._x );
+	    save_trajectory_point( _coldata[c]._x );
 
 	// Mirror calculation point
 	x2[2*a+1] = 2.0*xmirror - x2[2*a+1];
@@ -406,7 +420,7 @@ template <class PP> class ParticleIterator {
 	std::cout << "    handle_collision()\n";
 #endif
 
-	//_traj.push_back( _coldata[c]._x );
+	//save_trajectory_point( _coldata[c]._x );
 	status_x = _coldata[c]._x;
 	particle.set_status( PARTICLE_OUT );
 	_stat.add_bound_collision( bound, particle.IQ() );
@@ -568,6 +582,23 @@ template <class PP> class ParticleIterator {
 	return( touched );
     }
 
+    /*! \brief Build coldata.
+     *
+     *  Throw error if run out of memory.
+     */
+    void build_coldata( bool force_linear, const PP &x1, const PP &x2 ) {
+
+	try {
+	    if( _polyint && !force_linear )
+		ColData<PP>::build_coldata_poly( _coldata, *_pidata._geom, x1, x2 );
+	    else
+		ColData<PP>::build_coldata_linear( _coldata, *_pidata._geom, x1, x2 );
+	} catch( std::bad_alloc ) {
+	    throw( ErrorNoMem( ERROR_LOCATION, "Out of memory building ColData" ) );
+	}
+
+    }
+
     /*! \brief Handle particle iteration step from coordinates \a x1 to \a x2.
      *
      *  Searches mesh intersections between points \a x1 and \a x2 and
@@ -601,11 +632,7 @@ template <class PP> class ParticleIterator {
 	if( limit_trajectory_advance( x1, x2 ) )
 	    force_linear = true;
 
-	// Make coldata
-	if( _polyint && !force_linear )
-	    ColData<PP>::build_coldata_poly( _coldata, *_pidata._geom, x1, x2 );
-	else
-	    ColData<PP>::build_coldata_linear( _coldata, *_pidata._geom, x1, x2 );
+	build_coldata( force_linear, x1, x2 );
 
 	// TODO
 	// Remove entrance to geometry if coming from outside or make
@@ -663,7 +690,7 @@ template <class PP> class ParticleIterator {
 #endif
 	    // Clear coldata and exit if particle collided.
 	    if( particle.get_status() != PARTICLE_OK ) {
-		_traj.push_back( x2 );
+		save_trajectory_point( x2 );
 		_coldata.clear();
 		return( false );
 	    }
@@ -732,11 +759,11 @@ template <class PP> class ParticleIterator {
 	    return( false ); // Particle done
 
 	// Save trajectory calculation points
-	_traj.push_back( x2 );
-	_traj.push_back( xc );
+	save_trajectory_point( x2 );
+	save_trajectory_point( xc );
 	xc[4] *= -1.0;
 	xc[5] *= -1.0;
-	_traj.push_back( xc );
+	save_trajectory_point( xc );
 	
 	// Next step not a continuation of previous one, reset
 	// integrator
@@ -966,7 +993,7 @@ public:
 
 	// Reset trajectory and save first trajectory point.
 	_traj.clear();
-	_traj.push_back( x );
+	save_trajectory_point( x );
 #ifdef DEBUG_PARTICLE_ITERATOR
 	std::cout << x[0] << " " 
 		  << x[1] << " " 
@@ -1064,7 +1091,7 @@ public:
 	    x = x2;
 
 	    // Save trajectory point
-	    _traj.push_back( x2 );
+	    save_trajectory_point( x2 );
 	    
 	    // Increase step count.
 	    nstp++;
@@ -1102,3 +1129,4 @@ public:
 
 
 #endif
+

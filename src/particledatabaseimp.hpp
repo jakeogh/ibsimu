@@ -78,7 +78,7 @@ protected:
 
     ParticleDataBaseImp( ParticleDataBase *pdb );
 
-    ParticleDataBaseImp( std::istream &s );
+    ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s );
 
     void save( std::ostream &s ) const;
 
@@ -239,8 +239,8 @@ protected:
     ParticleDataBasePPImp( ParticleDataBase *pdb )
 	: ParticleDataBaseImp(pdb), _scheduler(_particles) {}
 
-    ParticleDataBasePPImp( std::istream &s ) 
-	: ParticleDataBaseImp(s), _scheduler(_particles) {
+    ParticleDataBasePPImp( ParticleDataBase *pdb, std::istream &s ) 
+	: ParticleDataBaseImp(pdb,s), _scheduler(_particles) {
 
 	uint32_t N = read_int32( s );
 	_particles.reserve( N );
@@ -442,7 +442,11 @@ public:
 
     void add_particle( const Particle<PP> &pp ) {
 	_scheduler.lock_mutex();
-	_particles.push_back( new Particle<PP>( pp ) );
+	try {
+	    _particles.push_back( new Particle<PP>( pp ) );
+	} catch( std::bad_alloc ) {
+	    throw( ErrorNoMem( ERROR_LOCATION, "Out of memory adding particle" ) );
+	}
 	_scheduler.unlock_mutex();
     }
 
@@ -574,7 +578,7 @@ public:
 
     ParticleDataBase2DImp( const ParticleDataBase2DImp &pdb );
 
-    ParticleDataBase2DImp( std::istream &s );
+    ParticleDataBase2DImp( ParticleDataBase *pdb, std::istream &s );
 
     virtual ~ParticleDataBase2DImp();
 
@@ -621,7 +625,7 @@ public:
 
     ParticleDataBaseCylImp( const ParticleDataBaseCylImp &pdb );
 
-    ParticleDataBaseCylImp( std::istream &s );
+    ParticleDataBaseCylImp( ParticleDataBase *pdb, std::istream &s );
 
     virtual ~ParticleDataBaseCylImp();
 
@@ -667,7 +671,7 @@ public:
 
     ParticleDataBase3DImp( const ParticleDataBase3DImp &pdb );
 
-    ParticleDataBase3DImp( std::istream &s );
+    ParticleDataBase3DImp( ParticleDataBase *pdb, std::istream &s );
 
     virtual ~ParticleDataBase3DImp();
 
@@ -717,3 +721,4 @@ public:
 
 
 #endif
+
