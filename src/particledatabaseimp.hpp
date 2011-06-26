@@ -114,6 +114,8 @@ public:
 
     double get_rhosum( void ) const;
 
+    void set_rhosum( double rhosum );
+
     const ParticleStatistics &get_statistics( void ) const;
 
     virtual geom_mode_e geom_mode() const = 0;

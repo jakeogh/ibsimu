@@ -192,6 +192,12 @@ double ParticleDataBaseImp::get_rhosum( void ) const
 }
 
 
+void ParticleDataBaseImp::set_rhosum( double rhosum )
+{
+    _rhosum = rhosum;
+}
+
+
 const ParticleStatistics &ParticleDataBaseImp::get_statistics( void ) const
 {
     return( _stat );

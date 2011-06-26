@@ -319,6 +319,10 @@ public:
      */
     double get_rhosum( void ) const;
 
+    /*! \brief Set sum of defined beam space charge density.
+     */
+    void set_rhosum( double rhosum );
+
     /*! \brief Get particle iterator statistics.
      */
     const ParticleStatistics &get_statistics( void ) const;
