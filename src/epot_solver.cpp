@@ -195,9 +195,20 @@ void EpotSolver::nsimp_newton( double &rhs, double &drhs, double epot ) const
 
     // thermal
     for( size_t i = 0; i < _plD.size(); i++ ) {
-	double w = _plD[i]*exp( _plE[i]*epot );
-	rhs  += w;
-	drhs += _plE[i]*w;
+	double k = _plE[i]*epot;
+	if( k > 10.0 ) {
+	    // Prevent overruns with exponential function during iteration
+	    // by changing to linear slope
+	    double exp10 = exp( 10.0 );
+	    double d = _plD[i]*exp10;
+	    double w = _plD[i]*exp10 + d*(k - 10.0);
+	    rhs  += w;
+	    drhs += _plE[i]*d;
+	} else {
+	    double w = _plD[i]*exp( k );
+	    rhs  += w;
+	    drhs += _plE[i]*w;
+	}
     }
 }
 
