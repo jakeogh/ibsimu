@@ -7,8 +7,7 @@
 
 #include <iostream>
 #include <iomanip>
-#include "bicgstab_solver.hpp"
-#include "epot_problem.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "csgobject_solid.hpp"
