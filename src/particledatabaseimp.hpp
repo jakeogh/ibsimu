@@ -701,9 +701,10 @@ public:
 					double Ex, double x0, double y0, double z0 );
 
     void add_3d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
-					      double ay, double by, double ey,
-					      double az, double bz, double ez,
-					      double Ex, double x0, double y0, double z0 );
+					      double E0, 
+					      double a1, double b1, double e1,
+					      double a2, double b2, double e2,
+					      Vec3D c, Vec3D dir1, Vec3D dir2 );
 
     void trajectories_at_free_plane( TrajectoryDiagnosticData &tdata, 
 				     Vec3D c, Vec3D o, Vec3D p,

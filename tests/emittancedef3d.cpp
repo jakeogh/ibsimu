@@ -14,6 +14,7 @@
 #include "bicgstab_solver.hpp"
 #include "particledatabase.hpp"
 #include "particlediagplotter.hpp"
+#include "meshvectorfield.hpp"
 #include "ibsimu.hpp"
 #include "error.hpp"
 
@@ -43,7 +44,7 @@ void test( int argc, char **argv )
     p.solve( epot, scharge );
 
     EpotEfield efield( geom, epot );
-    VectorField bfield;
+    MeshVectorField bfield;
 
     ParticleDataBase3D pdb;
     bool pmirror[6] = { false, false, true, false, true, false };
@@ -93,9 +94,10 @@ void test( int argc, char **argv )
 
     pdb.clear();
     pdb.add_3d_gaussian_beam_with_emittance( 100000, 10.0e-3, 6.0, 20.0, 
+					     3.0e3,
 					     1.1, 0.193, 3.23e-5,
 					     -1.1, 0.193, 6.6e-5,
-					     3.0e3, 0.0, 0.0, 0.0 );
+					     Vec3D(0,0,0), Vec3D(0,1,0), Vec3D(0,0,1) );
     pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
     // Plot (y,y') emittance and check values
