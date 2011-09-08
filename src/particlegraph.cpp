@@ -63,10 +63,16 @@ ParticleGraph::ParticleGraph( const Geometry &g, const ParticleDataBase &pdb,
     _coord = new double[2*_coordsize];
 
     // Add default colors
-    _color.push_back( Color( 1.0, 0.2, 0.2 ) );
-    _color.push_back( Color( 1.0, 1.0, 0.2 ) );
-    _color.push_back( Color( 1.0, 0.2, 1.0 ) );
-    _color.push_back( Color( 0.2, 1.0, 1.0 ) );
+    _color.push_back( Color( 1.0, 0.2, 0.2 ) ); // Red
+
+    _color.push_back( Color( 1.0, 1.0, 0.2 ) ); // Yellow
+    _color.push_back( Color( 1.0, 0.2, 1.0 ) ); // Magenta
+    _color.push_back( Color( 0.2, 1.0, 1.0 ) ); // Cyan
+
+    _color.push_back( Color( 1.0, 0.5, 0.2 ) ); // Orange
+    _color.push_back( Color( 0.5, 0.2, 1.0 ) ); // Purple
+    _color.push_back( Color( 0.2, 1.0, 0.5 ) ); // Bluish green
+    _color.push_back( Color( 1.0, 0.2, 0.5 ) ); // Pink
 }
 
 
