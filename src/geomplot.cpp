@@ -410,7 +410,26 @@ void GeomPlot::set_view( view_e view, int level )
 }
 
 
-
+void GeomPlot::set_view_si( view_e view, double level )
+{
+    switch( view ) {
+    case VIEW_XY:
+    case VIEW_YX:
+	set_view( view, (int)floor( (level-_geom->origo(2))*_geom->div_h()+0.5 ) );
+	break;
+    case VIEW_XZ:
+    case VIEW_ZX:
+	set_view( view, (int)floor( (level-_geom->origo(1))*_geom->div_h()+0.5 ) );
+	break;
+    case VIEW_YZ:
+    case VIEW_ZY:
+	set_view( view, (int)floor( (level-_geom->origo(0))*_geom->div_h()+0.5 ) );
+	break;
+    default:
+	throw( ErrorUnimplemented( ERROR_LOCATION ) );
+	break;
+    }
+}
 
 
 

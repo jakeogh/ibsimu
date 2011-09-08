@@ -276,6 +276,14 @@ public:
      */
     void set_view( view_e view, int level = -1 );
 
+    /*! \brief Set view in SI units.
+     *
+     *  Sets the viewplane to the geometry. The viewplane is set by
+     *  direction \a view and depth \a level set as coordinates in SI
+     *  units. The level is limited to existing values.
+     */
+    void set_view_si( view_e view, double level );
+
     /*! \brief Get view.
      */
     view_e get_view( void ) const {
