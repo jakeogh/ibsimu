@@ -604,11 +604,11 @@ double EpotMGSubSolver::rbgs_loop_2d( void ) const
 		if( err > maxerr )
 		    maxerr = err;
 		if( comp_isinf(err) ) {
-		    throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) + 
-				  ", " + to_string(j) ) );
+		    throw( Error( ERROR_LOCATION, "Potential inf at location = (" + to_string(i) + 
+				  ", " + to_string(j) + ")" ) );
 		} else if( comp_isnan(err) ) {
-		    throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) + 
-				  ", " + to_string(j) ) );
+		    throw( Error( ERROR_LOCATION, "Potential NaN at location = (" + to_string(i) + 
+				  ", " + to_string(j) + ")" ) );
 		}
 	    }
 	}
@@ -651,11 +651,11 @@ double EpotMGSubSolver::sor_loop_2d( double w ) const
 	    if( err > maxerr )
 		maxerr = err;
 	    if( comp_isinf(err) ) {
-		throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) + 
-			      ", " + to_string(j) ) );
+		throw( Error( ERROR_LOCATION, "Potential inf at location = (" + to_string(i) + 
+			      ", " + to_string(j) + ")" ) );
 	    } else if( comp_isnan(err) ) {
-		throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) + 
-			      ", " + to_string(j) ) );
+		throw( Error( ERROR_LOCATION, "Potential NaN at location = (" + to_string(i) + 
+			      ", " + to_string(j) + ")" ) );
 	    }
 	}
     }
@@ -1002,11 +1002,11 @@ double EpotMGSubSolver::rbgs_loop_cyl( void ) const
 		if( err > maxerr )
 		    maxerr = err;
 		if( comp_isinf(err) ) {
-		    throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) + 
-				  ", " + to_string(j) ) );
+		    throw( Error( ERROR_LOCATION, "Potential inf at location = (" + to_string(i) + 
+				  ", " + to_string(j) + ")" ) );
 		} else if( comp_isnan(err) ) {
-		    throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) + 
-				  ", " + to_string(j) ) );
+		    throw( Error( ERROR_LOCATION, "Potential NaN at location = (" + to_string(i) + 
+				  ", " + to_string(j) + ")" ) );
 		}
 	    }
 	}
@@ -1049,11 +1049,11 @@ double EpotMGSubSolver::sor_loop_cyl( double w ) const
 	    if( err > maxerr )
 		maxerr = err;
 	    if( comp_isinf(err) ) {
-		throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) + 
-			      ", " + to_string(j) ) );
+		throw( Error( ERROR_LOCATION, "Potential inf at location = (" + to_string(i) + 
+			      ", " + to_string(j) + ")" ) );
 	    } else if( comp_isnan(err) ) {
-		throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) + 
-			      ", " + to_string(j) ) );
+		throw( Error( ERROR_LOCATION, "Potential NaN at location = (" + to_string(i) + 
+			      ", " + to_string(j) + ")" ) );
 	    }
 	}
     }
@@ -1436,11 +1436,11 @@ double EpotMGSubSolver::rbgs_loop_3d( void ) const
 		    if( err > maxerr )
 			maxerr = err;
 		    if( comp_isinf(err) ) {
-			throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) + 
-				      ", " + to_string(j) ) );
+			throw( Error( ERROR_LOCATION, "Potential inf at location = (" + to_string(i) + 
+				      ", " + to_string(j) + ", " + to_string(k) + ")" ) );
 		    } else if( comp_isnan(err) ) {
-			throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) + 
-				      ", " + to_string(j) ) );
+			throw( Error( ERROR_LOCATION, "Potential NaN at location = (" + to_string(i) + 
+				      ", " + to_string(j) + ", " + to_string(k) + ")" ) );
 		    }
 		}
 	    }
@@ -1486,11 +1486,11 @@ double EpotMGSubSolver::sor_loop_3d( double w ) const
 		if( err > maxerr )
 		    maxerr = err;
 		if( comp_isinf(err) ) {
-		    throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) + 
-				  ", " + to_string(j) ) );
+		    throw( Error( ERROR_LOCATION, "Potential inf at location = (" + to_string(i) + 
+				  ", " + to_string(j) + ", " + to_string(k) + ")" ) );
 		} else if( comp_isnan(err) ) {
-		    throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) + 
-				  ", " + to_string(j) ) );
+		    throw( Error( ERROR_LOCATION, "Potential NaN at location = (" + to_string(i) + 
+				  ", " + to_string(j) + ", " + to_string(k) + ")" ) );
 		}
 	    }
 	}
