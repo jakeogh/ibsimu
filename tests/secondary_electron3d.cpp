@@ -76,9 +76,9 @@ public:
 		Vec3D tang2 = cross( normal, tang1 );
 		tang1.normalize();
 		tang2.normalize();
-		std::cout << "normal = " << normal << "\n";
-		std::cout << "tang1 = " << tang1 << "\n";
-		std::cout << "tang2 = " << tang2 << "\n";
+		//std::cout << "normal = " << normal << "\n";
+		//std::cout << "tang1 = " << tang1 << "\n";
+		//std::cout << "tang2 = " << tang2 << "\n";
 
 		// Build velp in natural coordinates
 		double azm_angle = 2.0*M_PI*x[1];
@@ -160,7 +160,7 @@ void test( int argc, char **argv )
     
     pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
-    std::cout << "Maxerr = " << maxerr << "\n";
+    //std::cout << "Maxerr = " << maxerr << "\n";
 
     ScalarField tdens( geom );
     pdb.build_trajectory_density_field( tdens );

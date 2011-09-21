@@ -11,7 +11,7 @@
 #include "geomplotter.hpp"
 #include "geometry.hpp"
 #include "bicgstab_solver.hpp"
-#include "vectorfield.hpp"
+#include "meshvectorfield.hpp"
 #include "epot_problem.hpp"
 #include "epot_efield.hpp"
 #include "particles.hpp"
@@ -46,7 +46,7 @@ void test( int argc, char **argv )
 
     // Make magnetic field
     bool fout[3] = {false,false,true};
-    VectorField bfield( MODE_2D, fout, Int3D(2,2,1), Vec3D(-0.05,-0.05,0.0), 0.1 );
+    MeshVectorField bfield( MODE_2D, fout, Int3D(2,2,1), Vec3D(-0.05,-0.05,0.0), 0.1 );
     bfield.set( 0, 0, Vec3D(0,0,1) );
     bfield.set( 1, 0, Vec3D(0,0,1) );
     bfield.set( 0, 1, Vec3D(0,0,1) );

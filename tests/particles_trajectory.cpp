@@ -25,6 +25,7 @@
 #include <iomanip>
 #include "geomplotter.hpp"
 #include "geometry.hpp"
+#include "meshvectorfield.hpp"
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "epot_efield.hpp"
@@ -71,7 +72,7 @@ void test( int argc, char **argv )
     p.construct( geom );
 
     ScalarField epot( geom );
-    VectorField bfield;
+    MeshVectorField bfield;
     ScalarField scharge( geom );
 
     BiCGSTABSolver solver;

@@ -2,7 +2,7 @@ secondary_electron2d_SOURCES = secondary_electron2d.cpp
 secondary_electron3d_SOURCES = secondary_electron3d.cpp
 fieldgraph_SOURCES = fieldgraph.cpp
 transformation_SOURCES = transformation.cpp
-stl_SOURCES = stl.cpp
+#stl_SOURCES = stl.cpp
 beam2d_SOURCES = beam2d.cpp
 beam3d_SOURCES = beam3d.cpp
 beamcyl_SOURCES = beamcyl.cpp
@@ -107,7 +107,6 @@ fielddiagplot \
 fonts \
 frame \
 transformation \
-stl \
 frame_extend_range \
 frame_increase_margin \
 geometry \
@@ -160,6 +159,8 @@ vecfield \
 vecfield_filedef \
 vecfield_rotate \
 vlasov2d
+
+#stl
 
 if UMFPACK
 check_PROGRAMS += umfpack_solver

@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <iostream>
 #include "geometry.hpp"
+#include "meshvectorfield.hpp"
 #include "epot_problem.hpp"
 #include "epot_efield.hpp"
 #include "bicgstab_solver.hpp"
@@ -41,7 +42,7 @@ void test( int argc, char **argv )
     p.solve( epot, scharge );
 
     EpotEfield efield( geom, epot );
-    VectorField bfield;
+    MeshVectorField bfield;
 
     ParticleDataBase2D pdb;
     bool pmirror[6] = { false, false, true, false, false, false };

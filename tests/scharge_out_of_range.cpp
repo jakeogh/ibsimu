@@ -13,6 +13,7 @@
 #include "epot_problem.hpp"
 #include "epot_efield.hpp"
 #include "particles.hpp"
+#include "meshvectorfield.hpp"
 #include "error.hpp"
 #include "ibsimu.hpp"
 
@@ -34,7 +35,7 @@ void test( int argc, char **argv )
     p.construct( g );
 
     ScalarField epot( g );
-    VectorField bfield;
+    MeshVectorField bfield;
     ScalarField scharge( g );
 
     BiCGSTABSolver solver;

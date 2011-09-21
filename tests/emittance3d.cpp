@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <iostream>
 #include "geometry.hpp"
+#include "meshvectorfield.hpp"
 #include "epot_problem.hpp"
 #include "epot_efield.hpp"
 #include "bicgstab_solver.hpp"
@@ -43,7 +44,7 @@ void test( int argc, char **argv )
     p.solve( epot, scharge );
 
     EpotEfield efield( geom, epot );
-    VectorField bfield;
+    MeshVectorField bfield;
 
     // Make a circular beam of Neon (m=20) 6+ with J = 45 A/m2 and radius 5 mm.
     // Starting energy is 3 keV and transverse temperature 1.0 eV.
