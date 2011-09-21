@@ -42,6 +42,8 @@
 
 #include "config.h"
 #include "timer.hpp"
+#include "ibsimu.hpp"
+
 
 #if defined(WIN32) || defined(__MINGW32__)
 #include <windows.h>

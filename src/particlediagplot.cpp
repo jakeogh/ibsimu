@@ -300,8 +300,7 @@ void ParticleDiagPlot::export_data( const std::string &filename )
     build_data();
 
     std::ofstream fstr( filename.c_str() );
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Exporting particle diagnostic data to \'" << filename << "\'\n";
+    ibsimu.message( 1 ) << "Exporting particle diagnostic data to \'" << filename << "\'\n";
 
     // Write header
     if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {

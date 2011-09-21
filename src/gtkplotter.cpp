@@ -79,15 +79,13 @@ GTKPlotter::~GTKPlotter()
 
 void GTKPlotter::run()
 {
-    if( ibsimu.get_verbose_output() ) {
-	ibsimu.vout() << "Running GTKPlotter\n";
-	ibsimu.vout().flush();
-    }
+    ibsimu.message( 1 ) << "Running GTKPlotter\n";
+    ibsimu.inc_indent();
 
     gtk_main();
 
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "  Done\n";
+    ibsimu.message( 1 ) << "Done\n";
+    ibsimu.dec_indent();
 }
 
 
@@ -127,7 +125,7 @@ void GTKPlotter::delete_window( GTKWindow *window )
 {
     std::list<GTKWindow *>::iterator it;
 
-    //std::cout << "Delete window\n";
+    //ibsimu.message( 1 ) << "Delete window\n";
 
     for( it = _windows.begin(); it != _windows.end(); it++ ) {
 	if( *it == window ) {
@@ -138,7 +136,7 @@ void GTKPlotter::delete_window( GTKWindow *window )
     }
 
     if( _windows.size() == 0 ) {
-	//std::cout << "Last window deleted\n";
+	//ibsimu.message( 1 ) << "Last window deleted\n";
 	gtk_main_quit();
     }
 }

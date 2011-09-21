@@ -267,11 +267,9 @@ void *EpotRBGSSolver::iterator_main( uint32_t thno, uint32_t thcount )
 
 	    // If done both Red and Black
 	    if( rb == 0 ) {
-		if( ibsimu.get_verbose_output() ) {
-		    std::stringstream ss;
-		    ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
-		    _sp->print( ss.str() );
-		}
+		std::stringstream ss;
+		ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
+		_sp->print( ss.str() );
 		if( _res < _eps )
 		    _done = true;
 		else
@@ -760,8 +758,7 @@ void EpotRBGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &sch
 {
     Timer t;
 
-    if( ibsimu.get_verbose_output() )
-	std::cout << "  Using Red-Black Gauss-Seidel solver (" 
+	ibsimu.message( 1 ) << "  Using Red-Black Gauss-Seidel solver (" 
 		  << "w = " << _w
 		  << ", imax = " << _imax
 		  << ", eps = " << _eps
@@ -775,12 +772,11 @@ void EpotRBGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &sch
     // Initialize
     if( _sp )
 	delete _sp;
-    _sp = new StatusPrint( std::cout );
-    if( ibsimu.get_verbose_output() ) {
-	std::stringstream ss;
-	ss << "  " << std::setw(5) << 0 << " " << std::scientific << std::setw(20) << 0;
-	_sp->print( ss.str() );
-    }
+    //_sp = new StatusPrint( ibsimu.message( 1 ) );
+    _sp = new StatusPrint;
+    std::stringstream ss;
+    ss << "  " << std::setw(5) << 0 << " " << std::scientific << std::setw(20) << 0;
+    _sp->print( ss.str() );
     _res = 0.0;
     _done = false;
     _done_count = 0;
@@ -807,18 +803,16 @@ void EpotRBGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &sch
     // End timer
     t.stop();
 
-    if( ibsimu.get_verbose_output() ) {
-	std::stringstream ss;
-	ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
-	_sp->print( ss.str(), true );
-	std::cout << "\n";
-	if( _iter == _imax )
-	    std::cout << "  Maximum number of iteration rounds done.\n";
-	std::cout << "  residual error = " << _res << "\n";
-	std::cout << "  iterations = " << _iter << "\n";
-	std::cout << "  time used = " << t << "\n";
-	std::cout << std::flush;
-    }
+    ss.str( "" );
+    ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
+    _sp->print( ss.str(), true );
+    ibsimu.message( 1 ) << "\n";
+    if( _iter == _imax )
+	ibsimu.message( 1 ) << "  Maximum number of iteration rounds done.\n";
+    ibsimu.message( 1 ) << "  residual error = " << _res << "\n";
+    ibsimu.message( 1 ) << "  iterations = " << _iter << "\n";
+    ibsimu.message( 1 ) << "  time used = " << t << "\n";
+    ibsimu.message( 1 ) << std::flush;
 
     // Free rhs and sp
     delete _rhs;

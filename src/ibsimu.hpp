@@ -46,12 +46,25 @@
 
 
 #include <stdint.h>
+#include <stdarg.h>
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 
 class Timer;
+
+
+#define MSG_COUNT 3
+
+/*! \brief Output type
+ */
+enum message_type_e {
+    MSG_VERBOSE = 0,
+    MSG_DEBUG_GENERAL,
+    MSG_DEBUG_DXF
+};
 
 
 /*! \brief Main class for %IBSimu.
@@ -64,17 +77,35 @@ class IBSimu
     Timer        *_t;
 
     bool          _hello;
-    int32_t       _verbose_output;
     uint32_t      _threadcount;
     
-    bool          _is_cout;         // True if vout is std::cout
-    std::ostream *_vout;            // Verbose output stream
+    struct nullstream: std::ostream {
+	struct nullbuf: std::streambuf {
+	    int overflow( int c ) { return( traits_type::not_eof(c) ); }
+	} m_sbuf;
+	nullstream(): std::ios(&m_sbuf), std::ostream(&m_sbuf) {}
+    };
 
-    std::ofstream _fout;            // Verbose output file
+    std::stringstream  _ss;
+    nullstream         _ns;
+    std::ofstream      _fo;
+    std::ostream      *_os;             // Message output stream
 
-    IBSimu( const IBSimu &ibs ) : _vout(ibs._vout) {}
+    int32_t       _indent;
+    int32_t       _message_threshold[MSG_COUNT];
+
+    /*! \brief Copy constructor
+     *
+     *  Private. Prevent copying
+     */
+    IBSimu( const IBSimu &ibs );
 
     const IBSimu &operator=( const IBSimu &ibs ) { return( *this ); }
+
+    size_t convert_stringstream_to_lines( const std::stringstream &ss,
+					  size_t indentation,
+					  std::string &target,
+					  bool &lineunfinished );
 
 public:
 
@@ -86,43 +117,66 @@ public:
      */
     ~IBSimu();
 
-    /*! \brief Set verbose output to stream \a vout
+    /*! \brief Set message output to stream \a os.
      *
-     *  Returns a reference to the old output stream.
+     *  Returns a reference to the old stream or nullstream if
+     *  previous output file was a file opened by IBSimu.
      */
-    std::ostream &set_vout( std::ostream &vout );
+    std::ostream &set_message_output( std::ostream &os );
 
-    /*! \brief Set verbose output to file \a filename.
+    /*! \brief Set message output to file \a filename.
      *
-     *  Returns a reference to the old output stream. If the output
-     *  stream is redefined, the file is kept open in the
-     *  background. IBSimu can only have one output stream opened at
-     *  time with this function. The file is closed when the IBSimu
-     *  object is destructed.
+     *  Returns a reference to the old output stream or nullstream if
+     *  previous output file was a file opened by IBSimu. If output
+     *  stream is redefined after using this function, the file will be
+     *  automatically closed.  The file will also be closed when the
+     *  IBSimu object is destructed.
      */
-    std::ostream &set_vout( const std::string &filename );
+    std::ostream &set_message_output( const std::string &filename );
 
-    /*! \brief Get a reference to verbose output stream.
-     */
-    std::ostream &vout( void );
-
-    /*! \brief Return if verbose output stream is std::cout.
-     */
-    bool vout_is_cout();
-
-    /*! \brief Set verbosity level.
+    /*! \brief Print message output.
      *
-     *  Values less than or equal to zero mean no output will be
-     *  printed. A value of 1 is used for standard amount of verbose
-     *  output. Values of 2 for extended amount of output.
+     *  Returns a reference to stream for output \a type and
+     *  importance \a level. If level is larger than threshold the
+     *  function returns a reference to nullstream and nothing will be
+     *  printed.
      */
-    void set_verbose_output( int32_t level );
+    std::ostream &message( message_type_e type, int32_t level );
 
-    /*! \brief Get verbosity level.
+    std::ostream &message( int32_t level );
+
+    void flush( bool finishlines = true );
+
+    /*! \brief Increase message indentation.
+     */
+    void inc_indent( void );
+
+    /*! \brief Decrease message indentation.
+     */
+    void dec_indent( void );
+
+    /*! \brief Return if message output file is stdout.
+     */
+    bool output_is_cout();
+
+    /*! \brief Set message threshold level.
+     *
+     *  Only messages with level lower than or equal to the threshold
+     *  will be printed. A value of 1 is used for standard amount of
+     *  output. Value of 2 for extended amount of output. Message
+     *  thresholds default to 0 (no output). For enabling the debug
+     *  messages, the library has to be compiled with debugging enabled.
+     */
+    void set_message_threshold( message_type_e type, int32_t level );
+
+    /*! \brief Get message threshold level.
      *
      *  Values less than or equal to zero mean no output will be printed.
      */
-    int32_t get_verbose_output( void ) { return( _verbose_output ); }
+    int32_t get_message_threshold( message_type_e type );
+
+
+
 
     /*! \brief Set the number of threads used for calculation.
      */

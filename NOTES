@@ -1,3 +1,19 @@
+infostreamer
+
+ - make separate class for streamer(s)
+ - Implementation through ibsimu: one stream with several different
+   channels: debug(several) and verbose output
+ - Solution: verbose is just one of the types.
+ - set_output( stream )
+ - inc_indent( type ), dec_indent( type )
+ - set_verbose_level( type, level )
+ - printing: 
+   * verbose( level ) << stream
+   * debug( type, level ) << stream
+
+- Printing has a problem because a separate flush is needed. 
+Go for printf style?
+
 handle_trajectory() / build_coldata()
 
  - The method which is now used is very sensitive to rounding of

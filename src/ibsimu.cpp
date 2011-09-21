@@ -51,9 +51,20 @@
 
 
 
-IBSimu::IBSimu()
-    : _hello(false), _verbose_output(0), _threadcount(1), _is_cout(true), _vout(&std::cout)
+IBSimu::IBSimu( const IBSimu &ibs )
+    : _t(0), _os(&_ns)
 {
+
+}
+
+
+IBSimu::IBSimu()
+    : _hello(false), _threadcount(1), _os(&std::cout), _indent(0)
+{
+    // Set message level thresholds to default
+    for( int a = 0; a < MSG_COUNT; a++ )
+	_message_threshold[a] = 0;
+
 #ifdef _GNU_SOURCE
     // Set a catch for segmentation fault
     struct sigaction act_sigsegv;
@@ -79,72 +90,178 @@ IBSimu::IBSimu()
 
 IBSimu::~IBSimu()
 {
-    // End timer
     _t->stop();
+    message( 1 ) << "Ending simulation\n";
+    message( 1 ) << "  time used = " << *_t << "\n";
+    flush();
 
-    if( _verbose_output ) {
-	vout() << "Ending simulation\n";
-	vout() << "  time used = " << *_t << "\n";
-	vout() << std::flush;
-    }
-
-    // Close the verbose output file if it is open
-    if( _fout.is_open() )
-	_fout.close();
+    // Close the message output file if it is open
+    if( _fo.is_open() )
+	_fo.close();
 
     delete _t;
 }
 
 
-std::ostream &IBSimu::set_vout( std::ostream &vout )
+std::ostream &IBSimu::message( message_type_e type, int32_t level )
 {
-    if( vout == std::cout )
-	_is_cout = true;
-    std::ostream &vout_old = *_vout;
-    _vout = &vout;
-    return( vout_old );
+    if( type >= MSG_COUNT || type < 0 )
+	throw( Error( ERROR_LOCATION, "invalid output type" ) );
+
+    if( level > _message_threshold[type] )
+	return( _ns );
+
+    //return( *_os );
+    return( _ss );
 }
 
 
-std::ostream &IBSimu::set_vout( const std::string &filename )
+std::ostream &IBSimu::message( int32_t level )
 {
-    if( _fout.is_open() )
-	throw( Error( ERROR_LOCATION, "Trying to open verbose output "
-		      "file with previous file still open" ) );
-	
-    std::ostream &vout_old = *_vout;
-    _fout.open( filename.c_str() );
-    if( !_fout.good() )
-	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
-    _vout = &_fout;
-    _is_cout = false;
-    return( vout_old );
+    if( level > _message_threshold[MSG_VERBOSE] )
+	return( _ns );
+
+    flush();
+
+    //return( *_os );
+    return( _ss );
 }
 
 
-std::ostream &IBSimu::vout( void ) 
+void IBSimu::inc_indent( void )
 {
-    _vout->flush();
-    return( *_vout ); 
+    flush();
+    _indent++;
 }
 
 
-bool IBSimu::vout_is_cout()
+void IBSimu::dec_indent( void )
 {
-    return( _is_cout ); 
+    flush();
+    _indent--;
 }
 
 
-void IBSimu::set_verbose_output( int32_t level )
+std::ostream &IBSimu::set_message_output( std::ostream &os )
 {
-    // Set verbosity level
-    _verbose_output = level;
+    if( _fo.is_open() ) {
+	_fo.close();
+	_os = &os;
+	return( _ns );
+    } else {
+	std::ostream *osold = _os;
+	_os = &os;
+	return( *osold );
+    }
+}
+
+
+std::ostream &IBSimu::set_message_output( const std::string &filename )
+{
+    if( _fo.is_open() ) {
+	_fo.close();
+	_fo.open( filename.c_str() );
+	if( !_fo.is_open() )
+	    throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
+	_os = &_fo;
+	return( _ns );
+    } else {
+	std::ostream *osold = _os;
+	_fo.open( filename.c_str() );
+	if( !_fo.is_open() )
+	    throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
+	_os = &_fo;
+	return( *osold );
+    }
+}
+
+
+bool IBSimu::output_is_cout()
+{
+    return( _os == &std::cout ); 
+}
+
+
+void IBSimu::set_message_threshold( message_type_e type, int32_t level )
+{
+    if( type >= MSG_COUNT || type < 0 )
+	throw( Error( ERROR_LOCATION, "invalid output message type" ) );
+
+    // Set message threshold level
+    _message_threshold[type] = level;
 
     // If setting to verbose mode and no greeting has yet been shown
-    if( level > 0 && !_hello ) {
+    if( type == MSG_VERBOSE && level > 0 && !_hello ) {
 	_hello = true;
-	vout() << "Ion Beam Simulator " << VERSION << " (" IBSIMU_GIT_ID ")\n";
+	message( 1 ) << "Ion Beam Simulator " VERSION " (" IBSIMU_GIT_ID ")\n";
     }
+}
+
+
+int32_t IBSimu::get_message_threshold( message_type_e type )
+{
+    if( type >= MSG_COUNT || type < 0 )
+	throw( Error( ERROR_LOCATION, "invalid output type" ) );
+
+    return( _message_threshold[type] );
+}
+
+
+void IBSimu::flush( bool finishlines )
+{
+    std::string stmp;
+    bool        lineunfinished;
+    convert_stringstream_to_lines( _ss,
+				   _indent*2,
+				   stmp,
+				   lineunfinished );
+    *_os << stmp;
+    *_os << std::flush;
+
+    //if( lineunfinished && finishlines )
+    //*_os << "\n";
+
+    _ss.str( "" );   
+}
+
+
+size_t IBSimu::convert_stringstream_to_lines( const std::stringstream &ss,
+					      size_t indentation,
+					      std::string &target,
+					      bool &lineunfinished )
+{
+    std::string stmp( ss.str() );
+
+    lineunfinished = false;
+
+    if( stmp.size() ) {
+	for( size_t i = 0; i < indentation; i++ )
+	    target += ' ';
+	lineunfinished = true;
+    }
+
+    
+    size_t pos = 0;
+    size_t linecount = 0;
+    while( pos < stmp.size() ) {
+	if( stmp[pos] == '\n' ) {
+	    lineunfinished = false;
+	    ++linecount;
+	    
+	    target += '\n'; 
+	} else {
+	    if( lineunfinished == false )
+		for( size_t i = 0; i < indentation; i++ )
+		    target += ' ';
+	    
+	    target += stmp[pos]; 
+	    lineunfinished = true;
+	}
+	
+	pos++;
+    }
+
+    return( linecount );
 }
 
 

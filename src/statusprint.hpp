@@ -44,16 +44,15 @@
 #define STATUSPRINT_HPP 1
 
 
-#include <iostream>
+#include <ostream>
 #include <time.h>
-#include <iostream>
 
 
 /*! \brief A tool for printing running status on command line.
  */
 class StatusPrint {
     
-    std::ostream &_os;
+    //std::ostream &_os;
     size_t        _width;
     time_t        _time;
 
@@ -61,13 +60,14 @@ public:
 
     /*! \brief Constructor for printing status to stream \a os.
      */
-    StatusPrint( std::ostream &os );
+    //StatusPrint( std::ostream &os );
+    StatusPrint();
 
     /*! \brief Destructor.
      */
     ~StatusPrint();
 
-    /*! \brief Print str to output stream.
+    /*! \brief Print \a str to output.
      *
      *  Printing is only done is time returned by system time() has
      *  changed. This enforces a maximum update frequency of 1 update

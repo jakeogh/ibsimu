@@ -72,14 +72,13 @@ Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
 {
     check_definition();
 
-    if( ibsimu.get_verbose_output() ) {
-	ibsimu.vout() << "Constructing geometry\n";
-	ibsimu.vout() << "  origo     = " << _origo << "\n";
-	ibsimu.vout() << "  size      = " << _size << "\n";
-	ibsimu.vout() << "  max       = " << _max << "\n";
-	ibsimu.vout() << "  h         = " << _h << "\n";
-	ibsimu.vout() << "  nodecount = " << nodecount() << "\n";
-    }
+    ibsimu.message( 1 ) << "Constructing geometry\n";
+    ibsimu.inc_indent();
+    ibsimu.message( 1 ) << "origo     = " << _origo << "\n";
+    ibsimu.message( 1 ) << "size      = " << _size << "\n";
+    ibsimu.message( 1 ) << "max       = " << _max << "\n";
+    ibsimu.message( 1 ) << "h         = " << _h << "\n";
+    ibsimu.message( 1 ) << "nodecount = " << nodecount() << "\n";
 
     _n = 0;
     _bound.push_back( Bound(BOUND_NEUMANN,0.0) );
@@ -91,6 +90,8 @@ Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
 
     _built = false;
     _smesh = new uint32_t[_size[0]*_size[1]*_size[2]];
+
+    ibsimu.dec_indent();
 }
 
 
@@ -99,8 +100,8 @@ Geometry::Geometry( std::istream &is )
 {
     check_definition();
 
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Constructing Geometry from stream\n";
+    ibsimu.message( 1 ) << "Constructing Geometry from stream\n";
+    ibsimu.inc_indent();
 
     _n = read_int32( is );
     for( uint32_t a = 0; a < _n; a++ ) {
@@ -125,6 +126,9 @@ Geometry::Geometry( std::istream &is )
     _nearsolid.resize( nearsolidsize );
     read_compressed_block( is, sizeof(uint8_t)*nearsolidsize, 
 			   (int8_t *)&_nearsolid[0] );
+
+    ibsimu.message( 1 ) << "Done\n";
+    ibsimu.dec_indent();
 }
 
 
@@ -740,8 +744,8 @@ void Geometry::add_near_solid_entry( uint32_t &near_solid_index, int32_t i, int3
 
 void Geometry::build_mesh( void )
 {
-    if( ibsimu.get_verbose_output() )
-	std::cout << "Building mesh\n";
+    ibsimu.message( 1 ) << "Building mesh\n";
+    ibsimu.inc_indent();
 
     _built = true;
 
@@ -862,47 +866,46 @@ void Geometry::build_mesh( void )
     }
 
     // Report node counts
-    if( ibsimu.get_verbose_output() ) {
-	int b;
-	uint32_t ncount = nodecount();
-	uint32_t nvacuum = 0;
-	uint32_t nnearsolid = 0;
-	uint32_t nneumann = 0;
-	uint32_t ndirichlet = 0;
-	int nsolid[_n];
-	for( uint32_t a = 0; a < _n; a++ )
-	    nsolid[a] = 0;
-
-	for( uint32_t a = 0; a < ncount; a++ ) {
-
-	    switch( mesh(a) & SMESH_NODE_ID_MASK ) {
-	    case SMESH_NODE_ID_NEAR_SOLID:
-		nnearsolid++;
-		break;
-	    case SMESH_NODE_ID_PURE_VACUUM:
-		nvacuum++;
-		break;
-	    case SMESH_NODE_ID_NEUMANN:
-		nneumann++;
-		if( (b = (mesh(a) & SMESH_BOUNDARY_NUMBER_MASK)) >= 7 )
-		    nsolid[b-7]++;
-		break;
-	    case SMESH_NODE_ID_DIRICHLET:
-		ndirichlet++;
-		if( (b = (mesh(a) & SMESH_BOUNDARY_NUMBER_MASK)) >= 7 )
-		    nsolid[b-7]++;
-		break;
-	    }
-	}
+    int b;
+    uint32_t ncount = nodecount();
+    uint32_t nvacuum = 0;
+    uint32_t nnearsolid = 0;
+    uint32_t nneumann = 0;
+    uint32_t ndirichlet = 0;
+    int nsolid[_n];
+    for( uint32_t a = 0; a < _n; a++ )
+	nsolid[a] = 0;
+    
+    for( uint32_t a = 0; a < ncount; a++ ) {
 	
-	std::cout << "  Done. Built mesh with:\n";
-	std::cout << "  " << nvacuum << " pure vacuum nodes\n";
-	std::cout << "  " << nnearsolid << " near solid nodes\n";
-	std::cout << "  " << nneumann << " neumann nodes\n";
-	std::cout << "  " << ndirichlet << " dirichlet nodes\n";
-	for( uint32_t a = 0; a < _n; a++ )
-	    std::cout << "  " << nsolid[a] << " solid " << a+7 << " nodes\n";
+	switch( mesh(a) & SMESH_NODE_ID_MASK ) {
+	case SMESH_NODE_ID_NEAR_SOLID:
+	    nnearsolid++;
+	    break;
+	case SMESH_NODE_ID_PURE_VACUUM:
+	    nvacuum++;
+	    break;
+	case SMESH_NODE_ID_NEUMANN:
+	    nneumann++;
+	    if( (b = (mesh(a) & SMESH_BOUNDARY_NUMBER_MASK)) >= 7 )
+		nsolid[b-7]++;
+	    break;
+	case SMESH_NODE_ID_DIRICHLET:
+	    ndirichlet++;
+	    if( (b = (mesh(a) & SMESH_BOUNDARY_NUMBER_MASK)) >= 7 )
+		nsolid[b-7]++;
+	    break;
+	}
     }
+    
+    ibsimu.message( 1 ) << "Done. Built mesh with:\n";
+    ibsimu.message( 1 ) << nvacuum << " pure vacuum nodes\n";
+    ibsimu.message( 1 ) << nnearsolid << " near solid nodes\n";
+    ibsimu.message( 1 ) << nneumann << " neumann nodes\n";
+    ibsimu.message( 1 ) << ndirichlet << " dirichlet nodes\n";
+    for( uint32_t a = 0; a < _n; a++ )
+	ibsimu.message( 1 ) << nsolid[a] << " solid " << a+7 << " nodes\n";
+    ibsimu.dec_indent();
 }
 
 
@@ -958,8 +961,7 @@ uint8_t Geometry::solid_dist( uint32_t i, uint32_t dir ) const
 
 void Geometry::save( const std::string &filename ) const
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Saving Geometry to file \'" << filename << "\'.\n";
+    ibsimu.message( 1 ) << "Saving Geometry to file \'" << filename << "\'.\n";
 
     std::ofstream os( filename.c_str() );
     if( !os.good() )

@@ -356,9 +356,8 @@ void EpotEfield::precalc_3d( void )
  */
 void EpotEfield::precalc( void )
 {
-    if( ibsimu.get_verbose_output() ) {
-	std::cout << "Calculating efield\n";
-    }
+    ibsimu.message( 1 ) << "Calculating efield\n";
+    ibsimu.inc_indent();
 
     // Delete old fields
     for( size_t i = 0; i < 3; i++ ) {
@@ -378,6 +377,8 @@ void EpotEfield::precalc( void )
 	precalc_3d();
 	break;
     }
+
+    ibsimu.dec_indent();
 }
 
 

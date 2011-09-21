@@ -46,6 +46,7 @@ void test( int argc, char **argv )
 {
     //Geometry geom( MODE_2D, Int3D(121,71,1), Vec3D(0,0,0), 1e-4 );
     Geometry geom( MODE_2D, Int3D(241,141,1), Vec3D(0,0,0), 5e-5 );
+    //Geometry geom( MODE_2D, Int3D(1201,701,1), Vec3D(0,0,0), 1e-5 );
 
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
@@ -62,9 +63,9 @@ void test( int argc, char **argv )
     //EpotMGSolver solver( geom );
     //solver.set_mgcycmax( 2 );
     //solver.set_levels( 4 );
-    EpotUMFPACKSolver solver( geom );
+    //EpotUMFPACKSolver solver( geom );
     //EpotGSSolver solver( geom );
-    //EpotBiCGSTABSolver solver( geom );
+    EpotBiCGSTABSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_initial_plasma( 5.0, &initp );
 

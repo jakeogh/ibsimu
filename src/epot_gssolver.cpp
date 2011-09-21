@@ -855,17 +855,16 @@ void EpotGSSolver::postprocess( void )
 
 void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &scharge )
 {
-    StatusPrint sp( std::cout );
-    if( ibsimu.get_verbose_output() ) {
-	std::cout << "  Using Gauss-Seidel solver (" 
-		  << "w = " << _w
-		  << ", imax = " << _imax
-		  << ", eps = " << _eps
-		  << ")\n";
-	std::stringstream ss;
-	ss << "  " << std::setw(5) << 0 << " " << std::scientific << std::setw(20) << 0;
-	sp.print( ss.str() );
-    }
+    //StatusPrint sp( ibsimu.message( 1 ) );
+    StatusPrint sp;
+    ibsimu.message( 1 ) << "Using Gauss-Seidel solver (" 
+			<< "w = " << _w
+			<< ", imax = " << _imax
+			<< ", eps = " << _eps
+			<< ")\n";
+    std::stringstream ss;
+    ss << std::setw(5) << 0 << " " << std::scientific << std::setw(20) << 0;
+    sp.print( ss.str() );
 
     // Set epot pointer and preprocess
     _epot = &epot;
@@ -885,11 +884,9 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 	else
 	    throw( ErrorUnimplemented( ERROR_LOCATION ) );
 
-	if( ibsimu.get_verbose_output() ) {
-	    std::stringstream ss;
-	    ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
-	    sp.print( ss.str() );
-	}
+	std::stringstream ss;
+	ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
+	sp.print( ss.str() );
 
 	_iter++;
 	if( _res < _eps )
@@ -901,16 +898,14 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
     // Postprocess
     postprocess();
 
-    if( ibsimu.get_verbose_output() ) {
-	std::stringstream ss;
-	ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
-	sp.print( ss.str(), true );
-	std::cout << "\n";
-	if( _iter == _imax )
-	    std::cout << "  Maximum number of iteration rounds done.\n";
-	std::cout << "  residual error = " << _res << "\n";
-	std::cout << "  iterations = " << _iter << "\n";
-    }
+    std::stringstream ss2;
+    ss2 << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
+    sp.print( ss2.str(), true );
+    ibsimu.message( 1 ) << "\n";
+    if( _iter == _imax )
+	ibsimu.message( 1 ) << "Maximum number of iteration rounds done.\n";
+    ibsimu.message( 1 ) << "residual error = " << _res << "\n";
+    ibsimu.message( 1 ) << "iterations = " << _iter << "\n";
 }
 
 

@@ -305,9 +305,9 @@ public:
 					double val,
 					const std::vector<trajectory_diagnostic_e> &diagnostics ) const {
 
-	if( ibsimu.get_verbose_output() )
-	    ibsimu.vout() << "Making trajectory diagnostics at " 
-		      << coordinate_axis_string[axis] << " = " << val << "\n";
+	ibsimu.message( 1 ) << "Making trajectory diagnostics at " 
+			    << coordinate_axis_string[axis] << " = " << val << "\n";
+	ibsimu.inc_indent();
 
 	// Check query
 	switch( PP::geom_mode() ) {
@@ -407,13 +407,12 @@ public:
 	    }
 	}
 
-	if( ibsimu.get_verbose_output() ) {
-	    ibsimu.vout() << "  number of trajectories = " << tdata.traj_size() << "\n";
-	    if( PP::geom_mode() == MODE_2D )
-		ibsimu.vout() << "  total current = " << Isum << " A/m\n";
-	    else
-		ibsimu.vout() << "  total current = " << Isum << " A\n";
-	}
+	ibsimu.message( 1 ) << "number of trajectories = " << tdata.traj_size() << "\n";
+	if( PP::geom_mode() == MODE_2D )
+	    ibsimu.message( 1 ) << "total current = " << Isum << " A/m\n";
+	else
+	    ibsimu.message( 1 ) << "total current = " << Isum << " A\n";
+	ibsimu.dec_indent();
     }
 
     virtual void clear( void ) { 
@@ -456,10 +455,8 @@ public:
 				       const VectorField &bfield, const Geometry &geom ) {
 
 	Timer t;
-	if( ibsimu.get_verbose_output() ) {
-	    ibsimu.vout() << "Calculating particle trajectories\n";
-	    ibsimu.vout().flush();
-	}
+	ibsimu.message( 1 ) << "Calculating particle trajectories\n";
+	ibsimu.inc_indent();
 	_iteration++;
 
 	// Check geometry mode
@@ -474,7 +471,8 @@ public:
 
 	// Check number of particles
 	if( _particles.size() == 0 ) {
-	    ibsimu.vout() << "  no particles to calculate\n";
+	    ibsimu.message( 1 ) << "no particles to calculate\n";
+	    ibsimu.dec_indent();
 	    return;
 	}
 
@@ -514,22 +512,20 @@ public:
 	scharge_finalize( scharge );
 	
 	t.stop();
-	if( ibsimu.get_verbose_output() ) {
-	    ibsimu.vout() << "  Particle histories (" << _particles.size() << " total):\n";
-	    ibsimu.vout() << "    flown = " << _stat.bound_collisions() << "\n";
-	    ibsimu.vout() << "    time limited = " << _stat.end_time() << "\n";
-	    ibsimu.vout() << "    step count limited = " << _stat.end_step() << "\n";
-	    ibsimu.vout() << "    bad definitions = " << _stat.end_baddef() << "\n";
-	    for( size_t a = 1; a <= _stat.number_of_boundaries(); a++ ) {
-		ibsimu.vout() << "    beam to boundary " << a << " = " << _stat.bound_current(a)
-			  << " " << PP::IQ_unit() << " (" << _stat.bound_collisions(a) << " particles)" << "\n";
-	    }
-	    ibsimu.vout() << "    total steps = " << _stat.sum_steps() << "\n";
-	    ibsimu.vout() << "    steps per particle (ave) = " << 
-		_stat.sum_steps()/(double)_particles.size() << "\n";
-	    ibsimu.vout() << "  time used = " << t << "\n";
-	    ibsimu.vout().flush();
+	ibsimu.message( 1 ) << "Particle histories (" << _particles.size() << " total):\n";
+	ibsimu.message( 1 ) << "  flown = " << _stat.bound_collisions() << "\n";
+	ibsimu.message( 1 ) << "  time limited = " << _stat.end_time() << "\n";
+	ibsimu.message( 1 ) << "  step count limited = " << _stat.end_step() << "\n";
+	ibsimu.message( 1 ) << "  bad definitions = " << _stat.end_baddef() << "\n";
+	for( size_t a = 1; a <= _stat.number_of_boundaries(); a++ ) {
+	    ibsimu.message( 1 ) << "  beam to boundary " << a << " = " << _stat.bound_current(a)
+				<< " " << PP::IQ_unit() << " (" << _stat.bound_collisions(a) << " particles)" << "\n";
 	}
+	ibsimu.message( 1 ) << "  total steps = " << _stat.sum_steps() << "\n";
+	ibsimu.message( 1 ) << "  steps per particle (ave) = " << 
+	    _stat.sum_steps()/(double)_particles.size() << "\n";
+	ibsimu.message( 1 ) << "time used = " << t << "\n";
+	ibsimu.dec_indent();
     }
 
     virtual void step_particles( MeshScalarField &scharge, const VectorField &efield, 

@@ -613,8 +613,7 @@ void EpotMatrixSolver::preprocess( MeshScalarField &epot, const MeshScalarField 
 	}
     }
 
-    if( ibsimu.get_verbose_output() )
-        std::cout << "  dof = " << _dof << "\n";
+    ibsimu.message( 1 ) << "dof = " << _dof << "\n";
     if( _dof == 0 )
         throw( Error( ERROR_LOCATION, "zero degrees of freedom" ) );
     
@@ -636,8 +635,8 @@ void EpotMatrixSolver::build_mat_vec( void )
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
             for( uint32_t i = 0; i < _geom.size(0); i++ ) {
 
-		//std::cout << "\n";
-		//std::cout << "epot(" << i << ", " << j << ", " << k << ") = " << epot(i,j,k) << "\n";
+		//ibsimu.message( 1 ) << "\n";
+		//ibsimu.message( 1 ) << "epot(" << i << ", " << j << ", " << k << ") = " << epot(i,j,k) << "\n";
 
 		uint32_t a = (k*_geom.size(1)+j)*_geom.size(0)+i;
 		uint32_t mesh = _geom.mesh(a);
@@ -645,16 +644,16 @@ void EpotMatrixSolver::build_mat_vec( void )
 		bool fixed = mesh & SMESH_NODE_FIXED;
 
 		if( fixed ) {
-		    //std::cout << "Fixed\n";
+		    //ibsimu.message( 1 ) << "Fixed\n";
 		    continue;
 		} else if( node_id == SMESH_NODE_ID_PURE_VACUUM ) {
-		    //std::cout << "Vacuum\n";
+		    //ibsimu.message( 1 ) << "Vacuum\n";
 		    add_vacuum_node( i, j, k );
 		} else if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
-		    //std::cout << "Near solid\n";
+		    //ibsimu.message( 1 ) << "Near solid\n";
 		    add_near_solid_node( i, j, k );
 		} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
-		    //std::cout << "Neumann\n";
+		    //ibsimu.message( 1 ) << "Neumann\n";
 		    add_neumann_node( i, j, k, mesh & SMESH_BOUNDARY_NUMBER_MASK );
 		}
 	    }

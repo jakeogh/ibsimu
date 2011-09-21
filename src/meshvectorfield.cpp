@@ -101,8 +101,7 @@ MeshVectorField::MeshVectorField( std::istream &s )
 {
     check_definition();
 
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Constructing MeshVectorField from stream\n";
+    ibsimu.message( 1 ) << "Constructing MeshVectorField from stream\n";
 
     for( int i = 0; i < 6; i++ )
 	_extrpl[i] = (field_extrpl_e)read_int32( s );
@@ -131,8 +130,7 @@ MeshVectorField::MeshVectorField( geom_mode_e geom_mode, const bool fout[3], dou
 {
     _extrpl[0] = _extrpl[1] = _extrpl[2] = _extrpl[3] = _extrpl[4] = _extrpl[5] = FIELD_EXTRAPOLATE;
 
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Reading vector field from \'" << filename << "\'\n";
+    ibsimu.message( 1 ) << "Reading vector field from \'" << filename << "\'\n";
 
     // Set number of dimensions (cdim) 
     size_t cdim;
@@ -228,12 +226,10 @@ MeshVectorField::MeshVectorField( geom_mode_e geom_mode, const bool fout[3], dou
 	throw( Error( ERROR_LOCATION, ss.str() ) );
     }
 
-    if( ibsimu.get_verbose_output() ) {
-	ibsimu.vout() << "  origo = " << origo << "\n";
-	ibsimu.vout() << "  size  = " << size << "\n";
-	ibsimu.vout() << "  max   = " << max << "\n";
-	ibsimu.vout() << "  h     = " << h << "\n";
-    }
+    ibsimu.message( 1 ) << "  origo = " << origo << "\n";
+    ibsimu.message( 1 ) << "  size  = " << size << "\n";
+    ibsimu.message( 1 ) << "  max   = " << max << "\n";
+    ibsimu.message( 1 ) << "  h     = " << h << "\n";
 
     // Prepare MeshVectorField
     Mesh::reset( geom_mode, size, origo, h );
@@ -344,13 +340,11 @@ MeshVectorField::MeshVectorField( geom_mode_e geom_mode,
 
     check_definition();
 
-    if( ibsimu.get_verbose_output() ) {
-	ibsimu.vout() << "Making vector field from conversion\n";
-	ibsimu.vout() << "  origo = " << origo << "\n";
-	ibsimu.vout() << "  size  = " << size << "\n";
-	ibsimu.vout() << "  max   = " << max() << "\n";
-	ibsimu.vout() << "  h     = " << h << "\n";
-    }
+    ibsimu.message( 1 ) << "Making vector field from conversion\n";
+    ibsimu.message( 1 ) << "  origo = " << origo << "\n";
+    ibsimu.message( 1 ) << "  size  = " << size << "\n";
+    ibsimu.message( 1 ) << "  max   = " << max() << "\n";
+    ibsimu.message( 1 ) << "  h     = " << h << "\n";
 
     for( size_t i = 0; i < 3; i++ ) {
 	if( fout[i] ) {
@@ -1061,8 +1055,7 @@ const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
 
 void MeshVectorField::save( const std::string &filename ) const
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Saving MeshVectorField to file \'" << filename << "\'.\n";
+    ibsimu.message( 1 ) << "Saving MeshVectorField to file \'" << filename << "\'.\n";
 
     std::ofstream os( filename.c_str() );
     if( !os.good() )

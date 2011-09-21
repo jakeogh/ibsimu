@@ -155,12 +155,11 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 
     if( linear() ) {
 
-	if( ibsimu.get_verbose_output() ) {
-	    std::cout << "  Using BiCGSTAB solver("
-		      << " imax = " << _imax
-		      << ", eps = " << _eps
-		      << " )\n";
-	}
+	ibsimu.message( 1 ) << "Using BiCGSTAB solver("
+			    << " imax = " << _imax
+			    << ", eps = " << _eps
+			    << " )\n";
+	ibsimu.flush();
 	    
 	// Fetch matrix form of problem
 	const Matrix *A;
@@ -174,12 +173,11 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 	_iter = imax;
 	_res = _res_coef * eps;
 
-	if( ibsimu.get_verbose_output() ) {
-	    if( _iter == _imax )
-		std::cout << "  Maximum number of iteration rounds done.\n";
-            std::cout << "  residual error = " << _res << "\n";
-            std::cout << "  iterations = " << _iter << "\n";
-        }
+	if( _iter == _imax )
+	    ibsimu.message( 1 ) << "Maximum number of iteration rounds done.\n";
+	ibsimu.message( 1 ) << "residual error = " << _res << "\n";
+	ibsimu.message( 1 ) << "iterations = " << _iter << "\n";
+	ibsimu.flush();
 
     } else {
 
@@ -192,22 +190,21 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 
 	if( _gnewton ) {
 
-	    if( ibsimu.get_verbose_output() ) {
-		std::cout << "  Using Newton-Raphson BiCGSTAB solver("
-			  << " imax = " << _imax
-			  << ", eps = " << _eps
-			  << ", newton_imax = " << _newton_imax
-			  << ", newton_reps = " << _newton_Reps
-			  << ", newton_dxeps = " << _newton_dXeps
-			  << " )\n";
-		std::cout << "    " 
-			  << std::setw(5)  << "Round" << " " 
-			  << std::setw(8)  << "Iter" << " " 
-			  << std::setw(14) << "Step size" << " " 
-			  << std::setw(14) << "Step fac" << " " 
-			  << std::setw(14) << "Residual" << "\n";
-	    }
-
+	    ibsimu.message( 1 ) << "Using Newton-Raphson BiCGSTAB solver("
+				<< " imax = " << _imax
+				<< ", eps = " << _eps
+				<< ", newton_imax = " << _newton_imax
+				<< ", newton_reps = " << _newton_Reps
+				<< ", newton_dxeps = " << _newton_dXeps
+				<< " )\n";
+	    ibsimu.message( 1 ) << "  " 
+				<< std::setw(5)  << "Round" << " " 
+				<< std::setw(8)  << "Iter" << " " 
+				<< std::setw(14) << "Step size" << " " 
+				<< std::setw(14) << "Step fac" << " " 
+				<< std::setw(14) << "Residual" << "\n";
+	    ibsimu.flush();
+	    
 	    // Globally convergent Newton-Raphson
             Vector Xold( X.size() );
 
@@ -243,14 +240,13 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
                 accR = max_abs( *R );
                 accX = t*max_abs( dX );
 
-                if( ibsimu.get_verbose_output() ) {
-		    std::cout << "    " 
-			      << std::setw(5)  << a << " " 
-			      << std::setw(8)  << imax << " " 
-			      << std::setw(14) << accX << " " 
-			      << std::setw(14) << t << " " 
-			      << std::setw(14) << accR << "\n";
-                }
+		ibsimu.message( 1 ) << "  " 
+				    << std::setw(5)  << a << " " 
+				    << std::setw(8)  << imax << " " 
+				    << std::setw(14) << accX << " " 
+				    << std::setw(14) << t << " " 
+				    << std::setw(14) << accR << "\n";
+		ibsimu.flush();
                 
                 if( accR < _newton_Reps || (t == 1.0 && accX < _newton_dXeps) || imax_sum >= _imax )
                     break;
@@ -258,20 +254,19 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 
 	} else {
 
-	    if( ibsimu.get_verbose_output() ) {
-		std::cout << "  Using Newton-Raphson BiCGSTAB solver("
-			  << " imax = " << _imax
-			  << ", eps = " << _eps
-			  << ", newton_imax = " << _newton_imax
-			  << ", newton_reps = " << _newton_Reps
-			  << ", newton_dxeps = " << _newton_dXeps
-			  << " )\n";
-		std::cout << "    " 
-			  << std::setw(5)  << "Round" << " " 
-			  << std::setw(8)  << "Iter" << " " 
-			  << std::setw(14) << "Step size" << " " 
-			  << std::setw(14) << "Residual" << "\n";
-	    }
+	    ibsimu.message( 1 ) << "Using Newton-Raphson BiCGSTAB solver("
+				<< " imax = " << _imax
+				<< ", eps = " << _eps
+				<< ", newton_imax = " << _newton_imax
+				<< ", newton_reps = " << _newton_Reps
+				<< ", newton_dxeps = " << _newton_dXeps
+				<< " )\n";
+	    ibsimu.message( 1 ) << "  " 
+				<< std::setw(5)  << "Round" << " " 
+				<< std::setw(8)  << "Iter" << " " 
+				<< std::setw(14) << "Step size" << " " 
+				<< std::setw(14) << "Residual" << "\n";
+	    ibsimu.flush();
 
 	    for( a = 0; a < (int)_newton_imax; a++ ) {
 
@@ -291,12 +286,12 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 		accR = max_abs( *R );
 		accX = max_abs( dX );
 
-		if( ibsimu.get_verbose_output() )
-		    std::cout << "    " 
-			      << std::setw(5) << a << " " 
-			      << std::setw(5) << imax << " " 
-			      << std::setw(14) << accX << " " 
-			      << std::setw(14) << _res_coef * accR << "\n";
+		ibsimu.message( 1 ) << "  " 
+				    << std::setw(5) << a << " " 
+				    << std::setw(8) << imax << " " 
+				    << std::setw(14) << accX << " " 
+				    << std::setw(14) << _res_coef * accR << "\n";
+		ibsimu.flush();
 		
 		if( accR < _newton_Reps || accX < _newton_dXeps || imax_sum >= _imax )
 		    break;
@@ -306,17 +301,15 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 	_iter = imax_sum;
 	_res = _res_coef * accR;
 
-        if( ibsimu.get_verbose_output() ) {
-            if( accR < _newton_Reps || accX < _newton_dXeps )
-                std::cout << "  Newton-Raphson converged\n";
-	    else if( imax_sum >= _imax )
-                std::cout << "  Maximum number of BiCGSTAB iterations\n";
-            else
-                std::cout << "  Maximum number of Newton-Raphson iterations\n";
-
-            std::cout << "  residual error = " << _res << "\n";
-            std::cout << "  total iterations = " << _iter << "\n";
-        }
+	if( accR < _newton_Reps || accX < _newton_dXeps )
+	    ibsimu.message( 1 ) << "Newton-Raphson converged\n";
+	else if( imax_sum >= _imax )
+	    ibsimu.message( 1 ) << "Maximum number of BiCGSTAB iterations\n";
+	else
+	    ibsimu.message( 1 ) << "Maximum number of Newton-Raphson iterations\n";
+	
+	ibsimu.message( 1 ) << "residual error = " << _res << "\n";
+	ibsimu.message( 1 ) << "total iterations = " << _iter << "\n";
 
     }
 

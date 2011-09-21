@@ -517,15 +517,15 @@ void EpotSolver::solve( MeshScalarField &epot, const ScalarField &__scharge )
 {
     Timer t;
 
-    if( ibsimu.get_verbose_output() )
-	std::cout << "Solving problem\n";
+    ibsimu.message( 1 ) << "Solving problem\n";
+    ibsimu.inc_indent();
 
     // Set scharge to be used by solver
     bool scharge_internal = false;
     const MeshScalarField *scharge = dynamic_cast<const MeshScalarField *>( &__scharge );
     if( scharge == 0 || *scharge != _geom ) {
-	if( ibsimu.get_verbose_output() && *scharge != _geom )
-	    std::cout << "  Converting space charge density to match geometry.\n";
+	if( *scharge != _geom )
+	    ibsimu.message( 1 ) << "Converting space charge density to match geometry.\n";
 	scharge_internal = true;
 	scharge = evaluate_scharge( __scharge );
     }
@@ -544,10 +544,8 @@ void EpotSolver::solve( MeshScalarField &epot, const ScalarField &__scharge )
     // End timer
     t.stop();
 
-    if( ibsimu.get_verbose_output() ) {
-	std::cout << "  time used = " << t << "\n";
-	std::cout << std::flush;
-    }
+    ibsimu.message( 1 ) << "time used = " << t << "\n";
+    ibsimu.dec_indent();
 }
 
 

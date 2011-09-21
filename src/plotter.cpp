@@ -178,8 +178,7 @@ void Plotter::write_to_png( cairo_surface_t *p_surface,
 
 void Plotter::plot_png( const std::string &filename )
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Plotting to PNG-file \"" << filename << "\"\n";    
+    ibsimu.message( 1 ) << "Plotting to PNG-file \"" << filename << "\"\n";    
 
     // Build plot
     build_plot();
@@ -221,8 +220,7 @@ void Plotter::plot_png( const std::string &filename )
 #ifdef CAIRO_HAS_PS_SURFACE
 void Plotter::plot_eps( const std::string &filename )
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Plotting to EPS-file \"" << filename << "\"\n";    
+    ibsimu.message( 1 ) << "Plotting to EPS-file \"" << filename << "\"\n";    
 
     // Build plot
     build_plot();
@@ -260,8 +258,7 @@ void Plotter::plot_eps( const std::string &filename )
 #ifdef CAIRO_HAS_PDF_SURFACE
 void Plotter::plot_pdf( const std::string &filename )
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Plotting to PDF-file \"" << filename << "\"\n";    
+    ibsimu.message( 1 ) << "Plotting to PDF-file \"" << filename << "\"\n";    
 
     // Build plot
     build_plot();
@@ -294,8 +291,7 @@ void Plotter::plot_pdf( const std::string &filename )
 #ifdef CAIRO_HAS_SVG_SURFACE
 void Plotter::plot_svg( const std::string &filename )
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Plotting to SVG-file \"" << filename << "\"\n";    
+    ibsimu.message( 1 ) << "Plotting to SVG-file \"" << filename << "\"\n";    
 
     // Build plot
     build_plot();

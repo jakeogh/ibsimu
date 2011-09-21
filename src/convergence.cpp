@@ -152,36 +152,33 @@ Convergence::~Convergence()
 
 void Convergence::evaluate_iteration( void )
 {
-    if( ibsimu.get_verbose_output() )
-	std::cout << "Iteration round " << _iter << "\n";
+    ibsimu.message( 1 ) <<  "Iteration round " << _iter << "\n";
+    ibsimu.inc_indent();
 
     _epot.evaluate_iteration();
     _scharge.evaluate_iteration();
     for( uint32_t a = 0; a < _emit.size(); a++ )
 	_emit[a].evaluate_iteration();
 
-    if( ibsimu.get_verbose_output() && _epot._field )
-	std::cout << "  Epot error = " 
-		  << _epot._field_diff_max.back() 
-		  << " V (max)\n";
-    if( ibsimu.get_verbose_output() && _scharge._field )
-	std::cout << "  Space charge error = " 
-		  << _scharge._field_diff_max.back() 
-		  << " C/m3 (max)\n";
+    if( _epot._field )
+	ibsimu.message( 1 ) << "Epot error = " << _epot._field_diff_max.back() << " V (max)\n"; 
+    if( _scharge._field )
+	ibsimu.message( 1 ) << "Space charge error = " << _scharge._field_diff_max.back() << " C/m3 (max)\n";
     for( uint32_t a = 0; a < _emit.size(); a++ ) {
-	if( ibsimu.get_verbose_output() ) {
-	    uint32_t n = _emit[a]._emit_hist.size();
-	    if( n >=  2 )
-		std::cout << "  Emittance " << a << " error = " 
-			  << fabs(_emit[a]._emit_hist[n-1].epsilon()-_emit[a]._emit_hist[n-2].epsilon()) 
-			  << " mm mrad (max)\n";
-	    else
-		std::cout << "  Emittance " << a << " error = 0 mm mrad (max)\n";
-	}
+	uint32_t n = _emit[a]._emit_hist.size();
+	if( n >=  2 )
+	    ibsimu.message( 1 ) << "Emittance " << a << " error = "
+				<< fabs(_emit[a]._emit_hist[n-1].epsilon()-_emit[a]._emit_hist[n-2].epsilon())
+				<< " mm mrad (max)\n";
+			 
+	else
+	    ibsimu.message( 1 ) << "Emittance " << a << " error = " << 0.0 << " mm mrad (max)\n";
     }
 
     // Increase iteration counter
     _iter++;
+
+    ibsimu.dec_indent();
 }
 
 

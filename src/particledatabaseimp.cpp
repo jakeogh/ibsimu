@@ -67,8 +67,7 @@ ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb )
 ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s )
     : _pdb(pdb)
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Constructing ParticleDataBase from stream\n";
+    ibsimu.message( 1 ) << "Constructing ParticleDataBase from stream\n";
 
     _epsabs = read_double( s );
     _epsrel = read_double( s );
@@ -275,8 +274,7 @@ void ParticleDataBase2DImp::add_2d_beam_with_velocity( uint32_t N, double J, dou
 						       double v, double dvp, double dvt, 
 						       double x1, double y1, double x2, double y2 )
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Defining a 2d beam\n";
+    ibsimu.message( 1 ) << "Defining a 2d beam\n";
 
     _particles.reserve( _particles.size()+N );
 
@@ -311,8 +309,7 @@ void ParticleDataBase2DImp::add_2d_beam_with_velocity( uint32_t N, double J, dou
 	Isum += IQ;
     }
 
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "  Total beam current " << Isum << " A/m\n";
+    ibsimu.message( 1 ) << "  Total beam current " << Isum << " A/m\n";
 }
 
 
@@ -331,8 +328,7 @@ void ParticleDataBase2DImp::add_2d_KV_beam_with_emittance( uint32_t N, double I,
 							   double a, double b, double e,
 							   double Ex, double x0, double y0 )
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Defining a 2d beam using Twiss parameters\n";
+    ibsimu.message( 1 ) << "Defining a 2d beam using Twiss parameters\n";
 
     _particles.reserve( _particles.size()+N );
 
@@ -383,8 +379,7 @@ void ParticleDataBase2DImp::add_2d_gaussian_beam_with_emittance( uint32_t N, dou
 								 double a, double b, double e,
 								 double Ex, double x0, double y0 )
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Defining a 2d beam using Twiss parameters\n";
+    ibsimu.message( 1 ) << "Defining a 2d beam using Twiss parameters\n";
 
     _particles.reserve( _particles.size()+N );
 
@@ -504,8 +499,7 @@ void ParticleDataBase2DImp::build_trajectory_density_field( MeshScalarField &tde
 
 void ParticleDataBase2DImp::save( const std::string &filename ) const
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Saving ParticleDataBase2D to file \'" << filename << "\'.\n";
+    ibsimu.message( 1 ) << "Saving ParticleDataBase2D to file \'" << filename << "\'.\n";
 
     std::ofstream os( filename.c_str() );
     if( !os.good() )
@@ -658,8 +652,7 @@ void ParticleDataBaseCylImp::add_2d_beam_with_velocity( uint32_t N, double J, do
 							double v, double dvp, double dvt, 
 							double x1, double y1, double x2, double y2 )
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Defining a cylindrical beam\n";
+    ibsimu.message( 1 ) << "Defining a cylindrical beam\n";
 
     _particles.reserve( _particles.size()+N );
 
@@ -703,8 +696,7 @@ void ParticleDataBaseCylImp::add_2d_beam_with_velocity( uint32_t N, double J, do
 	Isum += IQ*x[3];
     }
 
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "  Total beam current " << Isum << " A\n";
+    ibsimu.message( 1 ) << "  Total beam current " << Isum << " A\n";
 }
 
 
@@ -723,8 +715,7 @@ void ParticleDataBaseCylImp::add_2d_full_gaussian_beam( uint32_t N, double I, do
 							double Ex, double Tp, double Tt, 
 							double x0, double dr )
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Defining a cylindrical full gaussian beam.\n";
+    ibsimu.message( 1 ) << "Defining a cylindrical full gaussian beam.\n";
 
     _particles.reserve( _particles.size()+N );
 
@@ -784,8 +775,7 @@ void ParticleDataBaseCylImp::add_2d_full_gaussian_beam( uint32_t N, double I, do
 	n++;
     }
 
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "  Total beam current " << Isum << " A\n";
+    ibsimu.message( 1 ) << "  Total beam current " << Isum << " A\n";
 }
 
 
@@ -793,8 +783,7 @@ void ParticleDataBaseCylImp::add_2d_gaussian_beam_with_emittance( uint32_t N, do
 								  double a, double b, double e,
 								  double Ex, double x0 )
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Defining a cylindrical beam using Twiss parameters\n";
+    ibsimu.message( 1 ) << "Defining a cylindrical beam using Twiss parameters\n";
 
     _particles.reserve( _particles.size()+N );
 
@@ -861,8 +850,7 @@ void ParticleDataBaseCylImp::add_2d_gaussian_beam_with_emittance( uint32_t N, do
 
 void ParticleDataBaseCylImp::save( const std::string &filename ) const
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Saving ParticleDataBaseCyl to file \'" << filename << "\'.\n";
+    ibsimu.message( 1 ) << "Saving ParticleDataBaseCyl to file \'" << filename << "\'.\n";
 
     std::ofstream os( filename.c_str() );
     if( !os.good() )
@@ -927,8 +915,7 @@ void ParticleDataBase3DImp::add_cylindrical_beam_with_velocity( uint32_t N, doub
 								double v, double dvp, double dvt, Vec3D c, 
 								Vec3D dir1, Vec3D dir2, double r )
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Defining a cylindrical beam\n";
+    ibsimu.message( 1 ) << "Defining a cylindrical beam\n";
 
     _particles.reserve( _particles.size()+N );
 
@@ -990,8 +977,7 @@ void ParticleDataBase3DImp::add_cylindrical_beam_with_velocity( uint32_t N, doub
 	a++;
     }
 
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "  Total beam current " << Isum << " A\n";
+    ibsimu.message( 1 ) << "  Total beam current " << Isum << " A\n";
 }
 
 
@@ -1010,8 +996,7 @@ void ParticleDataBase3DImp::add_rectangular_beam_with_velocity( uint32_t N, doub
 								double v, double dvp, double dvt, Vec3D c, 
 								Vec3D dir1, Vec3D dir2, double size1, double size2 )
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Defining a rectangular beam\n";
+    ibsimu.message( 1 ) << "Defining a rectangular beam\n";
 
     _particles.reserve( _particles.size()+N );
 
@@ -1069,8 +1054,7 @@ void ParticleDataBase3DImp::add_rectangular_beam_with_velocity( uint32_t N, doub
 	a++;
     }
 
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "  Total beam current " << Isum << " A\n";
+    ibsimu.message( 1 ) << "  Total beam current " << Isum << " A\n";
 }
 
 
@@ -1091,8 +1075,7 @@ void ParticleDataBase3DImp::add_3d_KV_beam_with_emittance( uint32_t N, double I,
 							   double az, double bz, double ez,
 							   double Ex, double x0, double y0, double z0 )
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Defining a 3d beam using Twiss parameters\n";
+    ibsimu.message( 1 ) << "Defining a 3d beam using Twiss parameters\n";
 
     _particles.reserve( _particles.size()+N );
 
@@ -1158,8 +1141,7 @@ void ParticleDataBase3DImp::add_3d_gaussian_beam_with_emittance( uint32_t N, dou
 								 double az, double bz, double ez,
 								 double Ex, double x0, double y0, double z0 )
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Defining a 3d beam using Twiss parameters\n";
+    ibsimu.message( 1 ) << "Defining a 3d beam using Twiss parameters\n";
 
     _particles.reserve( _particles.size()+N );
 
@@ -1252,13 +1234,11 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
     p.normalize();
     q.normalize();
 
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Making trajectory diagnostics at plane\n" 
-		  << "  c = " << c << "\n"
-		  << "  o = " << o << "\n"
-		  << "  p = " << p << "\n"
-		  << "  q = " << q << "\n";
-
+    ibsimu.message( 1 ) << "Making trajectory diagnostics at plane\n" 
+			<< "  c = " << c << "\n"
+			<< "  o = " << o << "\n"
+			<< "  p = " << p << "\n"
+			<< "  q = " << q << "\n";
 
     // Prepare output vector
     tdata.clear();
@@ -1381,10 +1361,8 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
 	}
     }
 
-    if( ibsimu.get_verbose_output() ) {
-	ibsimu.vout() << "  number of trajectories = " << tdata.traj_size() << "\n";
-	ibsimu.vout() << "  total current = " << Isum << " A\n";
-    }
+    ibsimu.message( 1 ) << "  number of trajectories = " << tdata.traj_size() << "\n";
+    ibsimu.message( 1 ) << "  total current = " << Isum << " A\n";
 }
 
 
@@ -1412,17 +1390,15 @@ void ParticleDataBase3DImp::export_path_manager_data( std::string filename,
     const double m_to_gevc2 = SPEED_OF_LIGHT*SPEED_OF_LIGHT/CHARGE_E/1.0e9;
     const double p_to_gevc = SPEED_OF_LIGHT/CHARGE_E/1.0e9;
 
-    if( ibsimu.get_verbose_output() ) {
-	ibsimu.vout() << "Making trajectory diagnostics at plane for Path Manager output\n" 
-		  << "  ref_E = " << ref_E << " eV\n"
-		  << "  ref_q = " << ref_q << " e\n"
-		  << "  ref_m = " << ref_m/MASS_U << " u\n"
-		  << "  c = " << c << "\n"
-		  << "  o = " << o << "\n"
-		  << "  p = " << p << "\n"
-		  << "  q = " << q << "\n";
-	ibsimu.vout() << "  Outputting to \'" << filename << "\'\n";
-    }
+    ibsimu.message( 1 ) << "Making trajectory diagnostics at plane for Path Manager output\n" 
+			<< "  ref_E = " << ref_E << " eV\n"
+			<< "  ref_q = " << ref_q << " e\n"
+			<< "  ref_m = " << ref_m/MASS_U << " u\n"
+			<< "  c = " << c << "\n"
+			<< "  o = " << o << "\n"
+			<< "  p = " << p << "\n"
+			<< "  q = " << q << "\n";
+    ibsimu.message( 1 ) << "  Outputting to \'" << filename << "\'\n";
 
     std::ofstream ofile( filename.c_str() );
     if( !ofile.good() )
@@ -1476,15 +1452,13 @@ void ParticleDataBase3DImp::export_path_manager_data( std::string filename,
 		if( first ) {
 		    IQ_first = _particles[a]->IQ();
 		} else if( IQ_first == 0.0 ) {
-		    if( !IQ_warning && ibsimu.get_verbose_output() && 
-			_particles[a]->IQ() != 0.0 ) {
-			ibsimu.vout() << "  WARNING: Trajectory current is not constant.\n";
+		    if( !IQ_warning && _particles[a]->IQ() != 0.0 ) {
+			ibsimu.message( 1 ) << "  WARNING: Trajectory current is not constant.\n";
 			IQ_warning = true;
 		    }
 		} else {
-		    if( !IQ_warning && ibsimu.get_verbose_output() && 
-			fabs( ( IQ_first - _particles[a]->IQ() ) / IQ_first ) > 1.0e-6 ) {
-			ibsimu.vout() << "  WARNING: Trajectory current is not constant.\n";
+		    if( !IQ_warning && fabs( ( IQ_first - _particles[a]->IQ() ) / IQ_first ) > 1.0e-6 ) {
+			ibsimu.message( 1 ) << "  WARNING: Trajectory current is not constant.\n";
 			IQ_warning = true;
 		    }
 		}
@@ -1536,10 +1510,8 @@ void ParticleDataBase3DImp::export_path_manager_data( std::string filename,
 	ofile << "\n";
     }
 
-    if( ibsimu.get_verbose_output() ) {
-	ibsimu.vout() << "  number of trajectories = " << data[0].size() << "\n";
-	ibsimu.vout() << "  total current = " << Isum << " A\n";
-    }
+    ibsimu.message( 1 ) << "  number of trajectories = " << data[0].size() << "\n";
+    ibsimu.message( 1 ) << "  total current = " << Isum << " A\n";
 }
 
 
@@ -1634,8 +1606,7 @@ void ParticleDataBase3DImp::build_trajectory_density_field( MeshScalarField &tde
 
 void ParticleDataBase3DImp::save( const std::string &filename ) const
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Saving ParticleDataBase3D to file \'" << filename << "\'.\n";
+    ibsimu.message( 1 ) << "Saving ParticleDataBase3D to file \'" << filename << "\'.\n";
 
     std::ofstream os( filename.c_str() );
     if( !os.good() )

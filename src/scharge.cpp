@@ -49,8 +49,8 @@
 
 void scharge_finalize( MeshScalarField &scharge )
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "  Finalizing space charge density map\n";
+    ibsimu.message( 1 ) << "Finalizing space charge density map\n";
+    ibsimu.inc_indent();
 
     switch( scharge.geom_mode() ) {
     case MODE_2D:
@@ -126,6 +126,8 @@ void scharge_finalize( MeshScalarField &scharge )
 	throw( Error( ERROR_LOCATION, "unsupported dimension number" ) );
     }
     }
+
+    ibsimu.dec_indent();
 }
 
 
@@ -269,22 +271,4 @@ void scharge_add_from_trajectory( MeshScalarField &scharge, pthread_mutex_t *mut
     scharge( p+1+scharge.size(0) ) += t[0]*t[1]*t[2]*Q;
     pthread_mutex_unlock( mutex );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

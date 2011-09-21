@@ -40,12 +40,13 @@
  * permit others to do so.
  */
 
-#include <iomanip>
+
+#include "ibsimu.hpp"
 #include "statusprint.hpp"
 
 
-StatusPrint::StatusPrint( std::ostream &os )
-    : _os(os), _width(0)
+StatusPrint::StatusPrint()
+    : _width(0)
 {
     _time = time( NULL );
 }
@@ -53,8 +54,12 @@ StatusPrint::StatusPrint( std::ostream &os )
 
 StatusPrint::~StatusPrint()
 {
-    for( size_t i = 0; i < _width; i++ )
-	_os << "\b";
+    ibsimu.message( 1 ) << "\r";
+    ibsimu.flush();
+
+    //for( size_t i = 0; i < _width; i++ )
+    //_os << "\b";
+    //ibsimu.message( 1 ) << "\r";
 }
 
 
@@ -62,11 +67,13 @@ void StatusPrint::print( const std::string &str, bool force )
 {
     time_t t = time( NULL );
     if( force || t != _time ) {
-	_width = str.length();
 	_time = t;
-	for( size_t i = 0; i < _width; i++ )
-	    _os << "\b";
-	_os << str << std::flush;
+	//_width = str.length();
+	//for( size_t i = 0; i < _width; i++ )
+	//_os << "\b";
+	//_os << str << std::flush;
+	ibsimu.message( 1 ) << "\r" << str;
+	ibsimu.flush();
     }
 }
 

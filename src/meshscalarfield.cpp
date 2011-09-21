@@ -80,8 +80,7 @@ MeshScalarField::MeshScalarField( std::istream &s )
 {
     check_definition();
 
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Constructing ScalarField from stream\n";
+    ibsimu.message( 1 ) << "Constructing ScalarField from stream\n";
 
     _F = new double[_size[0]*_size[1]*_size[2]];
     read_compressed_block( s, _size[0]*_size[1]*_size[2]*sizeof(double), (int8_t *)_F );
@@ -329,8 +328,7 @@ double MeshScalarField::operator()( const Vec3D &x ) const
 
 void MeshScalarField::save( const std::string &filename ) const
 {
-    if( ibsimu.get_verbose_output() )
-	ibsimu.vout() << "Saving MeshScalarField to file \'" << filename << "\'.\n";
+    ibsimu.message( 1 ) << "Saving MeshScalarField to file \'" << filename << "\'.\n";
 
     std::ofstream os( filename.c_str() );
     if( !os.good() )
