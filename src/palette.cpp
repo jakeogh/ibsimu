@@ -42,6 +42,7 @@
 
 #include <iostream>
 #include <limits>
+#include <math.h>
 #include <algorithm>
 #include "palette.hpp"
 
@@ -65,6 +66,7 @@ bool Palette::Entry::operator<( const Entry &e ) const
 
 
 Palette::Palette()
+    : _steps(0)
 {
     _entries.push_back( Entry( Color( 1.0, 1.0, 1.0 ), 0.0 ) );
     _entries.push_back( Entry( Color( 0.0, 0.0, 0.0 ), 1.0 ) );
@@ -120,6 +122,12 @@ void Palette::push_back( const Color &color, double val )
 }
 
 
+void Palette::set_stepped_palette( int steps )
+{
+    _steps = steps;
+}
+
+
 void Palette::norm( void )
 {
     // Search minimum and maximum
@@ -158,6 +166,15 @@ Color Palette::operator()( double x ) const
     else if( x >= 1.0 )
 	return( _entries[_entries.size()-1]._color );
 
+    // If stepped palette
+    if( _steps > 1 ) {
+	x *= _steps;
+	x = floor( x );
+	x = x / (_steps-1);
+	if( x > 1.0 )
+	    x = 1.0;
+    }
+
     // Search correct index
     size_t a;
     for( a = 1; a < _entries.size(); a++ ) {
@@ -179,6 +196,7 @@ Color Palette::operator()( double x ) const
 void Palette::debug_print( std::ostream &os ) const
 {
     os << "**Palette\n";
+    os << "steps = " << _steps << "\n";
     os << "size = " << _entries.size() << "\n";
     for( size_t a = 0; a < _entries.size(); a++ ) {
 	os << "entries[" << a << "] = " 

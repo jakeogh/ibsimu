@@ -95,7 +95,8 @@ class GeomPlot {
     bool                    _qm_discretation;
     bool                    _mesh;
 
-    field_type_e            _fieldplot_sel; /*!< \brief Selector for fieldgraph */
+    field_type_e            _fieldplot_sel;       /*!< \brief Selector for fieldgraph */
+    int                     _fieldplot_steps;
     bool                    _fieldplot_logscale;
 
     bool                    _cache;
@@ -205,6 +206,14 @@ public:
     field_type_e get_fieldgraph_plot( void ) const {
 	return( _fieldplot_sel );
     }
+
+    /*! \brief Set stepped palette.
+     *
+     *  If \a steps is less than or equal to 1 a regular interpolated
+     *  palette will be used, otherwise \a steps is used as the number
+     *  of separate shades in the palette.
+     */
+    void set_fieldgraph_stepped_palette( int steps );
 
     /*! \brief Set field graph logscale setting.
      */

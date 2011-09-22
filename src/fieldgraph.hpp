@@ -55,7 +55,7 @@
 
 /*! \brief Class for drawing fields with colormap
  *
- *  Implementation of %Graph3D.
+ *  Implementation of %Graph3D. Used in Frame type plots.
  */
 class FieldGraph : public Graph3D {
 
@@ -70,6 +70,7 @@ class FieldGraph : public Graph3D {
 
     bool                    _enabled;         /*!< \brief Is plotting enabled */
     bool                    _logscale;        /*!< \brief Logarithmic scaling */
+    int                     _steps;           /*!< \brief Number of shades. */
 
     void build_scalarfield_plot( void );
     void build_vectorfield_plot( void );
@@ -94,15 +95,24 @@ public:
 
     /*! \brief Set logarithmic scale.
      */
-    void set_logscale( bool enable ) {
-	_logscale = enable;
-    }
+    void set_logscale( bool enable );
 
-    /*! \brief Plot drawable with cairo.
+    /*! \brief Set stepped palette.
+     *
+     *  If \a steps is less than or equal to 1 a regular interpolated
+     *  palette will be used, otherwise \a steps is used as the number
+     *  of separate shades in the palette.
+     */
+    void set_stepped_palette( int steps );
 
-     *  Plot drawable using \a cairo and coordinate mapper \a cm. The
-     *  visible range of plot is given in array \a range in order
-     *  xmin, ymin, xmax, ymax.
+    /*! \brief Plot graph with cairo.
+     *
+     *  Plot the graph using \a cairo and coordinate mapper \a cm. The
+     *  visible range of plot is given in array \a range in order \a
+     *  xmin, \a ymin, \a xmax, \a ymax. The graph should be able to
+     *  handle any range values. Also \a min > \a max.
+     *
+     *  Called by Frame during drawing.
      */
     virtual void plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] );
 
@@ -122,23 +132,3 @@ public:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -70,8 +70,27 @@ FieldGraph::~FieldGraph()
 void FieldGraph::enable( bool enable )
 {
     _enabled = enable;
-    if( !_enabled && _colormap )
+    if( !_enabled && _colormap ) {
 	delete _colormap;
+	_colormap = NULL;
+    }
+}
+
+
+void FieldGraph::set_logscale( bool enable ) 
+{
+    _logscale = enable;
+    if( _colormap )
+	delete _colormap;
+    _colormap = NULL;
+}
+
+void FieldGraph::set_stepped_palette( int steps ) 
+{
+    _steps = steps;
+    if( _colormap )
+	delete _colormap;
+    _colormap = NULL;
 }
 
 
@@ -79,6 +98,9 @@ void FieldGraph::build_vectorfield_plot( void )
 {
     if( !_vectorfield )
 	return;
+
+    if( _colormap )
+	delete _colormap;
 
     // Build data for colormap based on geometry size
     double range[4] = { _geom->origo( _vb[0] ),
@@ -137,7 +159,7 @@ void FieldGraph::build_vectorfield_plot( void )
     //_colormap->set_zrange( zmin, zmax );
     //double zspan = zmax - zmin;
 
-    // Set palette
+    // Set palette "black-red-white-blue-black"
     std::vector<Palette::Entry> pentry;
     pentry.push_back( Palette::Entry( Color(0,0,0), -1.00 ) );
     pentry.push_back( Palette::Entry( Color(0,0,1), -0.67 ) );
@@ -147,6 +169,7 @@ void FieldGraph::build_vectorfield_plot( void )
     pentry.push_back( Palette::Entry( Color(1,0,0),  0.67 ) );
     pentry.push_back( Palette::Entry( Color(0,0,0),  1.00 ) );
     Palette p( pentry );
+    p.set_stepped_palette( _steps );
     _colormap->set_palette( p );
     if( _logscale )
 	_colormap->set_zscale( ZSCALE_RELLOG );
@@ -157,6 +180,9 @@ void FieldGraph::build_scalarfield_plot( void )
 {
     if( !_scalarfield )
 	return;
+
+    if( _colormap )
+	delete _colormap;
 
     // Build data for colormap based on scalarfield size
     double range[4] = { _scalarfield->origo( _vb[0] ),
@@ -192,18 +218,18 @@ void FieldGraph::build_scalarfield_plot( void )
     // Set palette
     std::vector<Palette::Entry> pentry;
     if( zmin >= -1.0e-6*zspan && zmax >= 0.0 ) {
-	// Palette for positive beam
+	// Palette for positive beam "white-yellow-red-black"
 	//std::cout << "Palette for positive beam\n";
 	pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
 	pentry.push_back( Palette::Entry( Color(1,1,0), 1 ) );
 	pentry.push_back( Palette::Entry( Color(1,0,0), 2 ) );
 	pentry.push_back( Palette::Entry( Color(0,0,0), 3 ) );
     } else if( zmax <= 1.0e-6*zspan && zmin <= 0.0 ) {
-	// Palette for negative beam
+	// Palette for negative beam "white-cyan-blue-black"
 	//std::cout << "Palette for negative beam\n";
 	pentry.push_back( Palette::Entry( Color(1,1,1), 3 ) );
-	pentry.push_back( Palette::Entry( Color(1,1,0), 2 ) );
-	pentry.push_back( Palette::Entry( Color(1,0,0), 1 ) );
+	pentry.push_back( Palette::Entry( Color(0,1,1), 2 ) );
+	pentry.push_back( Palette::Entry( Color(0,0,1), 1 ) );
 	pentry.push_back( Palette::Entry( Color(0,0,0), 0 ) );
     } else {
 	// Palette for positive and negative beam
@@ -217,6 +243,7 @@ void FieldGraph::build_scalarfield_plot( void )
 	pentry.push_back( Palette::Entry( Color(0,0,0), zmax ) );
     }
     Palette p( pentry );
+    p.set_stepped_palette( _steps );
     _colormap->set_palette( p );
     if( _logscale )
 	_colormap->set_zscale( ZSCALE_RELLOG );
