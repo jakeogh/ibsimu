@@ -66,7 +66,7 @@ enum point_style_e {
 
 /*! \brief Class for XY-type simple graph plots. 
  *
- *  Implementation of %Graph.
+ *  Implementation of %Graph. Used in Frame type plots.
  */
 class XYGraph : public Graph {
 
@@ -91,7 +91,7 @@ public:
     /*! \brief Constructor for basic graph with datapoints \a xdata
      *  and \a ydata.
      *
-     *  Internal copies of the data from xdata and ydata are made.
+     *  Internal copies of the data from \a xdata and \a ydata are made.
      */
     XYGraph( const std::vector<double> &xdata, 
 	     const std::vector<double> &ydata );
@@ -102,9 +102,12 @@ public:
 
     /*! \brief Plot graph with cairo.
      *
-     *  Plot the graph using \a cairo and coordinate mapper \a
-     *  cm. The visible range of plot is given in array \a range in
-     *  order xmin, ymin, xmax, ymax.
+     *  Plot the graph using \a cairo and coordinate mapper \a cm. The
+     *  visible range of plot is given in array \a range in order \a
+     *  xmin, \a ymin, \a xmax, \a ymax. The graph should be able to
+     *  handle any range values. Also \a min > \a max.
+     *
+     *  Called by Frame during drawing.
      */
     virtual void plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] );
 
@@ -127,10 +130,14 @@ public:
 		   const std::vector<double> &ydata );
 
     /*! \brief Set line width.
+     *
+     *  Default to width 1.0.
      */
     void set_line_width( double linewidth );
 
     /*! \brief Set graph color.
+     *
+     *  Defaults to red (1,0,0).
      */
     void set_color( const Color &color );
 
@@ -138,34 +145,15 @@ public:
      *
      *  Defaults to no lines drawn (XYGRAPH_LINE_DISABLE)
      */
-    void set_line_style( line_style_e linestyle );
+    void set_line_style( line_style_e linestyle,
+			 double linewidth = 1.0 );
 
     /*! \brief Set point style.
      *
-     *  Defaults to filled XYGRAPH_POINT_CIRCLE with scale 1.0.
+     *  Defaults to filled XYGRAPH_POINT_CIRCLE with scale 3.0.
      */
     void set_point_style( point_style_e pointstyle, bool filled = true, double scale = 1.0 );
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

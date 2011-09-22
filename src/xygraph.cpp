@@ -179,12 +179,13 @@ void XYGraph::set_color( const Color &color )
 
 void XYGraph::set_line_width( double linewidth )
 {
-    _linewidth = linewidth;
+    _linewidth = fabs( linewidth );
 }
 
 
-void XYGraph::set_line_style( line_style_e linestyle )
+void XYGraph::set_line_style( line_style_e linestyle, double linewidth )
 {
+    _linewidth = fabs( linewidth );
     _linestyle  = linestyle;
 }
 
@@ -193,7 +194,7 @@ void XYGraph::set_point_style( point_style_e pointstyle, bool filled, double sca
 {
     _pointstyle = pointstyle;
     _point_filled = filled;
-    _point_scale = scale;
+    _point_scale = fabs( scale );
 }
 
 
