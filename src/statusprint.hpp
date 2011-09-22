@@ -68,7 +68,7 @@ public:
 
     /*! \brief Print string \a str.
      */
-    void print( const std::string &str );
+    void print( const std::string &str, bool force = false );
     
 };
 

@@ -48,7 +48,7 @@
 StatusPrint::StatusPrint( std::ostream &os )
   : _width(0), _os(os)
 {
-    _time = time( NULL );
+    _time = time( NULL )-10;
 }
 
 
@@ -59,10 +59,10 @@ StatusPrint::~StatusPrint()
 }
 
 
-void StatusPrint::print( const std::string &str )
+void StatusPrint::print( const std::string &str, bool force )
 {
     time_t t = time( NULL );
-    if( t != _time ) {
+    if( t != _time || force ) {
 	_width = str.length();
 	_time = t;
 	for( size_t i = 0; i < _width; i++ )

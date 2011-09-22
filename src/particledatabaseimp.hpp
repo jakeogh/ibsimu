@@ -45,6 +45,7 @@
 
 
 #include "ibsimu.hpp"
+#include "statusprint.hpp"
 #include "timer.hpp"
 #include "file.hpp"
 #include "particles.hpp"
@@ -458,11 +459,19 @@ public:
 				       const VectorField &bfield, const Geometry &geom ) {
 
 	Timer t;
+
 	if( ibsimu.get_verbose_output() ) {
 	    ibsimu.vout() << "Calculating particle trajectories\n";
 	    ibsimu.vout().flush();
 	}
 	_iteration++;
+
+	StatusPrint sp( ibsimu.vout() );
+	if( ibsimu.get_verbose_output() && ibsimu.vout_is_cout() ) {
+	    std::stringstream ss;
+	    ss << "  " << "0 / " << _particles.size();
+	    sp.print( ss.str() );
+	}
 
 	// Check geometry mode
 	if( geom.geom_mode() != PP::geom_mode() )
@@ -496,7 +505,27 @@ public:
 
 	// Run scheduler
 	_scheduler.run( iterators );
+
+	// Print statistics
+	if( ibsimu.get_verbose_output() && ibsimu.vout_is_cout() ) {
+	    while( !_scheduler.wait_finish() ) {
+		std::stringstream ss;
+		ss << "  " << _scheduler.get_solved_count() << " / " 
+		   << _scheduler.get_problem_count();
+		sp.print( ss.str() );
+	    }
+	}
+
+	// Finish scheduler
 	_scheduler.finish();
+
+	// Print final statistics
+	if( ibsimu.get_verbose_output() && ibsimu.vout_is_cout() ) {
+	    std::stringstream ss;
+	    ss << "  " << _scheduler.get_solved_count() << " / " 
+	       << _scheduler.get_problem_count() << " Done\n";
+	    sp.print( ss.str(), true );
+	}
 
 	if( _scheduler.is_error() ) {
 	    // Throw the error
