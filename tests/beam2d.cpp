@@ -93,13 +93,15 @@ void test( int argc, char **argv )
     ostr.close();
     ostr2.close();
 
-    GTKPlotter plotter( &argc, &argv );
-    plotter.set_geometry( &geom );
-    plotter.set_epot( &epot );
-    plotter.set_scharge( &scharge );
-    plotter.set_particledatabase( &pdb );
-    plotter.new_geometry_plot_window();
-    plotter.run();
+    if( false ) {
+	GTKPlotter plotter( &argc, &argv );
+	plotter.set_geometry( &geom );
+	plotter.set_epot( &epot );
+	plotter.set_scharge( &scharge );
+	plotter.set_particledatabase( &pdb );
+	plotter.new_geometry_plot_window();
+	plotter.run();
+    }
 
     if( err ) {
 	std::cout << "Error: calculated space charge differs from theory\n";

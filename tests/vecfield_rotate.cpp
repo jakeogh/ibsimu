@@ -32,17 +32,17 @@ void test( int argc, char **argv )
     if( norm2( Vec3D(0.1,0.4,0)-f(Vec3D(2.2,1.1,0)) ) > 0.01 )
 	throw( ErrorTest( ERROR_LOCATION ) );
 
-    f.rotate_z( 90 );
+    f.rotate_z( 0.5*M_PI );
 
     if( norm2( Vec3D(-0.4,0.1,0)-f(Vec3D(-1.1,2.2,0)) ) > 0.01 )
 	throw( ErrorTest( ERROR_LOCATION ) );
 
-    f.rotate_z( -90 );
+    f.rotate_z( -0.5*M_PI );
 
     if( norm2( Vec3D(0.1,0.4,0)-f(Vec3D(2.2,1.1,0)) ) > 0.01 )
 	throw( ErrorTest( ERROR_LOCATION ) );
 
-    f.rotate_z( 180 );
+    f.rotate_z( M_PI );
 
     if( norm2( Vec3D(-0.1,-0.4,0)-f(Vec3D(-2.2,-1.1,0)) ) > 0.01 )
 	throw( ErrorTest( ERROR_LOCATION ) );

@@ -26,6 +26,6 @@ void test( int argc, char **argv )
 
     bool fout[3] = {false, false, true};
     MeshVectorField f( MODE_2D, fout, 1.0e-3, 1000.0, infile );
-    f.debug_print( cout );
+    //f.debug_print( cout );
 }
 

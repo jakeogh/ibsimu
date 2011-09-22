@@ -162,28 +162,26 @@ void test( int argc, char **argv )
 
     //std::cout << "Maxerr = " << maxerr << "\n";
 
-    ScalarField tdens( geom );
-    pdb.build_trajectory_density_field( tdens );
-
-    GTKPlotter plotter( &argc, &argv );
-    plotter.set_geometry( &geom );
-    plotter.set_epot( &epot );
-    plotter.set_scharge( &scharge );
-    plotter.set_trajdens( &tdens );
-    plotter.set_particledatabase( &pdb );
-    plotter.new_geometry_plot_window();
-    plotter.run();
-
-    if( true ) {
-
+    if( false ) {
 	ScalarField tdens( geom );
 	pdb.build_trajectory_density_field( tdens );
+	GTKPlotter plotter( &argc, &argv );
+	plotter.set_geometry( &geom );
+	plotter.set_epot( &epot );
+	plotter.set_scharge( &scharge );
+	plotter.set_trajdens( &tdens );
+	plotter.set_particledatabase( &pdb );
+	plotter.new_geometry_plot_window();
+	plotter.run();
+    }
 
+    if( false ) {
+	ScalarField tdens( geom );
+	pdb.build_trajectory_density_field( tdens );
 	GeomPlotter gplotter( &geom );
 	gplotter.set_trajdens( &tdens );
 	gplotter.set_fieldgraph_plot( FIELD_TRAJDENS );
 	gplotter.set_fieldgraph_logscale( true );
-	
 	gplotter.set_size( 800, 600 );
 	gplotter.set_font_size( 16 );
 	
