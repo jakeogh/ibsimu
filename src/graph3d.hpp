@@ -62,6 +62,8 @@ enum view_e {
 
 /*! \brief Abstract base class for geometry slice plots.
  *
+ *  Implementation of %Graph. Used in Frame type plots.
+ *
  *  Provides functionality to select a slice of geometry along axes at
  *  any mesh level in any direction. The direction is selected with \a
  *  view and level in integer (mesh count) \a level. Provides the
@@ -97,11 +99,14 @@ public:
      */
     virtual ~Graph3D() {}
 
-    /*! \brief Plot drawable with cairo.
+    /*! \brief Plot graph with cairo.
      *
-     *  Plot the drawable using \a cairo and coordinate mapper \a
-     *  cm. The visible range of plot is given in array \a range in
-     *  order xmin, ymin, xmax, ymax.
+     *  Plot the graph using \a cairo and coordinate mapper \a cm. The
+     *  visible range of plot is given in array \a range in order \a
+     *  xmin, \a ymin, \a xmax, \a ymax. The graph should be able to
+     *  handle any range values. Also \a min > \a max.
+     *
+     *  Called by Frame during drawing.
      */
     virtual void plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] ) = 0;
 
@@ -165,4 +170,3 @@ public:
 
 
 #endif
-

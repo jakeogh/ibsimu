@@ -49,6 +49,9 @@
 
 
 /*! \brief Abstract base class for drawable plots.
+ *
+ *  Graph type objects are used in Frame type plots to provide the
+ *  graphical view of the data content and legend sample.
  */
 class Graph {
 
@@ -64,6 +67,8 @@ public:
      *  visible range of plot is given in array \a range in order \a
      *  xmin, \a ymin, \a xmax, \a ymax. The graph should be able to
      *  handle any range values. Also \a min > \a max.
+     *
+     *  Called by Frame during drawing.
      */
     virtual void plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] ) = 0;
 
