@@ -97,7 +97,7 @@ class GeomPlot {
 
     field_type_e            _fieldplot_sel;       /*!< \brief Selector for fieldgraph */
     int                     _fieldplot_steps;
-    bool                    _fieldplot_logscale;
+    zscale_e                _fieldplot_zscale;
 
     bool                    _cache;
 
@@ -215,14 +215,14 @@ public:
      */
     void set_fieldgraph_stepped_palette( int steps );
 
-    /*! \brief Set field graph logscale setting.
+    /*! \brief Set field graph zscale setting.
      */
-    void set_fieldgraph_logscale( bool enable );
+    void set_fieldgraph_zscale( zscale_e zscale );
 
-    /*! \brief Get field graph loscale setting
+    /*! \brief Get field graph zscale setting
      */
-    bool get_fieldgraph_logscale( void ) const {
-	return( _fieldplot_logscale );
+    zscale_e get_fieldgraph_zscale( void ) const {
+	return( _fieldplot_zscale );
     }
 
     /*! \brief Set particle database used for particle plotting.

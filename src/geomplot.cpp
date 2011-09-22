@@ -50,7 +50,7 @@ GeomPlot::GeomPlot( Frame *frame, const Geometry *geom )
       _particlegraph(NULL), _meshgraph(NULL), _view(VIEW_XY), _level(0),
       _eqlines_auto(20), _particle_div(10), _scharge_field(false), _qm_discretation(true), 
       _mesh(false), _fieldplot_sel(FIELD_NONE), _fieldplot_steps(0), 
-      _fieldplot_logscale(false), _cache(true)
+      _fieldplot_zscale(ZSCALE_LINEAR), _cache(true)
 {
     if( _geom == NULL )
 	throw( Error( ERROR_LOCATION, "geometry undefined" ) );
@@ -105,7 +105,7 @@ void GeomPlot::reset_graphs()
 
     // Ensure correct order of graphs
     if( _fieldgraph )
-	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _fieldgraph );
+	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, (Graph3D *)_fieldgraph );
     if( _particlegraph )
 	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _particlegraph );
     if( _solidgraph )
@@ -229,7 +229,7 @@ void GeomPlot::set_fieldgraph_plot( field_type_e fieldplot )
 
     if( _fieldgraph ) {
 	_fieldgraph->set_view( _view, _level );
-	_fieldgraph->set_logscale( _fieldplot_logscale );
+	_fieldgraph->set_zscale( _fieldplot_zscale );
     }
 
     reset_graphs();
@@ -245,11 +245,11 @@ void GeomPlot::set_fieldgraph_stepped_palette( int steps )
 }
 
 
-void GeomPlot::set_fieldgraph_logscale( bool enable )
+void GeomPlot::set_fieldgraph_zscale( zscale_e zscale )
 {
-    _fieldplot_logscale = enable;
+    _fieldplot_zscale = zscale;
     if( _fieldgraph ) {
-	_fieldgraph->set_logscale( _fieldplot_logscale );
+	_fieldgraph->set_zscale( _fieldplot_zscale );
     }
 }
 

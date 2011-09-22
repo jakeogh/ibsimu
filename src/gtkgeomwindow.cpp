@@ -405,7 +405,7 @@ struct PreferencesData {
     GtkWidget *field_none_radio;
     GtkWidget *field_scharge_radio;
     GtkWidget *field_tdens_radio;
-    GtkWidget *field_logscale;
+    GtkWidget *field_zscale;
     GtkWidget *qmdiscretation_check;
     GtkWidget *meshen_check;
 };
@@ -513,13 +513,13 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
 
     // Field colormap logscale
     hbox = gtk_hbox_new( TRUE, 30 );
-    label = gtk_label_new( "Field colormap logscale" );
+    label = gtk_label_new( "Field colormap zscale" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    pdata->field_logscale = gtk_check_button_new_with_label( "on/off" );
-    bool flogscale = _geomplot.get_fieldgraph_logscale();
-    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_logscale), flogscale );
+    pdata->field_zscale = gtk_check_button_new_with_label( "on/off" );
+    zscale_e field_zscale = _geomplot.get_fieldgraph_zscale();
+    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_zscale), field_zscale );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), pdata->field_logscale, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), pdata->field_zscale, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
     // Add notebook page
@@ -570,8 +570,12 @@ void GTKGeomWindow::read_preferences( GtkWidget *notebook, void *_pdata )
 	_geomplot.set_fieldgraph_plot( FIELD_TRAJDENS );
 
     // Field colormap logscale
-    bool flogscale = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->field_logscale) );
-    _geomplot.set_fieldgraph_logscale( flogscale );
+    // TODO: should be changed to multiple choise
+    bool zscale_enable = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->field_zscale) );    
+    zscale_e field_zscale = ZSCALE_LINEAR;
+    if( zscale_enable )
+	field_zscale = ZSCALE_RELLOG;
+    _geomplot.set_fieldgraph_zscale( field_zscale );
 }
 
 

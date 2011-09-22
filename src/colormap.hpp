@@ -103,7 +103,7 @@ public:
      */
     Colormap( const Colormap &colormap );
 
-    /*! \brief Constructor for basic graph with defined data.
+    /*! \brief Constructor for colormap from data.
      *
      *  Data is defined as \a n by \a m array of data, where x and y
      *  ranges are defined in datarange in order xmin, ymin, xmax,
@@ -116,6 +116,18 @@ public:
     /*! \brief Destructor.
      */
     virtual ~Colormap();
+
+    /*! \brief Define colormap from data.
+     *
+     *  Data is defined as \a n by \a m array of data, where x and y
+     *  ranges are defined in datarange in order xmin, ymin, xmax,
+     *  ymax. Z-values are defined in vector \a data in y major
+     *  order. Internal copy of the data from data is made.
+     *
+     *  Overrides old data.
+     */
+    void set_data( const double datarange[4], size_t n, size_t m, 
+		   const std::vector<double> &data );
 
     /*! \brief Set interpolation mode.
      *
@@ -167,6 +179,10 @@ public:
     /*! \brief Set colormap palette.
      */
     void set_palette( const Palette &palette );
+
+    /*! \brief Get a reference to colormap palette.
+     */
+    Palette &palette( void );
 
     /*! \brief Get zrange for colormap plot.
      */

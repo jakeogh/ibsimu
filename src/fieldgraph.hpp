@@ -57,20 +57,20 @@
  *
  *  Implementation of %Graph3D. Used in Frame type plots.
  */
-class FieldGraph : public Graph3D {
+class FieldGraph : public Graph3D, public Colormap {
 
     field_type_e            _field_type;      /*!< \brief Field type used. */
     const Geometry         *_geom;            /*!< \brief Geometry. */
     const ScalarField      *_scalarfield;     /*!< \brief Scalarfield for plotting. */
     const VectorField      *_vectorfield;     /*!< \brief Vectorfield for plotting. */    
-    Colormap               *_colormap;        /*!< \brief Colormap for field plot. */
+    //Colormap                _colormap;        /*!< \brief Colormap for field plot. */
 
+    bool                    _first;
     view_e                  _oview;
     double                  _olevel;
-
     bool                    _enabled;         /*!< \brief Is plotting enabled */
-    bool                    _logscale;        /*!< \brief Logarithmic scaling */
-    int                     _steps;           /*!< \brief Number of shades. */
+    //bool                    _logscale;        /*!< \brief Logarithmic scaling */
+    //int                     _steps;           /*!< \brief Number of shades. */
 
     void build_scalarfield_plot( void );
     void build_vectorfield_plot( void );
@@ -95,7 +95,7 @@ public:
 
     /*! \brief Set logarithmic scale.
      */
-    void set_logscale( bool enable );
+    //void set_logscale( bool enable );
 
     /*! \brief Set stepped palette.
      *

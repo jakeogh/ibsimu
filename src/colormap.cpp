@@ -58,8 +58,43 @@ Colormap::Colormap()
 
 Colormap::Colormap( const double datarange[4], size_t n, size_t m, 
 		    const std::vector<double> &data )
-    : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), _n(n), _m(m), _intrp(NULL)
+    : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), _n(0), _m(0), _intrp(NULL)
 {
+    set_data( datarange, n, m, data );
+}
+
+
+Colormap::Colormap( const Colormap &colormap )
+    : _palette(colormap._palette), _interpolation(colormap._interpolation),
+      _zscale(colormap._zscale), _zmin(colormap._zmin), _zmax(colormap._zmax),
+      _n(colormap._n), _m(colormap._m), _f(colormap._f)
+{
+    _datarange[0] = colormap._datarange[0];
+    _datarange[1] = colormap._datarange[1];
+    _datarange[2] = colormap._datarange[2];
+    _datarange[3] = colormap._datarange[3];
+
+    _intrp = NULL;
+    make_data_interpolation();
+}
+
+
+Colormap::~Colormap()
+{
+    if( _intrp )
+	delete _intrp;
+}
+
+
+void Colormap::set_data( const double datarange[4], size_t n, size_t m, 
+			 const std::vector<double> &data )
+{
+    _n = n;
+    _m = m;
+    if( _intrp )
+	delete _intrp;
+    _intrp = NULL;
+
     _datarange[0] = datarange[0];
     _datarange[1] = datarange[1];
     _datarange[2] = datarange[2];
@@ -88,29 +123,6 @@ Colormap::Colormap( const double datarange[4], size_t n, size_t m,
 
     make_data_interpolation();
 }
-
-
-Colormap::Colormap( const Colormap &colormap )
-    : _palette(colormap._palette), _interpolation(colormap._interpolation),
-      _zscale(colormap._zscale), _zmin(colormap._zmin), _zmax(colormap._zmax),
-      _n(colormap._n), _m(colormap._m), _f(colormap._f)
-{
-    _datarange[0] = colormap._datarange[0];
-    _datarange[1] = colormap._datarange[1];
-    _datarange[2] = colormap._datarange[2];
-    _datarange[3] = colormap._datarange[3];
-
-    _intrp = NULL;
-    make_data_interpolation();
-}
-
-
-Colormap::~Colormap()
-{
-    if( _intrp )
-	delete _intrp;
-}
-
 
 void Colormap::set_interpolation( interpolation_e interpolation )
 {
