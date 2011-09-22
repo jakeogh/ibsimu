@@ -811,7 +811,7 @@ void ParticleDataBaseCylImp::add_2d_gaussian_beam_with_emittance( uint32_t N, do
     qrng.set_transformation( 1, Gaussian_Transformation() );
     qrng.set_transformation( 2, Gaussian_Transformation() );
     qrng.set_transformation( 3, Gaussian_Transformation() );
-    qrng.set_transformation( 4, Gaussian_Transformation() );
+
     double w[4], rn[4];
 
     double g = (1.0 + a*a)/b;
@@ -847,6 +847,8 @@ void ParticleDataBaseCylImp::add_2d_gaussian_beam_with_emittance( uint32_t N, do
 
 	// Convert to cylindrical coordinates
 	double r  = sqrt( y*y + z*z );
+	if( r == 0.0 ) // reject center point
+	    continue;
 	double alpha = atan2( z, y );
 	double sina = sin(alpha);
 	double cosa = cos(alpha);
