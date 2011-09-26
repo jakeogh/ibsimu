@@ -54,31 +54,29 @@ public:
 	Particle3D *p3d = (Particle3D *)( particle );
 	Vec3D loc = p3d->location();
 	//std::cout << "Particle end: " << p3d->x() << "\n";
-	if( loc[0]*loc[0] + loc[1]*loc[1] + loc[2]*loc[2] <= 0.022*0.022 ) {
+	if( loc[0]*loc[0] + loc[1]*loc[1] + loc[2]*loc[2] <= 0.022*0.022 
+	    && particle->m() > (2.0/1500.0)*MASS_U ) {
 
 	    // Get normal
 	    Vec3D normal = _geom.surface_normal( loc );
 
+	    // Find tangents
+	    Vec3D tang1 = normal.arb_perpendicular();
+	    Vec3D tang2 = cross( normal, tang1 );
+	    tang1.normalize();
+	    tang2.normalize();
+
 	    // Adjust location off the surface
 	    loc += 0.01*_geom.h()*normal;
 
-	    // Launch 50000 particles
-	    for( size_t a = 0; a < 50000; a++ ) {
+	    // Launch 5000 particles
+	    for( size_t a = 0; a < 5000; a++ ) {
 
 		// Randomize velocity and direction
-		double x[2];
+		double x[3];
 		_rand.get( x );
 		double mass = 1.0/1500.0;
 		double speed = sqrt( 2.0*x[0]*CHARGE_E/(mass*MASS_U) );
-
-		// Find tangents
-		Vec3D tang1 = normal.arb_perpendicular();
-		Vec3D tang2 = cross( normal, tang1 );
-		tang1.normalize();
-		tang2.normalize();
-		//std::cout << "normal = " << normal << "\n";
-		//std::cout << "tang1 = " << tang1 << "\n";
-		//std::cout << "tang2 = " << tang2 << "\n";
 
 		// Build velp in natural coordinates
 		double azm_angle = 2.0*M_PI*x[1];
@@ -92,7 +90,7 @@ public:
 		Vec3D vel = velp[0]*normal + velp[1]*tang1 + velp[2]*tang2;
 
 		ParticleDataBase3D *pdb3d = (ParticleDataBase3D *)( pdb );
-		pdb3d->add_particle( 1.0, mass, 1.0, ParticleP3D( 0.0, 
+		pdb3d->add_particle( 1.0, 1.0, mass, ParticleP3D( 0.0, 
 								  loc[0], vel[0], 
 								  loc[1], vel[1], 
 								  loc[2], vel[2] ) );
@@ -181,7 +179,7 @@ void test( int argc, char **argv )
 	GeomPlotter gplotter( &geom );
 	gplotter.set_trajdens( &tdens );
 	gplotter.set_fieldgraph_plot( FIELD_TRAJDENS );
-	gplotter.set_fieldgraph_logscale( true );
+	gplotter.set_fieldgraph_zscale( ZSCALE_RELLOG );
 	gplotter.set_size( 800, 600 );
 	gplotter.set_font_size( 16 );
 	

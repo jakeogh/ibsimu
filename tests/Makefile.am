@@ -1,16 +1,11 @@
-secondary_electron2d_SOURCES = secondary_electron2d.cpp
-secondary_electron3d_SOURCES = secondary_electron3d.cpp
-fieldgraph_SOURCES = fieldgraph.cpp
-transformation_SOURCES = transformation.cpp
-#stl_SOURCES = stl.cpp
 beam2d_SOURCES = beam2d.cpp
 beam3d_SOURCES = beam3d.cpp
 beamcyl_SOURCES = beamcyl.cpp
 ccolmatrix_SOURCES = ccolmatrix.cpp
 colormap_SOURCES = colormap.cpp
 crowmatrix_SOURCES = crowmatrix.cpp
-efield_SOURCES = efield.cpp
 efield_extrpl_SOURCES = efield_extrpl.cpp
+efield_SOURCES = efield.cpp
 efieldtest_2d_SOURCES = efieldtest_2d.cpp
 emittance3d_SOURCES = emittance3d.cpp
 emittanceconv_SOURCES = emittanceconv.cpp
@@ -18,12 +13,13 @@ emittancedef2d_SOURCES = emittancedef2d.cpp
 emittancedef3d_SOURCES = emittancedef3d.cpp
 emittancedefcyl_SOURCES = emittancedefcyl.cpp
 export_path_manager_SOURCES = export_path_manager.cpp
+fielddiagplot_SOURCES = fielddiagplot.cpp
+fieldgraph_SOURCES = fieldgraph.cpp
 fileplot_SOURCES = fileplot.cpp
 fonts_SOURCES = fonts.cpp
-fielddiagplot_SOURCES = fielddiagplot.cpp
-frame_SOURCES = frame.cpp
 frame_extend_range_SOURCES = frame_extend_range.cpp
 frame_increase_margin_SOURCES = frame_increase_margin.cpp
+frame_SOURCES = frame.cpp
 geometry_SOURCES = geometry.cpp
 gs_solver_SOURCES = gs_solver.cpp
 gtkplotter_SOURCES = gtkplotter.cpp
@@ -31,9 +27,9 @@ hbio_SOURCES = hbio.cpp
 histogram_SOURCES = histogram.cpp
 label_SOURCES = label.cpp
 lu_test_SOURCES = lu_test.cpp
-matvec3dtest_SOURCES = matvec3dtest.cpp
 matrixconv_SOURCES = matrixconv.cpp
 matrixsolver_SOURCES = matrixsolver.cpp
+matvec3dtest_SOURCES = matvec3dtest.cpp
 mesh_SOURCES = mesh.cpp
 mvector_SOURCES = mvector.cpp
 nsimp_plasmacyl_SOURCES = nsimp_plasmacyl.cpp
@@ -52,15 +48,17 @@ plasma2d_SOURCES = plasma2d.cpp
 plasmacyl_SOURCES = plasmacyl.cpp
 qrandom_SOURCES = qrandom.cpp
 quadrupole_SOURCES = quadrupole.cpp
-ruler_SOURCES = ruler.cpp
 ruler_inv_SOURCES = ruler_inv.cpp
+ruler_SOURCES = ruler.cpp
 ruler_tic_bbox_test_SOURCES = ruler_tic_bbox_test.cpp
 scharge_out_of_range_SOURCES = scharge_out_of_range.cpp
 sclfield_SOURCES = sclfield.cpp
+secondary_electron2d_SOURCES = secondary_electron2d.cpp
+secondary_electron3d_SOURCES = secondary_electron3d.cpp
 solver1d_edge_SOURCES = solver1d_edge.cpp
 solver1d_hard_edge_SOURCES = solver1d_hard_edge.cpp
-solver1d_neumann_SOURCES = solver1d_neumann.cpp
 solver1d_neumann_order_SOURCES = solver1d_neumann_order.cpp
+solver1d_neumann_SOURCES = solver1d_neumann.cpp
 solver1d_scharge_SOURCES = solver1d_scharge.cpp
 solver1d_solid_neumann_conflict_SOURCES = solver1d_solid_neumann_conflict.cpp
 solver2d_coax_SOURCES = solver2d_coax.cpp
@@ -70,9 +68,10 @@ solver3d_sphere_SOURCES = solver3d_sphere.cpp
 solvercyl_beam_SOURCES = solvercyl_beam.cpp
 solvercyl_coax_SOURCES = solvercyl_coax.cpp
 trajdiaghisto_SOURCES = trajdiaghisto.cpp
-vecfield_SOURCES = vecfield.cpp
+transformation_SOURCES = transformation.cpp
 vecfield_filedef_SOURCES = vecfield_filedef.cpp
 vecfield_rotate_SOURCES = vecfield_rotate.cpp
+vecfield_SOURCES = vecfield.cpp
 vlasov2d_SOURCES = vlasov2d.cpp
 
 if UMFPACK
@@ -84,10 +83,7 @@ csgobjectsolid_SOURCES = csgobjectsolid.cpp
 endif
 
 check_PROGRAMS = \
-secondary_electron2d \
-secondary_electron3d \
 beam2d \
-fieldgraph \
 beam3d \
 beamcyl \
 ccolmatrix \
@@ -102,11 +98,11 @@ emittancedef2d \
 emittancedef3d \
 emittancedefcyl \
 export_path_manager \
-fileplot \
 fielddiagplot \
+fieldgraph \
+fileplot \
 fonts \
 frame \
-transformation \
 frame_extend_range \
 frame_increase_margin \
 geometry \
@@ -116,9 +112,9 @@ hbio \
 histogram \
 label \
 lu_test \
-matvec3dtest \
 matrixconv \
 matrixsolver \
+matvec3dtest \
 mesh \
 mvector \
 nsimp_plasmacyl \
@@ -142,6 +138,8 @@ ruler_inv \
 ruler_tic_bbox_test \
 scharge_out_of_range \
 sclfield \
+secondary_electron2d \
+secondary_electron3d \
 solver1d_edge \
 solver1d_hard_edge \
 solver1d_neumann \
@@ -155,12 +153,11 @@ solver3d_sphere \
 solvercyl_beam \
 solvercyl_coax \
 trajdiaghisto \
+transformation \
 vecfield \
 vecfield_filedef \
 vecfield_rotate \
 vlasov2d
-
-#stl
 
 if UMFPACK
 check_PROGRAMS += umfpack_solver
@@ -179,7 +176,7 @@ ibsimutest.hpp
 
 AM_CPPFLAGS = $(CPPFLAGS) -Wall -g -I$(top_srcdir)/src
 AM_LDFLAGS = $(LIBS) -L$(top_srcdir)/src @rdynamic_flag@
-LDADD = $(top_builddir)/src/libibsimu-1.0.4dev.la libibsimutest.la -lm
+LDADD = libibsimutest.la $(top_builddir)/src/libibsimu-1.0.4dev.la -lm
 
 if UMFPACK
 AM_CPPFLAGS += `pkg-config --cflags umfpack`

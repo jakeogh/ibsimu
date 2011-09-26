@@ -17,17 +17,10 @@
 #include "particles.hpp"
 #include "particledatabase.hpp"
 #include "error.hpp"
-#include "ibsimu.hpp"
+#include "ibsimutest.hpp"
 
 
 using namespace std;
-
-
-#define ERROR()							    \
-    {								    \
-	cout << "Error at " << __FILE__ << ":" << __LINE__ << "\n"; \
-	exit( 1 );						    \
-    }
 
 
 void test( int argc, char **argv )
@@ -74,33 +67,33 @@ void test( int argc, char **argv )
     // t
     double t = sqrt(((0.08-0.01)*2.0*MASS_U)/(CHARGE_E*10000.0));
     if( fabs(tdata(0,0)-t)/t > 0.001 )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     // x
     if( fabs(tdata(0,1)-0.08)/0.08 > 0.001 )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     // y
     if( fabs(tdata(0,2)-1e5*t)/(1e5*t) > 0.001 )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     // vx
     double vx = CHARGE_E*10000.0/MASS_U*t;
     if( fabs(tdata(0,3)-vx)/vx > 0.001 )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     // vy
     double vy = 1e5;
     if( fabs(tdata(0,4)-vy)/vy > 0.001 )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     // xp
     if( fabs(tdata(0,5)-(vx/vx))/(vx/vx) > 0.001 )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     // yp
     if( fabs(tdata(0,6)-(vy/vx))/(vy/vx) > 0.001 )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     GeomPlotter geomplotter( &geom );
     geomplotter.set_epot( &epot );

@@ -14,25 +14,10 @@
 #include "crowmatrix.hpp"
 #include "ccolmatrix.hpp"
 #include "coordmatrix.hpp"
+#include "ibsimutest.hpp"
 
 
 using namespace std;
-
-
-#define ERROR()							    \
-    {								    \
-	cout << "Error at " << __FILE__ << ":" << __LINE__ << "\n"; \
-	exit( 1 );						    \
-    }
-
-
-
-#define INTERNAL_ERROR()					    \
-    {								    \
-	cout << "Error at " << __FILE__ << ":" << __LINE__ << ": Test not valid\n"; \
-	exit( 1 );						    \
-    }
-
 
 
 bool compare( Matrix &A, Matrix &B )
@@ -79,27 +64,27 @@ void test( int argc, char **argv )
 
     CColMatrix Col = Row;
     if( !compare( Col, Row ) )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     CoordMatrix Coord = Row;
     if( !compare( Coord, Row ) )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     CoordMatrix Coord2 = Col;
     if( !compare( Coord2, Row ) )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     CColMatrix Col2 = Coord;
     if( !compare( Col2, Row ) )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     CRowMatrix Row2 = Col;
     if( !compare( Row2, Row ) )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     CRowMatrix Row3 = Coord;
     if( !compare( Row3, Row ) )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     /* Copy converters */
 
@@ -112,35 +97,35 @@ void test( int argc, char **argv )
 
     Col = Row;
     if( !compare( Col, Row ) )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     Coord = Row;
     if( !compare( Coord, Row ) )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     Coord2 = Col;
     if( !compare( Coord2, Row ) )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     Col2 = Coord;
     if( !compare( Col2, Row ) )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     Row2 = Col;
     if( !compare( Row2, Row ) )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     Row3 = Coord;
     if( !compare( Row3, Row ) )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     /* Conversion ordering check */
     if( Row.check_ascending() )
-	INTERNAL_ERROR();
+	throw( ErrorTest( ERROR_LOCATION, "Internal error, test not valid" ) );
 
     CColMatrix Col5 = Row;
     if( !Col5.check_ascending() )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
     
     CColMatrix Col6(6,5);
     Col6.set(4,1) = -91;
@@ -163,11 +148,11 @@ void test( int argc, char **argv )
     Col6.set(4,3) = 5;
 
     if( Col6.check_ascending() )
-	INTERNAL_ERROR();
+	throw( ErrorTest( ERROR_LOCATION, "Internal error, test not valid" ) );
 
     CRowMatrix Row6 = Col6;
     if( !Row6.check_ascending() )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 }
 
 
