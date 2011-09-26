@@ -54,7 +54,7 @@
 IBSimu::IBSimu()
     : _hello(false), _verbose_output(0), _threadcount(1), _is_cout(true), _vout(&std::cout)
 {
-#ifdef _GNU_SOURCE
+#if defined(_GNU_SOURCE) && defined(HAVE_SIGINFO_T)
     // Set a catch for segmentation fault
     struct sigaction act_sigsegv;
     act_sigsegv.sa_sigaction = SignalHandler::signal_handler_SIGSEGV;
@@ -63,6 +63,7 @@ IBSimu::IBSimu()
     sigaction( SIGSEGV, &act_sigsegv, NULL );
 #endif
 
+#ifdef HAVE_SIGINFO_T
     // Set a catch for terminate/kill/int
     struct sigaction act_sigterm;
     act_sigterm.sa_sigaction = SignalHandler::signal_handler_SIGTERM;
@@ -71,6 +72,10 @@ IBSimu::IBSimu()
     sigaction( SIGTERM, &act_sigterm, NULL );
     sigaction( SIGQUIT, &act_sigterm, NULL );
     sigaction( SIGINT, &act_sigterm, NULL );
+#else
+    signal( SIGTERM, SignalHandler::signal_handler_SIGTERM );
+    signal( SIGINT, SignalHandler::signal_handler_SIGTERM );
+#endif
 
     // Start timer for whole simulation
     _t = new Timer;
