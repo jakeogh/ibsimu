@@ -1,4 +1,4 @@
-AC_INIT([libibsimu-1.0.4dev], [1.0.4dev], [taneli.kalvas@jyu.fi])
+AC_INIT([libibsimu-1.0.5], [1.0.5], [taneli.kalvas@jyu.fi])
 AM_CONFIG_HEADER(src/config.h)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE
@@ -151,6 +151,7 @@ dnl Cairo
 dnl
 dnl No accurate information about required cairo version. 
 dnl Tested to work down to 1.2.4.
+dnl Postscript support may need higher version
 
 if $PKG_CONFIG --exists cairo ; then
   PKG_CHECK_MODULES(cairo, cairo >= 1.2.4 )
@@ -223,7 +224,7 @@ dnl ---------------------------------
 dnl Output
 dnl ---------------------------------
 
-AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile doc/Doxyfile doc/Doxyfile_web ibsimu-1.0.4dev.pc])
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile doc/Doxyfile doc/Doxyfile_web ibsimu-1.0.5.pc])
 AC_OUTPUT
 
 	
