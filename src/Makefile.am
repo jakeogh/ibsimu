@@ -18,6 +18,8 @@ colormap.cpp \
 colormap.hpp \
 compmath.cpp \
 compmath.hpp \
+comptime.cpp \
+comptime.hpp \
 config.h \
 config.hpp \
 convergence.cpp \
@@ -225,6 +227,8 @@ ccolmatrix.hpp \
 color.hpp \
 colormap.hpp \
 config.h \
+compmath.hpp \
+comptime.hpp \
 coordmapper.hpp \
 coordmatrix.hpp \
 convergence.hpp \
@@ -322,6 +326,8 @@ libibsimu_1_0_4dev_la_SOURCES += csgobject_solid.cpp csgobject_solid.hpp
 libibsimu_1_0_4dev_la_include_HEADERS += csgobject_solid.hpp
 endif
 
+EXTRA_DIST = \
+id.hpp
 
 CLEANFILES = *~
 

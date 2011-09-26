@@ -44,6 +44,7 @@
 #define SCHARGE_HPP 1
 
 
+#include <pthread.h>
 #include "scalarfield.hpp"
 #include "particles.hpp"
 

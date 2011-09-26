@@ -200,11 +200,24 @@ dnl AC_CHECK_LIB([gslcblas],[cblas_dgemm])
 dnl AC_CHECK_LIB([gsl],[gsl_blas_dgemm])
 
 dnl -------------
+dnl siginfo_t
+
+AC_CHECK_TYPES([siginfo_t], [], [], [[#include <signal.h>]])
+AC_CHECK_TYPES([clockid_t], [], [], [[#include <time.h>]])
+AC_CHECK_TYPES([struct timespec], [], [], [[#include <time.h>]])
+
+dnl -------------
+dnl Librt
+
+AC_CHECK_LIB(rt, clock_gettime)
+
+dnl -------------
 dnl Time
 
 AC_CHECK_HEADERS([sys/time.h])
 AC_HEADER_TIME
 AC_CHECK_FUNCS([gettimeofday])
+AC_CHECK_FUNCS([clock_gettime])
 
 dnl ---------------------------------
 dnl Output

@@ -1,8 +1,8 @@
-/*! \file timer.cpp
- *  \brief Source code for timer.cpp
+/*! \file comptime.cpp
+ *  \brief Compatible time functions
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,67 +40,27 @@
  * permit others to do so.
  */
 
-#include "timer.hpp"
-#include "comptime.hpp"
+
+#include <time.h>
+#include <sys/time.h>
+#include "config.h"
 
 
-Timer::Timer()
-{
-    _cpu1 = clock();
-    ibs_gettimeofday( &_time1, NULL );
-}
+#ifndef HAVE_CLOCKID_T
+typedef int clockid_t;
+#endif
 
+#ifndef HAVE_STRUCT_TIMESPEC
+struct timespec {
+        time_t   tv_sec;        /* seconds */
+        long     tv_nsec;       /* nanoseconds */
+};
+#endif
 
-void Timer::start( void )
-{
-    _cpu1 = clock();
-    ibs_gettimeofday( &_time1, NULL );
-}
+#ifndef CLOCK_REALTIME
+#define CLOCK_REALTIME 0
+#endif
 
+int ibs_clock_gettime( clockid_t clk_id, struct timespec *tp );
 
-void Timer::stop( void )
-{
-    _cpu2 = clock();
-    ibs_gettimeofday( &_time2, NULL );
-}
-
-
-double Timer::get_real_time( void ) const
-{
-    return( (double)(_time2.tv_sec - 
-                     _time1.tv_sec) + 
-            ((double)(_time2.tv_usec - 
-                      _time1.tv_usec))/1.0e6 );
-}
-
-
-double Timer::get_cpu_time( void ) const
-{
-    return( (_cpu2-_cpu1)/(double)CLOCKS_PER_SEC );
-}
-
-
-std::ostream &operator<<( std::ostream &os, const Timer &t )
-{
-    os << t.get_cpu_time() << " s (" << t.get_real_time() << " s realtime)";
-    return( os );
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+int ibs_gettimeofday( struct timeval *tv, struct timezone *tz );

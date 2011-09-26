@@ -49,7 +49,8 @@
 #include <iostream>
 #include <vector>
 #include <deque>
-//#include <sys/time.h>
+#include <time.h>
+#include "comptime.hpp"
 
 
 //#define SCHEDULER_DEBUG 1
@@ -523,7 +524,7 @@ public:
 	    pthread_cond_broadcast( &_scheduler_cond );
 
 	    struct timespec ts;
-	    clock_gettime( CLOCK_REALTIME, &ts );
+	    ibs_clock_gettime( CLOCK_REALTIME, &ts );
 	    ts.tv_sec += 1;
 	    int rc = pthread_cond_timedwait( &_producer_cond, &_mutex, &ts );
 	    if( rc == ETIMEDOUT ) {
