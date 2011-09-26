@@ -182,7 +182,7 @@ public:
 
     /*! \brief Get a reference to colormap palette.
      */
-    Palette &palette( void );
+    Palette &palette( void ) { return( _palette ); }
 
     /*! \brief Get zrange for colormap plot.
      */
