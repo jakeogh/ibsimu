@@ -128,8 +128,8 @@ public:
     /*! \brief Set stepped palette.
      *
      *  If \a steps is less than or equal to 1 a regular interpolated
-     *  palette will be used, otherwise \a steps is used as the number
-     *  of separate shades in the palette.
+     *  palette will be used (default), otherwise \a steps is used as
+     *  the number of separate shades in the palette.
      */
     void set_stepped_palette( int steps );
 

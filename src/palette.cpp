@@ -74,6 +74,7 @@ Palette::Palette()
 
 
 Palette::Palette( const std::vector<Entry> &entries )
+    : _steps(0)
 {
     // Search minimum and maximum
     double min = std::numeric_limits<double>::infinity();
