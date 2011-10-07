@@ -1530,9 +1530,8 @@ void ParticleDataBase3DImp::export_path_manager_data( std::string filename,
     }
 
     // Write header
-    char timebuf[128];
     time_t tt = time(NULL);
-    ctime_r( &tt, timebuf );
+    char *timebuf = ctime( &tt );
     ofile << "Beam data from IBSimu, " << timebuf; // contains newline
     ofile << "Total beam: " << Isum << " A\n";
     ofile << std::setw(17) << ref_p*p_to_gevc  << " !REFERENCE MOMENTUM [GeV/c]\n";
