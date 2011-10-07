@@ -176,7 +176,7 @@ ibsimutest.hpp
 
 AM_CPPFLAGS = $(CPPFLAGS) -Wall -g -I$(top_srcdir)/src
 AM_LDFLAGS = $(LIBS) -L$(top_srcdir)/src @rdynamic_flag@
-LDADD = libibsimutest.la $(top_builddir)/src/libibsimu-1.0.5.la -lm
+LDADD = libibsimutest.la $(top_builddir)/src/libibsimu-1.0.5b.la -lm
 
 if UMFPACK
 AM_CPPFLAGS += `pkg-config --cflags umfpack`

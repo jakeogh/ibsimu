@@ -1,6 +1,6 @@
 SUBDIRS = src tests doc
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = ibsimu-1.0.5.pc
+pkgconfig_DATA = ibsimu-1.0.5b.pc
 
 ACLOCAL_AMFLAGS = -I m4
 
