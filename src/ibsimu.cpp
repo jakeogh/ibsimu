@@ -61,9 +61,7 @@ IBSimu::IBSimu()
     sigemptyset( &act_sigsegv.sa_mask );
     act_sigsegv.sa_flags = SA_SIGINFO;
     sigaction( SIGSEGV, &act_sigsegv, NULL );
-#endif
 
-#ifdef HAVE_SIGINFO_T
     // Set a catch for terminate/kill/int
     struct sigaction act_sigterm;
     act_sigterm.sa_sigaction = SignalHandler::signal_handler_SIGTERM;

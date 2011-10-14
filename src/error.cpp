@@ -136,7 +136,7 @@ void ExceptionTracer::print_trace( std::ostream &os )
 }
 
 
-#ifdef HAVE_SIGINFO_T
+#if defined(_GNU_SOURCE) && defined(HAVE_SIGINFO_T)
 void SignalHandler::signal_handler_SIGTERM( int signum, siginfo_t *info, void *ptr )
 {
     std::cerr << "Terminate signal cought!\n";
@@ -155,11 +155,13 @@ void SignalHandler::signal_handler_SIGTERM( int signum )
 #if defined(_GNU_SOURCE) && defined(HAVE_SIGINFO_T)
 void SignalHandler::signal_handler_SIGSEGV( int signum, siginfo_t *info, void *ptr )
 {
+   std::cerr << "Segmentation Fault!\n";
+
+#ifdef SIGSEGV_STACK
     static const char *si_codes[3] = {"", "SEGV_MAPERR", "SEGV_ACCERR"};
     ucontext_t *ucontext = (ucontext_t*)ptr;
 
-    std::cerr << "Segmentation Fault!\n";
-    std::cerr << "info.si_signo = " << signum << "\n";
+     std::cerr << "info.si_signo = " << signum << "\n";
     std::cerr << "info.si_errno = " << info->si_errno << "\n";
     std::cerr << "info.si_code  = " << info->si_code << "(" << si_codes[info->si_code] << ")\n";
     std::cerr << "info.si_addr  = 0x" << std::hex << info->si_addr << "\n";
@@ -167,7 +169,6 @@ void SignalHandler::signal_handler_SIGSEGV( int signum, siginfo_t *info, void *p
 	std::cerr << "reg[" << std::setw(2) << i << "]       = 0x" 
 		  << std::hex << ucontext->uc_mcontext.gregs[i] << "\n";
 
-#ifndef SIGSEGV_NOSTACK
 #if defined(SIGSEGV_STACK_IA64) || defined(SIGSEGV_STACK_X86)
 
 #if defined(SIGSEGV_STACK_IA64)
@@ -191,10 +192,14 @@ void SignalHandler::signal_handler_SIGSEGV( int signum, siginfo_t *info, void *p
     }
 #else
     std::cerr << "Stack trace (non-dedicated):\n";
-    sz = backtrace( bt, 20 );
-    strings = backtrace_symbols( bt, sz );
-    for( int i = 0; i < sz; ++i )
-	std::cerr << strings[i] << "\n";
+    void *bt[20];
+    int sz = backtrace( bt, 20 );
+    char **strings = backtrace_symbols( bt, sz );
+    if( strings ) {
+	for( int i = 0; i < sz; ++i )
+	    std::cerr << strings[i] << "\n";
+	free( strings );
+    }
 #endif
     std::cerr << "End of stack trace.\n";
 #else

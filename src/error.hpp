@@ -282,9 +282,7 @@ public:
     /*! \brief Signal handler function for SIGSEGV.
      */
     static void signal_handler_SIGSEGV( int signum, siginfo_t *info, void *ptr );
-#endif
 
-#ifdef HAVE_SIGINFO_T
     /*! \brief Signal handler function for SIGTERM.
      */
     static void signal_handler_SIGTERM( int signum, siginfo_t *info, void *ptr );

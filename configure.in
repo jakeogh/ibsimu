@@ -1,4 +1,4 @@
-AC_INIT([libibsimu-1.0.5b], [1.0.5b], [taneli.kalvas@jyu.fi])
+AC_INIT([libibsimu-1.0.5dev], [1.0.5dev], [taneli.kalvas@jyu.fi])
 AM_CONFIG_HEADER(src/config.h)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE
@@ -49,6 +49,13 @@ fi
 dnl ---------------------------------
 dnl Check for selectable compilation
 dnl ---------------------------------
+
+AC_ARG_ENABLE([sigsegv_stack],
+  AS_HELP_STRING([--disable-sigsegv_stack], [Disable stack printing on SEGV]))
+
+AS_IF([test "x$enable_sigsegv_stack" != "xno"], [
+  CPPFLAGS="$CPPFLAGS -DSIGSEGV_STACK"
+])
 
 AC_ARG_WITH([umfpack],
   [AS_HELP_STRING([--with-umfpack],
@@ -224,7 +231,7 @@ dnl ---------------------------------
 dnl Output
 dnl ---------------------------------
 
-AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile doc/Doxyfile doc/Doxyfile_web ibsimu-1.0.5b.pc])
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile doc/Doxyfile doc/Doxyfile_web ibsimu-1.0.5dev.pc])
 AC_OUTPUT
 
 	
