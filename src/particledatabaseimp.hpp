@@ -218,10 +218,7 @@ template<class PP> class ParticleDataBasePPImp : public ParticleDataBaseImp {
 		data = p.qm();
 		break;
 	    case DIAG_EK:
-		// This is wrong - no mass dependence
-		// Vec3D velocity = x.velocity();
-		//data = velocity.norm2();
-		data = 0.0;
+		data = 0.5*p.m()*p.velocity().ssqr();
 		break;
 	    default:
 		throw( ErrorUnimplemented( ERROR_LOCATION ) );
