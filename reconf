@@ -1,16 +1,13 @@
 #!/bin/sh
 
 touch ChangeLog
-touch src/ibsimu.cpp
-echo -n "#define IBSIMU_GIT_ID \"" > src/id.hpp
-git log -1 --pretty=format:"%h, %ad" >> src/id.hpp
-echo "\"" >> src/id.hpp
+ln -sfT ../git_hooks .git/hooks
 
 rm -Rf autom4te.cache
 rm -f config.cache config.log config.status config.guess config.sub
 rm -f ltconfig.h ltmain.sh libtool
 rm -f aclocal.m4
-rm -f missing install-sh INSTALL
+rm -f missing install-sh
 
 libtoolize
 aclocal -I m4
