@@ -418,20 +418,26 @@ public:
      *
      *  The particles defined in particle database \a pdb are iterated
      *  through electric field \a efield and magnetic field \a bfield 
-     *  in geometry \a g. Space charge density field \a scharge is set
+     *  in geometry \a geom. Space charge density field \a scharge is set
      *  from the particle trajectories.
+     *
+     *  The meshes of the geometry , the space charge field and the
+     *  electric field have to be equal. The magnetic field mesh can
+     *  be selected independently. This allows minimization of the
+     *  memory use in the case where electric field needs high
+     *  resolution, but magnetic field is relatively smooth.
      */
     void iterate_trajectories( ScalarField &scharge, const VectorField &efield, 
-			       const VectorField &bfield, const Geometry &g );
+			       const VectorField &bfield, const Geometry &geom );
 
     /*! \brief Step particles forward by time step dt.
      *
      *  The particles defined in particle database \a pdb are stepped
      *  forward one time step in electric field \a efield and geometry
-     *  \a g.
+     *  \a geom.
      */
     void step_particles( ScalarField &scharge, const VectorField &efield, 
-			 const VectorField &bfield, const Geometry &g, double dt );
+			 const VectorField &bfield, const Geometry &geom, double dt );
 
 /* ************************************** *
  * Debugging, plotting and saving         *
