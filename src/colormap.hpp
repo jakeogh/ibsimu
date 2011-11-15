@@ -124,10 +124,14 @@ public:
      *  ymax. Z-values are defined in vector \a data in y major
      *  order. Internal copy of the data from data is made.
      *
-     *  Overrides old data.
+     *  Overrides old data and resets z ranges.
      */
     void set_data( const double datarange[4], size_t n, size_t m, 
 		   const std::vector<double> &data );
+
+    /*! \brief Set interpolation mode.
+     */
+    interpolation_e get_interpolation( void ) const;
 
     /*! \brief Set interpolation mode.
      *
@@ -135,6 +139,10 @@ public:
      *  INTERPOLATION_BILINEAR or \a INTERPOLATION_BICUBIC.
      */
     void set_interpolation( interpolation_e interpolation );
+
+    /*! \brief Get zscale mode.
+     */
+    zscale_e get_zscale( void ) const;
 
     /*! \brief Set zscale mode.
      *

@@ -50,7 +50,8 @@
 
 
 Colormap::Colormap()
-    : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), _n(0), _m(0), _intrp(NULL)
+    : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), 
+      _zmin(0.0), _zmax(0.0), _n(0), _m(0), _intrp(NULL)
 {
 
 }
@@ -58,7 +59,8 @@ Colormap::Colormap()
 
 Colormap::Colormap( const double datarange[4], size_t n, size_t m, 
 		    const std::vector<double> &data )
-    : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), _n(0), _m(0), _intrp(NULL)
+    : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), 
+      _zmin(0.0), _zmax(0.0), _n(0), _m(0), _intrp(NULL)
 {
     set_data( datarange, n, m, data );
 }
@@ -124,10 +126,23 @@ void Colormap::set_data( const double datarange[4], size_t n, size_t m,
     make_data_interpolation();
 }
 
+
+interpolation_e Colormap::get_interpolation( void ) const
+{
+    return( _interpolation );
+}
+
+
 void Colormap::set_interpolation( interpolation_e interpolation )
 {
     _interpolation = interpolation;
     make_data_interpolation();
+}
+
+
+zscale_e Colormap::get_zscale( void ) const
+{
+    return( _zscale );
 }
 
 
@@ -171,6 +186,11 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 
     int sign;
     double zspan = _zmax - _zmin;
+#ifdef DEBUG_COLORMAP
+    std::cout << "Colormap::_zmin = " << _zmin << "\n";
+    std::cout << "Colormap::_zmax = " << _zmax << "\n";
+    std::cout << "Colormap::zspan = " << zspan << "\n";
+#endif
     if( _zmin >= -1.0e-6*zspan && _zmax >= 0.0 ) {
 	// Completely on positive side
 	sign = +1;
@@ -181,9 +201,31 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 	// Both negative and positive
 	sign = 0;
     }
-	
+#ifdef DEBUG_COLORMAP
+    std::cout << "Colormap::sign = " << sign << "\n";
+#endif
+
     // flush to ensure all writing to the image was done
     cairo_surface_flush( surface );
+
+    // Calculate scaling coefficients
+    double A = 0.0, B = 0.0;
+    if( _zscale == ZSCALE_LINEAR ) {
+	A = _zmin;
+	B = _zmax;
+    } else if( _zscale == ZSCALE_LOG ) {
+	if( sign > 0 ) {
+	    A = log(_zmin);
+	    B = log(_zmax);
+	} else {
+	    A = log(-_zmin);
+	    B = log(-_zmax);
+	}
+    } else if( _zscale == ZSCALE_RELLOG ) {
+	A = log(0.001);
+	B = log(1.001);
+    }
+    double C = 1.0/(B-A);
 
     for( int i = plim[0]; i <= plim[2]; i++ ) {
 	for( int j = plim[1]; j <= plim[3]; j++ ) {
@@ -197,26 +239,26 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 	    // Prescale value to nominal range [0:1] maintaining
 	    // monotonic rising property. Might go over range.
 	    if( _zscale == ZSCALE_LINEAR )
-		val = (val-_zmin)/(_zmax-_zmin);
+		val = C*(val-A);
 	    else if( _zscale == ZSCALE_LOG ) {
 		if( sign > 0 )
-		    val = (log(val)-log(_zmin)) / (log(_zmax)-log(_zmin));
-		else
-		    val = (log(-val)-log(-_zmin)) / (log(-_zmax)-log(-_zmin));
+		    val = C*(log(val)-A);
+		else /* if( sign < 0 ) */
+		    val = C*(log(-val)-A);
 	    } else if( _zscale == ZSCALE_RELLOG ) {
 		if( sign > 0 ) {
 		    val = (val-_zmin)/(_zmax-_zmin);
-		    val = (log(0.001+val) - log(0.001)) / (log(1.001) - log(0.001));
+		    val = C*(log(0.001+val) - A);
 		} else if( sign < 0 ) {
 		    val = (val-_zmax)/(_zmin-_zmax);
-		    val = 1.0+(log(0.001) - log(0.001+val)) / (log(1.001) - log(0.001));
+		    val = 1.0+C*(A-log(0.001+val));
 		} else {
 		    if( val > 0.0 ) {
 			val = (val-0.0)/(_zmax-0.0);
-			val = 0.5+0.5*(log(0.001+val) - log(0.001)) / (log(1.001) - log(0.001));
+			val = 0.5+0.5*C*(log(0.001+val) - A);
 		    } else {
 			val = (val-0.0)/(_zmin-0.0);
-			val = 0.5+0.5*(log(0.001) - log(0.001+val)) / (log(1.001) - log(0.001));
+			val = 0.5+0.5*C*(A-log(0.001+val));
 		    }
 		}
 	    }
@@ -379,8 +421,13 @@ void Colormap::get_zrange( double &min, double &max ) const
 
 void Colormap::set_zrange( double min, double max )
 {
-    _zmin = min;
-    _zmax = max;
+    if( min < max ) {
+	_zmin = min;
+	_zmax = max;
+    } else {
+	_zmin = max;
+	_zmax = min;
+    }
 }
 
 
