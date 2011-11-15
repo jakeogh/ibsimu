@@ -452,7 +452,7 @@ void ParticleDiagPlot::build_plot( void )
 	    palette.push_back( Color(1,0,0), 0.67*zmax );
 	    palette.push_back( Color(0,0,0), zmax );
 	}
-	palette.norm();
+	palette.normalize();
 
 	_colormap = new Colormap( range, histo2d->n(), histo2d->m(), histo2d->get_data() );
 	_colormap->set_palette( palette );

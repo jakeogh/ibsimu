@@ -40,53 +40,172 @@
  * permit others to do so.
  */
 
+#include <limits>
 #include "fieldgraph.hpp"
+#include "meshvectorfield.hpp"
 #include "ibsimu.hpp"
 
 
-FieldGraph::FieldGraph( const ScalarField *field )
-    : _field_type(FIELD_NONE), _geom(NULL), _scalarfield(field), _vectorfield(NULL), 
-      _first(true), _enabled(true)
+FieldGraph::FieldGraph()
+    : _field_type(FIELD_NONE), _geom(NULL), _scalarfield(NULL),
+      _vectorfield(NULL), _first(true), _enabled(true), _zmin(0.0), _zmax(0.0)
 {
-    double zmin, zmax;
-    _scalarfield->get_minmax( zmin, zmax );
-    set_zrange( zmin, zmax );
-    double zspan = zmax - zmin;
     
-    // Set default palette
+}
+
+
+FieldGraph::FieldGraph( field_type_e field_type, const ScalarField *field )
+    : _first(true), _enabled(true)
+{
+    set_field( field_type, field );
+}
+
+
+FieldGraph::FieldGraph( field_type_e field_type, const Geometry *geom, const VectorField *field )
+    : _first(true), _enabled(true)
+{
+    set_field( field_type, geom, field );
+}
+
+
+FieldGraph::~FieldGraph()
+{
+}
+
+
+field_type_e FieldGraph::field_type( void )
+{
+    return( _field_type );
+}
+
+
+void FieldGraph::set_field( field_type_e field_type, const ScalarField *field )
+{
+    // Set parameters
+    _first = true;
+    _field_type = field_type;
+    _geom = NULL;
+    _scalarfield = field;
+    _vectorfield = NULL;
+
+    if( field == NULL ) {
+	_field_type = FIELD_NONE;
+	return;
+    }
+
+    _scalarfield->get_minmax( _zmin, _zmax );
+
+    // Set default colormap palette
     std::vector<Palette::Entry> pentry;
-    if( zmin >= -1.0e-6*zspan && zmax >= 0.0 ) {
-	// Palette for positive beam "white-yellow-red-black"
+    double zspan = _zmax - _zmin;
+    if( _zmin >= -1.0e-6*zspan && _zmax >= 0.0 ) {
+	// Red palette
 	pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
 	pentry.push_back( Palette::Entry( Color(1,1,0), 1 ) );
 	pentry.push_back( Palette::Entry( Color(1,0,0), 2 ) );
 	pentry.push_back( Palette::Entry( Color(0,0,0), 3 ) );
-    } else if( zmax <= 1.0e-6*zspan && zmin <= 0.0 ) {
-	// Palette for negative beam "white-cyan-blue-black"
+    } else if( _zmax <= 1.0e-6*zspan && _zmin <= 0.0 ) {
+	// Red palette
 	pentry.push_back( Palette::Entry( Color(1,1,1), 3 ) );
-	pentry.push_back( Palette::Entry( Color(0,1,1), 2 ) );
-	pentry.push_back( Palette::Entry( Color(0,0,1), 1 ) );
+	pentry.push_back( Palette::Entry( Color(1,1,0), 2 ) );
+	pentry.push_back( Palette::Entry( Color(1,0,0), 1 ) );
 	pentry.push_back( Palette::Entry( Color(0,0,0), 0 ) );
     } else {
-	// Palette for positive and negative beam, white at zero
-	pentry.push_back( Palette::Entry( Color(0,0,0), zmin ) );
-	pentry.push_back( Palette::Entry( Color(0,0,1), 0.67*zmin ) );
-	pentry.push_back( Palette::Entry( Color(0,1,1), 0.33*zmin ) );
+	// Mixed palette, forcing zero at white
+	pentry.push_back( Palette::Entry( Color(0,0,0), _zmin ) );
+	pentry.push_back( Palette::Entry( Color(0,0,1), 0.67*_zmin ) );
+	pentry.push_back( Palette::Entry( Color(0,1,1), 0.33*_zmin ) );
 	pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
-	pentry.push_back( Palette::Entry( Color(1,1,0), 0.33*zmax ) );
-	pentry.push_back( Palette::Entry( Color(1,0,0), 0.67*zmax ) );
-	pentry.push_back( Palette::Entry( Color(0,0,0), zmax ) );
+	pentry.push_back( Palette::Entry( Color(1,1,0), 0.33*_zmax ) );
+	pentry.push_back( Palette::Entry( Color(1,0,0), 0.67*_zmax ) );
+	pentry.push_back( Palette::Entry( Color(0,0,0), _zmax ) );
     }
     Palette p( pentry );
     set_palette( p );
+    Colormap::set_zrange( _zmin, _zmax );
 }
 
 
-FieldGraph::FieldGraph( const Geometry *geom, const VectorField *field, field_type_e field_type )
-    : _field_type(field_type), _geom(geom), _scalarfield(NULL), _vectorfield(field), 
-      _first(true), _enabled(true)
+void FieldGraph::set_field( field_type_e field_type, const Geometry *geom, const VectorField *field )
 {
-    // Set default palette "black-red-white-blue-black" for VectorField
+    // Set parameters
+    _first = true;
+    _field_type = field_type;
+    _geom = geom;
+    _scalarfield = NULL;
+    _vectorfield = field;
+
+    if( field == NULL ) {
+	_field_type = FIELD_NONE;
+	return;
+    }
+
+    const MeshVectorField *mvf = dynamic_cast<const MeshVectorField *>( field );
+    if( mvf ) {
+
+	Vec3D min, max;
+	switch( _field_type ) {
+	case FIELD_EFIELD:
+	case FIELD_BFIELD:
+	    mvf->get_minmax( _zmin, _zmax );
+	    break;
+	case FIELD_EFIELD_X:
+	case FIELD_BFIELD_X:
+	    mvf->get_minmax( min, max );
+	    _zmin = min[0];
+	    _zmax = max[0];
+	    break;
+	case FIELD_EFIELD_Y:
+	case FIELD_BFIELD_Y:
+	    mvf->get_minmax( min, max );
+	    _zmin = min[1];
+	    _zmax = max[1];
+	    break;
+	case FIELD_EFIELD_Z:
+	case FIELD_BFIELD_Z:
+	    mvf->get_minmax( min, max );
+	    _zmin = min[2];
+	    _zmax = max[2];
+	    break;
+	default:
+	    throw( Error( ERROR_LOCATION, "unknown field type" ) );
+	    break;
+	}
+
+    } else {
+
+	Vec3D min, max;
+	switch( _field_type ) {
+	case FIELD_EFIELD:
+	case FIELD_BFIELD:
+	    field->get_minmax( *geom, _zmin, _zmax );
+	    break;
+	case FIELD_EFIELD_X:
+	case FIELD_BFIELD_X:
+	    field->get_minmax( *geom, min, max );
+	    _zmin = min[0];
+	    _zmax = max[0];
+	    break;
+	case FIELD_EFIELD_Y:
+	case FIELD_BFIELD_Y:
+	    field->get_minmax( *geom, min, max );
+	    _zmin = min[1];
+	    _zmax = max[1];
+	    break;
+	case FIELD_EFIELD_Z:
+	case FIELD_BFIELD_Z:
+	    field->get_minmax( *geom, min, max );
+	    _zmin = min[2];
+	    _zmax = max[2];
+	    break;
+	default:
+	    throw( Error( ERROR_LOCATION, "unknown field type" ) );
+	    break;
+	}
+
+    }
+
+    // Set default colormap palette
     std::vector<Palette::Entry> pentry;
     pentry.push_back( Palette::Entry( Color(0,0,0), -1.00 ) );
     pentry.push_back( Palette::Entry( Color(0,0,1), -0.67 ) );
@@ -97,11 +216,7 @@ FieldGraph::FieldGraph( const Geometry *geom, const VectorField *field, field_ty
     pentry.push_back( Palette::Entry( Color(0,0,0),  1.00 ) );
     Palette p( pentry );
     set_palette( p );
-}
-
-
-FieldGraph::~FieldGraph()
-{
+    Colormap::set_zrange( _zmin, _zmax );
 }
 
 
@@ -111,30 +226,17 @@ void FieldGraph::enable( bool enable )
 }
 
 
-/*
-void FieldGraph::set_logscale( bool enable ) 
+void FieldGraph::set_zrange( double min, double max )
 {
-    _logscale = enable;
-}
-*/
+    _zmin = min;
+    _zmax = max;
 
-void FieldGraph::set_stepped_palette( int steps ) 
-{
-    palette().set_stepped_palette( steps );
-    /*
-    _steps = steps;
-    if( _colormap )
-	delete _colormap;
-    _colormap = NULL;
-    */
+    Colormap::set_zrange( _zmin, _zmax );
 }
 
 
 void FieldGraph::build_vectorfield_plot( void )
 {
-    if( !_vectorfield )
-	return;
-
     // Build data for colormap based on geometry size
     double range[4] = { _geom->origo( _vb[0] ),
 			_geom->origo( _vb[1] ),
@@ -147,61 +249,107 @@ void FieldGraph::build_vectorfield_plot( void )
     data.reserve( n*m );
     //size_t ind[3];
     Vec3D x;
-    //ind[_vb[2]] = _level;
     x[_vb[2]] = _geom->origo(_vb[2]) + _level*_geom->h();
     for( size_t j = 0; j < m; j++ ) {
-	//ind[_vb[1]] = j;
 	x[_vb[1]] = _geom->origo(_vb[1]) + j*_geom->h();
 	for( size_t i = 0; i < n; i++ ) {
-	    //ind[_vb[0]] = i;
 	    x[_vb[0]] = _geom->origo(_vb[0]) + i*_geom->h();
 
-	    // Make data for point (ind[0], ind[1], ind[2])
-	    //data.push_back( (*_scalarfield)( ind[0], ind[1], ind[2] ) );
-
 	    Vec3D F = (*_vectorfield)( x );
+	    double Fv = 0.0;
 
 	    switch( _field_type ) {
 	    case FIELD_EFIELD:
 	    case FIELD_BFIELD:
-		data.push_back( F.norm2() );
+		Fv = F.norm2();
 		break;
 	    case FIELD_EFIELD_X:
 	    case FIELD_BFIELD_X:
-		data.push_back( F[0] );
+		Fv = F[0];
 		break;
 	    case FIELD_EFIELD_Y:
 	    case FIELD_BFIELD_Y:
-		data.push_back( F[1] );
+		Fv = F[1];
 		break;
 	    case FIELD_EFIELD_Z:
 	    case FIELD_BFIELD_Z:
-		data.push_back( F[2] );
+		Fv = F[2];
 		break;
 	    default:
 		throw( Error( ERROR_LOCATION, "unknown field type" ) );
 		break;
 	    }
+
+	    data.push_back( Fv );
 	}
     }
 
     // Set up colormap
     set_data( range, n, m, data );
-    //_colormap = new Colormap( range, n, m, data );
+    Colormap::set_zrange( _zmin, _zmax );
+}
 
-    //double zmin, zmax;
-    //_scalarfield->get_minmax( zmin, zmax );
-    //_colormap->set_zrange( zmin, zmax );
-    //double zspan = zmax - zmin;
 
+void FieldGraph::build_meshvectorfield_plot( void )
+{
+    const MeshVectorField *mvf = dynamic_cast<const MeshVectorField *>( _vectorfield );
+
+    if( !mvf )
+	return;
+
+    // Build data for colormap based on scalarfield size
+    double range[4] = { mvf->origo( _vb[0] ),
+			mvf->origo( _vb[1] ),
+			mvf->max  ( _vb[0] ),
+			mvf->max  ( _vb[1] ) };
+    size_t n = mvf->size( _vb[0] );
+    size_t m = mvf->size( _vb[1] );
+
+    std::vector<double> data;
+    data.reserve( n*m );
+    size_t ind[3];
+    ind[_vb[2]] = (size_t)floor(_level+0.5);
+    for( size_t j = 0; j < m; j++ ) {
+	ind[_vb[1]] = j;
+	for( size_t i = 0; i < n; i++ ) {
+	    ind[_vb[0]] = i;
+	    Vec3D F = (*mvf)( ind[0], ind[1], ind[2] );
+	    double Fv = 0.0;
+
+	    switch( _field_type ) {
+	    case FIELD_EFIELD:
+	    case FIELD_BFIELD:
+		Fv = F.norm2();
+		break;
+	    case FIELD_EFIELD_X:
+	    case FIELD_BFIELD_X:
+		Fv = F[0];
+		break;
+	    case FIELD_EFIELD_Y:
+	    case FIELD_BFIELD_Y:
+		Fv = F[1];
+		break;
+	    case FIELD_EFIELD_Z:
+	    case FIELD_BFIELD_Z:
+		Fv = F[2];
+		break;
+	    default:
+		throw( Error( ERROR_LOCATION, "unknown field type" ) );
+		break;
+	    }
+
+	    data.push_back( Fv );
+	}
+    }
+
+    // Set up colormap
+    set_data( range, n, m, data );
+    Colormap::set_zrange( _zmin, _zmax );
 }
 
 
 void FieldGraph::build_scalarfield_plot( void )
 {
-    if( !_scalarfield )
-	return;
-
     // Build data for colormap based on scalarfield size
     double range[4] = { _scalarfield->origo( _vb[0] ),
 			_scalarfield->origo( _vb[1] ),
@@ -218,12 +366,14 @@ void FieldGraph::build_scalarfield_plot( void )
 	ind[_vb[1]] = j;
 	for( size_t i = 0; i < n; i++ ) {
 	    ind[_vb[0]] = i;
-	    data.push_back( (*_scalarfield)( ind[0], ind[1], ind[2] ) );
+	    double Fv = (*_scalarfield)( ind[0], ind[1], ind[2] );
+	    data.push_back( Fv );
 	}
     }
 
     // Set up colormap
     set_data( range, n, m, data );
+    Colormap::set_zrange( _zmin, _zmax );
 }
 
 
@@ -236,16 +386,20 @@ void FieldGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
 	if( _scalarfield && _enabled )
 	    build_scalarfield_plot();
 
-	// Vectorfield
-	else if( _vectorfield && _enabled )
-	    build_vectorfield_plot();
+	else if( _vectorfield && _enabled ) {
+	    const MeshVectorField *mvf = dynamic_cast<const MeshVectorField *>( _vectorfield );
+	    if( mvf )
+		build_meshvectorfield_plot();
+	    else
+		build_vectorfield_plot();
+	}
     }
 
     _first = false;
     _oview = _view;
     _olevel = _level;
 
-    if( _enabled )
+    if( _field_type != FIELD_NONE && _enabled )
 	Colormap::plot( cairo, cm, range );
 }
 

@@ -59,6 +59,7 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       *plotter,
 			      const ScalarField      *scharge,
 			      const ScalarField      *tdens,
 			      const VectorField      *bfield,
+			      const VectorField      *efield,
 			      const ParticleDataBase *pdb )
     : GTKWindow(plotter), _geomplot(&_frame,geom),
       _geom(geom), _epot(epot), _scharge(scharge), _tdens(tdens), _bfield(bfield), _pdb(pdb)
@@ -69,6 +70,8 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       *plotter,
     _geomplot.set_epot( epot );
     _geomplot.set_scharge( scharge );
     _geomplot.set_trajdens( tdens );
+    _geomplot.set_bfield( bfield );
+    _geomplot.set_efield( efield );
     _geomplot.set_particle_database( pdb );
 
     // Set window title
@@ -383,37 +386,79 @@ std::string GTKGeomWindow::track_text( double x, double y )
        << "k = " << i[2] << "\n";
     ss << "solid = " << _geom->inside( loc ) << "\n";
     if( _epot ) {
-	ss << "epot = " << (*_epot)( loc ) << "\n";
+	ss << "epot = " << (*_epot)( loc ) << " V\n";
 	EpotEfield efield( *_geom, *_epot );
-	ss << "efield = " << efield( loc ) << "\n";
+	ss << "efield = " << efield( loc ) << " V/m\n";
     }
     if( _bfield )
-	ss << "bfield = " << (*_bfield)( loc ) << "\n";
+	ss << "bfield = " << (*_bfield)( loc ) << " T\n";
     if( _scharge )
-	ss << "scharge = " << (*_scharge)( loc ) << "\n";
+	ss << "scharge = " << (*_scharge)( loc ) << " C/m3\n";
     if( _tdens )
-	ss << "trajdens = " << (*_tdens)( loc ) << "\n";
+	ss << "trajdens = " << (*_tdens)( loc ) << " A/m2\n";
 
     return( ss.str() );
 }
 
 
-struct PreferencesData {
-    GtkWidget *manual_eqlines_entry;
-    GtkWidget *automatic_eqlines_spin;
-    GtkWidget *particlediv_spin;
-    GtkWidget *field_none_radio;
-    GtkWidget *field_scharge_radio;
-    GtkWidget *field_tdens_radio;
-    GtkWidget *field_zscale;
-    GtkWidget *qmdiscretation_check;
-    GtkWidget *meshen_check;
-};
+void GTKGeomWindow::field_activate( void )
+{
+    std::cout << "Field_toggled\n";
+
+    field_type_e field_type = FIELD_NONE;
+    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->field_none_radio) ) )
+	field_type = FIELD_NONE;
+    else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->field_J_radio) ) )
+	field_type = FIELD_TRAJDENS;
+    else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->field_rho_radio) ) )
+	field_type = FIELD_SCHARGE;
+    else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->field_phi_radio) ) )
+	field_type = FIELD_EPOT;
+    else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->field_E_radio) ) )
+	field_type = FIELD_EFIELD;
+    else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->field_Ex_radio) ) )
+	field_type = FIELD_EFIELD_X;
+    else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->field_Ey_radio) ) )
+	field_type = FIELD_EFIELD_Y;
+    else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->field_Ez_radio) ) )
+	field_type = FIELD_EFIELD_Z;
+    else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->field_B_radio) ) )
+	field_type = FIELD_BFIELD;
+    else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->field_Bx_radio) ) )
+	field_type = FIELD_BFIELD_X;
+    else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->field_By_radio) ) )
+	field_type = FIELD_BFIELD_Y;
+    else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->field_Bz_radio) ) )
+	field_type = FIELD_BFIELD_Z;
+    else
+	throw( ErrorUnimplemented( ERROR_LOCATION ) );	
+    _geomplot.set_fieldgraph_plot( field_type );
+
+    double zmin, zmax;
+    _geomplot.fieldgraph()->get_zrange( zmin, zmax );
+    std::cout << "zmin = " << zmin << ", zmax = " << zmax << "\n";
+    std::string s = to_string( zmin );
+    gtk_entry_set_text( GTK_ENTRY(_prefdata->zmin_entry), s.c_str() );
+    s = to_string( zmax );
+    gtk_entry_set_text( GTK_ENTRY(_prefdata->zmax_entry), s.c_str() );
+
+    
+}
+
+
+void GTKGeomWindow::field_toggled( GtkToggleButton *togglebutton,
+				   gpointer         user_data )
+{
+    GTKGeomWindow *geomwindow = (GTKGeomWindow *)user_data;
+    if( gtk_toggle_button_get_active( togglebutton ) )
+	geomwindow->field_activate();
+}
 
 
 void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
 {
-    PreferencesData *pdata = new PreferencesData;;
+    PreferencesData *pdata = new PreferencesData;
+    _prefdata = pdata;
 
     GtkWidget *vbox = gtk_vbox_new( FALSE, 0 );
 
@@ -478,52 +523,277 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     gtk_box_pack_start( GTK_BOX(hbox), pdata->meshen_check, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
-    // Field colormap plot selector
-    hbox = gtk_hbox_new( TRUE, 30 );
-    label = gtk_label_new( "Field colormap plot" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    GtkWidget *vbox2 = gtk_vbox_new( FALSE, 0 );
-    // Field none radio button
+    // Add notebook page
+    label = gtk_label_new( "Geometry" );
+    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox, label );
+
+
+    // ************************************************* 
+    // FieldGraph notebook
+
+    vbox = gtk_vbox_new( FALSE, 0 );
+
+    // Field type selection radiobuttons
+    GtkWidget *table = gtk_table_new( 3, 4, TRUE );
+
+    // Field selection
+    label = gtk_label_new( "Field selection" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0.0, 0.0 );
+    gtk_box_pack_start( GTK_BOX(vbox), label, FALSE, TRUE, 0 );
+
+    // First table row
     pdata->field_none_radio = gtk_radio_button_new_with_label_from_widget( NULL, 
 									   "None" );
-    gtk_box_pack_start( GTK_BOX(vbox2), pdata->field_none_radio, FALSE, TRUE, 0 );
-    // Scharge none radio button
-    pdata->field_scharge_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->field_none_radio), 
-									      "Space charge" );
-    if( !_geomplot.get_scharge() )
-	gtk_widget_set_sensitive( pdata->field_scharge_radio, false );
-    gtk_box_pack_start( GTK_BOX(vbox2), pdata->field_scharge_radio, FALSE, TRUE, 0 );
-    // TrajDens none radio button
-    pdata->field_tdens_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->field_none_radio), 
-									    "Trajectory density" );
-    if( !_geomplot.get_trajdens() )
-	gtk_widget_set_sensitive( pdata->field_tdens_radio, false );
-    gtk_box_pack_start( GTK_BOX(vbox2), pdata->field_tdens_radio, FALSE, TRUE, 0 );
+    gtk_table_attach_defaults( GTK_TABLE(table),
+			       pdata->field_none_radio,
+			       0, 1, 0, 1 );
+    pdata->field_J_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->field_none_radio), 
+									"J" );
+    if( !_tdens )
+	gtk_widget_set_sensitive( pdata->field_J_radio, false );
+    gtk_table_attach_defaults( GTK_TABLE(table),
+			       pdata->field_J_radio,
+			       1, 2, 0, 1 );
+    pdata->field_rho_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->field_none_radio), 
+									  "rho" );
+    if( !_scharge )
+	gtk_widget_set_sensitive( pdata->field_rho_radio, false );
+    gtk_table_attach_defaults( GTK_TABLE(table),
+			       pdata->field_rho_radio,
+			       2, 3, 0, 1 );
+    pdata->field_phi_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->field_none_radio), 
+									  "phi" );
+    if( !_epot )
+	gtk_widget_set_sensitive( pdata->field_phi_radio, false );
+    gtk_table_attach_defaults( GTK_TABLE(table),
+			       pdata->field_phi_radio,
+			       3, 4, 0, 1 );
+    // Second table row
+    pdata->field_E_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->field_none_radio), 
+									"|E|" );
+    if( !_epot )
+	gtk_widget_set_sensitive( pdata->field_E_radio, false );
+    gtk_table_attach_defaults( GTK_TABLE(table),
+			       pdata->field_E_radio,
+			       0, 1, 1, 2 );
+    pdata->field_Ex_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->field_none_radio), 
+									 "Ex" );
+    if( !_epot )
+	gtk_widget_set_sensitive( pdata->field_Ex_radio, false );
+    gtk_table_attach_defaults( GTK_TABLE(table),
+			       pdata->field_Ex_radio,
+			       1, 2, 1, 2 );
+    pdata->field_Ey_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->field_none_radio), 
+									 "Ey" );
+    if( !_epot )
+	gtk_widget_set_sensitive( pdata->field_Ey_radio, false );
+    gtk_table_attach_defaults( GTK_TABLE(table),
+			       pdata->field_Ey_radio,
+			       2, 3, 1, 2 );
+    pdata->field_Ez_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->field_none_radio), 
+									 "Ez" );
+    if( !_epot )
+	gtk_widget_set_sensitive( pdata->field_Ez_radio, false );
+    gtk_table_attach_defaults( GTK_TABLE(table),
+			       pdata->field_Ez_radio,
+			       3, 4, 1, 2 );
+    // Third table row
+    pdata->field_B_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->field_none_radio), 
+									"|B|" );
+    if( !_bfield )
+	gtk_widget_set_sensitive( pdata->field_B_radio, false );
+    gtk_table_attach_defaults( GTK_TABLE(table),
+			       pdata->field_B_radio,
+			       0, 1, 2, 3 );
+    pdata->field_Bx_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->field_none_radio), 
+									 "Bx" );
+    if( !_bfield )
+	gtk_widget_set_sensitive( pdata->field_Bx_radio, false );
+    gtk_table_attach_defaults( GTK_TABLE(table),
+			       pdata->field_Bx_radio,
+			       1, 2, 2, 3 );
+    pdata->field_By_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->field_none_radio), 
+									 "By" );
+    if( !_bfield )
+	gtk_widget_set_sensitive( pdata->field_By_radio, false );
+    gtk_table_attach_defaults( GTK_TABLE(table),
+			       pdata->field_By_radio,
+			       2, 3, 2, 3 );
+    pdata->field_Bz_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->field_none_radio), 
+									 "Bz" );
+    if( !_bfield )
+	gtk_widget_set_sensitive( pdata->field_Bz_radio, false );
+    gtk_table_attach_defaults( GTK_TABLE(table),
+			       pdata->field_Bz_radio,
+			       3, 4, 2, 3 );
+    switch( _geomplot.fieldgraph()->field_type() ) {
+    case FIELD_NONE:
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_none_radio), true );	
+	break;
+    case FIELD_TRAJDENS:
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_J_radio), true );	
+	break;
+    case FIELD_SCHARGE:
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_rho_radio), true );	
+	break;
+    case FIELD_EPOT:
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_phi_radio), true );	
+	break;
+    case FIELD_EFIELD:
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_E_radio), true );	
+	break;
+    case FIELD_EFIELD_X:
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_Ex_radio), true );	
+	break;
+    case FIELD_EFIELD_Y:
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_Ey_radio), true );	
+	break;
+    case FIELD_EFIELD_Z:
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_Ez_radio), true );	
+	break;
+    case FIELD_BFIELD:
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_B_radio), true );	
+	break;
+    case FIELD_BFIELD_X:
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_Bx_radio), true );	
+	break;
+    case FIELD_BFIELD_Y:
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_By_radio), true );	
+	break;
+    case FIELD_BFIELD_Z:
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_Bz_radio), true );	
+	break;
+    };
+    g_signal_connect( pdata->field_none_radio, "toggled",
+		      G_CALLBACK(field_toggled), (gpointer)this );
+    g_signal_connect( pdata->field_J_radio, "toggled",
+		      G_CALLBACK(field_toggled), (gpointer)this );
+    g_signal_connect( pdata->field_rho_radio, "toggled",
+		      G_CALLBACK(field_toggled), (gpointer)this );
+    g_signal_connect( pdata->field_phi_radio, "toggled",
+		      G_CALLBACK(field_toggled), (gpointer)this );
+    g_signal_connect( pdata->field_E_radio, "toggled",
+		      G_CALLBACK(field_toggled), (gpointer)this );
+    g_signal_connect( pdata->field_Ex_radio, "toggled",
+		      G_CALLBACK(field_toggled), (gpointer)this );
+    g_signal_connect( pdata->field_Ey_radio, "toggled",
+		      G_CALLBACK(field_toggled), (gpointer)this );
+    g_signal_connect( pdata->field_Ez_radio, "toggled",
+		      G_CALLBACK(field_toggled), (gpointer)this );
+    g_signal_connect( pdata->field_B_radio, "toggled",
+		      G_CALLBACK(field_toggled), (gpointer)this );
+    g_signal_connect( pdata->field_Bx_radio, "toggled",
+		      G_CALLBACK(field_toggled), (gpointer)this );
+    g_signal_connect( pdata->field_By_radio, "toggled",
+		      G_CALLBACK(field_toggled), (gpointer)this );
+    g_signal_connect( pdata->field_Bz_radio, "toggled",
+		      G_CALLBACK(field_toggled), (gpointer)this );
+    gtk_box_pack_start( GTK_BOX(vbox), table, FALSE, TRUE, 0 );
 
-    if( _geomplot.get_fieldgraph_plot() == FIELD_SCHARGE && _geomplot.get_scharge() )
-	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_scharge_radio), true );
-    else if( _geomplot.get_fieldgraph_plot() == FIELD_TRAJDENS && _geomplot.get_trajdens() )
-	  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_tdens_radio), true );
+
+    // Zscaling
+    zscale_e zscale = _geomplot.fieldgraph()->get_zscale();    
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Zscale" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0.0, 0.0 );
+
+    GtkWidget *vbox2 = gtk_vbox_new( FALSE, 0 );
+    pdata->zscale_lin_radio = gtk_radio_button_new_with_label_from_widget( NULL, 
+									   "Linear" );
+    gtk_box_pack_start( GTK_BOX(vbox2), pdata->zscale_lin_radio, FALSE, TRUE, 0 );
+    pdata->zscale_log_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->zscale_lin_radio), 
+									   "Logarithmic" );
+    gtk_box_pack_start( GTK_BOX(vbox2), pdata->zscale_log_radio, FALSE, TRUE, 0 );
+    pdata->zscale_rellog_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->zscale_lin_radio), 
+									      "Relative log" );
+    gtk_box_pack_start( GTK_BOX(vbox2), pdata->zscale_rellog_radio, FALSE, TRUE, 0 );
+
+    if( zscale == ZSCALE_LINEAR )
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->zscale_lin_radio), true );
+    else if( zscale == ZSCALE_LOG )
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->zscale_log_radio), true );
     else
-	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_none_radio), true );
-    
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->zscale_rellog_radio), true );
+
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), vbox2, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
-    // Field colormap logscale
-    hbox = gtk_hbox_new( TRUE, 30 );
-    label = gtk_label_new( "Field colormap zscale" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    pdata->field_zscale = gtk_check_button_new_with_label( "on/off" );
-    zscale_e field_zscale = _geomplot.get_fieldgraph_zscale();
-    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->field_zscale), field_zscale );
+
+    // Interpolation type
+    interpolation_e interp = _geomplot.fieldgraph()->get_interpolation();    
+        hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Interpolation" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0.0, 0.0 );
+
+    vbox2 = gtk_vbox_new( FALSE, 0 );
+    pdata->int_closest_radio = gtk_radio_button_new_with_label_from_widget( NULL, 
+									    "Closest" );
+    gtk_box_pack_start( GTK_BOX(vbox2), pdata->int_closest_radio, FALSE, TRUE, 0 );
+    pdata->int_bilinear_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->int_closest_radio), 
+									     "Bilinear" );
+    gtk_box_pack_start( GTK_BOX(vbox2), pdata->int_bilinear_radio, FALSE, TRUE, 0 );
+    pdata->int_bicubic_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->int_closest_radio), 
+									    "Bicubic" );
+    gtk_box_pack_start( GTK_BOX(vbox2), pdata->int_bicubic_radio, FALSE, TRUE, 0 );
+
+    if( interp == INTERPOLATION_CLOSEST )
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->int_closest_radio), true );
+    else if( interp == INTERPOLATION_BILINEAR )
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->int_bilinear_radio), true );
+    else
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->int_bicubic_radio), true );
+
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), pdata->field_zscale, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), vbox2, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
+
+    // Ranges
+    double zmin, zmax;
+    _geomplot.fieldgraph()->get_zrange( zmin, zmax );
+
+    // Range zmin
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Range zmin" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    pdata->zmin_entry = gtk_entry_new();
+    s = to_string( zmin );
+    gtk_entry_set_text( GTK_ENTRY(pdata->zmin_entry), s.c_str() );
+
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), pdata->zmin_entry, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Range zmax
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Range zmax" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    pdata->zmax_entry = gtk_entry_new();
+    s = to_string( zmax );
+    gtk_entry_set_text( GTK_ENTRY(pdata->zmax_entry), s.c_str() );
+
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), pdata->zmax_entry, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+
+    // Palette steps
+    int steps = _geomplot.fieldgraph()->palette().steps();
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Palette steps" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    pdata->palette_steps_entry = gtk_entry_new();
+    s = to_string( steps );
+    gtk_entry_set_text( GTK_ENTRY(pdata->palette_steps_entry), s.c_str() );
+
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), pdata->palette_steps_entry, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    
+
     // Add notebook page
-    label = gtk_label_new( "Geometry" );
+    label = gtk_label_new( "FieldGraph" );
     gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox, label );
 
     return( (void *)pdata );
@@ -561,21 +831,29 @@ void GTKGeomWindow::read_preferences( GtkWidget *notebook, void *_pdata )
     bool mesh = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->meshen_check) );
     _geomplot.set_mesh( mesh );
 
-    // Field colormap plot
-    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->field_none_radio) ) )
-	_geomplot.set_fieldgraph_plot( FIELD_NONE );
-    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->field_scharge_radio) ) )
-	_geomplot.set_fieldgraph_plot( FIELD_SCHARGE );
-    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->field_tdens_radio) ) )
-	_geomplot.set_fieldgraph_plot( FIELD_TRAJDENS );
 
-    // Field colormap logscale
-    // TODO: should be changed to multiple choise
-    bool zscale_enable = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->field_zscale) );    
-    zscale_e field_zscale = ZSCALE_LINEAR;
-    if( zscale_enable )
-	field_zscale = ZSCALE_RELLOG;
-    _geomplot.set_fieldgraph_zscale( field_zscale );
+    double zmin = atof( gtk_entry_get_text( GTK_ENTRY(pdata->zmin_entry) ) );
+    double zmax = atof( gtk_entry_get_text( GTK_ENTRY(pdata->zmax_entry) ) );
+    _geomplot.fieldgraph()->set_zrange( zmin, zmax );
+
+    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->int_closest_radio) ) )
+	_geomplot.fieldgraph()->set_interpolation( INTERPOLATION_CLOSEST );
+    else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->int_bilinear_radio) ) )
+	_geomplot.fieldgraph()->set_interpolation( INTERPOLATION_BILINEAR );
+    else
+	_geomplot.fieldgraph()->set_interpolation( INTERPOLATION_BICUBIC );
+
+    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->zscale_lin_radio) ) )
+	_geomplot.fieldgraph()->set_zscale( ZSCALE_LINEAR );
+    else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->zscale_log_radio) ) )
+	_geomplot.fieldgraph()->set_zscale( ZSCALE_LOG );
+    else
+	_geomplot.fieldgraph()->set_zscale( ZSCALE_RELLOG );
+
+    int psteps = atof( gtk_entry_get_text( GTK_ENTRY(pdata->palette_steps_entry) ) );
+    _geomplot.fieldgraph()->palette().steps() = psteps;
+
+    delete pdata;
 }
 
 

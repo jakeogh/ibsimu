@@ -84,6 +84,7 @@ void scharge_finalize( ScalarField &scharge )
                 }
 	    }
 	}
+
 	// Correct boundaries
 	for( int32_t i = 0; i < scharge.size(0); i++ ) {
 	    scharge( i, 0 ) *= 2.0;

@@ -93,7 +93,7 @@ void GTKPlotter::run()
 
 GTKWindow *GTKPlotter::new_geometry_plot_window( void )
 {
-    GTKWindow *window = new GTKGeomWindow( this, _geom, _epot, _scharge, _tdens, _bfield, _pdb );
+    GTKWindow *window = new GTKGeomWindow( this, _geom, _epot, _scharge, _tdens, _bfield, _efield, _pdb );
     _windows.push_back( window );
 
     return( window );

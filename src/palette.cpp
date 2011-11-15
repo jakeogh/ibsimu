@@ -123,13 +123,13 @@ void Palette::push_back( const Color &color, double val )
 }
 
 
-void Palette::set_stepped_palette( int steps )
+int &Palette::steps( void )
 {
-    _steps = steps;
+    return( _steps );
 }
 
 
-void Palette::norm( void )
+void Palette::normalize( void )
 {
     // Search minimum and maximum
     double min = std::numeric_limits<double>::infinity();
@@ -208,22 +208,3 @@ void Palette::debug_print( std::ostream &os ) const
 	   << _entries[a]._color[3] << "\n";
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

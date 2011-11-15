@@ -847,8 +847,3 @@ void GTKWindow::hardcopy( void )
     //_frame.set_geometry( _width, _height, 0, 0 );
 }
 
-
-
-
-
-

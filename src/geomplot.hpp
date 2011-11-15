@@ -79,7 +79,7 @@ class GeomPlot {
     const ParticleDataBase  *_pdb;
 
     SolidGraph              *_solidgraph;
-    FieldGraph              *_fieldgraph;
+    FieldGraph              *_fieldgraph;    // Exists always
     EqPotGraph              *_eqpotgraph;
     ParticleGraph           *_particlegraph;
     MeshGraph               *_meshgraph;
@@ -94,10 +94,6 @@ class GeomPlot {
     bool                    _scharge_field;
     bool                    _qm_discretation;
     bool                    _mesh;
-
-    field_type_e            _fieldplot_sel;       /*!< \brief Selector for fieldgraph */
-    int                     _fieldplot_steps;
-    zscale_e                _fieldplot_zscale;
 
     bool                    _cache;
 
@@ -155,9 +151,7 @@ public:
 
     /*! \brief Set magnetic field.
      */
-    void set_bfield( const VectorField *bfield ) {
-	_bfield = bfield;
-    }
+    void set_bfield( const VectorField *bfield );
 
     /*! \brief Get magnetic field.
      */
@@ -167,9 +161,7 @@ public:
 
     /*! \brief Set electric field.
      */
-    void set_efield( const VectorField *efield ) {
-	_efield = efield;
-    }
+    void set_efield( const VectorField *efield );
 
     /*! \brief Get electric field.
      */
@@ -201,29 +193,12 @@ public:
      */
     void set_fieldgraph_plot( field_type_e fieldplot );
 
-    /*! \brief Get field graph plotting type.
+    /*! \brief Get pointer to field graph object.
      */
-    field_type_e get_fieldgraph_plot( void ) const {
-	return( _fieldplot_sel );
+    FieldGraph *fieldgraph( void ) {
+	return( _fieldgraph );
     }
 
-    /*! \brief Set stepped palette.
-     *
-     *  If \a steps is less than or equal to 1 a regular interpolated
-     *  palette will be used, otherwise \a steps is used as the number
-     *  of separate shades in the palette.
-     */
-    void set_fieldgraph_stepped_palette( int steps );
-
-    /*! \brief Set field graph zscale setting.
-     */
-    void set_fieldgraph_zscale( zscale_e zscale );
-
-    /*! \brief Get field graph zscale setting
-     */
-    zscale_e get_fieldgraph_zscale( void ) const {
-	return( _fieldplot_zscale );
-    }
 
     /*! \brief Set particle database used for particle plotting.
      */

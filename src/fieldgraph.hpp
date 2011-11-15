@@ -63,47 +63,62 @@ class FieldGraph : public Graph3D, public Colormap {
     const Geometry         *_geom;            /*!< \brief Geometry. */
     const ScalarField      *_scalarfield;     /*!< \brief Scalarfield for plotting. */
     const VectorField      *_vectorfield;     /*!< \brief Vectorfield for plotting. */    
-    //Colormap                _colormap;        /*!< \brief Colormap for field plot. */
 
     bool                    _first;
     view_e                  _oview;
     double                  _olevel;
     bool                    _enabled;         /*!< \brief Is plotting enabled */
-    //bool                    _logscale;        /*!< \brief Logarithmic scaling */
-    //int                     _steps;           /*!< \brief Number of shades. */
+
+    double                  _zmin;
+    double                  _zmax;
 
     void build_scalarfield_plot( void );
+    void build_meshvectorfield_plot( void );
     void build_vectorfield_plot( void );
 
 public:
 
+    /*! \brief Constructor for empty FieldGraph.
+     */
+    FieldGraph();
+
     /*! \brief Constructor for plotting ScalarField.
      */
-    FieldGraph( const ScalarField *field );
+    FieldGraph( field_type_e field_type, const ScalarField *field );
 
     /*! \brief Constructor for plotting a VectorField \a field in geometry \a geom.
      */
-    FieldGraph( const Geometry *geom, const VectorField *field, field_type_e field_type );
+    FieldGraph( field_type_e field_type, const Geometry *geom, const VectorField *field );
 
     /*! \brief Destructor.
      */
     virtual ~FieldGraph();
 
+    /*! \brief Get field type.
+     */
+    field_type_e field_type( void );
+    
+    /*! \brief Set field to be plotted.
+     *
+     *  The \a field_type can be FIELD_NONE and \a field NULL for no plotting.
+     */
+    void set_field( field_type_e field_type, const ScalarField *field );
+
+    /*! \brief Set field to be plotted.
+     */
+    void set_field( field_type_e field_type, const Geometry *geom, const VectorField *field );
+
     /*! \brief Enable/disable plot.
      */
     void enable( bool enable );
 
-    /*! \brief Set logarithmic scale.
-     */
-    //void set_logscale( bool enable );
-
-    /*! \brief Set stepped palette.
+    /*! \brief Set zrange for plot.
      *
-     *  If \a steps is less than or equal to 1 a regular interpolated
-     *  palette will be used, otherwise \a steps is used as the number
-     *  of separate shades in the palette.
+     *  The zrange defaults to automatically scaled range for the
+     *  whole field for scalarfields and automatically scaled range
+     *  for the view plane only for vectorfields.
      */
-    void set_stepped_palette( int steps );
+    void set_zrange( double min, double max );
 
     /*! \brief Plot graph with cairo.
      *

@@ -46,14 +46,15 @@
 
 GeomPlot::GeomPlot( Frame *frame, const Geometry *geom )
     : _frame(frame), _geom(geom), _epot(NULL), _scharge(NULL), _tdens(NULL), _bfield(NULL),
-      _efield(NULL), _pdb(NULL), _solidgraph(NULL), _fieldgraph(NULL), _eqpotgraph(NULL), 
+      _efield(NULL), _pdb(NULL), _solidgraph(NULL), _eqpotgraph(NULL), 
       _particlegraph(NULL), _meshgraph(NULL), _view(VIEW_XY), _level(0),
       _eqlines_auto(20), _particle_div(10), _scharge_field(false), _qm_discretation(true), 
-      _mesh(false), _fieldplot_sel(FIELD_NONE), _fieldplot_steps(0), 
-      _fieldplot_zscale(ZSCALE_LINEAR), _cache(true)
+      _mesh(false), _cache(true)
 {
     if( _geom == NULL )
 	throw( Error( ERROR_LOCATION, "geometry undefined" ) );
+
+    _fieldgraph = new FieldGraph;
 
     // Set frame basic properties
     _frame->set_fixed_aspect( PLOT_FIXED_ASPECT_INCREASE_MARGIN );
@@ -135,9 +136,9 @@ void GeomPlot::set_epot( const ScalarField *epot )
 	_eqpotgraph->set_eqlines_manual( _eqlines_manual );
     }
 
-    if( _fieldplot_sel == FIELD_EPOT ) {
+    if( _fieldgraph->field_type() == FIELD_EPOT ) {
 	// Redo field graph to use new epot
-	set_fieldgraph_plot( _fieldplot_sel );
+	set_fieldgraph_plot( _fieldgraph->field_type() );
     }
     
     // Reset graphs in every case
@@ -164,9 +165,9 @@ void GeomPlot::set_eqlines_auto( size_t N )
 void GeomPlot::set_trajdens( const ScalarField *tdens ) 
 {
     _tdens = tdens;
-    if( _fieldplot_sel == FIELD_TRAJDENS ) {
+    if( _fieldgraph->field_type() == FIELD_TRAJDENS ) {
 	// Redo field graph to use new tdens
-	set_fieldgraph_plot( _fieldplot_sel );
+	set_fieldgraph_plot( _fieldgraph->field_type() );
     }
 }
 
@@ -174,83 +175,88 @@ void GeomPlot::set_trajdens( const ScalarField *tdens )
 void GeomPlot::set_scharge( const ScalarField *scharge ) 
 {
     _scharge = scharge;
-    if( _fieldplot_sel == FIELD_SCHARGE ) {
+    if( _fieldgraph->field_type() == FIELD_SCHARGE ) {
 	// Redo field graph to use new scharge
-	set_fieldgraph_plot( _fieldplot_sel );
+	set_fieldgraph_plot( _fieldgraph->field_type() );
+    }
+}
+
+
+void GeomPlot::set_bfield( const VectorField *bfield )
+{
+    _bfield = bfield;
+    if( _fieldgraph->field_type() == FIELD_BFIELD ||
+	_fieldgraph->field_type() == FIELD_BFIELD_X ||
+	_fieldgraph->field_type() == FIELD_BFIELD_Y ||
+	_fieldgraph->field_type() == FIELD_BFIELD_Z ) {
+	// Redo field graph to use new magnetic field
+	set_fieldgraph_plot( _fieldgraph->field_type() );
+    }
+}
+
+
+void GeomPlot::set_efield( const VectorField *efield )
+{
+    _efield = efield;
+    if( _fieldgraph->field_type() == FIELD_EFIELD ||
+	_fieldgraph->field_type() == FIELD_EFIELD_X ||
+	_fieldgraph->field_type() == FIELD_EFIELD_Y ||
+	_fieldgraph->field_type() == FIELD_EFIELD_Z ) {
+	// Redo field graph to use new electric field
+	set_fieldgraph_plot( _fieldgraph->field_type() );
     }
 }
 
 
 void GeomPlot::set_fieldgraph_plot( field_type_e fieldplot )
 {
-    _fieldplot_sel = fieldplot;
-
-    // Remove old field graph.
-    if( _fieldgraph ) {
-	delete _fieldgraph;
-	_fieldgraph = NULL;
-    }
-
     // Define new field graph.
-    switch( _fieldplot_sel ) {
+    switch( fieldplot ) {
+    case FIELD_NONE:
+	_fieldgraph->set_field( fieldplot, NULL );
+	break;
     case FIELD_EPOT:
 	if( _epot )
-	    _fieldgraph = new FieldGraph( _epot );
+	    _fieldgraph->set_field( fieldplot, _epot );
+	else
+	    std::cout << "No electric potential defined\n";
 	break;
     case FIELD_SCHARGE:
 	if( _scharge )
-	    _fieldgraph = new FieldGraph( _scharge );
+	    _fieldgraph->set_field( fieldplot, _scharge );
+	else
+	    std::cout << "No space charge field defined\n";
 	break;
     case FIELD_TRAJDENS:
 	if( _tdens )
-	    _fieldgraph = new FieldGraph( _tdens );
+	    _fieldgraph->set_field( fieldplot, _tdens );
+	else
+	    std::cout << "No trajectory density field defined\n";
 	break;
     case FIELD_EFIELD:
     case FIELD_EFIELD_X:
     case FIELD_EFIELD_Y:
     case FIELD_EFIELD_Z:
 	if( _efield )
-	    _fieldgraph = new FieldGraph( _geom, _efield, _fieldplot_sel );
+	    _fieldgraph->set_field( fieldplot, _geom, _efield );
+	else
+	    std::cout << "No electric field defined\n";
 	break;
     case FIELD_BFIELD:
     case FIELD_BFIELD_X:
     case FIELD_BFIELD_Y:
     case FIELD_BFIELD_Z:
 	if( _bfield )
-	    _fieldgraph = new FieldGraph( _geom, _bfield, _fieldplot_sel );
-	break;
-    case FIELD_NONE:
-	// No fieldgraph defined
+	    _fieldgraph->set_field( fieldplot, _geom, _bfield );
+	else
+	    std::cout << "No magnetic field defined\n";
 	break;
     default:
 	throw( ErrorUnimplemented( ERROR_LOCATION, "Unimplemented field plotting" ) );
 	break;
     }
-
-    if( _fieldgraph ) {
-	_fieldgraph->set_view( _view, _level );
-	_fieldgraph->set_zscale( _fieldplot_zscale );
-    }
-
+    
     reset_graphs();
-}
-
-
-void GeomPlot::set_fieldgraph_stepped_palette( int steps )
-{
-    _fieldplot_steps  = steps;
-    if( _fieldgraph ) {
-	_fieldgraph->set_stepped_palette( _fieldplot_steps );
-    }
-}
-
-
-void GeomPlot::set_fieldgraph_zscale( zscale_e zscale )
-{
-    _fieldplot_zscale = zscale;
-    if( _fieldgraph ) {
-	_fieldgraph->set_zscale( _fieldplot_zscale );
-    }
 }
 
 
@@ -440,8 +446,3 @@ void GeomPlot::set_view_si( view_e view, double level )
 	break;
     }
 }
-
-
-
-
-

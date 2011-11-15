@@ -53,8 +53,8 @@
  *  %Palette is an object that contains a list of colors and
  *  corresponding values. The colors are interpolated linearly between
  *  the defined points for a smooth color palette. The palette values
- *  are normed so that the end points of palette have values 0.0 and
- *  1.0.
+ *  are normalized so that the end points of palette have values 0.0
+ *  and 1.0.
  */
 class Palette {    
 
@@ -77,7 +77,9 @@ public:
 private:
 
     std::vector<Entry> _entries;    /*!< \brief Palette entries. */
-    int                _steps;      /*!< \brief Number of shades. */
+    int                _steps;      /*!< \brief Number of shades, less
+				     *   than 1 for smooth palette,
+				     *   larger for discrete steps. */
 
 public:
 
@@ -114,8 +116,8 @@ public:
     /*! \brief Pushes new entry to palette.
      *
      *  Palette entries are automatically sorted. The palette won't be
-     *  normed in range. This has to be manually done by calling
-     *  norm() after adding palette entries.
+     *  normalized in range. This has to be manually done by calling
+     *  normalize() after adding palette entries.
      */
     void push_back( const Color &color, double val );
 
@@ -123,15 +125,17 @@ public:
      *
      *  Normalize palette to range from 0.0 to 1.0.
      */
-    void norm( void );
+    void normalize( void );
 
-    /*! \brief Set stepped palette.
+    /*! \brief Return a reference to palette steps.
      *
      *  If \a steps is less than or equal to 1 a regular interpolated
      *  palette will be used (default), otherwise \a steps is used as
      *  the number of separate shades in the palette.
+     *
+     *  Defaults to 0.
      */
-    void set_stepped_palette( int steps );
+    int &steps( void );
 
     /*! \brief Print debugging information to os.
      */
