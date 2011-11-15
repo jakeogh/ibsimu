@@ -633,7 +633,7 @@ void MeshVectorField::get_minmax( double &min, double &max ) const
     double val;
 
     size_t ncount = _size[0]*_size[1]*_size[2];
-    for( size_t a = 1; a < ncount; a++ ) {
+    for( size_t a = 0; a < ncount; a++ ) {
 	val = (*this)( a ).ssqr();
 	if( val < min )
 	    min = val;
@@ -642,6 +642,29 @@ void MeshVectorField::get_minmax( double &min, double &max ) const
     }
     min = sqrt( min );
     max = sqrt( max );
+}
+
+
+void MeshVectorField::get_minmax( Vec3D &min, Vec3D &max ) const
+{
+    min = Vec3D( std::numeric_limits<double>::infinity(),
+		 std::numeric_limits<double>::infinity(),
+		 std::numeric_limits<double>::infinity() );
+    max = Vec3D( -std::numeric_limits<double>::infinity(),
+		 -std::numeric_limits<double>::infinity(),
+		 -std::numeric_limits<double>::infinity() );
+    Vec3D val;
+
+    size_t ncount = _size[0]*_size[1]*_size[2];
+    for( size_t a = 0; a < ncount; a++ ) {
+	val = (*this)( a );
+	for( size_t b = 0; b < 3; b++ ) {
+	    if( val[b] < min[b] )
+		min[b] = val[b];
+	    if( val[b] > max[b] )
+		max[b] = val[b];
+	}
+    }
 }
 
 
