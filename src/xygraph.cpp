@@ -50,15 +50,19 @@
 XYGraph::XYGraph()
     : _linewidth(1.0), _color(Color(1,0,0)), _linestyle(XYGRAPH_LINE_DISABLE), 
       _pointstyle(XYGRAPH_POINT_CIRCLE),
-      _point_filled(true), _point_scale(3.0)
+      _point_filled(true), _point_scale(3.0),
+      _histogram(false), _extend_histogram(false)
 {
 }
+
 
 XYGraph::XYGraph( const std::vector<double> &xdata, 
 		  const std::vector<double> &ydata )
     : _linewidth(1.0), _color(Color(1,0,0)), _linestyle(XYGRAPH_LINE_DISABLE), 
       _pointstyle(XYGRAPH_POINT_CIRCLE),
-      _point_filled(true), _point_scale(3.0), _xdata(xdata), _ydata(ydata)    
+      _point_filled(true), _point_scale(3.0), 
+      _histogram(false), _extend_histogram(false),
+      _xdata(xdata), _ydata(ydata)
 {
 }
 
@@ -84,13 +88,8 @@ void XYGraph::plot_point( cairo_t *cairo, double x, double y )
 }
 
 
-void XYGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] ) 
+void XYGraph::plot_standard_lines( cairo_t *cairo, const Coordmapper *cm, const double range[4], size_t N )
 {
-    size_t N = _xdata.size() < _ydata.size() ? _xdata.size() : _ydata.size();
-
-    cairo_set_line_width( cairo, _linewidth );
-    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], _color[3] );
-
     if( _linestyle == XYGRAPH_LINE_SOLID ) {
 	bool cont = false;
 	for( size_t a = 0; a < N; a++ ) {
@@ -109,6 +108,67 @@ void XYGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4]
 	}
 	cairo_stroke( cairo );
     }
+}
+
+
+void XYGraph::plot_histogram_lines( cairo_t *cairo, const Coordmapper *cm, const double range[4], size_t N )
+{
+    if( N <= 1 || _linestyle != XYGRAPH_LINE_SOLID )
+	return;
+
+    double zx = range[0];
+    double zy = 0.0;
+    cm->transform( zx, zy );
+    double ox = _xdata[0];
+    double oy = _ydata[0];
+    cm->transform( ox, oy );
+    double x = _xdata[1];
+    double y = _ydata[1];
+    cm->transform( x, y );
+    double w = x-ox;
+    if( _extend_histogram ) {
+	cairo_move_to( cairo, zx, zy );
+	cairo_line_to( cairo, ox-0.5*w, zy );
+    } else 
+	cairo_move_to( cairo, ox-0.5*w, zy );
+    cairo_line_to( cairo, ox-0.5*w, oy );
+
+    for( size_t a = 1; a < N; a++ ) {
+	x = _xdata[a];
+	y = _ydata[a];
+	cm->transform( x, y );
+	w = x-ox;
+	cairo_line_to( cairo, ox+0.5*w, oy );
+	cairo_line_to( cairo, ox+0.5*w, y );
+	ox = x;
+	oy = y;
+    }
+
+    zx = range[2];
+    zy = 0.0;
+    cm->transform( zx, zy );
+
+    cairo_line_to( cairo, x+0.5*w, y );
+    cairo_line_to( cairo, x+0.5*w, zy );
+    if( _extend_histogram )
+	cairo_line_to( cairo, zx, zy );
+
+    cairo_stroke( cairo );
+}
+
+
+void XYGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4])
+{
+    size_t N = _xdata.size() < _ydata.size() ? _xdata.size() : _ydata.size();
+
+    cairo_set_line_width( cairo, _linewidth );
+    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], _color[3] );
+
+    if( _histogram )
+	plot_histogram_lines( cairo, cm, range, N );
+    else
+	plot_standard_lines( cairo, cm, range, N );
+
     if( _pointstyle != XYGRAPH_POINT_DISABLE ) {
 	for( size_t a = 0; a < N; a++ ) {
 	    double x = _xdata[a];
@@ -198,21 +258,13 @@ void XYGraph::set_point_style( point_style_e pointstyle, bool filled, double sca
 }
 
 
+void XYGraph::set_histogram( bool histo )
+{
+    _histogram = histo;
+}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+void XYGraph::extend_histogram( bool extend )
+{
+    _extend_histogram = extend;
+}

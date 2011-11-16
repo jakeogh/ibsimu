@@ -76,11 +76,15 @@ class XYGraph : public Graph {
     point_style_e          _pointstyle;
     bool                   _point_filled;
     double                 _point_scale;
+    bool                   _histogram;
+    bool                   _extend_histogram;
     
     std::vector<double>    _xdata;
     std::vector<double>    _ydata;
 
     void plot_point( cairo_t *cairo, double x, double y );
+    void plot_standard_lines( cairo_t *cairo, const Coordmapper *cm, const double range[4], size_t N );
+    void plot_histogram_lines( cairo_t *cairo, const Coordmapper *cm, const double range[4], size_t N );
 
 public:
 
@@ -153,6 +157,20 @@ public:
      *  Defaults to filled XYGRAPH_POINT_CIRCLE with scale 3.0.
      */
     void set_point_style( point_style_e pointstyle, bool filled = true, double scale = 1.0 );
+
+    /*! \brief Set histogram style.
+     *
+     *  Set to true for histogram style plots.
+     */
+    void set_histogram( bool histo );
+
+    /*! \brief Extend histogram.
+     *
+     *  Set to true for histogram to be extended in x-direction to
+     *  cover all of range.
+     */
+    void extend_histogram( bool extend );
+
 };
 
 
