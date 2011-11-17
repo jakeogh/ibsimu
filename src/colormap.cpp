@@ -88,6 +88,17 @@ Colormap::~Colormap()
 }
 
 
+void Colormap::clear_data( void ) 
+{
+    _n = 0;
+    _m = 0;
+    if( _intrp )
+	delete _intrp;
+    _intrp = NULL;
+    _f.clear();
+}
+
+
 void Colormap::set_data( const double datarange[4], size_t n, size_t m, 
 			 const std::vector<double> &data )
 {
@@ -96,12 +107,16 @@ void Colormap::set_data( const double datarange[4], size_t n, size_t m,
     if( _intrp )
 	delete _intrp;
     _intrp = NULL;
+    if( _n == 0 || _m == 0 ) {
+	_f.clear();
+	return;
+    }
 
     _datarange[0] = datarange[0];
     _datarange[1] = datarange[1];
     _datarange[2] = datarange[2];
     _datarange[3] = datarange[3];
-    
+
     if( n*m != data.size() )
 	throw( Error( ERROR_LOCATION, "data size not equal to n*m" ) );
     _f = data;
@@ -281,6 +296,10 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 
 void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
+    // If colormap empty, do nothing
+    if( _n == 0 || _m == 0 )
+	return;
+    
 #ifdef DEBUG_COLORMAP
     std::cout << "datarange[0] = " << _datarange[0] << "\n"
 	      << "datarange[1] = " << _datarange[1] << "\n"

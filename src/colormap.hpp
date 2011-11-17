@@ -117,6 +117,10 @@ public:
      */
     virtual ~Colormap();
 
+    /*! \brief Clears colormap data.
+     */
+    void clear_data( void );
+		   
     /*! \brief Define colormap from data.
      *
      *  Data is defined as \a n by \a m array of data, where x and y
