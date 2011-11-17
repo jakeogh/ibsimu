@@ -218,7 +218,7 @@ template<class PP> class ParticleDataBasePPImp : public ParticleDataBaseImp {
 		data = p.qm();
 		break;
 	    case DIAG_EK:
-		data = 0.5*p.m()*p.velocity().ssqr();
+		data = 0.5*p.m()*x.velocity().ssqr()/CHARGE_E;
 		break;
 	    default:
 		throw( ErrorUnimplemented( ERROR_LOCATION ) );

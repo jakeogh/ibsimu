@@ -118,7 +118,7 @@ const char *trajectory_diagnostic_string_with_unit[] = {
     "o\' (rad)",
     "p\' (rad)",
     "I (A)",
-    "E_k (J)",
+    "E_k (eV)",
     "q/m (C/kg)"
 };
 

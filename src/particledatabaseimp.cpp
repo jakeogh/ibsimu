@@ -1408,7 +1408,7 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
 			tdata.add_data( a, _particles[a]->IQ() );
 			break;
 		    case DIAG_EK:
-			tdata.add_data( a, 0.5*_particles[a]->m()*vel.ssqr() );
+			tdata.add_data( a, 0.5*_particles[a]->m()*vel.ssqr()/CHARGE_E );
 			break;
 		    case DIAG_QM:
 			tdata.add_data( a, _particles[a]->qm() );
