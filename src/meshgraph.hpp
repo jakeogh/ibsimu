@@ -54,13 +54,13 @@
  */
 class MeshGraph : public Graph3D {
 
-    const Geometry         &_g;               /*!< \brief Reference to simulation geometry. */
+    const Geometry         &_geom;               /*!< \brief Reference to simulation geometry. */
 
 public:
 
     /*! \brief Constructor for mesh plotter.
      */
-    MeshGraph( const Geometry &g );
+    MeshGraph( const Geometry &geom );
 
     /*! \brief Destructor.
      */

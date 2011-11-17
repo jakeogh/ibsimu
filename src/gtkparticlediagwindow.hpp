@@ -56,12 +56,35 @@ class GTKParticleDiagWindow : public GTKWindow {
 
     ParticleDiagPlot _plot;
 
+    struct PreferencesData {
+	GtkWidget *plot_scatter_radio;
+	GtkWidget *plot_colormap_radio;
+	GtkWidget *histo_n_spin;
+	GtkWidget *histo_m_spin;
+	GtkWidget *histo_acc_closest_radio;
+	GtkWidget *histo_acc_bilinear_radio;
+	GtkWidget *int_closest_radio;
+	GtkWidget *int_bilinear_radio;
+	GtkWidget *int_bicubic_radio;
+	GtkWidget *style_histo_radio;
+	GtkWidget *style_line_radio;
+	GtkWidget *dot_size_spin;
+	GtkWidget *ellipse_check;
+    };
+    PreferencesData *_prefdata;
+
     virtual std::string track_text( double x, double y );
 
+    void plot_2d_type_toggled_process( void );
+
+    void build_preferences_1d( GtkWidget *notebook );
+    void build_preferences_2d( GtkWidget *notebook );
     virtual void *build_preferences( GtkWidget *notebook );
     virtual void read_preferences( GtkWidget *notebook, void *pdata );
 
     void export_data( void );
+    static void plot_2d_type_toggled( GtkToggleButton *togglebutton,
+				      gpointer         user_data );
     static void menuitem_export_signal( GtkToolButton *button,
 					gpointer object );
 
@@ -72,8 +95,8 @@ public:
      * \a style is the style of plot with 0 being scatter plot and 1
      * being colormap (histogram) plot.
      */
-    GTKParticleDiagWindow( GTKPlotter *plotter, const ParticleDataBase *pdb, 
-			   const Geometry *geom,
+    GTKParticleDiagWindow( GTKPlotter &plotter, const ParticleDataBase &pdb, 
+			   const Geometry &geom,
 			   coordinate_axis_e axis, double level, 
 			   particle_diag_plot_type_e type,
 			   trajectory_diagnostic_e diagx, 

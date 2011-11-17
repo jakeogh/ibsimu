@@ -44,17 +44,15 @@
 #include "geomplot.hpp"
 
 
-GeomPlot::GeomPlot( Frame *frame, const Geometry *geom )
-    : _frame(frame), _geom(geom), _epot(NULL), _scharge(NULL), _tdens(NULL), _bfield(NULL),
-      _efield(NULL), _pdb(NULL), _solidgraph(NULL), _eqpotgraph(NULL), 
+GeomPlot::GeomPlot( Frame &frame, const Geometry &geom )
+    : _frame(&frame), _geom(&geom), _epot(NULL), _scharge(NULL), _tdens(NULL), _bfield(NULL),
+      _efield(NULL), _pdb(NULL), _fieldgraph(geom), _solidgraph(NULL), _eqpotgraph(NULL), 
       _particlegraph(NULL), _meshgraph(NULL), _view(VIEW_XY), _level(0),
       _eqlines_auto(20), _particle_div(10), _scharge_field(false), _qm_discretation(true), 
       _mesh(false), _cache(true)
 {
     if( _geom == NULL )
 	throw( Error( ERROR_LOCATION, "geometry undefined" ) );
-
-    _fieldgraph = new FieldGraph;
 
     // Set frame basic properties
     _frame->set_fixed_aspect( PLOT_FIXED_ASPECT_INCREASE_MARGIN );
@@ -79,8 +77,6 @@ GeomPlot::~GeomPlot()
 {
     if( _solidgraph )
 	delete _solidgraph;
-    if( _fieldgraph )
-	delete _fieldgraph;
     if( _eqpotgraph )
 	delete _eqpotgraph;
     if( _particlegraph )
@@ -105,8 +101,7 @@ void GeomPlot::reset_graphs()
     _frame->clear_graphs();
 
     // Ensure correct order of graphs
-    if( _fieldgraph )
-	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, (Graph3D *)_fieldgraph );
+    _frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, (Graph3D *)(&_fieldgraph) );
     if( _particlegraph )
 	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _particlegraph );
     if( _solidgraph )
@@ -136,9 +131,9 @@ void GeomPlot::set_epot( const ScalarField *epot )
 	_eqpotgraph->set_eqlines_manual( _eqlines_manual );
     }
 
-    if( _fieldgraph->field_type() == FIELD_EPOT ) {
+    if( _fieldgraph.field_type() == FIELD_EPOT ) {
 	// Redo field graph to use new epot
-	set_fieldgraph_plot( _fieldgraph->field_type() );
+	set_fieldgraph_plot( _fieldgraph.field_type() );
     }
     
     // Reset graphs in every case
@@ -165,9 +160,9 @@ void GeomPlot::set_eqlines_auto( size_t N )
 void GeomPlot::set_trajdens( const ScalarField *tdens ) 
 {
     _tdens = tdens;
-    if( _fieldgraph->field_type() == FIELD_TRAJDENS ) {
+    if( _fieldgraph.field_type() == FIELD_TRAJDENS ) {
 	// Redo field graph to use new tdens
-	set_fieldgraph_plot( _fieldgraph->field_type() );
+	set_fieldgraph_plot( _fieldgraph.field_type() );
     }
 }
 
@@ -175,9 +170,9 @@ void GeomPlot::set_trajdens( const ScalarField *tdens )
 void GeomPlot::set_scharge( const ScalarField *scharge ) 
 {
     _scharge = scharge;
-    if( _fieldgraph->field_type() == FIELD_SCHARGE ) {
+    if( _fieldgraph.field_type() == FIELD_SCHARGE ) {
 	// Redo field graph to use new scharge
-	set_fieldgraph_plot( _fieldgraph->field_type() );
+	set_fieldgraph_plot( _fieldgraph.field_type() );
     }
 }
 
@@ -185,12 +180,12 @@ void GeomPlot::set_scharge( const ScalarField *scharge )
 void GeomPlot::set_bfield( const VectorField *bfield )
 {
     _bfield = bfield;
-    if( _fieldgraph->field_type() == FIELD_BFIELD ||
-	_fieldgraph->field_type() == FIELD_BFIELD_X ||
-	_fieldgraph->field_type() == FIELD_BFIELD_Y ||
-	_fieldgraph->field_type() == FIELD_BFIELD_Z ) {
+    if( _fieldgraph.field_type() == FIELD_BFIELD ||
+	_fieldgraph.field_type() == FIELD_BFIELD_X ||
+	_fieldgraph.field_type() == FIELD_BFIELD_Y ||
+	_fieldgraph.field_type() == FIELD_BFIELD_Z ) {
 	// Redo field graph to use new magnetic field
-	set_fieldgraph_plot( _fieldgraph->field_type() );
+	set_fieldgraph_plot( _fieldgraph.field_type() );
     }
 }
 
@@ -198,12 +193,12 @@ void GeomPlot::set_bfield( const VectorField *bfield )
 void GeomPlot::set_efield( const VectorField *efield )
 {
     _efield = efield;
-    if( _fieldgraph->field_type() == FIELD_EFIELD ||
-	_fieldgraph->field_type() == FIELD_EFIELD_X ||
-	_fieldgraph->field_type() == FIELD_EFIELD_Y ||
-	_fieldgraph->field_type() == FIELD_EFIELD_Z ) {
+    if( _fieldgraph.field_type() == FIELD_EFIELD ||
+	_fieldgraph.field_type() == FIELD_EFIELD_X ||
+	_fieldgraph.field_type() == FIELD_EFIELD_Y ||
+	_fieldgraph.field_type() == FIELD_EFIELD_Z ) {
 	// Redo field graph to use new electric field
-	set_fieldgraph_plot( _fieldgraph->field_type() );
+	set_fieldgraph_plot( _fieldgraph.field_type() );
     }
 }
 
@@ -213,23 +208,23 @@ void GeomPlot::set_fieldgraph_plot( field_type_e fieldplot )
     // Define new field graph.
     switch( fieldplot ) {
     case FIELD_NONE:
-	_fieldgraph->set_field( fieldplot, NULL );
+	_fieldgraph.set_field( fieldplot, (const ScalarField*)NULL );
 	break;
     case FIELD_EPOT:
 	if( _epot )
-	    _fieldgraph->set_field( fieldplot, _epot );
+	    _fieldgraph.set_field( fieldplot, _epot );
 	else
 	    std::cout << "No electric potential defined\n";
 	break;
     case FIELD_SCHARGE:
 	if( _scharge )
-	    _fieldgraph->set_field( fieldplot, _scharge );
+	    _fieldgraph.set_field( fieldplot, _scharge );
 	else
 	    std::cout << "No space charge field defined\n";
 	break;
     case FIELD_TRAJDENS:
 	if( _tdens )
-	    _fieldgraph->set_field( fieldplot, _tdens );
+	    _fieldgraph.set_field( fieldplot, _tdens );
 	else
 	    std::cout << "No trajectory density field defined\n";
 	break;
@@ -238,7 +233,7 @@ void GeomPlot::set_fieldgraph_plot( field_type_e fieldplot )
     case FIELD_EFIELD_Y:
     case FIELD_EFIELD_Z:
 	if( _efield )
-	    _fieldgraph->set_field( fieldplot, _geom, _efield );
+	    _fieldgraph.set_field( fieldplot, _efield );
 	else
 	    std::cout << "No electric field defined\n";
 	break;
@@ -247,7 +242,7 @@ void GeomPlot::set_fieldgraph_plot( field_type_e fieldplot )
     case FIELD_BFIELD_Y:
     case FIELD_BFIELD_Z:
 	if( _bfield )
-	    _fieldgraph->set_field( fieldplot, _geom, _bfield );
+	    _fieldgraph.set_field( fieldplot, _bfield );
 	else
 	    std::cout << "No magnetic field defined\n";
 	break;
@@ -421,8 +416,7 @@ void GeomPlot::set_view( view_e view, int level )
 	_particlegraph->set_view( _view, _level );
     if( _meshgraph )
 	_meshgraph->set_view( _view, _level );
-    if( _fieldgraph )
-	_fieldgraph->set_view( _view, _level );
+    _fieldgraph.set_view( _view, _level );
 }
 
 

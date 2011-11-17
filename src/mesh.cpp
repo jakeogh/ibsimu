@@ -79,9 +79,9 @@ void Mesh::reset( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
     _origo = origo;
     _h = fabs(h);
     _div_h = 1.0/_h;
-    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
-		  _origo(1)+_h*(_size[1]-1),
-		  _origo(2)+_h*(_size[2]-1) );
+    _max = Vec3D( _origo(0)+_h*(_size(0)-1),
+		  _origo(1)+_h*(_size(1)-1),
+		  _origo(2)+_h*(_size(2)-1) );
 
     // Checks
     if( _h == 0.0 )

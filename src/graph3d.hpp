@@ -45,6 +45,7 @@
 
 
 #include "graph.hpp"
+#include "mesh.hpp"
 #include "error.hpp"
 
 
@@ -79,20 +80,26 @@ class Graph3D : public Graph {
 
 protected:
 
-    view_e     _view;    /*!< \brief Geometry view direction. */
-    int        _vb[3];   /*!< \brief Coordinate index for first, second and third axes. */
-    int        _level;   /*!< \brief Level of slice in mesh units. */
+    const Mesh      &_mesh;     /*!< \brief Mesh of simulation. */
+    view_e           _view;     /*!< \brief Geometry view direction. */
+    int              _vb[3];    /*!< \brief Coordinate index for first, second and third axes. */
+    int              _level;    /*!< \brief Level of slice in mesh units. */
+    double           _level_si; /*!< \brief Level in meters. */
 
 public:
 
     /*! \brief Constructor.
+     *
+     *  Constructor for 3D graph in a simulation volume defined by \a mesh.
      */
-    Graph3D() {
+    Graph3D( const Mesh &mesh ) 
+	: _mesh(mesh) {
 	_view  = VIEW_XY;
 	_vb[0] = 0;
 	_vb[1] = 1;
 	_vb[2] = 2;
 	_level = 0;
+	_level_si = _mesh.origo(_vb[2])+_level*_mesh.h();
     }
 
     /*! \brief Virtual destructor.
@@ -165,6 +172,7 @@ public:
 	}
 	_view = view;
 	_level = level;
+	_level_si = _mesh.origo(_vb[2])+_level*_mesh.h();
     }
 };
 

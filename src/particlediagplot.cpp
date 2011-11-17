@@ -46,29 +46,31 @@
 #include "ibsimu.hpp"
 
 
-ParticleDiagPlot::ParticleDiagPlot( Frame *frame, const Geometry *geom, const ParticleDataBase *pdb, 
+ParticleDiagPlot::ParticleDiagPlot( Frame &frame, const Geometry &geom, const ParticleDataBase &pdb, 
 				    coordinate_axis_e axis, double level, 
 				    particle_diag_plot_type_e type,
 				    trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy )
     : _frame(frame), _geom(geom), _pdb(pdb), _free_plane(false), _axis(axis), _level(level), 
       _type(type), _diagx(diagx), _diagy(diagy), _diagz(DIAG_NONE),
       _pdb_it_no(-1), _update(true), _tdata(NULL), _histo(NULL), _emit(NULL),
-      _scatter(NULL), _ellipse(NULL), _ellipse_enable(true), _colormap(NULL), _profile(NULL), 
-      _histogram_n(50), _histogram_m(50), _interpolation(INTERPOLATION_CLOSEST), _dot_size(1.0)
+      _datagraph(NULL), _ellipse(NULL), _ellipse_enable(true), _colormap(NULL), 
+      _histogram_n(50), _histogram_m(50), _histogram_accumulation(HISTOGRAM_ACCUMULATION_CLOSEST),
+      _histogram_style(true), _interpolation(INTERPOLATION_CLOSEST), _dot_size(1.0)
 {
     
 }
 
 
-ParticleDiagPlot::ParticleDiagPlot( Frame *frame, const Geometry *geom, const ParticleDataBase *pdb, 
+ParticleDiagPlot::ParticleDiagPlot( Frame &frame, const Geometry &geom, const ParticleDataBase &pdb, 
 				    const Vec3D &c, const Vec3D &o, const Vec3D &p,
 				    particle_diag_plot_type_e type,
 				    trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy )
     : _frame(frame), _geom(geom), _pdb(pdb), _free_plane(true), _axis(AXIS_X), _level(0.0), 
       _c(c), _o(o), _p(p), _type(type), _diagx(diagx), _diagy(diagy), _diagz(DIAG_NONE),
       _pdb_it_no(-1), _update(true), _tdata(NULL), _histo(NULL), _emit(NULL),
-      _scatter(NULL), _ellipse(NULL), _ellipse_enable(true), _colormap(NULL), _profile(NULL), 
-      _histogram_n(50), _histogram_m(50), _interpolation(INTERPOLATION_CLOSEST), _dot_size(1.0)
+      _datagraph(NULL), _ellipse(NULL), _ellipse_enable(true), _colormap(NULL),
+      _histogram_n(50), _histogram_m(50),  _histogram_accumulation(HISTOGRAM_ACCUMULATION_CLOSEST),
+      _histogram_style(true), _interpolation(INTERPOLATION_CLOSEST), _dot_size(1.0)
 {
 
 }
@@ -83,14 +85,12 @@ ParticleDiagPlot::~ParticleDiagPlot()
     if( _emit )
 	delete _emit;
 
-    if( _scatter )
-	delete _scatter;
+    if( _datagraph )
+	delete _datagraph;
     if( _colormap )
 	delete _colormap;
     if( _ellipse )
 	delete _ellipse;
-    if( _profile )
-	delete _profile;
 }
 
 
@@ -104,10 +104,10 @@ ParticleDiagPlot::~ParticleDiagPlot()
 void ParticleDiagPlot::build_data( void )
 {
     // Is update needed?
-    if( _pdb->get_iteration_number() == _pdb_it_no && !_update )
+    if( _pdb.get_iteration_number() == _pdb_it_no && !_update )
 	return;
 
-    _pdb_it_no = _pdb->get_iteration_number();
+    _pdb_it_no = _pdb.get_iteration_number();
     _update = false;
 
     // Free old data
@@ -124,7 +124,7 @@ void ParticleDiagPlot::build_data( void )
     // Prepare diagnostic request
     bool emittanceconv = false;
     std::vector<trajectory_diagnostic_e> diagnostics;
-    if( _type == PARTICLE_DIAG_PLOT_HISTO2D && _geom->geom_mode() == MODE_CYL && 
+    if( _type == PARTICLE_DIAG_PLOT_HISTO2D && _geom.geom_mode() == MODE_CYL && 
 	( (_diagx == DIAG_Y && _diagy == DIAG_YP) || 
 	  (_diagx == DIAG_Z && _diagy == DIAG_ZP)) ) {
 
@@ -150,12 +150,12 @@ void ParticleDiagPlot::build_data( void )
     // Get diagnostic data
     _tdata = new TrajectoryDiagnosticData;
     if( _free_plane ) {
-	const ParticleDataBase3D *pdb3d = dynamic_cast<const ParticleDataBase3D *>( _pdb );
+	const ParticleDataBase3D *pdb3d = dynamic_cast<const ParticleDataBase3D *>( &_pdb );
 	if( pdb3d == NULL )
 	    throw( Error( ERROR_LOCATION, "particle database not 3d and trying to use free plane diagnostic" ) );	
 	pdb3d->trajectories_at_free_plane( *_tdata, _c, _o, _p, diagnostics );
     } else {
-	_pdb->trajectories_at_plane( *_tdata, _axis, _level, diagnostics );
+	_pdb.trajectories_at_plane( *_tdata, _axis, _level, diagnostics );
     }
 
     // Do data mirroring. Limited to only one mirroring per
@@ -164,24 +164,24 @@ void ParticleDiagPlot::build_data( void )
     // conversion plot.
     if( !emittanceconv ) {
 	bool mirror[6];
-	_pdb->get_mirror( mirror );
+	_pdb.get_mirror( mirror );
 	// Mirror in x-direction
 	if( mirror[0] ) {
-	    _tdata->mirror( AXIS_X, _geom->origo(0) );
+	    _tdata->mirror( AXIS_X, _geom.origo(0) );
 	} else if( mirror[1] ) {
-	    _tdata->mirror( AXIS_X, _geom->max(0) );
+	    _tdata->mirror( AXIS_X, _geom.max(0) );
 	}
 	// Mirror in y-direction, forced if cylindrical geometry
-	if( _geom->geom_mode() == MODE_CYL || mirror[2] ) {
-	    _tdata->mirror( AXIS_Y, _geom->origo(1) );
+	if( _geom.geom_mode() == MODE_CYL || mirror[2] ) {
+	    _tdata->mirror( AXIS_Y, _geom.origo(1) );
 	} else if( mirror[3] ) {
-	    _tdata->mirror( AXIS_Y, _geom->max(1) );
+	    _tdata->mirror( AXIS_Y, _geom.max(1) );
 	}
 	// Mirror in z-direction
 	if( mirror[4] ) {
-	    _tdata->mirror( AXIS_Z, _geom->origo(2) );
+	    _tdata->mirror( AXIS_Z, _geom.origo(2) );
 	} else if( mirror[5] ) {
-	    _tdata->mirror( AXIS_Z, _geom->max(2) );
+	    _tdata->mirror( AXIS_Z, _geom.max(2) );
 	}
     }
 
@@ -217,10 +217,11 @@ void ParticleDiagPlot::build_data( void )
 
 	// Make colormap
 	Histogram2D *histo2d = new Histogram2D( _histogram_n, _histogram_m, (*_tdata)(0).data(), 
-						(*_tdata)(1).data(), (*_tdata)(2).data() );
+						(*_tdata)(1).data(), (*_tdata)(2).data(), 
+						_histogram_accumulation );
 	_histo = histo2d;
 
-	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
+	if( _geom.geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
 	    // Scale plot to have constant area per square for cylindrical geometry.
 	    double dr = histo2d->nstep();
 	    for( size_t i = 0; i < histo2d->n(); i++ ) {
@@ -255,7 +256,7 @@ void ParticleDiagPlot::build_data( void )
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
 
 	// Scale trajectory currents by 1/(2*pi*r)
-	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
+	if( _geom.geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
 	    for( size_t a = 0; a < _tdata->traj_size(); a++ ) {
 		if( (*_tdata)(a,0) != 0.0 )
 		    (*_tdata)(a,1) /= (2.0*M_PI*fabs((*_tdata)(a,0)));
@@ -265,11 +266,12 @@ void ParticleDiagPlot::build_data( void )
 	}
 
 	// Make XYGraph profile plot
-	Histogram1D *histo1d = new Histogram1D( _histogram_n, (*_tdata)(0).data(), (*_tdata)(1).data() );
+	Histogram1D *histo1d = new Histogram1D( _histogram_n, (*_tdata)(0).data(), (*_tdata)(1).data(),
+						_histogram_accumulation );
 	_histo = histo1d;
 
 	// Scale profile plot to have constant area per bin.
-	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
+	if( _geom.geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
 	    double dr = histo1d->step();
 	    for( size_t i = 0; i < histo1d->n(); i++ ) {
 		(*histo1d)(i) /= dr;
@@ -307,7 +309,7 @@ void ParticleDiagPlot::export_data( const std::string &filename )
     if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
 	fstr << "# ";
 	fstr << std::setw(11) << trajectory_diagnostic_string_with_unit[_diagx];
-	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R )
+	if( _geom.geom_mode() == MODE_CYL && _diagx == DIAG_R )
 	    fstr << std::setw(14) << "Int (A/m^2)";
 	else
 	    fstr << std::setw(14) << "Int (a.u.)";
@@ -332,7 +334,7 @@ void ParticleDiagPlot::export_data( const std::string &filename )
 	    else
 		fstr << std::setw(14) << "Int (a.u.)";
 	} else {
-	    if( _geom->geom_mode() == MODE_2D )
+	    if( _geom.geom_mode() == MODE_2D )
 		fstr << std::setw(14) << "Int (A/m)";
 	    else
 		fstr << std::setw(14) << "Int (A)";
@@ -383,18 +385,18 @@ void ParticleDiagPlot::build_plot( void )
 
     // Set axis labels
     if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
-	_frame->set_axis_label( PLOT_AXIS_X1, trajectory_diagnostic_string_with_unit[_diagx] );
-	_frame->set_axis_label( PLOT_AXIS_Y1, "Intensity (a.u.)" );
+	_frame.set_axis_label( PLOT_AXIS_X1, trajectory_diagnostic_string_with_unit[_diagx] );
+	_frame.set_axis_label( PLOT_AXIS_Y1, "Intensity (a.u.)" );
     } else {
-	_frame->set_axis_label( PLOT_AXIS_X1, trajectory_diagnostic_string_with_unit[_diagx] );
-	_frame->set_axis_label( PLOT_AXIS_Y1, trajectory_diagnostic_string_with_unit[_diagy] );
+	_frame.set_axis_label( PLOT_AXIS_X1, trajectory_diagnostic_string_with_unit[_diagx] );
+	_frame.set_axis_label( PLOT_AXIS_Y1, trajectory_diagnostic_string_with_unit[_diagy] );
     }
 
     // Clear old graphs
-    _frame->clear_graphs();
-    if( _scatter ) {
-	delete _scatter;
-	_scatter = NULL;
+    _frame.clear_graphs();
+    if( _datagraph ) {
+	delete _datagraph;
+	_datagraph = NULL;
     }
     if( _colormap ) {
 	delete _colormap; 
@@ -404,18 +406,14 @@ void ParticleDiagPlot::build_plot( void )
 	delete _ellipse;
 	_ellipse = NULL;
     }
-    if( _profile ) {
-	delete _profile;
-	_profile = NULL;
-    }
 
     if( _type == PARTICLE_DIAG_PLOT_SCATTER ) {
 
 	// Make scatter
-	_scatter = new XYGraph( (*_tdata)(0).data(), (*_tdata)(1).data() );
-	_scatter->set_line_style( XYGRAPH_LINE_DISABLE );
-	_scatter->set_point_style( XYGRAPH_POINT_CIRCLE, true, _dot_size );
-	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _scatter );
+	_datagraph = new XYGraph( (*_tdata)(0).data(), (*_tdata)(1).data() );
+	_datagraph->set_line_style( XYGRAPH_LINE_DISABLE );
+	_datagraph->set_point_style( XYGRAPH_POINT_CIRCLE, true, _dot_size );
+	_frame.add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _datagraph );
 
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO2D ) {
 
@@ -457,27 +455,29 @@ void ParticleDiagPlot::build_plot( void )
 	_colormap = new Colormap( range, histo2d->n(), histo2d->m(), histo2d->get_data() );
 	_colormap->set_palette( palette );
 	_colormap->set_interpolation( _interpolation );
-	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _colormap );
+	_frame.add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _colormap );
 
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
 
-	// Make XYGraph profile plot
+	// Make XYGraph 1d histogram plot
 	Histogram1D *histo1d = dynamic_cast<Histogram1D *>( _histo );
 	if( !histo1d )
 	    throw( Error( ERROR_LOCATION, "dynamic cast error" ) );
-	if( _geom->geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
-	    _frame->set_axis_label( PLOT_AXIS_Y1, "Intensity (A/m^2)" );
+	if( _geom.geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
+	    _frame.set_axis_label( PLOT_AXIS_Y1, "Intensity (A/m^2)" );
 	}
 	std::vector<double> xdata;
 	xdata.reserve( histo1d->n() );
 	for( size_t a = 0; a < histo1d->n(); a++ )
 	    xdata.push_back( histo1d->coord(a) );
 
-	_profile = new XYGraph( xdata, histo1d->get_data() );
-	_profile->set_color( Color(1,0,0) );
-	_profile->set_line_style( XYGRAPH_LINE_SOLID );
-	_profile->set_point_style( XYGRAPH_POINT_DISABLE );
-	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _profile );
+	_datagraph = new XYGraph( xdata, histo1d->get_data() );
+	_datagraph->set_color( Color(1,0,0) );
+	_datagraph->set_line_style( XYGRAPH_LINE_SOLID );
+	_datagraph->set_point_style( XYGRAPH_POINT_DISABLE );
+	_datagraph->set_histogram( _histogram_style );
+	_datagraph->extend_histogram( true );
+	_frame.add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _datagraph );
     }
 
     if( (_type == PARTICLE_DIAG_PLOT_HISTO2D ||
@@ -507,7 +507,7 @@ void ParticleDiagPlot::build_plot( void )
 	_ellipse->set_color( Color(0,0,0) );
 	_ellipse->set_line_style( XYGRAPH_LINE_SOLID );
 	_ellipse->set_point_style( XYGRAPH_POINT_DISABLE );
-	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _ellipse );
+	_frame.add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _ellipse );
 
 	// Add emittance numbers to title
 	std::stringstream ss;
@@ -516,7 +516,7 @@ void ParticleDiagPlot::build_plot( void )
 	   << "\\beta  = "    << _emit->beta()    << " m/rad, "
 	   << "\\gamma  = "   << _emit->gamma()   << " rad/m, "
 	   << "\\epsilon  = " << _emit->epsilon() << " m\\cdot rad";
-	_frame->set_title( ss.str().c_str() );
+	_frame.set_title( ss.str().c_str() );
 
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO1D && 
 	       (_diagx == DIAG_X || _diagx == DIAG_Y ||
@@ -525,12 +525,12 @@ void ParticleDiagPlot::build_plot( void )
 	// Make title for profile
 	std::stringstream ss;
 	ss << "Profile plot at " << coordinate_axis_string[_axis] << " = " << _level << " m";
-	_frame->set_title( ss.str().c_str() );
+	_frame.set_title( ss.str().c_str() );
 
     } else {
 
-	// Remove title
-	_frame->set_title( "" );
+	// Don't know what the plot is, remove title
+	_frame.set_title( "" );
 
     }
 }

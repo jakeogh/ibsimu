@@ -67,7 +67,7 @@
  */
 class ParticleGraph : public Graph3D {
     
-    const Geometry         &_g;          /*!< \brief Reference to simulation geometry. */
+    const Geometry         &_geom;       /*!< \brief Reference to simulation geometry. */
     const ParticleDataBase &_pdb;        /*!< \brief Reference to particle database. */
     int                     _particlediv;/*!< \brief Particle plot divisor. */
 

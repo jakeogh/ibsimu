@@ -59,8 +59,9 @@
  */
 class FieldGraph : public Graph3D, public Colormap {
 
+    const Geometry         &_geom;            /*!< \brief Geometry. */
+
     field_type_e            _field_type;      /*!< \brief Field type used. */
-    const Geometry         *_geom;            /*!< \brief Geometry. */
     const ScalarField      *_scalarfield;     /*!< \brief Scalarfield for plotting. */
     const VectorField      *_vectorfield;     /*!< \brief Vectorfield for plotting. */    
 
@@ -80,15 +81,15 @@ public:
 
     /*! \brief Constructor for empty FieldGraph.
      */
-    FieldGraph();
+    FieldGraph( const Geometry &geom );
 
     /*! \brief Constructor for plotting ScalarField.
      */
-    FieldGraph( field_type_e field_type, const ScalarField *field );
+    FieldGraph( const Geometry &geom, field_type_e field_type, const ScalarField *field );
 
     /*! \brief Constructor for plotting a VectorField \a field in geometry \a geom.
      */
-    FieldGraph( field_type_e field_type, const Geometry *geom, const VectorField *field );
+    FieldGraph( const Geometry &geom, field_type_e field_type, const VectorField *field );
 
     /*! \brief Destructor.
      */
@@ -105,8 +106,10 @@ public:
     void set_field( field_type_e field_type, const ScalarField *field );
 
     /*! \brief Set field to be plotted.
+     *
+     *  The \a field_type can be FIELD_NONE and \a field NULL for no plotting.
      */
-    void set_field( field_type_e field_type, const Geometry *geom, const VectorField *field );
+    void set_field( field_type_e field_type, const VectorField *field );
 
     /*! \brief Enable/disable plot.
      */

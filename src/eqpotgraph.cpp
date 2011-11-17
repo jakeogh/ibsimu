@@ -45,8 +45,9 @@
 #include "ibsimu.hpp"
 
 
-EqPotGraph::EqPotGraph( const ScalarField &epot, const Geometry &g )
-    : _color(Color(0.2,1,0.2)), _epot(epot), _g(g), _data_built(false), _cache(true)
+EqPotGraph::EqPotGraph( const ScalarField &epot, const Geometry &geom )
+    : Graph3D(geom), _color(Color(0.2,1,0.2)), _epot(epot), 
+      _geom(geom), _data_built(false), _cache(true)
 {
 }
 
@@ -86,12 +87,12 @@ bool EqPotGraph::eqline_exists( double pot1, signed char sol1,
 	// Additional rule: potential pot has to be a real (non-virtual) potential close to 
 	// solid boundaries with virtual potentials.
 	!(( sol1 < -6 && 
-	    ((pot1 >= pot && _g.get_boundary(-sol1).val <= pot) ||
-	     (pot1 <= pot && _g.get_boundary(-sol1).val >= pot)) ) 
+	    ((pot1 >= pot && _geom.get_boundary(-sol1).val <= pot) ||
+	     (pot1 <= pot && _geom.get_boundary(-sol1).val >= pot)) ) 
 	  ||
 	  ( sol2 < -6 && 
-	    ((pot2 >= pot && _g.get_boundary(-sol2).val <= pot) ||
-	     (pot2 <= pot && _g.get_boundary(-sol2).val >= pot)) )) )
+	    ((pot2 >= pot && _geom.get_boundary(-sol2).val <= pot) ||
+	     (pot2 <= pot && _geom.get_boundary(-sol2).val >= pot)) )) )
     {
 	return( true );
     }
@@ -115,40 +116,40 @@ void EqPotGraph::build_data( void )
 
     // Add automatic lines
     double min, max;
-    _epot.epot_get_minmax( _g, min, max );
+    _epot.epot_get_minmax( _geom, min, max );
     for( size_t a = 0; a < _eqlines_auto; a++ )
 	_lines.push_back( new EqPotLines( min + (a+0.5)*(max-min)/(_eqlines_auto) ) );
 
     // Go through mesh
     size_t i[3];
     size_t dx, dy;
-    i[_vb[2]] = (int)floor(_level+0.5);
+    i[_vb[2]] = _level;
     if( _vb[0] == 0 ) dx = 1;
-    else if( _vb[0] == 1 ) dx = _g.size(0);
-    else dx = _g.size(1)*_g.size(0);
+    else if( _vb[0] == 1 ) dx = _geom.size(0);
+    else dx = _geom.size(1)*_geom.size(0);
     if( _vb[1] == 0 ) dy = 1;
-    else if( _vb[1] == 1 ) dy = _g.size(0);
-    else dy = _g.size(1)*_g.size(0);
-    size_t sizex = _g.size(_vb[0])-1;
-    size_t sizey = _g.size(_vb[1])-1;
+    else if( _vb[1] == 1 ) dy = _geom.size(0);
+    else dy = _geom.size(1)*_geom.size(0);
+    size_t sizex = _geom.size(_vb[0])-1;
+    size_t sizey = _geom.size(_vb[1])-1;
     for( i[_vb[1]] = 0; i[_vb[1]] < sizey; i[_vb[1]]++ ) {
 	for( i[_vb[0]] = 0; i[_vb[0]] < sizex; i[_vb[0]]++ ) {
 	    
 	    //std::cout << "Scanning at " << i[_vb[0]] << " " << i[_vb[1]] << "\n";
-	    size_t ptr = _g.size(0)*_g.size(1)*i[2] + _g.size(0)*i[1] + i[0];
+	    size_t ptr = _geom.size(0)*_geom.size(1)*i[2] + _geom.size(0)*i[1] + i[0];
 
 	    // Potentials and solid mesh numbers counterclockwise
 	    double pot1       = _epot( ptr );
-	    signed char sol1  = _g.mesh( ptr );
+	    signed char sol1  = _geom.mesh( ptr );
 	    size_t ptrt       = ptr+dx;
 	    double pot2       = _epot( ptrt );
-	    signed char sol2  = _g.mesh( ptrt );
+	    signed char sol2  = _geom.mesh( ptrt );
 	    ptrt             += dy;
 	    double pot3       = _epot( ptrt );
-	    signed char sol3  = _g.mesh( ptrt );
+	    signed char sol3  = _geom.mesh( ptrt );
 	    ptrt             -= dx;
 	    double pot4       = _epot( ptrt );
-	    signed char sol4  = _g.mesh( ptrt );
+	    signed char sol4  = _geom.mesh( ptrt );
 
 	    // Check for existance of each equipotential line
 	    for( size_t a = 0; a < _lines.size(); a++ ) {
@@ -162,40 +163,40 @@ void EqPotGraph::build_data( void )
 		// Bottom
 		if( eqline_exists( pot1, sol1, pot2, sol2, pot ) ) {
 		    if( pot2 != pot1 )
-			x[b+0] = (i[_vb[0]]+(pot-pot1)/(pot2-pot1)) * _g.h() + _g.origo(_vb[0]);
+			x[b+0] = (i[_vb[0]]+(pot-pot1)/(pot2-pot1)) * _geom.h() + _geom.origo(_vb[0]);
 		    else
-			x[b+0] = i[_vb[0]]*_g.h() + _g.origo(_vb[0]);
-		    x[b+1] = i[_vb[1]]*_g.h() + _g.origo(_vb[1]);
+			x[b+0] = i[_vb[0]]*_geom.h() + _geom.origo(_vb[0]);
+		    x[b+1] = i[_vb[1]]*_geom.h() + _geom.origo(_vb[1]);
 		    b += 2;
 		}
 
 		// Right
 		if( eqline_exists( pot2, sol2, pot3, sol3, pot ) ) {
-		    x[b+0] = (i[_vb[0]]+1)*_g.h() + _g.origo(_vb[0]);
+		    x[b+0] = (i[_vb[0]]+1)*_geom.h() + _geom.origo(_vb[0]);
 		    if( pot3 != pot2 )
-			x[b+1] = (i[_vb[1]]+(pot-pot2)/(pot3-pot2)) * _g.h() + _g.origo(_vb[1]);
+			x[b+1] = (i[_vb[1]]+(pot-pot2)/(pot3-pot2)) * _geom.h() + _geom.origo(_vb[1]);
 		    else
-			x[b+1] = i[_vb[1]]*_g.h() + _g.origo(_vb[1]);
+			x[b+1] = i[_vb[1]]*_geom.h() + _geom.origo(_vb[1]);
 		    b += 2;
 		}
 		
 		// Top
 		if( eqline_exists( pot4, sol4, pot3, sol3, pot ) ) {
 		    if( pot4 != pot3 )
-			x[b+0] = (i[_vb[0]]+(pot-pot4)/(pot3-pot4)) * _g.h() + _g.origo(_vb[0]);
+			x[b+0] = (i[_vb[0]]+(pot-pot4)/(pot3-pot4)) * _geom.h() + _geom.origo(_vb[0]);
 		    else
-			x[b+0] = (i[_vb[0]]+1)*_g.h() + _g.origo(_vb[0]);
-		    x[b+1] = (i[_vb[1]]+1) * _g.h() + _g.origo(_vb[1]);
+			x[b+0] = (i[_vb[0]]+1)*_geom.h() + _geom.origo(_vb[0]);
+		    x[b+1] = (i[_vb[1]]+1) * _geom.h() + _geom.origo(_vb[1]);
 		    b += 2;
 		}
 
 		// Left
 		if( eqline_exists( pot1, sol1, pot4, sol4, pot ) ) {
-		    x[b+0] = i[_vb[0]]*_g.h() + _g.origo(_vb[0]);
+		    x[b+0] = i[_vb[0]]*_geom.h() + _geom.origo(_vb[0]);
 		    if( pot4 != pot1 )
-			x[b+1] = (i[_vb[1]]+(pot-pot1)/(pot4-pot1)) * _g.h() + _g.origo(_vb[1]);
+			x[b+1] = (i[_vb[1]]+(pot-pot1)/(pot4-pot1)) * _geom.h() + _geom.origo(_vb[1]);
 		    else
-			x[b+1] = (i[_vb[1]]+1)*_g.h() + _g.origo(_vb[1]);
+			x[b+1] = (i[_vb[1]]+1)*_geom.h() + _geom.origo(_vb[1]);
 		    b += 2;
 		}
 		
@@ -225,7 +226,6 @@ void EqPotGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
 {
     if( !_data_built || _oview != _view || _olevel != _level || !_cache ) {
 	// First round or change happened
-	//_ilevel = (int)floor( (_level - _g.origo(_vb[2])) / _g.h() + 0.5 );
 	build_data();
     }
     _oview = _view;
@@ -260,10 +260,10 @@ void EqPotGraph::plot_sample( cairo_t *cairo, double x, double y, double width, 
 
 void EqPotGraph::get_bbox( double bbox[4] )
 {
-    bbox[0] = _g.origo( _vb[0] );
-    bbox[1] = _g.origo( _vb[1] );
-    bbox[2] = _g.max( _vb[0] );
-    bbox[3] = _g.max( _vb[1] );
+    bbox[0] = _geom.origo( _vb[0] );
+    bbox[1] = _geom.origo( _vb[1] );
+    bbox[2] = _geom.max( _vb[0] );
+    bbox[3] = _geom.max( _vb[1] );
 }
 
 

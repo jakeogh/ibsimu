@@ -2,7 +2,7 @@
  *  \brief Dialog for constructing particle diagnostic windows
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -60,7 +60,6 @@ class GTKParticleDiagDialog
     int             _plane;
     double          _val;
 
-
     GtkWidget      *_radio_plane_x;
     GtkWidget      *_radio_plane_y;
     GtkWidget      *_radio_plane_z;
@@ -68,16 +67,31 @@ class GTKParticleDiagDialog
     GtkWidget      *_radio_emit_xx;
     GtkWidget      *_radio_emit_yy;
     GtkWidget      *_radio_emit_zz; // Or converted emittance in case of cyl
-    GtkWidget      *_radio_prof_yz; // Or prof_x in case of 2d
-    GtkWidget      *_radio_prof_xz; // Or prof_y in case of 2d
+
+    GtkWidget      *_radio_prof_yz;
+    GtkWidget      *_radio_prof_xz;
     GtkWidget      *_radio_prof_xy;
 
     GtkWidget      *_radio_plot_scatter;
     GtkWidget      *_radio_plot_colormap;
 
-    void profile_toggled2( GtkToggleButton *togglebutton );
-    static void profile_toggled( GtkToggleButton *togglebutton,
-				 gpointer         user_data );
+    GtkWidget      *_radio_prof_x;
+    GtkWidget      *_radio_prof_y;
+    GtkWidget      *_radio_prof_z;
+
+    GtkWidget      *_radio_prof_xp;
+    GtkWidget      *_radio_prof_yp;
+    GtkWidget      *_radio_prof_zp;
+
+    GtkWidget      *_radio_energy;
+
+    void plot1d_toggled2( GtkToggleButton *togglebutton );
+    static void plot1d_toggled( GtkToggleButton *togglebutton,
+				gpointer         user_data );
+
+    void conversion_toggled2( GtkToggleButton *togglebutton );
+    static void conversion_toggled( GtkToggleButton *togglebutton,
+				    gpointer         user_data );
 
     void plane_activated( void );
     static void plane_toggled( GtkToggleButton *togglebutton,
@@ -86,7 +100,7 @@ class GTKParticleDiagDialog
 
 public:
 
-    GTKParticleDiagDialog( GtkWidget *window, GTKPlotter *plotter, int plane, double val );
+    GTKParticleDiagDialog( GtkWidget *window, GTKPlotter &plotter, int plane, double val );
 
     ~GTKParticleDiagDialog();
 

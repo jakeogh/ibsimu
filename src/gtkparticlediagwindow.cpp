@@ -47,13 +47,13 @@
 #include "histogram.hpp"
 
 
-GTKParticleDiagWindow::GTKParticleDiagWindow( GTKPlotter *plotter, const ParticleDataBase *pdb, 
-					      const Geometry *geom,
+GTKParticleDiagWindow::GTKParticleDiagWindow( GTKPlotter &plotter, const ParticleDataBase &pdb, 
+					      const Geometry &geom,
 					      coordinate_axis_e axis, double level, 
 					      particle_diag_plot_type_e type,
 					      trajectory_diagnostic_e diagx, 
 					      trajectory_diagnostic_e diagy )
-    : GTKWindow(plotter), _plot(&_frame, geom, pdb, axis, level, type, diagx, diagy)
+    : GTKWindow(plotter), _plot(_frame, geom, pdb, axis, level, type, diagx, diagy), _prefdata(NULL)
 {
     // Set window title
     gtk_window_set_title( GTK_WINDOW(_window), "Particle diagnostics" );
@@ -72,105 +72,146 @@ GTKParticleDiagWindow::GTKParticleDiagWindow( GTKPlotter *plotter, const Particl
 
 GTKParticleDiagWindow::~GTKParticleDiagWindow()
 {
+    if( _prefdata )
+	delete _prefdata;
 }
 
 
 
-struct PreferencesData {
-    GtkWidget *radio_plot_scatter;
-    GtkWidget *radio_plot_colormap;
-    GtkWidget *histo_n_spin;
-    GtkWidget *histo_m_spin;
-    GtkWidget *radio_int_closest;
-    GtkWidget *radio_int_bilinear;
-    GtkWidget *radio_int_bicubic;
-    GtkWidget *dot_size_spin;
-    GtkWidget *ellipse_check;
-};
-
-
-void *GTKParticleDiagWindow::build_preferences( GtkWidget *notebook )
+void GTKParticleDiagWindow::plot_2d_type_toggled_process( void )
 {
-    PreferencesData *pdata = new PreferencesData;;
+    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->plot_scatter_radio) ) ) {
+	gtk_widget_set_sensitive( _prefdata->histo_n_spin, false );
+	gtk_widget_set_sensitive( _prefdata->histo_m_spin, false );
+	gtk_widget_set_sensitive( _prefdata->histo_acc_closest_radio, false );
+	gtk_widget_set_sensitive( _prefdata->histo_acc_bilinear_radio, false );
+	gtk_widget_set_sensitive( _prefdata->int_closest_radio, false );
+	gtk_widget_set_sensitive( _prefdata->int_bilinear_radio, false );
+	gtk_widget_set_sensitive( _prefdata->int_bicubic_radio, false );
+	gtk_widget_set_sensitive( _prefdata->dot_size_spin, true );
+    } else {
+	gtk_widget_set_sensitive( _prefdata->histo_n_spin, true );
+	gtk_widget_set_sensitive( _prefdata->histo_m_spin, true );
+	gtk_widget_set_sensitive( _prefdata->histo_acc_closest_radio, true );
+	gtk_widget_set_sensitive( _prefdata->histo_acc_bilinear_radio, true );
+	gtk_widget_set_sensitive( _prefdata->int_closest_radio, true );
+	gtk_widget_set_sensitive( _prefdata->int_bilinear_radio, true );
+	gtk_widget_set_sensitive( _prefdata->int_bicubic_radio, true );
+	gtk_widget_set_sensitive( _prefdata->dot_size_spin, false );
+    }
+}
 
+
+void GTKParticleDiagWindow::plot_2d_type_toggled( GtkToggleButton *togglebutton,
+					  gpointer         user_data )
+{
+   GTKParticleDiagWindow *pdwindow = (GTKParticleDiagWindow *)user_data;
+    if( gtk_toggle_button_get_active( togglebutton ) )
+	pdwindow->plot_2d_type_toggled_process();
+}
+
+
+void GTKParticleDiagWindow::build_preferences_2d( GtkWidget *notebook )
+{
     GtkWidget *vbox = gtk_vbox_new( FALSE, 0 );
 
     // Plot type
     GtkWidget *hbox = gtk_hbox_new( TRUE, 30 );
     GtkWidget *label = gtk_label_new( "Plot type" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.2 );
     GtkWidget *vbox2 = gtk_vbox_new( FALSE, 0 );
-    pdata->radio_plot_scatter = gtk_radio_button_new_with_label_from_widget( NULL,
-								       "Scatter" );
-
-    // Get current parameters
+    _prefdata->plot_scatter_radio = gtk_radio_button_new_with_label_from_widget( NULL,
+										 "Scatter" );
+    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->plot_scatter_radio, FALSE, TRUE, 0 );
+    _prefdata->plot_colormap_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->plot_scatter_radio),
+										  "Colormap" );
     particle_diag_plot_type_e type = _plot.get_type();
-    interpolation_e interpolation =  _plot.get_colormap_interpolation();
-
     if( type == PARTICLE_DIAG_PLOT_SCATTER )
-	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->radio_plot_scatter), true );
-    gtk_box_pack_start( GTK_BOX(vbox2), pdata->radio_plot_scatter, FALSE, TRUE, 0 );
-    pdata->radio_plot_colormap = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->radio_plot_scatter),
-									       "Colormap" );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->plot_scatter_radio), true );
     if( type == PARTICLE_DIAG_PLOT_HISTO2D )
-	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->radio_plot_colormap), true );
-    gtk_box_pack_start( GTK_BOX(vbox2), pdata->radio_plot_colormap, FALSE, TRUE, 0 );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->plot_colormap_radio), true );
+    g_signal_connect( _prefdata->plot_scatter_radio, "toggled",
+		      G_CALLBACK(plot_2d_type_toggled), (gpointer)this );
+    g_signal_connect( _prefdata->plot_colormap_radio, "toggled",
+		      G_CALLBACK(plot_2d_type_toggled), (gpointer)this );
     if( type == PARTICLE_DIAG_PLOT_HISTO1D ) {
-	gtk_widget_set_sensitive( pdata->radio_plot_scatter, false );
-	gtk_widget_set_sensitive( pdata->radio_plot_colormap, false );
+	gtk_widget_set_sensitive( _prefdata->plot_scatter_radio, false );
+	gtk_widget_set_sensitive( _prefdata->plot_colormap_radio, false );
     }
+    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->plot_colormap_radio, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), vbox2, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
     // Histogram size
     hbox = gtk_hbox_new( TRUE, 30 );
-    label = gtk_label_new( "Bin size n" );
+    label = gtk_label_new( "Bin count x" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     GtkObject *histo_n_adj = gtk_adjustment_new( _plot.get_histogram_n(), 0, 1000, 1, 10, 0 );
-    pdata->histo_n_spin = gtk_spin_button_new( GTK_ADJUSTMENT(histo_n_adj), 1, 0 );
+    _prefdata->histo_n_spin = gtk_spin_button_new( GTK_ADJUSTMENT(histo_n_adj), 1, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), pdata->histo_n_spin, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->histo_n_spin, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
     // Histogram size
     hbox = gtk_hbox_new( TRUE, 30 );
-    label = gtk_label_new( "Bin size m" );
+    label = gtk_label_new( "Bin count y" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     GtkObject *histo_m_adj = gtk_adjustment_new( _plot.get_histogram_m(), 0, 1000, 1, 10, 0 );
-    pdata->histo_m_spin = gtk_spin_button_new( GTK_ADJUSTMENT(histo_m_adj), 1, 0 );
+    _prefdata->histo_m_spin = gtk_spin_button_new( GTK_ADJUSTMENT(histo_m_adj), 1, 0 );
     if( type == PARTICLE_DIAG_PLOT_HISTO1D )
-	gtk_widget_set_sensitive( pdata->histo_m_spin, false );
+	gtk_widget_set_sensitive( _prefdata->histo_m_spin, false );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), pdata->histo_m_spin, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->histo_m_spin, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Histogram accumulation type
+    histogram_accumulation_e accu = _plot.get_histogram_accumulation();
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Histogram accumulation" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.1 );
+    vbox2 = gtk_vbox_new( FALSE, 0 );
+    _prefdata->histo_acc_closest_radio = gtk_radio_button_new_with_label_from_widget( NULL,
+										      "Closest" );
+    if( accu == HISTOGRAM_ACCUMULATION_CLOSEST )
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->histo_acc_closest_radio), true );
+    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->histo_acc_closest_radio, FALSE, TRUE, 0 );
+    _prefdata->histo_acc_bilinear_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->histo_acc_closest_radio),
+										       "Bilinear" );
+    if( accu == HISTOGRAM_ACCUMULATION_LINEAR )
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->histo_acc_bilinear_radio), true );
+    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->histo_acc_bilinear_radio, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), vbox2, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
     // Colormap interpolation style
+    interpolation_e interpolation =  _plot.get_colormap_interpolation();
     hbox = gtk_hbox_new( TRUE, 30 );
-    label = gtk_label_new( "Bin size m" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    label = gtk_label_new( "Colormap interpolation" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.1 );
     vbox2 = gtk_vbox_new( FALSE, 0 );
-    pdata->radio_int_closest = gtk_radio_button_new_with_label_from_widget( NULL,
-									     "Closest" );
+    _prefdata->int_closest_radio = gtk_radio_button_new_with_label_from_widget( NULL,
+									    "Closest" );
     if( type == PARTICLE_DIAG_PLOT_HISTO1D )
-	gtk_widget_set_sensitive( pdata->radio_int_closest, false );
+	gtk_widget_set_sensitive( _prefdata->int_closest_radio, false );
     if( interpolation == INTERPOLATION_CLOSEST )
-	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->radio_int_closest), true );
-    gtk_box_pack_start( GTK_BOX(vbox2), pdata->radio_int_closest, FALSE, TRUE, 0 );
-    pdata->radio_int_bilinear = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->radio_int_closest),
-									      "Bilinear" );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->int_closest_radio), true );
+    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->int_closest_radio, FALSE, TRUE, 0 );
+    _prefdata->int_bilinear_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->int_closest_radio),
+									     "Bilinear" );
     if( type == PARTICLE_DIAG_PLOT_HISTO1D )
-	gtk_widget_set_sensitive( pdata->radio_int_bilinear, false );
+	gtk_widget_set_sensitive( _prefdata->int_bilinear_radio, false );
     if( interpolation == INTERPOLATION_BILINEAR )
-	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->radio_int_bilinear), true );
-    gtk_box_pack_start( GTK_BOX(vbox2), pdata->radio_int_bilinear, FALSE, TRUE, 0 );
-    pdata->radio_int_bicubic = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(pdata->radio_int_closest),
-									     "Bicubic" );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->int_bilinear_radio), true );
+    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->int_bilinear_radio, FALSE, TRUE, 0 );
+    _prefdata->int_bicubic_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->int_closest_radio),
+									    "Bicubic" );
     if( type == PARTICLE_DIAG_PLOT_HISTO1D )
-	gtk_widget_set_sensitive( pdata->radio_int_bicubic, false );
+	gtk_widget_set_sensitive( _prefdata->int_bicubic_radio, false );
     if( interpolation == INTERPOLATION_BICUBIC )
-	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->radio_int_bicubic), true );
-    gtk_box_pack_start( GTK_BOX(vbox2), pdata->radio_int_bicubic, FALSE, TRUE, 0 );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->int_bicubic_radio), true );
+    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->int_bicubic_radio, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), vbox2, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
@@ -180,64 +221,161 @@ void *GTKParticleDiagWindow::build_preferences( GtkWidget *notebook )
     label = gtk_label_new( "Dot size" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     GtkObject *dot_size_adj = gtk_adjustment_new( _plot.get_dot_size(), 0.1, 10.0, 0.1, 1, 0 );
-    pdata->dot_size_spin = gtk_spin_button_new( GTK_ADJUSTMENT(dot_size_adj), 0.1, 1 );
+    _prefdata->dot_size_spin = gtk_spin_button_new( GTK_ADJUSTMENT(dot_size_adj), 0.1, 1 );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), pdata->dot_size_spin, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->dot_size_spin, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
     // Ellipse fit
     hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Emittance ellipse fit" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    pdata->ellipse_check = gtk_check_button_new_with_label( "on/off" );
-    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pdata->ellipse_check), _plot.get_emittance_ellipse() );
+    _prefdata->ellipse_check = gtk_check_button_new_with_label( "on/off" );
+    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->ellipse_check), _plot.get_emittance_ellipse() );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), pdata->ellipse_check, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->ellipse_check, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
     // Add notebook page
     label = gtk_label_new( "Particles" );
     gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox, label );
 
-    return( (void *)pdata );
+    // Set active switches
+    plot_2d_type_toggled_process();
 }
 
 
-void GTKParticleDiagWindow::read_preferences( GtkWidget *notebook, void *_pdata )
+void GTKParticleDiagWindow::build_preferences_1d( GtkWidget *notebook )
 {
-    PreferencesData *pdata = (PreferencesData *)_pdata;
+    GtkWidget *vbox = gtk_vbox_new( FALSE, 0 );
 
-    // Plot type
-    particle_diag_plot_type_e type = _plot.get_type();
-    if( type != PARTICLE_DIAG_PLOT_HISTO1D ) {
-	particle_diag_plot_type_e otype = type;
-	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->radio_plot_scatter) ) )
+    // Histogram size
+    GtkWidget *hbox = gtk_hbox_new( TRUE, 30 );
+    GtkWidget *label = gtk_label_new( "Bin count" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    GtkObject *histo_n_adj = gtk_adjustment_new( _plot.get_histogram_n(), 0, 1000, 1, 10, 0 );
+    _prefdata->histo_n_spin = gtk_spin_button_new( GTK_ADJUSTMENT(histo_n_adj), 1, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->histo_n_spin, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Histogram accumulation type
+    histogram_accumulation_e accu = _plot.get_histogram_accumulation();
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Histogram accumulation" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.1 );
+    GtkWidget *vbox2 = gtk_vbox_new( FALSE, 0 );
+    _prefdata->histo_acc_closest_radio = gtk_radio_button_new_with_label_from_widget( NULL,
+										      "Closest" );
+    if( accu == HISTOGRAM_ACCUMULATION_CLOSEST )
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->histo_acc_closest_radio), true );
+    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->histo_acc_closest_radio, FALSE, TRUE, 0 );
+    _prefdata->histo_acc_bilinear_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->histo_acc_closest_radio),
+										       "Bilinear" );
+    if( accu == HISTOGRAM_ACCUMULATION_LINEAR )
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->histo_acc_bilinear_radio), true );
+    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->histo_acc_bilinear_radio, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), vbox2, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Plot presentation style
+    bool histo_style =  _plot.get_histogram_style();
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Plot style" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.1 );
+    vbox2 = gtk_vbox_new( FALSE, 0 );
+    _prefdata->style_histo_radio = gtk_radio_button_new_with_label_from_widget( NULL,
+										"Histogram" );
+    if( histo_style )
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->style_histo_radio), true );
+    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->style_histo_radio, FALSE, TRUE, 0 );
+    _prefdata->style_line_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->style_histo_radio),
+									       "Lines" );
+    if( !histo_style )
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->style_line_radio), true );
+    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->style_line_radio, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), vbox2, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Add notebook page
+    label = gtk_label_new( "Particles" );
+    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox, label );
+}
+
+
+void *GTKParticleDiagWindow::build_preferences( GtkWidget *notebook )
+{
+    if( _prefdata )
+	delete _prefdata;
+    _prefdata = new PreferencesData;
+
+    if( _plot.get_type() == PARTICLE_DIAG_PLOT_HISTO1D )
+	build_preferences_1d( notebook );
+    else
+	build_preferences_2d( notebook );
+
+    return( NULL );
+}
+
+
+void GTKParticleDiagWindow::read_preferences( GtkWidget *notebook, void *pdata )
+{
+    if( _plot.get_type() == PARTICLE_DIAG_PLOT_HISTO1D ) {
+
+	// Histogram size
+	_plot.set_histogram_n( gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(_prefdata->histo_n_spin) ) );
+
+	// Histogram accumulation type
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->histo_acc_closest_radio) ) )
+	    _plot.set_histogram_accumulation( HISTOGRAM_ACCUMULATION_CLOSEST );
+	else
+	    _plot.set_histogram_accumulation( HISTOGRAM_ACCUMULATION_LINEAR );
+
+	// Plot presentation style
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->style_histo_radio) ) )
+	    _plot.set_histogram_style( true );
+	else
+	    _plot.set_histogram_style( false );
+
+    } else {
+
+	particle_diag_plot_type_e type;
+	particle_diag_plot_type_e otype = _plot.get_type();
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->plot_scatter_radio) ) )
 	    type = PARTICLE_DIAG_PLOT_SCATTER;
 	else
 	    type = PARTICLE_DIAG_PLOT_HISTO2D;
 	if( type != otype )
 	    _plot.set_type( type );
+
+	// Histogram size
+	_plot.set_histogram_n( gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(_prefdata->histo_n_spin) ) );
+	_plot.set_histogram_m( gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(_prefdata->histo_m_spin) ) );
+
+	// Histogram accumulation type
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->histo_acc_closest_radio) ) )
+	    _plot.set_histogram_accumulation( HISTOGRAM_ACCUMULATION_CLOSEST );
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->histo_acc_bilinear_radio) ) )
+	    _plot.set_histogram_accumulation( HISTOGRAM_ACCUMULATION_LINEAR );
+
+	// Interpolation style
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->int_closest_radio) ) )
+	    _plot.set_colormap_interpolation( INTERPOLATION_CLOSEST );
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->int_bilinear_radio) ) )
+	    _plot.set_colormap_interpolation( INTERPOLATION_BILINEAR );
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->int_bicubic_radio) ) )
+	    _plot.set_colormap_interpolation( INTERPOLATION_BICUBIC );
+
+	// Dot size
+	_plot.set_dot_size( gtk_spin_button_get_value_as_float( GTK_SPIN_BUTTON(_prefdata->dot_size_spin) ) );
+
+	// Ellipse fit
+	_plot.set_emittance_ellipse( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( _prefdata->ellipse_check) ) );
     }
-    
 
-    // Histogram size
-    _plot.set_histogram_n( gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(pdata->histo_n_spin) ) );
-    _plot.set_histogram_m( gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(pdata->histo_m_spin) ) );
-
-    // Interpolation style
-    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->radio_int_closest) ) )
-	_plot.set_colormap_interpolation( INTERPOLATION_CLOSEST );
-    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->radio_int_bilinear) ) )
-	_plot.set_colormap_interpolation( INTERPOLATION_BILINEAR );
-    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(pdata->radio_int_bicubic) ) )
-	_plot.set_colormap_interpolation( INTERPOLATION_BICUBIC );
-
-    // Dot size
-    _plot.set_dot_size( gtk_spin_button_get_value_as_float( GTK_SPIN_BUTTON(pdata->dot_size_spin) ) );
-
-    // Ellipse fit
-    _plot.set_emittance_ellipse( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( pdata->ellipse_check) ) );
-
+    zoom_fit();
     _plot.build_plot();
     draw_and_expose();
 }

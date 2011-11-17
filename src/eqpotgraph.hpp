@@ -80,7 +80,7 @@ class EqPotGraph : public Graph3D {
 
     Color                               _color;
     const ScalarField                   _epot;
-    const Geometry                     &_g;
+    const Geometry                     &_geom;
     bool                                _data_built;
 
     std::vector<double>                 _eqlines_manual;
@@ -105,7 +105,7 @@ public:
      *  Makes a plot object for plotting equipotential data from
      *  scalarfield \a field in geometry \a g.
      */
-    EqPotGraph( const ScalarField &epot, const Geometry &g );
+    EqPotGraph( const ScalarField &epot, const Geometry &geom );
 
     /*! \brief Destructor,
      */

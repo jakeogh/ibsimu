@@ -52,7 +52,7 @@
  */
 class GTKFieldDiagWindow : public GTKWindow {
 
-    const Geometry            *_geom;
+    const Geometry            &_geom;
     FieldDiagPlot              _plot;
 
     double                     _x1min;
@@ -80,7 +80,7 @@ public:
      *  specified by \a dist1type and the second x-axis on \a
      *  dist2type.
      */
-    GTKFieldDiagWindow( GTKPlotter *plotter, const Geometry *geom, size_t N, 
+    GTKFieldDiagWindow( GTKPlotter &plotter, const Geometry &geom, size_t N, 
 			const Vec3D &x1, const Vec3D &x2, 
 			const field_diag_type_e diag[2], const field_loc_type_e loc[2] );
 

@@ -74,8 +74,9 @@ class SolidGraph : public Graph3D {
 	SolidPoints( int N ) : N(N) {}
     };
 
+    const Geometry                      &_geom;
+
     Color                                _color;
-    const Geometry                      &_g;
     std::vector<SolidPoints *>           _solid;
 
     view_e                               _oview;
@@ -93,7 +94,7 @@ public:
 
     /*! \brief Constructor for %SolidGraph drawable from geometry \a g.
      */
-    SolidGraph( const Geometry &g );
+    SolidGraph( const Geometry &geom );
 
     /*! \brief Destructor.
      */

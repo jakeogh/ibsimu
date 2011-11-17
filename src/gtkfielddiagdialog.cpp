@@ -2,7 +2,7 @@
  *  \brief Source code for gtkfielddiagdialog.cpp
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,9 +45,9 @@
 #include "multimeshvectorfield.hpp"
 
 
-GTKFieldDiagDialog::GTKFieldDiagDialog( GtkWidget *window, GTKPlotter *plotter, 
+GTKFieldDiagDialog::GTKFieldDiagDialog( GtkWidget *window, GTKPlotter &plotter, 
 					double x1[3], double x2[3] )
-    : _window(window), _plotter(plotter)
+    : _window(window), _plotter(&plotter)
 {
     _x1[0] = x1[0];
     _x1[1] = x1[1];

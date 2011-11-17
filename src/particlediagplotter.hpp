@@ -69,12 +69,12 @@ public:
      *  dimensional histograms the y-axis is intensity and \a diagy
      *  can be left to DIAG_NONE.
      */
-    ParticleDiagPlotter( const Geometry *geom, const ParticleDataBase *pdb, 
+    ParticleDiagPlotter( const Geometry &geom, const ParticleDataBase &pdb, 
 			 coordinate_axis_e axis, double level, 
 			 particle_diag_plot_type_e type,
 			 trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy = DIAG_NONE );
 
-    ParticleDiagPlotter( const Geometry *geom, const ParticleDataBase *pdb, 
+    ParticleDiagPlotter( const Geometry &geom, const ParticleDataBase &pdb, 
 			 const Vec3D &c, const Vec3D &o, const Vec3D &p,
 			 particle_diag_plot_type_e type,
 			 trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy = DIAG_NONE );

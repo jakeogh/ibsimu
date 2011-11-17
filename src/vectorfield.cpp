@@ -50,9 +50,9 @@ void VectorField::get_minmax( const Mesh &mesh, double &min, double &max ) const
     min = std::numeric_limits<double>::infinity();
     max = -std::numeric_limits<double>::infinity();
 
-    for( size_t k = 0; k < mesh.size(2); k++ ) {
-	for( size_t j = 0; j < mesh.size(1); j++ ) {
-	    for( size_t i = 0; i < mesh.size(0); i++ ) {
+    for( int32_t k = 0; k < mesh.size(2); k++ ) {
+	for( int32_t j = 0; j < mesh.size(1); j++ ) {
+	    for( int32_t i = 0; i < mesh.size(0); i++ ) {
 
 		Vec3D x( mesh.origo(0)+i*mesh.h(),
 			 mesh.origo(1)+i*mesh.h(),
@@ -79,9 +79,9 @@ void VectorField::get_minmax( const Mesh &mesh, Vec3D &min, Vec3D &max ) const
 		 -std::numeric_limits<double>::infinity(),
 		 -std::numeric_limits<double>::infinity() );
 
-    for( size_t k = 0; k < mesh.size(2); k++ ) {
-	for( size_t j = 0; j < mesh.size(1); j++ ) {
-	    for( size_t i = 0; i < mesh.size(0); i++ ) {
+    for( int32_t k = 0; k < mesh.size(2); k++ ) {
+	for( int32_t j = 0; j < mesh.size(1); j++ ) {
+	    for( int32_t i = 0; i < mesh.size(0); i++ ) {
 
 		Vec3D x( mesh.origo(0)+i*mesh.h(),
 			 mesh.origo(1)+i*mesh.h(),

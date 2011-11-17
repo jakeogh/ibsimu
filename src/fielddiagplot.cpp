@@ -45,8 +45,8 @@
 #include "fielddiagplot.hpp"
 
 
-FieldDiagPlot::FieldDiagPlot( Frame *frame, const Geometry *geom )
-    : _frame(frame), _geom(geom), _epot(NULL), _scharge(NULL), 
+FieldDiagPlot::FieldDiagPlot( Frame &frame, const Geometry &geom )
+    : _frame(&frame), _geom(&geom), _epot(NULL), _scharge(NULL), 
       _efield(NULL), _bfield(NULL), _N(100)
 {
     _diag[0] = FIELD_EPOT;

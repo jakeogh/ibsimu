@@ -45,16 +45,16 @@
 #include "gtkfielddiagexportdialog.hpp"
 
 
-GTKFieldDiagWindow::GTKFieldDiagWindow( GTKPlotter *plotter, const Geometry *geom, size_t N, 
+GTKFieldDiagWindow::GTKFieldDiagWindow( GTKPlotter &plotter, const Geometry &geom, size_t N, 
 					const Vec3D &x1, const Vec3D &x2,
 					const field_diag_type_e diag[2], 
 					const field_loc_type_e loc[2] )
-    : GTKWindow(plotter), _geom(geom), _plot(&_frame,geom)
+    : GTKWindow(plotter), _geom(geom), _plot(_frame,geom)
 {
-    _plot.set_epot( plotter->get_epot() );
-    _plot.set_efield( plotter->get_efield() );
-    _plot.set_scharge( plotter->get_scharge() );
-    _plot.set_bfield( plotter->get_bfield() );
+    _plot.set_epot( plotter.get_epot() );
+    _plot.set_efield( plotter.get_efield() );
+    _plot.set_scharge( plotter.get_scharge() );
+    _plot.set_bfield( plotter.get_bfield() );
 
     _plot.set_coordinates( N, x1, x2 );
     _plot.set_diagnostic( diag, loc );
@@ -147,16 +147,16 @@ std::string GTKFieldDiagWindow::track_text( double x, double y )
     Vec3D xc = start + t*(end-start);
     double dist = norm2( xc-start );
 
-    if( _geom->geom_mode() == MODE_3D ) {
+    if( _geom.geom_mode() == MODE_3D ) {
 	ss << "x = " << xc[0] << " m\n"
 	   << "y = " << xc[1] << " m\n"
 	   << "z = " << xc[2] << " m\n"
 	   << "d = " << dist << " m\n";
-    } else if( _geom->geom_mode() == MODE_2D ) {
+    } else if( _geom.geom_mode() == MODE_2D ) {
 	ss << "x = " << xc[0] << " m\n"
 	   << "y = " << xc[1] << " m\n"
 	   << "d = " << dist << " m\n";
-    } else if( _geom->geom_mode() == MODE_CYL ) {
+    } else if( _geom.geom_mode() == MODE_CYL ) {
 	ss << "x = " << xc[0] << " m\n"
 	   << "r = " << xc[1] << " m\n"
 	   << "d = " << dist << " m\n";

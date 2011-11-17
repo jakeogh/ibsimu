@@ -62,7 +62,7 @@ int SolidGraph::get_mesh( const int i[3], int offsetx, int offsety ) const
     j[_vb[0]] += offsetx;
     j[_vb[1]] += offsety;
 
-    return( _g.mesh_check( j[0], j[1], j[2] ) );
+    return( _geom.mesh_check( j[0], j[1], j[2] ) );
 }
 
 
@@ -112,7 +112,7 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
     while( 1 ) {
 
 	// Mark node done
-	done[ i[_vb[0]] + i[_vb[1]]*_g.size(_vb[0]) ] = 1;
+	done[ i[_vb[0]] + i[_vb[1]]*_geom.size(_vb[0]) ] = 1;
 
 	/* One step counterclockwise from the direction we came from */
 	dir -= 3;
@@ -208,7 +208,7 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
 	    }
 
 	    // If next point is an edge point, proceed to the next point without saving
-	    if( abs(_g.mesh_check( next[0], next[1], next[2] )) == N ) {
+	    if( abs(_geom.mesh_check( next[0], next[1], next[2] )) == N ) {
 #ifdef DEBUG_SOLIDGRAPH
 		std::cout << "    Found edge - no save\n";
 #endif
@@ -217,12 +217,12 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
 
 	    // Save solid edge point between i and next
 	    if( save ) {
-		Vec3D x1( i[0]*_g.h()+_g.origo(0),
-			  i[1]*_g.h()+_g.origo(1),
-			  i[2]*_g.h()+_g.origo(2) );
-		Vec3D x2( next[0]*_g.h()+_g.origo(0),
-			  next[1]*_g.h()+_g.origo(1),
-			  next[2]*_g.h()+_g.origo(2) );
+		Vec3D x1( i[0]*_geom.h()+_geom.origo(0),
+			  i[1]*_geom.h()+_geom.origo(1),
+			  i[2]*_geom.h()+_geom.origo(2) );
+		Vec3D x2( next[0]*_geom.h()+_geom.origo(0),
+			  next[1]*_geom.h()+_geom.origo(1),
+			  next[2]*_geom.h()+_geom.origo(2) );
 
 #ifdef DEBUG_SOLIDGRAPH
 		std::cout << "    Saving point, bracketing between x1 and x2\n";
@@ -236,7 +236,7 @@ void SolidGraph::build_solid( SolidPoints *solid, const int j[3], char *done, in
 			  << x2[2] << ")\n";
 #endif
 		Vec3D xsurf;
-		_g.bracket_surface( N, x1, x2, xsurf );
+		_geom.bracket_surface( N, x1, x2, xsurf );
 
 #ifdef DEBUG_SOLIDGRAPH
 		std::cout << "    xsurf = ("
@@ -283,28 +283,28 @@ void SolidGraph::build_data( void )
     // Clear old plot
     clear_data();
 
-    char *done = new char[ _g.size(_vb[0]) * _g.size(_vb[1]) ];
-    memset( done, 0, _g.size(_vb[0])*_g.size(_vb[1])*sizeof(char) );
+    char *done = new char[ _geom.size(_vb[0]) * _geom.size(_vb[1]) ];
+    memset( done, 0, _geom.size(_vb[0])*_geom.size(_vb[1])*sizeof(char) );
 
     // Go through mesh
     int lastN = 0;
     int i[3];
     i[_vb[2]] = (int)floor(_level+0.5);
-    for( i[_vb[1]] = 0; i[_vb[1]] < _g.size(_vb[1]); i[_vb[1]]++ ) {
-	for( i[_vb[0]] = 0; i[_vb[0]] < _g.size(_vb[0]); i[_vb[0]]++ ) {
+    for( i[_vb[1]] = 0; i[_vb[1]] < _geom.size(_vb[1]); i[_vb[1]]++ ) {
+	for( i[_vb[0]] = 0; i[_vb[0]] < _geom.size(_vb[0]); i[_vb[0]]++ ) {
 
 	    //std::cout << "Processing (" 
 	    // << i[0] << "," 
 	    // << i[1] << "," 
 	    // << i[2] << "): ";
 
-	    int N = abs( _g.mesh( i[0], i[1], i[2] ) );
+	    int N = abs( _geom.mesh( i[0], i[1], i[2] ) );
 	    //std::cout << "N = " << N << " ";
 	    // Skip processed nodes and vacuum
 	    if( N < 7 ) {
 		//std::cout << "vacuum or boundary\n";
 		continue;
-	    } else  if( done[ i[_vb[0]] + i[_vb[1]]*_g.size(_vb[0]) ] ) {
+	    } else  if( done[ i[_vb[0]] + i[_vb[1]]*_geom.size(_vb[0]) ] ) {
 		//std::cout << "done\n";
 		continue;
 	    } else if( !is_edge( N, i ) ) {
@@ -343,8 +343,8 @@ void SolidGraph::build_data( void )
 
 
 
-SolidGraph::SolidGraph( const Geometry &g ) 
-  : _color(Color(0.2,0.2,1.0)), _g(g), _cache(true)
+SolidGraph::SolidGraph( const Geometry &geom ) 
+    : Graph3D(geom), _geom(geom), _color(Color(0.2,0.2,1.0)), _cache(true)
 {
 }
 
@@ -364,11 +364,8 @@ void SolidGraph::disable_cache( void )
 
 void SolidGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
-    //std::cout << "--Plotting solids--\n";
     if( !_cache || _solid.size() == 0 || _oview != _view || _olevel != _level ) {
 	// First round or change happened
-	//_ilevel = (int)floor( (_level - _g.origo(_vb[2])) / _g.h() + 0.5 );
-	//std::cout << "--Building solid plot data for level " << _level << "--\n";
 	build_data();
     }
     _oview = _view;
@@ -422,10 +419,10 @@ void SolidGraph::plot_sample( cairo_t *cairo, double x, double y, double width, 
 
 void SolidGraph::get_bbox( double bbox[4] )
 {
-    bbox[0] = _g.origo( _vb[0] );
-    bbox[1] = _g.origo( _vb[1] );
-    bbox[2] = _g.max( _vb[0] );
-    bbox[3] = _g.max( _vb[1] );
+    bbox[0] = _geom.origo( _vb[0] );
+    bbox[1] = _geom.origo( _vb[1] );
+    bbox[2] = _geom.max( _vb[0] );
+    bbox[3] = _geom.max( _vb[1] );
 }
 
 

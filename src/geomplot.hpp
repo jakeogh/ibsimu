@@ -78,8 +78,9 @@ class GeomPlot {
     const VectorField       *_efield;
     const ParticleDataBase  *_pdb;
 
+    FieldGraph               _fieldgraph;
+
     SolidGraph              *_solidgraph;
-    FieldGraph              *_fieldgraph;    // Exists always
     EqPotGraph              *_eqpotgraph;
     ParticleGraph           *_particlegraph;
     MeshGraph               *_meshgraph;
@@ -108,7 +109,7 @@ public:
      *  XY-view. The default plane of view is the midplane for 3D
      *  geometries and 0 for others.
      */
-    GeomPlot( Frame *frame, const Geometry *geom );
+    GeomPlot( Frame &frame, const Geometry &geom );
 
     /*! \brief Destructor for geometry plotter.
      */
@@ -193,9 +194,9 @@ public:
      */
     void set_fieldgraph_plot( field_type_e fieldplot );
 
-    /*! \brief Get pointer to field graph object.
+    /*! \brief Get a reference to field graph object.
      */
-    FieldGraph *fieldgraph( void ) {
+    FieldGraph &fieldgraph( void ) {
 	return( _fieldgraph );
     }
 

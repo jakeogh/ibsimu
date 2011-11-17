@@ -2,7 +2,7 @@
  *  \brief Window for GTK plots
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -126,7 +126,7 @@ class GTKWindow {
 
 protected:
 
-    GTKPlotter       *_plotter;
+    GTKPlotter       &_plotter;
 
     Frame             _frame;
     GtkWidget        *_window;
@@ -142,7 +142,7 @@ protected:
     double            _track_py; // Track y coordinate in pixels
 
 
-    GTKWindow( GTKPlotter *plotter );
+    GTKWindow( GTKPlotter &plotter );
 
     virtual void zoom_fit( void );
 

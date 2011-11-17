@@ -46,25 +46,25 @@
 #include "ibsimu.hpp"
 
 
-FieldGraph::FieldGraph()
-    : _field_type(FIELD_NONE), _geom(NULL), _scalarfield(NULL),
+FieldGraph::FieldGraph( const Geometry &geom )
+    : Graph3D(geom), _geom(geom), _field_type(FIELD_NONE), _scalarfield(NULL),
       _vectorfield(NULL), _first(true), _enabled(true), _zmin(0.0), _zmax(0.0)
 {
     
 }
 
 
-FieldGraph::FieldGraph( field_type_e field_type, const ScalarField *field )
-    : _first(true), _enabled(true)
+FieldGraph::FieldGraph( const Geometry &geom, field_type_e field_type, const ScalarField *field )
+    : Graph3D(geom), _geom(geom), _first(true), _enabled(true)
 {
     set_field( field_type, field );
 }
 
 
-FieldGraph::FieldGraph( field_type_e field_type, const Geometry *geom, const VectorField *field )
-    : _first(true), _enabled(true)
+FieldGraph::FieldGraph( const Geometry &geom, field_type_e field_type, const VectorField *field )
+    : Graph3D(geom), _geom(geom), _first(true), _enabled(true)
 {
-    set_field( field_type, geom, field );
+    set_field( field_type, field );
 }
 
 
@@ -84,7 +84,6 @@ void FieldGraph::set_field( field_type_e field_type, const ScalarField *field )
     // Set parameters
     _first = true;
     _field_type = field_type;
-    _geom = NULL;
     _scalarfield = field;
     _vectorfield = NULL;
 
@@ -126,12 +125,11 @@ void FieldGraph::set_field( field_type_e field_type, const ScalarField *field )
 }
 
 
-void FieldGraph::set_field( field_type_e field_type, const Geometry *geom, const VectorField *field )
+void FieldGraph::set_field( field_type_e field_type, const VectorField *field )
 {
     // Set parameters
     _first = true;
     _field_type = field_type;
-    _geom = geom;
     _scalarfield = NULL;
     _vectorfield = field;
 
@@ -178,23 +176,23 @@ void FieldGraph::set_field( field_type_e field_type, const Geometry *geom, const
 	switch( _field_type ) {
 	case FIELD_EFIELD:
 	case FIELD_BFIELD:
-	    field->get_minmax( *geom, _zmin, _zmax );
+	    field->get_minmax( _geom, _zmin, _zmax );
 	    break;
 	case FIELD_EFIELD_X:
 	case FIELD_BFIELD_X:
-	    field->get_minmax( *geom, min, max );
+	    field->get_minmax( _geom, min, max );
 	    _zmin = min[0];
 	    _zmax = max[0];
 	    break;
 	case FIELD_EFIELD_Y:
 	case FIELD_BFIELD_Y:
-	    field->get_minmax( *geom, min, max );
+	    field->get_minmax( _geom, min, max );
 	    _zmin = min[1];
 	    _zmax = max[1];
 	    break;
 	case FIELD_EFIELD_Z:
 	case FIELD_BFIELD_Z:
-	    field->get_minmax( *geom, min, max );
+	    field->get_minmax( _geom, min, max );
 	    _zmin = min[2];
 	    _zmax = max[2];
 	    break;
@@ -238,22 +236,21 @@ void FieldGraph::set_zrange( double min, double max )
 void FieldGraph::build_vectorfield_plot( void )
 {
     // Build data for colormap based on geometry size
-    double range[4] = { _geom->origo( _vb[0] ),
-			_geom->origo( _vb[1] ),
-			_geom->max  ( _vb[0] ),
-			_geom->max  ( _vb[1] ) };
-    size_t n = _geom->size( _vb[0] );
-    size_t m = _geom->size( _vb[1] );
+    double range[4] = { _geom.origo( _vb[0] ),
+			_geom.origo( _vb[1] ),
+			_geom.max  ( _vb[0] ),
+			_geom.max  ( _vb[1] ) };
+    size_t n = _geom.size( _vb[0] );
+    size_t m = _geom.size( _vb[1] );
 
     std::vector<double> data;
     data.reserve( n*m );
-    //size_t ind[3];
     Vec3D x;
-    x[_vb[2]] = _geom->origo(_vb[2]) + _level*_geom->h();
+    x[_vb[2]] = _geom.origo(_vb[2]) + _level*_geom.h();
     for( size_t j = 0; j < m; j++ ) {
-	x[_vb[1]] = _geom->origo(_vb[1]) + j*_geom->h();
+	x[_vb[1]] = _geom.origo(_vb[1]) + j*_geom.h();
 	for( size_t i = 0; i < n; i++ ) {
-	    x[_vb[0]] = _geom->origo(_vb[0]) + i*_geom->h();
+	    x[_vb[0]] = _geom.origo(_vb[0]) + i*_geom.h();
 
 	    Vec3D F = (*_vectorfield)( x );
 	    double Fv = 0.0;
@@ -307,8 +304,15 @@ void FieldGraph::build_meshvectorfield_plot( void )
 
     std::vector<double> data;
     data.reserve( n*m );
-    size_t ind[3];
-    ind[_vb[2]] = (size_t)floor(_level+0.5);
+    int32_t ind[3];
+    ind[_vb[2]] = (int32_t)floor( (_level_si - mvf->origo(_vb[2])) / mvf->h() + 0.5 );
+
+    // Check that field is visible
+    if( ind[_vb[2]] < 0 || ind[_vb[2]] >= mvf->size( _vb[2] ) ) {
+	clear_data();
+	return;
+    }
+
     for( size_t j = 0; j < m; j++ ) {
 	ind[_vb[1]] = j;
 	for( size_t i = 0; i < n; i++ ) {
@@ -360,8 +364,14 @@ void FieldGraph::build_scalarfield_plot( void )
 
     std::vector<double> data;
     data.reserve( n*m );
-    size_t ind[3];
-    ind[_vb[2]] = (size_t)floor(_level+0.5);
+    int32_t ind[3];
+    ind[_vb[2]] = (int32_t)floor( (_level_si - _scalarfield->origo(_vb[2])) / 
+				  _scalarfield->h() + 0.5 );
+    
+    // Check that field is visible
+    if( ind[_vb[2]] < 0 || ind[_vb[2]] >= _scalarfield->size( _vb[2] ) )
+	clear_data();
+
     for( size_t j = 0; j < m; j++ ) {
 	ind[_vb[1]] = j;
 	for( size_t i = 0; i < n; i++ ) {

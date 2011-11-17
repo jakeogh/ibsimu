@@ -2,7 +2,7 @@
  *  \brief Non-interactive field diagnostic plotter
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -65,7 +65,7 @@ public:
 
     /*! \brief Constructor for field diagnostic plotter.
      */
-    FieldDiagPlotter( const Geometry *geom );
+    FieldDiagPlotter( const Geometry &geom );
 
     /*! \brief Destructor for field diagnostic plotter.
      */
