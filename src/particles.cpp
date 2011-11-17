@@ -64,10 +64,14 @@ int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void 
     /* Positions: dx/dt = vx, dy/dt = vy */
     dxdt[0] = x[1];
     dxdt[2] = x[3];
-    
+
     /* Velocities dvx/dt = ax, dvy/dt = ay */
-    dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2]);
-    dxdt[3] = pidata->_qm * (E[1] - x[1]*B[2]);
+    if( pidata->_relativistic ) {
+	throw( ErrorUnimplemented( ERROR_LOCATION, "Relativistic particle iteration unimplemented" ) );
+    } else {
+	dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2]);
+	dxdt[3] = pidata->_qm * (E[1] - x[1]*B[2]);
+    }
 
     //std::cout << "dxdt=(" 
     //<< dxdt[0] << " "
@@ -161,12 +165,16 @@ int ParticlePCyl::get_derivatives( double t, const double *x, double *dxdt, void
      * dvr/dt = ar+r*(dtheta/dt)^2 
      * d^2theta/dt^2 = (a_theta-dr/dt*dtheta/dt)/r 
      */
-    dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2] - x[2]*x[4]*B[1]);
-    dxdt[3] = pidata->_qm * (E[1] + x[2]*x[4]*B[0] - x[1]*B[2]) + x[2]*x[4]*x[4];
-    if( x[2] == 0.0 )
-        dxdt[4] = 0.0;
-    else
-        dxdt[4] = (pidata->_qm * (x[1]*B[1] - x[3]*B[0]) - 2.0*x[3]*x[4]) / x[2];
+    if( pidata->_relativistic ) {
+	throw( ErrorUnimplemented( ERROR_LOCATION, "Relativistic particle iteration unimplemented" ) );
+    } else {
+	dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2] - x[2]*x[4]*B[1]);
+	dxdt[3] = pidata->_qm * (E[1] + x[2]*x[4]*B[0] - x[1]*B[2]) + x[2]*x[4]*x[4];
+	if( x[2] == 0.0 )
+	    dxdt[4] = 0.0;
+	else
+	    dxdt[4] = (pidata->_qm * (x[1]*B[1] - x[3]*B[0]) - 2.0*x[3]*x[4]) / x[2];
+    }
     
 #ifdef DEBUG_PARTICLE_DERIVATIVES
     std::cout << "  dxdt = " 
@@ -247,10 +255,14 @@ int ParticleP3D::get_derivatives( double t, const double *x, double *dxdt, void 
     dxdt[4] = x[5];
     
     /* Velocities: dvx/dt = ax, dvy/dt = ay, dvz/dt = az */
-    dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2] - x[5]*B[1]);
-    dxdt[3] = pidata->_qm * (E[1] + x[5]*B[0] - x[1]*B[2]);
-    dxdt[5] = pidata->_qm * (E[2] + x[1]*B[1] - x[3]*B[0]);
-    
+    if( pidata->_relativistic ) {
+	throw( ErrorUnimplemented( ERROR_LOCATION, "Relativistic particle iteration unimplemented" ) );
+    } else {
+	dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2] - x[5]*B[1]);
+	dxdt[3] = pidata->_qm * (E[1] + x[5]*B[0] - x[1]*B[2]);
+	dxdt[5] = pidata->_qm * (E[2] + x[1]*B[1] - x[3]*B[0]);
+    }
+
 #ifdef DEBUG_PARTICLE_DERIVATIVES
     std::cout << "  dxdt = " 
 	      << dxdt[0] << " "
@@ -291,24 +303,4 @@ int ParticleP3D::trajectory_intersections_at_plane( std::vector<ParticleP3D> &in
 
     return( nroots );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

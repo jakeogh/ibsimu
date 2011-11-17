@@ -57,21 +57,22 @@ class ParticleDataBaseImp {
 
 protected:
 
-    double                    _epsabs;      /*!< \brief Absolute error limit for calculation. */
-    double                    _epsrel;      /*!< \brief Relative error limit for calculation. */
-    bool                      _polyint;     /*!< \brief Use polynomial(true)/linear(false) interpolation. */
-    uint32_t                  _maxsteps;    /*!< \brief Maximum number of steps to calculate. */
-    double                    _maxt;        /*!< \brief Maximum particle time in simulation. */
-    uint32_t                  _trajdiv;     /*!< \brief Divisor for saved trajectories,
-					     * if 3, every third trajectory is saved. */
-    bool                      _mirror[6];   /*!< \brief Boundary particle mirroring. */
+    double                    _epsabs;       /*!< \brief Absolute error limit for calculation. */
+    double                    _epsrel;       /*!< \brief Relative error limit for calculation. */
+    bool                      _polyint;      /*!< \brief Use polynomial(true)/linear(false) interpolation. */
+    uint32_t                  _maxsteps;     /*!< \brief Maximum number of steps to calculate. */
+    double                    _maxt;         /*!< \brief Maximum particle time in simulation. */
+    uint32_t                  _trajdiv;      /*!< \brief Divisor for saved trajectories,
+					      * if 3, every third trajectory is saved. */
+    bool                      _mirror[6];    /*!< \brief Boundary particle mirroring. */
 
-    double                    _rhosum;      /*!< \brief Sum of space charge density in defined beams (C/m3). */
+    double                    _rhosum;       /*!< \brief Sum of space charge density in defined beams (C/m3). */
 
-    ParticleStatistics        _stat;        /*!< \brief Particle statistics. */
+    ParticleStatistics        _stat;         /*!< \brief Particle statistics. */
 
-    uint32_t                  _iteration;   /*!< \brief Iteration number. */
-    
+    uint32_t                  _iteration;    /*!< \brief Iteration number. */    
+    bool                      _relativistic; /*!< \brief Relativistic particle iteration. */
+
     const CallbackFunctorD_V        *_bsup_cb;       /*!< \brief Location dependent magnetic field suppression. */
     const TrajectoryHandlerCallback *_thand_cb;      /*!< \brief Trajectory handler callback. */
     const TrajectoryEndCallback     *_tend_cb;       /*!< \brief Trajectory collision callback. */
@@ -94,6 +95,8 @@ public:
     void set_trajectory_handler_callback( const TrajectoryHandlerCallback *thand_cb );
 
     void set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb );
+
+    void set_relativistic( bool enable );
 
     void set_polyint( bool polyint );
     
@@ -498,6 +501,7 @@ public:
 	    iterators[a]->set_trajectory_handler_callback( _thand_cb );
 	    iterators[a]->set_trajectory_end_callback( _tend_cb, _pdb );
 	    iterators[a]->set_bfield_suppression_callback( _bsup_cb );
+	    iterators[a]->set_relativistic( _relativistic );
 	}
 
 	// Run scheduler

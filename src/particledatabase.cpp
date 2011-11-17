@@ -99,6 +99,12 @@ void ParticleDataBase::set_trajectory_end_callback( const TrajectoryEndCallback 
 }
 
 
+void ParticleDataBase::set_relativistic( bool enable )
+{
+    _imp->set_relativistic( enable );
+}
+
+
 void ParticleDataBase::set_polyint( bool polyint ) 
 {
     _imp->set_polyint( polyint );

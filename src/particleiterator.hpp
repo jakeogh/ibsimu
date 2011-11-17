@@ -969,6 +969,12 @@ public:
 	_pidata.set_bfield_suppression_callback( bsup_cb );
     }
 
+    /*! \brief Set relativistic particle iteration.
+     */
+    void set_relativistic( bool enable ) {
+	_pidata.set_relativistic( enable );
+    }
+
     /*! \brief Get particle iterator statistics.
      */
     const ParticleStatistics &get_statistics( void ) const {

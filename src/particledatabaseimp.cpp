@@ -56,7 +56,8 @@
 ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb )
     : _epsabs(1e-6), _epsrel(1e-6), _polyint(true), _maxsteps(1000), 
       _maxt(1e-3), _trajdiv(1), _rhosum(0.0), _iteration(0), 
-      _bsup_cb(NULL), _thand_cb(NULL), _tend_cb(NULL), _pdb(pdb)
+      _relativistic(false), _bsup_cb(NULL), _thand_cb(NULL), _tend_cb(NULL), 
+      _pdb(pdb)
 {
     for( size_t a = 0; a < 6; a++ )
 	_mirror[a] = false;
@@ -111,6 +112,12 @@ void ParticleDataBaseImp::set_trajectory_handler_callback( const TrajectoryHandl
 void ParticleDataBaseImp::set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb )
 {
     _tend_cb = tend_cb;
+}
+
+
+void ParticleDataBaseImp::set_relativistic( bool enable )
+{
+    _relativistic = enable;
 }
 
 

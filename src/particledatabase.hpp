@@ -239,6 +239,10 @@ public:
      */
     void set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb );
 
+    /*! \brief Set relativistic particle iteration.
+     */
+    void set_relativistic( bool enable );
+
     /*! \brief Set the interpolation type to polynomial(true) or linear(false).
      *
      *  Polynomial interpolation is the default.
