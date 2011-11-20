@@ -43,6 +43,7 @@ particles_diagnostic_SOURCES = particles_diagnostic.cpp
 particles_edip_SOURCES = particles_edip.cpp
 particles_mirror_SOURCES = particles_mirror.cpp
 particles_nofield_SOURCES = particles_nofield.cpp
+particles_relativistic_SOURCES = particles_relativistic.cpp
 particles_trajectory_SOURCES = particles_trajectory.cpp
 plasma2d_SOURCES = plasma2d.cpp
 plasmacyl_SOURCES = plasmacyl.cpp
@@ -128,6 +129,7 @@ particles_diagnostic \
 particles_edip \
 particles_mirror \
 particles_nofield \
+particles_relativistic \
 particles_trajectory \
 plasma2d \
 plasmacyl \

@@ -2,7 +2,7 @@
  *  \brief Three-by-three matrices.
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -54,8 +54,8 @@ Mat3D::Mat3D()
 
 
 Mat3D::Mat3D( double a11, double a12, double a13,
-       double a21, double a22, double a23,
-       double a31, double a32, double a33 )
+	      double a21, double a22, double a23,
+	      double a31, double a32, double a33 )
 {
     a[0] = a11;
     a[1] = a12;
@@ -111,17 +111,17 @@ Vec3D Mat3D::operator*( const Vec3D &x ) const
 
 std::ostream &operator<<( std::ostream &os, const Mat3D &m ) 
 {
-    os << std::setw(12) << to_string(m[0]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(m[1]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(m[2]).substr(0,12) << "\n";
+    os << std::setw(12) << to_string(m(0)).substr(0,12) << " ";
+    os << std::setw(12) << to_string(m(1)).substr(0,12) << " ";
+    os << std::setw(12) << to_string(m(2)).substr(0,12) << "\n";
 
-    os << std::setw(12) << to_string(m[3]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(m[4]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(m[5]).substr(0,12) << "\n";
+    os << std::setw(12) << to_string(m(3)).substr(0,12) << " ";
+    os << std::setw(12) << to_string(m(4)).substr(0,12) << " ";
+    os << std::setw(12) << to_string(m(5)).substr(0,12) << "\n";
 
-    os << std::setw(12) << to_string(m[6]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(m[7]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(m[8]).substr(0,12) << "\n";
+    os << std::setw(12) << to_string(m(6)).substr(0,12) << " ";
+    os << std::setw(12) << to_string(m(7)).substr(0,12) << " ";
+    os << std::setw(12) << to_string(m(8)).substr(0,12) << "\n";
     return( os );
 }
 

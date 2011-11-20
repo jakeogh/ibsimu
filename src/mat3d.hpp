@@ -2,7 +2,7 @@
  *  \brief Three-by-three matrices.
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -77,17 +77,45 @@ public:
 
 
     /*! \brief Indexing for matrix.
+     *
+     *  Returns a reference to \a i element, where \a i is the index
+     *  in row-first order. No checking performed - not a safe
+     *  function.
      */
-    double &operator[]( int i ) {
+    double &operator()( int i ) {
         return( a[i] );
     }
 
     /*! \brief Indexing for constant matrix.
+     *
+     *  Returns a reference to \a i element, where \a i is the index
+     *  in row-first order. No checking performed - not a safe
+     *  function.
      */
-    const double &operator[]( int i ) const {
+    const double &operator()( int i ) const {
         return( a[i] );
     }
     
+    /*! \brief Indexing for matrix.
+     *
+     *  Returns a reference to \a (i,j) element, where \a i is the row
+     *  and \a j is the column number. No checking performed - not a
+     *  safe function.
+     */
+    double &operator()( int i, int j ) {
+        return( a[3*i+j] );
+    }
+
+    /*! \brief Indexing for matrix.
+     *
+     *  Returns a reference to \a (i,j) element, where \a i is the row
+     *  and \a j is the column number. No checking performed - not a
+     *  safe function.
+     */
+    const double &operator()( int i, int j ) const {
+        return( a[3*i+j] );
+    }
+
     /*! \brief Return determinant of matrix.
      */
     double determinant( void ) const;
@@ -99,7 +127,6 @@ public:
     /*! \brief Matrix-vector multiplication.
      */
     Vec3D operator*( const Vec3D &x ) const;
-
 
     /*! \brief Outputting to stream.
      */
