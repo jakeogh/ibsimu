@@ -90,6 +90,18 @@ ParticleDataBaseImp::~ParticleDataBaseImp()
 }
 
 
+double ParticleDataBaseImp::energy_to_velocity( double E, double m )
+{
+    if( E < 5.0e-9*m*SPEED_C2 ) {
+	return( sqrt(2.0*E/m) );
+    } else {
+	double x = E/(m*SPEED_C2)+1.0;
+	double beta = sqrt( 1.0 - 1.0/(x*x) );
+	return( beta*SPEED_C );
+    }
+}
+
+
 void ParticleDataBaseImp::set_accuracy( double epsabs, double epsrel )
 {
     _epsabs = epsabs;
@@ -332,7 +344,7 @@ void ParticleDataBase2DImp::add_2d_beam_with_energy( uint32_t N, double J, doubl
 						     double E, double Tp, double Tt, 
 						     double x1, double y1, double x2, double y2 )
 {
-    add_2d_beam_with_velocity( N, J, q, m, sqrt(2.0*E*CHARGE_E/(m*MASS_U)), 
+    add_2d_beam_with_velocity( N, J, q, m, energy_to_velocity(E*CHARGE_E,m*MASS_U), 
 			       sqrt(Tp*CHARGE_E/(m*MASS_U)), 
 			       sqrt(Tt*CHARGE_E/(m*MASS_U)), 
 			       x1, y1, x2, y2 );
@@ -749,7 +761,7 @@ void ParticleDataBaseCylImp::add_2d_beam_with_energy( uint32_t N, double J, doub
 						      double E, double Tp, double Tt, 
 						      double x1, double y1, double x2, double y2 )
 {
-    add_2d_beam_with_velocity( N, J, q, m, sqrt(2.0*E*CHARGE_E/(m*MASS_U)), 
+    add_2d_beam_with_velocity( N, J, q, m, energy_to_velocity(E*CHARGE_E,m*MASS_U), 
 			       sqrt(Tp*CHARGE_E/(m*MASS_U)), 
 			       sqrt(Tt*CHARGE_E/(m*MASS_U)), 
 			       x1, y1, x2, y2 );
@@ -1039,7 +1051,7 @@ void ParticleDataBase3DImp::add_cylindrical_beam_with_energy( uint32_t N, double
 							      Vec3D dir1, Vec3D dir2, double r )
 {
     add_cylindrical_beam_with_velocity( N, J, q, m, 
-					sqrt(2.0*E*CHARGE_E/(m*MASS_U)), 
+					energy_to_velocity(E*CHARGE_E,m*MASS_U), 
 					sqrt(Tp*CHARGE_E/(m*MASS_U)),
 					sqrt(Tt*CHARGE_E/(m*MASS_U)),
 					c, dir1, dir2, r );
@@ -1118,7 +1130,7 @@ void ParticleDataBase3DImp::add_rectangular_beam_with_energy( uint32_t N, double
 							      Vec3D dir1, Vec3D dir2, double size1, double size2 )
 {
     add_rectangular_beam_with_velocity( N, J, q, m, 
-					sqrt(2.0*E*CHARGE_E/(m*MASS_U)), 
+					energy_to_velocity(E*CHARGE_E,m*MASS_U), 
 					sqrt(Tp*CHARGE_E/(m*MASS_U)),
 					sqrt(Tt*CHARGE_E/(m*MASS_U)),
 					c, dir1, dir2, size1, size2 );
@@ -1415,7 +1427,14 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
 			tdata.add_data( a, _particles[a]->IQ() );
 			break;
 		    case DIAG_EK:
-			tdata.add_data( a, 0.5*_particles[a]->m()*vel.ssqr()/CHARGE_E );
+			if( vel.ssqr() < 1.0e-4*SPEED_C )
+			    tdata.add_data( a, 0.5*_particles[a]->m()*vel.ssqr()/CHARGE_E );
+			else {
+			    double beta = vel.ssqr()/SPEED_C;
+			    double gamma = 1.0 / sqrt( 1.0 - beta*beta );
+			    double Ek = _particles[a]->m()*SPEED_C2*( gamma - 1.0 );
+			    tdata.add_data( a, Ek/CHARGE_E );
+			}
 			break;
 		    case DIAG_QM:
 			tdata.add_data( a, _particles[a]->qm() );

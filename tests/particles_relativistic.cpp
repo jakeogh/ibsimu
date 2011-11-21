@@ -20,6 +20,7 @@
 #include "particles.hpp"
 #include "error.hpp"
 #include "ibsimu.hpp"
+#include "ibsimutest.hpp"
 
 
 using namespace std;
@@ -121,10 +122,8 @@ void test1( int argc, char **argv )
     geomplotter.plot_png( "particles_relativistic.png" );
 
     ostr.close();
-    if( err ) {
-	std::cout << "Error: trajectory differs from theory\n";
-	exit( 1 );
-    }
+    if( err )
+	throw( ErrorTest( ERROR_LOCATION, "trajectory differs from theory" ) );
 }
 
 
@@ -148,9 +147,9 @@ bool electrode2_func( double x, double y, double z )
 void test2( int argc, char **argv )
 {
     double Q = -1.0;
-    double q = Q*CHARGE_E;
+    //double q = Q*CHARGE_E;
     double M = 1.0/1822.88;
-    double m = M*MASS_U;
+    //double m = M*MASS_U;
 
     //Geometry geom( MODE_3D, Int3D(26,26,26), Vec3D(0,-0.05,-0.05), 0.004 );
     Geometry geom( MODE_3D, Int3D(51,51,51), Vec3D(0,-0.05,-0.05), 0.002 );
@@ -227,7 +226,9 @@ void test2( int argc, char **argv )
     for( uint32_t a = 0; a < tdata.traj_size(); a++ )
 	Ek += tdata(a,0);
     Ek = Ek/tdata.traj_size();
-    std::cout << "Ek = " << Ek << "\n";
+    //std::cout << "Ek = " << Ek << "\n";
+    if( fabs(Ek-500e3) > 50.0 )
+	throw( ErrorTest( ERROR_LOCATION, "incorrect particle energy" ) );
 }
 
 

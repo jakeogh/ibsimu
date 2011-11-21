@@ -82,6 +82,12 @@ protected:
 
     ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s );
 
+    /*! \brief Convert energy to velocity.
+     *
+     *  Energy \a E given in Joules and mass \a m in kg.
+     */
+    static double energy_to_velocity( double E, double m );
+    
     void save( std::ostream &s ) const;
 
 public:
@@ -221,8 +227,19 @@ template<class PP> class ParticleDataBasePPImp : public ParticleDataBaseImp {
 		data = p.qm();
 		break;
 	    case DIAG_EK:
-		data = 0.5*p.m()*x.velocity().ssqr()/CHARGE_E;
+	    {
+		double beta = x.velocity().norm2()/SPEED_C;
+		if( beta < 1.0e-4 )
+		    data = 0.5*p.m()*x.velocity().ssqr()/CHARGE_E;
+		else if( beta >= 1.0 )
+		    throw( ErrorUnimplemented( ERROR_LOCATION, "particle velocity over light speed" ) );
+		else {
+		    double gamma = 1.0 / sqrt( 1.0 - beta*beta );
+		    double Ek = p.m()*SPEED_C2*( gamma - 1.0 );
+		    data = Ek/CHARGE_E;
+		}
 		break;
+	    }
 	    default:
 		throw( ErrorUnimplemented( ERROR_LOCATION ) );
 		break;
