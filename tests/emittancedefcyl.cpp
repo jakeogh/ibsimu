@@ -55,22 +55,22 @@ void test( int argc, char **argv )
     pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
     // Plot (r,r') emittance
-    ParticleDiagPlotter pplotter1( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter1( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_R, DIAG_RP );
     pplotter1.plot_png( "emittancedefcyl_gaussian_rrp.png" );
 
     // Plot (r,a') emittance
-    ParticleDiagPlotter pplotter2( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter2( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_R, DIAG_AP );
     pplotter2.plot_png( "emittancedefcyl_gaussian_rap.png" );
 
     // Plot (r',a') emittance
-    ParticleDiagPlotter pplotter3( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter3( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_RP, DIAG_AP );
     pplotter3.plot_png( "emittancedefcyl_gaussian_rpap.png" );
 
     // Plot (y,y') emittance and check value
-    ParticleDiagPlotter pplotter4( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter4( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_Y, DIAG_YP );
     pplotter4.plot_png( "emittancedefcyl_gaussian_yyp.png" );
     Emittance emit4 = pplotter4.calculate_emittance();

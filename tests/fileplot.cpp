@@ -82,7 +82,7 @@ void test( int argc, char **argv )
 				 0.0, 0.0005 );
     pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
-    GeomPlotter gplotter( &geom );
+    GeomPlotter gplotter( geom );
     gplotter.set_scharge( &scharge );
     //gplotter.set_scharge_field( true );
     gplotter.set_epot( &epot );

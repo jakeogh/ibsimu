@@ -95,7 +95,7 @@ void test( int argc, char **argv )
 	}
     }
 
-    GeomPlotter geomplotter( &geom );
+    GeomPlotter geomplotter( geom );
     geomplotter.set_epot( &epot );
     geomplotter.set_particle_database( &pdb );
     geomplotter.set_particle_div( 1 );

@@ -140,7 +140,7 @@ void test( int argc, char **argv )
     ScalarField tdens( geom );
     pdb.build_trajectory_density_field( tdens );
 
-    GeomPlotter gplotter( &geom );
+    GeomPlotter gplotter( geom );
     gplotter.set_size( 1024, 768 );
     gplotter.set_epot( &epot );
     std::vector<double> eqlines;
@@ -155,29 +155,29 @@ void test( int argc, char **argv )
     gplotter.set_fieldgraph_plot( FIELD_TRAJDENS );
     gplotter.plot_png( "plasmacyl.png" );
 
-    ParticleDiagPlotter pplotter1( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter1( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_R, DIAG_RP );
     pplotter1.plot_png( "plasmacyl1_r_rp.png" );
 
-    ParticleDiagPlotter pplotter2( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter2( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_R, DIAG_AP );
     pplotter2.plot_png( "plasmacyl1_r_ap.png" );
 
-    ParticleDiagPlotter pplotter3( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter3( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_RP, DIAG_AP );
     pplotter3.plot_png( "plasmacyl1_rp_ap.png" );
 
 
 
-    ParticleDiagPlotter pplotter1b( &geom, &pdb, AXIS_X, 0.012-1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter1b( geom, pdb, AXIS_X, 0.012-1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_R, DIAG_RP );
     pplotter1b.plot_png( "plasmacyl2_r_rp.png" );
 
-    ParticleDiagPlotter pplotter2b( &geom, &pdb, AXIS_X, 0.012-1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter2b( geom, pdb, AXIS_X, 0.012-1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_R, DIAG_AP );
     pplotter2b.plot_png( "plasmacyl2_r_ap.png" );
 
-    ParticleDiagPlotter pplotter3b( &geom, &pdb, AXIS_X, 0.012-1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter3b( geom, pdb, AXIS_X, 0.012-1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_RP, DIAG_AP );
     pplotter3b.plot_png( "plasmacyl2_rp_ap.png" );
 }

@@ -60,7 +60,7 @@ void test( int argc, char **argv )
     pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
     // Plot (y,y') emittance and check value
-    ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				  DIAG_Y, DIAG_YP );
     pplotter.plot_png( "emittance3d_emit.png" );
     Emittance emit = pplotter.calculate_emittance();
@@ -68,7 +68,7 @@ void test( int argc, char **argv )
 	throw( Error( ERROR_LOCATION, "rms emittance does not match theory" ) );
 
     // Plot (y,z) profile
-    ParticleDiagPlotter pplotter2( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter2( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_Y, DIAG_Z );
     pplotter2.plot_png( "emittance3d_profile.png" );
 }

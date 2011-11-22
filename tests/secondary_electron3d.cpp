@@ -176,10 +176,10 @@ void test( int argc, char **argv )
     if( false ) {
 	ScalarField tdens( geom );
 	pdb.build_trajectory_density_field( tdens );
-	GeomPlotter gplotter( &geom );
+	GeomPlotter gplotter( geom );
 	gplotter.set_trajdens( &tdens );
 	gplotter.set_fieldgraph_plot( FIELD_TRAJDENS );
-	gplotter.set_fieldgraph_zscale( ZSCALE_RELLOG );
+	gplotter.fieldgraph().set_zscale( ZSCALE_RELLOG );
 	gplotter.set_size( 800, 600 );
 	gplotter.set_font_size( 16 );
 	

@@ -89,7 +89,7 @@ void test( int argc, char **argv )
 	fabs(pp(3) - 0.05) > 0.0001 || fabs(pp(4) - 205591) > 100.0 )
 	throw( ErrorTest( ERROR_LOCATION, "particlepoint at incorrect location" ) );
 
-    GeomPlotter gplotter( &geom );
+    GeomPlotter gplotter( geom );
     gplotter.set_size( 1024, 768 );
     gplotter.set_epot( &epot );
     gplotter.set_particle_div( 1 );

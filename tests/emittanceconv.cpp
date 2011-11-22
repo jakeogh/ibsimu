@@ -56,22 +56,22 @@ void test( int argc, char **argv )
     pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
     // Plot (r,r') emittance
-    ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				  DIAG_R, DIAG_RP );
     pplotter.plot_png( "emittanceconv_rrp.png" );
 
     // Plot (r,a') converted emittance
-    ParticleDiagPlotter pplotter2( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter2( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_R, DIAG_AP );
     pplotter2.plot_png( "emittanceconv_rap.png" );
 
     // Plot (a',r') converted emittance
-    ParticleDiagPlotter pplotter3( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter3( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_AP, DIAG_RP );
     pplotter3.plot_png( "emittanceconv_aprp.png" );
 
     // Plot (x,x') converted emittance
-    ParticleDiagPlotter pplotter4( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter4( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_Y, DIAG_YP );
     pplotter4.plot_png( "emittanceconv_yyp.png" );
     Emittance emit = pplotter4.calculate_emittance();

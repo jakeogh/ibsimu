@@ -109,7 +109,7 @@ void test( int argc, char **argv )
     // Check particle trajectory points
     check_particle( pdb.particle(0), 0.0, 0.0, -0.04, 1e5 );
 
-    GeomPlotter geomplotter( &geom );
+    GeomPlotter geomplotter( geom );
     geomplotter.set_epot( &epot );
     geomplotter.set_particle_database( &pdb );
     geomplotter.plot_png( "particles_mirror.png" );

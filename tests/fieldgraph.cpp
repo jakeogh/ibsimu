@@ -53,7 +53,7 @@ void test( int argc, char **argv )
     p.set_solver( solver );
     p.solve( epot, scharge );
 
-    GeomPlotter gplotter( &geom );
+    GeomPlotter gplotter( geom );
     gplotter.set_epot( &epot );
     gplotter.set_efield( &efield );
     gplotter.set_size( 800, 600 );
@@ -62,7 +62,7 @@ void test( int argc, char **argv )
     gplotter.set_eqlines_auto( 0 );
 
     gplotter.set_fieldgraph_plot( FIELD_EFIELD );
-    gplotter.set_fieldgraph_stepped_palette( 30 );
+    gplotter.fieldgraph().palette().steps() = 30;
     gplotter.plot_png( "fieldgraph_efield.png" );
 
     gplotter.set_fieldgraph_plot( FIELD_EPOT );

@@ -154,11 +154,11 @@ void test( int argc, char **argv )
     }
     */
 
-    GeomPlotter gplotter( &geom );
-    gplotter.set_size( 1024, 768 );
-    gplotter.set_epot( &epot );
-    gplotter.set_particle_database( &pdb );
-    gplotter.plot_png( "particles_edip.png" );
+    GeomPlotter geomplotter( geom );
+    geomplotter.set_size( 1024, 768 );
+    geomplotter.set_epot( &epot );
+    geomplotter.set_particle_database( &pdb );
+    geomplotter.plot_png( "particles_edip.png" );
 
     /*
     GTKPlotter plotter( argc, argv );

@@ -95,7 +95,7 @@ void test( int argc, char **argv )
     if( fabs(tdata(0,6)-(vy/vx))/(vy/vx) > 0.001 )
 	throw( ErrorTest( ERROR_LOCATION ) );
 
-    GeomPlotter geomplotter( &geom );
+    GeomPlotter geomplotter( geom );
     geomplotter.set_epot( &epot );
     geomplotter.set_particle_database( &pdb );
     geomplotter.plot_png( "particles_diagnostic.png" );

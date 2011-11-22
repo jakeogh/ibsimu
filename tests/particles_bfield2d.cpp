@@ -78,7 +78,7 @@ void test( int argc, char **argv )
 	    err = true;
     }
 
-    GeomPlotter geomplotter( &geom );
+    GeomPlotter geomplotter( geom );
     geomplotter.set_epot( &epot );
     geomplotter.set_particle_database( &pdb );
     geomplotter.plot_png( "particles_bfield2d.png" );

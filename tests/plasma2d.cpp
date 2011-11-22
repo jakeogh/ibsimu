@@ -111,7 +111,7 @@ void test( int argc, char **argv )
     plotter.run();
     */
 
-    GeomPlotter gplotter( &geom );
+    GeomPlotter gplotter( geom );
     gplotter.set_scharge( &scharge );
     gplotter.set_fieldgraph_plot( FIELD_SCHARGE );
     gplotter.set_epot( &epot );
@@ -128,11 +128,11 @@ void test( int argc, char **argv )
     gplotter.set_ranges( 0, 0, 0.002, 0.002 );
     gplotter.plot_png( "plasma2d_zoom.png" );
 
-    ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 0.01, 
+    ParticleDiagPlotter pplotter( geom, pdb, AXIS_X, 0.01, 
 				  PARTICLE_DIAG_PLOT_HISTO2D, DIAG_Y, DIAG_YP );
     pplotter.plot_png( "plasma2d_emit.png" );
 
-    FieldDiagPlotter fplotter( &geom );
+    FieldDiagPlotter fplotter( geom );
     fplotter.set_scharge( &scharge );
     fplotter.set_epot( &epot );
     fplotter.set_coordinates( 100, Vec3D(0.006,0,0), Vec3D(0.006,0.007,0) );

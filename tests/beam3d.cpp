@@ -105,7 +105,7 @@ void test( int argc, char **argv )
 	plotter.run();
     }
 
-    GeomPlotter gplotter( &geom );
+    GeomPlotter gplotter( geom );
     gplotter.set_scharge( &scharge );
     gplotter.set_epot( &epot );
     gplotter.set_particle_database( &pdb );

@@ -59,7 +59,7 @@ void test( int argc, char **argv )
     pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
     // Plot (y,y') emittance and check values
-    ParticleDiagPlotter pplotter1( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter1( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				  DIAG_Y, DIAG_YP );
     pplotter1.set_ranges( -0.02, -0.1, 0.02, 0.1 );
     pplotter1.plot_png( "emittancedef3d_kv_yyp.png" );
@@ -72,7 +72,7 @@ void test( int argc, char **argv )
 	throw( Error( ERROR_LOCATION, "fitted beta does not match theory" ) );
 
     // Plot (z,z') emittance and check values
-    ParticleDiagPlotter pplotter2( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter2( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				  DIAG_Z, DIAG_ZP );
     pplotter2.set_ranges( -0.02, -0.1, 0.02, 0.1 );
     pplotter2.plot_png( "emittancedef3d_kv_zzp.png" );
@@ -85,7 +85,7 @@ void test( int argc, char **argv )
 	throw( Error( ERROR_LOCATION, "fitted beta does not match theory" ) );
 
     // Plot profile
-    ParticleDiagPlotter pplotter3( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter3( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				  DIAG_Y, DIAG_Z );
     pplotter3.plot_png( "emittancedef3d_kv_yz.png" );
 
@@ -101,7 +101,7 @@ void test( int argc, char **argv )
     pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
     // Plot (y,y') emittance and check values
-    ParticleDiagPlotter pplotter4( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter4( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_Y, DIAG_YP );
     pplotter4.set_ranges( -0.02, -0.1, 0.02, 0.1 );
     pplotter4.plot_png( "emittancedef3d_gaussian_yyp.png" );
@@ -114,7 +114,7 @@ void test( int argc, char **argv )
 	throw( Error( ERROR_LOCATION, "fitted beta does not match theory" ) );
 
     // Plot (z,z') emittance and check value
-    ParticleDiagPlotter pplotter5( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter5( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_Z, DIAG_ZP );
     pplotter5.set_ranges( -0.02, -0.1, 0.02, 0.1 );
     pplotter5.plot_png( "emittancedef3d_gaussian_zzp.png" );
@@ -127,7 +127,7 @@ void test( int argc, char **argv )
 	throw( Error( ERROR_LOCATION, "fitted beta does not match theory" ) );
 
     // Plot profile
-    ParticleDiagPlotter pplotter6( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter6( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				  DIAG_Y, DIAG_Z );
     pplotter6.plot_png( "emittancedef3d_gaussian_yz.png" );
     
