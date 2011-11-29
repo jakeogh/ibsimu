@@ -221,17 +221,29 @@ void ParticleDiagPlot::build_data( void )
 						_histogram_accumulation );
 	_histo = histo2d;
 
-	if( _geom.geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
+	if( _geom.geom_mode() == MODE_CYL ) {
 	    // Scale plot to have constant area per square for cylindrical geometry.
-	    double dr = histo2d->nstep();
-	    for( size_t i = 0; i < histo2d->n(); i++ ) {
-		double r = fabs( histo2d->icoord( i ) );
-		double w = M_PI*((r+0.5*dr)*(r+0.5*dr) - (r-0.5*dr)*(r-0.5*dr));
-		if( r == 0.0 )
-		    w = M_PI*dr*dr;
-		for( size_t j = 0; j < histo2d->m(); j++ )
-		    (*histo2d)(i,j) /= w;
-	    }
+	    if( _diagx == DIAG_R ) {
+		double dr = histo2d->nstep();
+		for( size_t i = 0; i < histo2d->n(); i++ ) {
+		    double r = fabs( histo2d->icoord( i ) );
+		    double w = M_PI*((r+0.5*dr)*(r+0.5*dr) - (r-0.5*dr)*(r-0.5*dr));
+		    if( r == 0.0 )
+			w = M_PI*dr*dr;
+		    for( size_t j = 0; j < histo2d->m(); j++ )
+			(*histo2d)(i,j) /= w;
+		}
+	    } else if( _diagy == DIAG_R ) {
+		double dr = histo2d->mstep();
+		for( size_t j = 0; j < histo2d->m(); j++ ) {
+		    double r = fabs( histo2d->jcoord( j ) );
+		    double w = M_PI*((r+0.5*dr)*(r+0.5*dr) - (r-0.5*dr)*(r-0.5*dr));
+		    if( r == 0.0 )
+			w = M_PI*dr*dr;
+		    for( size_t i = 0; i < histo2d->n(); i++ )
+			(*histo2d)(i,j) /= w;
+		}
+	    } 
 	} else {
 	    // Scale for density unit (A/m2 for profile, A/(m*rad) for emittance, ...)
 	    histo2d->convert_to_density();
@@ -270,13 +282,8 @@ void ParticleDiagPlot::build_data( void )
 						_histogram_accumulation );
 	_histo = histo1d;
 
-	// Scale profile plot to have constant area per bin.
-	if( _geom.geom_mode() == MODE_CYL && _diagx == DIAG_R ) {
-	    double dr = histo1d->step();
-	    for( size_t i = 0; i < histo1d->n(); i++ ) {
-		(*histo1d)(i) /= dr;
-	    }
-	}
+	// Scale profile for density unit
+	histo1d->convert_to_density();
 
 	// Delete unnecessary tdata
 	delete _tdata;
@@ -386,7 +393,7 @@ void ParticleDiagPlot::build_plot( void )
     // Set axis labels
     if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
 	_frame.set_axis_label( PLOT_AXIS_X1, trajectory_diagnostic_string_with_unit[_diagx] );
-	_frame.set_axis_label( PLOT_AXIS_Y1, "Intensity (a.u.)" );
+	_frame.set_axis_label( PLOT_AXIS_Y1, "intensity (a.u.)" );
     } else {
 	_frame.set_axis_label( PLOT_AXIS_X1, trajectory_diagnostic_string_with_unit[_diagx] );
 	_frame.set_axis_label( PLOT_AXIS_Y1, trajectory_diagnostic_string_with_unit[_diagy] );
@@ -518,9 +525,12 @@ void ParticleDiagPlot::build_plot( void )
 	   << "\\epsilon  = " << _emit->epsilon() << " m\\cdot rad";
 	_frame.set_title( ss.str().c_str() );
 
-    } else if( _type == PARTICLE_DIAG_PLOT_HISTO1D && 
-	       (_diagx == DIAG_X || _diagx == DIAG_Y ||
-		_diagx == DIAG_R || _diagx == DIAG_Z) ) {
+    } else if( (_type == PARTICLE_DIAG_PLOT_HISTO1D && 
+		(_diagx == DIAG_X || _diagx == DIAG_Y ||
+		 _diagx == DIAG_R || _diagx == DIAG_Z)) ||
+	       ((_diagx == DIAG_X && _diagy == DIAG_Y) ||
+		(_diagx == DIAG_Y && _diagy == DIAG_Z) ||
+		(_diagx == DIAG_X && _diagy == DIAG_Z)) ) {
 
 	// Make title for profile
 	std::stringstream ss;
