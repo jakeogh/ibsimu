@@ -226,6 +226,12 @@ template<class PP> class ParticleDataBasePPImp : public ParticleDataBaseImp {
 	    case DIAG_QM:
 		data = p.qm();
 		break;
+	    case DIAG_CHARGE:
+		data = p.q();
+		break;
+	    case DIAG_MASS:
+		data = p.m();
+		break;
 	    case DIAG_EK:
 	    {
 		double beta = x.velocity().norm2()/SPEED_C;

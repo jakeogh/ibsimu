@@ -47,7 +47,14 @@
 
 GTKParticleDiagDialog::GTKParticleDiagDialog( GtkWidget *window, GTKPlotter &plotter, 
 					      int plane, double val )
-    : _window(window), _plotter(&plotter), _plane(plane), _val(val)
+    : _window(window), _plotter(&plotter), _plane(plane), _val(val),
+    _radio_plane_x(NULL), _radio_plane_y(NULL), _radio_plane_z(NULL),
+    _radio_emit_xx(NULL), _radio_emit_yy(NULL), _radio_emit_zz(NULL),
+    _radio_prof_yz(NULL), _radio_prof_xz(NULL), _radio_prof_xy(NULL),
+    _radio_plot_scatter(NULL), _radio_plot_colormap(NULL),
+    _radio_prof_x(NULL), _radio_prof_y(NULL), _radio_prof_z(NULL),
+    _radio_prof_xp(NULL), _radio_prof_yp(NULL), _radio_prof_zp(NULL),
+    _radio_energy(NULL), _radio_qm(NULL), _radio_charge(NULL), _radio_mass(NULL)
 {
     _geom = _plotter->get_geometry();
 }
@@ -134,10 +141,10 @@ void GTKParticleDiagDialog::plane_activated( void )
 	    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_xy) ) )
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_yy), TRUE );
 	} else {
-	    gtk_widget_set_sensitive( _radio_prof_yz, FALSE );
-	    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_yz) ) )
+	    gtk_widget_set_sensitive( _radio_prof_x, FALSE );
+	    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_x) ) )
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_yy), TRUE );
-	    gtk_widget_set_sensitive( _radio_prof_xz, TRUE );
+	    gtk_widget_set_sensitive( _radio_prof_y, TRUE );
 	}
 
 
@@ -176,9 +183,9 @@ void GTKParticleDiagDialog::plane_activated( void )
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_xx), TRUE );
 
 	} else {
-	    gtk_widget_set_sensitive( _radio_prof_yz, TRUE );
-	    gtk_widget_set_sensitive( _radio_prof_xz, FALSE );
-	    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_xz) ) )
+	    gtk_widget_set_sensitive( _radio_prof_x, TRUE );
+	    gtk_widget_set_sensitive( _radio_prof_y, FALSE );
+	    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_y) ) )
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_xx), TRUE );
 	}
 
@@ -435,12 +442,20 @@ void GTKParticleDiagDialog::run( void )
     // energy
     _radio_energy = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 								 "Energy" );
-    g_signal_connect( _radio_energy, "toggled",
-		      G_CALLBACK(plot1d_toggled), (gpointer)this );
+    //g_signal_connect( _radio_energy, "toggled",
+    //G_CALLBACK(plot1d_toggled), (gpointer)this );
     gtk_box_pack_start( GTK_BOX(vbox2), _radio_energy, FALSE, TRUE, 0 );
 
     gtk_container_add( GTK_CONTAINER(alignment), vbox2 );
     gtk_box_pack_start( GTK_BOX(hbox), alignment, FALSE, TRUE, 0 );
+
+    // charge
+    _radio_charge = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
+								 "Charge" );
+    //g_signal_connect( _radio_charge, "toggled",
+    //G_CALLBACK(plot1d_toggled), (gpointer)this );
+    gtk_box_pack_start( GTK_BOX(vbox2), _radio_charge, FALSE, TRUE, 0 );
+
 
     // Second column
     alignment = gtk_alignment_new( 0, 0, 0, 0 );
@@ -473,6 +488,20 @@ void GTKParticleDiagDialog::run( void )
 			  G_CALLBACK(plot1d_toggled), (gpointer)this );
 	gtk_box_pack_start( GTK_BOX(vbox2), _radio_prof_zp, FALSE, TRUE, 0 );
     }
+
+    // q/m
+    _radio_qm = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
+							     "Q/M" );
+    //g_signal_connect( _radio_qm, "toggled",
+    //G_CALLBACK(plot1d_toggled), (gpointer)this );
+    gtk_box_pack_start( GTK_BOX(vbox2), _radio_qm, FALSE, TRUE, 0 );
+
+    // mass
+    _radio_mass = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
+							       "Mass" );
+    //g_signal_connect( _radio_mass, "toggled",
+    //G_CALLBACK(plot1d_toggled), (gpointer)this );
+    gtk_box_pack_start( GTK_BOX(vbox2), _radio_mass, FALSE, TRUE, 0 );
 
     gtk_container_add( GTK_CONTAINER(alignment), vbox2 );
     gtk_box_pack_start( GTK_BOX(hbox), alignment, FALSE, TRUE, 0 );
@@ -523,7 +552,8 @@ void GTKParticleDiagDialog::run( void )
 		diagx = DIAG_Y;
 		diagy = DIAG_YP;
 	    }
-	} else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_emit_zz) ) ) {
+	} else if( _radio_emit_zz &&
+		   gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_emit_zz) ) ) {
 	    if( _geom->geom_mode() == MODE_3D ) {
 		diagx = DIAG_Z;
 		diagy = DIAG_ZP;
@@ -533,13 +563,16 @@ void GTKParticleDiagDialog::run( void )
 		diagy = DIAG_ZP;
 		type = PARTICLE_DIAG_PLOT_HISTO2D;
 	    }
-	} else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_yz) ) ) {
+	} else if( _radio_prof_yz &&
+		   gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_yz) ) ) {
 	    diagx = DIAG_Y;
 	    diagy = DIAG_Z;
-	} else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_xz) ) ) {
+	} else if( _radio_prof_xz &&
+		   gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_xz) ) ) {
 	    diagx = DIAG_X;
 	    diagy = DIAG_Z;
-	} else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_xy) ) ) {
+	} else if( _radio_prof_xy &&
+		   gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_xy) ) ) {
 	    diagx = DIAG_X;
 	    diagy = DIAG_Y;
 	} else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_x) ) ) {
@@ -551,7 +584,8 @@ void GTKParticleDiagDialog::run( void )
 	    else
 		diagx = DIAG_Y;
 	    type = PARTICLE_DIAG_PLOT_HISTO1D;
-	} else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_z) ) ) {
+	} else if( _radio_prof_z && 
+		   gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_z) ) ) {
 	    diagx = DIAG_Z;
 	    type = PARTICLE_DIAG_PLOT_HISTO1D;
 	} else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_xp) ) ) {
@@ -563,11 +597,21 @@ void GTKParticleDiagDialog::run( void )
 	    else
 		diagx = DIAG_YP;
 	    type = PARTICLE_DIAG_PLOT_HISTO1D;
-	} else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_zp) ) ) {
+	} else if( _radio_prof_zp &&
+		   gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_prof_zp) ) ) {
 	    diagx = DIAG_ZP;
 	    type = PARTICLE_DIAG_PLOT_HISTO1D;
 	} else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_energy) ) ) {
 	    diagx = DIAG_EK;
+	    type = PARTICLE_DIAG_PLOT_HISTO1D;
+	} else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_qm) ) ) {
+	    diagx = DIAG_QM;
+	    type = PARTICLE_DIAG_PLOT_HISTO1D;
+	} else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_mass) ) ) {
+	    diagx = DIAG_MASS;
+	    type = PARTICLE_DIAG_PLOT_HISTO1D;
+	} else if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_charge) ) ) {
+	    diagx = DIAG_CHARGE;
 	    type = PARTICLE_DIAG_PLOT_HISTO1D;
 	} else {
 	    throw( Error( ERROR_LOCATION, "unknown diagnostic (internal error)" ) );

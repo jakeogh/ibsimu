@@ -1055,7 +1055,7 @@ public:
      *  Valid diagnostic types are DIAG_T, DIAG_X, DIAG_VX, DIAG_Y,
      *  DIAG_VY, DIAG_Z, DIAG_VZ, DIAG_O, DIAG_VO, DIAG_P, DIAG_VP,
      *  DIAG_Q, DIAG_VQ, DIAG_OP, DIAG_PP, DIAG_CURR, DIAG_EK and
-     *  DIAG_QM.
+     *  DIAG_QM, DIAG_MASS and DIAG_CHARGE.
      */
     void trajectories_at_free_plane( TrajectoryDiagnosticData &tdata, 
 				     const Vec3D &c, const Vec3D &o, const Vec3D &p,

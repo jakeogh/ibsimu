@@ -87,7 +87,9 @@ const char *trajectory_diagnostic_string[] = {
     "p\'",
     "I",
     "E_k",
-    "q/m"
+    "q/m",
+    "charge",
+    "mass"
 };
 
 
@@ -119,7 +121,43 @@ const char *trajectory_diagnostic_string_with_unit[] = {
     "p\' (rad)",
     "I (A)",
     "E_k (eV)",
-    "q/m (C/kg)"
+    "q/m (C/kg)",
+    "charge (C)",
+    "mass (kg)"
+};
+
+
+const char *trajectory_diagnostic_string_unit[] = {
+    "",
+    "s",
+    "m",
+    "m/s",
+    "m",
+    "m",
+    "m/s",
+    "m/s",
+    "rad/s",
+    "m/s",
+    "m",
+    "m/s",
+    "m",
+    "m/s",
+    "m",
+    "m/s",
+    "m",
+    "m/s",
+    "rad",
+    "rad",
+    "rad",
+    "rad",
+    "rad",
+    "rad",
+    "rad",
+    "A",
+    "eV",
+    "C/kg",
+    "C",
+    "kg"
 };
 
 

@@ -84,6 +84,9 @@ class GTKParticleDiagDialog
     GtkWidget      *_radio_prof_zp;
 
     GtkWidget      *_radio_energy;
+    GtkWidget      *_radio_qm;
+    GtkWidget      *_radio_charge;
+    GtkWidget      *_radio_mass;
 
     void plot1d_toggled2( GtkToggleButton *togglebutton );
     static void plot1d_toggled( GtkToggleButton *togglebutton,

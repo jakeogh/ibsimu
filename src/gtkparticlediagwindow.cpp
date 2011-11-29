@@ -417,38 +417,13 @@ std::string GTKParticleDiagWindow::track_text( double x, double y )
 	    diag = diagy;
 	}
 
-	switch( diag ) {
-	case DIAG_X:
-	    ss << "x = " << val << " m\n";
-	    break;
-	case DIAG_Y:
-	    ss << "y = " << val << " m\n";
-	    break;
-	case DIAG_R:
-	    ss << "r = " << val << " m\n";
-	    break;
-	case DIAG_Z:
-	    ss << "z = " << val << " m\n";
-	    break;
-	case DIAG_XP:
-	    ss << "x\' = " << val << " rad\n";
-	    break;
-	case DIAG_YP:
-	    ss << "y\' = " << val << " rad\n";
-	    break;
-	case DIAG_RP:
-	    ss << "r\' = " << val << " rad\n";
-	    break;
-	case DIAG_ZP:
-	    ss << "z\' = " << val << " rad\n";
-	    break;
-	case DIAG_CURR:
-	    ss << "I = " << val << " A\n";
-	    break;
-	default:
-	    std::cout << "unknown diagnostic " << diag << "\n";
-	    break;
-	};
+	if( type == PARTICLE_DIAG_PLOT_HISTO1D && i == 1 ) {
+	    ss << "Intensity = " << val << "\n";
+	} else {
+	    ss << trajectory_diagnostic_string[diag] << " = " 
+	       << val << " " 
+	       << trajectory_diagnostic_string_unit[diag] << "\n";
+	}
     }
 
     if( type == PARTICLE_DIAG_PLOT_HISTO2D ) {

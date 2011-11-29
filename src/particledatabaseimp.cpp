@@ -1299,7 +1299,8 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
 	    diagnostics[a] != DIAG_Q && diagnostics[a] != DIAG_VQ && 
 	    diagnostics[a] != DIAG_OP && diagnostics[a] != DIAG_PP && 
 	    diagnostics[a] != DIAG_CURR && diagnostics[a] != DIAG_EK && 
-	    diagnostics[a] != DIAG_QM )
+	    diagnostics[a] != DIAG_QM && diagnostics[a] != DIAG_CHARGE && 
+	    diagnostics[a] != DIAG_MASS )
 	    throw( Error( ERROR_LOCATION, "invalid diagnostic type " + to_string(diagnostics[a]) ) );
     }
 
@@ -1438,6 +1439,12 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
 			break;
 		    case DIAG_QM:
 			tdata.add_data( a, _particles[a]->qm() );
+			break;
+		    case DIAG_CHARGE:
+			tdata.add_data( a, _particles[a]->q() );
+			break;
+		    case DIAG_MASS:
+			tdata.add_data( a, _particles[a]->m() );
 			break;
 
 		    default:
