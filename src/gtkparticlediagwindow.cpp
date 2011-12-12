@@ -375,9 +375,10 @@ void GTKParticleDiagWindow::read_preferences( GtkWidget *notebook, void *pdata )
 	_plot.set_emittance_ellipse( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( _prefdata->ellipse_check) ) );
     }
 
-    zoom_fit();
+    // Range setting, draw and expose done by calling function GTKPreferences::run()
+    //zoom_fit();
     _plot.build_plot();
-    draw_and_expose();
+    //draw_and_expose();
 }
 
 
