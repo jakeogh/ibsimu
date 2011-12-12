@@ -57,17 +57,17 @@ void test1( int argc, char **argv )
     double q = Q*CHARGE_E;
     double M = 1.0/1822.88;
     double m = M*MASS_U;
-    double B = 0.05;
+    double B = -0.05;
     double r = gamma*m*v/(B*q);
     //std::cout << "r(relativistic) = " << r << "\n";
     //std::cout << "r(classic) = " << m*v/(B*q) << "\n";
 
     bool fout[3] = {false,false,true};
     MeshVectorField bfield( MODE_2D, fout, Int3D(2,2,1), Vec3D(-0.05,-0.05,0.0), 0.1 );
-    bfield.set( 0, 0, Vec3D(0,0,B) );
-    bfield.set( 1, 0, Vec3D(0,0,B) );
-    bfield.set( 0, 1, Vec3D(0,0,B) );
-    bfield.set( 1, 1, Vec3D(0,0,B) );
+    bfield.set( 0, 0, -Vec3D(0,0,B) );
+    bfield.set( 1, 0, -Vec3D(0,0,B) );
+    bfield.set( 0, 1, -Vec3D(0,0,B) );
+    bfield.set( 1, 1, -Vec3D(0,0,B) );
 
     ParticleDataBase2D pdb;
     pdb.set_thread_count( 1 );
@@ -184,7 +184,7 @@ void test2( int argc, char **argv )
     pdb.set_thread_count( 4 );
     bool pmirror[6] = { false, false, false, false, false, false };
     pdb.set_mirror( pmirror );
-    for( size_t a = 0; a < 5; a++ ) {
+    for( size_t a = 0; a < 4; a++ ) {
 
         p.solve( epot, scharge );
 
@@ -234,6 +234,6 @@ void test2( int argc, char **argv )
 
 void test( int argc, char **argv )
 {
-    //test1( argc, argv );
+    test1( argc, argv );
     test2( argc, argv );
 }
