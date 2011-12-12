@@ -4,6 +4,7 @@
 touch ChangeLog
 
 # use git hooks from distribution
+rm -Rf .git/hooks
 ln -sfT ../git_hooks .git/hooks
 
 # Update git hash ID
