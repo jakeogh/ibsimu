@@ -397,11 +397,11 @@ void FieldGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
 	    build_scalarfield_plot();
 
 	else if( _vectorfield && _enabled ) {
-	    const MeshVectorField *mvf = dynamic_cast<const MeshVectorField *>( _vectorfield );
-	    if( mvf )
-		build_meshvectorfield_plot();
-	    else
-		build_vectorfield_plot();
+	    //const MeshVectorField *mvf = dynamic_cast<const MeshVectorField *>( _vectorfield );
+	    //if( mvf )
+	    //build_meshvectorfield_plot();
+	    //else
+	    build_vectorfield_plot();
 	}
     }
 
