@@ -74,6 +74,15 @@ public:
 			 particle_diag_plot_type_e type,
 			 trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy = DIAG_NONE );
 
+    /*! \brief Constructor for particle diagnostic plotter.
+     *
+     *  Make two or three dimensional particle diagnostic plots from
+     *  particle database at a plane defined by center point \a c and two
+     *  vectors defining the coordinate axes \a o and \a p. The
+     *  diagnostics is made using particle data from \a pdb in
+     *  geometry \a geom. The particle diagnostic is defined by
+     *  diagnostic \a type and diagnostic axes \a diagx and \a diagy.
+     */
     ParticleDiagPlotter( const Geometry &geom, const ParticleDataBase &pdb, 
 			 const Vec3D &c, const Vec3D &o, const Vec3D &p,
 			 particle_diag_plot_type_e type,

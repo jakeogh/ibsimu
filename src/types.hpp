@@ -190,9 +190,9 @@ enum trajectory_diagnostic_e {
     DIAG_PP,       /*!< \brief \f$v_p/v_q\f$, where direction q is normal to diagnostic plane (rad) */
     DIAG_CURR,     /*!< \brief Current (I) */
     DIAG_EK,       /*!< \brief Kinetic energy (eV) */
-    DIAG_QM,       /*!< \brief Charge per mass (C/kg) */
-    DIAG_CHARGE,   /*!< \brief Particle charge (C) */
-    DIAG_MASS      /*!< \brief Particle mass (kg) */
+    DIAG_QM,       /*!< \brief Charge per mass (e/u) */
+    DIAG_CHARGE,   /*!< \brief Particle charge (e) */
+    DIAG_MASS      /*!< \brief Particle mass (u) */
 };
 
 

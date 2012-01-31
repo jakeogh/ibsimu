@@ -1438,13 +1438,13 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
 			}
 			break;
 		    case DIAG_QM:
-			tdata.add_data( a, _particles[a]->qm() );
+			tdata.add_data( a, (_particles[a]->q()/CHARGE_E) / (_particles[a]->m()/MASS_U) );
 			break;
 		    case DIAG_CHARGE:
-			tdata.add_data( a, _particles[a]->q() );
+			tdata.add_data( a, _particles[a]->q()/CHARGE_E );
 			break;
 		    case DIAG_MASS:
-			tdata.add_data( a, _particles[a]->m() );
+			tdata.add_data( a, _particles[a]->m()/MASS_U );
 			break;
 
 		    default:

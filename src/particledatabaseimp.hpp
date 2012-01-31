@@ -224,13 +224,13 @@ template<class PP> class ParticleDataBasePPImp : public ParticleDataBaseImp {
 		data = p.IQ();
 		break;
 	    case DIAG_QM:
-		data = p.qm();
+		data = (p.q()/CHARGE_E) / (p.m()/MASS_U);
 		break;
 	    case DIAG_CHARGE:
-		data = p.q();
+		data = p.q()/CHARGE_E;
 		break;
 	    case DIAG_MASS:
-		data = p.m();
+		data = p.m()/MASS_U;
 		break;
 	    case DIAG_EK:
 	    {
