@@ -2,7 +2,7 @@
  *  \brief Particle database implementation
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -306,6 +306,7 @@ public:
 	for( size_t b = 1; b < N; b++ ) {
 	    Vec3D x2 = _particles[i]->traj(b).location();
 	    len += norm2(x2-x1);
+	    x1 = x2;
 	}
 
 	return( len );
