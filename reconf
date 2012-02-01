@@ -4,8 +4,12 @@
 touch ChangeLog
 
 # use git hooks from distribution
-rm -Rf .git/hooks
-ln -sfT ../git_hooks .git/hooks
+#rm -Rf .git/hooks
+#ln -sfT ../git_hooks .git/hooks
+cd .git
+rm -Rf hooks
+ln -sfT ../git_hooks hooks
+cd ..
 
 # Update git hash ID
 touch src/ibsimu.cpp
