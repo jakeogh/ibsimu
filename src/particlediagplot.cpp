@@ -44,6 +44,7 @@
 #include <fstream>
 #include "particlediagplot.hpp"
 #include "ibsimu.hpp"
+#include <locale>
 
 
 ParticleDiagPlot::ParticleDiagPlot( Frame &frame, const Geometry &geom, const ParticleDataBase &pdb, 
@@ -518,6 +519,8 @@ void ParticleDiagPlot::build_plot( void )
 
 	// Add emittance numbers to title
 	std::stringstream ss;
+	std::locale mylocale("");
+	ss.imbue( mylocale );
 	ss << "Emittance plot at " << coordinate_axis_string[_axis] << " = " << _level << " m\n"
 	   << "\\alpha  = "   << _emit->alpha()   << ", "
 	   << "\\beta  = "    << _emit->beta()    << " m/rad, "

@@ -443,13 +443,16 @@ void GTKGeomWindow::field_activate( void )
 
     double zmin, zmax;
     _geomplot.fieldgraph().get_zrange( zmin, zmax );
-    std::cout << "zmin = " << zmin << ", zmax = " << zmax << "\n";
-    std::string s = to_string( zmin );
-    gtk_entry_set_text( GTK_ENTRY(_prefdata->zmin_entry), s.c_str() );
-    s = to_string( zmax );
-    gtk_entry_set_text( GTK_ENTRY(_prefdata->zmax_entry), s.c_str() );
-
-    
+    //std::cout << "zmin = " << zmin << ", zmax = " << zmax << "\n";
+    //std::string s = to_string( zmin );
+    //gtk_entry_set_text( GTK_ENTRY(_prefdata->zmin_entry), s.c_str() );
+    //s = to_string( zmax );
+    //gtk_entry_set_text( GTK_ENTRY(_prefdata->zmax_entry), s.c_str() );
+    char s[128];
+    snprintf( s, 128, "%lg", zmin );
+    gtk_entry_set_text( GTK_ENTRY(_prefdata->zmin_entry), s );
+    snprintf( s, 128, "%lg", zmax );
+    gtk_entry_set_text( GTK_ENTRY(_prefdata->zmax_entry), s );    
 }
 
 
@@ -478,9 +481,11 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     std::vector<double> eqlines_manual = _geomplot.get_eqlines_manual();
     std::string s;
     for( size_t a = 0; a < eqlines_manual.size(); a++ ) {
-	s += to_string( eqlines_manual[a] );
+	char ss[128];
+	snprintf( ss, 128, "%lg", eqlines_manual[a] );
+	s += ss;
 	if( a != eqlines_manual.size()-1 )
-	    s += ", ";
+	    s += " ";
     }
     gtk_entry_set_text( GTK_ENTRY(_prefdata->manual_eqlines_entry), s.c_str() );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
@@ -821,6 +826,7 @@ void GTKGeomWindow::read_preferences( GtkWidget *notebook, void *pdata )
 	    continue;
 	}
 	double val = strtod( str, &str );
+	std::cout << "val = " << val << "\n";
 	eqlines_manual.push_back( val );
     }
     _geomplot.set_eqlines_manual( eqlines_manual );
