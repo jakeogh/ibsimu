@@ -59,7 +59,8 @@
  *  underlying fields are queries in the defined order until a field
  *  covering the point of query is found. Is the point is outside all
  *  of the underlying fields, the last (largest and coarsest) field is
- *  used to extrapolate the field value.
+ *  used to extrapolate the field value (according to the
+ *  extrapolation settings).
  *
  *  The first (largest and coarsest) field of the multiple mesh vector
  *  field is defined first either with a constructor or using reset()
@@ -154,7 +155,7 @@ public:
      *  FIELD_EXTRAPOLATE) or it can return the mirror of the field
      *  across the mesh boundary (\a FIELD_MIRROR), can return a zero
      *  field (\a FIELD_ZERO) or it can return a NaN (\a FIELD_NAN)
-     *  outside the mesh
+     *  outside the mesh. The \a FIELD_EXTRAPOLATE is the default behaviour.
      *
      *  The use of \a FIELD_MIRROR in case of symmetric cases, where
      *  beam is traversing next to the geometry boundary, is necessary
