@@ -46,6 +46,7 @@
 #include "gtkfielddiagdialog.hpp"
 #include "epot_efield.hpp"
 #include "icons.hpp"
+#include "ibsimu.hpp"
 
 
 #define TOOL_UNKNOWN  -1
@@ -386,7 +387,11 @@ std::string GTKGeomWindow::track_text( double x, double y )
     ss << "i = " << i[0] << "\n"
        << "j = " << i[1] << "\n"
        << "k = " << i[2] << "\n";
-    ss << "solid = " << _geom.inside( loc ) << "\n";
+    ss << "solid = " << _geom.inside( loc );
+    if( ibsimu.get_verbose_output() >= 2 ) {
+	ss << " (" << (int)_geom.mesh(i[0],i[1],i[2]) << ")";
+    }
+    ss << "\n";
     if( _epot ) {
 	ss << "epot = " << (*_epot)( loc ) << " V\n";
 	EpotEfield efield( _geom, *_epot );
