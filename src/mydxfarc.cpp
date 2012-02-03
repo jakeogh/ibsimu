@@ -2,7 +2,7 @@
  *  \brief DXF arc entity
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -361,14 +361,11 @@ void MyDXFArc::set_ang2( double ang2 )
 
 void MyDXFArc::debug_print( std::ostream &os ) const
 {
-    std::cout << "ARC\n";
-    std::cout << "  p = {" 
-	      << _pc[0] << ", " 
-	      << _pc[1] << ", " 
-	      << _pc[2] << "}\n";
-    std::cout << "  r = " << _r << "\n";
-    std::cout << "  ang1 = " << _ang1 << "\n";
-    std::cout << "  ang2 = " << _ang2 << "\n";
+    os << "  ARC\n";
+    MyDXFFile::debug_print_format( os, "pc", _pc );
+    MyDXFFile::debug_print_format( os, "r", _r );
+    MyDXFFile::debug_print_format( os, "ang1", _ang1 );
+    MyDXFFile::debug_print_format( os, "ang2", _ang2 );
 }
 
 

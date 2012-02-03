@@ -2,7 +2,7 @@
  *  \brief DXF entities
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -89,8 +89,8 @@ void MyDXFEntity::bbox_ppoint( Vec3D &min, Vec3D &max, const Vec3D &p )
 
 void MyDXFEntity::debug_print_base( std::ostream &os ) const
 {
-    os << "  handle = \'" << _handle << "\'\n";
-    os << "  layer = \'" << _layer << "\'\n";
+    MyDXFFile::debug_print_format( os, "handle", _handle );
+    MyDXFFile::debug_print_format( os, "layer", _layer );
 }
 
 
@@ -779,12 +779,13 @@ void MyDXFEntities::debug_print( std::ostream &os ) const
 {
     os << "*** Section ENTITIES **************************************\n";
 
-    os << "Number of entities = " << _entities.size() << "\n";
+    MyDXFFile::debug_print_format( os, "number_of_entities", (int)_entities.size() );
     os << "\n";
     
     for( size_t a = 0; a < _entities.size(); a++ ) {
 	MyDXFEntity *e = _entities[a];
-	os << *e;
+	e->debug_print( os );
+	os << "\n";
     }
     
     os << "\n";

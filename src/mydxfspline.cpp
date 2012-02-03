@@ -2,7 +2,7 @@
  *  \brief DXF spline entity
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -434,31 +434,24 @@ bool MyDXFSpline::geom_same( const MyDXFSpline &spline, double eps ) const
 
 void MyDXFSpline::debug_print( std::ostream &os ) const
 {
-    std::cout << "SPLINE\n";
-    std::cout << "  degree   = " << _degree << "\n"; 
-    std::cout << "  knot_tol = " << _knot_tol << "\n"; 
-    std::cout << "  cont_tol = " << _cont_tol << "\n"; 
-    std::cout << "  fit_tol  = " << _fit_tol << "\n"; 
-    std::cout << "  flags    = " << _flags << "\n"; 
-    std::cout << "  normal   = " << _normal << "\n"; 
-    std::cout << "  tangent0 = " << _tangent0 << "\n"; 
-    std::cout << "  tangent1 = " << _tangent1 << "\n"; 
-    for( uint32_t a = 0; a < _knot.size(); a++ ) {
-	std::cout << "  knot[" << a << "] = " 
-		  << _knot[a] << "\n";
-    }
-    for( uint32_t a = 0; a < _cont.size(); a++ ) {
-	std::cout << "  cont[" << a << "] = {" 
-		  << _cont[a][0] << ", " 
-		  << _cont[a][1] << ", " 
-		  << _cont[a][2] << "}\n";
-    }
-    for( uint32_t a = 0; a < _fit.size(); a++ ) {
-	std::cout << "  fit[" << a << "] = {" 
-		  << _fit[a][0] << ", " 
-		  << _fit[a][1] << ", " 
-		  << _fit[a][2] << "}\n";
-    }
+    os << "  SPLINE\n";
+    MyDXFFile::debug_print_format( os, "flags", _flags );
+    MyDXFFile::debug_print_format( os, "degree", _degree );
+    MyDXFFile::debug_print_format( os, "knot_tol", _knot_tol );
+    MyDXFFile::debug_print_format( os, "cont_tol", _cont_tol );
+    MyDXFFile::debug_print_format( os, "fit_tol", _fit_tol );
+    MyDXFFile::debug_print_format( os, "normal", _normal );
+    MyDXFFile::debug_print_format( os, "tangent0", _tangent0 );
+    MyDXFFile::debug_print_format( os, "tangent1", _tangent1 );
+
+    for( uint32_t a = 0; a < _knot.size(); a++ )
+	MyDXFFile::debug_print_format( os, "knot", _knot[a] );
+
+    for( uint32_t a = 0; a < _cont.size(); a++ )
+	MyDXFFile::debug_print_format( os, "cont", _cont[a] );
+
+    for( uint32_t a = 0; a < _fit.size(); a++ )
+	MyDXFFile::debug_print_format( os, "fit", _fit[a] );
 }
 
 

@@ -2,7 +2,7 @@
  *  \brief DXF Tables 
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -42,6 +42,7 @@
 
 
 #include <iostream>
+#include <iomanip>
 #include "mydxftables.hpp"
 #include "error.hpp"
 
@@ -78,8 +79,8 @@ void MyDXFTableEntry::write_common( class MyDXFFile *dxf, std::ofstream &ostr )
 
 void MyDXFTableEntry::debug_print_common( std::ostream &os ) const
 {
-    os << "  handle = \'" << _handle << "\'\n";
-    os << "  handle_to_owner = \'" << _handle_to_owner << "\'\n";
+    MyDXFFile::debug_print_format( os, "handle", _handle );
+    MyDXFFile::debug_print_format( os, "handle_to_owner", _handle_to_owner );
 }
 
 
@@ -145,11 +146,11 @@ void MyDXFTableEntryBlockRecord::write( class MyDXFFile *dxf, std::ofstream &ost
 
 void MyDXFTableEntryBlockRecord::debug_print( std::ostream &os ) const
 {
-    os << "  name = \'" << _name << "\'\n";
-    os << "  units = " << _units << "\n";
-    os << "  explodability = " << (int)_explodability << "\n";
-    os << "  scalability = " << (int)_scalability << "\n";
-    os << "  handle_to_layout = \'" << _handle_to_layout << "\'\n";
+    MyDXFFile::debug_print_format( os, "name", _name );
+    MyDXFFile::debug_print_format( os, "units", _units );
+    MyDXFFile::debug_print_format( os, "explodability", (int)_explodability );
+    MyDXFFile::debug_print_format( os, "scalability", (int)_scalability );
+    MyDXFFile::debug_print_format( os, "handle_to_layout", _handle_to_layout );
 }
 
 
@@ -216,14 +217,148 @@ void MyDXFTableEntryLayer::write( class MyDXFFile *dxf, std::ofstream &ostr )
 
 void MyDXFTableEntryLayer::debug_print( std::ostream &os ) const
 {
-    os << "  name = \'" << _name << "\'\n";
-    os << "  linetype = \'" << _linetype << "\'\n";
-    os << "  flags = " << _flags << "\n";
-    os << "  color = " << _color << "\n";
-    os << "  plotting = " << _plotting << "\n";
-    os << "  lineweight = " << (int)_lineweight << "\n";
-    os << "  handle_to_plot_style_name = \'" << _handle_to_plot_style_name << "\'\n";
-    os << "  handle_to_layout = \'" << _handle_to_material << "\'\n";
+    MyDXFFile::debug_print_format( os, "name", _name );
+    MyDXFFile::debug_print_format( os, "linetype", _linetype );
+    MyDXFFile::debug_print_format( os, "flags", _flags );
+    MyDXFFile::debug_print_format( os, "color", _color );
+    MyDXFFile::debug_print_format( os, "plotting", _plotting );
+    MyDXFFile::debug_print_format( os, "lineweight", (int)_lineweight );
+    MyDXFFile::debug_print_format( os, "handle_to_plot_style_name", _handle_to_plot_style_name );
+    MyDXFFile::debug_print_format( os, "handle_to_material", _handle_to_material );
+}
+
+
+/* ************************************************************************** *
+ * DXF Entry Vport                                                            *
+ * ************************************************************************** */
+
+MyDXFTableEntryVport::MyDXFTableEntryVport( class MyDXFFile *dxf )
+    : _flags(0), _ucs_type(0), _elevation(0.0)
+{
+    while( dxf->read_group() != -1 ) {
+	
+	if( dxf->group_get_code() == 0 )
+	    break; // Done with record
+
+	else if( dxf->group_get_code() == 2 )
+	    _name = dxf->group_get_string();
+	else if( dxf->group_get_code() == 70 )
+	    _flags = dxf->group_get_int16();
+
+	else if( dxf->group_get_code() == 10 )
+	    _vmin[0] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 20 )
+	    _vmin[1] = dxf->group_get_double();
+
+	else if( dxf->group_get_code() == 11 )
+	    _vmax[0] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 21 )
+	    _vmax[1] = dxf->group_get_double();
+
+	else if( dxf->group_get_code() == 12 )
+	    _vcenter[0] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 22 )
+	    _vcenter[1] = dxf->group_get_double();
+
+	else if( dxf->group_get_code() == 13 )
+	    _snap_base[0] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 23 )
+	    _snap_base[1] = dxf->group_get_double();
+
+	else if( dxf->group_get_code() == 14 )
+	    _snap_spacing[0] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 24 )
+	    _snap_spacing[1] = dxf->group_get_double();
+
+	else if( dxf->group_get_code() == 15 )
+	    _grid_spacing[0] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 25 )
+	    _grid_spacing[1] = dxf->group_get_double();
+
+	else if( dxf->group_get_code() == 16 )
+	    _view_direction[0] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 26 )
+	    _view_direction[1] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 36 )
+	    _view_direction[2] = dxf->group_get_double();
+
+	else if( dxf->group_get_code() == 17 )
+	    _view_target[0] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 27 )
+	    _view_target[1] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 37 )
+	    _view_target[2] = dxf->group_get_double();
+
+	else if( dxf->group_get_code() == 110 )
+	    _ucs_origin[0] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 120 )
+	    _ucs_origin[1] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 130 )
+	    _ucs_origin[2] = dxf->group_get_double();
+
+	else if( dxf->group_get_code() == 111 )
+	    _ucs_x[0] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 121 )
+	    _ucs_x[1] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 131 )
+	    _ucs_x[2] = dxf->group_get_double();
+
+	else if( dxf->group_get_code() == 112 )
+	    _ucs_y[0] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 122 )
+	    _ucs_y[1] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 132 )
+	    _ucs_y[2] = dxf->group_get_double();
+
+	else if( dxf->group_get_code() == 79 )
+	    _ucs_type = dxf->group_get_int16();
+
+	else if( dxf->group_get_code() == 146 )
+	    _elevation = dxf->group_get_double();
+
+	else
+	    process_group( dxf );
+    }
+
+}
+
+
+MyDXFTableEntryVport::~MyDXFTableEntryVport()
+{
+
+}
+
+
+void MyDXFTableEntryVport::write( class MyDXFFile *dxf, std::ofstream &ostr )
+{
+    dxf->write_group( 0, "LAYER" );
+    write_common( dxf, ostr );
+
+    dxf->write_group( 100, "AcDbSymbolTableRecord" );
+    dxf->write_group( 100, "AcDbLayerTableRecord" );
+
+    dxf->write_group( 2, _name.c_str() );
+    dxf->write_group( 70, _flags );
+}
+
+
+void MyDXFTableEntryVport::debug_print( std::ostream &os ) const
+{
+    MyDXFFile::debug_print_format( os, "name", _name );
+    MyDXFFile::debug_print_format( os, "flags", _flags );
+    MyDXFFile::debug_print_format( os, "vmin", _vmin );
+    MyDXFFile::debug_print_format( os, "vmax", _vmax );
+    MyDXFFile::debug_print_format( os, "vcenter", _vcenter );
+    MyDXFFile::debug_print_format( os, "snap_base", _snap_base );
+    MyDXFFile::debug_print_format( os, "snap_spacing", _snap_spacing );
+    MyDXFFile::debug_print_format( os, "grid_spacing", _grid_spacing );
+    MyDXFFile::debug_print_format( os, "view_direction", _view_direction );
+    MyDXFFile::debug_print_format( os, "view_target", _view_target );
+    MyDXFFile::debug_print_format( os, "ucs_origin", _ucs_origin );
+    MyDXFFile::debug_print_format( os, "ucs_x", _ucs_x );
+    MyDXFFile::debug_print_format( os, "ucs_y", _ucs_y );
+    MyDXFFile::debug_print_format( os, "ucs_type", _ucs_type );
+    MyDXFFile::debug_print_format( os, "elevation", _elevation );
 }
 
 
@@ -248,6 +383,8 @@ MyDXFTable::MyDXFTable( const std::string &name, class MyDXFFile *dxf )
 		    _entries.push_back( new MyDXFTableEntryBlockRecord( dxf ) );
 		else if( dxf->group_get_string() == "LAYER" ) 
 		    _entries.push_back( new MyDXFTableEntryLayer( dxf ) );
+		else if( dxf->group_get_string() == "VPORT" ) 
+		    _entries.push_back( new MyDXFTableEntryVport( dxf ) );
 		else
 		    throw Error( ERROR_LOCATION, "Error reading table entry on line " + 
 				 to_string(dxf->linec()) );
@@ -298,8 +435,8 @@ void MyDXFTable::debug_print( std::ostream &os ) const
 {
     os << "*** Table " << _name << " ****************************************\n";
 
-    os << "  handle = \'" << _handle << "\'\n";
-    os << "  handle_to_owner = \'" << _handle_to_owner << "\'\n";
+    MyDXFFile::debug_print_format( os, "handle", _handle );
+    MyDXFFile::debug_print_format( os, "handle_to_owner", _handle_to_owner );
     os << "\n";
 
     for( uint32_t i = 0; i < _entries.size(); i++ )
@@ -317,7 +454,7 @@ void MyDXFTable::debug_print( std::ostream &os ) const
 
 
 MyDXFTables::MyDXFTables( class MyDXFFile *dxf )
-    : _blockrecord(0), _layer(0)
+    : _blockrecord(0), _layer(0), _vport(0)
 {
 #ifdef MYDXF_DEBUG
     std::cout << "Reading section TABLES\n";
@@ -346,6 +483,8 @@ MyDXFTables::MyDXFTables( class MyDXFFile *dxf )
 		_blockrecord = new MyDXFTable( "BLOCK_RECORD", dxf );
 	    else if( dxf->group_get_string() == "LAYER" )
 		_layer = new MyDXFTable( "LAYER", dxf );
+	    else if( dxf->group_get_string() == "VPORT" )
+		_layer = new MyDXFTable( "VPORT", dxf );
 	    else {
 		// Unknown table
 		if( dxf->wlevel() >= 2 )
@@ -371,6 +510,8 @@ MyDXFTables::~MyDXFTables()
 	delete _layer;
     if( _blockrecord ) 
 	delete _blockrecord;
+    if( _vport ) 
+	delete _vport;
 }
 
 
@@ -383,6 +524,8 @@ void MyDXFTables::write( class MyDXFFile *dxf, std::ofstream &ostr )
 	_blockrecord->write( dxf, ostr );
     if( _layer ) 
 	_layer->write( dxf, ostr );
+    if( _vport ) 
+	_vport->write( dxf, ostr );
 
     dxf->write_group( 0, "ENDSEC" );
 }
@@ -401,6 +544,11 @@ void MyDXFTables::debug_print( std::ostream &os ) const
 
     if( _layer ) {
 	_layer->debug_print( os );
+	os << "\n";
+    }
+
+    if( _vport ) {
+	_vport->debug_print( os );
 	os << "\n";
     }
 }

@@ -2,7 +2,7 @@
  *  \brief DXF insert entity
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -255,21 +255,15 @@ void MyDXFInsert::explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Trans
 
 void MyDXFInsert::debug_print( std::ostream &os ) const
 {
-    std::cout << "INSERT\n";
-    std::cout << "  block_name = \'" << _block_name << "\'\n";
-    std::cout << "  p = {" 
-	      << _p[0] << ", " 
-	      << _p[1] << ", " 
-	      << _p[2] << "}\n";
-    std::cout << "  scale = {" 
-	      << _scale[0] << ", " 
-	      << _scale[1] << ", " 
-	      << _scale[2] << "}\n";
-    std::cout << "  rotation = " << _rotation << "\n";
-    std::cout << "  col_count = " << _col_count << "\n";
-    std::cout << "  row_count = " << _row_count << "\n";
-    std::cout << "  col_spacing = " << _col_spacing << "\n";
-    std::cout << "  row_spacing = " << _row_spacing << "\n";
+    os << "INSERT\n";
+    MyDXFFile::debug_print_format( os, "block_name", _block_name );
+    MyDXFFile::debug_print_format( os, "p", _p );
+    MyDXFFile::debug_print_format( os, "scale", _scale );
+    MyDXFFile::debug_print_format( os, "rotation", _rotation );
+    MyDXFFile::debug_print_format( os, "col_count", _col_count );
+    MyDXFFile::debug_print_format( os, "row_count", _row_count );
+    MyDXFFile::debug_print_format( os, "col_spacing", _col_spacing );
+    MyDXFFile::debug_print_format( os, "row_spacing", _row_spacing );
 }
 
 

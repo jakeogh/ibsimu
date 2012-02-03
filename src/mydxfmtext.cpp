@@ -2,7 +2,7 @@
  *  \brief DXF mtext entity
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -178,15 +178,13 @@ void MyDXFMText::translate( class MyDXFFile *dxf, const Vec3D &dx )
 
 void MyDXFMText::debug_print( std::ostream &os ) const
 {
-    std::cout << "MTEXT\n";
-    std::cout << "  p = {" 
-	      << _p[0] << ", " 
-	      << _p[1] << ", " 
-	      << _p[2] << "}\n";
-    std::cout << "  text_height = " << _text_height << "\n"; 
-    std::cout << "  rect_width = " << _rect_width << "\n"; 
-    std::cout << "  attachment_point = " << _attachment_point << "\n"; 
-    std::cout << "  drawing_direction = " << _drawing_direction << "\n"; 
+    os << "  MTEXT\n";
+
+    MyDXFFile::debug_print_format( os, "p", _p );
+    MyDXFFile::debug_print_format( os, "text_height", _text_height );
+    MyDXFFile::debug_print_format( os, "rect_width", _rect_width );
+    MyDXFFile::debug_print_format( os, "attachment_point", _attachment_point );
+    MyDXFFile::debug_print_format( os, "drawing_direction", _drawing_direction );
 }
 
 

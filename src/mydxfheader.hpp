@@ -2,7 +2,7 @@
  *  \brief DXF Header
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -62,19 +62,83 @@ class MyDXFHeader
 
 public:
 
-    std::string acadver;      // 1
-    double      angbase;      // 50
-    int16_t     angdir;       // 70
+    std::string acadver;         /* 1 */
+    double      angbase;         /* 50 */
+    int16_t     angdir;          /* 70 */
+
     
-    std::string handseed;     // 5
-    double      dimasz;       // 40
-    double      dimgap;       // 40
-    double      dimexo;       // 40
-    double      dimexe;       // 40
-    double      dimtxt;       // 40
-    int16_t     insunits;     // 70
-    Vec3D       plimmax;      // 10, 20
-    Vec3D       plimmin;      // 10, 20
+    std::string handseed;        /* 5 */
+    double      dimasz;          /* 40 */
+    double      dimgap;          /* 40 */
+    double      dimexo;          /* 40 */
+    double      dimexe;          /* 40 */
+    double      dimtxt;          /* 40 */
+    int16_t     insunits;        /* 70 */
+    Vec3D       plimmax;         /* 10, 20 */
+    Vec3D       plimmin;         /* 10, 20 */
+
+
+    int16_t     orthomode;       /* 70, on if nonzero */
+
+
+    std::string pucsbase;        /* 2, Name of the UCS that defines the origin and orientation
+                                  * of orthographic UCS settings (paper space only) */
+    std::string pucsname;        /* 2, Current paper space UCS name */
+    Vec3D       pucsorg;         /* 10, 20, 30, Current paper space UCS origin */
+    Vec3D       pucsorgback;     /* 10, 20, 30, Point which becomes the new UCS origin after changing
+				  * paper space UCS to BACK when PUCSBASE is set to WORLD */
+    Vec3D       pucsorgbottom;   /* 10, 20, 30, Point which becomes the new UCS origin after changing
+				  * paper space UCS to BOTTOM when PUCSBASE is set to WORLD */
+    Vec3D       pucsorgfront;    /* 10, 20, 30, Point which becomes the new UCS origin after changing
+				  * paper space UCS to FRONT when PUCSBASE is set to WORLD */
+    Vec3D       pucsorgleft;     /* 10, 20, 30, Point which becomes the new UCS origin after changing
+				  * paper space UCS to LEFT when PUCSBASE is set to WORLD */
+    Vec3D       pucsorgright;    /* 10, 20, 30, Point which becomes the new UCS origin after changing
+				  * paper space UCS to RIGHT when PUCSBASE is set to WORLD */
+    Vec3D       pucsorgtop;      /* 10, 20, 30, Point which becomes the new UCS origin after changing
+				  * paper space UCS to TOP when PUCSBASE is set to WORLD */
+    std::string pucsorthoref;    /* 2, If paper space UCS is orthographic (PUCSORTHOVIEW not
+				  * equal to 0), this is the name of the UCS that the orthographic
+				  * UCS is relative to. If blank, UCS is relative to WORLD */
+    int16_t     pucsorthoview;   /* 70, Orthographic view type of paper space UCS:
+				  * 0 = UCS is not orthographic;
+				  * 1 = Top; 2 = Bottom;
+				  * 3 = Front; 4 = Back;
+				  * 5 = Left; 6 = Right */
+    Vec3D       pucsxdir;        /* 10, 20, 30, Current paper space UCS X axis */
+    Vec3D       pucsydir;        /* 10, 20, 30, Current paper space UCS Y axis */
+
+
+    std::string ucsbase;         /* 2, Name of the UCS that defines the origin and orientation
+				  * of orthographic UCS settings */
+    std::string ucsname;         /* 2, Name of current UCS */
+    Vec3D       ucsorg;          /* 10, 20, 30, Origin of current UCS (in WCS) */
+    Vec3D       ucsorgback;      /* 10, 20, 30, Point which becomes the new UCS origin after changing
+				  * model space UCS to BACK when UCSBASE is set to WORLD */
+    Vec3D       ucsorgbottom;    /* 10, 20, 30, Point which becomes the new UCS origin after changing
+				  * model space UCS to BOTTOM when UCSBASE is set to WORLD */
+    Vec3D       ucsorgfront;     /* 10, 20, 30, Point which becomes the new UCS origin after changing
+				  * model space UCS to FRONT when UCSBASE is set to WORLD */
+    Vec3D       ucsorgleft;      /* 10, 20, 30, Point which becomes the new UCS origin after changing
+				  * model space UCS to LEFT when UCSBASE is set to WORLD */
+    Vec3D       ucsorgright;     /* 10, 20, 30, Point which becomes the new UCS origin after changing
+				  * model space UCS to RIGHT when UCSBASE is set to WORLD */
+    Vec3D       ucsorgtop;       /* 10, 20, 30, Point which becomes the new UCS origin after changing
+				  * model space UCS to TOP when UCSBASE is set to WORLD */
+    std::string ucsorthoref;     /* 2, If model space UCS is orthographic (UCSORTHOVIEW not
+				  * equal to 0), this is the name of the UCS that the orthographic
+				  * UCS is relative to. If blank, UCS is relative to WORLD */
+    int16_t     ucsorthoview;    /* 70, Orthographic view type of model space UCS:
+				  * 0 = UCS is not orthographic;
+				  * 1 = Top; 2 = Bottom;
+				  * 3 = Front; 4 = Back;
+				  * 5 = Left; 6 = Right */
+    Vec3D       ucsxdir;         /* 10, 20, 30, Direction of the current UCS X axis (in WCS) */
+    Vec3D       ucsydir;         /* 10, 20, 30, Direction of the current UCS Y axis (in WCS) */
+
+
+    int16_t     worldview;       /* 70, 1 = Set UCS to WCS during DVIEW/VPOINT
+				  * 0 = Don't change UCS */
 
     MyDXFHeader( class MyDXFFile *dxf );
     ~MyDXFHeader();

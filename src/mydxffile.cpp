@@ -2,7 +2,7 @@
  *  \brief DXF file.
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,6 +47,9 @@
 #include <stdlib.h>
 #include "mydxffile.hpp"
 #include "error.hpp"
+
+
+#define DXF_DEBUG_PRINT_FIELD_WIDTH 30
 
 
 #define CODE_STRING(x) \
@@ -635,5 +638,41 @@ void MyDXFFile::debug_print( std::ostream &os ) const
 }
 
 
+void MyDXFFile::debug_print_format( std::ostream &os, 
+				    const std::string &fieldname, 
+				    const std::string &val )
+{
+    os << "  " 
+       << std::setw(DXF_DEBUG_PRINT_FIELD_WIDTH) << std::left << fieldname 
+       << " = \'" << val << "\'\n";
+}
 
 
+void MyDXFFile::debug_print_format( std::ostream &os, 
+				    const std::string &fieldname, 
+				    double val )
+{
+    os << "  " 
+       << std::setw(DXF_DEBUG_PRINT_FIELD_WIDTH) << std::left << fieldname 
+       << " = " << val << "\n";
+}
+
+
+void MyDXFFile::debug_print_format( std::ostream &os, 
+				    const std::string &fieldname, 
+				    int val )
+{
+    os << "  " 
+       << std::setw(DXF_DEBUG_PRINT_FIELD_WIDTH) << std::left << fieldname 
+       << " = " << val << "\n";
+}
+
+
+void MyDXFFile::debug_print_format( std::ostream &os, 
+				    const std::string &fieldname, 
+				    const Vec3D &val )
+{
+    os << "  " 
+       << std::setw(DXF_DEBUG_PRINT_FIELD_WIDTH) << std::left << fieldname 
+       << " = (" << val[0] << ", " << val[1] << ", " << val[2] << ")\n";
+}
