@@ -2,7 +2,7 @@ lib_LTLIBRARIES = libibsimu-1.0.5dev.la
 
 libibsimu_1_0_5dev_la_LDFLAGS = -version-info 0:1:0
 
-AM_LDFLAGS = -Wall @rdynamic_flag@
+AM_LDFLAGS = -Wall @rdynamic_flag@ @lt_enable_auto_import@
 AM_CPPFLAGS = -Wall
 
 libibsimu_1_0_5dev_la_SOURCES = \
