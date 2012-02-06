@@ -41,6 +41,13 @@ tests/Makefile
 tests/Makefile.in
 tests/.deps
 tests/.libs
+tests/*.png
+tests/*.ps
+tests/*.pdf
+tests/*_vout.txt
+
+
+
 
 
 
