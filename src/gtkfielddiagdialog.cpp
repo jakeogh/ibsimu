@@ -2,7 +2,7 @@
  *  \brief Source code for gtkfielddiagdialog.cpp
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -103,7 +103,7 @@ void GTKFieldDiagDialog::run( void )
     //std::string s = to_string(_x1[0]);
     //gtk_entry_set_text( GTK_ENTRY(entry_x1), s.c_str() );
     char s[128];
-    snprintf( s, 128, "%lg", _x1[0] );
+    snprintf( s, 128, "%g", _x1[0] );
     gtk_entry_set_text( GTK_ENTRY(entry_x1), s );
     gtk_box_pack_start( GTK_BOX(hbox2), entry_x1, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
@@ -116,7 +116,7 @@ void GTKFieldDiagDialog::run( void )
     GtkWidget *entry_x2 = gtk_entry_new_with_max_length( 30 );
     //s = to_string(_x2[0]);
     //gtk_entry_set_text( GTK_ENTRY(entry_x2), s.c_str() );
-    snprintf( s, 128, "%lg", _x2[0] );
+    snprintf( s, 128, "%g", _x2[0] );
     gtk_entry_set_text( GTK_ENTRY(entry_x2), s );
     gtk_box_pack_start( GTK_BOX(hbox2), entry_x2, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
@@ -135,7 +135,7 @@ void GTKFieldDiagDialog::run( void )
     GtkWidget *entry_y1 = gtk_entry_new_with_max_length( 30 );
     //s = to_string(_x1[1]);
     //gtk_entry_set_text( GTK_ENTRY(entry_y1), s.c_str() );
-    snprintf( s, 128, "%lg", _x1[1] );
+    snprintf( s, 128, "%g", _x1[1] );
     gtk_entry_set_text( GTK_ENTRY(entry_y1), s );
     gtk_box_pack_start( GTK_BOX(hbox2), entry_y1, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
@@ -151,7 +151,7 @@ void GTKFieldDiagDialog::run( void )
     GtkWidget *entry_y2 = gtk_entry_new_with_max_length( 30 );
     //s = to_string(_x2[1]);
     //gtk_entry_set_text( GTK_ENTRY(entry_y2), s.c_str() );
-    snprintf( s, 128, "%lg", _x2[1] );
+    snprintf( s, 128, "%g", _x2[1] );
     gtk_entry_set_text( GTK_ENTRY(entry_y2), s );
     gtk_box_pack_start( GTK_BOX(hbox2), entry_y2, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
@@ -169,7 +169,7 @@ void GTKFieldDiagDialog::run( void )
 	gtk_widget_set_sensitive( entry_z1, FALSE );
     //s = to_string(_x1[2]);
     //gtk_entry_set_text( GTK_ENTRY(entry_z1), s.c_str() );
-    snprintf( s, 128, "%lg", _x1[2] );
+    snprintf( s, 128, "%g", _x1[2] );
     gtk_entry_set_text( GTK_ENTRY(entry_z1), s );
     gtk_box_pack_start( GTK_BOX(hbox2), entry_z1, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
@@ -184,7 +184,7 @@ void GTKFieldDiagDialog::run( void )
 	gtk_widget_set_sensitive( entry_z2, FALSE );
     //s = to_string(_x2[2]);
     //gtk_entry_set_text( GTK_ENTRY(entry_z2), s.c_str() );
-    snprintf( s, 128, "%lg", _x2[2] );
+    snprintf( s, 128, "%g", _x2[2] );
     gtk_entry_set_text( GTK_ENTRY(entry_z2), s );
     gtk_box_pack_start( GTK_BOX(hbox2), entry_z2, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );

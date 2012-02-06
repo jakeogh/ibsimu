@@ -2,7 +2,7 @@
  *  \brief Source code for gtkparticlediagdialog.cpp
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -307,7 +307,7 @@ void GTKParticleDiagDialog::run( void )
     gtk_alignment_set_padding( GTK_ALIGNMENT(alignment), 0, 0, 15, 0 );
     GtkWidget *entry_level = gtk_entry_new_with_max_length( 30 );
     char buf[128];
-    snprintf( buf, 128, "%lg", _val );
+    snprintf( buf, 128, "%g", _val );
     gtk_entry_set_text( GTK_ENTRY(entry_level), buf );
     gtk_container_add( GTK_CONTAINER(alignment), entry_level );
     gtk_box_pack_start( GTK_BOX(vbox2), alignment, FALSE, TRUE, 0 );

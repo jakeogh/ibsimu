@@ -80,7 +80,7 @@ void GTKPreferences::run( void )
     //std::string s = to_string( _frame->get_font_size() );
     //gtk_entry_set_text( GTK_ENTRY(fontsize_entry), s.c_str() );
     char s[128];
-    snprintf( s, 128, "%lg", _frame->get_font_size() );
+    snprintf( s, 128, "%g", _frame->get_font_size() );
     gtk_entry_set_text( GTK_ENTRY(fontsize_entry), s );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), fontsize_entry, FALSE, TRUE, 0 );
@@ -95,7 +95,7 @@ void GTKPreferences::run( void )
     _frame->get_ranges( PLOT_AXIS_X1, min, max );
     //s = to_string( min );
     //gtk_entry_set_text( GTK_ENTRY(rxmin_entry), s.c_str() );
-    snprintf( s, 128, "%lg", min );
+    snprintf( s, 128, "%g", min );
     gtk_entry_set_text( GTK_ENTRY(rxmin_entry), s );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), rxmin_entry, FALSE, TRUE, 0 );
@@ -109,7 +109,7 @@ void GTKPreferences::run( void )
     _frame->get_ranges( PLOT_AXIS_X1, min, max );
     //s = to_string( max );
     //gtk_entry_set_text( GTK_ENTRY(rxmax_entry), s.c_str() );
-    snprintf( s, 128, "%lg", max );
+    snprintf( s, 128, "%g", max );
     gtk_entry_set_text( GTK_ENTRY(rxmax_entry), s );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), rxmax_entry, FALSE, TRUE, 0 );
@@ -123,7 +123,7 @@ void GTKPreferences::run( void )
     _frame->get_ranges( PLOT_AXIS_Y1, min, max );
     //s = to_string( min );
     //gtk_entry_set_text( GTK_ENTRY(rymin_entry), s.c_str() );
-    snprintf( s, 128, "%lg", min );
+    snprintf( s, 128, "%g", min );
     gtk_entry_set_text( GTK_ENTRY(rymin_entry), s );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), rymin_entry, FALSE, TRUE, 0 );
@@ -137,7 +137,7 @@ void GTKPreferences::run( void )
     _frame->get_ranges( PLOT_AXIS_Y1, min, max );
     //s = to_string( max );
     //gtk_entry_set_text( GTK_ENTRY(rymax_entry), s.c_str() );
-    snprintf( s, 128, "%lg", max );
+    snprintf( s, 128, "%g", max );
     gtk_entry_set_text( GTK_ENTRY(rymax_entry), s );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), rymax_entry, FALSE, TRUE, 0 );

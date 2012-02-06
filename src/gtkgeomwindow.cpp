@@ -41,6 +41,7 @@
  */
 
 #include <limits>
+#include <locale>
 #include "gtkgeomwindow.hpp"
 #include "gtkparticlediagdialog.hpp"
 #include "gtkfielddiagdialog.hpp"
@@ -449,9 +450,9 @@ void GTKGeomWindow::field_activate( void )
     //s = to_string( zmax );
     //gtk_entry_set_text( GTK_ENTRY(_prefdata->zmax_entry), s.c_str() );
     char s[128];
-    snprintf( s, 128, "%lg", zmin );
+    snprintf( s, 128, "%g", zmin );
     gtk_entry_set_text( GTK_ENTRY(_prefdata->zmin_entry), s );
-    snprintf( s, 128, "%lg", zmax );
+    snprintf( s, 128, "%g", zmax );
     gtk_entry_set_text( GTK_ENTRY(_prefdata->zmax_entry), s );    
 }
 
@@ -482,7 +483,7 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     std::string s;
     for( size_t a = 0; a < eqlines_manual.size(); a++ ) {
 	char ss[128];
-	snprintf( ss, 128, "%lg", eqlines_manual[a] );
+	snprintf( ss, 128, "%g", eqlines_manual[a] );
 	s += ss;
 	if( a != eqlines_manual.size()-1 )
 	    s += " ";
@@ -774,7 +775,7 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     //s = to_string( zmin );
     //gtk_entry_set_text( GTK_ENTRY(_prefdata->zmin_entry), s.c_str() );
     char st[128];
-    snprintf( st, 128, "%lg", zmin );
+    snprintf( st, 128, "%g", zmin );
     gtk_entry_set_text( GTK_ENTRY(_prefdata->zmin_entry), st );
 
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
@@ -788,7 +789,7 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     _prefdata->zmax_entry = gtk_entry_new();
     //s = to_string( zmax );
     //gtk_entry_set_text( GTK_ENTRY(_prefdata->zmax_entry), s.c_str() );
-    snprintf( st, 128, "%lg", zmax );
+    snprintf( st, 128, "%g", zmax );
     gtk_entry_set_text( GTK_ENTRY(_prefdata->zmax_entry), st );
 
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
@@ -964,6 +965,8 @@ void GTKGeomWindow::spinbutton( GtkSpinButton *spinbutton )
     int level = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(_spinbutton) );
 
     std::stringstream ss;
+    std::locale mylocale("");
+    ss.imbue( mylocale );
     switch( _geomplot.get_view() ) {
     case VIEW_XY:
 	ss << "z = "<< _geom.origo(2)+level*_geom.h() << " m";
