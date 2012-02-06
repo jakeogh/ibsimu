@@ -2,7 +2,7 @@
  *  \brief Source code for gtkgeomwindow.cpp
  */
 
-/* Copyright (c) 2005-2009, 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009, 2011-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -771,8 +771,11 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     label = gtk_label_new( "Range zmin" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     _prefdata->zmin_entry = gtk_entry_new();
-    s = to_string( zmin );
-    gtk_entry_set_text( GTK_ENTRY(_prefdata->zmin_entry), s.c_str() );
+    //s = to_string( zmin );
+    //gtk_entry_set_text( GTK_ENTRY(_prefdata->zmin_entry), s.c_str() );
+    char st[128];
+    snprintf( st, 128, "%lg", zmin );
+    gtk_entry_set_text( GTK_ENTRY(_prefdata->zmin_entry), st );
 
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), _prefdata->zmin_entry, FALSE, TRUE, 0 );
@@ -783,13 +786,14 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     label = gtk_label_new( "Range zmax" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     _prefdata->zmax_entry = gtk_entry_new();
-    s = to_string( zmax );
-    gtk_entry_set_text( GTK_ENTRY(_prefdata->zmax_entry), s.c_str() );
+    //s = to_string( zmax );
+    //gtk_entry_set_text( GTK_ENTRY(_prefdata->zmax_entry), s.c_str() );
+    snprintf( st, 128, "%lg", zmax );
+    gtk_entry_set_text( GTK_ENTRY(_prefdata->zmax_entry), st );
 
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), _prefdata->zmax_entry, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
-
 
     // Palette steps
     int steps = _geomplot.fieldgraph().palette().steps();
@@ -797,8 +801,10 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     label = gtk_label_new( "Palette steps" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     _prefdata->palette_steps_entry = gtk_entry_new();
-    s = to_string( steps );
-    gtk_entry_set_text( GTK_ENTRY(_prefdata->palette_steps_entry), s.c_str() );
+    //s = to_string( steps );
+    //gtk_entry_set_text( GTK_ENTRY(_prefdata->palette_steps_entry), s.c_str() );
+    snprintf( st, 128, "%d", steps );
+    gtk_entry_set_text( GTK_ENTRY(_prefdata->palette_steps_entry), st );
 
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), _prefdata->palette_steps_entry, FALSE, TRUE, 0 );
@@ -862,7 +868,7 @@ void GTKGeomWindow::read_preferences( GtkWidget *notebook, void *pdata )
     else
 	_geomplot.fieldgraph().set_zscale( ZSCALE_RELLOG );
 
-    int psteps = atof( gtk_entry_get_text( GTK_ENTRY(_prefdata->palette_steps_entry) ) );
+    int psteps = atoi( gtk_entry_get_text( GTK_ENTRY(_prefdata->palette_steps_entry) ) );
     _geomplot.fieldgraph().palette().steps() = psteps;
 }
 
