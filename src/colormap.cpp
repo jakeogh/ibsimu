@@ -2,7 +2,7 @@
  *  \brief %Colormap graph for plotting
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -386,7 +386,7 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 	int nlim[4] = { 0, 0, width-1, height-1 };
 	plot_to_image_surface( nsurface, ncm, nlim );
 	delete ncm;
-	cairo_surface_write_to_png( nsurface, "surface.png" );
+	//cairo_surface_write_to_png( nsurface, "surface.png" );
 
 	cairo_save( cairo );
 	cairo_set_source_surface( cairo, nsurface, plim[0], plim[1] );
