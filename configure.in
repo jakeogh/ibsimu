@@ -64,7 +64,7 @@ AC_ARG_WITH([umfpack],
                   [with_umfpack=no])
 AM_CONDITIONAL([UMFPACK], [test x$with_umfpack != xno])
 if test x$with_umfpack != xno ; then
-  PKG_CHECK_MODULES(umfpack, umfpack)
+  PKG_CHECK_MODULES([umfpack], [umfpack])
   CPPFLAGS="$CPPFLAGS $umfpack_CFLAGS"
   LIBS="$LIBS $umfpack_LIBS"
   AC_SUBST(UMFPACK_COND,umfpack)
@@ -80,7 +80,7 @@ AC_ARG_WITH([csg],
                   [with_csg=no])
 AM_CONDITIONAL([CSG], [test x$with_csg != xno])
 if test x$with_csg != xno ; then
-  PKG_CHECK_MODULES(csg, csg)
+  PKG_CHECK_MODULES([csg], [csg])
   CPPFLAGS="$CPPFLAGS $csg_CFLAGS"
   LIBS="$LIBS $csg_LIBS"
   AC_SUBST(CSG_COND,csg)
@@ -109,7 +109,7 @@ dnl -------------
 dnl gtk+-2.0
 
 if $PKG_CONFIG --exists gtk+-2.0 ; then
-  PKG_CHECK_MODULES(gtk, gtk+-2.0 >= 0.0.1 )
+  PKG_CHECK_MODULES([gtk], [gtk+-2.0 >= 0.0.1])
 else
   AC_MSG_ERROR([required library gtk+-2.0 not found])
 fi
@@ -121,7 +121,7 @@ dnl -------------
 dnl libpng
 
 if $PKG_CONFIG --exists libpng ; then
-  PKG_CHECK_MODULES(libpng, libpng)
+  PKG_CHECK_MODULES([libpng], [libpng])
 else
   AC_MSG_ERROR([required library libpng not found])
 fi
@@ -133,7 +133,7 @@ dnl -------------
 dnl fontconfig
 
 if $PKG_CONFIG --exists fontconfig ; then
-  PKG_CHECK_MODULES(fontconfig, fontconfig)
+  PKG_CHECK_MODULES([fontconfig], [fontconfig])
 else
   AC_MSG_ERROR([required library fontconfig not found])
 fi
@@ -145,7 +145,7 @@ dnl -------------
 dnl Freetype2
 
 if $PKG_CONFIG --exists freetype2 ; then
-  PKG_CHECK_MODULES(freetype, freetype2)
+  PKG_CHECK_MODULES([freetype], [freetype2])
 else
   AC_MSG_ERROR([required library freetype2 not found])
 fi
@@ -161,23 +161,12 @@ dnl Tested to work down to 1.2.4.
 dnl Postscript support may need higher version
 
 if $PKG_CONFIG --exists cairo ; then
-  PKG_CHECK_MODULES(cairo, cairo >= 1.2.4 )
+  PKG_CHECK_MODULES([cairo], [cairo >= 1.2.4])
 else
   AC_MSG_ERROR([required library cairo not found])
 fi
 LIBS="$LIBS $cairo_LIBS"
 CPPFLAGS="$CPPFLAGS $cairo_CFLAGS"
-
-dnl -------------
-dnl csg
-dnl 
-dnl if $PKG_CONFIG --exists csg ; then
-dnl   PKG_CHECK_MODULES(csg, csg >= 0.0.1 )
-dnl else
-dnl   AC_MSG_ERROR([required library csg not found])
-dnl fi
-dnl LIBS="$LIBS $csg_LIBS"
-dnl CPPFLAGS="$CPPFLAGS $csg_CFLAGS"
 
 dnl -------------
 dnl POSIX threads 
@@ -197,7 +186,7 @@ dnl -------------
 dnl GSL
 
 if $PKG_CONFIG --exists gsl ; then
-  PKG_CHECK_MODULES(gsl, gsl >= 1.12 )
+  PKG_CHECK_MODULES([gsl], [gsl >= 1.12])
 else
   AC_MSG_ERROR([required version of gsl not found])
 fi
