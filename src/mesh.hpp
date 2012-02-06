@@ -149,6 +149,27 @@ public:
      */
     double div_h( void ) const { return( _div_h ); }
 
+    /*! \brief Returns node closest to location \a x.
+     *
+     *  Calculated as \code floor((x[i]-origo(i))/h() + 0.5) \endcode
+     *  for each component
+     */
+    Int3D closest_node( Vec3D x ) const;
+
+    /*! \brief Returns node, which contains \a x.
+     *
+     *  Calculated as \code floor((x[i]-origo(i))/h()) \endcode
+     *  for each component
+     */
+    Int3D mesh_number( Vec3D x ) const;
+
+    /*! \brief Returns coordinates of node \a i.
+     *
+     *  Calculated as \code origo(i)+n[i]*h() \endcode
+     *  for each component
+     */
+    Vec3D coord_of_node( Int3D n ) const;
+
     /*! \brief Saves geometry data to stream \a os.
      */
     void save( std::ostream &os ) const;

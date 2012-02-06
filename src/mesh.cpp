@@ -127,6 +127,30 @@ int32_t Mesh::dim( void ) const
 }
 
 
+Int3D Mesh::closest_node( Vec3D x ) const
+{
+    return( Int3D( floor((x[0]-_origo(0))/_h + 0.5),
+		   floor((x[1]-_origo(1))/_h + 0.5),
+		   floor((x[2]-_origo(2))/_h + 0.5) ) );
+}
+
+
+Int3D Mesh::mesh_number( Vec3D x ) const
+{
+    return( Int3D( floor((x[0]-_origo(0))/_h),
+		   floor((x[1]-_origo(1))/_h),
+		   floor((x[2]-_origo(2))/_h) ) );
+}
+
+
+Vec3D Mesh::coord_of_node( Int3D n ) const
+{
+    return( Vec3D( _origo(0)+n[0]*_h,
+		   _origo(1)+n[1]*_h,
+		   _origo(2)+n[2]*_h ) );
+}
+
+
 void Mesh::save( std::ostream &os ) const
 {
     write_int32( os, _geom_mode );
