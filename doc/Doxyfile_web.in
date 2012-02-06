@@ -709,7 +709,7 @@ INPUT                  = \
 ../src/vec4d.hpp \
 ../src/vectorfield.hpp \
 ../src/xygraph.hpp \
-main.dxy
+main_dev.dxy
 
 # This tag can be used to specify the character encoding of the source
 # files that doxygen parses. Internally doxygen uses the UTF-8
