@@ -80,7 +80,8 @@ void write_uint32( std::ostream &s, uint32_t value )
 {
 #ifdef DEBUG_FILE
     std::cout << "write_uint32: " << value << "\n";
-#endif    s.write( (const char *)(&value), sizeof(uint32_t) );
+#endif
+    s.write( (const char *)(&value), sizeof(uint32_t) );
 }
 
 
