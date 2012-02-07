@@ -2,7 +2,7 @@
  *  \brief Particle database implementation
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -538,7 +538,7 @@ void ParticleDataBase2DImp::save( const std::string &filename ) const
     if( ibsimu.get_verbose_output() )
 	ibsimu.vout() << "Saving ParticleDataBase2D to file \'" << filename << "\'.\n";
 
-    std::ofstream os( filename.c_str() );
+    std::ofstream os( filename.c_str(), std::ios_base::binary );
     if( !os.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
     save( os );
@@ -915,7 +915,7 @@ void ParticleDataBaseCylImp::save( const std::string &filename ) const
     if( ibsimu.get_verbose_output() )
 	ibsimu.vout() << "Saving ParticleDataBaseCyl to file \'" << filename << "\'.\n";
 
-    std::ofstream os( filename.c_str() );
+    std::ofstream os( filename.c_str(), std::ios_base::binary );
     if( !os.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
     save( os );
@@ -1721,7 +1721,7 @@ void ParticleDataBase3DImp::save( const std::string &filename ) const
     if( ibsimu.get_verbose_output() )
 	ibsimu.vout() << "Saving ParticleDataBase3D to file \'" << filename << "\'.\n";
 
-    std::ofstream os( filename.c_str() );
+    std::ofstream os( filename.c_str(), std::ios_base::binary );
     if( !os.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
     save( os );

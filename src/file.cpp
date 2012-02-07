@@ -148,7 +148,7 @@ uint32_t read_uint32( std::istream &s )
     uint32_t value;
     s.read( (char *)(&value), sizeof(uint32_t) );
 #ifdef DEBUG_FILE
-    std::cout << "read_int32: " << value << "\n";
+    std::cout << "read_uint32: " << value << "\n";
 #endif
     return( value );
 }
