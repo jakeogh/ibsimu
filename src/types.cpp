@@ -2,7 +2,7 @@
  *  \brief Base types
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -89,7 +89,8 @@ const char *trajectory_diagnostic_string[] = {
     "E_k",
     "q/m",
     "charge",
-    "mass"
+    "mass",
+    "particle no"
 };
 
 
@@ -123,7 +124,8 @@ const char *trajectory_diagnostic_string_with_unit[] = {
     "E_k (eV)",
     "q/m (e/u)",
     "charge (e)",
-    "mass (u)"
+    "mass (u)",
+    "particle no"
 };
 
 
@@ -157,7 +159,8 @@ const char *trajectory_diagnostic_string_unit[] = {
     "eV",
     "e/u",
     "e",
-    "u"
+    "u",
+    ""
 };
 
 

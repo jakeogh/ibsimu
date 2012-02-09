@@ -2,7 +2,7 @@
  *  \brief Source code for trajectorydiagnostics.cpp
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -41,11 +41,14 @@
  */
 
 #include <iostream>
+#include <iomanip>
+#include <fstream>
 #include <limits>
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
 #include "trajectorydiagnostics.hpp"
+#include "ibsimu.hpp"
 #include "error.hpp"
 
 
@@ -100,6 +103,38 @@ void TrajectoryDiagnosticColumn::mirror( coordinate_axis_e axis, double level )
 		_data.push_back( _data[a] );
 	}
     }
+}
+
+
+void TrajectoryDiagnosticData::export_data( const std::string &filename )
+{
+    std::ofstream fstr( filename.c_str() );
+    if( !fstr.is_open() ) {
+	throw( Error( ERROR_LOCATION, 
+		      "couldn't open file \'" + filename + "\' for writing" ) );
+    }
+    ibsimu.message( 1 ) << "Exporting diagnostic data to \'" << filename << "\'\n";
+
+    size_t n = traj_size();
+    size_t m = diag_size();
+
+    fstr << "# ";
+    for( size_t b = 0; b < m; b++ ) {
+	if( b == 0 )
+	    fstr << std::setw(11) << trajectory_diagnostic_string_with_unit[_column[b].diagnostic()] << " ";
+	else
+	    fstr << std::setw(13) << trajectory_diagnostic_string_with_unit[_column[b].diagnostic()] << " ";
+    }
+    fstr << "\n";
+
+    for( size_t a = 0; a < n; a++ ) {
+	for( size_t b = 0; b < m; b++ ) {
+	    fstr << std::setw(13) << _column[b][a] << " ";
+	}
+	fstr << "\n";
+    }
+
+    fstr.close();
 }
 
 

@@ -2,7 +2,7 @@
  *  \brief Base types
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -192,7 +192,8 @@ enum trajectory_diagnostic_e {
     DIAG_EK,       /*!< \brief Kinetic energy (eV) */
     DIAG_QM,       /*!< \brief Charge per mass (e/u) */
     DIAG_CHARGE,   /*!< \brief Particle charge (e) */
-    DIAG_MASS      /*!< \brief Particle mass (u) */
+    DIAG_MASS,     /*!< \brief Particle mass (u) */
+    DIAG_NO        /*!< \brief Particle index number. Useful for debugging. */
 };
 
 
