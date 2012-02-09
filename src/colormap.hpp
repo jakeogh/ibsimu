@@ -196,6 +196,10 @@ public:
      */
     Palette &palette( void ) { return( _palette ); }
 
+    /*! \brief Get a reference to colormap palette.
+     */
+    const Palette &palette( void ) const { return( _palette ); }
+
     /*! \brief Get zrange for colormap plot.
      */
     void get_zrange( double &min, double &max ) const;

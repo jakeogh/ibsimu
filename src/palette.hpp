@@ -2,7 +2,7 @@
  *  \brief %Palette for colormaps
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -127,7 +127,15 @@ public:
      */
     void normalize( void );
 
-    /*! \brief Return a reference to palette steps.
+    /*! \brief Get palette steps.
+     *
+     *  If \a steps is less than or equal to 1 a regular interpolated
+     *  palette will be used (default), otherwise \a steps is used as
+     *  the number of separate shades in the palette.
+     */
+    int get_steps( void ) const;
+
+    /*! \brief Set palette steps.
      *
      *  If \a steps is less than or equal to 1 a regular interpolated
      *  palette will be used (default), otherwise \a steps is used as
@@ -135,7 +143,7 @@ public:
      *
      *  Defaults to 0.
      */
-    int &steps( void );
+    void set_steps( int steps );
 
     /*! \brief Print debugging information to os.
      */

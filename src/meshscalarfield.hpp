@@ -158,12 +158,12 @@ public:
     /*! \brief Operator for pointing to elements of the field mesh.
      */
     inline double &operator()( int32_t i, int32_t j ) {
-	return( _F[i + j*_size[0]] ); }
+	return( _F[i + j*_size(0)] ); }
 
     /*! \brief Operator for pointing to elements of the field mesh.
      */
     inline double &operator()( int32_t i, int32_t j, int32_t k ) {
-	return( _F[i + (j + k*_size[1])*_size(0)] ); }
+	return( _F[i + (j + k*_size(1))*_size(0)] ); }
 
     /*! \brief Operator for pointing to elements of the field mesh.
      */
@@ -173,12 +173,12 @@ public:
     /*! \brief Operator for pointing to elements of the field mesh.
      */
     inline const double &operator()( int32_t i, int32_t j ) const {
-	return( _F[i + j*_size[0]] ); }
+	return( _F[i + j*_size(0)] ); }
 
     /*! \brief Operator for pointing to elements of the field mesh.
      */
     inline const double &operator()( int32_t i, int32_t j, int32_t k ) const {
-	return( _F[i + (j + k*_size[1])*_size(0)] ); }
+	return( _F[i + (j + k*_size(1))*_size(0)] ); }
 
     /*! \brief Operator for getting linearly interpolated field values.
      *

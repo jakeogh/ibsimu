@@ -2,7 +2,7 @@
  *  \brief Source code for ruler.cpp
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -428,11 +428,17 @@ void Ruler::calculate( cairo_t *cairo, Coordmapper1D &cm, bool ruler_tic_bbox_te
     std::cout << "  max = " << _range[1] << "\n";
     std::cout << "  big = " << big << "\n";
     std::cout << "  bigl = " << bigl << "\n";
+    std::cout << "  fac = " << fac << "\n";
+    std::cout << "  stepdir = " << stepdir << "\n";
 #endif
 
     double maxsize = 0.0;
     double orig_range[2] = { _range[0], _range[1] };
     for( size_t a = 0; a < 2; a++ ) {
+
+#ifdef DEBUG_RULER
+	std::cout << "Ruler::calculate(): round = " << a << "\n";
+#endif
 
 	// Calculate step
 	if( stepdir ) step = fac*bigl;
@@ -452,16 +458,25 @@ void Ruler::calculate( cairo_t *cairo, Coordmapper1D &cm, bool ruler_tic_bbox_te
 	double x = 0.0;
 	if( stepdir )
 	    // Allow 1% of step size error for inaccurate arithmetic
-	    x = step*floor(_range[0]/step+0.01); 
+	    x = step*floor(_range[0]/step-0.01); 
 	else
-	    x = step*ceil(_range[0]/step-0.01);
+	    x = step*ceil(_range[0]/step+0.01);
 	if( _autorange[0] )
 	    _range[0] = x;
+#ifdef DEBUG_RULER
+	std::cout << "Ruler::calculate(): starting x = " << x << "\n";
+	std::cout << "Ruler::calculate(): comp1 = " << _range[1]+0.01*step << "\n";
+	std::cout << "Ruler::calculate(): comp2 = " << _range[1]-0.01*step << "\n";
+#endif
 	if( _autorange[1] ) {
 	    int i = 0;
 	    while( (stepdir && x <= _range[1]+0.01*step) || (!stepdir && x >= _range[1]-0.01*step) ) {
 		i++;
 		x = _range[0] + i*step;
+#ifdef DEBUG_RULER
+		std::cout << "Ruler::calculate(): trying x = " << x << "\n";
+#endif
+
 	    }
 	    _range[1] = x;
 	}

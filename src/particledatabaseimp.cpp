@@ -601,13 +601,17 @@ void ParticleDataBaseCylImp::add_tdens_from_segment( MeshScalarField &tdens, dou
     int i[2];
 
     // x-direction
-    dx += ( x2[1] - x1[1] );
+    double xx = ( x2[1] - x1[1] );
+    xx = xx*xx;
+    dx += xx;
     x[0] = 0.5*( x1[1] + x2[1] );
     i[0] = (int)floor( ( x[0]-tdens.origo(0) ) * tdens.div_h() );
     t[0] = ( x[0]-(i[0]*tdens.h()+tdens.origo(0)) ) * tdens.div_h();
 
     // r-direction
-    dx += ( x2[3] - x1[3] );
+    xx = ( x2[3] - x1[3] );
+    xx = xx*xx;
+    dx += xx;
     x[1] = 0.5*( x1[3] + x2[3] );
     i[1] = (int)floor( ( x[1]-tdens.origo(1) ) * tdens.div_h() );
     double rj1 = i[1]*tdens.h()+tdens.origo(1);
@@ -673,8 +677,8 @@ void ParticleDataBaseCylImp::build_trajectory_density_field( MeshScalarField &td
     }    
 
     // Normalize to trajectory density, A/m2
-    for( int32_t i = 0; i < tdens.size(0); i++ ) {
-	for( int32_t j = 0; j < tdens.size(1); j++ ) {
+    for( uint32_t i = 0; i < tdens.size(0); i++ ) {
+	for( uint32_t j = 0; j < tdens.size(1); j++ ) {
 	    if( j == 0 ) {
 		double rj2 = tdens.h()+tdens.origo(1);
 		tdens( i, j ) /= (M_PI*tdens.h()*(rj2*rj2));
@@ -1353,81 +1357,83 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
 		Vec3D vel_opq( vel*o, vel*p, vel*q );
 
 		// Fill diagnostic data
-		for( size_t a = 0; a < tdata.diag_size(); a++ ) {
+		for( size_t c = 0; c < tdata.diag_size(); c++ ) {
 
-		    switch( tdata.diagnostic( a ) ) {
+		    switch( tdata.diagnostic( c ) ) {
 		    case DIAG_T:
-			tdata.add_data( a, nt*x1[0]+t*x2[0] );
+			tdata.add_data( c, nt*x1[0]+t*x2[0] );
 			break;
 
 		    case DIAG_X:
-			tdata.add_data( a, pos[0] );
+			tdata.add_data( c, pos[0] );
 			break;
 		    case DIAG_VX:
-			tdata.add_data( a, vel[0] );
+			tdata.add_data( c, vel[0] );
 			break;
 		    case DIAG_Y:
-			tdata.add_data( a, pos[1] );
+			tdata.add_data( c, pos[1] );
 			break;
 		    case DIAG_VY:
-			tdata.add_data( a, vel[1] );
+			tdata.add_data( c, vel[1] );
 			break;
 		    case DIAG_Z:
-			tdata.add_data( a, pos[2] );
+			tdata.add_data( c, pos[2] );
 			break;
 		    case DIAG_VZ:
-			tdata.add_data( a, vel[2] );
+			tdata.add_data( c, vel[2] );
 			break;
 
 		    case DIAG_O:
-			tdata.add_data( a, pos_opq[0] );
+			tdata.add_data( c, pos_opq[0] );
 			break;
 		    case DIAG_VO:
-			tdata.add_data( a, vel_opq[0] );
+			tdata.add_data( c, vel_opq[0] );
 			break;
 		    case DIAG_P:
-			tdata.add_data( a, pos_opq[1] );
+			tdata.add_data( c, pos_opq[1] );
 			break;
 		    case DIAG_VP:
-			tdata.add_data( a, vel_opq[1] );
+			tdata.add_data( c, vel_opq[1] );
 			break;
 		    case DIAG_Q:
-			tdata.add_data( a, pos_opq[2] );
+			tdata.add_data( c, pos_opq[2] );
 			break;
 		    case DIAG_VQ:
-			tdata.add_data( a, vel_opq[2] );
+			tdata.add_data( c, vel_opq[2] );
 			break;
 
 		    case DIAG_OP:
-			tdata.add_data( a, vel_opq[0]/vel_opq[2] );
+			tdata.add_data( c, vel_opq[0]/vel_opq[2] );
 			break;
 		    case DIAG_PP:
-			tdata.add_data( a, vel_opq[1]/vel_opq[2] );
+			tdata.add_data( c, vel_opq[1]/vel_opq[2] );
 			break;
 
 		    case DIAG_CURR:
-			tdata.add_data( a, _particles[a]->IQ() );
+			tdata.add_data( c, _particles[a]->IQ() );
 			break;
 		    case DIAG_EK:
 			if( vel.ssqr() < 1.0e-4*SPEED_C )
-			    tdata.add_data( a, 0.5*_particles[a]->m()*vel.ssqr()/CHARGE_E );
+			    tdata.add_data( c, 0.5*_particles[a]->m()*vel.ssqr()/CHARGE_E );
 			else {
 			    double beta = vel.ssqr()/SPEED_C;
 			    double gamma = 1.0 / sqrt( 1.0 - beta*beta );
 			    double Ek = _particles[a]->m()*SPEED_C2*( gamma - 1.0 );
-			    tdata.add_data( a, Ek/CHARGE_E );
+			    tdata.add_data( c, Ek/CHARGE_E );
 			}
 			break;
 		    case DIAG_QM:
-			tdata.add_data( a, (_particles[a]->q()/CHARGE_E) / (_particles[a]->m()/MASS_U) );
+			tdata.add_data( c, (_particles[a]->q()/CHARGE_E) / (_particles[a]->m()/MASS_U) );
 			break;
 		    case DIAG_CHARGE:
-			tdata.add_data( a, _particles[a]->q()/CHARGE_E );
+			tdata.add_data( c, _particles[a]->q()/CHARGE_E );
 			break;
 		    case DIAG_MASS:
-			tdata.add_data( a, _particles[a]->m()/MASS_U );
+			tdata.add_data( c, _particles[a]->m()/MASS_U );
 			break;
-
+		    case DIAG_NO:
+			tdata.add_data( c, a );
+			break;
 		    default:
 			throw( ErrorUnimplemented( ERROR_LOCATION ) );
 			break;
@@ -1466,8 +1472,8 @@ void ParticleDataBase3DImp::export_path_manager_data( std::string filename,
     ref_m *= MASS_U;
     double ref_v = sqrt(2.0*ref_E*CHARGE_E/ref_m);
     double ref_p = ref_m*ref_v;
-    const double m_to_gevc2 = SPEED_OF_LIGHT*SPEED_OF_LIGHT/CHARGE_E/1.0e9;
-    const double p_to_gevc = SPEED_OF_LIGHT/CHARGE_E/1.0e9;
+    const double m_to_gevc2 = SPEED_C2/CHARGE_E/1.0e9;
+    const double p_to_gevc = SPEED_C/CHARGE_E/1.0e9;
 
     ibsimu.message( 1 ) << "Making trajectory diagnostics at plane for Path Manager output\n" 
 			<< "  ref_E = " << ref_E << " eV\n"

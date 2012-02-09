@@ -2,7 +2,7 @@
  *  \brief %Graph for plotting solids
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -81,7 +81,7 @@ class SolidGraph : public Graph3D {
 
     view_e                               _oview;
     double                               _olevel;
-    
+
     bool                                 _cache;
 
     bool is_edge( uint32_t node, const int32_t i[3] ) const;

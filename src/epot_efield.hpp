@@ -2,7 +2,7 @@
  *  \brief Electric potential base electric field.
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -54,13 +54,16 @@
  *  potential.
  *
  *  %EpotEfield contains pointers to Geometry and to MeshScalarField
- *  electric potential (epot). In 1D %EpotEfield uses three closest
- *  mesh neighbours of point \a x to calculate the electric field at
- *  \a x in 1D (9 points in 2D and 27 points in 3D).  A second order
- *  polynomial is fitted to the potential field to get a linear
- *  (continuous) interpolation of electric field. Use of solid mesh
- *  points is avoided in the interpolation because they would mess
- *  with the virtual edge points.
+ *  electric potential (epot). The electric field is defined in points
+ *  between the nodes using equation Ex=(Ex0-Ex1)/h. The Ex, Ey and Ez
+ *  are not defined in same positions as the nodes of the electric
+ *  potential because of this. The field evaluator uses linear
+ *  interpolation to return smoothly varying field values. Close to
+ *  the solids, special consideration is used to return as good
+ *  estimate of the field as possible.
+ *
+ *  The function recalculate() has to be called to remake the electric
+ *  field.
  *
  *  The behaviour of the interpolation function outside mesh points
  *  can be programmed with set_extrapolation() function. Behaviour

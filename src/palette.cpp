@@ -2,7 +2,7 @@
  *  \brief Palette for colormaps
  */
 
-/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -123,9 +123,15 @@ void Palette::push_back( const Color &color, double val )
 }
 
 
-int &Palette::steps( void )
+int Palette::get_steps( void ) const
 {
     return( _steps );
+}
+
+
+void Palette::set_steps( int steps )
+{
+    _steps = steps;
 }
 
 

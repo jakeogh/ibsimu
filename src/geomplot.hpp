@@ -70,7 +70,7 @@ class GeomPlot {
 
     Frame                   *_frame;
 
-    const Geometry          *_geom;
+    const Geometry          &_geom;
     const EpotField         *_epot;
     const MeshScalarField   *_scharge;
     const MeshScalarField   *_tdens;
@@ -78,7 +78,7 @@ class GeomPlot {
     const VectorField       *_efield;
     const ParticleDataBase  *_pdb;
 
-    FieldGraph               _fieldgraph;
+    FieldGraph              *_fieldgraph;
 
     SolidGraph              *_solidgraph;
     EqPotGraph              *_eqpotgraph;
@@ -192,9 +192,15 @@ public:
      */
     void set_fieldgraph_plot( field_type_e fieldplot );
 
-    /*! \brief Get a reference to field graph object.
+    /*! \brief Get field graph object.
      */
-    FieldGraph &fieldgraph( void ) {
+    const FieldGraph *fieldgraph( void ) const {
+	return( _fieldgraph );
+    }
+
+    /*! \brief Get field graph object.
+     */
+    FieldGraph *fieldgraph( void ) {
 	return( _fieldgraph );
     }
 
@@ -282,7 +288,7 @@ public:
     /*! \brief Get level of view in SI units.
      */
     double get_level_si( void ) const {
-	return( _geom->origo(_vb[2])+_level*_geom->h() );
+	return( _geom.origo(_vb[2])+_level*_geom.h() );
     }
 
     /*! \brief Get component \a i of view base vector.

@@ -111,7 +111,7 @@ void test( int argc, char **argv )
 					      Vec3D(0,0,1), 0.001 );
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
-	ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 0.0119, PARTICLE_DIAG_PLOT_SCATTER,
+	ParticleDiagPlotter pplotter( geom, pdb, AXIS_X, 0.0119, PARTICLE_DIAG_PLOT_SCATTER,
 				      DIAG_Y, DIAG_YP );
 	emit = pplotter.calculate_emittance();
 	conv.evaluate_iteration();
@@ -138,7 +138,7 @@ void test( int argc, char **argv )
     MeshScalarField tdens( geom );
     pdb.build_trajectory_density_field( tdens );
 
-    GeomPlotter gplotter( &geom );
+    GeomPlotter gplotter( geom );
     gplotter.set_size( 1024, 768 );
     gplotter.set_view( VIEW_XY, 0 );
     gplotter.set_epot( &epot );
@@ -153,7 +153,7 @@ void test( int argc, char **argv )
     gplotter.set_particle_div( 0 );
     gplotter.set_trajdens( &tdens );
     gplotter.set_fieldgraph_plot( FIELD_TRAJDENS );
-    gplotter.set_fieldgraph_logscale( true );
+    gplotter.fieldgraph()->set_zscale( ZSCALE_RELLOG );
     gplotter.plot_png( "plasma3d.png" );
 }
 

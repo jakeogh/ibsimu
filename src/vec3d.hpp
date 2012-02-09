@@ -313,11 +313,25 @@ public:
     int32_t &operator()( int i ) { return( l[i] ); }
     const int32_t &operator()( int i ) const { return( l[i] ); }
 
+    /*! \brief Integer vector addition
+     */
+    Int3D operator+( const Int3D &i ) const { 
+	return( Int3D( l[0] + i[0], 
+		       l[1] + i[1],
+		       l[2] + i[2] ) );
+    }
+
+    /*! \brief Integer vector difference
+     */
     Int3D operator-( const Int3D &i ) {
 	return( Int3D( l[0] - i[0],
 		       l[1] - i[1],
 		       l[2] - i[2] ) );
     } 
+
+    Int3D operator*( int i ) { 
+	return( Int3D( i*l[0], i*l[1], i*l[2] ) );
+    }
 
     Vec3D operator*( double x ) { 
 	return( Vec3D( x*l[0], x*l[1], x*l[2] ) );
@@ -351,6 +365,7 @@ public:
     }
 
     friend Vec3D operator*( double x, const Int3D &i );
+    friend Int3D operator*( int x, const Int3D &i );
     friend std::ostream &operator<<( std::ostream &os, const Vec3D &vec );
 };
 
@@ -358,6 +373,16 @@ public:
 inline Vec3D operator*( double x, const Int3D &i )
 {
     Vec3D res;
+    res[0] = x*i.l[0];
+    res[1] = x*i.l[1];
+    res[2] = x*i.l[2];
+    return( res );
+}
+
+
+inline Int3D operator*( int x, const Int3D &i )
+{
+    Int3D res;
     res[0] = x*i.l[0];
     res[1] = x*i.l[1];
     res[2] = x*i.l[2];
