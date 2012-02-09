@@ -2,7 +2,7 @@
  *  \brief Particle database implementation
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -57,7 +57,8 @@
 ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb )
     : _epsabs(1e-6), _epsrel(1e-6), _polyint(true), _maxsteps(1000), 
       _maxt(1e-3), _trajdiv(1), _rhosum(0.0), _iteration(0), 
-      _bsup_cb(NULL), _thand_cb(NULL), _tend_cb(NULL), _pdb(pdb)
+      _relativistic(false), _bsup_cb(NULL), _thand_cb(NULL), _tend_cb(NULL), 
+      _pdb(pdb)
 {
     for( size_t a = 0; a < 6; a++ )
 	_mirror[a] = false;
@@ -89,6 +90,18 @@ ParticleDataBaseImp::~ParticleDataBaseImp()
 }
 
 
+double ParticleDataBaseImp::energy_to_velocity( double E, double m )
+{
+    if( E < 5.0e-9*m*SPEED_C2 ) {
+	return( sqrt(2.0*E/m) );
+    } else {
+	double x = E/(m*SPEED_C2)+1.0;
+	double beta = sqrt( 1.0 - 1.0/(x*x) );
+	return( beta*SPEED_C );
+    }
+}
+
+
 void ParticleDataBaseImp::set_accuracy( double epsabs, double epsrel )
 {
     _epsabs = epsabs;
@@ -111,6 +124,12 @@ void ParticleDataBaseImp::set_trajectory_handler_callback( const TrajectoryHandl
 void ParticleDataBaseImp::set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb )
 {
     _tend_cb = tend_cb;
+}
+
+
+void ParticleDataBaseImp::set_relativistic( bool enable )
+{
+    _relativistic = enable;
 }
 
 
@@ -190,6 +209,12 @@ int ParticleDataBaseImp::get_iteration_number( void ) const
 double ParticleDataBaseImp::get_rhosum( void ) const
 {
     return( _rhosum );
+}
+
+
+void ParticleDataBaseImp::set_rhosum( double rhosum )
+{
+    _rhosum = rhosum;
 }
 
 
@@ -317,7 +342,7 @@ void ParticleDataBase2DImp::add_2d_beam_with_energy( uint32_t N, double J, doubl
 						     double E, double Tp, double Tt, 
 						     double x1, double y1, double x2, double y2 )
 {
-    add_2d_beam_with_velocity( N, J, q, m, sqrt(2.0*E*CHARGE_E/(m*MASS_U)), 
+    add_2d_beam_with_velocity( N, J, q, m, energy_to_velocity(E*CHARGE_E,m*MASS_U), 
 			       sqrt(Tp*CHARGE_E/(m*MASS_U)), 
 			       sqrt(Tt*CHARGE_E/(m*MASS_U)), 
 			       x1, y1, x2, y2 );
@@ -428,11 +453,14 @@ void ParticleDataBase2DImp::add_2d_gaussian_beam_with_emittance( uint32_t N, dou
 void ParticleDataBase2DImp::add_tdens_from_segment( MeshScalarField &tdens, double IQ,
 						    ParticleP2D &x1, ParticleP2D &x2 ) const
 {
+    double dx = 0.0;
     double x[2];
     double t[2];
     int32_t i[2];
 
     for( size_t a = 0; a < 2; a++ ) {
+	double xx = ( x2[2*a+1] - x1[2*a+1] );
+	dx  += xx*xx;
 	x[a] = 0.5*( x1[2*a+1] + x2[2*a+1] );
 	i[a] = (int32_t)floor( ( x[a]-tdens.origo(a) ) * tdens.div_h() );
 	t[a] = ( x[a]-(i[a]*tdens.h()+tdens.origo(a)) ) * tdens.div_h();
@@ -440,8 +468,9 @@ void ParticleDataBase2DImp::add_tdens_from_segment( MeshScalarField &tdens, doub
 	if( i[a] < 0 || i[a] >= (int32_t)tdens.size(a)-1 )
 	    continue;
     }
+    dx = sqrt( dx );
 
-    double J = IQ/tdens.h(); // J = I/area
+    double J = IQ*dx; // A
     int p = tdens.size(0)*i[1] + i[0];
     tdens( p )                 += (1.0-t[0])*(1.0-t[1])*J;
     tdens( p+tdens.size(0) )   += (1.0-t[0])*t[1]*J;
@@ -484,6 +513,9 @@ void ParticleDataBase2DImp::build_trajectory_density_field( MeshScalarField &tde
 	}
     }
 
+    // Normalize to trajectory density, A/m2
+    tdens /= (tdens.h()*tdens.h());
+
     // Fix boundaries, which only get half of the contribution they should
     // This should depend on mirroring properties!
     for( uint32_t i = 0; i < tdens.size(0); i++ ) {
@@ -501,7 +533,7 @@ void ParticleDataBase2DImp::save( const std::string &filename ) const
 {
     ibsimu.message( 1 ) << "Saving ParticleDataBase2D to file \'" << filename << "\'.\n";
 
-    std::ofstream os( filename.c_str() );
+    std::ofstream os( filename.c_str(), std::ios_base::binary );
     if( !os.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
     save( os );
@@ -563,16 +595,19 @@ const ParticleDataBaseCylImp &ParticleDataBaseCylImp::operator=( const ParticleD
 void ParticleDataBaseCylImp::add_tdens_from_segment( MeshScalarField &tdens, double IQ,
 						     ParticlePCyl &x1, ParticlePCyl &x2 ) const
 {
+    double dx = 0.0;
     double x[2];
     double t[2];
     int i[2];
 
     // x-direction
+    dx += ( x2[1] - x1[1] );
     x[0] = 0.5*( x1[1] + x2[1] );
     i[0] = (int)floor( ( x[0]-tdens.origo(0) ) * tdens.div_h() );
     t[0] = ( x[0]-(i[0]*tdens.h()+tdens.origo(0)) ) * tdens.div_h();
 
     // r-direction
+    dx += ( x2[3] - x1[3] );
     x[1] = 0.5*( x1[3] + x2[3] );
     i[1] = (int)floor( ( x[1]-tdens.origo(1) ) * tdens.div_h() );
     double rj1 = i[1]*tdens.h()+tdens.origo(1);
@@ -581,6 +616,8 @@ void ParticleDataBaseCylImp::add_tdens_from_segment( MeshScalarField &tdens, dou
     rj2 = rj2*rj2;
     t[1] = (x[1]*x[1]-rj1) / (rj2-rj1);
     
+    dx = sqrt( dx );
+
     for( size_t a = 0; a < 2; a++ ) {
 	// Add charge to boundaries when over simulation area
 	if( i[a] < 0 ) {
@@ -592,7 +629,7 @@ void ParticleDataBaseCylImp::add_tdens_from_segment( MeshScalarField &tdens, dou
 	}
     }
 
-    double J = IQ/(M_PI*(rj2-rj1)); // J = I/area
+    double J = IQ*dx; // A*m
     int p = tdens.size(0)*i[1] + i[0];
     tdens( p )                 += (1.0-t[0])*(1.0-t[1])*J;
     tdens( p+tdens.size(0) )   += (1.0-t[0])*t[1]*J;
@@ -635,6 +672,19 @@ void ParticleDataBaseCylImp::build_trajectory_density_field( MeshScalarField &td
 	}
     }    
 
+    // Normalize to trajectory density, A/m2
+    for( int32_t i = 0; i < tdens.size(0); i++ ) {
+	for( int32_t j = 0; j < tdens.size(1); j++ ) {
+	    if( j == 0 ) {
+		double rj2 = tdens.h()+tdens.origo(1);
+		tdens( i, j ) /= (M_PI*tdens.h()*(rj2*rj2));
+	    } else {
+		double rj1 = (j-0.5)*tdens.h()+tdens.origo(1);
+		double rj2 = (j+0.5)*tdens.h()+tdens.origo(1);
+		tdens( i, j ) /= (M_PI*tdens.h()*(rj2*rj2-rj1*rj1));
+	    }
+	}
+    }
 
     // Fix boundaries, which only get half of the contribution they should
     // This should depend on mirroring properties!
@@ -704,7 +754,7 @@ void ParticleDataBaseCylImp::add_2d_beam_with_energy( uint32_t N, double J, doub
 						      double E, double Tp, double Tt, 
 						      double x1, double y1, double x2, double y2 )
 {
-    add_2d_beam_with_velocity( N, J, q, m, sqrt(2.0*E*CHARGE_E/(m*MASS_U)), 
+    add_2d_beam_with_velocity( N, J, q, m, energy_to_velocity(E*CHARGE_E,m*MASS_U), 
 			       sqrt(Tp*CHARGE_E/(m*MASS_U)), 
 			       sqrt(Tt*CHARGE_E/(m*MASS_U)), 
 			       x1, y1, x2, y2 );
@@ -795,7 +845,7 @@ void ParticleDataBaseCylImp::add_2d_gaussian_beam_with_emittance( uint32_t N, do
     qrng.set_transformation( 1, Gaussian_Transformation() );
     qrng.set_transformation( 2, Gaussian_Transformation() );
     qrng.set_transformation( 3, Gaussian_Transformation() );
-    qrng.set_transformation( 4, Gaussian_Transformation() );
+
     double w[4], rn[4];
 
     double g = (1.0 + a*a)/b;
@@ -831,6 +881,8 @@ void ParticleDataBaseCylImp::add_2d_gaussian_beam_with_emittance( uint32_t N, do
 
 	// Convert to cylindrical coordinates
 	double r  = sqrt( y*y + z*z );
+	if( r == 0.0 ) // reject center point
+	    continue;
 	double alpha = atan2( z, y );
 	double sina = sin(alpha);
 	double cosa = cos(alpha);
@@ -852,7 +904,7 @@ void ParticleDataBaseCylImp::save( const std::string &filename ) const
 {
     ibsimu.message( 1 ) << "Saving ParticleDataBaseCyl to file \'" << filename << "\'.\n";
 
-    std::ofstream os( filename.c_str() );
+    std::ofstream os( filename.c_str(), std::ios_base::binary );
     if( !os.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
     save( os );
@@ -986,7 +1038,7 @@ void ParticleDataBase3DImp::add_cylindrical_beam_with_energy( uint32_t N, double
 							      Vec3D dir1, Vec3D dir2, double r )
 {
     add_cylindrical_beam_with_velocity( N, J, q, m, 
-					sqrt(2.0*E*CHARGE_E/(m*MASS_U)), 
+					energy_to_velocity(E*CHARGE_E,m*MASS_U), 
 					sqrt(Tp*CHARGE_E/(m*MASS_U)),
 					sqrt(Tt*CHARGE_E/(m*MASS_U)),
 					c, dir1, dir2, r );
@@ -1063,7 +1115,7 @@ void ParticleDataBase3DImp::add_rectangular_beam_with_energy( uint32_t N, double
 							      Vec3D dir1, Vec3D dir2, double size1, double size2 )
 {
     add_rectangular_beam_with_velocity( N, J, q, m, 
-					sqrt(2.0*E*CHARGE_E/(m*MASS_U)), 
+					energy_to_velocity(E*CHARGE_E,m*MASS_U), 
 					sqrt(Tp*CHARGE_E/(m*MASS_U)),
 					sqrt(Tt*CHARGE_E/(m*MASS_U)),
 					c, dir1, dir2, size1, size2 );
@@ -1137,9 +1189,10 @@ void ParticleDataBase3DImp::add_3d_KV_beam_with_emittance( uint32_t N, double I,
 
 
 void ParticleDataBase3DImp::add_3d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
-								 double ay, double by, double ey,
-								 double az, double bz, double ez,
-								 double Ex, double x0, double y0, double z0 )
+								 double E0, 
+								 double a1, double b1, double e1,
+								 double a2, double b2, double e2,
+								 Vec3D c, Vec3D dir1, Vec3D dir2 )
 {
     ibsimu.message( 1 ) << "Defining a 3d beam using Twiss parameters\n";
 
@@ -1148,6 +1201,16 @@ void ParticleDataBase3DImp::add_3d_gaussian_beam_with_emittance( uint32_t N, dou
     m *= MASS_U;
     q *= CHARGE_E;
 
+    // Calculate and check base vectors
+    Vec3D dir3 = cross( dir1, dir2 );
+    dir2 = cross( dir1, dir3 );
+    dir1.normalize();
+    dir2.normalize();
+    dir3.normalize();
+    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] ) {
+	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
+    }
+
     QRandom qrng( 4 );
     qrng.set_transformation( 0, Gaussian_Transformation() );
     qrng.set_transformation( 1, Gaussian_Transformation() );
@@ -1155,46 +1218,48 @@ void ParticleDataBase3DImp::add_3d_gaussian_beam_with_emittance( uint32_t N, dou
     qrng.set_transformation( 3, Gaussian_Transformation() );
     double w[4], rn[4];
 
-    double gy = (1.0 + ay*ay)/by;
-    double hy = 0.5*(by+gy);
-    double rmajy = sqrt(0.5*ey)*(sqrt(hy+1.0)+sqrt(hy-1.0));
-    double rminy = sqrt(0.5*ey)*(sqrt(hy+1.0)-sqrt(hy-1.0));
-    double thetay = 0.5*atan2( -2.0*ay, by-gy );
+    double g1 = (1.0 + a1*a1)/b1;
+    double h1 = 0.5*(b1+g1);
+    double rmaj1 = sqrt(0.5*e1)*(sqrt(h1+1.0)+sqrt(h1-1.0));
+    double rmin1 = sqrt(0.5*e1)*(sqrt(h1+1.0)-sqrt(h1-1.0));
+    double theta1 = 0.5*atan2( -2.0*a1, b1-g1 );
 
-    double gz = (1.0 + az*az)/bz;
-    double hz = 0.5*(bz+gz);
-    double rmajz = sqrt(0.5*ez)*(sqrt(hz+1.0)+sqrt(hz-1.0));
-    double rminz = sqrt(0.5*ez)*(sqrt(hz+1.0)-sqrt(hz-1.0));
-    double thetaz = 0.5*atan2( -2.0*az, bz-gz );
+    double g2 = (1.0 + a2*a2)/b2;
+    double h2 = 0.5*(b2+g2);
+    double rmaj2 = sqrt(0.5*e2)*(sqrt(h2+1.0)+sqrt(h2-1.0));
+    double rmin2 = sqrt(0.5*e2)*(sqrt(h2+1.0)-sqrt(h2-1.0));
+    double theta2 = 0.5*atan2( -2.0*a2, b2-g2 );
 
     double IQ = I/N;
 
-    ParticleP3D x;
-    x[0] = 0.0;
-    x[1] = x0;
-    x[2] = sqrt(2.0*Ex*CHARGE_E/m);
+    ParticleP3D x, px;
+    px[0] = x[0] = 0.0;
+    px[5] = 0.0;
+    px[6] = sqrt(2.0*E0*CHARGE_E/m);
 
     uint32_t n = 0;
     while( n < N ) {
 
 	// Randomize point from gaussian distribution
 	qrng.get( rn );
-	w[0] = rmajy*rn[0];
-	w[1] = rminy*rn[1];
-	w[2] = rmajz*rn[2];
-	w[3] = rminz*rn[3];
+	w[0] = rmaj1*rn[0];
+	w[1] = rmin1*rn[1];
+	w[2] = rmaj2*rn[2];
+	w[3] = rmin2*rn[3];
 
 	// Rotate to correct angle
-	double y  = w[0]*cos(thetay) - w[1]*sin(thetay);
-	double yp = w[0]*sin(thetay) + w[1]*cos(thetay);
-	double z  = w[2]*cos(thetaz) - w[3]*sin(thetaz);
-	double zp = w[2]*sin(thetaz) + w[3]*cos(thetaz);
+	px[1] = w[0]*cos(theta1) - w[1]*sin(theta1);
+	px[2] = px[6]*(w[0]*sin(theta1) + w[1]*cos(theta1));
+	px[3] = w[2]*cos(theta2) - w[3]*sin(theta2);
+	px[4] = px[6]*(w[2]*sin(theta2) + w[3]*cos(theta2));
 
-	// Set up particle
-	x[3] = y0 + y;
-	x[4] = x[2]*yp;
-	x[5] = z0 + z;
-	x[6] = x[2]*zp;
+	// Map to world coordinates
+	x[1] = dir1[0]*px[1] + dir2[0]*px[3] + dir3[0]*px[5] + c[0];
+	x[2] = dir1[0]*px[2] + dir2[0]*px[4] + dir3[0]*px[6];
+	x[3] = dir1[1]*px[1] + dir2[1]*px[3] + dir3[1]*px[5] + c[1];
+	x[4] = dir1[1]*px[2] + dir2[1]*px[4] + dir3[1]*px[6];
+	x[5] = dir1[2]*px[1] + dir2[2]*px[3] + dir3[2]*px[5] + c[2];
+	x[6] = dir1[2]*px[2] + dir2[2]*px[4] + dir3[2]*px[6];
 
 	add_particle( Particle3D( IQ, q, m, x ) );
 	n++;
@@ -1217,7 +1282,8 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
 	    diagnostics[a] != DIAG_Q && diagnostics[a] != DIAG_VQ && 
 	    diagnostics[a] != DIAG_OP && diagnostics[a] != DIAG_PP && 
 	    diagnostics[a] != DIAG_CURR && diagnostics[a] != DIAG_EK && 
-	    diagnostics[a] != DIAG_QM )
+	    diagnostics[a] != DIAG_QM && diagnostics[a] != DIAG_CHARGE && 
+	    diagnostics[a] != DIAG_MASS )
 	    throw( Error( ERROR_LOCATION, "invalid diagnostic type " + to_string(diagnostics[a]) ) );
     }
 
@@ -1343,10 +1409,23 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
 			tdata.add_data( a, _particles[a]->IQ() );
 			break;
 		    case DIAG_EK:
-			tdata.add_data( a, 0.5*_particles[a]->m()*vel.ssqr() );
+			if( vel.ssqr() < 1.0e-4*SPEED_C )
+			    tdata.add_data( a, 0.5*_particles[a]->m()*vel.ssqr()/CHARGE_E );
+			else {
+			    double beta = vel.ssqr()/SPEED_C;
+			    double gamma = 1.0 / sqrt( 1.0 - beta*beta );
+			    double Ek = _particles[a]->m()*SPEED_C2*( gamma - 1.0 );
+			    tdata.add_data( a, Ek/CHARGE_E );
+			}
 			break;
 		    case DIAG_QM:
-			tdata.add_data( a, _particles[a]->qm() );
+			tdata.add_data( a, (_particles[a]->q()/CHARGE_E) / (_particles[a]->m()/MASS_U) );
+			break;
+		    case DIAG_CHARGE:
+			tdata.add_data( a, _particles[a]->q()/CHARGE_E );
+			break;
+		    case DIAG_MASS:
+			tdata.add_data( a, _particles[a]->m()/MASS_U );
 			break;
 
 		    default:
@@ -1484,9 +1563,8 @@ void ParticleDataBase3DImp::export_path_manager_data( std::string filename,
     }
 
     // Write header
-    char timebuf[128];
     time_t tt = time(NULL);
-    ctime_r( &tt, timebuf );
+    char *timebuf = ctime( &tt );
     ofile << "Beam data from IBSimu, " << timebuf; // contains newline
     ofile << "Total beam: " << Isum << " A\n";
     ofile << std::setw(17) << ref_p*p_to_gevc  << " !REFERENCE MOMENTUM [GeV/c]\n";
@@ -1519,11 +1597,14 @@ void ParticleDataBase3DImp::add_tdens_from_segment( MeshScalarField &tdens, doub
 						    ParticleP3D &x1, ParticleP3D &x2 ) const
     
 {
+    double dx = 0.0;
     double x[3];
     double t[3];
     int32_t i[3];
 
     for( size_t a = 0; a < 3; a++ ) {
+	double xx = ( x2[2*a+1] - x1[2*a+1] );
+	dx  += xx*xx;
 	x[a] = 0.5*( x1[2*a+1] + x2[2*a+1] );
 	i[a] = (int)floor( ( x[a]-tdens.origo(a) ) * tdens.div_h() );
 	t[a] = ( x[a]-(i[a]*tdens.h()+tdens.origo(a)) ) * tdens.div_h();
@@ -1531,8 +1612,9 @@ void ParticleDataBase3DImp::add_tdens_from_segment( MeshScalarField &tdens, doub
 	if( i[a] < 0 || i[a] >= (int32_t)(tdens.size(a)-1) )
 	    continue;
     }
+    dx = sqrt( dx );
 
-    double J = IQ/(tdens.h()*tdens.h()); // J = I/area
+    double J = IQ*dx; // A*m
     int p = tdens.size(0)*tdens.size(1)*i[2] + tdens.size(0)*i[1] + i[0];
     tdens( p )                 += (1.0-t[0])*(1.0-t[1])*(1.0-t[2])*J;
     tdens( p+tdens.size(0) )   += (1.0-t[0])*t[1]*(1.0-t[2])*J;
@@ -1581,6 +1663,9 @@ void ParticleDataBase3DImp::build_trajectory_density_field( MeshScalarField &tde
 	}
     }    
 
+    // Normalize to trajectory density, A/m2
+    tdens /= (tdens.h()*tdens.h()*tdens.h());
+
     // Fix boundaries, which only get half of the contribution they should
     // This should depend on mirroring properties!
     for( uint32_t i = 0; i < tdens.size(0); i++ ) {
@@ -1608,7 +1693,7 @@ void ParticleDataBase3DImp::save( const std::string &filename ) const
 {
     ibsimu.message( 1 ) << "Saving ParticleDataBase3D to file \'" << filename << "\'.\n";
 
-    std::ofstream os( filename.c_str() );
+    std::ofstream os( filename.c_str(), std::ios_base::binary );
     if( !os.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
     save( os );

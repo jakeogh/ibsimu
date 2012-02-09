@@ -225,7 +225,7 @@ public:
  *  and the Twiss parameters
  *  \f[ \alpha = \frac{-<x x'>}{\epsilon}, \beta = \frac{<x^2>}{\epsilon}, \gamma = \frac{<x'^2>}{\epsilon} \f]
  *  In addition to these physical values, the class calculates the angle of the ellipse
- *  \f[ \theta = \frac{1}{2} \arctan2{\left( 2\alpha, \beta - \gamma \right)} \f]
+ *  \f[ \theta = \frac{1}{2} \arctan2{\left( -2\alpha, \beta - \gamma \right)} \f]
  *  and the half-axis lengths
  *  \f[ r_1 = \sqrt{\frac{\epsilon}{2}} ( \sqrt{H+1} + \sqrt{H-1} ) \f]
  *  \f[ r_2 = \sqrt{\frac{\epsilon}{2}} ( \sqrt{H+1} - \sqrt{H-1} ), \f]

@@ -2,7 +2,7 @@
  *  \brief DXF lwpolyline entity
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -236,14 +236,10 @@ int MyDXFLWPolyline::ray_cross( double x, double y ) const
 
 void MyDXFLWPolyline::debug_print( std::ostream &os ) const
 {
-    std::cout << "LWPOLYLINE\n";
-    std::cout << "  flags = " << _flags << "\n"; 
-    for( uint32_t a = 0; a < _p.size(); a++ ) {
-	std::cout << "  p[" << a << "] = {" 
-		  << _p[a][0] << ", " 
-		  << _p[a][1] << ", " 
-		  << _p[a][2] << "}\n";
-    }
+    os << "  LWPOLYLINE\n";
+    MyDXFFile::debug_print_format( os, "flags", _flags );
+    for( uint32_t a = 0; a < _p.size(); a++ )
+	MyDXFFile::debug_print_format( os, "p", _p[a] );
 }
 
 

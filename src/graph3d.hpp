@@ -45,6 +45,7 @@
 
 
 #include "graph.hpp"
+#include "mesh.hpp"
 #include "error.hpp"
 
 
@@ -62,6 +63,8 @@ enum view_e {
 
 /*! \brief Abstract base class for geometry slice plots.
  *
+ *  Implementation of %Graph. Used in Frame type plots.
+ *
  *  Provides functionality to select a slice of geometry along axes at
  *  any mesh level in any direction. The direction is selected with \a
  *  view and level in integer (mesh count) \a level. Provides the
@@ -77,31 +80,40 @@ class Graph3D : public Graph {
 
 protected:
 
-    view_e     _view;    /*!< \brief Geometry view direction. */
-    int        _vb[3];   /*!< \brief Coordinate index for first, second and third axes. */
-    int        _level;   /*!< \brief Level of slice in mesh units. */
+    const Mesh      &_mesh;     /*!< \brief Mesh of simulation. */
+    view_e           _view;     /*!< \brief Geometry view direction. */
+    int              _vb[3];    /*!< \brief Coordinate index for first, second and third axes. */
+    int              _level;    /*!< \brief Level of slice in mesh units. */
+    double           _level_si; /*!< \brief Level in meters. */
 
 public:
 
     /*! \brief Constructor.
+     *
+     *  Constructor for 3D graph in a simulation volume defined by \a mesh.
      */
-    Graph3D() {
+    Graph3D( const Mesh &mesh ) 
+	: _mesh(mesh) {
 	_view  = VIEW_XY;
 	_vb[0] = 0;
 	_vb[1] = 1;
 	_vb[2] = 2;
 	_level = 0;
+	_level_si = _mesh.origo(_vb[2])+_level*_mesh.h();
     }
 
     /*! \brief Virtual destructor.
      */
     virtual ~Graph3D() {}
 
-    /*! \brief Plot drawable with cairo.
+    /*! \brief Plot graph with cairo.
      *
-     *  Plot the drawable using \a cairo and coordinate mapper \a
-     *  cm. The visible range of plot is given in array \a range in
-     *  order xmin, ymin, xmax, ymax.
+     *  Plot the graph using \a cairo and coordinate mapper \a cm. The
+     *  visible range of plot is given in array \a range in order \a
+     *  xmin, \a ymin, \a xmax, \a ymax. The graph should be able to
+     *  handle any range values. Also \a min > \a max.
+     *
+     *  Called by Frame during drawing.
      */
     virtual void plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] ) = 0;
 
@@ -160,9 +172,9 @@ public:
 	}
 	_view = view;
 	_level = level;
+	_level_si = _mesh.origo(_vb[2])+_level*_mesh.h();
     }
 };
 
 
 #endif
-

@@ -320,6 +320,9 @@ public:
      *  Enable plasma model with background electron charge density of
      *  \a rhoe and electron temperature \a Te. The plasma potential
      *  is set to \a Up.
+     *
+     *  The boundary condition for the plasma should be
+     *  BOUND_NEUMANN with zero volts.
      */
     void set_pexp_plasma( double rhoe, double Te, double Up );
 
@@ -342,6 +345,9 @@ public:
      *  protons and \a Ep, the energy of protons at zero
      *  potential. Vectors \a rhoi and \a Ei are used to set the space
      *  charge densities and thermal energies of the trapped ions.
+     *
+     *  The boundary condition for the plasma should be
+     *  BOUND_DIRICHLET with zero volts.
      */
     void set_nsimp_plasma( double rhop, double Ep, 
 			   std::vector<double> rhoi, std::vector<double> Ei );

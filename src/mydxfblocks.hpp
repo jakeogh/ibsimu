@@ -1,8 +1,8 @@
 /*! \file mydxfblocks.hpp
- *  \brief DXF Blocks
+ *  \brief DXF blocks
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -124,6 +124,12 @@ public:
      */
     void translate( class MyDXFFile *dxf, const Vec3D &dx );
 
+    /*! \brief Print debugging information to stream \a os.
+     */
+    void debug_print( std::ostream &os ) const;
+
+    /*! \brief Print debugging information to stream \a os.
+     */
     friend std::ostream &operator<<( std::ostream &os, const MyDXFBlock &blk );
 };
 

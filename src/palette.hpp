@@ -53,10 +53,10 @@
  *  %Palette is an object that contains a list of colors and
  *  corresponding values. The colors are interpolated linearly between
  *  the defined points for a smooth color palette. The palette values
- *  are normed so that the end points of palette have values 0.0 and
- *  1.0.
+ *  are normalized so that the end points of palette have values 0.0
+ *  and 1.0.
  */
-class Palette {
+class Palette {    
 
 public:
 
@@ -77,6 +77,9 @@ public:
 private:
 
     std::vector<Entry> _entries;    /*!< \brief Palette entries. */
+    int                _steps;      /*!< \brief Number of shades, less
+				     *   than 1 for smooth palette,
+				     *   larger for discrete steps. */
 
 public:
 
@@ -97,7 +100,9 @@ public:
      *  palette has one color, that color will be returned. With two
      *  or more colors the value returned is interpolated from the
      *  colors. Outside the defined range, the closest color value is
-     *  returned (color 0 if x < 0 and color N-1 if x > 1).
+     *  returned (color 0 if x < 0 and color N-1 if x > 1). If stepped
+     *  palette is enabled, the palette shades will be limited and
+     *  hard limits will be shown on palette sweeps.
      */
     Color operator()( double x ) const;
 
@@ -111,8 +116,8 @@ public:
     /*! \brief Pushes new entry to palette.
      *
      *  Palette entries are automatically sorted. The palette won't be
-     *  normed in range. This has to be manually done by calling
-     *  norm() after adding palette entries.
+     *  normalized in range. This has to be manually done by calling
+     *  normalize() after adding palette entries.
      */
     void push_back( const Color &color, double val );
 
@@ -120,7 +125,17 @@ public:
      *
      *  Normalize palette to range from 0.0 to 1.0.
      */
-    void norm( void );
+    void normalize( void );
+
+    /*! \brief Return a reference to palette steps.
+     *
+     *  If \a steps is less than or equal to 1 a regular interpolated
+     *  palette will be used (default), otherwise \a steps is used as
+     *  the number of separate shades in the palette.
+     *
+     *  Defaults to 0.
+     */
+    int &steps( void );
 
     /*! \brief Print debugging information to os.
      */

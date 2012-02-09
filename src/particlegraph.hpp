@@ -67,7 +67,7 @@
  */
 class ParticleGraph : public Graph3D {
     
-    const Geometry         &_g;          /*!< \brief Reference to simulation geometry. */
+    const Geometry         &_geom;       /*!< \brief Reference to simulation geometry. */
     const ParticleDataBase &_pdb;        /*!< \brief Reference to particle database. */
     int                     _particlediv;/*!< \brief Particle plot divisor. */
 
@@ -116,9 +116,12 @@ public:
 
     /*! \brief Plot graph with cairo.
      *
-     *  Plot the graph using \a cairo and coordinate mapper \a
-     *  cm. The visible range of plot is given in array \a range in
-     *  order xmin, ymin, xmax, ymax.
+     *  Plot the graph using \a cairo and coordinate mapper \a cm. The
+     *  visible range of plot is given in array \a range in order \a
+     *  xmin, \a ymin, \a xmax, \a ymax. The graph should be able to
+     *  handle any range values. Also \a min > \a max.
+     *
+     *  Called by Frame during drawing.
      */
     virtual void plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] );
 
@@ -148,23 +151,3 @@ public:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -44,8 +44,8 @@
 #include "ibsimu.hpp"
 
 
-MeshGraph::MeshGraph( const Geometry &g )
-    : _g(g)
+MeshGraph::MeshGraph( const Geometry &geom )
+    : Graph3D(geom), _geom(geom)
 {
 
 }
@@ -63,24 +63,24 @@ void MeshGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[
     cairo_set_line_width( cairo, 1.0 );
 
     int irange[4];
-    irange[0] = (int)floor((range[0]-_g.origo(_vb[0])) / _g.h());
-    irange[1] = (int)floor((range[1]-_g.origo(_vb[1])) / _g.h());
-    irange[2] = (int)ceil((range[2]-_g.origo(_vb[0])) / _g.h());
-    irange[3] = (int)ceil((range[3]-_g.origo(_vb[1])) / _g.h());
+    irange[0] = (int)floor((range[0]-_geom.origo(_vb[0])) / _geom.h());
+    irange[1] = (int)floor((range[1]-_geom.origo(_vb[1])) / _geom.h());
+    irange[2] = (int)ceil((range[2]-_geom.origo(_vb[0])) / _geom.h());
+    irange[3] = (int)ceil((range[3]-_geom.origo(_vb[1])) / _geom.h());
     
     double xin[2];
     double xout[2];
 
     for( int i = irange[0]; i <= irange[2]; i++ ) {
 	
-	//std::cout << "mesh line at x=" << _g.origo(_vb[0]) + _g.h() * i << "\n";
+	//std::cout << "mesh line at x=" << _geom.origo(_vb[0]) + _geom.h() * i << "\n";
 	
-	xin[0] = _g.origo(_vb[0]) + _g.h() * i;
+	xin[0] = _geom.origo(_vb[0]) + _geom.h() * i;
 	xin[1] = range[1];
 	cm->transform( xout, xin );
 	cairo_move_to( cairo, xout[0], xout[1] );
 
-	xin[0] = _g.origo(_vb[0]) + _g.h() * i;
+	xin[0] = _geom.origo(_vb[0]) + _geom.h() * i;
 	xin[1] = range[3];
 	cm->transform( xout, xin );
 	cairo_line_to( cairo, xout[0], xout[1] );
@@ -88,15 +88,15 @@ void MeshGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[
 
     for( int j = irange[1]; j <= irange[3]; j++ ) {
 	
-	//std::cout << "mesh line at y=" << _g.origo(_vb[1]) + _g.h() * j << "\n";
+	//std::cout << "mesh line at y=" << _geom.origo(_vb[1]) + _geom.h() * j << "\n";
 	
 	xin[0] = range[0];
-	xin[1] = _g.origo(_vb[1]) + _g.h() * j;
+	xin[1] = _geom.origo(_vb[1]) + _geom.h() * j;
 	cm->transform( xout, xin );
 	cairo_move_to( cairo, xout[0], xout[1] );
 
 	xin[0] = range[2];
-	xin[1] = _g.origo(_vb[1]) + _g.h() * j;
+	xin[1] = _geom.origo(_vb[1]) + _geom.h() * j;
 	cm->transform( xout, xin );
 	cairo_line_to( cairo, xout[0], xout[1] );
     }
@@ -113,16 +113,8 @@ void MeshGraph::plot_sample( cairo_t *cairo, double x, double y, double width, d
 
 void MeshGraph::get_bbox( double bbox[4] )
 {
-    bbox[0] = _g.origo( _vb[0] );
-    bbox[1] = _g.origo( _vb[1] );
-    bbox[2] = _g.max( _vb[0] );
-    bbox[3] = _g.max( _vb[1] );
+    bbox[0] = _geom.origo( _vb[0] );
+    bbox[1] = _geom.origo( _vb[1] );
+    bbox[2] = _geom.max( _vb[0] );
+    bbox[3] = _geom.max( _vb[1] );
 }
-
-
-
-
-
-
-
-

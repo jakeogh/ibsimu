@@ -79,9 +79,9 @@ void Mesh::reset( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
     _origo = origo;
     _h = fabs(h);
     _div_h = 1.0/_h;
-    _max = Vec3D( _origo(0)+_h*(_size[0]-1),
-		  _origo(1)+_h*(_size[1]-1),
-		  _origo(2)+_h*(_size[2]-1) );
+    _max = Vec3D( _origo(0)+_h*(_size(0)-1),
+		  _origo(1)+_h*(_size(1)-1),
+		  _origo(2)+_h*(_size(2)-1) );
 
     // Checks
     if( _h == 0.0 )
@@ -124,6 +124,30 @@ int32_t Mesh::dim( void ) const
 	return( 3 );
 	break;
     }
+}
+
+
+Int3D Mesh::closest_node( Vec3D x ) const
+{
+    return( Int3D( floor((x[0]-_origo(0))/_h + 0.5),
+		   floor((x[1]-_origo(1))/_h + 0.5),
+		   floor((x[2]-_origo(2))/_h + 0.5) ) );
+}
+
+
+Int3D Mesh::mesh_number( Vec3D x ) const
+{
+    return( Int3D( floor((x[0]-_origo(0))/_h),
+		   floor((x[1]-_origo(1))/_h),
+		   floor((x[2]-_origo(2))/_h) ) );
+}
+
+
+Vec3D Mesh::coord_of_node( Int3D n ) const
+{
+    return( Vec3D( _origo(0)+n[0]*_h,
+		   _origo(1)+n[1]*_h,
+		   _origo(2)+n[2]*_h ) );
 }
 
 

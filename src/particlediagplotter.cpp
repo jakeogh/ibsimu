@@ -43,20 +43,20 @@
 #include "particlediagplotter.hpp"
 
 
-ParticleDiagPlotter::ParticleDiagPlotter( const Geometry *geom, const ParticleDataBase *pdb, 
+ParticleDiagPlotter::ParticleDiagPlotter( const Geometry &geom, const ParticleDataBase &pdb, 
 					  coordinate_axis_e axis, double level, 
 					  particle_diag_plot_type_e type,
 					  trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy )
-    : ParticleDiagPlot(&(Plotter::_frame), geom, pdb, axis, level, type, diagx, diagy )
+    : ParticleDiagPlot(Plotter::_frame, geom, pdb, axis, level, type, diagx, diagy )
 {
 
 }
 
-ParticleDiagPlotter::ParticleDiagPlotter( const Geometry *geom, const ParticleDataBase *pdb, 
+ParticleDiagPlotter::ParticleDiagPlotter( const Geometry &geom, const ParticleDataBase &pdb, 
 					  const Vec3D &c, const Vec3D &o, const Vec3D &p,
 					  particle_diag_plot_type_e type,
 					  trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy )
-    : ParticleDiagPlot(&(Plotter::_frame), geom, pdb, c, o, p, type, diagx, diagy )
+    : ParticleDiagPlot(Plotter::_frame, geom, pdb, c, o, p, type, diagx, diagy )
 {
 
 }

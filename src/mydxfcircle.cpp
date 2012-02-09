@@ -2,7 +2,7 @@
  *  \brief DXF circle entity
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -306,12 +306,9 @@ int MyDXFCircle::ray_cross( double x, double y ) const
 
 void MyDXFCircle::debug_print( std::ostream &os ) const
 {
-    std::cout << "CIRCLE\n";
-    std::cout << "  p = {" 
-	      << _pc[0] << ", " 
-	      << _pc[1] << ", " 
-	      << _pc[2] << "}\n";
-    std::cout << "  r = " << _r << "\n";
+    os << "  CIRCLE\n";
+    MyDXFFile::debug_print_format( os, "pc", _pc );
+    MyDXFFile::debug_print_format( os, "r", _r );
 }
 
 

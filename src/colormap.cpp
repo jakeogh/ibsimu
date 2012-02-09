@@ -2,7 +2,7 @@
  *  \brief %Colormap graph for plotting
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -52,7 +52,8 @@
 
 
 Colormap::Colormap()
-    : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), _n(0), _m(0), _intrp(NULL)
+    : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), 
+      _zmin(0.0), _zmax(0.0), _n(0), _m(0), _intrp(NULL)
 {
 
 }
@@ -60,13 +61,67 @@ Colormap::Colormap()
 
 Colormap::Colormap( const double datarange[4], size_t n, size_t m, 
 		    const std::vector<double> &data )
-    : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), _n(n), _m(m), _intrp(NULL)
+    : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), 
+      _zmin(0.0), _zmax(0.0), _n(0), _m(0), _intrp(NULL)
 {
+    set_data( datarange, n, m, data );
+}
+
+
+Colormap::Colormap( const Colormap &colormap )
+    : _palette(colormap._palette), _interpolation(colormap._interpolation),
+      _zscale(colormap._zscale), _zmin(colormap._zmin), _zmax(colormap._zmax),
+      _n(colormap._n), _m(colormap._m), _f(colormap._f), _intrp(NULL)
+{
+    _datarange[0] = colormap._datarange[0];
+    _datarange[1] = colormap._datarange[1];
+    _datarange[2] = colormap._datarange[2];
+    _datarange[3] = colormap._datarange[3];
+
+    make_data_interpolation();
+}
+
+
+Colormap::~Colormap()
+{
+    if( _intrp )
+	delete _intrp;
+}
+
+
+void Colormap::clear_data( void ) 
+{
+    _n = 0;
+    _m = 0;
+    if( _intrp )
+	delete _intrp;
+    _intrp = NULL;
+    _f.clear();
+}
+
+
+void Colormap::set_data( const double datarange[4], size_t n, size_t m, 
+			 const std::vector<double> &data )
+{
+#ifdef DEBUG_COLORMAP
+    std::cout << "Colormap::set_data()\n";
+#endif
+
+    _n = n;
+    _m = m;
+    if( _intrp )
+	delete _intrp;
+    _intrp = NULL;
+    if( _n == 0 || _m == 0 ) {
+	_f.clear();
+	return;
+    }
+
     _datarange[0] = datarange[0];
     _datarange[1] = datarange[1];
     _datarange[2] = datarange[2];
     _datarange[3] = datarange[3];
-    
+
     if( n*m != data.size() )
 	throw( Error( ERROR_LOCATION, "data size not equal to n*m" ) );
     _f = data;
@@ -92,25 +147,9 @@ Colormap::Colormap( const double datarange[4], size_t n, size_t m,
 }
 
 
-Colormap::Colormap( const Colormap &colormap )
-    : _palette(colormap._palette), _interpolation(colormap._interpolation),
-      _zscale(colormap._zscale), _zmin(colormap._zmin), _zmax(colormap._zmax),
-      _n(colormap._n), _m(colormap._m), _f(colormap._f)
+interpolation_e Colormap::get_interpolation( void ) const
 {
-    _datarange[0] = colormap._datarange[0];
-    _datarange[1] = colormap._datarange[1];
-    _datarange[2] = colormap._datarange[2];
-    _datarange[3] = colormap._datarange[3];
-
-    _intrp = NULL;
-    make_data_interpolation();
-}
-
-
-Colormap::~Colormap()
-{
-    if( _intrp )
-	delete _intrp;
+    return( _interpolation );
 }
 
 
@@ -118,6 +157,12 @@ void Colormap::set_interpolation( interpolation_e interpolation )
 {
     _interpolation = interpolation;
     make_data_interpolation();
+}
+
+
+zscale_e Colormap::get_zscale( void ) const
+{
+    return( _zscale );
 }
 
 
@@ -165,6 +210,11 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 
     int sign;
     double zspan = _zmax - _zmin;
+#ifdef DEBUG_COLORMAP
+    std::cout << "Colormap::_zmin = " << _zmin << "\n";
+    std::cout << "Colormap::_zmax = " << _zmax << "\n";
+    std::cout << "Colormap::zspan = " << zspan << "\n";
+#endif
     if( _zmin >= -1.0e-6*zspan && _zmax >= 0.0 ) {
 	// Completely on positive side
 	sign = +1;
@@ -175,9 +225,32 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 	// Both negative and positive
 	sign = 0;
     }
-    
+
+#ifdef DEBUG_COLORMAP
+    std::cout << "Colormap::sign = " << sign << "\n";
+#endif
+
     // flush to ensure all writing to the image was done
     cairo_surface_flush( surface );
+
+    // Calculate scaling coefficients
+    double A = 0.0, B = 0.0;
+    if( _zscale == ZSCALE_LINEAR ) {
+	A = _zmin;
+	B = _zmax;
+    } else if( _zscale == ZSCALE_LOG ) {
+	if( sign > 0 ) {
+	    A = log(_zmin);
+	    B = log(_zmax);
+	} else {
+	    A = log(-_zmin);
+	    B = log(-_zmax);
+	}
+    } else if( _zscale == ZSCALE_RELLOG ) {
+	A = log(0.001);
+	B = log(1.001);
+    }
+    double C = 1.0/(B-A);
 
     for( int i = plim[0]; i <= plim[2]; i++ ) {
 	for( int j = plim[1]; j <= plim[3]; j++ ) {
@@ -191,26 +264,26 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 	    // Prescale value to nominal range [0:1] maintaining
 	    // monotonic rising property. Might go over range.
 	    if( _zscale == ZSCALE_LINEAR )
-		val = (val-_zmin)/(_zmax-_zmin);
+		val = C*(val-A);
 	    else if( _zscale == ZSCALE_LOG ) {
 		if( sign > 0 )
-		    val = (log(val)-log(_zmin)) / (log(_zmax)-log(_zmin));
-		else
-		    val = (log(-val)-log(-_zmin)) / (log(-_zmax)-log(-_zmin));
+		    val = C*(log(val)-A);
+		else /* if( sign < 0 ) */
+		    val = C*(log(-val)-A);
 	    } else if( _zscale == ZSCALE_RELLOG ) {
 		if( sign > 0 ) {
 		    val = (val-_zmin)/(_zmax-_zmin);
-		    val = (log(0.001+val) - log(0.001)) / (log(1.001) - log(0.001));
+		    val = C*(log(0.001+val) - A);
 		} else if( sign < 0 ) {
 		    val = (val-_zmax)/(_zmin-_zmax);
-		    val = 1.0+(log(0.001) - log(0.001+val)) / (log(1.001) - log(0.001));
+		    val = 1.0+C*(A-log(0.001+val));
 		} else {
 		    if( val > 0.0 ) {
 			val = (val-0.0)/(_zmax-0.0);
-			val = 0.5+0.5*(log(0.001+val) - log(0.001)) / (log(1.001) - log(0.001));
+			val = 0.5+0.5*C*(log(0.001+val) - A);
 		    } else {
 			val = (val-0.0)/(_zmin-0.0);
-			val = 0.5+0.5*(log(0.001) - log(0.001+val)) / (log(1.001) - log(0.001));
+			val = 0.5+0.5*C*(A-log(0.001+val));
 		    }
 		}
 	    }
@@ -233,6 +306,14 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 
 void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
+#ifdef DEBUG_COLORMAP
+    std::cout << "Colormap::plot()\n";
+#endif
+
+    // If colormap empty, do nothing
+    if( _n == 0 || _m == 0 )
+	return;
+
 #ifdef DEBUG_COLORMAP
     std::cout << "datarange[0] = " << _datarange[0] << "\n"
 	      << "datarange[1] = " << _datarange[1] << "\n"
@@ -319,7 +400,7 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 	int nlim[4] = { 0, 0, width-1, height-1 };
 	plot_to_image_surface( nsurface, ncm, nlim );
 	delete ncm;
-	cairo_surface_write_to_png( nsurface, "surface.png" );
+	//cairo_surface_write_to_png( nsurface, "surface.png" );
 
 	cairo_save( cairo );
 	cairo_set_source_surface( cairo, nsurface, plim[0], plim[1] );
@@ -373,8 +454,13 @@ void Colormap::get_zrange( double &min, double &max ) const
 
 void Colormap::set_zrange( double min, double max )
 {
-    _zmin = min;
-    _zmax = max;
+    if( min < max ) {
+	_zmin = min;
+	_zmax = max;
+    } else {
+	_zmin = max;
+	_zmax = min;
+    }
 }
 
 
@@ -409,7 +495,4 @@ double Colormap::get_value( double x, double y ) const
     
     return( (*_intrp)( t, u ) );
 }
-
-
-
 

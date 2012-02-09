@@ -2,7 +2,7 @@
  *  \brief Source code for gtkfielddiagdialog.cpp
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -43,11 +43,12 @@
 #include "gtkfielddiagdialog.hpp"
 #include "meshvectorfield.hpp"
 #include "multimeshvectorfield.hpp"
+#include "ibsimu.hpp"
 
 
-GTKFieldDiagDialog::GTKFieldDiagDialog( GtkWidget *window, GTKPlotter *plotter, 
+GTKFieldDiagDialog::GTKFieldDiagDialog( GtkWidget *window, GTKPlotter &plotter, 
 					double x1[3], double x2[3] )
-    : _window(window), _plotter(plotter)
+    : _window(window), _plotter(&plotter)
 {
     _x1[0] = x1[0];
     _x1[1] = x1[1];
@@ -99,8 +100,11 @@ void GTKFieldDiagDialog::run( void )
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
     GtkWidget *entry_x1 = gtk_entry_new_with_max_length( 30 );
-    std::string s = to_string(_x1[0]);
-    gtk_entry_set_text( GTK_ENTRY(entry_x1), s.c_str() );
+    //std::string s = to_string(_x1[0]);
+    //gtk_entry_set_text( GTK_ENTRY(entry_x1), s.c_str() );
+    char s[128];
+    snprintf( s, 128, "%g", _x1[0] );
+    gtk_entry_set_text( GTK_ENTRY(entry_x1), s );
     gtk_box_pack_start( GTK_BOX(hbox2), entry_x1, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
 
@@ -110,8 +114,10 @@ void GTKFieldDiagDialog::run( void )
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
     GtkWidget *entry_x2 = gtk_entry_new_with_max_length( 30 );
-    s = to_string(_x2[0]);
-    gtk_entry_set_text( GTK_ENTRY(entry_x2), s.c_str() );
+    //s = to_string(_x2[0]);
+    //gtk_entry_set_text( GTK_ENTRY(entry_x2), s.c_str() );
+    snprintf( s, 128, "%g", _x2[0] );
+    gtk_entry_set_text( GTK_ENTRY(entry_x2), s );
     gtk_box_pack_start( GTK_BOX(hbox2), entry_x2, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
 
@@ -127,8 +133,10 @@ void GTKFieldDiagDialog::run( void )
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
     GtkWidget *entry_y1 = gtk_entry_new_with_max_length( 30 );
-    s = to_string(_x1[1]);
-    gtk_entry_set_text( GTK_ENTRY(entry_y1), s.c_str() );
+    //s = to_string(_x1[1]);
+    //gtk_entry_set_text( GTK_ENTRY(entry_y1), s.c_str() );
+    snprintf( s, 128, "%g", _x1[1] );
+    gtk_entry_set_text( GTK_ENTRY(entry_y1), s );
     gtk_box_pack_start( GTK_BOX(hbox2), entry_y1, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
 
@@ -141,8 +149,10 @@ void GTKFieldDiagDialog::run( void )
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
     GtkWidget *entry_y2 = gtk_entry_new_with_max_length( 30 );
-    s = to_string(_x2[1]);
-    gtk_entry_set_text( GTK_ENTRY(entry_y2), s.c_str() );
+    //s = to_string(_x2[1]);
+    //gtk_entry_set_text( GTK_ENTRY(entry_y2), s.c_str() );
+    snprintf( s, 128, "%g", _x2[1] );
+    gtk_entry_set_text( GTK_ENTRY(entry_y2), s );
     gtk_box_pack_start( GTK_BOX(hbox2), entry_y2, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
 
@@ -157,8 +167,10 @@ void GTKFieldDiagDialog::run( void )
     GtkWidget *entry_z1 = gtk_entry_new_with_max_length( 30 );
     if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
 	gtk_widget_set_sensitive( entry_z1, FALSE );
-    s = to_string(_x1[2]);
-    gtk_entry_set_text( GTK_ENTRY(entry_z1), s.c_str() );
+    //s = to_string(_x1[2]);
+    //gtk_entry_set_text( GTK_ENTRY(entry_z1), s.c_str() );
+    snprintf( s, 128, "%g", _x1[2] );
+    gtk_entry_set_text( GTK_ENTRY(entry_z1), s );
     gtk_box_pack_start( GTK_BOX(hbox2), entry_z1, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
 
@@ -170,8 +182,10 @@ void GTKFieldDiagDialog::run( void )
     GtkWidget *entry_z2 = gtk_entry_new_with_max_length( 30 );
     if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
 	gtk_widget_set_sensitive( entry_z2, FALSE );
-    s = to_string(_x2[2]);
-    gtk_entry_set_text( GTK_ENTRY(entry_z2), s.c_str() );
+    //s = to_string(_x2[2]);
+    //gtk_entry_set_text( GTK_ENTRY(entry_z2), s.c_str() );
+    snprintf( s, 128, "%g", _x2[2] );
+    gtk_entry_set_text( GTK_ENTRY(entry_z2), s );
     gtk_box_pack_start( GTK_BOX(hbox2), entry_z2, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
 
@@ -579,17 +593,18 @@ void GTKFieldDiagDialog::run( void )
 	else
 	    diag[1] = FIELD_NONE;
 
-	//std::cout << "x1 = " << x1[0] << "\n";
-	//std::cout << "y1 = " << x1[1] << "\n";
-	//std::cout << "z1 = " << x1[2] << "\n";
-	//std::cout << "x2 = " << x2[0] << "\n";
-	//std::cout << "y2 = " << x2[1] << "\n";
-	//std::cout << "z2 = " << x2[2] << "\n";
-	//std::cout << "N  = " << N << "\n";
-	//std::cout << "g1 = " << diag[0] << "\n";
-	//std::cout << "g2 = " << diag[1] << "\n";
-	//std::cout << "d1 = " << loc[0] << "\n";
-	//std::cout << "d2 = " << loc[1] << "\n";
+	ibsimu.message(MSG_DEBUG_GENERAL,2) << "Making field diagnostic plot\n"
+					    << "  x1 = " << x1[0] << "\n"
+					    << "  y1 = " << x1[1] << "\n"
+					    << "  z1 = " << x1[2] << "\n"
+					    << "  x2 = " << x2[0] << "\n"
+					    << "  y2 = " << x2[1] << "\n"
+					    << "  z2 = " << x2[2] << "\n"
+					    << "  N  = " << N << "\n"
+					    << "  g1 = " << diag[0] << "\n"
+					    << "  g2 = " << diag[1] << "\n"
+					    << "  d1 = " << loc[0] << "\n"
+					    << "  d2 = " << loc[1] << "\n";
 
 	try {
 	    _plotter->new_field_plot_window( N, x1, x2, diag, loc );
@@ -602,9 +617,3 @@ void GTKFieldDiagDialog::run( void )
 
     gtk_widget_destroy( dialog );
 }
-
-
-
-
-
-

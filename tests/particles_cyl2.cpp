@@ -22,6 +22,7 @@
 #include <iomanip>
 #include "geomplotter.hpp"
 #include "geometry.hpp"
+#include "meshvectorfield.hpp"
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "epot_efield.hpp"
@@ -67,7 +68,7 @@ void test( int argc, char **argv )
     p.solve( epot, scharge );
 
     EpotEfield efield( g, epot );
-    VectorField bfield;
+    MeshVectorField bfield;
 
     ParticleDataBaseCyl pdb;
     pdb.set_accuracy( 1.0e-6, 1.0e-6 ); // Extremely sensitive on error requirement

@@ -69,7 +69,7 @@ enum zscale_e {
 
 /*! \brief Class for colormap type plots.
  *
- *  Implementation of %Graph.
+ *  Implementation of %Graph. Used in Frame type plots.
  */
 class Colormap : public Graph {
 
@@ -103,7 +103,7 @@ public:
      */
     Colormap( const Colormap &colormap );
 
-    /*! \brief Constructor for basic graph with defined data.
+    /*! \brief Constructor for colormap from data.
      *
      *  Data is defined as \a n by \a m array of data, where x and y
      *  ranges are defined in datarange in order xmin, ymin, xmax,
@@ -117,12 +117,36 @@ public:
      */
     virtual ~Colormap();
 
+    /*! \brief Clears colormap data.
+     */
+    void clear_data( void );
+		   
+    /*! \brief Define colormap from data.
+     *
+     *  Data is defined as \a n by \a m array of data, where x and y
+     *  ranges are defined in datarange in order xmin, ymin, xmax,
+     *  ymax. Z-values are defined in vector \a data in y major
+     *  order. Internal copy of the data from data is made.
+     *
+     *  Overrides old data and resets z ranges.
+     */
+    void set_data( const double datarange[4], size_t n, size_t m, 
+		   const std::vector<double> &data );
+
+    /*! \brief Set interpolation mode.
+     */
+    interpolation_e get_interpolation( void ) const;
+
     /*! \brief Set interpolation mode.
      *
      *  Can be either \a INTERPOLATION_CLOSEST, \a
      *  INTERPOLATION_BILINEAR or \a INTERPOLATION_BICUBIC.
      */
     void set_interpolation( interpolation_e interpolation );
+
+    /*! \brief Get zscale mode.
+     */
+    zscale_e get_zscale( void ) const;
 
     /*! \brief Set zscale mode.
      *
@@ -142,9 +166,12 @@ public:
 
     /*! \brief Plot graph with cairo.
      *
-     *  Plot the graph using \a cairo and coordinate mapper \a
-     *  cm. The visible range of plot is given in array \a range in
-     *  order xmin, ymin, xmax, ymax.
+     *  Plot the graph using \a cairo and coordinate mapper \a cm. The
+     *  visible range of plot is given in array \a range in order \a
+     *  xmin, \a ymin, \a xmax, \a ymax. The graph should be able to
+     *  handle any range values. Also \a min > \a max.
+     *
+     *  Called by Frame during drawing.
      */
     virtual void plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] );
 
@@ -165,6 +192,10 @@ public:
      */
     void set_palette( const Palette &palette );
 
+    /*! \brief Get a reference to colormap palette.
+     */
+    Palette &palette( void ) { return( _palette ); }
+
     /*! \brief Get zrange for colormap plot.
      */
     void get_zrange( double &min, double &max ) const;
@@ -183,4 +214,3 @@ public:
 
 
 #endif
-

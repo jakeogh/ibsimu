@@ -70,6 +70,13 @@ Histogram1D::Histogram1D( uint32_t n,
 	throw( Error( ERROR_LOCATION, "too small histogram size" ) );
 
     uint32_t N = xdata.size();
+    if( N == 0 ) {
+	// No input data -> return empty histogram
+	_range[0] = -1.0;
+	_range[1] = +1.0;
+	_step = (_range[1]-_range[0]) / (_n-1.0);
+	return;
+    }
 
     // Find range limits so that the furthest points will receive no
     // contribution from data.
@@ -83,9 +90,19 @@ Histogram1D::Histogram1D( uint32_t n,
 	    bbox[1] = xdata[a];
     }
 
-    // Increase ranges by one
-    _range[0] = bbox[0] - (bbox[1]-bbox[0])/(_n-3.0);
-    _range[1] = bbox[1] + (bbox[1]-bbox[0])/(_n-3.0);
+    if( bbox[0] != bbox[1] ) {
+	// Widen range by one bin width in each direction
+	_range[0] = bbox[0] - (bbox[1]-bbox[0])/(_n-3.0);
+	_range[1] = bbox[1] + (bbox[1]-bbox[0])/(_n-3.0);
+    } else if( bbox[0] != 0.0 ) {
+	// Widen range by 10 % of value in each direction
+	_range[0] = bbox[0] * 0.9;
+	_range[1] = bbox[1] * 1.1;
+    } else {
+	// Widen range by 1.0e-6
+	_range[0] = bbox[0] - 1.0e-6;
+	_range[1] = bbox[1] + 1.0e-6;
+    }
 
     // Calculate step size
     _step = (_range[1]-_range[0]) / (_n-1.0);
@@ -111,6 +128,13 @@ Histogram1D::Histogram1D( uint32_t n,
 	throw( Error( ERROR_LOCATION, "too small histogram size" ) );
 
     uint32_t N = xdata.size() < wdata.size() ? xdata.size() : wdata.size();
+    if( N == 0 ) {
+	// No input data -> return empty histogram
+	_range[0] = -1.0;
+	_range[1] = +1.0;
+	_step = (_range[1]-_range[0]) / (_n-1.0);
+	return;
+    }
 
     // Find range limits so that the furthest points will receive no
     // contribution from data.
@@ -124,9 +148,19 @@ Histogram1D::Histogram1D( uint32_t n,
 	    bbox[1] = xdata[a];
     }
 
-    // Increase ranges by one
-    _range[0] = bbox[0] - (bbox[1]-bbox[0])/(_n-3.0);
-    _range[1] = bbox[1] + (bbox[1]-bbox[0])/(_n-3.0);
+    if( bbox[0] != bbox[1] ) {
+	// Widen range by one bin width in each direction
+	_range[0] = bbox[0] - (bbox[1]-bbox[0])/(_n-3.0);
+	_range[1] = bbox[1] + (bbox[1]-bbox[0])/(_n-3.0);
+    } else if( bbox[0] != 0.0 ) {
+	// Widen range by 10 % of value in each direction
+	_range[0] = bbox[0] * 0.9;
+	_range[1] = bbox[1] * 1.1;
+    } else {
+	// Widen range by 1.0e-6
+	_range[0] = bbox[0] - 1.0e-6;
+	_range[1] = bbox[1] + 1.0e-6;
+    }
 
     // Calculate step size
     _step = (_range[1]-_range[0]) / (_n-1.0);
@@ -287,11 +321,33 @@ Histogram2D::Histogram2D( uint32_t n, uint32_t m,
 	    bbox[3] = ydata[a];
     }
 
-    // Increase ranges by one bin
-    _range[0] = bbox[0] - (bbox[2]-bbox[0])/(_n-3.0);
-    _range[1] = bbox[1] - (bbox[3]-bbox[1])/(_n-3.0);
-    _range[2] = bbox[2] + (bbox[2]-bbox[0])/(_n-3.0);
-    _range[3] = bbox[3] + (bbox[3]-bbox[1])/(_n-3.0);
+    if( bbox[0] != bbox[2] ) {
+	// Widen range by one bin width in each direction
+	_range[0] = bbox[0] - (bbox[2]-bbox[0])/(_n-3.0);
+	_range[2] = bbox[2] + (bbox[2]-bbox[0])/(_n-3.0);
+    } else if( bbox[0] != 0.0 ) {
+	// Widen range by 10 % of value in each direction
+	_range[0] = bbox[0] * 0.9;
+	_range[2] = bbox[2] * 1.1;
+    } else {
+	// Widen range by 1.0e-6
+	_range[0] = bbox[0] - 1.0e-6;
+	_range[2] = bbox[2] + 1.0e-6;
+    }
+
+    if( bbox[1] != bbox[3] ) {
+	// Widen range by one bin width in each direction
+	_range[1] = bbox[1] - (bbox[3]-bbox[1])/(_m-3.0);
+	_range[3] = bbox[3] + (bbox[3]-bbox[1])/(_m-3.0);
+    } else if( bbox[1] != 0.0 ) {
+	// Widen range by 10 % of value in each direction
+	_range[1] = bbox[1] * 0.9;
+	_range[3] = bbox[3] * 1.1;
+    } else {
+	// Widen range by 1.0e-6
+	_range[1] = bbox[1] - 1.0e-6;
+	_range[3] = bbox[3] + 1.0e-6;
+    }
 
     // Calculate step size
     _nstep = (_range[2]-_range[0]) / (_n-1.0);
@@ -321,6 +377,14 @@ Histogram2D::Histogram2D( uint32_t n, uint32_t m,
     uint32_t N = xdata.size() < ydata.size() ? 
 	(xdata.size() < wdata.size() ? xdata.size() : wdata.size()) :
 	(ydata.size() < wdata.size() ? ydata.size() : wdata.size());
+    if( N == 0 ) {
+	// No input data -> return empty histogram
+	_range[0] = _range[1] = -1.0;
+	_range[2] = _range[3] = +1.0;
+	_nstep = (_range[2]-_range[0]) / (_n-1.0);
+	_mstep = (_range[3]-_range[1]) / (_m-1.0);
+	return;
+    }
 
     // Find range limits so that the furthest points will receive no
     // contribution from data.
@@ -341,11 +405,33 @@ Histogram2D::Histogram2D( uint32_t n, uint32_t m,
 	    bbox[3] = ydata[a];
     }
 
-    // Increase ranges by one
-    _range[0] = bbox[0] - (bbox[2]-bbox[0])/(_n-3.0);
-    _range[1] = bbox[1] - (bbox[3]-bbox[1])/(_n-3.0);
-    _range[2] = bbox[2] + (bbox[2]-bbox[0])/(_n-3.0);
-    _range[3] = bbox[3] + (bbox[3]-bbox[1])/(_n-3.0);
+    if( bbox[0] != bbox[2] ) {
+	// Widen range by one bin width in each direction
+	_range[0] = bbox[0] - (bbox[2]-bbox[0])/(_n-3.0);
+	_range[2] = bbox[2] + (bbox[2]-bbox[0])/(_n-3.0);
+    } else if( bbox[0] != 0.0 ) {
+	// Widen range by 10 % of value in each direction
+	_range[0] = bbox[0] * 0.9;
+	_range[2] = bbox[2] * 1.1;
+    } else {
+	// Widen range by 1.0e-6
+	_range[0] = bbox[0] - 1.0e-6;
+	_range[2] = bbox[2] + 1.0e-6;
+    }
+
+    if( bbox[1] != bbox[3] ) {
+	// Widen range by one bin width in each direction
+	_range[1] = bbox[1] - (bbox[3]-bbox[1])/(_m-3.0);
+	_range[3] = bbox[3] + (bbox[3]-bbox[1])/(_m-3.0);
+    } else if( bbox[1] != 0.0 ) {
+	// Widen range by 10 % of value in each direction
+	_range[1] = bbox[1] * 0.9;
+	_range[3] = bbox[3] * 1.1;
+    } else {
+	// Widen range by 1.0e-6
+	_range[1] = bbox[1] - 1.0e-6;
+	_range[3] = bbox[3] + 1.0e-6;
+    }
 
     // Calculate step size
     _nstep = (_range[2]-_range[0]) / (_n-1.0);

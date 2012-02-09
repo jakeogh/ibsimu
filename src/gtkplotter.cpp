@@ -2,7 +2,7 @@
  *  \brief GTK based plotters.
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -65,7 +65,7 @@ GTKPlotter::GTKPlotter( int *argc, char ***argv )
 {
     if( !_gtk_initialized ) {
 	if( gtk_init_check( argc, argv ) == FALSE )
-	    throw( Error( ERROR_LOCATION, "Couldn't initialize GTK\n" ) );
+	    throw( Error( ERROR_LOCATION, "Couldn't initialize GTK" ) );
 	_gtk_initialized = true;
     }
 }
@@ -91,7 +91,7 @@ void GTKPlotter::run()
 
 GTKWindow *GTKPlotter::new_geometry_plot_window( void )
 {
-    GTKWindow *window = new GTKGeomWindow( this, _geom, _epot, _efield, _scharge, _tdens, _bfield, _pdb );
+    GTKWindow *window = new GTKGeomWindow( *this, *_geom, _epot, _efield, _scharge, _tdens, _bfield, _pdb );
     _windows.push_back( window );
 
     return( window );
@@ -102,7 +102,11 @@ GTKWindow *GTKPlotter::new_particle_plot_window( coordinate_axis_e axis, double 
 						 trajectory_diagnostic_e diagx, 
 						 trajectory_diagnostic_e diagy )
 {
-    GTKWindow *window = new GTKParticleDiagWindow( this, _pdb, _geom, axis, level, type, diagx, diagy );
+    if( !_pdb )
+	throw( Error( ERROR_LOCATION, "Particle database not defined" ) );
+    if( !_geom )
+	throw( Error( ERROR_LOCATION, "Geometry not defined" ) );
+    GTKWindow *window = new GTKParticleDiagWindow( *this, *_pdb, *_geom, axis, level, type, diagx, diagy );
     _windows.push_back( window );
 
     return( window );
@@ -113,7 +117,9 @@ GTKWindow *GTKPlotter::new_field_plot_window( size_t N, const Vec3D &x1, const V
 					      const field_diag_type_e diag[2], 
 					      const field_loc_type_e loc[2] )
 {
-    GTKWindow *window = new GTKFieldDiagWindow( this, _geom, N, x1, x2, diag, loc );
+    if( !_geom )
+	throw( Error( ERROR_LOCATION, "Geometry not defined" ) );
+    GTKWindow *window = new GTKFieldDiagWindow( *this, *_geom, N, x1, x2, diag, loc );
     _windows.push_back( window );
 
     return( window );

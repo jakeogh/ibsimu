@@ -97,7 +97,7 @@ void test( int argc, char **argv )
 	*/
     }
 
-    GeomPlotter geomplotter( &geom );
+    GeomPlotter geomplotter( geom );
     geomplotter.set_size( 1024, 768 );
     geomplotter.set_epot( &epot );
     std::vector<double> eqlines;

@@ -189,8 +189,10 @@ enum trajectory_diagnostic_e {
     DIAG_OP,       /*!< \brief \f$v_o/v_q\f$, where direction q is normal to diagnostic plane (rad) */
     DIAG_PP,       /*!< \brief \f$v_p/v_q\f$, where direction q is normal to diagnostic plane (rad) */
     DIAG_CURR,     /*!< \brief Current (I) */
-    DIAG_EK,       /*!< \brief Kinetic energy (J) */
-    DIAG_QM        /*!< \brief Charge per mass (C/g) */
+    DIAG_EK,       /*!< \brief Kinetic energy (eV) */
+    DIAG_QM,       /*!< \brief Charge per mass (e/u) */
+    DIAG_CHARGE,   /*!< \brief Particle charge (e) */
+    DIAG_MASS      /*!< \brief Particle mass (u) */
 };
 
 
@@ -209,6 +211,14 @@ extern const char *trajectory_diagnostic_string[];
  *  output in plots.
  */
 extern const char *trajectory_diagnostic_string_with_unit[];
+
+
+/*! \brief String for separate diagnostic unit.
+ *
+ *  Contains strings: "", "s", "m", "m/2", "m", ... Greek letters are
+ *  typed with LaTeX notation for correct output in plots.
+ */
+extern const char *trajectory_diagnostic_string_unit[];
 
 
 #endif

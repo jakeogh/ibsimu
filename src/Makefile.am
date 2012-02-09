@@ -1,11 +1,11 @@
-lib_LTLIBRARIES = libibsimu-1.0.4new_solver.la
+lib_LTLIBRARIES = libibsimu-1.0.5new_solver.la
 
-libibsimu_1_0_4new_solver_la_LDFLAGS = -version-info 0:1:0
+libibsimu_1_0_5new_solver_la_LDFLAGS = -version-info 0:1:0
 
-AM_LDFLAGS = -Wall @rdynamic_flag@
+AM_LDFLAGS = -Wall @rdynamic_flag@ @lt_enable_auto_import@
 AM_CPPFLAGS = -Wall
 
-libibsimu_1_0_4new_solver_la_SOURCES = \
+libibsimu_1_0_5new_solver_la_SOURCES = \
 bicgstab.cpp \
 bicgstab.hpp \
 callback.hpp \
@@ -16,6 +16,8 @@ colormap.cpp \
 colormap.hpp \
 compmath.cpp \
 compmath.hpp \
+comptime.cpp \
+comptime.hpp \
 config.h \
 config.hpp \
 constants.hpp \
@@ -224,12 +226,13 @@ vec3d.cpp \
 vec3d.hpp \
 vec4d.cpp \
 vec4d.hpp \
+vectorfield.cpp \
 vectorfield.hpp \
 xygraph.cpp \
 xygraph.hpp
 
-libibsimu_1_0_4new_solver_la_includedir=$(includedir)/ibsimu-1.0.4new_solver
-libibsimu_1_0_4new_solver_la_include_HEADERS = \
+libibsimu_1_0_5new_solver_la_includedir=$(includedir)/ibsimu-1.0.5new_solver
+libibsimu_1_0_5new_solver_la_include_HEADERS = \
 bicgstab.hpp \
 callback.hpp \
 ccolmatrix.hpp \
@@ -238,6 +241,8 @@ colormap.hpp \
 config.h \
 constants.hpp \
 convergence.hpp \
+compmath.hpp \
+comptime.hpp \
 coordmapper.hpp \
 coordmatrix.hpp \
 crowmatrix.hpp \
@@ -332,15 +337,17 @@ vectorfield.hpp \
 xygraph.hpp
 
 if UMFPACK
-libibsimu_1_0_4new_solver_la_SOURCES += epot_umfpacksolver.cpp epot_umfpacksolver.hpp 
-libibsimu_1_0_4new_solver_la_include_HEADERS += epot_umfpacksolver.hpp 
+libibsimu_1_0_5new_solver_la_SOURCES += epot_umfpacksolver.cpp epot_umfpacksolver.hpp 
+libibsimu_1_0_5new_solver_la_include_HEADERS += epot_umfpacksolver.hpp 
 endif
 
 if CSG
-libibsimu_1_0_4new_solver_la_SOURCES += csgobject_solid.cpp csgobject_solid.hpp
-libibsimu_1_0_4new_solver_la_include_HEADERS += csgobject_solid.hpp
+libibsimu_1_0_5new_solver_la_SOURCES += csgobject_solid.cpp csgobject_solid.hpp
+libibsimu_1_0_5new_solver_la_include_HEADERS += csgobject_solid.hpp
 endif
 
+EXTRA_DIST = \
+id.hpp
 
 CLEANFILES = *~
 

@@ -2,7 +2,7 @@
  *  \brief %Geometry view window
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -59,9 +59,46 @@
  */
 class GTKGeomWindow : public GTKWindow {
 
+    struct PreferencesData {
+	GtkWidget *manual_eqlines_entry;
+	GtkWidget *automatic_eqlines_spin;
+	GtkWidget *particlediv_spin;
+
+	GtkWidget *qmdiscretation_check;
+	GtkWidget *meshen_check;
+
+	GtkWidget *field_none_radio;
+	GtkWidget *field_J_radio;
+	GtkWidget *field_rho_radio;
+	GtkWidget *field_phi_radio;
+	
+	GtkWidget *field_E_radio;
+	GtkWidget *field_Ex_radio;
+	GtkWidget *field_Ey_radio;
+	GtkWidget *field_Ez_radio;
+	
+	GtkWidget *field_B_radio;
+	GtkWidget *field_Bx_radio;
+	GtkWidget *field_By_radio;
+	GtkWidget *field_Bz_radio;
+	
+	GtkWidget *int_closest_radio;
+	GtkWidget *int_bilinear_radio;
+	GtkWidget *int_bicubic_radio;
+	
+	GtkWidget *zscale_lin_radio;
+	GtkWidget *zscale_log_radio;
+	GtkWidget *zscale_rellog_radio;
+	
+	GtkWidget *zmin_entry;
+	GtkWidget *zmax_entry;
+	
+	GtkWidget *palette_steps_entry;
+    };
+
     GeomPlot                 _geomplot;
 
-    const Geometry          *_geom;
+    const Geometry          &_geom;
     const EpotField         *_epot;
     const EpotEfield        *_efield;
     const MeshScalarField   *_scharge;
@@ -76,6 +113,7 @@ class GTKGeomWindow : public GTKWindow {
     GtkWidget               *_spinbutton;
     GtkWidget               *_combobox;
 
+    PreferencesData         *_prefdata;
 
     void update_view();
 
@@ -92,6 +130,7 @@ class GTKGeomWindow : public GTKWindow {
     void particle_diag( int action, double x, double y );
     void darea_motion2( GdkEventMotion *event );
     void darea_button2( GdkEventButton *event );
+    void field_activate( void );
 
     static void combobox_signal( GtkComboBox *combobox,
 				 gpointer object );
@@ -105,12 +144,13 @@ class GTKGeomWindow : public GTKWindow {
     static gboolean darea_button_signal2( GtkWidget *widget, 
 					  GdkEventButton *event,
 					  gpointer object );
-
+    static void field_toggled( GtkToggleButton *togglebutton,
+			       gpointer         user_data );
 
 public:
-    
-    GTKGeomWindow( class GTKPlotter *plotter,
-		   const Geometry *geom,
+
+    GTKGeomWindow( class GTKPlotter &plotter,
+		   const Geometry &geom,
 		   const EpotField *epot,
 		   const EpotEfield *efield,
 		   const MeshScalarField *scharge,

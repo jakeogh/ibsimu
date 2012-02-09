@@ -84,6 +84,7 @@ void scharge_finalize( MeshScalarField &scharge )
                 }
 	    }
 	}
+
 	// Correct boundaries
 	for( uint32_t i = 0; i < scharge.size(0); i++ ) {
 	    scharge( i, 0 ) *= 2.0;

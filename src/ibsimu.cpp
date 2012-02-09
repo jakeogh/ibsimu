@@ -2,7 +2,7 @@
  *  \brief Ion Beam Simulator global settings
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -65,14 +65,13 @@ IBSimu::IBSimu()
     for( int a = 0; a < MSG_COUNT; a++ )
 	_message_threshold[a] = 0;
 
-#ifdef _GNU_SOURCE
+#if defined(_GNU_SOURCE) && defined(HAVE_SIGINFO_T)
     // Set a catch for segmentation fault
     struct sigaction act_sigsegv;
     act_sigsegv.sa_sigaction = SignalHandler::signal_handler_SIGSEGV;
     sigemptyset( &act_sigsegv.sa_mask );
     act_sigsegv.sa_flags = SA_SIGINFO;
     sigaction( SIGSEGV, &act_sigsegv, NULL );
-#endif
 
     // Set a catch for terminate/kill/int
     struct sigaction act_sigterm;
@@ -82,6 +81,10 @@ IBSimu::IBSimu()
     sigaction( SIGTERM, &act_sigterm, NULL );
     sigaction( SIGQUIT, &act_sigterm, NULL );
     sigaction( SIGINT, &act_sigterm, NULL );
+#else
+    signal( SIGTERM, SignalHandler::signal_handler_SIGTERM );
+    signal( SIGINT, SignalHandler::signal_handler_SIGTERM );
+#endif
 
     // Start timer for whole simulation
     _t = new Timer;

@@ -51,6 +51,7 @@
 #include <gsl/gsl_odeiv.h>
 #include <gsl/gsl_poly.h>
 #include "geometry.hpp"
+#include "compmath.hpp"
 #include "trajectory.hpp"
 #include "particles.hpp"
 #include "vectorfield.hpp"
@@ -779,7 +780,10 @@ template <class PP> class ParticleIterator {
     /*! \brief Check particle definition.
      *
      *  False is returned if particle is defined out of simulation
-     *  area or inside a solid.  False is also returned if a particle
+     *  area or inside a solid. False is also returned if illegal
+     *  input (NaN) is received.
+     *
+     *  Removed feature: False is also returned if a particle
      *  is defined on the simulation border going out of simulation
      *  with the corresponding border not having mirroring enabled. If
      *  the mirroring is enabled, the particle is mirrored and true is
@@ -792,6 +796,12 @@ template <class PP> class ParticleIterator {
 	std::cout << "Particle defined at:\n";
 	std::cout << "  x = " << x << "\n";
 #endif
+
+	// Check for NaN
+	for( size_t a = 0; a < PP::size(); a++ ) {
+	    if( comp_isnan( x[a] ) )
+		return( false );
+	}
 
 	// Check if inside solids or outside simulation geometry box.
 	if( _pidata._geom->inside( x.location() ) )
@@ -958,6 +968,12 @@ public:
      */
     void set_bfield_suppression_callback( const CallbackFunctorD_V *bsup_cb ) {
 	_pidata.set_bfield_suppression_callback( bsup_cb );
+    }
+
+    /*! \brief Set relativistic particle iteration.
+     */
+    void set_relativistic( bool enable ) {
+	_pidata.set_relativistic( enable );
     }
 
     /*! \brief Get particle iterator statistics.

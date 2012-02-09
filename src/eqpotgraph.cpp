@@ -2,7 +2,7 @@
  *  \brief %Graph for plotting equipotential lines
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,8 +45,9 @@
 #include "ibsimu.hpp"
 
 
-EqPotGraph::EqPotGraph( const MeshScalarField &epot, const Geometry &g )
-    : _color(Color(0.2,1,0.2)), _epot(epot), _g(g), _data_built(false), _cache(true)
+EqPotGraph::EqPotGraph( const MeshScalarField &epot, const Geometry &geom )
+    : Graph3D(geom), _color(Color(0.2,1,0.2)), _epot(epot), _geom(geom), 
+      _data_built(false), _cache(true)
 {
 }
 
@@ -119,38 +120,38 @@ void EqPotGraph::build_data( void )
     // Go through mesh
     size_t i[3];
     size_t dx, dy;
-    i[_vb[2]] = (int)floor(_level+0.5);
+    i[_vb[2]] = _level;
     if( _vb[0] == 0 ) dx = 1;
-    else if( _vb[0] == 1 ) dx = _g.size(0);
-    else dx = _g.size(1)*_g.size(0);
+    else if( _vb[0] == 1 ) dx = _geom.size(0);
+    else dx = _geom.size(1)*_geom.size(0);
     if( _vb[1] == 0 ) dy = 1;
-    else if( _vb[1] == 1 ) dy = _g.size(0);
-    else dy = _g.size(1)*_g.size(0);
-    size_t sizex = _g.size(_vb[0])-1;
-    size_t sizey = _g.size(_vb[1])-1;
+    else if( _vb[1] == 1 ) dy = _geom.size(0);
+    else dy = _geom.size(1)*_geom.size(0);
+    size_t sizex = _geom.size(_vb[0])-1;
+    size_t sizey = _geom.size(_vb[1])-1;
     for( i[_vb[1]] = 0; i[_vb[1]] < sizey; i[_vb[1]]++ ) {
 	for( i[_vb[0]] = 0; i[_vb[0]] < sizex; i[_vb[0]]++ ) {
 	    
 	    //std::cout << "Scanning at " << i[_vb[0]] << " " << i[_vb[1]] << "\n";
-	    size_t ptr = _g.size(0)*_g.size(1)*i[2] + _g.size(0)*i[1] + i[0];
+	    size_t ptr = _geom.size(0)*_geom.size(1)*i[2] + _geom.size(0)*i[1] + i[0];
 
 	    // Potentials and solid mesh numbers counterclockwise
 	    // starting from lower left corner in vb[0], vb[1] coordinates
 	    size_t ptr1       = ptr;
 	    double pot1       = _epot( ptr1 );
-	    uint32_t sol1     = _g.mesh( ptr1 );
+	    uint32_t sol1     = _geom.mesh( ptr1 );
 
 	    size_t ptr2       = ptr+dx;
 	    double pot2       = _epot( ptr2 );
-	    uint32_t sol2     = _g.mesh( ptr2 );
+	    uint32_t sol2     = _geom.mesh( ptr2 );
 
 	    size_t ptr3       = ptr+dx+dy;
 	    double pot3       = _epot( ptr3 );
-	    uint32_t sol3     = _g.mesh( ptr3 );
+	    uint32_t sol3     = _geom.mesh( ptr3 );
 
 	    size_t ptr4       = ptr+dy;
 	    double pot4       = _epot( ptr4 );
-	    uint32_t sol4     = _g.mesh( ptr4 );
+	    uint32_t sol4     = _geom.mesh( ptr4 );
 
 	    // Check for existance of each equipotential line
 	    for( size_t a = 0; a < _lines.size(); a++ ) {
@@ -165,19 +166,19 @@ void EqPotGraph::build_data( void )
 		if( eqline_exists( pot1, sol1, pot2, sol2, pot ) ) {
 		    if( is_near(sol1) && is_solid(sol2) ) {
 			// Get solid distance for sol1 to direction of sol2 (+vb[0])
-			uint8_t dist = _g.solid_dist( ptr1, 2*_vb[0]+1 );
+			uint8_t dist = _geom.solid_dist( ptr1, 2*_vb[0]+1 );
 			double t = dist*(pot-pot1) / (255*(pot2-pot1));
-			x[b+0] = ( i[_vb[0]] + t ) * _g.h() + _g.origo(_vb[0]);
+			x[b+0] = ( i[_vb[0]] + t ) * _geom.h() + _geom.origo(_vb[0]);
 		    } else if( is_near(sol2) && is_solid(sol1) ) {
 			// Get solid distance for sol2 to direction of sol1 (-vb[0])
-			uint8_t dist = _g.solid_dist( ptr2, 2*_vb[0] );
+			uint8_t dist = _geom.solid_dist( ptr2, 2*_vb[0] );
 			double t = dist*(pot-pot2) / (255*(pot1-pot2));
-			x[b+0] = ( i[_vb[0]] + 1 - t ) * _g.h() + _g.origo(_vb[0]);
+			x[b+0] = ( i[_vb[0]] + 1 - t ) * _geom.h() + _geom.origo(_vb[0]);
 		    } else {
 			double t = (pot-pot1) / (pot2-pot1);
-			x[b+0] = ( i[_vb[0]] + t ) * _g.h() + _g.origo(_vb[0]);
+			x[b+0] = ( i[_vb[0]] + t ) * _geom.h() + _geom.origo(_vb[0]);
 		    }
-		    x[b+1] = i[_vb[1]]*_g.h() + _g.origo(_vb[1]);
+		    x[b+1] = i[_vb[1]]*_geom.h() + _geom.origo(_vb[1]);
 		    b += 2;
 		}
 
@@ -185,19 +186,19 @@ void EqPotGraph::build_data( void )
 		if( eqline_exists( pot2, sol2, pot3, sol3, pot ) ) {
 		    if( is_near(sol2) && is_solid(sol3) ) {
 			// Get solid distance for sol2 to direction of sol3 (+vb[1])
-			uint8_t dist = _g.solid_dist( ptr2, 2*_vb[1]+1 );
+			uint8_t dist = _geom.solid_dist( ptr2, 2*_vb[1]+1 );
 			double t = dist*(pot-pot2) / (255*(pot3-pot2));
-			x[b+1] = ( i[_vb[1]] + t ) * _g.h() + _g.origo(_vb[1]);
+			x[b+1] = ( i[_vb[1]] + t ) * _geom.h() + _geom.origo(_vb[1]);
 		    } else if( is_near(sol3) && is_solid(sol2) ) {
 			// Get solid distance for sol3 to direction of sol2 (-vb[1])
-			uint8_t dist = _g.solid_dist( ptr3, 2*_vb[1] );
+			uint8_t dist = _geom.solid_dist( ptr3, 2*_vb[1] );
 			double t = dist*(pot-pot3) / (255*(pot2-pot3));
-			x[b+1] = ( i[_vb[1]] + 1 - t ) * _g.h() + _g.origo(_vb[1]);
+			x[b+1] = ( i[_vb[1]] + 1 - t ) * _geom.h() + _geom.origo(_vb[1]);
 		    } else {
 			double t = (pot-pot2) / (pot3-pot2);
-			x[b+1] = ( i[_vb[1]] + t ) * _g.h() + _g.origo(_vb[1]);
+			x[b+1] = ( i[_vb[1]] + t ) * _geom.h() + _geom.origo(_vb[1]);
 		    }
-		    x[b+0] = (i[_vb[0]]+1)*_g.h() + _g.origo(_vb[0]);
+		    x[b+0] = (i[_vb[0]]+1)*_geom.h() + _geom.origo(_vb[0]);
 		    b += 2;
 		}
 		
@@ -205,19 +206,19 @@ void EqPotGraph::build_data( void )
 		if( eqline_exists( pot4, sol4, pot3, sol3, pot ) ) {
 		    if( is_near(sol4) && is_solid(sol3) ) {
 			// Get solid distance for sol4 to direction of sol3 (+vb[0])
-			uint8_t dist = _g.solid_dist( ptr4, 2*_vb[0]+1 );
+			uint8_t dist = _geom.solid_dist( ptr4, 2*_vb[0]+1 );
 			double t = dist*(pot-pot4) / (255*(pot3-pot4));
-			x[b+0] = ( i[_vb[0]] + t ) * _g.h() + _g.origo(_vb[0]);
+			x[b+0] = ( i[_vb[0]] + t ) * _geom.h() + _geom.origo(_vb[0]);
 		    } else if( is_near(sol3) && is_solid(sol4) ) {
 			// Get solid distance for sol3 to direction of sol4 (-vb[0])
-			uint8_t dist = _g.solid_dist( ptr3, 2*_vb[0] );
+			uint8_t dist = _geom.solid_dist( ptr3, 2*_vb[0] );
 			double t = dist*(pot-pot3) / (255*(pot4-pot3));
-			x[b+0] = ( i[_vb[0]] + 1 - t ) * _g.h() + _g.origo(_vb[0]);
+			x[b+0] = ( i[_vb[0]] + 1 - t ) * _geom.h() + _geom.origo(_vb[0]);
 		    } else {
 			double t = (pot-pot4) / (pot3-pot4);
-			x[b+0] = ( i[_vb[0]] + t ) * _g.h() + _g.origo(_vb[0]);
+			x[b+0] = ( i[_vb[0]] + t ) * _geom.h() + _geom.origo(_vb[0]);
 		    }
-		    x[b+1] = (i[_vb[1]]+1)*_g.h() + _g.origo(_vb[1]);
+		    x[b+1] = (i[_vb[1]]+1)*_geom.h() + _geom.origo(_vb[1]);
 		    b += 2;
 		}
 
@@ -225,19 +226,19 @@ void EqPotGraph::build_data( void )
 		if( eqline_exists( pot1, sol1, pot4, sol4, pot ) ) {
 		    if( is_near(sol1) && is_solid(sol4) ) {
 			// Get solid distance for sol1 to direction of sol4 (+vb[1])
-			uint8_t dist = _g.solid_dist( ptr1, 2*_vb[1]+1 );
+			uint8_t dist = _geom.solid_dist( ptr1, 2*_vb[1]+1 );
 			double t = dist*(pot-pot1) / (255*(pot4-pot1));
-			x[b+1] = ( i[_vb[1]] + t ) * _g.h() + _g.origo(_vb[1]);
+			x[b+1] = ( i[_vb[1]] + t ) * _geom.h() + _geom.origo(_vb[1]);
 		    } else if( is_near(sol4) && is_solid(sol1) ) {
 			// Get solid distance for sol4 to direction of sol1 (-vb[1])
-			uint8_t dist = _g.solid_dist( ptr4, 2*_vb[1] );
+			uint8_t dist = _geom.solid_dist( ptr4, 2*_vb[1] );
 			double t = dist*(pot-pot4) / (255*(pot1-pot4));
-			x[b+1] = ( i[_vb[1]] + 1 - t ) * _g.h() + _g.origo(_vb[1]);
+			x[b+1] = ( i[_vb[1]] + 1 - t ) * _geom.h() + _geom.origo(_vb[1]);
 		    } else {
 			double t = (pot-pot1) / (pot4-pot1);
-			x[b+1] = ( i[_vb[1]] + t ) * _g.h() + _g.origo(_vb[1]);
+			x[b+1] = ( i[_vb[1]] + t ) * _geom.h() + _geom.origo(_vb[1]);
 		    }
-		    x[b+0] = i[_vb[0]]*_g.h() + _g.origo(_vb[0]);
+		    x[b+0] = i[_vb[0]]*_geom.h() + _geom.origo(_vb[0]);
 		    b += 2;
 		}
 
@@ -267,7 +268,6 @@ void EqPotGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
 {
     if( !_data_built || _oview != _view || _olevel != _level || !_cache ) {
 	// First round or change happened
-	//_ilevel = (int)floor( (_level - _g.origo(_vb[2])) / _g.h() + 0.5 );
 	build_data();
     }
     _oview = _view;
@@ -302,10 +302,10 @@ void EqPotGraph::plot_sample( cairo_t *cairo, double x, double y, double width, 
 
 void EqPotGraph::get_bbox( double bbox[4] )
 {
-    bbox[0] = _g.origo( _vb[0] );
-    bbox[1] = _g.origo( _vb[1] );
-    bbox[2] = _g.max( _vb[0] );
-    bbox[3] = _g.max( _vb[1] );
+    bbox[0] = _geom.origo( _vb[0] );
+    bbox[1] = _geom.origo( _vb[1] );
+    bbox[2] = _geom.max( _vb[0] );
+    bbox[3] = _geom.max( _vb[1] );
 }
 
 

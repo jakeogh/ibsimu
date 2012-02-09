@@ -2,7 +2,7 @@
  *  \brief DXF line entity
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -205,15 +205,9 @@ int MyDXFLine::ray_cross( double x, double y ) const
 
 void MyDXFLine::debug_print( std::ostream &os ) const
 {
-    std::cout << "LINE\n";
-    std::cout << "  p1 = {" 
-	      << _p1[0] << ", " 
-	      << _p1[1] << ", " 
-	      << _p1[2] << "}\n";
-    std::cout << "  p2 = {" 
-	      << _p2[0] << ", " 
-	      << _p2[1] << ", " 
-	      << _p2[2] << "}\n";
+    os << "  LINE\n";
+    MyDXFFile::debug_print_format( os, "p1", _p1 );
+    MyDXFFile::debug_print_format( os, "p2", _p2 );
 }
 
 

@@ -2,7 +2,7 @@
  *  \brief %Particle and particle point objects
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -55,7 +55,8 @@
 #include "constants.hpp"
 
 
-/* Integer error value that is supposed to diffed from internal GSL error values */
+/* Integer error value that is supposed to differ from internal GSL
+ * error values */
 #define IBSIMU_DERIV_ERROR 201
 
 
@@ -905,16 +906,23 @@ struct ParticleIteratorData {
     const Geometry           *_geom;     /*!< \brief Geometry. */
     double                    _qm;       /*!< \brief Precalculated q/m. */
     const CallbackFunctorD_V *_bsup_cb;  /*!< \brief B-field plasma suppression callback. */
+    bool                      _relativistic; /*!< \brief Do relativistic particle calc? */
 
     ParticleIteratorData( MeshScalarField *scharge, const VectorField *efield, 
 			  const VectorField *bfield, const Geometry *geom ) 
 	: _scharge(scharge), _efield(efield), _bfield(bfield), 
-	  _geom(geom), _qm(0.0), _bsup_cb(0) {}
+	  _geom(geom), _qm(0.0), _bsup_cb(0), _relativistic(false) {}
 
     /*! \brief Set B-field potential dependent suppression callback.
      */
     void set_bfield_suppression_callback( const CallbackFunctorD_V *bsup_cb ) {
 	_bsup_cb = bsup_cb;
+    }
+
+    /*! \brief Set relativistic particle iteration.
+     */
+    void set_relativistic( bool enable ) {
+	_relativistic = enable;
     }
 
 };

@@ -84,6 +84,10 @@ public:
 	}
     }
 
+    virtual void plot_sample( cairo_t *cairo, double x, double y, double width, double height ) {
+
+    }
+
     virtual void get_bbox( double bbox[4] ) {
 	bbox[0] = 0.0;
 	bbox[1] = 0.0;

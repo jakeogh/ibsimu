@@ -2,7 +2,7 @@
  *  \brief Source code for geomplotter.cpp
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -43,8 +43,8 @@
 #include "geomplotter.hpp"
 
 
-GeomPlotter::GeomPlotter( const Geometry *geom )
-    : GeomPlot(&(Plotter::_frame), geom)
+GeomPlotter::GeomPlotter( const Geometry &geom )
+    : GeomPlot(Plotter::_frame, geom)
 {
     // Don't use graph caches with non-interactive plotter
     disable_cache();

@@ -2,7 +2,7 @@
  *  \brief Physical constants
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -55,8 +55,9 @@
 #define CHARGE_E      1.602176462e-19
 
 // Speed of light (m/s)
-#define SPEED_OF_LIGHT 299792458.0
-
+#define SPEED_C       299792458.0
+// Speed of light squared (m^2/s^2)
+#define SPEED_C2      89875517873681764.0
 
 
 #endif

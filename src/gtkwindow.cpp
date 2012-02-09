@@ -56,7 +56,7 @@
 
 
 
-GTKWindow::GTKWindow( class GTKPlotter *plotter )
+GTKWindow::GTKWindow( class GTKPlotter &plotter )
     : _width(640), _height(480), _cairo(NULL), _surface(NULL), _plotter(plotter)
 {
     //std::cout << "GTKWindow constructor\n";
@@ -386,7 +386,7 @@ void GTKWindow::track( int action, double x, double y )
         _tracklabel = gtk_label_new( "" );
         gtk_misc_set_alignment( GTK_MISC(_tracklabel), 0.0, 0.0 );
         gtk_label_set_justify( GTK_LABEL(_tracklabel), GTK_JUSTIFY_LEFT );
-        gtk_widget_set_size_request( _tracklabel, 300, 150 );
+        gtk_widget_set_size_request( _tracklabel, 400, 300 );
 
         gtk_container_add( GTK_CONTAINER(_trackwindow), _tracklabel );
         g_signal_connect( G_OBJECT(_trackwindow), "delete_event",
@@ -744,7 +744,7 @@ void GTKWindow::delete_window( void )
     if( _tool == TOOL_TRACK )
 	track( 4, 0, 0 );
 
-    _plotter->delete_window( this );
+    _plotter.delete_window( this );
 }
 
 
@@ -864,9 +864,4 @@ void GTKWindow::hardcopy( void )
     // Reset frame settings
     //_frame.set_geometry( _width, _height, 0, 0 );
 }
-
-
-
-
-
 

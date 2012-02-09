@@ -83,7 +83,7 @@ void test( int argc, char **argv )
     p.set_solver( solver );
     p.solve( epot, scharge );
 
-    GeomPlotter geomplotter( &geom );
+    GeomPlotter geomplotter( geom );
     geomplotter.set_epot( &epot );
     geomplotter.set_mesh( true );
     geomplotter.plot_png( "quadrupole.png" );

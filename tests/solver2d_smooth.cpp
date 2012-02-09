@@ -61,7 +61,7 @@ void test( int argc, char **argv )
     p.set_solver( solver );
     p.solve( epot, scharge );
     
-    GeomPlotter geomplotter( &geom );
+    GeomPlotter geomplotter( geom );
     geomplotter.set_mesh( true );
     geomplotter.set_epot( &epot );
     geomplotter.plot_png( "solver2d_smooth.png" );

@@ -91,7 +91,7 @@ void test( int argc, char **argv )
     conv.add_scharge( scharge );
     conv.add_emittance( 0, emit );
 
-    for( size_t i = 0; i < 2; i++ ) {
+    for( size_t i = 0; i < 1; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
@@ -104,31 +104,34 @@ void test( int argc, char **argv )
 	efield.recalculate();
 
 	pdb.clear();
-	pdb.add_2d_beam_with_energy( 50000, 600.0, 1.0, 1.0, 
+	pdb.add_2d_beam_with_energy( 5000, 600.0, 1.0, 1.0, 
 				     5.0, 0.0, 2.0, 
 				     0.0, 0.0, 
 				     0.0, 1.5e-3 );
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
-	ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 0.0119, PARTICLE_DIAG_PLOT_SCATTER,
+	ParticleDiagPlotter pplotter( geom, pdb, AXIS_X, 0.0119, 
+				      PARTICLE_DIAG_PLOT_SCATTER,
 				      DIAG_R, DIAG_RP );
 	emit = pplotter.calculate_emittance();
 	conv.evaluate_iteration();
 
-	MeshScalarField tdens( geom );
-	pdb.build_trajectory_density_field( tdens );
-	GTKPlotter plotter( &argc, &argv );
-	plotter.set_geometry( &geom );
-	plotter.set_epot( &epot );
-	plotter.set_efield( &efield );
-	plotter.set_trajdens( &tdens );
-	plotter.set_scharge( &scharge );
-	plotter.set_particledatabase( &pdb );
-	plotter.new_geometry_plot_window();
-	plotter.run();
+	if( false ) {
+	    MeshScalarField tdens( geom );
+	    pdb.build_trajectory_density_field( tdens );
+	    GTKPlotter plotter( &argc, &argv );
+	    plotter.set_geometry( &geom );
+	    plotter.set_epot( &epot );
+	    plotter.set_efield( &efield );
+	    plotter.set_trajdens( &tdens );
+	    plotter.set_scharge( &scharge );
+	    plotter.set_particledatabase( &pdb );
+	    plotter.new_geometry_plot_window();
+	    plotter.run();
+	}
     }
 
-    if( true ) {
+    if( false ) {
 	MeshScalarField tdens( geom );
 	pdb.build_trajectory_density_field( tdens );
 	GTKPlotter plotter( &argc, &argv );
@@ -146,18 +149,28 @@ void test( int argc, char **argv )
     conv.print_history( ofconv );
     ofconv.close();
 
-    MeshScalarField tdens( geom );
-    pdb.build_trajectory_density_field( tdens );
+    /*
+    std::vector<trajectory_diagnostic_e> diagnostics;
+    diagnostics.push_back( DIAG_R );
+    diagnostics.push_back( DIAG_RP );
+    diagnostics.push_back( DIAG_AP );
+    diagnostics.push_back( DIAG_CURR );
+    diagnostics.push_back( DIAG_NO );
+    TrajectoryDiagnosticData tdata;
+    pdb.trajectories_at_plane( tdata, AXIS_X, 1.0e-6, diagnostics );
+    tdata.export_data( "plasmacyl_diag.txt" );
+    */
 
-    ParticleDiagPlotter pplotter1( &geom, &pdb, AXIS_X, 1e-6, 
+    ParticleDiagPlotter pplotter1( geom, pdb, AXIS_X, 2e-6, 
 				   PARTICLE_DIAG_PLOT_HISTO2D, 
 				   DIAG_Y, DIAG_YP );
-    //pplotter1.set_ranges( -0.008, -0.15001, 0.004, 0.05 );
     pplotter1.set_font_size( 20 );
     pplotter1.set_size( 800, 600 );
     pplotter1.plot_png( "plasmacyl_emit1.png" );
+    pplotter1.export_data( "plasmacyl_emit1.txt" );
 
-    ParticleDiagPlotter pplotter2( &geom, &pdb, AXIS_X, 2.0e-3, 
+    /*
+    ParticleDiagPlotter pplotter2( geom, pdb, AXIS_X, 2.0e-3, 
 				   PARTICLE_DIAG_PLOT_HISTO2D, 
 				   DIAG_Y, DIAG_YP );
     //pplotter2.set_ranges( -0.008, -0.15001, 0.004, 0.05 );
@@ -165,7 +178,7 @@ void test( int argc, char **argv )
     pplotter2.set_size( 800, 600 );
     pplotter2.plot_png( "plasmacyl_emit2.png" );
 
-    ParticleDiagPlotter pplotter3( &geom, &pdb, AXIS_X, 6.0e-3, 
+    ParticleDiagPlotter pplotter3( geom, pdb, AXIS_X, 6.0e-3, 
 				   PARTICLE_DIAG_PLOT_HISTO2D, 
 				   DIAG_Y, DIAG_YP );
     //pplotter3.set_ranges( -0.008, -0.15001, 0.004, 0.05 );
@@ -173,7 +186,7 @@ void test( int argc, char **argv )
     pplotter3.set_size( 800, 600 );
     pplotter3.plot_png( "plasmacyl_emit3.png" );
 
-    ParticleDiagPlotter pplotter4( &geom, &pdb, AXIS_X, 11.90e-3, 
+    ParticleDiagPlotter pplotter4( geom, pdb, AXIS_X, 11.90e-3, 
 				   PARTICLE_DIAG_PLOT_HISTO2D, 
 				   DIAG_Y, DIAG_YP );
     //pplotter4.set_ranges( -0.008, -0.15001, 0.004, 0.05 );
@@ -181,7 +194,10 @@ void test( int argc, char **argv )
     pplotter4.set_size( 800, 600 );
     pplotter4.plot_png( "plasmacyl_emit4.png" );
 
-    GeomPlotter gplotter( &geom );
+    MeshScalarField tdens( geom );
+    pdb.build_trajectory_density_field( tdens );
+
+    GeomPlotter gplotter( geom );
     gplotter.set_size( 800, 600 );
     gplotter.set_font_size( 20 );
     gplotter.set_epot( &epot );
@@ -196,6 +212,8 @@ void test( int argc, char **argv )
     gplotter.set_particle_div( 0 );
     gplotter.set_trajdens( &tdens );
     gplotter.set_fieldgraph_plot( FIELD_TRAJDENS );
+    gplotter.fieldgraph()->set_zscale( ZSCALE_RELLOG );
     gplotter.plot_png( "plasmacyl.png" );
+    */
 }
 

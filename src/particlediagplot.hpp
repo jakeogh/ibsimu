@@ -77,10 +77,10 @@ enum particle_diag_plot_type_e {
  */
 class ParticleDiagPlot {
     
-    Frame                     *_frame;
+    Frame                     &_frame;
 
-    const Geometry            *_geom;
-    const ParticleDataBase    *_pdb;
+    const Geometry            &_geom;
+    const ParticleDataBase    &_pdb;
 
     bool                       _free_plane;
 
@@ -102,18 +102,17 @@ class ParticleDiagPlot {
     Histogram                 *_histo;  /*!< \brief Histogram data */
     Emittance                 *_emit;   /*!< \brief Emittance data */
 
-    XYGraph                   *_scatter;
-
+    XYGraph                   *_datagraph;
     XYGraph                   *_ellipse;
     bool                       _ellipse_enable;
 
     Colormap                  *_colormap;
     std::vector<double>        _zdata;
 
-    XYGraph                   *_profile;
-
     size_t                     _histogram_n;
     size_t                     _histogram_m;
+    histogram_accumulation_e   _histogram_accumulation;
+    bool                       _histogram_style;
     interpolation_e            _interpolation;
     double                     _dot_size;
     
@@ -130,7 +129,7 @@ public:
      *  defined by diagnostic \a type and diagnostic axes \a diagx and
      *  \a diagy.
      */
-    ParticleDiagPlot( Frame *frame, const Geometry *geom, const ParticleDataBase *pdb, 
+    ParticleDiagPlot( Frame &frame, const Geometry &geom, const ParticleDataBase &pdb, 
 		      coordinate_axis_e axis, double level, 
 		      particle_diag_plot_type_e type,
 		      trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy = DIAG_NONE );
@@ -144,7 +143,7 @@ public:
      *  geometry \a geom. The particle diagnostic is defined by
      *  diagnostic \a type and diagnostic axes \a diagx and \a diagy.
      */
-    ParticleDiagPlot( Frame *frame, const Geometry *geom, const ParticleDataBase *pdb, 
+    ParticleDiagPlot( Frame &frame, const Geometry &geom, const ParticleDataBase &pdb, 
 		      const Vec3D &c, const Vec3D &o, const Vec3D &p,
 		      particle_diag_plot_type_e type,
 		      trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy = DIAG_NONE );
@@ -238,6 +237,31 @@ public:
 	return( _histogram_m );
     }
 
+    /*! \brief Set histogram accumulation type.
+     */
+    void set_histogram_accumulation( histogram_accumulation_e accumulation ) {
+	_update = true;
+	_histogram_accumulation = accumulation;
+    }
+
+    /*! \brief Get histogram accumulation type.
+     */
+    histogram_accumulation_e get_histogram_accumulation( void ) {
+	return( _histogram_accumulation );
+    }
+
+    /*! \brief Set 1d histogram style.
+     */
+    void set_histogram_style( bool style ) {
+	_histogram_style = style;
+    }
+
+    /*! \brief Get 1d histogram style.
+     */
+    bool get_histogram_style( void ) {
+	return( _histogram_style );
+    }
+
     /*! \brief Set the type of interpolation used in colormap plot.
      */
     void set_colormap_interpolation( interpolation_e interpolation ) {
@@ -262,8 +286,8 @@ public:
      */
     void set_dot_size( double size ) {
 	_dot_size = size;
-	if( _scatter )
-	    _scatter->set_point_style( XYGRAPH_POINT_CIRCLE, true, _dot_size );
+	if( _datagraph )
+	    _datagraph->set_point_style( XYGRAPH_POINT_CIRCLE, true, _dot_size );
     }
 
     /*! \brief Get dot size for scatter plot.

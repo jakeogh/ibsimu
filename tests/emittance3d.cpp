@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <iostream>
 #include "geometry.hpp"
+#include "meshvectorfield.hpp"
 #include "epot_problem.hpp"
 #include "epot_efield.hpp"
 #include "bicgstab_solver.hpp"
@@ -43,7 +44,7 @@ void test( int argc, char **argv )
     p.solve( epot, scharge );
 
     EpotEfield efield( geom, epot );
-    VectorField bfield;
+    MeshVectorField bfield;
 
     // Make a circular beam of Neon (m=20) 6+ with J = 45 A/m2 and radius 5 mm.
     // Starting energy is 3 keV and transverse temperature 1.0 eV.
@@ -59,7 +60,7 @@ void test( int argc, char **argv )
     pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
     // Plot (y,y') emittance and check value
-    ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				  DIAG_Y, DIAG_YP );
     pplotter.plot_png( "emittance3d_emit.png" );
     Emittance emit = pplotter.calculate_emittance();
@@ -67,7 +68,7 @@ void test( int argc, char **argv )
 	throw( Error( ERROR_LOCATION, "rms emittance does not match theory" ) );
 
     // Plot (y,z) profile
-    ParticleDiagPlotter pplotter2( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter2( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_Y, DIAG_Z );
     pplotter2.plot_png( "emittance3d_profile.png" );
 }

@@ -41,7 +41,9 @@
  */
 
 #include "particles.hpp"
+#include "constants.hpp"
 #include "trajectory.hpp"
+#include "mat3d.hpp"
 #include <iostream>
 #include <iomanip>
 
@@ -64,10 +66,24 @@ int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void 
     /* Positions: dx/dt = vx, dy/dt = vy */
     dxdt[0] = x[1];
     dxdt[2] = x[3];
-    
+
     /* Velocities dvx/dt = ax, dvy/dt = ay */
-    dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2]);
-    dxdt[3] = pidata->_qm * (E[1] - x[1]*B[2]);
+    if( pidata->_relativistic ) {
+	double pxm = pidata->_qm * (E[0] + x[3]*B[2]);
+	double pym = pidata->_qm * (E[1] - x[1]*B[2]);
+	double v2 = x[1]*x[1] + x[3]*x[3];
+	double gamma = 1.0/sqrt( 1.0 - v2/SPEED_C2 );
+	double gamma3 = gamma*gamma*gamma;
+	double a = gamma3*x[1]*x[1]/SPEED_C2 + gamma;
+	double b = gamma3*x[1]*x[3]/SPEED_C2; // = c
+	double d = gamma3*x[3]*x[3]/SPEED_C2 + gamma;
+	double idet = 1.0/( a*d - b*b );
+	dxdt[1] = idet*( d*pxm - b*pym );
+	dxdt[3] = idet*( -b*pxm + a*pym );
+    } else {
+	dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2]);
+	dxdt[3] = pidata->_qm * (E[1] - x[1]*B[2]);
+    }
 
     //std::cout << "dxdt=(" 
     //<< dxdt[0] << " "
@@ -161,12 +177,16 @@ int ParticlePCyl::get_derivatives( double t, const double *x, double *dxdt, void
      * dvr/dt = ar+r*(dtheta/dt)^2 
      * d^2theta/dt^2 = (a_theta-dr/dt*dtheta/dt)/r 
      */
-    dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2] - x[2]*x[4]*B[1]);
-    dxdt[3] = pidata->_qm * (E[1] + x[2]*x[4]*B[0] - x[1]*B[2]) + x[2]*x[4]*x[4];
-    if( x[2] == 0.0 )
-        dxdt[4] = 0.0;
-    else
-        dxdt[4] = (pidata->_qm * (x[1]*B[1] - x[3]*B[0]) - 2.0*x[3]*x[4]) / x[2];
+    if( pidata->_relativistic ) {
+	throw( ErrorUnimplemented( ERROR_LOCATION, "Relativistic particle iteration unimplemented" ) );
+    } else {
+	dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2] - x[2]*x[4]*B[1]);
+	dxdt[3] = pidata->_qm * (E[1] + x[2]*x[4]*B[0] - x[1]*B[2]) + x[2]*x[4]*x[4];
+	if( x[2] == 0.0 )
+	    dxdt[4] = 0.0;
+	else
+	    dxdt[4] = (pidata->_qm * (x[1]*B[1] - x[3]*B[0]) - 2.0*x[3]*x[4]) / x[2];
+    }
     
 #ifdef DEBUG_PARTICLE_DERIVATIVES
     std::cout << "  dxdt = " 
@@ -247,10 +267,30 @@ int ParticleP3D::get_derivatives( double t, const double *x, double *dxdt, void 
     dxdt[4] = x[5];
     
     /* Velocities: dvx/dt = ax, dvy/dt = ay, dvz/dt = az */
-    dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2] - x[5]*B[1]);
-    dxdt[3] = pidata->_qm * (E[1] + x[5]*B[0] - x[1]*B[2]);
-    dxdt[5] = pidata->_qm * (E[2] + x[1]*B[1] - x[3]*B[0]);
-    
+    if( pidata->_relativistic ) {
+	double v2 = x[1]*x[1] + x[3]*x[3] + x[5]*x[5];
+	double gamma = 1.0/sqrt( 1.0 - v2/SPEED_C2 );
+	double gamma3c = gamma*gamma*gamma/SPEED_C2;
+	double a12 = gamma3c*x[1]*x[3];
+	double a13 = gamma3c*x[1]*x[5];
+	double a23 = gamma3c*x[3]*x[5];
+	Mat3D m( gamma3c*x[1]*x[1] + gamma, a12, a13,
+		 a12, gamma3c*x[3]*x[3] + gamma, a23,
+		 a13, a23, gamma3c*x[5]*x[5] + gamma );
+	Mat3D minv = m.inverse();
+	Vec3D pm( pidata->_qm * (E[0] + x[3]*B[2] - x[5]*B[1]),
+		  pidata->_qm * (E[1] + x[5]*B[0] - x[1]*B[2]),
+		  pidata->_qm * (E[2] + x[1]*B[1] - x[3]*B[0]) );
+	Vec3D dvdt = minv*pm;
+	dxdt[1] = dvdt(0);
+	dxdt[3] = dvdt(1);
+	dxdt[5] = dvdt(2);
+    } else {
+	dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2] - x[5]*B[1]);
+	dxdt[3] = pidata->_qm * (E[1] + x[5]*B[0] - x[1]*B[2]);
+	dxdt[5] = pidata->_qm * (E[2] + x[1]*B[1] - x[3]*B[0]);
+    }
+
 #ifdef DEBUG_PARTICLE_DERIVATIVES
     std::cout << "  dxdt = " 
 	      << dxdt[0] << " "
@@ -291,24 +331,4 @@ int ParticleP3D::trajectory_intersections_at_plane( std::vector<ParticleP3D> &in
 
     return( nroots );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

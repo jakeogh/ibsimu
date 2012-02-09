@@ -74,8 +74,9 @@ class SolidGraph : public Graph3D {
 	SolidPoints( uint32_t N ) : N(N) {}
     };
 
+    const Geometry                      &_geom;
+
     Color                                _color;
-    const Geometry                      &_g;
     std::vector<SolidPoints *>           _solid;
 
     view_e                               _oview;
@@ -93,7 +94,7 @@ public:
 
     /*! \brief Constructor for %SolidGraph drawable from geometry \a g.
      */
-    SolidGraph( const Geometry &g );
+    SolidGraph( const Geometry &geom );
 
     /*! \brief Destructor.
      */
@@ -105,11 +106,14 @@ public:
      */
     void disable_cache( void );
 
-    /*! \brief Plot drawable with cairo.
+    /*! \brief Plot graph with cairo.
      *
-     *  Plot the drawable using \a cairo and coordinate mapper \a
-     *  cm. The visible range of plot is given in array \a range in
-     *  order xmin, ymin, xmax, ymax.
+     *  Plot the graph using \a cairo and coordinate mapper \a cm. The
+     *  visible range of plot is given in array \a range in order \a
+     *  xmin, \a ymin, \a xmax, \a ymax. The graph should be able to
+     *  handle any range values. Also \a min > \a max.
+     *
+     *  Called by Frame during drawing.
      */
     virtual void plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] );
 

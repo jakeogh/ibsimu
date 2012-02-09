@@ -2,7 +2,7 @@
  *  \brief Bindary file writing and reading tools.
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -46,32 +46,50 @@
 #include "error.hpp"
 
 
+//#define DEBUG_FILE 1
+
+
 void write_int8( std::ostream &s, int8_t value )
 {
+#ifdef DEBUG_FILE
+    std::cout << "write_int8: " << (int)value << "\n";
+#endif
     s.write( (const char *)(&value), sizeof(int8_t) );
 }
 
 
 void write_int16( std::ostream &s, int16_t value )
 {
+#ifdef DEBUG_FILE
+    std::cout << "write_int16: " << value << "\n";
+#endif
     s.write( (const char *)(&value), sizeof(int16_t) );
 }
 
 
 void write_int32( std::ostream &s, int32_t value )
 {
+#ifdef DEBUG_FILE
+    std::cout << "write_int32: " << value << "\n";
+#endif
     s.write( (const char *)(&value), sizeof(int32_t) );
 }
 
 
 void write_uint32( std::ostream &s, uint32_t value )
 {
+#ifdef DEBUG_FILE
+    std::cout << "write_uint32: " << value << "\n";
+#endif
     s.write( (const char *)(&value), sizeof(uint32_t) );
 }
 
 
 void write_double( std::ostream &s, double value )
 {
+#ifdef DEBUG_FILE
+    std::cout << "write_double: " << value << "\n";
+#endif
     s.write( (const char *)(&value), sizeof(double) );
 }
 
@@ -79,11 +97,15 @@ void write_double( std::ostream &s, double value )
 void write_compressed_block( std::ostream &s, uint32_t len, const int8_t *data )
 {
     uLongf  buflen = uLongf(len*1.1)+12 ;
-    Bytef  *buf = new Bytef [buflen];
+    Bytef  *buf = new Bytef[buflen];
     compress( buf, &buflen, (Bytef *)data, (uLong)len );
     write_uint32( s, len );
     write_uint32( s, buflen );
     s.write( (const char *)buf, buflen );
+#ifdef DEBUG_FILE
+    std::cout << "write_compressed_block: datalen = " << len
+	      << ", compressedlen = " << buflen << "\n";
+#endif
     delete [] buf;
 }
 
@@ -92,6 +114,9 @@ int8_t read_int8( std::istream &s )
 {
     int8_t value;
     s.read( (char *)(&value), sizeof(int8_t) );
+#ifdef DEBUG_FILE
+    std::cout << "read_int8: " << (int)value << "\n";
+#endif
     return( value );
 }
 
@@ -100,6 +125,9 @@ int16_t read_int16( std::istream &s )
 {
     int16_t value;
     s.read( (char *)(&value), sizeof(int16_t) );
+#ifdef DEBUG_FILE
+    std::cout << "read_int16: " << value << "\n";
+#endif
     return( value );
 }
 
@@ -108,6 +136,9 @@ int32_t read_int32( std::istream &s )
 {
     int32_t value;
     s.read( (char *)(&value), sizeof(int32_t) );
+#ifdef DEBUG_FILE
+    std::cout << "read_int32: " << value << "\n";
+#endif
     return( value );
 }
 
@@ -116,6 +147,9 @@ uint32_t read_uint32( std::istream &s )
 {
     uint32_t value;
     s.read( (char *)(&value), sizeof(uint32_t) );
+#ifdef DEBUG_FILE
+    std::cout << "read_uint32: " << value << "\n";
+#endif
     return( value );
 }
 
@@ -124,6 +158,9 @@ double read_double( std::istream &s )
 {
     double value;
     s.read( (char *)(&value), sizeof(double) );
+#ifdef DEBUG_FILE
+    std::cout << "read_double: " << value << "\n";
+#endif
     return( value );
 }
 
@@ -134,6 +171,10 @@ uint32_t read_compressed_block( std::istream &s, uint32_t len, int8_t *dest )
     uint32_t compressedlen;
     datalen = read_uint32( s );
     compressedlen = read_uint32( s );
+#ifdef DEBUG_FILE
+    std::cout << "read_compressed_block: datalen = " << datalen 
+	      << ", compressedlen = " << compressedlen << "\n";
+#endif
 
     if( datalen > len )
 	throw( Error( ERROR_LOCATION, "compressed data length longer than expected (" + 
@@ -145,6 +186,9 @@ uint32_t read_compressed_block( std::istream &s, uint32_t len, int8_t *dest )
     uncompress( (Bytef *)dest, &tmp, buf, compressedlen );
     delete [] buf;
 
+#ifdef DEBUG_FILE
+    std::cout << "done\n";
+#endif
     return( datalen );
 }
 

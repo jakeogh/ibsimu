@@ -2,7 +2,7 @@
  *  \brief Vector field base
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,6 +45,7 @@
 
 
 #include "field.hpp"
+#include "mesh.hpp"
 #include "vec3d.hpp"
 
 
@@ -64,6 +65,19 @@ public:
      *  at \a x.
      */
     virtual const Vec3D operator()( const Vec3D &x ) const = 0;
+
+    /*! \brief Search minimum and maximum vector length values of
+     *  vector field at \a mesh nodes
+     */
+    void get_minmax( const Mesh &mesh, double &min, double &max ) const;
+
+    /*! \brief Search minimum and maximum for each vector component at
+        \a mesh nodes.
+     *
+     *  Return vector min with minimum components found and vector max
+     *  with maximum components found.
+     */
+    void get_minmax( const Mesh &mesh, Vec3D &min, Vec3D &max ) const;
 };
 
 

@@ -2,7 +2,7 @@
  *  \brief Geometry plotting
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -44,16 +44,13 @@
 #include "geomplot.hpp"
 
 
-GeomPlot::GeomPlot( Frame *frame, const Geometry *geom )
-    : _frame(frame), _geom(geom), _epot(NULL), _scharge(NULL), _tdens(NULL), _bfield(NULL),
-      _efield(NULL), _pdb(NULL), _solidgraph(NULL), _fieldgraph(NULL), _eqpotgraph(NULL), 
+GeomPlot::GeomPlot( Frame &frame, const Geometry &geom )
+    : _frame(&frame), _geom(geom), _epot(NULL), _scharge(NULL), _tdens(NULL), _bfield(NULL),
+      _efield(NULL), _pdb(NULL), _fieldgraph(NULL), _solidgraph(NULL), _eqpotgraph(NULL), 
       _particlegraph(NULL), _meshgraph(NULL), _view(VIEW_XY), _level(0),
       _eqlines_auto(20), _particle_div(10), _scharge_field(false), _qm_discretation(true), 
-      _mesh(false), _fieldplot_sel(FIELD_NONE), _fieldplot_logscale(false), _cache(true)
+      _mesh(false), _cache(true)
 {
-    if( _geom == NULL )
-	throw( Error( ERROR_LOCATION, "geometry undefined" ) );
-
     // Set frame basic properties
     _frame->set_fixed_aspect( PLOT_FIXED_ASPECT_INCREASE_MARGIN );
     double min = -std::numeric_limits<double>::infinity();
@@ -64,21 +61,24 @@ GeomPlot::GeomPlot( Frame *frame, const Geometry *geom )
     _frame->ruler_autorange_enable( PLOT_AXIS_Y1, false, false );
 
     // Add default drawable (solid geometry)
-    _solidgraph = new SolidGraph( *_geom );
+    _solidgraph = new SolidGraph( _geom );
     _frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _solidgraph );
-    if( _geom->geom_mode() == MODE_3D )
+    if( _geom.geom_mode() == MODE_3D )
 	set_view( VIEW_XY, -1 );
     else
 	set_view( VIEW_XY, 0 );
+
+    // Make empty FieldGraph
+    _fieldgraph = new FieldGraph( _geom, (const Field*)NULL, FIELD_NONE );
 }
 
 
 GeomPlot::~GeomPlot()
 {
-    if( _solidgraph )
-	delete _solidgraph;
     if( _fieldgraph )
 	delete _fieldgraph;
+    if( _solidgraph )
+	delete _solidgraph;
     if( _eqpotgraph )
 	delete _eqpotgraph;
     if( _particlegraph )
@@ -104,7 +104,7 @@ void GeomPlot::reset_graphs()
 
     // Ensure correct order of graphs
     if( _fieldgraph )
-	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _fieldgraph );
+	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, (Graph3D *)_fieldgraph );
     if( _particlegraph )
 	_frame->add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _particlegraph );
     if( _solidgraph )
@@ -126,7 +126,7 @@ void GeomPlot::set_epot( const EpotField *epot )
     }
 
     if( _epot ) {
-	_eqpotgraph = new EqPotGraph( *_epot, *_geom );
+	_eqpotgraph = new EqPotGraph( *_epot, _geom );
 	if( !_cache )
 	    _eqpotgraph->disable_cache();
 	_eqpotgraph->set_view( _view, _level );
@@ -134,9 +134,9 @@ void GeomPlot::set_epot( const EpotField *epot )
 	_eqpotgraph->set_eqlines_manual( _eqlines_manual );
     }
 
-    if( _fieldplot_sel == FIELD_EPOT ) {
+    if( _fieldgraph && _fieldgraph->field_type() == FIELD_EPOT ) {
 	// Redo field graph to use new epot
-	set_fieldgraph_plot( _fieldplot_sel );
+	set_fieldgraph_plot( _fieldgraph->field_type() );
     }
     
     // Reset graphs in every case
@@ -163,9 +163,9 @@ void GeomPlot::set_eqlines_auto( size_t N )
 void GeomPlot::set_trajdens( const MeshScalarField *tdens ) 
 {
     _tdens = tdens;
-    if( _fieldplot_sel == FIELD_TRAJDENS ) {
+    if( _fieldgraph && _fieldgraph->field_type() == FIELD_TRAJDENS ) {
 	// Redo field graph to use new tdens
-	set_fieldgraph_plot( _fieldplot_sel );
+	set_fieldgraph_plot( _fieldgraph->field_type() );
     }
 }
 
@@ -173,74 +173,84 @@ void GeomPlot::set_trajdens( const MeshScalarField *tdens )
 void GeomPlot::set_scharge( const MeshScalarField *scharge ) 
 {
     _scharge = scharge;
-    if( _fieldplot_sel == FIELD_SCHARGE ) {
+    if( _fieldgraph && _fieldgraph->field_type() == FIELD_SCHARGE ) {
 	// Redo field graph to use new scharge
-	set_fieldgraph_plot( _fieldplot_sel );
+	set_fieldgraph_plot( _fieldgraph->field_type() );
+    }
+}
+
+
+void GeomPlot::set_bfield( const VectorField *bfield )
+{
+    _bfield = bfield;
+    if( _fieldgraph && 
+	(_fieldgraph->field_type() == FIELD_BFIELD ||
+	 _fieldgraph->field_type() == FIELD_BFIELD_X ||
+	 _fieldgraph->field_type() == FIELD_BFIELD_Y ||
+	 _fieldgraph->field_type() == FIELD_BFIELD_Z) ) {
+	// Redo field graph to use new magnetic field
+	set_fieldgraph_plot( _fieldgraph->field_type() );
+    }
+}
+
+
+void GeomPlot::set_efield( const VectorField *efield )
+{
+    _efield = efield;
+    if( _fieldgraph && 
+	(_fieldgraph->field_type() == FIELD_EFIELD ||
+	 _fieldgraph->field_type() == FIELD_EFIELD_X ||
+	 _fieldgraph->field_type() == FIELD_EFIELD_Y ||
+	 _fieldgraph->field_type() == FIELD_EFIELD_Z) ) {
+	// Redo field graph to use new electric field
+	set_fieldgraph_plot( _fieldgraph->field_type() );
     }
 }
 
 
 void GeomPlot::set_fieldgraph_plot( field_type_e fieldplot )
 {
-    _fieldplot_sel = fieldplot;
-
-    // Remove old field graph.
-    if( _fieldgraph ) {
+    if( _fieldgraph )
 	delete _fieldgraph;
-	_fieldgraph = NULL;
-    }
+    _fieldgraph = NULL;
 
     // Define new field graph.
-    switch( _fieldplot_sel ) {
+    switch( fieldplot ) {
+    case FIELD_NONE:
+	_fieldgraph = new FieldGraph( _geom, (const Field*)NULL, FIELD_NONE );
+	break;
     case FIELD_EPOT:
 	if( _epot )
-	    _fieldgraph = new FieldGraph( _geom, _epot, _fieldplot_sel );
+	    _fieldgraph = new FieldGraph( _geom, _epot, fieldplot );
 	break;
     case FIELD_SCHARGE:
 	if( _scharge )
-	    _fieldgraph = new FieldGraph( _geom, _scharge, _fieldplot_sel );
+	    _fieldgraph = new FieldGraph( _geom, _scharge, fieldplot );
 	break;
     case FIELD_TRAJDENS:
 	if( _tdens )
-	    _fieldgraph = new FieldGraph( _geom, _tdens, _fieldplot_sel );
+	    _fieldgraph = new FieldGraph( _geom, _tdens, fieldplot );
 	break;
     case FIELD_EFIELD:
     case FIELD_EFIELD_X:
     case FIELD_EFIELD_Y:
     case FIELD_EFIELD_Z:
 	if( _efield )
-	    _fieldgraph = new FieldGraph( _geom, _efield, _fieldplot_sel );
+	    _fieldgraph = new FieldGraph( _geom, _efield, fieldplot );
 	break;
     case FIELD_BFIELD:
     case FIELD_BFIELD_X:
     case FIELD_BFIELD_Y:
     case FIELD_BFIELD_Z:
 	if( _bfield )
-	    _fieldgraph = new FieldGraph( _geom, _bfield, _fieldplot_sel );
-	break;
-    case FIELD_NONE:
-	// No fieldgraph defined
+	    _fieldgraph = new FieldGraph( _geom, _bfield, fieldplot );
 	break;
     default:
 	throw( ErrorUnimplemented( ERROR_LOCATION, "Unimplemented field plotting" ) );
 	break;
     }
-
-    if( _fieldgraph ) {
-	_fieldgraph->set_view( _view, _level );
-	_fieldgraph->set_logscale( _fieldplot_logscale );
-    }
-
+    
     reset_graphs();
-}
-
-
-void GeomPlot::set_fieldgraph_logscale( bool enable )
-{
-    _fieldplot_logscale = enable;
-    if( _fieldgraph ) {
-	_fieldgraph->set_logscale( _fieldplot_logscale );
-    }
 }
 
 
@@ -254,7 +264,7 @@ void GeomPlot::set_particledatabase( const ParticleDataBase *pdb )
     }
 
     if( _pdb ) {
-	_particlegraph = new ParticleGraph( *_geom, *_pdb );
+	_particlegraph = new ParticleGraph( _geom, *_pdb );
 	_particlegraph->set_view( _view, _level );
 	_particlegraph->set_particle_div( _particle_div );
 	_particlegraph->set_qm_discretation( _qm_discretation );
@@ -291,7 +301,7 @@ void GeomPlot::set_mesh( bool enable )
     }
 
     if( _mesh ) {
-	_meshgraph = new MeshGraph( *_geom );
+	_meshgraph = new MeshGraph( _geom );
 	_meshgraph->set_view( _view, _level );
     }
 
@@ -311,14 +321,14 @@ void GeomPlot::set_view( view_e view, int level )
 
 	// Set axis labels
 	_frame->set_axis_label( PLOT_AXIS_X1, "x (m)" );
-	if( _geom->geom_mode() == MODE_CYL )
+	if( _geom.geom_mode() == MODE_CYL )
 	    _frame->set_axis_label( PLOT_AXIS_Y1, "r (m)" );
 	else
 	    _frame->set_axis_label( PLOT_AXIS_Y1, "y (m)" );
 	break;
 
     case VIEW_XZ:
-	if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
+	if( _geom.geom_mode() == MODE_2D || _geom.geom_mode() == MODE_CYL )
 	    throw( Error( ERROR_LOCATION, "VIEW_XZ is nonexistent" ) );
 
 	_vb[0] = 0;
@@ -341,7 +351,7 @@ void GeomPlot::set_view( view_e view, int level )
 	break;
 
     case VIEW_YZ:
-	if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
+	if( _geom.geom_mode() == MODE_2D || _geom.geom_mode() == MODE_CYL )
 	    throw( Error( ERROR_LOCATION, "VIEW_YZ is nonexistent" ) );
 
 	_vb[0] = 1;
@@ -354,7 +364,7 @@ void GeomPlot::set_view( view_e view, int level )
 	break;
 
     case VIEW_ZX:
-	if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
+	if( _geom.geom_mode() == MODE_2D || _geom.geom_mode() == MODE_CYL )
 	    throw( Error( ERROR_LOCATION, "VIEW_ZX is nonexistent" ) );
 
 	_vb[0] = 2;
@@ -367,7 +377,7 @@ void GeomPlot::set_view( view_e view, int level )
 	break;
 
     case VIEW_ZY:
-	if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
+	if( _geom.geom_mode() == MODE_2D || _geom.geom_mode() == MODE_CYL )
 	    throw( Error( ERROR_LOCATION, "VIEW_ZY is nonexistent" ) );
 
 	_vb[0] = 2;
@@ -389,11 +399,11 @@ void GeomPlot::set_view( view_e view, int level )
     
     // Set and check level
     if( level == -1 )
-	_level = _geom->size(_vb[2])/2;
+	_level = _geom.size(_vb[2])/2;
     else if( level < 0 )
 	_level = 0;
-    else if( level >= (int32_t)_geom->size(_vb[2]) )
-	_level = _geom->size(_vb[2])-1;
+    else if( level >= (int32_t)_geom.size(_vb[2]) )
+	_level = _geom.size(_vb[2])-1;
     else
 	_level = level;
 
@@ -410,9 +420,23 @@ void GeomPlot::set_view( view_e view, int level )
 }
 
 
-
-
-
-
-
-
+void GeomPlot::set_view_si( view_e view, double level )
+{
+    switch( view ) {
+    case VIEW_XY:
+    case VIEW_YX:
+	set_view( view, (int)floor( (level-_geom.origo(2))*_geom.div_h()+0.5 ) );
+	break;
+    case VIEW_XZ:
+    case VIEW_ZX:
+	set_view( view, (int)floor( (level-_geom.origo(1))*_geom.div_h()+0.5 ) );
+	break;
+    case VIEW_YZ:
+    case VIEW_ZY:
+	set_view( view, (int)floor( (level-_geom.origo(0))*_geom.div_h()+0.5 ) );
+	break;
+    default:
+	throw( ErrorUnimplemented( ERROR_LOCATION ) );
+	break;
+    }
+}

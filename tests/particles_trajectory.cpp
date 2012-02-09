@@ -25,6 +25,7 @@
 #include <iomanip>
 #include "geomplotter.hpp"
 #include "geometry.hpp"
+#include "meshvectorfield.hpp"
 #include "bicgstab_solver.hpp"
 #include "epot_problem.hpp"
 #include "epot_efield.hpp"
@@ -71,7 +72,7 @@ void test( int argc, char **argv )
     p.construct( geom );
 
     ScalarField epot( geom );
-    VectorField bfield;
+    MeshVectorField bfield;
     ScalarField scharge( geom );
 
     BiCGSTABSolver solver;
@@ -92,7 +93,7 @@ void test( int argc, char **argv )
     check_particle( pdb.particle(1),  1e5,  0.0 );
     check_particle( pdb.particle(2),  0.0, -1e5 );
 
-    GeomPlotter geomplotter( &geom );
+    GeomPlotter geomplotter( geom );
     geomplotter.set_epot( &epot );
     geomplotter.set_particle_database( &pdb );
     geomplotter.plot_png( "particles_trajectory.png" );

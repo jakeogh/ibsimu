@@ -16,19 +16,20 @@
 
 bool solid1( double x, double y, double z )
 {
-    return( x < -0.05 && x > -0.06 && y < 0.08 && y > -0.08 );
+    return( x < -0.02 && x > -0.03 && y < 0.08 && y > -0.08 );
 }
 
 
 bool solid2( double x, double y, double z )
 {
-    return( x < 0.06 && x > 0.05 && y < 0.08 && y > -0.08 );
+    return( x < 0.03 && x > 0.02 && y < 0.08 && y > -0.08 );
 }
 
 
 void test( int argc, char **argv )
 {
-    Geometry geom( MODE_2D, Int3D(121,121,1), Vec3D(-0.12,-0.12,0), 0.002 );
+    //Geometry geom( MODE_2D, Int3D(121,121,1), Vec3D(-0.12,-0.12,0), 0.002 );
+    Geometry geom( MODE_2D, Int3D(241,241,1), Vec3D(-0.12,-0.12,0), 0.001 );
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
@@ -52,16 +53,20 @@ void test( int argc, char **argv )
     p.set_solver( solver );
     p.solve( epot, scharge );
 
-    GeomPlotter gplotter( &geom );
+    GeomPlotter gplotter( geom );
     gplotter.set_epot( &epot );
     gplotter.set_efield( &efield );
     gplotter.set_size( 800, 600 );
     gplotter.set_font_size( 16 );
 
+    gplotter.set_eqlines_auto( 0 );
+
     gplotter.set_fieldgraph_plot( FIELD_EFIELD );
+    gplotter.fieldgraph().palette().steps() = 30;
     gplotter.plot_png( "fieldgraph_efield.png" );
 
     gplotter.set_fieldgraph_plot( FIELD_EPOT );
+    //gplotter.set_fieldgraph_stepped_palette( 10 );
     gplotter.plot_png( "fieldgraph_epot.png" );
 
 }

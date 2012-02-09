@@ -2,7 +2,7 @@
  *  \brief %Graph for plotting fields
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -54,47 +54,78 @@
 
 /*! \brief Class for drawing fields with colormap
  *
- *  Implementation of %Graph3D.
+ *  Implementation of %Graph3D. Used in Frame type plots.
  */
-class FieldGraph : public Graph3D {
+class FieldGraph : public Graph3D, public Colormap {
 
-    field_type_e            _field_type;      /*!< \brief Field type used. */
-    const Geometry         *_geom;            /*!< \brief Geometry. */
+    const Geometry         &_geom;            /*!< \brief Geometry. */
     const Field            *_field;           /*!< \brief Field to be plotted. */
-    Colormap               *_colormap;        /*!< \brief Colormap for field plot. */
+    field_type_e            _field_type;      /*!< \brief Field type used. */
 
+    bool                    _first;
     view_e                  _oview;
     double                  _olevel;
-
     bool                    _enabled;         /*!< \brief Is plotting enabled */
-    bool                    _logscale;        /*!< \brief Logarithmic scaling */
 
-    void build_plot( void );
-    //void build_vectorfield_plot( void );
-    
+    double                  _zmin;
+    double                  _zmax;
+
 public:
 
     /*! \brief Constructor for plotting \a field.
      */
-    FieldGraph( const Geometry *geom, const Field *field, field_type_e field_type );
+    FieldGraph( const Geometry &geom, const Field *field, field_type_e field_type );
 
     /*! \brief Destructor.
      */
     virtual ~FieldGraph();
 
+    /*! \brief Get field type.
+     */
+    field_type_e field_type( void ) const;
+    
+    /*! \brief Set field to be plotted.
+     *
+     *  The \a field_type can be FIELD_NONE and \a field NULL for no plotting.
+     */
+    //void set_field( field_type_e field_type, const ScalarField *field );
+
+    /*! \brief Set field to be plotted.
+     *
+     *  The \a field_type can be FIELD_NONE and \a field NULL for no plotting.
+     */
+    //void set_field( field_type_e field_type, const VectorField *field );
+
     /*! \brief Enable/disable plot.
      */
     void enable( bool enable );
 
-    /*! \brief Set logarithmic scale.
-     */
     void set_logscale( bool enable );
 
-    /*! \brief Plot drawable with cairo.
+    /*! \brief Set zrange for plot.
+     *
+     *  The zrange defaults to automatically scaled range for the
+     *  whole field for scalarfields and automatically scaled range
+     *  for the view plane only for vectorfields.
+     */
+    void set_zrange( double zmin, double zmax );
 
-     *  Plot drawable using \a cairo and coordinate mapper \a cm. The
-     *  visible range of plot is given in array \a range in order
-     *  xmin, ymin, xmax, ymax.
+    /*! \brief Build plot.
+     *
+     *  Reads in field data and produces the colormap for the
+     *  plot. Automatically called by plot(), but can be called to
+     *  produce automatic zranges.
+     */
+    void build_plot( void );
+    
+    /*! \brief Plot graph with cairo.
+     *
+     *  Plot the graph using \a cairo and coordinate mapper \a cm. The
+     *  visible range of plot is given in array \a range in order \a
+     *  xmin, \a ymin, \a xmax, \a ymax. The graph should be able to
+     *  handle any range values. Also \a min > \a max.
+     *
+     *  Called by Frame during drawing.
      */
     virtual void plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] );
 
@@ -114,23 +145,3 @@ public:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

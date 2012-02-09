@@ -2,7 +2,7 @@
  *  \brief Particle database implementation
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,6 +45,7 @@
 
 
 #include "ibsimu.hpp"
+#include "statusprint.hpp"
 #include "timer.hpp"
 #include "file.hpp"
 #include "particles.hpp"
@@ -56,21 +57,22 @@ class ParticleDataBaseImp {
 
 protected:
 
-    double                    _epsabs;      /*!< \brief Absolute error limit for calculation. */
-    double                    _epsrel;      /*!< \brief Relative error limit for calculation. */
-    bool                      _polyint;     /*!< \brief Use polynomial(true)/linear(false) interpolation. */
-    uint32_t                  _maxsteps;    /*!< \brief Maximum number of steps to calculate. */
-    double                    _maxt;        /*!< \brief Maximum particle time in simulation. */
-    uint32_t                  _trajdiv;     /*!< \brief Divisor for saved trajectories,
-					     * if 3, every third trajectory is saved. */
-    bool                      _mirror[6];   /*!< \brief Boundary particle mirroring. */
+    double                    _epsabs;       /*!< \brief Absolute error limit for calculation. */
+    double                    _epsrel;       /*!< \brief Relative error limit for calculation. */
+    bool                      _polyint;      /*!< \brief Use polynomial(true)/linear(false) interpolation. */
+    uint32_t                  _maxsteps;     /*!< \brief Maximum number of steps to calculate. */
+    double                    _maxt;         /*!< \brief Maximum particle time in simulation. */
+    uint32_t                  _trajdiv;      /*!< \brief Divisor for saved trajectories,
+					      * if 3, every third trajectory is saved. */
+    bool                      _mirror[6];    /*!< \brief Boundary particle mirroring. */
 
-    double                    _rhosum;      /*!< \brief Sum of space charge density in defined beams (C/m3). */
+    double                    _rhosum;       /*!< \brief Sum of space charge density in defined beams (C/m3). */
 
-    ParticleStatistics        _stat;        /*!< \brief Particle statistics. */
+    ParticleStatistics        _stat;         /*!< \brief Particle statistics. */
 
-    uint32_t                  _iteration;   /*!< \brief Iteration number. */
-    
+    uint32_t                  _iteration;    /*!< \brief Iteration number. */    
+    bool                      _relativistic; /*!< \brief Relativistic particle iteration. */
+
     const CallbackFunctorD_V        *_bsup_cb;       /*!< \brief Location dependent magnetic field suppression. */
     const TrajectoryHandlerCallback *_thand_cb;      /*!< \brief Trajectory handler callback. */
     const TrajectoryEndCallback     *_tend_cb;       /*!< \brief Trajectory collision callback. */
@@ -80,7 +82,13 @@ protected:
 
     ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s );
 
-    void save( std::ostream &os ) const;
+    /*! \brief Convert energy to velocity.
+     *
+     *  Energy \a E given in Joules and mass \a m in kg.
+     */
+    static double energy_to_velocity( double E, double m );
+    
+    void save( std::ostream &s ) const;
 
 public:
 
@@ -93,6 +101,8 @@ public:
     void set_trajectory_handler_callback( const TrajectoryHandlerCallback *thand_cb );
 
     void set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb );
+
+    void set_relativistic( bool enable );
 
     void set_polyint( bool polyint );
     
@@ -113,6 +123,8 @@ public:
     int get_iteration_number( void ) const;
 
     double get_rhosum( void ) const;
+
+    void set_rhosum( double rhosum );
 
     const ParticleStatistics &get_statistics( void ) const;
 
@@ -156,7 +168,7 @@ template<class PP> class ParticleDataBasePPImp : public ParticleDataBaseImp {
     /*! \brief Add requested diagnostics to \a tdata from particle point \a x.
      */
     static void add_diagnostics( TrajectoryDiagnosticData &tdata, const PP &x, 
-				 const Particle<PP> &p, int crd ) {
+				 const Particle<PP> &p, int crd, int index ) {
 	//std::cout << "add_diagnostics():\n";
 	for( size_t a = 0; a < tdata.diag_size(); a++ ) {
 	    //std::cout << "  diagnostic[" << a << "] = " << tdata.diagnostic(a) << "\n";
@@ -212,13 +224,30 @@ template<class PP> class ParticleDataBasePPImp : public ParticleDataBaseImp {
 		data = p.IQ();
 		break;
 	    case DIAG_QM:
-		data = p.qm();
+		data = (p.q()/CHARGE_E) / (p.m()/MASS_U);
+		break;
+	    case DIAG_CHARGE:
+		data = p.q()/CHARGE_E;
+		break;
+	    case DIAG_MASS:
+		data = p.m()/MASS_U;
 		break;
 	    case DIAG_EK:
-		// This is wrong - no mass dependence
-		// Vec3D velocity = x.velocity();
-		//data = velocity.norm2();
-		data = 0.0;
+	    {
+		double beta = x.velocity().norm2()/SPEED_C;
+		if( beta < 1.0e-4 )
+		    data = 0.5*p.m()*x.velocity().ssqr()/CHARGE_E;
+		else if( beta >= 1.0 )
+		    throw( ErrorUnimplemented( ERROR_LOCATION, "particle velocity over light speed" ) );
+		else {
+		    double gamma = 1.0 / sqrt( 1.0 - beta*beta );
+		    double Ek = p.m()*SPEED_C2*( gamma - 1.0 );
+		    data = Ek/CHARGE_E;
+		}
+		break;
+	    }
+	    case DIAG_NO:
+		data = index;
 		break;
 	    default:
 		throw( ErrorUnimplemented( ERROR_LOCATION ) );
@@ -280,6 +309,7 @@ public:
 	for( size_t b = 1; b < N; b++ ) {
 	    Vec3D x2 = _particles[i]->traj(b).location();
 	    len += norm2(x2-x1);
+	    x1 = x2;
 	}
 
 	return( len );
@@ -400,7 +430,7 @@ public:
 		    nintsc = PP::trajectory_intersections_at_plane( intsc, crd, val, x1, x2, 0 );
 		for( size_t c = 0; c < nintsc; c++ ) {
 		    Isum += _particles[a]->IQ();
-		    add_diagnostics( tdata, intsc[c], *_particles[a], crd );
+		    add_diagnostics( tdata, intsc[c], *_particles[a], crd, a );
 		}
 
 		x1 = x2;
@@ -459,6 +489,13 @@ public:
 	ibsimu.inc_indent();
 	_iteration++;
 
+	StatusPrint sp;
+	if( ibsimu.output_is_cout() ) {
+	    std::stringstream ss;
+	    ss << "  " << "0 / " << _particles.size();
+	    sp.print( ss.str() );
+	}
+
 	// Check geometry mode
 	if( geom.geom_mode() != PP::geom_mode() )
 	    throw( Error( ERROR_LOCATION, "Differing geometry modes" ) );
@@ -488,11 +525,32 @@ public:
 	    iterators[a]->set_trajectory_handler_callback( _thand_cb );
 	    iterators[a]->set_trajectory_end_callback( _tend_cb, _pdb );
 	    iterators[a]->set_bfield_suppression_callback( _bsup_cb );
+	    iterators[a]->set_relativistic( _relativistic );
 	}
 
 	// Run scheduler
 	_scheduler.run( iterators );
+
+	// Print statistics
+	if( ibsimu.output_is_cout() ) {
+	    while( !_scheduler.wait_finish() ) {
+		std::stringstream ss;
+		ss << "  " << _scheduler.get_solved_count() << " / " 
+		   << _scheduler.get_problem_count();
+		sp.print( ss.str() );
+	    }
+	}
+
+	// Finish scheduler
 	_scheduler.finish();
+
+	// Print final statistics
+	if( ibsimu.output_is_cout() ) {
+	    std::stringstream ss;
+	    ss << "  " << _scheduler.get_solved_count() << " / " 
+	       << _scheduler.get_problem_count() << " Done\n";
+	    sp.print( ss.str(), true );
+	}
 
 	if( _scheduler.is_error() ) {
 	    // Throw the error
@@ -618,7 +676,7 @@ public:
     ParticleDataBaseCylImp( ParticleDataBase *pdb );
 
     ParticleDataBaseCylImp( const ParticleDataBaseCylImp &pdb );
-
+    
     ParticleDataBaseCylImp( ParticleDataBase *pdb, std::istream &s );
 
     virtual ~ParticleDataBaseCylImp();
@@ -695,9 +753,10 @@ public:
 					double Ex, double x0, double y0, double z0 );
 
     void add_3d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
-					      double ay, double by, double ey,
-					      double az, double bz, double ez,
-					      double Ex, double x0, double y0, double z0 );
+					      double E0, 
+					      double a1, double b1, double e1,
+					      double a2, double b2, double e2,
+					      Vec3D c, Vec3D dir1, Vec3D dir2 );
 
     void trajectories_at_free_plane( TrajectoryDiagnosticData &tdata, 
 				     Vec3D c, Vec3D o, Vec3D p,

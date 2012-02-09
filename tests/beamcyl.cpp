@@ -17,6 +17,7 @@
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
 #include "ibsimu.hpp"
+#include "ibsimutest.hpp"
 #include "error.hpp"
 #include "particlediagplotter.hpp"
 
@@ -72,7 +73,7 @@ void test( int argc, char **argv )
     for( int j = 0; j < geom.size(1); j++ ) {
 	for( int i = 0; i < geom.size(0); i++ ) {
 	    Vec3D x( geom.h()*i, geom.h()*j, 0.0  );
-	    if( j == 0 && fabs(scharge(x)-2.64497329883e-4) > 1e-9 )
+	    if( j == 0 && fabs(scharge(x)-2.64497329883e-4) > 1e-8 )
 		err = true;
 	    ostr << setw(14) << x[0] << " "
 		 << setw(14) << x[1] << " "
@@ -103,22 +104,20 @@ void test( int argc, char **argv )
     ostr.close();
 
     // Do current density plot
-    ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 0.05, PARTICLE_DIAG_PLOT_HISTO1D, DIAG_R );
+    ParticleDiagPlotter pplotter( geom, pdb, AXIS_X, 0.05, PARTICLE_DIAG_PLOT_HISTO1D, DIAG_R );
     pplotter.set_font_size( 18 );
     pplotter.set_histogram_n( 101 );
     pplotter.set_size( 640, 640 );
     pplotter.export_data( "beamcyl_curr.dat" );
     pplotter.plot_png( "beamcyl_curr.png" );
 
-    GeomPlotter geomplotter( &geom );
+    GeomPlotter geomplotter( geom );
     geomplotter.set_size( 640, 480 );
     geomplotter.set_mesh( true );
     geomplotter.set_epot( &epot );
     geomplotter.set_particle_database( &pdb );
     geomplotter.plot_png( "beamcyl.png" );
 
-    if( err ) {
-	std::cout << "Error: calculated space charge differs from theory\n";
-	exit( 1 );
-    }
+    if( err )
+	throw( ErrorTest( ERROR_LOCATION, "Error: calculated space charge differs from theory" ) );
 }

@@ -108,7 +108,7 @@ public:
 
     /*! \brief Constructor for field diagnostics plot.
      */
-    FieldDiagPlot( Frame *frame, const Geometry *geom );
+    FieldDiagPlot( Frame &frame, const Geometry &geom );
 
     /*! \brief Destructor for field diagnostics plot.
      */

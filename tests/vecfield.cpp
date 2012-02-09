@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iomanip>
-#include "vectorfield.hpp"
+#include "meshvectorfield.hpp"
 #include "error.hpp"
 #include "ibsimu.hpp"
 
@@ -21,7 +21,7 @@ void test( int argc, char **argv )
     bool fout[3] = {false, false, true};
     Int3D size(2,2,1);
     Vec3D origo(0,0,0);
-    VectorField f( MODE_2D, fout, size, origo, 0.01 );
+    MeshVectorField f( MODE_2D, fout, size, origo, 0.01 );
     f.set(0,0,Vec3D(0,0,0));
     f.set(1,0,Vec3D(0,0,1.5));
     f.set(0,1,Vec3D(0,0,1));

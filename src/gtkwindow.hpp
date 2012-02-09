@@ -128,7 +128,7 @@ class GTKWindow {
 
 protected:
 
-    GTKPlotter       *_plotter;
+    GTKPlotter       &_plotter;
 
     Frame             _frame;
     GtkWidget        *_window;
@@ -144,7 +144,7 @@ protected:
     double            _track_py; // Track y coordinate in pixels
 
 
-    GTKWindow( GTKPlotter *plotter );
+    GTKWindow( GTKPlotter &plotter );
 
     virtual void zoom_fit( void );
 

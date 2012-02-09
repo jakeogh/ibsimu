@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <iostream>
 #include "geometry.hpp"
+#include "meshvectorfield.hpp"
 #include "epot_problem.hpp"
 #include "epot_efield.hpp"
 #include "bicgstab_solver.hpp"
@@ -41,7 +42,7 @@ void test( int argc, char **argv )
     p.solve( epot, scharge );
 
     EpotEfield efield( geom, epot );
-    VectorField bfield;
+    MeshVectorField bfield;
 
     ParticleDataBase2D pdb;
     bool pmirror[6] = { false, false, true, false, false, false };
@@ -55,7 +56,7 @@ void test( int argc, char **argv )
     pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
     // Plot (y,y') emittance and check value
-    ParticleDiagPlotter pplotter( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				  DIAG_Y, DIAG_YP );
     pplotter.set_ranges( -0.006, -0.0601, 0.006, 0.0601 );
     pplotter.plot_png( "emittancedef2d_kv.png" );
@@ -77,7 +78,7 @@ void test( int argc, char **argv )
     pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
     // Plot (y,y') emittance and check value
-    ParticleDiagPlotter pplotter2( &geom, &pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
+    ParticleDiagPlotter pplotter2( geom, pdb, AXIS_X, 1.0e-6, PARTICLE_DIAG_PLOT_HISTO2D,
 				   DIAG_Y, DIAG_YP );
     //pplotter2.set_ranges( -0.006, -0.0601, 0.006, 0.0601 );
     pplotter2.plot_png( "emittancedef2d_gaussian.png" );

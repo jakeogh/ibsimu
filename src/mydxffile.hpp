@@ -253,6 +253,24 @@ public:
     /*! \brief Print debugging information to os.
      */
     void debug_print( std::ostream &os ) const;
+
+    /*! \brief Print debugging information to os with correct formatting
+     */
+    static void debug_print_format( std::ostream &os, 
+				    const std::string &fieldname, 
+				    const std::string &val );
+    
+    static void debug_print_format( std::ostream &os, 
+				    const std::string &fieldname, 
+				    double val );
+
+    static void debug_print_format( std::ostream &os, 
+				    const std::string &fieldname, 
+				    int val );
+
+    static void debug_print_format( std::ostream &os, 
+				    const std::string &fieldname, 
+				    const Vec3D &val );
 };
 
 

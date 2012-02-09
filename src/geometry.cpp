@@ -2,7 +2,7 @@
  *  \brief %Geometry definition.
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -963,7 +963,7 @@ void Geometry::save( const std::string &filename ) const
 {
     ibsimu.message( 1 ) << "Saving Geometry to file \'" << filename << "\'.\n";
 
-    std::ofstream os( filename.c_str() );
+    std::ofstream os( filename.c_str(), std::ios_base::binary );
     if( !os.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
     save( os );

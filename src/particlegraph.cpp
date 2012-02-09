@@ -50,9 +50,9 @@
 #include "ibsimu.hpp"
 
 
-ParticleGraph::ParticleGraph( const Geometry &g, const ParticleDataBase &pdb, 
-			    int particlediv, bool qm_discr )
-    : _g(g), _pdb(pdb), _particlediv(particlediv), 
+ParticleGraph::ParticleGraph( const Geometry &geom, const ParticleDataBase &pdb, 
+			      int particlediv, bool qm_discr )
+    : Graph3D(geom), _geom(geom), _pdb(pdb), _particlediv(particlediv), 
       _coordsize(3), _qm_discr(qm_discr)
 {
     // Check input
@@ -63,10 +63,16 @@ ParticleGraph::ParticleGraph( const Geometry &g, const ParticleDataBase &pdb,
     _coord = new double[2*_coordsize];
 
     // Add default colors
-    _color.push_back( Color( 1.0, 0.2, 0.2 ) );
-    _color.push_back( Color( 1.0, 1.0, 0.2 ) );
-    _color.push_back( Color( 1.0, 0.2, 1.0 ) );
-    _color.push_back( Color( 0.2, 1.0, 1.0 ) );
+    _color.push_back( Color( 1.0, 0.2, 0.2 ) ); // Red
+
+    _color.push_back( Color( 1.0, 1.0, 0.2 ) ); // Yellow
+    _color.push_back( Color( 1.0, 0.2, 1.0 ) ); // Magenta
+    _color.push_back( Color( 0.2, 1.0, 1.0 ) ); // Cyan
+
+    _color.push_back( Color( 1.0, 0.5, 0.2 ) ); // Orange
+    _color.push_back( Color( 0.5, 0.2, 1.0 ) ); // Purple
+    _color.push_back( Color( 0.2, 1.0, 0.5 ) ); // Bluish green
+    _color.push_back( Color( 1.0, 0.2, 0.5 ) ); // Pink
 }
 
 
@@ -292,10 +298,10 @@ void ParticleGraph::plot_sample( cairo_t *cairo, double x, double y, double widt
 
 void ParticleGraph::get_bbox( double bbox[4] )
 {
-    bbox[0] = _g.origo( _vb[0] );
-    bbox[1] = _g.origo( _vb[1] );
-    bbox[2] = _g.max( _vb[0] );
-    bbox[3] = _g.max( _vb[1] );
+    bbox[0] = _geom.origo( _vb[0] );
+    bbox[1] = _geom.origo( _vb[1] );
+    bbox[2] = _geom.max( _vb[0] );
+    bbox[3] = _geom.max( _vb[1] );
 }
 
 

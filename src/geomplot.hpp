@@ -78,8 +78,9 @@ class GeomPlot {
     const VectorField       *_efield;
     const ParticleDataBase  *_pdb;
 
+    FieldGraph               _fieldgraph;
+
     SolidGraph              *_solidgraph;
-    FieldGraph              *_fieldgraph;
     EqPotGraph              *_eqpotgraph;
     ParticleGraph           *_particlegraph;
     MeshGraph               *_meshgraph;
@@ -95,9 +96,6 @@ class GeomPlot {
     bool                    _qm_discretation;
     bool                    _mesh;
 
-    field_type_e            _fieldplot_sel; /*!< \brief Selector for fieldgraph */
-    bool                    _fieldplot_logscale;
-
     bool                    _cache;
 
     void reset_graphs( void );
@@ -111,7 +109,7 @@ public:
      *  XY-view. The default plane of view is the midplane for 3D
      *  geometries and 0 for others.
      */
-    GeomPlot( Frame *frame, const Geometry *geom );
+    GeomPlot( Frame &frame, const Geometry &geom );
 
     /*! \brief Destructor for geometry plotter.
      */
@@ -152,9 +150,7 @@ public:
 
     /*! \brief Set magnetic field.
      */
-    void set_bfield( const VectorField *bfield ) {
-	_bfield = bfield;
-    }
+    void set_bfield( const VectorField *bfield );
 
     /*! \brief Get magnetic field.
      */
@@ -164,9 +160,7 @@ public:
 
     /*! \brief Set electric field.
      */
-    void set_efield( const VectorField *efield ) {
-	_efield = efield;
-    }
+    void set_efield( const VectorField *efield );
 
     /*! \brief Get electric field.
      */
@@ -198,21 +192,12 @@ public:
      */
     void set_fieldgraph_plot( field_type_e fieldplot );
 
-    /*! \brief Get field graph plotting type.
+    /*! \brief Get a reference to field graph object.
      */
-    field_type_e get_fieldgraph_plot( void ) const {
-	return( _fieldplot_sel );
+    FieldGraph &fieldgraph( void ) {
+	return( _fieldgraph );
     }
 
-    /*! \brief Set field graph logscale setting.
-     */
-    void set_fieldgraph_logscale( bool enable );
-
-    /*! \brief Get field graph loscale setting
-     */
-    bool get_fieldgraph_logscale( void ) const {
-	return( _fieldplot_logscale );
-    }
 
     /*! \brief Set particle database used for particle plotting.
      */
@@ -273,6 +258,14 @@ public:
      *  means half the range (midplane).
      */
     void set_view( view_e view, int level = -1 );
+
+    /*! \brief Set view in SI units.
+     *
+     *  Sets the viewplane to the geometry. The viewplane is set by
+     *  direction \a view and depth \a level set as coordinates in SI
+     *  units. The level is limited to existing values.
+     */
+    void set_view_si( view_e view, double level );
 
     /*! \brief Get view.
      */

@@ -2,7 +2,7 @@
  *  \brief DXF Tables
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -171,6 +171,59 @@ public:
 
 
 
+/*! \brief DXF table entry for vport table.
+ */
+class MyDXFTableEntryVport : public MyDXFTableEntry
+{
+
+    std::string _name;             /* 2, Viewport name */
+    int16_t     _flags;            /* 70, Standard flag values (bit-coded values):
+				    * 16 = If set, table entry is externally dependent on an xref
+				    * 32 = If both this bit and bit 16 are set, the externally dependent xref has been successfully resolved
+				    * 64 = If set, the table entry was referenced by at least one entity in the drawing the last time
+				    * the drawing was edited. (This flag is for the benefit of AutoCAD commands. It can be ignored
+				    * by most programs that read DXF files and does not need to be set by programs that write DXF
+				    * files) */
+    Vec3D       _vmin;             /* 10, 20, Lower-left corner of viewport */
+    Vec3D       _vmax;             /* 11, 21, Upper-right corner of viewport */
+    Vec3D       _vcenter;          /* 12, 22, View center point (in DCS) */
+    Vec3D       _snap_base;        /* 13, 23, Snap base point (in DCS) */
+    Vec3D       _snap_spacing;     /* 14, 24, Snap spacing X and Y */
+    Vec3D       _grid_spacing;     /* 15, 25, Grid spacing X and Y */
+    Vec3D       _view_direction;   /* 16, 26, 36, View direction from target point (in WCS) */
+    Vec3D       _view_target;      /* 17, 27, 37, View target point (in WCS) */
+    
+    Vec3D       _ucs_origin;       /* 110, 120, 130, UCS origin */
+    Vec3D       _ucs_x;            /* 111, 121, 131, UCS x-axis */
+    Vec3D       _ucs_y;            /* 112, 122, 132, UCS y-axis */
+    int16_t     _ucs_type;         /* 79, Orthographic type of UCS
+				    * 0 = UCS is not orthographic
+				    * 1 = Top; 2 = Bottom
+				    * 3 = Front; 4 = Back
+				    * 5 = Left; 6 = Right */
+    double      _elevation;        /* 146, Elevation */
+
+public:
+
+    /*! \brief Construct entry by reading from DXF file.
+     */
+    MyDXFTableEntryVport( class MyDXFFile *dxf );
+
+    /*! \brief Virtual destructor.
+     */
+    virtual ~MyDXFTableEntryVport();
+
+    /*! \brief Write dxf file to stream.
+     */
+    virtual void write( class MyDXFFile *dxf, std::ofstream &ostr );
+
+    /*! \brief Print debugging information to os.
+     */
+    virtual void debug_print( std::ostream &os ) const;
+};
+
+
+
 /*! \brief DXF table class.
  */
 class MyDXFTable
@@ -218,6 +271,7 @@ class MyDXFTables
 
     MyDXFTable  *_blockrecord;
     MyDXFTable  *_layer;
+    MyDXFTable  *_vport;
 
 public:
 
@@ -242,11 +296,4 @@ public:
 };
 
 
-
-
-
 #endif
-
-
-
-

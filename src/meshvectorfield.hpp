@@ -29,7 +29,7 @@
  * U.S.  Department of Energy.  As such, the U.S. Government has been
  * granted for itself and others acting on its behalf a paid-up,
  * nonexclusive, irrevocable, worldwide license in the Software to
- * reproduce, prepare derivative works, and perform publicly and
+* reproduce, prepare derivative works, and perform publicly and
  * display publicly.  Beginning five (5) years after the date
  * permission to assert copyright is obtained from the U.S. Department
  * of Energy, and subject to any subsequent five (5) year renewals,
@@ -58,15 +58,21 @@
  *  vector field class provides a subset of vector operations to copy,
  *  sum and scale vector fields. The class also includes operators for
  *  indexed access to mesh elements and interpolation functions for
- *  linearly interpolated smooth field data. The interpolation
- *  function uses linear extrapolation of field outside the defined
- *  mesh. This way it can be ensured that %VectorField returns
- *  sensible values even close by to the edges of the geometry.
+ *  linearly interpolated smooth field data. The behaviour of the
+ *  interpolation function can be selected outside the defined
+ *  mesh. The default behaviour is to use linear extrapolation. This
+ *  way it can be ensured that %VectorField returns sensible values
+ *  even close by to the edges of the mesh.
  *
  *  If the size of mesh is 1 in some direction, then the field is
  *  constant in that direction. Otherwise linear interpolation is
  *  used.
  *
+ *  The mesh of the magnetic field can be selected independently of
+ *  the electric field in ParticleDataBase. This allows minimization
+ *  of the memory use in the case where electric field needs high
+ *  resolution, but magnetic field is relatively smooth.
+ *  
  */
 class MeshVectorField : public VectorField, public Mesh {
 
@@ -163,11 +169,11 @@ public:
      *  (x,y,z,Bx,By,Bz), where x -> z and r -> (x,y).
      *
      *  2. Conversion from 3d to 3d. Allows change of mesh density and 
-     *  size of field, change of extrapolation effect...
+     *  size of field, change of extrapolation effect, etc.
      *
-     *  Conversion algorithm uses field evaluator ot the input field
+     *  Conversion algorithm uses field evaluator of the input field
      *  and therefore the extrapolation settings and the
-     *  transformation in the field affect the created field.
+     *  transformation in the field affect the newly created field.
      */
     MeshVectorField( geom_mode_e geom_mode, const bool fout[3], Int3D size, 
 		     Vec3D origo, double h, const MeshVectorField &fin );
@@ -194,13 +200,13 @@ public:
      *  FIELD_EXTRAPOLATE) or it can return the mirror of the field
      *  across the mesh boundary (\a FIELD_MIRROR), can return a zero
      *  field (\a FIELD_ZERO) or it can return a NaN (\a FIELD_NAN)
-     *  outside the mesh
+     *  outside the mesh. The \a FIELD_EXTRAPOLATE is the default behaviour.
      *
      *  The use of \a FIELD_MIRROR in case of symmetric cases, where
      *  beam is traversing next to the geometry boundary, is necessary
      *  to get physical results.
      *
-     *  Very far (double the size of the simulation box) the field
+     *  Very far (double the size of the mesh volume) the field
      *  evaluator will always return zero.
      */
     void set_extrapolation( const field_extrpl_e extrpl[6] ) {
@@ -260,6 +266,13 @@ public:
      *  vector field.
      */
     void get_minmax( double &min, double &max ) const;
+
+    /*! \brief Search minimum and maximum for each vector component.
+     *
+     *  Return vector min with minimum components found and vector max
+     *  with maximum components found.
+     */
+    void get_minmax( Vec3D &min, Vec3D &max ) const;
 
     /*! \brief Get which field components are defined.
      */

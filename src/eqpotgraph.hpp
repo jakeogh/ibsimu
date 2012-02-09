@@ -2,7 +2,7 @@
  *  \brief %Graph for plotting equipotential lines
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -80,7 +80,7 @@ class EqPotGraph : public Graph3D {
 
     Color                               _color;
     const MeshScalarField               _epot;
-    const Geometry                     &_g;
+    const Geometry                     &_geom;
     bool                                _data_built;
 
     std::vector<double>                 _eqlines_manual;
@@ -107,7 +107,7 @@ public:
      *  Makes a plot object for plotting equipotential data from
      *  scalarfield \a field in geometry \a g.
      */
-    EqPotGraph( const MeshScalarField &epot, const Geometry &g );
+    EqPotGraph( const MeshScalarField &epot, const Geometry &geom );
 
     /*! \brief Destructor,
      */
@@ -129,11 +129,14 @@ public:
      */
     void set_eqlines_auto( size_t N );
 
-    /*! \brief Plot drawable with cairo.
+    /*! \brief Plot graph with cairo.
      *
-     *  Plot the drawable using \a cairo and coordinate mapper \a
-     *  cm. The visible range of plot is given in array \a range in
-     *  order xmin, ymin, xmax, ymax.
+     *  Plot the graph using \a cairo and coordinate mapper \a cm. The
+     *  visible range of plot is given in array \a range in order \a
+     *  xmin, \a ymin, \a xmax, \a ymax. The graph should be able to
+     *  handle any range values. Also \a min > \a max.
+     *
+     *  Called by Frame during drawing.
      */
     virtual void plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] );
 
@@ -153,23 +156,3 @@ public:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

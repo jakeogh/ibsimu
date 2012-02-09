@@ -74,7 +74,7 @@ void test( int argc, char **argv )
     plotter.run();
     */
 
-    FieldDiagPlotter fplotter( &geom );
+    FieldDiagPlotter fplotter( geom );
     fplotter.set_scharge( &scharge );
     fplotter.set_epot( &epot );
     fplotter.set_coordinates( 100, Vec3D(0,0,0), Vec3D(12e-3,0,0) );

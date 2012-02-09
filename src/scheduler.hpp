@@ -49,7 +49,8 @@
 #include <iostream>
 #include <vector>
 #include <deque>
-//#include <sys/time.h>
+#include <time.h>
+#include "comptime.hpp"
 
 
 //#define SCHEDULER_DEBUG 1
@@ -415,6 +416,16 @@ public:
     }
 
 
+    /*! \brief Return number of problems.
+     */
+    uint32_t get_problem_count( void ) {
+	pthread_mutex_lock( &_mutex );
+	uint32_t ret = _problems.size();
+	pthread_mutex_unlock( &_mutex );
+	return( ret );
+    }
+
+
     /*! \brief Fetch errors and indices of corresponding problems.
      *
      *  \param e Container where errors are appended
@@ -497,6 +508,32 @@ public:
 
 	_done = true;
 	return( finish() );
+    }
+
+    /*! \brief Call for solvers to finish when problems are solved.
+     *
+     *  Waits for solvers to finish for 1 sec. Returns true if solver
+     *  finished, false if not. The finish() function needs to be
+     *  called after true to free the resources.
+     */
+    bool wait_finish( void ) {
+
+	pthread_mutex_lock( &_mutex );
+	if( _running ) {
+	    _finish = true;
+	    pthread_cond_broadcast( &_scheduler_cond );
+
+	    struct timespec ts;
+	    ibs_clock_gettime( CLOCK_REALTIME, &ts );
+	    ts.tv_sec += 1;
+	    int rc = pthread_cond_timedwait( &_producer_cond, &_mutex, &ts );
+	    if( rc == ETIMEDOUT ) {
+		pthread_mutex_unlock( &_mutex );
+		return( false );
+	    }
+	}
+	pthread_mutex_unlock( &_mutex );
+	return( true );
     }
 
     /*! \brief Wait for all problems to be solved.

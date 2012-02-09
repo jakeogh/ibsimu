@@ -2,7 +2,7 @@
  *  \brief %Field diagnostic plotter.
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,8 +45,8 @@
 #include "fielddiagplot.hpp"
 
 
-FieldDiagPlot::FieldDiagPlot( Frame *frame, const Geometry *geom )
-    : _frame(frame), _geom(geom), _epot(NULL), _scharge(NULL), 
+FieldDiagPlot::FieldDiagPlot( Frame &frame, const Geometry &geom )
+    : _frame(&frame), _geom(&geom), _epot(NULL), _scharge(NULL), 
       _efield(NULL), _bfield(NULL), _N(100)
 {
     _diag[0] = FIELD_EPOT;

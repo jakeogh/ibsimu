@@ -14,16 +14,10 @@
 #include "ccolmatrix.hpp"
 #include "mvector.hpp"
 #include "ilu0_precond.hpp"
+#include "ibsimutest.hpp"
 
 
 using namespace std;
-
-
-#define ERROR()							    \
-    {								    \
-	cout << "Error at " << __FILE__ << ":" << __LINE__ << "\n"; \
-	exit( 1 );					    \
-    }
 
 
 void init_fdm_problem( Matrix &A, Vector &B, double v1, double v2 )
@@ -114,7 +108,7 @@ void init_fdm_problem( Matrix &A, Vector &B, double v1, double v2 )
 }
 
 
-int test( int argc, char **argv )
+void test( int argc, char **argv )
 {
     CColMatrix Ac;
     CRowMatrix Ar;
@@ -162,9 +156,9 @@ int test( int argc, char **argv )
     Uc->upper_diag_solve( X, Y );
 
     if( max_abs(Y-Y_check) > 0.1 )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
     if( max_abs(X-X_check) > 0.1 )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 
     // CRowMatrix
     init_fdm_problem( Ar, B, 10.0, -10.0 );
@@ -175,7 +169,7 @@ int test( int argc, char **argv )
     Ur->upper_diag_solve( X, Y );
 
     if( max_abs(Y-Y_check) > 0.1 )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
     if( max_abs(X-X_check) > 0.1 )
-	ERROR();
+	throw( ErrorTest( ERROR_LOCATION ) );
 }

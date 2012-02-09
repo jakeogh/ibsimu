@@ -2,7 +2,7 @@
  *  \brief %Particle databases
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -239,6 +239,10 @@ public:
      */
     void set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb );
 
+    /*! \brief Set relativistic particle iteration.
+     */
+    void set_relativistic( bool enable );
+
     /*! \brief Set the interpolation type to polynomial(true) or linear(false).
      *
      *  Polynomial interpolation is the default.
@@ -318,6 +322,10 @@ public:
      *  several calls to "add_beam" functions.
      */
     double get_rhosum( void ) const;
+
+    /*! \brief Set sum of defined beam space charge density.
+     */
+    void set_rhosum( double rhosum );
 
     /*! \brief Get particle iterator statistics.
      */
@@ -414,8 +422,14 @@ public:
      *
      *  The particles defined in particle database \a pdb are iterated
      *  through electric field \a efield and magnetic field \a bfield 
-     *  in geometry \a g. Space charge density field \a scharge is set
+     *  in geometry \a geom. Space charge density field \a scharge is set
      *  from the particle trajectories.
+     *
+     *  The meshes of the geometry , the space charge field and the
+     *  electric field have to be equal. The magnetic field mesh can
+     *  be selected independently. This allows minimization of the
+     *  memory use in the case where electric field needs high
+     *  resolution, but magnetic field is relatively smooth.
      */
     void iterate_trajectories( MeshScalarField &scharge, const VectorField &efield, 
 			       const VectorField &bfield, const Geometry &geom );
@@ -424,7 +438,7 @@ public:
      *
      *  The particles defined in particle database \a pdb are stepped
      *  forward one time step in electric field \a efield and geometry
-     *  \a g.
+     *  \a geom.
      */
     void step_particles( MeshScalarField &scharge, const VectorField &efield, 
 			 const VectorField &bfield, const Geometry &geom, double dt );
@@ -1001,22 +1015,24 @@ public:
      *  Adds a beam consisting of \a N particles and a total current
      *  of \a I (A). The particles are defined to have equal currents,
      *  charge \a q (in multiples of e) and mass \a m (u). The
-     *  starting energy of the beam is \a Ex (eV) and the starting
-     *  location \a (x0,y0,z0) (center point). The beam propagates to
-     *  positive x-direction. The beam is made to match Twiss
-     *  parameters \f$ \alpha_y \f$ (a), \f$ \beta_y \f$ (b), \f$
-     *  \epsilon_{y,\mathrm{rms}} \f$ (e) in projectional direction
-     *  (y,y') and \f$ \alpha_z \f$ (a), \f$ \beta_z \f$ (b), \f$
-     *  \epsilon_{z,\mathrm{rms}} \f$ (e) in projectional direction
-     *  (z,z').
+     *  starting energy of the beam is \a E0 (eV) and the starting
+     *  location \a c (center point). The beam propagates to the
+     *  direction \a dir3 = \a dir1 x \a dir2, where \a dir1 and \a
+     *  dir2 are the emittance axes. The beam is made to match Twiss
+     *  parameters \f$ \alpha_1 \f$ (a1), \f$ \beta_1 \f$ (b1), \f$
+     *  \epsilon_{1,\mathrm{rms}} \f$ (e1) in the first projectional
+     *  direction \a dir1 and \f$ \alpha_2 \f$ (a2), \f$ \beta_2 \f$
+     *  (b2), \f$ \epsilon_{2,\mathrm{rms}} \f$ (e2) in the second
+     *  projectional direction \a dir2.
      *
      *  The beam spread in the projectional space is made according to
      *  Gaussian distribution.
      */
     void add_3d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
-					      double ay, double by, double ey,
-					      double az, double bz, double ez,
-					      double Ex, double x0, double y0, double z0 );
+					      double E0, 
+					      double a1, double b1, double e1,
+					      double a2, double b2, double e2,
+					      Vec3D c, Vec3D dir1, Vec3D dir2 );
 
 
 /* ************************************** *
@@ -1039,7 +1055,7 @@ public:
      *  Valid diagnostic types are DIAG_T, DIAG_X, DIAG_VX, DIAG_Y,
      *  DIAG_VY, DIAG_Z, DIAG_VZ, DIAG_O, DIAG_VO, DIAG_P, DIAG_VP,
      *  DIAG_Q, DIAG_VQ, DIAG_OP, DIAG_PP, DIAG_CURR, DIAG_EK and
-     *  DIAG_QM.
+     *  DIAG_QM, DIAG_MASS and DIAG_CHARGE.
      */
     void trajectories_at_free_plane( TrajectoryDiagnosticData &tdata, 
 				     const Vec3D &c, const Vec3D &o, const Vec3D &p,

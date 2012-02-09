@@ -2,7 +2,7 @@
  *  \brief %Mesh based vector fields
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -627,7 +627,7 @@ void MeshVectorField::get_minmax( double &min, double &max ) const
     double val;
 
     size_t ncount = _size[0]*_size[1]*_size[2];
-    for( size_t a = 1; a < ncount; a++ ) {
+    for( size_t a = 0; a < ncount; a++ ) {
 	val = (*this)( a ).ssqr();
 	if( val < min )
 	    min = val;
@@ -636,6 +636,29 @@ void MeshVectorField::get_minmax( double &min, double &max ) const
     }
     min = sqrt( min );
     max = sqrt( max );
+}
+
+
+void MeshVectorField::get_minmax( Vec3D &min, Vec3D &max ) const
+{
+    min = Vec3D( std::numeric_limits<double>::infinity(),
+		 std::numeric_limits<double>::infinity(),
+		 std::numeric_limits<double>::infinity() );
+    max = Vec3D( -std::numeric_limits<double>::infinity(),
+		 -std::numeric_limits<double>::infinity(),
+		 -std::numeric_limits<double>::infinity() );
+    Vec3D val;
+
+    size_t ncount = _size[0]*_size[1]*_size[2];
+    for( size_t a = 0; a < ncount; a++ ) {
+	val = (*this)( a );
+	for( size_t b = 0; b < 3; b++ ) {
+	    if( val[b] < min[b] )
+		min[b] = val[b];
+	    if( val[b] > max[b] )
+		max[b] = val[b];
+	}
+    }
 }
 
 
@@ -885,7 +908,7 @@ const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
                     X[a]     = 2.0*_origo[a] - X[a];
 		}
 
-	    } else if( X[0] > _max[0] ) {
+	    } else if( x[a] > _max[a] ) {
 		if( _extrpl[2*a+1] == FIELD_ZERO ) {
                     // return zero
                     return( Vec3D(0.0) );
@@ -945,7 +968,7 @@ const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
 	}
 	break;
     }
-    default:
+    default /* MODE_3D */ :
     {
 	int32_t i, j, k, di, dj, dk;
 	double t, u, v;
@@ -961,14 +984,14 @@ const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
 		}
 		if( X[a] < _origo[a]-_size[a]*_h ) {
 		    // Limit to double the simulation box -> return zero
-		    return( R );
+		    return( Vec3D(0.0) );
 		}
 		if( _extrpl[2*a] == FIELD_MIRROR ) {
                     sign[a] *= -1.0;
                     X[a]     = 2.0*_origo[a] - X[a];
 		}
 
-	    } else if( X[0] > _max[0] ) {
+	    } else if( x[a] > _max[a] ) {
 		if( _extrpl[2*a+1] == FIELD_ZERO ) {
                     // return zero
                     return( Vec3D(0.0) );
@@ -978,7 +1001,7 @@ const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
 		}
 		if( X[a] > _origo[a]+2.0*_size[a]*_h ) {
 		    // Limit to double the simulation box -> return zero
-		    return( R );
+		    return( Vec3D(0.0) );
 		}
                 if( _extrpl[2*a+1] == FIELD_MIRROR ) {
                     sign[a] *= -1.0;
@@ -1057,7 +1080,7 @@ void MeshVectorField::save( const std::string &filename ) const
 {
     ibsimu.message( 1 ) << "Saving MeshVectorField to file \'" << filename << "\'.\n";
 
-    std::ofstream os( filename.c_str() );
+    std::ofstream os( filename.c_str(), std::ios_base::binary );
     if( !os.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
     save( os );

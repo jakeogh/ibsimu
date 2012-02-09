@@ -24,6 +24,7 @@ rm -f aclocal.m4
 rm -f missing install-sh
 
 libtoolize
+# aclocal might need additional directories on msys: "-I /share/aclocal"
 aclocal -I m4
 autoconf
 autoheader
