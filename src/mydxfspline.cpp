@@ -543,7 +543,7 @@ void MyDXFSpline::plot_knot_points( cairo_t *cairo, const Transformation *t ) co
 	double k = _knot[a];
 	double kk = (k-_knot[0]) / (_knot.back()-_knot[0]);
 	x = t->transform( point( kk ) );	
-	x.homogenize();
+	//x.homogenize();
 	//std::cout << "knot[" << a << "] = " << _knot[a] << ": x = " << x << "\n";
 	cairo_move_to( cairo, x[0]+r, x[1] );
 	cairo_arc( cairo, x[0], x[1], r, 0.0, 2.0*M_PI );
@@ -564,11 +564,11 @@ void MyDXFSpline::plot_polyline_points( cairo_t *cairo, const Transformation *t 
 
     // Plot points
     /*
-    Vec4D x;
+    Vec3D x;
     const double r = 3.0;
     for( uint32_t a = 0; a < _polyline.size(); a++ ) {
 
-	x = t->transform( _polyline[a] );
+	x = t->transform_point( _polyline[a] );
 	x.homogenize();
 	std::cout << "polyline[" << a << "] = " << _polyline[a] << ": x = " << x << "\n";
 	cairo_move_to( cairo, x[0]+r, x[1] );
@@ -578,11 +578,11 @@ void MyDXFSpline::plot_polyline_points( cairo_t *cairo, const Transformation *t 
     */
 
     // Plot lines
-    Vec4D x;
+    Vec3D x;
     for( uint32_t a = 0; a < _polyline.size(); a++ ) {
 
-	x = t->transform( _polyline[a] );
-	x.homogenize();
+	x = t->transform_point( _polyline[a] );
+	//x.homogenize();
 	//std::cout << "polyline[" << a << "] = " << _polyline[a] << ": x = " << x << "\n";
 	if( a == 0 )
 	    cairo_move_to( cairo, x[0], x[1] );
@@ -601,11 +601,11 @@ void MyDXFSpline::plot_control_points( cairo_t *cairo, const Transformation *t )
 
     cairo_set_source_rgb( cairo, 0, 1, 0 );
 
-    Vec4D x;
+    Vec3D x;
     const double r = 3.0;
     for( uint32_t a = 0; a < _cont.size(); a++ ) {
-	x = t->transform( _cont[a] );
-	x.homogenize();
+	x = t->transform_point( _cont[a] );
+	//x.homogenize();
 	cairo_move_to( cairo, x[0]+r, x[1] );
 	cairo_arc( cairo, x[0], x[1], r, 0.0, 2.0*M_PI );
 	cairo_fill( cairo );
@@ -654,23 +654,23 @@ void MyDXFSpline::build_polyline( void )
 void MyDXFSpline::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 			const Transformation *t, const double range[4] ) const
 {
-    Vec4D x;
+    Vec3D x;
 
     //plot_control_points( cairo, t );
     //plot_knot_points( cairo, t );
-    plot_polyline_points( cairo, t );
-    return;
+    //plot_polyline_points( cairo, t );
+    //return;
 
     // Plot using deBoor's algorithm
-    x = t->transform( point( 0.0 ) );
-    x.homogenize();
+    x = t->transform_point( point( 0.0 ) );
+    //x.homogenize();
     cairo_move_to( cairo, x[0], x[1] );
     //std::cout << "x = ( " << x[0] << ", " << x[1] << " )\n";
 
     for( uint32_t a = 1; a < 101; a++ ) {
 	double tt = a/100.0;
-	x = t->transform( point( tt ) );
-	x.homogenize();
+	x = t->transform_point( point( tt ) );
+	//x.homogenize();
 	cairo_line_to( cairo, x[0], x[1] );
 	//std::cout << "x = ( " << x[0] << ", " << x[1] << " )\n";
     }
@@ -682,16 +682,16 @@ void MyDXFSpline::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 	if( _cont.size() <= 2 )
 	    return;
 
-	Vec4D x = t->transform( _cont[0] );
+	Vec3D x = t->transform_point( _cont[0] );
 	x.homogenize();
 	cairo_move_to( cairo, x[0], x[1] );
 	for( uint32_t a = 1; a < _cont.size(); a++ ) {
-	    x = t->transform( _cont[a] );
+	    x = t->transform_point( _cont[a] );
 	    x.homogenize();
 	    cairo_line_to( cairo, x[0], x[1] );
 	}
 	if( closed() ) {
-	    x = t->transform( _cont[0] );
+	    x = t->transform_point( _cont[0] );
 	    x.homogenize();
 	    cairo_line_to( cairo, x[0], x[1] );
 	}
@@ -714,8 +714,8 @@ void MyDXFSpline::get_bbox( Vec3D &min, Vec3D &max,
 		 -std::numeric_limits<double>::infinity() );
 
     for( uint32_t a = 0; a < _cont.size(); a++ ) {
-	Vec4D x = t->transform( _cont[a] );
-	x.homogenize();
+	Vec3D x = t->transform_point( _cont[a] );
+	//x.homogenize();
 	bbox_ppoint( min, max, x );
     }
 }

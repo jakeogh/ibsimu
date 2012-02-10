@@ -46,6 +46,9 @@
 
 
 MyDXFHeader::MyDXFHeader( class MyDXFFile *dxf )
+    : angbase(0.0), angdir(0), dimasz(0.0), dimgap(0.0), dimexo(0.0),
+      dimexe(0.0), dimtxt(0.0), insunits(4), orthomode(0), pucsorthoview(0),
+      ucsorthoview(0), worldview(0)
 {
 #ifdef MYDXF_DEBUG
     std::cout << "Reading section HEADER\n";

@@ -140,6 +140,10 @@ void MyDXFInsert::write( class MyDXFFile *dxf, std::ofstream &ostr )
 void MyDXFInsert::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 			const Transformation *t, const double range[4] ) const
 {
+#ifdef MYDXF_DEBUG_PLOT
+    std::cout << "MyDXFInsert::plot()\n";
+#endif
+
     // Fetch block data
     const MyDXFBlocks *blocks = dxf->get_blocks();
     const MyDXFBlock *b = blocks->get_by_name( _block_name );
@@ -147,17 +151,21 @@ void MyDXFInsert::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 	return;
 
     Transformation t2 = *t;
-    t2.translate( _p );
-    t2.scale( _scale );
-    t2.rotate_z( _rotation );
+    t2.translate_before( _p );
+    t2.rotate_z_before( _rotation );
+    t2.scale_before( _scale );
 
     for( int16_t col = 0; col < _col_count; col++ ) {
 	for( int16_t row = 0; row < _row_count; row++ ) {
 	    Transformation t3 = t2;
-	    t3.translate( Vec3D( col*_col_spacing, row*_row_spacing, 0.0 ) );
+	    t3.translate_before( Vec3D( col*_col_spacing, row*_row_spacing, 0.0 ) );
 	    b->plot( dxf, cairo, &t3, range );
 	}
     }
+
+#ifdef MYDXF_DEBUG_PLOT
+    std::cout << "MyDXFInsert::plot() done\n";
+#endif
 }
 
 
@@ -178,14 +186,14 @@ void MyDXFInsert::get_bbox( Vec3D &min, Vec3D &max,
 	return;
 
     Transformation t2 = *t;
-    t2.translate( _p );
-    t2.scale( _scale );
-    t2.rotate_z( _rotation );
+    t2.translate_before( _p );
+    t2.rotate_z_before( _rotation );
+    t2.scale_before( _scale );
 
     for( int16_t col = 0; col < _col_count; col++ ) {
 	for( int16_t row = 0; row < _row_count; row++ ) {
 	    Transformation t3 = t2;
-	    t3.translate( Vec3D( col*_col_spacing, row*_row_spacing, 0.0 ) );
+	    t3.translate_before( Vec3D( col*_col_spacing, row*_row_spacing, 0.0 ) );
 	    Vec3D mi, ma;
 	    b->get_bbox( mi, ma, dxf, &t3 );
 
@@ -239,14 +247,14 @@ void MyDXFInsert::explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Trans
 	return;
 
     Transformation t2 = *t;
-    t2.translate( _p );
-    t2.scale( _scale );
-    t2.rotate_z( _rotation );
+    t2.translate_before( _p );
+    t2.rotate_z_before( _rotation );
+    t2.scale_before( _scale );
 
     for( int16_t col = 0; col < _col_count; col++ ) {
 	for( int16_t row = 0; row < _row_count; row++ ) {
 	    Transformation t3 = t2;
-	    t3.translate( Vec3D( col*_col_spacing, row*_row_spacing, 0.0 ) );
+	    t3.translate_before( Vec3D( col*_col_spacing, row*_row_spacing, 0.0 ) );
 	    b->explode( ent, dxf, &t3 );
 	}
     }    
@@ -255,7 +263,7 @@ void MyDXFInsert::explode( class MyDXFEntities *ent, MyDXFFile *dxf, const Trans
 
 void MyDXFInsert::debug_print( std::ostream &os ) const
 {
-    os << "INSERT\n";
+    os << "  INSERT\n";
     MyDXFFile::debug_print_format( os, "block_name", _block_name );
     MyDXFFile::debug_print_format( os, "p", _p );
     MyDXFFile::debug_print_format( os, "scale", _scale );

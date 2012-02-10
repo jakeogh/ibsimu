@@ -110,7 +110,7 @@ public:
 
     /*! \brief Explode into entities.
      *
-     *  Break entity into atomic entities and tranform entities them
+     *  Break entity into atomic entities and tranform the entities
      *  with tranformation \a t. Add the tranformed entities to the
      *  database \a ent.
      */
@@ -150,7 +150,7 @@ public:
 
     /*! \brief Plot entity with cairo
      *
-     *  Plot the entity using the transformation \a from from the
+     *  Plot the entity using the transformation \a t from the
      *  object space to cairo coordinates. The visible range is
      *  specified by \a range (xmin,ymin,xmax,ymax) in cairo
      *  coordinates.
@@ -410,7 +410,7 @@ public:
 
     /*! \brief Scale selected entities by factor s.
      *
-     *  Selection can be a NULL pointer to plot all entities.
+     *  Selection can be a NULL pointer to scale all entities.
      */
     void scale( MyDXFEntitySelection *selection, class MyDXFFile *dxf, double s );
 
@@ -440,7 +440,8 @@ public:
 
     /*! \brief Explode all entities to \a ent.
      *
-     *  Explode and add all entities into ent using transformation t.
+     *  Explode and add all entities into entities database \a ent
+     *  using transformation \a t.
      */
     void explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transformation *t ) const;
 

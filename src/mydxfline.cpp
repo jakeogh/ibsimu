@@ -116,8 +116,17 @@ void MyDXFLine::write( class MyDXFFile *dxf, std::ofstream &ostr )
 void MyDXFLine::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 		      const Transformation *t, const double range[4] ) const
 {
-    Vec4D x1 = t->transform( _p1 );
-    Vec4D x2 = t->transform( _p2 );
+#ifdef MYDXF_DEBUG_PLOT
+    std::cout << "MyDXFLine::plot()\n";
+#endif
+
+    Vec3D x1 = t->transform_point( _p1 );
+    Vec3D x2 = t->transform_point( _p2 );
+
+#ifdef MYDXF_DEBUG_PLOT
+    std::cout << "MyDXFLine::plot(): plotting (" << x1[0] << ", " << x1[1] << ")\n";
+    std::cout << "MyDXFLine::plot(): plotting (" << x2[0] << ", " << x2[1] << ")\n";
+#endif
 
     cairo_move_to( cairo, x1[0], x1[1] );
     cairo_line_to( cairo, x2[0], x2[1] );

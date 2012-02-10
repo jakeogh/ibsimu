@@ -612,6 +612,10 @@ MyDXFEntitySelection *MyDXFEntities::selection_path_loop( MyDXFEntitySelection *
 void MyDXFEntities::plot( const MyDXFEntitySelection *selection, const class MyDXFFile *dxf, 
 			  cairo_t *cairo, const Transformation *t, const double range[4] ) const
 {
+#ifdef MYDXF_DEBUG_PLOT
+    std::cout << "MyDXFEntities::plot()\n";
+#endif
+
     if( selection ) {
 	// Go through selection
 	for( uint32_t a = 0; a < selection->size(); a++ ) {
@@ -751,7 +755,8 @@ void MyDXFEntities::explode( MyDXFEntitySelection *selection, class MyDXFFile *d
 
     if( selection ) {
 	// Go through selection
-	for( size_t a = 0; a < selection->size(); a++ ) {
+	size_t size = selection->size();
+	for( size_t a = 0; a < size; a++ ) {
 	    MyDXFInsert *ei = dynamic_cast<MyDXFInsert *>( _entities[(*selection)(a)] );
 	    if( ei )
 		ei->explode( this, dxf, &t );
@@ -759,7 +764,8 @@ void MyDXFEntities::explode( MyDXFEntitySelection *selection, class MyDXFFile *d
 
     } else {
 	// Explode all
-	for( size_t a = 0; a < _entities.size(); a++ ) {
+	size_t size = _entities.size();
+	for( size_t a = 0; a < size; a++ ) {
 	    MyDXFInsert *ei = dynamic_cast<MyDXFInsert *>( _entities[a] );
 	    if( ei )
 		ei->explode( this, dxf, &t );
@@ -770,7 +776,8 @@ void MyDXFEntities::explode( MyDXFEntitySelection *selection, class MyDXFFile *d
 
 void MyDXFEntities::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transformation *t ) const
 {
-    for( size_t a = 0; a < _entities.size(); a++ )
+    size_t size = _entities.size();
+    for( size_t a = 0; a < size; a++ )
 	_entities[a]->explode( ent, dxf, t );
 }
 

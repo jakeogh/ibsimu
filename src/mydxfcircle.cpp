@@ -149,6 +149,10 @@ void MyDXFCircle::write( class MyDXFFile *dxf, std::ofstream &ostr )
 void MyDXFCircle::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 			const Transformation *t, const double range[4] ) const
 {
+#ifdef MYDXF_DEBUG_PLOT
+    std::cout << "MyDXFCircle::plot()\n";
+#endif
+
     std::vector<double> cx;
     std::vector<double> cy;
 
@@ -229,9 +233,14 @@ void MyDXFCircle::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 	//std::cout << "\n";
     }
 
+#ifdef MYDXF_DEBUG_PLOT
+    for( int i = 0; i < (int)cx.size(); i++ )
+	std::cout << "MyDXFCircle::plot(): plotting (" << cx[i] << ", " << cy[i] << ")\n";
+#endif
+
     // Error small enough -> draw lines
     cairo_move_to( cairo, cx[0], cy[0] );
-    for( int i = 0; i < (int)cx.size(); i++ )
+    for( int i = 1; i < (int)cx.size(); i++ )
 	cairo_line_to( cairo, cx[i], cy[i] );
     cairo_line_to( cairo, cx[0], cy[0] );
     cairo_stroke( cairo );

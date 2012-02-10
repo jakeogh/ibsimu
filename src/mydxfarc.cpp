@@ -47,7 +47,7 @@
 #include "polysolver.hpp"
 
 
-#define MAX_ARC_CHOP 4
+#define MAX_ARC_CHOP 16
 ///#define DEBUG_INSIDE_LOOP 1
 
 
@@ -205,7 +205,7 @@ void MyDXFArc::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 	//std::cout << "\n";
 
 	// If step < 4.0
-	if( mstep < 16.0 )
+	if( mstep < 4.0 )
 	    break;
 
 	// Add more points

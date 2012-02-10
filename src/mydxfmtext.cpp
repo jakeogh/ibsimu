@@ -143,7 +143,7 @@ void MyDXFMText::write( class MyDXFFile *dxf, std::ofstream &ostr )
 void MyDXFMText::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 		       const Transformation *t, const double range[4] ) const
 {
-
+    std::cout << "Warning: plotting for MText entity not implemented\n";
 }
 
 
@@ -179,7 +179,7 @@ void MyDXFMText::translate( class MyDXFFile *dxf, const Vec3D &dx )
 void MyDXFMText::debug_print( std::ostream &os ) const
 {
     os << "  MTEXT\n";
-
+    MyDXFFile::debug_print_format( os, "text", _text );
     MyDXFFile::debug_print_format( os, "p", _p );
     MyDXFFile::debug_print_format( os, "text_height", _text_height );
     MyDXFFile::debug_print_format( os, "rect_width", _rect_width );

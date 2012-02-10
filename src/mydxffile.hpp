@@ -46,6 +46,7 @@
 
 
 //#define MYDXF_DEBUG 1
+//#define MYDXF_DEBUG_PLOT 1
 
 
 

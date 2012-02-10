@@ -137,9 +137,9 @@ void MyDXFTableEntryBlockRecord::write( class MyDXFFile *dxf, std::ofstream &ost
     dxf->write_group( 100, "AcDbBlockTableRecord" );
 
     dxf->write_group( 2, _name.c_str() );
-    //dxf->write_group( 70, _units );
-    //dxf->write_group( 280, _explodability );
-    //dxf->write_group( 281, _scalability );
+    dxf->write_group( 70, _units );
+    dxf->write_group( 280, _explodability );
+    dxf->write_group( 281, _scalability );
     dxf->write_group( 340, _handle_to_layout.c_str() );
 }
 
@@ -331,14 +331,44 @@ MyDXFTableEntryVport::~MyDXFTableEntryVport()
 
 void MyDXFTableEntryVport::write( class MyDXFFile *dxf, std::ofstream &ostr )
 {
-    dxf->write_group( 0, "LAYER" );
+    dxf->write_group( 0, "VPORT" );
     write_common( dxf, ostr );
 
     dxf->write_group( 100, "AcDbSymbolTableRecord" );
-    dxf->write_group( 100, "AcDbLayerTableRecord" );
+    dxf->write_group( 100, "AcDbViewportTableRecord" );
 
     dxf->write_group( 2, _name.c_str() );
     dxf->write_group( 70, _flags );
+    dxf->write_group( 10, _vmin[0] );
+    dxf->write_group( 20, _vmin[1] );
+    dxf->write_group( 11, _vmax[0] );
+    dxf->write_group( 21, _vmax[1] );
+    dxf->write_group( 12, _vcenter[0] );
+    dxf->write_group( 22, _vcenter[1] );
+    dxf->write_group( 13, _snap_base[0] );
+    dxf->write_group( 23, _snap_base[1] );
+    dxf->write_group( 14, _snap_spacing[0] );
+    dxf->write_group( 24, _snap_spacing[1] );
+    dxf->write_group( 15, _grid_spacing[0] );
+    dxf->write_group( 25, _grid_spacing[1] );
+    dxf->write_group( 16, _view_direction[0] );
+    dxf->write_group( 26, _view_direction[1] );
+    dxf->write_group( 36, _view_direction[2] );
+    dxf->write_group( 17, _view_target[0] );
+    dxf->write_group( 27, _view_target[1] );
+    dxf->write_group( 37, _view_target[2] );
+
+    dxf->write_group( 110, _ucs_origin[0] );
+    dxf->write_group( 120, _ucs_origin[1] );
+    dxf->write_group( 130, _ucs_origin[2] );
+    dxf->write_group( 111, _ucs_x[0] );
+    dxf->write_group( 121, _ucs_x[1] );
+    dxf->write_group( 131, _ucs_x[2] );
+    dxf->write_group( 112, _ucs_y[0] );
+    dxf->write_group( 122, _ucs_y[1] );
+    dxf->write_group( 132, _ucs_y[2] );
+    dxf->write_group( 79, _ucs_type );
+    dxf->write_group( 146, _elevation );
 }
 
 
@@ -484,7 +514,7 @@ MyDXFTables::MyDXFTables( class MyDXFFile *dxf )
 	    else if( dxf->group_get_string() == "LAYER" )
 		_layer = new MyDXFTable( "LAYER", dxf );
 	    else if( dxf->group_get_string() == "VPORT" )
-		_layer = new MyDXFTable( "VPORT", dxf );
+		_vport = new MyDXFTable( "VPORT", dxf );
 	    else {
 		// Unknown table
 		if( dxf->wlevel() >= 2 )
