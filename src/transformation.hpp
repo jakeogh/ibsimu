@@ -2,7 +2,7 @@
  *  \brief Full transformation for three dimensional homogenous space
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -208,12 +208,26 @@ public:
      */
     void translate( const Vec3D &d );
 
+    /*! \brief Translate transformation.
+     *
+     *  The effect of the new transformation is to first do the
+     *  translation and then do the old transformation.
+     */
+    void translate_before( const Vec3D &d );
+
     /*! \brief Scale transformation.
      *
      *  The effect of the new transformation is to first do the old
      *  transformation and then do the scaling.
      */
     void scale( const Vec3D &s );
+
+    /*! \brief Scale transformation.
+     *
+     *  The effect of the new transformation is to first do the
+     *  scaling and then do the old transformation.
+     */
+    void scale_before( const Vec3D &s );
 
     /*! \brief Rotate transformation around x-axis.
      *
@@ -224,6 +238,15 @@ public:
      */
     void rotate_x( double a );
 
+    /*! \brief Rotate transformation around x-axis.
+     *
+     *  Rotate around x-axis for \a a radians.
+     *
+     *  The effect of the new transformation is to first do the
+     *  rotation and then do the old transformation.
+     */
+    void rotate_x_before( double a );
+
     /*! \brief Rotate transformation around y-axis.
      *
      *  Rotate around y-axis for \a a radians.
@@ -233,6 +256,15 @@ public:
      */
     void rotate_y( double a );
 
+    /*! \brief Rotate transformation around y-axis.
+     *
+     *  Rotate around y-axis for \a a radians.
+     *
+     *  The effect of the new transformation is to first do the
+     *  rotation and then do the old transformation.
+     */
+    void rotate_y_before( double a );
+
     /*! \brief Rotate transformation around z-axis.
      *
      *  Rotate around z-axis for \a a radians.
@@ -241,6 +273,15 @@ public:
      *  transformation and then do the rotation.
      */
     void rotate_z( double a );
+
+    /*! \brief Rotate transformation around z-axis.
+     *
+     *  Rotate around z-axis for \a a radians.
+     *
+     *  The effect of the new transformation is to first do the
+     *  rotation and then do the old transformation.
+     */
+    void rotate_z_before( double a );
 
     /*! \brief Return unity transformation.
      */

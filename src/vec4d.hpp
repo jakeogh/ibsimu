@@ -76,6 +76,10 @@ public:
     Vec4D( double x, double y, double z ) { p[0] = x; p[1] = y; p[2] = z; p[3] = 0.0; }
     Vec4D( double x, double y, double z, double w ) { p[0] = x; p[1] = y; p[2] = z; p[3] = w; }
 
+    /*! \brief Convert 3D vector to 4D vector 
+     *
+     *  Makes 3D vector a point.
+     */
     Vec4D( const class Vec3D &vec );
 
     Vec4D( std::istream &s ) {

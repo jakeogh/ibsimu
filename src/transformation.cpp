@@ -280,45 +280,60 @@ void Transformation::reset( void )
 void Transformation::translate( const Vec3D &d ) 
 {
     *this = translation( d ) * (*this);
-    //Transformation t1 = translation( d );
-    //Transformation t2 = *this * t1;
-    //*this = t2;
+}
+
+
+void Transformation::translate_before( const Vec3D &d ) 
+{
+    *this = (*this) * translation( d );
 }
 
 
 void Transformation::scale( const Vec3D &s ) 
 {
     *this = scaling( s ) * (*this);
-    //Transformation t1 = scaling( s );
-    //Transformation t2 = *this * t1;
-    //*this = t2;
+}
+
+
+void Transformation::scale_before( const Vec3D &s ) 
+{
+    *this = (*this) * scaling( s );
 }
 
 
 void Transformation::rotate_x( double a ) 
 {
     *this = rotation_x( a ) * (*this);
-    //Transformation t1 = rotation_x( a );
-    //Transformation t2 = *this * t1;
-    //*this = t2;
+}
+
+
+void Transformation::rotate_x_before( double a ) 
+{
+    *this = (*this) * rotation_x( a );
 }
 
 
 void Transformation::rotate_y( double a ) 
 {
     *this = rotation_y( a ) * (*this);
-    //Transformation t1 = rotation_y( a );
-    //Transformation t2 = *this * t1;
-    //*this = t2;
+}
+
+
+void Transformation::rotate_y_before( double a ) 
+{
+    *this = (*this) * rotation_y( a );
 }
 
 
 void Transformation::rotate_z( double a ) 
 {
     *this = rotation_z( a ) * (*this);
-    //Transformation t1 = rotation_z( a );
-    //Transformation t2 = *this * t1;
-    //*this = t2;
+}
+
+
+void Transformation::rotate_z_before( double a ) 
+{
+    *this = (*this) * rotation_z( a );
 }
 
 
