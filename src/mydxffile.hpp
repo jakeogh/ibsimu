@@ -126,7 +126,7 @@ public:
 
     /*! \brief Get the level of warning messages.
      */
-    int wlevel( void ) { return( _wlevel ); }
+    int wlevel( void ) const { return( _wlevel ); }
 
 
 

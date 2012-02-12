@@ -152,6 +152,8 @@ mydxfentities.cpp \
 mydxfentities.hpp \
 mydxffile.cpp \
 mydxffile.hpp \
+mydxffont.cpp \
+mydxffont.hpp \
 mydxfheader.cpp \
 mydxfheader.hpp \
 mydxfinsert.cpp \
@@ -296,6 +298,7 @@ mydxfblocks.hpp \
 mydxfcircle.hpp \
 mydxfentities.hpp \
 mydxffile.hpp \
+mydxffont.hpp \
 mydxfheader.hpp \
 mydxfinsert.hpp \
 mydxfline.hpp \

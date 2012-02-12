@@ -42,21 +42,25 @@
 
 
 #include "mydxfmtext.hpp"
+#include "mydxffont.hpp"
+
+
+MyDXFMText::MyDXFMText() 
+    : _text_height(1.0), _rect_width(0.0), _text_width(0.0), _vert_height(0.0),
+      _spacing_fac(1.0), _rotation(0.0), _attachment_point(ATTACHMENT_POINT_TOP_LEFT),
+      _drawing_direction(DRAWING_DIRECTION_LEFT_TO_RIGHT), _line_spacing(2),
+      _style("STANDARD"), _extrusion(Vec3D(0,0,1)), _xaxis(1,0,0)
+{
+
+}
 
 
 MyDXFMText::MyDXFMText( class MyDXFFile *dxf )
+    : _text_height(1.0), _rect_width(0.0), _text_width(0.0), _vert_height(0.0),
+      _spacing_fac(1.0), _rotation(0.0), _attachment_point(ATTACHMENT_POINT_TOP_LEFT),
+      _drawing_direction(DRAWING_DIRECTION_LEFT_TO_RIGHT), _line_spacing(2),
+      _style("STANDARD"), _extrusion(Vec3D(0,0,1)), _xaxis(1,0,0)
 {
-#ifdef MYDXF_DEBUG
-    std::cout << "  Reading entity MTEXT\n";
-#endif
-
-    // Default values
-    _p[0] = _p[1] = _p[2] = 0.0;
-    _text_height = 1.0;
-    _rect_width = 1.0;
-    _attachment_point = ATTACHMENT_POINT_TOP_LEFT;
-    _drawing_direction = DRAWING_DIRECTION_LEFT_TO_RIGHT;
-
     while( dxf->read_group() != -1 ) {
 	
 	if( dxf->group_get_code() == 0 )
@@ -73,11 +77,49 @@ MyDXFMText::MyDXFMText( class MyDXFFile *dxf )
 	    _text_height = dxf->group_get_double();
 	else if( dxf->group_get_code() == 41 )
 	    _rect_width = dxf->group_get_double();
+	else if( dxf->group_get_code() == 42 )
+	    _text_width = dxf->group_get_double();
+	else if( dxf->group_get_code() == 43 )
+	    _vert_height = dxf->group_get_double();
+	else if( dxf->group_get_code() == 44 )
+	    _spacing_fac = dxf->group_get_double();
 
 	else if( dxf->group_get_code() == 71 )
 	    _attachment_point = dxf->group_get_int16();
 	else if( dxf->group_get_code() == 72 )
 	    _drawing_direction = dxf->group_get_int16();
+	else if( dxf->group_get_code() == 73 )
+	    _line_spacing = dxf->group_get_int16();
+
+	else if( dxf->group_get_code() == 7 )
+	    _style = dxf->group_get_string();
+
+	else if( dxf->group_get_code() == 210 )
+	    _extrusion[0] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 220 )
+	    _extrusion[1] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 230 )
+	    _extrusion[2] = dxf->group_get_double();
+
+	else if( dxf->group_get_code() == 11 )
+	    _xaxis[0] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 12 )
+	    _xaxis[1] = dxf->group_get_double();
+	else if( dxf->group_get_code() == 13 ) {
+	    _xaxis[2] = dxf->group_get_double();
+	    // Set rotation according to xaxis
+	    _rotation = atan2(_xaxis[1],_xaxis[0]);
+	} else if( dxf->group_get_code() == 50 ) {
+	    _rotation = M_PI*dxf->group_get_double()/180.0;
+	    // Set xaxis according to rotation
+	    _xaxis[0] = sin(_rotation);
+	    _xaxis[1] = cos(_rotation);
+	    _xaxis[2] = 0.0;
+	}
+
+	else if( dxf->group_get_code() == 7 )
+	    _style = dxf->group_get_string();
+
 
 	else if( dxf->group_get_code() == 3 || dxf->group_get_code() == 1 )
 	    _text += dxf->group_get_string();
@@ -86,9 +128,9 @@ MyDXFMText::MyDXFMText( class MyDXFFile *dxf )
 	    process_group( dxf );
     }
 
-#ifdef MYDXF_DEBUG
-    std::cout << *this;
-#endif
+    // Normalize direction vectors
+    _xaxis.normalize();
+    _extrusion.normalize();
 }
 
 
@@ -133,24 +175,63 @@ void MyDXFMText::write( class MyDXFFile *dxf, std::ofstream &ostr )
 
     dxf->write_group( 40, _text_height );
     dxf->write_group( 41, _rect_width );
+    dxf->write_group( 42, _text_width );
+    dxf->write_group( 43, _vert_height );
+    dxf->write_group( 44, _spacing_fac );
+    dxf->write_group( 50, _rotation );
 
     dxf->write_group( 71, _attachment_point );
     dxf->write_group( 72, _drawing_direction );
+    dxf->write_group( 73, _line_spacing );
 
+    dxf->write_group(  7, _style.c_str() );
+
+    dxf->write_group( 210, _extrusion[0] );
+    dxf->write_group( 220, _extrusion[1] );
+    dxf->write_group( 230, _extrusion[2] );
+
+    dxf->write_group( 11, _xaxis[0] );
+    dxf->write_group( 21, _xaxis[1] );
+    dxf->write_group( 31, _xaxis[2] );
 }
 
 
 void MyDXFMText::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 		       const Transformation *t, const double range[4] ) const
 {
-    std::cout << "Warning: plotting for MText entity not implemented\n";
+    if( dxf->wlevel() >= 2 )
+	std::cout << "Warning: plotting for MText entity not fully implemented\n";
+
+    cairo_save( cairo );
+    cairo_set_line_join( cairo, CAIRO_LINE_JOIN_BEVEL );
+    MyDXFFont mfont;
+    Transformation t2 = *t;
+    t2.translate_before( _p );
+    t2.rotate_z_before( _rotation );
+    t2.scale_before( Vec3D(_text_height,_text_height,_text_height) );
+    Vec3D x;
+
+    // DXF MText special characters:
+    // %%c diameter symbol
+    // %%d degrees symbol
+    // %%p plus/minus symbol
+    // %%% percent sign
+    // \~  space
+    //
+    //
+    for( uint32_t i = 0; i < _text.length(); i++ ) {
+	char c = _text[i];
+	mfont.plot( dxf, cairo, &t2, range, c, x );
+    }
+    cairo_restore( cairo );
 }
 
 
 void MyDXFMText::get_bbox( Vec3D &min, Vec3D &max, 
 			   const class MyDXFFile *dxf, const Transformation *t ) const
 {
-    std::cout << "Warning: bounding box for MText entity not implemented\n";
+    if( dxf->wlevel() >= 2 )
+	std::cout << "Warning: bounding box for MText entity not fully implemented\n";
     min = _p;
     max = _p;
 
@@ -167,6 +248,8 @@ void MyDXFMText::scale( class MyDXFFile *dxf, double s )
     _p *= s;
     _text_height *= s;
     _rect_width *= s;
+    _text_width *= s;
+    _vert_height *= s;
 }
 
 
@@ -183,10 +266,15 @@ void MyDXFMText::debug_print( std::ostream &os ) const
     MyDXFFile::debug_print_format( os, "p", _p );
     MyDXFFile::debug_print_format( os, "text_height", _text_height );
     MyDXFFile::debug_print_format( os, "rect_width", _rect_width );
+    MyDXFFile::debug_print_format( os, "text_width", _text_width );
+    MyDXFFile::debug_print_format( os, "vert_height", _vert_height );
+    MyDXFFile::debug_print_format( os, "spacing_fac", _spacing_fac );
+    MyDXFFile::debug_print_format( os, "rotation", _rotation );
     MyDXFFile::debug_print_format( os, "attachment_point", _attachment_point );
     MyDXFFile::debug_print_format( os, "drawing_direction", _drawing_direction );
+    MyDXFFile::debug_print_format( os, "line_spacing", _line_spacing );
+    MyDXFFile::debug_print_format( os, "style", _style );
+    MyDXFFile::debug_print_format( os, "extrusion", _extrusion );
+    MyDXFFile::debug_print_format( os, "xaxis", _xaxis );
 }
-
-
-
 

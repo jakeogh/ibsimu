@@ -2,7 +2,7 @@
  *  \brief DXF mtext entity
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -70,20 +70,46 @@
 class MyDXFMText : public MyDXFEntity
 {
 
-    std::string _text;
-    Vec3D       _p;
-    double      _text_height;
-    double      _rect_width;
-    int16_t     _attachment_point;
-    int16_t     _drawing_direction;
-
+    std::string _text;               /* 1, 3, Text string. If the text string is less than 250 characters, all 
+				      * characters appear in group 1. If the text string is greater than 250
+				      * characters, the string is divided into 250-character chunks, which
+				      * appear in one or more group 3 codes. If group 3 codes are used, the
+				      * last group is a group 1 and has fewer than 250 characters. */
+    Vec3D       _p;                  /* 10, 20, 30, Insertion point. */
+    double      _text_height;        /* 40, Nominal (initial) text height. */
+    double      _rect_width;         /* 41, Reference rectangle width. */
+    double      _text_width;         /* 42, Horizontal width of the characters that make up the mtext entity. This 
+				      * value will always be equal to or less than the value of group code 41 
+				      * (read-only, ignored if supplied). */
+    double      _vert_height;        /* 43, Vertical height of the mtext entity (read-only, ignored if supplied). */
+    double      _spacing_fac;        /* 44, Mtext line spacing factor (optional):
+				      * Percentage of default (3-on-5) line spacing to be applied. Valid values
+				      * range from 0.25 to 4.00 */
+    double      _rotation;           /* 50, Rotation angle in radians. */
+    int16_t     _attachment_point;   /* 71, Attachment point: 
+				      * 1 = Top left; 2 = Top center; 3 = Top right
+				      * 4 = Middle left; 5 = Middle center; 6 = Middle right
+				      * 7 = Bottom left; 8 = Bottom center; 9 = Bottom right */
+    int16_t     _drawing_direction;  /* 72, Drawing direction:
+				      * 1 = Left to right
+				      * 3 = Top to bottom
+				      *	5 = By style (the flow direction is inherited from the associated text style) */
+    int16_t     _line_spacing;       /* 73, Mtext line spacing style (optional):
+				      *	1 = At least (taller characters will override)
+				      * 2 = Exact (taller characters will not override) */
+    std::string _style;              /* 7, Text style name (STANDARD if not provided) (optional). */
+    Vec3D       _extrusion;          /* 210, 220, 230, Extrusion direction (optional; default = 0, 0, 1) */
+    Vec3D       _xaxis;              /* 11, 21, 31, X-axis direction vector (in WCS).A group code 50 (rotation angle
+				      * in radians) passed as DXF input is converted to the equivalent direction 
+				      * vector (if both a code 50 and codes 11, 21, 31 are passed, the last one wins).
+				      * This is provided as a convenience for conversions from text objects */
+    
+    
 public:
 
     /*! \brief Default constructor.
      */
-    MyDXFMText() : _text_height(1.0), _rect_width(1.0), 
-		   _attachment_point(ATTACHMENT_POINT_TOP_LEFT),
-		   _drawing_direction(DRAWING_DIRECTION_LEFT_TO_RIGHT) {};
+    MyDXFMText();
 
     /*! \brief Construct line entity by reading from DXF file.
      */
