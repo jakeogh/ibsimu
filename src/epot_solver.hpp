@@ -95,6 +95,9 @@ public:
 		return( false );
 	    break;
 	}
+
+	// Never here
+	return( false );
     }
 };
 
