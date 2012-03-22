@@ -2,7 +2,7 @@
  *  \brief Ion Beam Simulator global settings
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -56,12 +56,13 @@
 class Timer;
 
 
-#define MSG_COUNT 3
+#define MSG_COUNT 4
 
 /*! \brief Output type
  */
 enum message_type_e {
     MSG_VERBOSE = 0,
+    MSG_ERROR,
     MSG_DEBUG_GENERAL,
     MSG_DEBUG_DXF
 };
