@@ -95,6 +95,9 @@ public:
 		return( false );
 	    break;
 	}
+
+	// Make compilers happy
+	return( false );
     }
 };
 
