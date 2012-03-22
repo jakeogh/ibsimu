@@ -422,11 +422,17 @@ std::string GTKGeomWindow::track_text( double x, double y )
 
     ss << "solid = " << _geom.inside( loc ) << "\n";
     if( _epot )
-	ss << "epot = " << (*_epot)( loc ) << "\n";
-    if( _efield )
-	ss << "efield = " << (*_efield)( loc ) << "\n";
-    if( _bfield )
-	ss << "bfield = " << (*_bfield)( loc ) << " T\n";
+	ss << "epot = " << (*_epot)( loc ) << " V\n";
+    if( _efield ) {
+	Vec3D E = (*_efield)( loc );
+	ss << "efield = " << E << " V/m\n";
+	ss << "|efield| = " << E.norm2() << " V/m\n";
+    }
+    if( _bfield ) {
+	Vec3D B = (*_bfield)( loc );
+	ss << "bfield = " << B << " T\n";
+	ss << "|bfield| = " << B.norm2() << " T\n";
+    }
     if( _scharge )
 	ss << "scharge = " << (*_scharge)( loc ) << " C/m3\n";
     if( _tdens )
