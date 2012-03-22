@@ -199,28 +199,105 @@ void MyDXFMText::write( class MyDXFFile *dxf, std::ofstream &ostr )
 void MyDXFMText::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 		       const Transformation *t, const double range[4] ) const
 {
+    MyDXFFont mfont;
     if( dxf->wlevel() >= 2 )
 	std::cout << "Warning: plotting for MText entity not fully implemented\n";
 
+    // Check size
+    Vec3D x, min, max;
+    for( uint32_t i = 0; i < _text.length(); i++ ) {
+	uint32_t c = _text[i];
+	if( _text.substr(i,3) == "\\U+" ) {
+	    // Unicode input
+	    c = strtol( _text.substr(i+3,4).c_str(), NULL, 16 );
+	    i+=6;
+	} else if( _text.substr(i,2) == "\\~" ) {
+	    c = ' ';
+	    i++;
+	} else if( _text.substr(i,3) == "%%%" ) {
+	    c = '%';
+	    i+=2;
+	} else if( _text.substr(i,3) == "%%c" ) {
+	    c = 0xF8; // diameter symbol
+	    i+=2;
+	} else if( _text.substr(i,3) == "%%d" ) {
+	    c = 0xB0; // degrees symbol
+	    i+=2;
+	} else if( _text.substr(i,3) == "%%p" ) {
+	    c = 0xB1; // plus/minus symbol
+	    i+=2;
+	}
+	mfont.size( min, max, dxf, c, x );
+    }    
+
+    //std::cout << "min = " << min << "\n";
+    //std::cout << "max = " << max << "\n";
+
     cairo_save( cairo );
+    cairo_set_line_width( cairo, 0.5 );
     cairo_set_line_join( cairo, CAIRO_LINE_JOIN_BEVEL );
-    MyDXFFont mfont;
     Transformation t2 = *t;
     t2.translate_before( _p );
     t2.rotate_z_before( _rotation );
     t2.scale_before( Vec3D(_text_height,_text_height,_text_height) );
-    Vec3D x;
 
-    // DXF MText special characters:
-    // %%c diameter symbol
-    // %%d degrees symbol
-    // %%p plus/minus symbol
-    // %%% percent sign
-    // \~  space
-    //
-    //
+    // cursor starting location
+    switch( _attachment_point ) {
+    case ATTACHMENT_POINT_TOP_LEFT:
+	x = Vec3D(0,-max[1],0);
+	break;
+    case ATTACHMENT_POINT_TOP_CENTER:
+	x = Vec3D(-0.5*(max[0]+min[0]),-max[1],0);
+	break;
+    case ATTACHMENT_POINT_TOP_RIGHT:
+	x = Vec3D(-max[0],-max[1],0);
+	break;
+    case ATTACHMENT_POINT_MIDDLE_LEFT:
+	x = Vec3D(0,-0.5*(min[1]+max[1]),0);
+	break;
+    case ATTACHMENT_POINT_MIDDLE_CENTER:
+	x = Vec3D(-0.5*(max[0]+min[0]),-0.5*(min[1]+max[1]),0);
+	break;
+    case ATTACHMENT_POINT_MIDDLE_RIGHT:
+	x = Vec3D(-max[0],-0.5*(min[1]+max[1]),0);
+	break;
+    case ATTACHMENT_POINT_BOTTOM_LEFT:
+	x = Vec3D(0,0,0);
+	break;
+    case ATTACHMENT_POINT_BOTTOM_CENTER:
+	x = Vec3D(-0.5*(max[0]+min[0]),0,0);
+	break;
+    case ATTACHMENT_POINT_BOTTOM_RIGHT:
+	x = Vec3D(-max[0],0,0);
+	break;
+    default:
+    if( dxf->wlevel() >= 2 )
+	std::cout << "Warning: unknown attachment point in MText\n";	
+	break;
+    }
+
     for( uint32_t i = 0; i < _text.length(); i++ ) {
-	char c = _text[i];
+	uint32_t c = _text[i];
+	if( _text.substr(i,3) == "\\U+" ) {
+	    // Unicode input
+	    c = strtol( _text.substr(i+3,4).c_str(), NULL, 16 );
+	    i+=6;
+	} else if( _text.substr(i,2) == "\\~" ) {
+	    c = ' ';
+	    i++;
+	} else if( _text.substr(i,3) == "%%%" ) {
+	    c = '%';
+	    i+=2;
+	} else if( _text.substr(i,3) == "%%c" ) {
+	    c = 0xF8; // diameter symbol
+	    i+=2;
+	} else if( _text.substr(i,3) == "%%d" ) {
+	    c = 0xB0; // degrees symbol
+	    i+=2;
+	} else if( _text.substr(i,3) == "%%p" ) {
+	    c = 0xB1; // plus/minus symbol
+	    i+=2;
+	}
 	mfont.plot( dxf, cairo, &t2, range, c, x );
     }
     cairo_restore( cairo );

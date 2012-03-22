@@ -218,7 +218,7 @@ MultiMeshVectorField &MultiMeshVectorField::operator=( const MultiMeshVectorFiel
 }
 
 
-const Vec3D MultiMeshVectorField::operator()( Vec3D x ) const
+const Vec3D MultiMeshVectorField::operator()( const Vec3D &x ) const
 {
     // Scan fields for field evaluation
     for( int32_t i = _field.size()-1; i > 0; i-- ) {

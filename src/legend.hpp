@@ -48,6 +48,7 @@
 #include <string>
 #include "graph.hpp"
 #include "label.hpp"
+#include "color.hpp"
 #include "colormap.hpp"
 
 
@@ -127,7 +128,7 @@ public:
 
     /*! \brief Get size of legend entry.
      */
-    void get_size( cairo_t *cairo, double &width, double &height ) const;
+    void get_size( cairo_t *cairo, double &width, double &height );
 
     /*! \brief Set font size for legend labels.
      */
@@ -166,13 +167,13 @@ public:
 
     /*! \brief Get size of legend.
      */
-    virtual void get_size( cairo_t *cairo, double &width, double &height ) const = 0;
+    virtual void get_size( cairo_t *cairo, double &width, double &height ) = 0;
 };
 
 
 /*! \brief %Legend for presenting plot styles.
  */
-class MultiEntryLegend {
+class MultiEntryLegend : public Legend {
 
     double                     _fontsize; /*!< \brief Font size for labels. */
     std::vector<LegendEntry *> _entry;    /*!< \brief Legend entries. */
@@ -195,7 +196,7 @@ public:
 
     /*! \brief Get size of legend.
      */
-    virtual void get_size( cairo_t *cairo, double &width, double &height ) const;
+    virtual void get_size( cairo_t *cairo, double &width, double &height );
 
     /*! \brief Set font size for legend labels.
      */
@@ -212,18 +213,41 @@ public:
 
 
 /*! \brief %Legend for presenting colormap key.
+ *
+ *  Doesn't use Ruler,
  */
-class ColormapLegend {
+class ColormapLegend : public Legend {
 
-    double      _height;
+    struct Tic {
+	double  _loc;       /*!< \brief Tic height location. */
+	Label   _label;     /*!< \brief Tic label. */
+
+	/*! \brief Constructor for coordinate tic.
+	 */
+	Tic( double loc, const std::string &label ) : _loc(loc), _label(label) {}
+    };
+
+    double      _height;     /*!< \brief Height of legend box. */
+
+    double      _fontsize;   /*!< \brief Font size for labels. */
+    Color       _color;
+
+    double      _ticlen_in;
+    double      _ticlen_out;
+    double      _ticspace;
+
+    double           _range[2]; /*!< \brief z-range. */
+    std::vector<Tic> _tic;
+
     Colormap   &_colormap;
 
+    void build_legend( double x, double y );
 
 public:
 
     /*! \brief Default constructor for legend.
      */
-    ColormapLegend( Colormap &colormap ) : _height(0.0), _colormap(colormap) {}
+    ColormapLegend( Colormap &colormap );
 
     /*! \brief Virtual destructor.
      */
@@ -237,7 +261,15 @@ public:
 
     /*! \brief Get size of legend.
      */
-    virtual void get_size( cairo_t *cairo, double &width, double &height ) const;
+    virtual void get_size( cairo_t *cairo, double &width, double &height );
+
+    /*! \brief Set font size for legend labels.
+     */
+    void set_font_size( double fontsize );
+
+    /*! \brief Set ruler color.
+     */
+    void set_color( const Color &color );
 
     /*! \brief Set height of legend.
      */

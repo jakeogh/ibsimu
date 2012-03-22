@@ -96,7 +96,7 @@ public:
 	    break;
 	}
 
-	// Make compilers happy
+	// Never here
 	return( false );
     }
 };

@@ -62,7 +62,7 @@ MyDXFFont::Glyph::Glyph()
 }
 
 
-MyDXFFont::Glyph::Glyph( char c )
+MyDXFFont::Glyph::Glyph( uint32_t c )
     : _c(c)
 {
 
@@ -75,7 +75,7 @@ MyDXFFont::Glyph::~Glyph()
 }
 
 
-void MyDXFFont::Glyph::reset( char c )
+void MyDXFFont::Glyph::reset( uint32_t c )
 {
     _c = c;
     _fontops.clear();
@@ -114,6 +114,15 @@ void MyDXFFont::Glyph::draw( cairo_t *cairo, const Transformation *t, Vec3D &x )
 	}
     }
     cairo_stroke( cairo );
+}
+
+
+void MyDXFFont::Glyph::cursor_advance( Vec3D &x ) const
+{
+    for( uint32_t i = 0; i < _fontops.size(); i++ ) {
+	if( _fontops[i].op() == FONT_OP_CURSOR )
+	    x += _fontops[i].v();
+    }
 }
 
 
@@ -415,6 +424,59 @@ MyDXFFont::MyDXFFont()
     g.add_op( FONT_OP_CURSOR, 1.000, 0.000 );
     _glyphs.push_back( g );
 
+    g.reset( 0xC5 ); // A with ring
+    g.add_op( FONT_OP_MOVE,   0.000, 0.000 );
+    g.add_op( FONT_OP_LINE,   0.333, 1.000 );
+    g.add_op( FONT_OP_LINE,   0.666, 0.000 );
+    g.add_op( FONT_OP_MOVE,   0.333*0.280, 0.280 );
+    g.add_op( FONT_OP_LINE,   0.666-0.333*0.280, 0.280 );
+    g.add_op( FONT_OP_MOVE,   0.333, 1.280 );
+    g.add_op( FONT_OP_CURVE1, 0.413, 1.280 );
+    g.add_op( FONT_OP_CURVE2, 0.413, 1.200 );
+    g.add_op( FONT_OP_CURVE1, 0.413, 1.120 );
+    g.add_op( FONT_OP_CURVE2, 0.333, 1.120 );
+    g.add_op( FONT_OP_CURVE1, 0.253, 1.120 );
+    g.add_op( FONT_OP_CURVE2, 0.253, 1.200 );
+    g.add_op( FONT_OP_CURVE1, 0.253, 1.280 );
+    g.add_op( FONT_OP_CURVE2, 0.333, 1.280 );
+    g.add_op( FONT_OP_CURSOR, 1.000, 0.000 );
+    _glyphs.push_back( g );
+
+    g.reset( 0xC4 ); // A with umlauts
+    g.add_op( FONT_OP_MOVE,   0.000, 0.000 );
+    g.add_op( FONT_OP_LINE,   0.333, 1.000 );
+    g.add_op( FONT_OP_LINE,   0.666, 0.000 );
+    g.add_op( FONT_OP_MOVE,   0.333*0.280, 0.280 );
+    g.add_op( FONT_OP_LINE,   0.666-0.333*0.280, 0.280 );
+    g.add_op( FONT_OP_MOVE,   0.100, 1.000 );
+    g.add_op( FONT_OP_LINE,   0.100, 1.060 );
+    g.add_op( FONT_OP_MOVE,   0.566, 1.000 );
+    g.add_op( FONT_OP_LINE,   0.566, 1.060 );
+    g.add_op( FONT_OP_CURSOR, 1.000, 0.000 );
+    _glyphs.push_back( g );
+
+    g.reset( 0xD6 ); // O with umlauts
+    g.add_op( FONT_OP_MOVE,   0.000, 0.500 );
+    g.add_op( FONT_OP_LINE,   0.000, 0.780 );
+    g.add_op( FONT_OP_CURVE1, 0.000, 1.000 );
+    g.add_op( FONT_OP_CURVE2, 0.220, 1.000 );
+    g.add_op( FONT_OP_LINE,   0.330, 1.000 );
+    g.add_op( FONT_OP_CURVE1, 0.550, 1.000 );
+    g.add_op( FONT_OP_CURVE2, 0.550, 0.780 );
+    g.add_op( FONT_OP_LINE,   0.550, 0.220 );
+    g.add_op( FONT_OP_CURVE1, 0.550, 0.000 );
+    g.add_op( FONT_OP_CURVE2, 0.330, 0.000 );
+    g.add_op( FONT_OP_LINE,   0.220, 0.000 );
+    g.add_op( FONT_OP_CURVE1, 0.000, 0.000 );
+    g.add_op( FONT_OP_CURVE2, 0.000, 0.220 );
+    g.add_op( FONT_OP_LINE,   0.000, 0.500 );
+    g.add_op( FONT_OP_MOVE,   0.100, 1.100 );
+    g.add_op( FONT_OP_LINE,   0.100, 1.160 );
+    g.add_op( FONT_OP_MOVE,   0.450, 1.100 );
+    g.add_op( FONT_OP_LINE,   0.450, 1.160 );
+    g.add_op( FONT_OP_CURSOR, 0.890, 0.000 );
+    _glyphs.push_back( g );
+
     // Small alphabet
 
     g.reset( 'a' );
@@ -698,6 +760,69 @@ MyDXFFont::MyDXFFont()
     g.add_op( FONT_OP_CURSOR, 0.780, 0.000 );
     _glyphs.push_back( g );
 
+    g.reset( 0xE5 ); // a with ring
+    g.add_op( FONT_OP_MOVE,   0.060, 0.660 );
+    g.add_op( FONT_OP_LINE,   0.280, 0.660 );
+    g.add_op( FONT_OP_CURVE1, 0.440, 0.660 );
+    g.add_op( FONT_OP_CURVE2, 0.440, 0.380 );
+    g.add_op( FONT_OP_LINE,   0.440, 0.000 );
+    g.add_op( FONT_OP_LINE,   0.160, 0.000 );
+    g.add_op( FONT_OP_CURVE1, 0.000, 0.000 );
+    g.add_op( FONT_OP_CURVE2, 0.000, 0.160 );
+    g.add_op( FONT_OP_CURVE1, 0.000, 0.330 );
+    g.add_op( FONT_OP_CURVE2, 0.160, 0.330 );
+    g.add_op( FONT_OP_LINE,   0.440, 0.330 );
+    g.add_op( FONT_OP_MOVE,   0.250, 0.980 );
+    g.add_op( FONT_OP_CURVE1, 0.330, 0.980 );
+    g.add_op( FONT_OP_CURVE2, 0.330, 0.900 );
+    g.add_op( FONT_OP_CURVE1, 0.330, 0.820 );
+    g.add_op( FONT_OP_CURVE2, 0.250, 0.820 );
+    g.add_op( FONT_OP_CURVE1, 0.170, 0.820 );
+    g.add_op( FONT_OP_CURVE2, 0.170, 0.900 );
+    g.add_op( FONT_OP_CURVE1, 0.170, 0.980 );
+    g.add_op( FONT_OP_CURVE2, 0.250, 0.980 );
+    g.add_op( FONT_OP_CURSOR, 0.780, 0.000 );
+    _glyphs.push_back( g );
+
+    g.reset( 0xE4 ); // a with umlauts
+    g.add_op( FONT_OP_MOVE,   0.060, 0.660 );
+    g.add_op( FONT_OP_LINE,   0.280, 0.660 );
+    g.add_op( FONT_OP_CURVE1, 0.440, 0.660 );
+    g.add_op( FONT_OP_CURVE2, 0.440, 0.380 );
+    g.add_op( FONT_OP_LINE,   0.440, 0.000 );
+    g.add_op( FONT_OP_LINE,   0.160, 0.000 );
+    g.add_op( FONT_OP_CURVE1, 0.000, 0.000 );
+    g.add_op( FONT_OP_CURVE2, 0.000, 0.160 );
+    g.add_op( FONT_OP_CURVE1, 0.000, 0.330 );
+    g.add_op( FONT_OP_CURVE2, 0.160, 0.330 );
+    g.add_op( FONT_OP_LINE,   0.440, 0.330 );
+    g.add_op( FONT_OP_MOVE,   0.060, 0.800 );
+    g.add_op( FONT_OP_LINE,   0.060, 0.860 );
+    g.add_op( FONT_OP_MOVE,   0.380, 0.800 );
+    g.add_op( FONT_OP_LINE,   0.380, 0.860 );
+    g.add_op( FONT_OP_CURSOR, 0.780, 0.000 );
+    _glyphs.push_back( g );
+
+    g.reset( 0xF6 ); // o with umlauts
+    g.add_op( FONT_OP_MOVE,   0.000, 0.330 );
+    g.add_op( FONT_OP_LINE,   0.000, 0.440 );
+    g.add_op( FONT_OP_CURVE1, 0.000, 0.660 );
+    g.add_op( FONT_OP_CURVE2, 0.220, 0.660 );
+    g.add_op( FONT_OP_CURVE1, 0.440, 0.660 );
+    g.add_op( FONT_OP_CURVE2, 0.440, 0.440 );
+    g.add_op( FONT_OP_LINE,   0.440, 0.220 );
+    g.add_op( FONT_OP_CURVE1, 0.440, 0.000 );
+    g.add_op( FONT_OP_CURVE2, 0.220, 0.000 );
+    g.add_op( FONT_OP_CURVE1, 0.000, 0.000 );
+    g.add_op( FONT_OP_CURVE2, 0.000, 0.220 );
+    g.add_op( FONT_OP_LINE,   0.000, 0.330 );
+    g.add_op( FONT_OP_MOVE,   0.060, 0.800 );
+    g.add_op( FONT_OP_LINE,   0.060, 0.860 );
+    g.add_op( FONT_OP_MOVE,   0.380, 0.800 );
+    g.add_op( FONT_OP_LINE,   0.380, 0.860 );
+    g.add_op( FONT_OP_CURSOR, 0.780, 0.000 );
+    _glyphs.push_back( g );
+
     // Numbers
 
     g.reset( '0' );
@@ -855,6 +980,82 @@ MyDXFFont::MyDXFFont()
     g.add_op( FONT_OP_CURSOR, 0.440, 0.000 );
     _glyphs.push_back( g );
 
+    g.reset( '+' );
+    g.add_op( FONT_OP_MOVE,   0.275, 0.250 );
+    g.add_op( FONT_OP_LINE,   0.275, 0.750 );
+    g.add_op( FONT_OP_MOVE,   0.000, 0.500 );
+    g.add_op( FONT_OP_LINE,   0.550, 0.500 );
+    g.add_op( FONT_OP_CURSOR, 0.780, 0.000 );
+    _glyphs.push_back( g );
+
+    g.reset( '-' );
+    g.add_op( FONT_OP_MOVE,   0.000, 0.500 );
+    g.add_op( FONT_OP_LINE,   0.550, 0.500 );
+    g.add_op( FONT_OP_CURSOR, 0.780, 0.000 );
+    _glyphs.push_back( g );
+
+    g.reset( 0xB1 ); // plus/minus
+    g.add_op( FONT_OP_MOVE,   0.275, 0.350 );
+    g.add_op( FONT_OP_LINE,   0.275, 0.850 );
+    g.add_op( FONT_OP_MOVE,   0.000, 0.600 );
+    g.add_op( FONT_OP_LINE,   0.550, 0.600 );
+    g.add_op( FONT_OP_MOVE,   0.000, 0.150 );
+    g.add_op( FONT_OP_LINE,   0.550, 0.150 );
+    g.add_op( FONT_OP_CURSOR, 0.780, 0.000 );
+    _glyphs.push_back( g );
+
+    g.reset( '=' );
+    g.add_op( FONT_OP_MOVE,   0.000, 0.200 );
+    g.add_op( FONT_OP_LINE,   0.550, 0.200 );
+    g.add_op( FONT_OP_MOVE,   0.000, 0.400 );
+    g.add_op( FONT_OP_LINE,   0.550, 0.400 );
+    g.add_op( FONT_OP_CURSOR, 0.780, 0.000 );
+    _glyphs.push_back( g );
+
+    g.reset( '#' );
+    g.add_op( FONT_OP_MOVE,   0.200, 0.800 );
+    g.add_op( FONT_OP_LINE,   0.200, 0.000 );
+    g.add_op( FONT_OP_MOVE,   0.400, 0.800 );
+    g.add_op( FONT_OP_LINE,   0.400, 0.000 );
+    g.add_op( FONT_OP_MOVE,   0.000, 0.600 );
+    g.add_op( FONT_OP_LINE,   0.600, 0.600 );
+    g.add_op( FONT_OP_MOVE,   0.000, 0.200 );
+    g.add_op( FONT_OP_LINE,   0.600, 0.200 );
+    g.add_op( FONT_OP_CURSOR, 0.780, 0.000 );
+    _glyphs.push_back( g );
+
+    g.reset( '\\' );
+    g.add_op( FONT_OP_MOVE,   0.000, 1.000 );
+    g.add_op( FONT_OP_LINE,   0.330, 0.000 );
+    g.add_op( FONT_OP_CURSOR, 0.780, 0.000 );
+    _glyphs.push_back( g );
+
+    g.reset( '/' );
+    g.add_op( FONT_OP_MOVE,   0.000, 0.000 );
+    g.add_op( FONT_OP_LINE,   0.330, 1.000 );
+    g.add_op( FONT_OP_CURSOR, 0.780, 0.000 );
+    _glyphs.push_back( g );
+
+    g.reset( '(' );
+    g.add_op( FONT_OP_MOVE,   0.220, 0.000 );
+    g.add_op( FONT_OP_CURVE1, 0.000, 0.000 );
+    g.add_op( FONT_OP_CURVE2, 0.000, 0.220 );
+    g.add_op( FONT_OP_LINE,   0.000, 0.780 );
+    g.add_op( FONT_OP_CURVE1, 0.000, 1.000 );
+    g.add_op( FONT_OP_CURVE2, 0.220, 1.000 );
+    g.add_op( FONT_OP_CURSOR, 0.440, 0.000 );
+    _glyphs.push_back( g );
+
+    g.reset( ')' );
+    g.add_op( FONT_OP_MOVE,   0.000, 0.000 );
+    g.add_op( FONT_OP_CURVE1, 0.220, 0.000 );
+    g.add_op( FONT_OP_CURVE2, 0.220, 0.220 );
+    g.add_op( FONT_OP_LINE,   0.220, 0.780 );
+    g.add_op( FONT_OP_CURVE1, 0.220, 1.000 );
+    g.add_op( FONT_OP_CURVE2, 0.000, 1.000 );
+    g.add_op( FONT_OP_CURSOR, 0.440, 0.000 );
+    _glyphs.push_back( g );
+
     g.reset( ',' );
     g.add_op( FONT_OP_MOVE,   0.110, 0.060 );
     g.add_op( FONT_OP_LINE,   0.110, 0.000 );
@@ -932,6 +1133,34 @@ MyDXFFont::MyDXFFont()
     g.add_op( FONT_OP_CURSOR, 1.180, 0.000 );
     _glyphs.push_back( g );
 
+    g.reset( 0xB0 ); // degrees
+    g.add_op( FONT_OP_MOVE,   0.165, 1.000 );
+    g.add_op( FONT_OP_CURVE1, 0.330, 1.000 );
+    g.add_op( FONT_OP_CURVE2, 0.330, 0.835 );
+    g.add_op( FONT_OP_CURVE1, 0.330, 0.670 );
+    g.add_op( FONT_OP_CURVE2, 0.165, 0.670 );
+    g.add_op( FONT_OP_CURVE1, 0.000, 0.670 );
+    g.add_op( FONT_OP_CURVE2, 0.000, 0.835 );
+    g.add_op( FONT_OP_CURVE1, 0.000, 1.000 );
+    g.add_op( FONT_OP_CURVE2, 0.165, 1.000 );
+    g.add_op( FONT_OP_CURSOR, 0.550, 0.000 );
+    _glyphs.push_back( g );
+
+    g.reset( 0xF8 ); // degrees
+    g.add_op( FONT_OP_MOVE,   0.000, 0.500 );
+    g.add_op( FONT_OP_CURVE1, 0.000, 0.250 );
+    g.add_op( FONT_OP_CURVE2, 0.250, 0.250 );
+    g.add_op( FONT_OP_CURVE1, 0.500, 0.250 );
+    g.add_op( FONT_OP_CURVE2, 0.500, 0.500 );
+    g.add_op( FONT_OP_CURVE1, 0.500, 0.750 );
+    g.add_op( FONT_OP_CURVE2, 0.250, 0.750 );
+    g.add_op( FONT_OP_CURVE1, 0.000, 0.750 );
+    g.add_op( FONT_OP_CURVE2, 0.000, 0.500 );
+    g.add_op( FONT_OP_MOVE,   0.000, 0.000 );
+    g.add_op( FONT_OP_LINE,   0.500, 1.000 );
+    g.add_op( FONT_OP_CURSOR, 0.780, 0.000 );
+    _glyphs.push_back( g );
+
 
 }
 
@@ -944,32 +1173,8 @@ MyDXFFont::~MyDXFFont()
 
 void MyDXFFont::plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 		      const Transformation *t, const double range[4],
-		      char c, Vec3D &x ) const
+		      uint32_t c, Vec3D &x ) const
 {
-    /*
-    if( c == 'A' ) {
-	std::cout << "printing A\n";
-	move_to( cairo, t, p+Vec3D(0.000, 0.000) );
-	line_to( cairo, t, p+Vec3D(0.333, 1.000) );
-	line_to( cairo, t, p+Vec3D(0.666, 0.000) );
-	move_to( cairo, t, p+Vec3D(0.333*0.280, 0.280) );
-	line_to( cairo, t, p+Vec3D(0.666-0.333*0.280, 0.280) );
-	p += Vec3D(1,0,0);
-    } else if( c == 'B' ) {
-	std::cout << "printing B\n";
-	move_to( cairo, t, p+Vec3D(0.000, 0.550) );
-	line_to( cairo, t, p+Vec3D(0.290, 0.550) );
-	curve_to( cairo, t, p+Vec3D(0.290+0.275, 0.550),p+Vec3D(0.290+0.275,0.275) );
-	curve_to( cairo, t, p+Vec3D(0.290+0.275, 0.000),p+Vec3D(0.290,0.000) );
-	line_to( cairo, t, p+Vec3D(0.000, 0.000) );
-	line_to( cairo, t, p+Vec3D(0.000, 1.000) );
-	line_to( cairo, t, p+Vec3D(0.280, 1.000) );
-	curve_to( cairo, t, p+Vec3D(0.280+0.225, 1.000),p+Vec3D(0.280+0.225,1.000-0.225) );
-	curve_to( cairo, t, p+Vec3D(0.280+0.225, 1.000-0.450),p+Vec3D(0.280,1.000-0.450) );
-	p += Vec3D(0.880,0,0);
-    }
-    */
-
     uint32_t index;
     for( index = 0; index < _glyphs.size(); index++ ) {
 	if( _glyphs[index].ch() == c ) {
@@ -979,6 +1184,44 @@ void MyDXFFont::plot( const class MyDXFFile *dxf, cairo_t *cairo,
     }
     if( index == _glyphs.size() ) {
 	// Didn't find matching glyph, print glyph zero
+	if( dxf->wlevel() >= 2 )
+	    std::cout << "Missing glyph \'" << (char)(c&&0xFF) << "\' (" << std::hex << c << ")\n";
 	_glyphs[0].draw( cairo, t, x );
     }
 }
+
+
+void MyDXFFont::size( Vec3D &min, Vec3D &max, const class MyDXFFile *dxf, uint32_t c, Vec3D &x ) const
+{
+    uint32_t index;
+    for( index = 0; index < _glyphs.size(); index++ ) {
+	if( _glyphs[index].ch() == c ) {
+	    Vec3D xold = x;
+	    _glyphs[index].cursor_advance( x );
+	    // In x-direction
+	    if( xold[0] < min[0] )
+		min[0] = xold[0];
+	    if( x[0] < min[0] )
+		min[0] = x[0];
+	    if( xold[0] > max[0] )
+		max[0] = xold[0];
+	    if( x[0] > max[0] )
+		max[0] = x[0];
+	    // In y-direction
+	    if( xold[1] < min[1] )
+		min[1] = xold[1];
+	    if( x[1] < min[1] )
+		min[1] = x[1];
+	    if( xold[1]+1.0 > max[1] )
+		max[1] = xold[1]+1.0;
+	    if( x[1]+1.0 > max[1] )
+		max[1] = x[1]+1.0;
+	    break;
+	}	
+    }
+    if( index == _glyphs.size() ) {
+	// Didn't find matching glyph, print glyph zero
+	_glyphs[0].cursor_advance( x );
+    }
+}
+

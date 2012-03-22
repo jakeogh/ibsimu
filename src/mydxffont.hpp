@@ -69,19 +69,20 @@ class MyDXFFont
 
     class Glyph
     {
-	char _c;
+	uint32_t _c;
 	std::vector<FontOp> _fontops;
     public:
 
 	Glyph();
-	Glyph( char c );
+	Glyph( uint32_t c );
 	~Glyph();
 
-	void reset( char c );
+	void reset( uint32_t c );
 	void add_op( unsigned char op, double x, double y );
 
-	char ch( void ) const { return( _c ); }
+	uint32_t ch( void ) const { return( _c ); }
 	void draw( cairo_t *cairo, const Transformation *t, Vec3D &x ) const;
+	void cursor_advance( Vec3D &x ) const;
     };
 
     std::vector<Glyph> _glyphs;
@@ -100,7 +101,10 @@ public:
      */
     void plot( const class MyDXFFile *dxf, cairo_t *cairo, 
 	       const Transformation *t, const double range[4],
-	       char c, Vec3D &x ) const;
+	       uint32_t c, Vec3D &x ) const;
+
+
+    void size( Vec3D &min, Vec3D &max, const class MyDXFFile *dxf, uint32_t c, Vec3D &x ) const;
 };
 
 #endif

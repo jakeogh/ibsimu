@@ -2,7 +2,7 @@
  *  \brief Plot legends
  */
 
-/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -51,6 +51,9 @@
 #define LEGEND_MARGIN 0.5
 
 
+#define COLORMAP_LEGEND_WIDTH 1.2
+
+
 void LegendEntry::plot( cairo_t *cairo, double x, double y )
 {
     double scale = _label.get_font_size();
@@ -61,7 +64,7 @@ void LegendEntry::plot( cairo_t *cairo, double x, double y )
 }
 
 
-void LegendEntry::get_size( cairo_t *cairo, double &width, double &height ) const
+void LegendEntry::get_size( cairo_t *cairo, double &width, double &height ) 
 {
     double bbox[4];
     double scale = _label.get_font_size();
@@ -117,7 +120,7 @@ void MultiEntryLegend::plot( cairo_t *cairo, double x, double y )
 }
 
 
-void MultiEntryLegend::get_size( cairo_t *cairo, double &width, double &height ) const
+void MultiEntryLegend::get_size( cairo_t *cairo, double &width, double &height )
 {
     width = height = 0.0;
     for( uint32_t i = 0; i < _entry.size(); i++ ) {
@@ -152,15 +155,87 @@ void MultiEntryLegend::set_font_size( double fontsize )
 
 
 
-void ColormapLegend::plot( cairo_t *cairo, double x, double y )
+ColormapLegend::ColormapLegend( Colormap &colormap ) 
+    : _height(0.0), _fontsize(12.0), _color((Color(0,0,0))),
+      _ticlen_in(5.0), _ticlen_out(5.0),
+      _ticspace(5.0), _colormap(colormap) 
 {
-    
+
 }
 
 
-void ColormapLegend::get_size( cairo_t *cairo, double &width, double &height ) const
+void ColormapLegend::build_legend( double x, double y )
 {
+    _colormap.get_zrange( _range[0], _range[1] );
 
+    // Make 4 tics
+    _tic.clear();
+    size_t N = 4;
+    for( size_t a = 0; a < N; a++ ) {
+
+	// zval span should depend on zscale settings
+	double zval = _range[0] + (_range[1]-_range[0])*a/(N-1.0);
+	double xx = COLORMAP_LEGEND_WIDTH*_fontsize + _ticlen_out*2 + _ticspace;
+	double yy = y+_height*a/(N-1.0);
+
+	char str[128];
+	snprintf( str, 128, "%g", zval );
+
+	_tic.push_back( Tic(yy,str) );
+	_tic[a]._label.set_location( xx, yy );
+	_tic[a]._label.set_alignment( 0.0, 0.5, true );
+    }
+}
+
+
+void ColormapLegend::plot( cairo_t *cairo, double x, double y )
+{
+    build_legend( x, y );
+
+    // Set cairo parameters
+    cairo_save( cairo );
+    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], _color[3] );
+    cairo_set_line_width( cairo, 1.0 );
+
+    // Draw box and tics
+    cairo_rectangle( cairo, x+_ticlen_out, y, 
+		     COLORMAP_LEGEND_WIDTH*_fontsize, _height );
+    for( size_t a = 0; a < _tic.size(); a++ ) {
+	cairo_move_to( cairo, x,_tic[a]._loc );
+	cairo_line_to( cairo, x+_ticlen_out+_ticlen_in,_tic[a]._loc );
+    }
+    cairo_stroke( cairo );
+    for( size_t a = 0; a < _tic.size(); a++ ) {
+	_tic[a]._label.draw( cairo );
+    }
+
+    cairo_restore( cairo );
+}
+
+
+void ColormapLegend::get_size( cairo_t *cairo, double &width, double &height )
+{
+    build_legend( 0.0, 0.0 );
+
+    double maxwidth = COLORMAP_LEGEND_WIDTH*_fontsize + _ticlen_out*2;
+    for( size_t a = 0; a < _tic.size(); a++ ) {
+	double bbox[4];
+	_tic[a]._label.get_bbox( cairo, bbox );
+	if( bbox[2] > maxwidth )
+	    maxwidth = bbox[2];
+    }
+
+    width = maxwidth;
+    height = _height;
+}
+
+
+void ColormapLegend::set_font_size( double fontsize )
+{
+    _fontsize = fontsize;
+    _ticlen_in  = 5.0*fontsize/12.0;
+    _ticlen_out = 5.0*fontsize/12.0;
+    _ticspace   = 5.0*fontsize/12.0;
 }
 
 
@@ -168,23 +243,4 @@ void ColormapLegend::set_height( double height )
 {
     _height = height;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
