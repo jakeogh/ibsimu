@@ -37,12 +37,12 @@ int main( int argc, char **argv )
 	else
 	    filename = bin + "_vout.txt";
 
-	//ibsimu.set_message_output( filename );
+	ibsimu.set_message_output( filename );
 	ibsimu.set_message_threshold( MSG_VERBOSE, 1 );
 	ibsimu.set_thread_count( 4 );
 	test( argc, argv );
     } catch( Error e ) {
-	e.print_error_message( std::cerr );
+	e.print_error_message( ibsimu.message( 0 ) );
 	exit( 1 );
     }
 

@@ -2,7 +2,7 @@
  *  \brief Stereolithography CAD file handling
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -43,12 +43,34 @@
 #include <cstddef>
 #include <limits>
 #include <sstream>
+#include <ctype.h>
+#include <string.h>
 #include "stlfile.hpp"
 
 
 //#define DEBUG_STL 1
-#define EPS 1.0e-6
+#define EPS 1.0e-9
 
+
+bool ciscomp( const char *str1, const char *str2, size_t n )
+{
+    size_t str1len = strlen( str1 );
+    size_t str2len = strlen( str2 );
+
+    if( str1len < n ) {
+	if( str1len != str2len )
+	    return( false );
+	n = str1len;
+    }
+    if( str2len < n )
+	return( false );
+
+    for( size_t i = 0; i < n ; i++ ) {
+        if( tolower(str1[i]) != tolower(str2[i]) )
+            return( false );
+    }
+    return( true );
+}
 
 
 void STLFile::Triangle::read_binary_float_vector( Vec3D &x, std::ifstream &ifstr )
@@ -61,16 +83,110 @@ void STLFile::Triangle::read_binary_float_vector( Vec3D &x, std::ifstream &ifstr
 }
 
 
+void STLFile::Triangle::read_ascii_float_vector( Vec3D &x, const char *buf, const std::string &filename, int linec )
+{
+    char *endptr;
+
+    // Skip preceding whitespace
+    while( isspace( *buf ) )
+	buf++;
+
+    for( size_t i = 0; i < 3; i++ ) {
+	x[i] = strtod( buf, &endptr );
+	if( endptr == buf ) {
+	    throw( Error( ERROR_LOCATION, "unexpected end of line reading file \'" 
+			  + filename + "\' on line " + to_string(linec) ) );
+	}
+	buf = endptr;
+	while( isspace( *buf ) )
+	    buf++;
+    }
+
+}
+
+
 STLFile::Triangle::Triangle( std::ifstream &ifstr )
 {
     read_binary_float_vector( _normal, ifstr );
-    read_binary_float_vector( _p1, ifstr );
-    read_binary_float_vector( _p2, ifstr );
-    read_binary_float_vector( _p3, ifstr );
+    read_binary_float_vector( _p[0], ifstr );
+    read_binary_float_vector( _p[1], ifstr );
+    read_binary_float_vector( _p[2], ifstr );
 
     uint16_t attr;
     ifstr.read( (char *)&attr, 2 );
     _attr = attr;
+}
+
+
+STLFile::Triangle::Triangle( std::ifstream &ifstr, const char *buf, const std::string &filename, int &linec )
+{
+    //std::cout << "  Making new Triangle\n";
+
+    if( !ciscomp( buf, "facet normal", 12 ) )
+	throw( Error( ERROR_LOCATION, "Unexpected input on line " + to_string(linec) +
+		      ", expecting \'facet normal\'." ) );
+    buf += 12;
+    read_ascii_float_vector( _normal, buf, filename, linec );
+
+    // Tag "outer loop"
+    std::string str;
+    std::getline( ifstr, str );
+    buf = str.c_str();
+    linec++;
+
+    // Skip whitespace
+    while( isspace( *buf ) )
+	buf++;
+
+    if( !ciscomp( buf, "outer loop", 10 ) )
+	throw( Error( ERROR_LOCATION, "Unexpected input on line " + to_string(linec) +
+		      ", expecting \'outer loop\'." ) );
+
+    // Read 3 vertices
+    for( size_t i = 0; i < 3; i++ ) {
+	std::getline( ifstr, str );
+	buf = str.c_str();
+	linec++;
+	
+	// Skip whitespace
+	while( isspace( *buf ) )
+	    buf++;
+	
+	if( !ciscomp( buf, "vertex", 6 ) )
+	    throw( Error( ERROR_LOCATION, "Unexpected input on line " + to_string(linec) +
+			  ", expecting \'vertex\'." ) );
+
+	buf += 6;
+	read_ascii_float_vector( _p[i], buf, filename, linec );
+    }
+
+    // Tag "endloop"
+    std::getline( ifstr, str );
+    buf = str.c_str();
+    linec++;
+
+    // Skip whitespace
+    while( isspace( *buf ) )
+	buf++;
+
+    if( !ciscomp( buf, "endloop", 7 ) )
+	throw( Error( ERROR_LOCATION, "Unexpected input on line " + to_string(linec) +
+		      ", expecting \'endloop\'." ) );
+
+    // Tag "endfacet"
+    std::getline( ifstr, str );
+    buf = str.c_str();
+    linec++;
+
+    // Skip whitespace
+    while( isspace( *buf ) )
+	buf++;
+
+    if( !ciscomp( buf, "endfacet", 8 ) )
+	throw( Error( ERROR_LOCATION, "Unexpected input on line " + to_string(linec) +
+		      ", expecting \'endfacet\'." ) );
+
+
 }
 
 
@@ -83,11 +199,11 @@ STLFile::Triangle::~Triangle()
 const Vec3D &STLFile::Triangle::operator[]( int i ) const
 {
     if( i == 0 )
-	return( _p1 );
+	return( _p[0] );
     else if( i == 1 )
-	return( _p2 );
+	return( _p[1] );
     else if( i == 2 )
-	return( _p3 );
+	return( _p[2] );
     else
 	throw( Error( ERROR_LOCATION, "Indexing error" ) );
 }
@@ -99,14 +215,14 @@ int STLFile::Triangle::ray_cross( const Vec3D &x, const Vec3D &dir ) const
     std::cout << "ray_cross( " << x[0] << ", " << x[1] << ", " << x[2] << " )\n";
 #endif
 
-    // Find vectors for two edges sharing _p1 and normal
-    Vec3D u = _p2 - _p1;
-    Vec3D v = _p3 - _p1;
+    // Find vectors for two edges sharing _p[0] and normal
+    Vec3D u = _p[1] - _p[0];
+    Vec3D v = _p[2] - _p[0];
     Vec3D n = cross( u, v );
     if( n == 0.0 )
 	throw( Error( ERROR_LOCATION, "Zero triangle area" ) );	
 
-    Vec3D w0 = x-_p1;
+    Vec3D w0 = x-_p[0];
     double a = -n*w0;
     double b = n*dir;
     if( fabs(b) < 1.0e-6 ) { // Ray parallel to triangle plane
@@ -125,7 +241,7 @@ int STLFile::Triangle::ray_cross( const Vec3D &x, const Vec3D &dir ) const
     double uu = u*u;
     double uv = u*v;
     double vv = v*v;
-    Vec3D w = I - _p1;
+    Vec3D w = I - _p[0];
     double wu = w*u;
     double wv = w*v;
     double D = uv*uv - uu*vv;
@@ -153,19 +269,19 @@ const Vec3D &STLFile::Triangle::normal( void ) const
 
 const Vec3D &STLFile::Triangle::p1( void ) const
 {
-    return( _p1 );
+    return( _p[0] );
 }
 
 
 const Vec3D &STLFile::Triangle::p2( void ) const
 {
-    return( _p2 );
+    return( _p[1] );
 }
 
 
 const Vec3D &STLFile::Triangle::p3( void ) const
 {
-    return( _p3 );
+    return( _p[2] );
 }
 
 
@@ -175,9 +291,9 @@ void STLFile::Triangle::debug_print( std::ostream &os ) const
 {
     os << "**Triangle\n";
     os << "  normal = " << _normal << "\n";
-    os << "  p1     = " << _p1 << "\n";
-    os << "  p2     = " << _p2 << "\n";
-    os << "  p3     = " << _p3 << "\n";
+    os << "  p1     = " << _p[0] << "\n";
+    os << "  p2     = " << _p[1] << "\n";
+    os << "  p3     = " << _p[2] << "\n";
     os << "  attr   = " << _attr << "\n";
 }
 
@@ -195,9 +311,9 @@ void STLFile::Triangle::bbox_ppoint( Vec3D &min, Vec3D &max, const Vec3D &p )
 
 void STLFile::Triangle::update_bbox( Vec3D &min, Vec3D &max ) const
 {
-    bbox_ppoint( min, max, _p1 );
-    bbox_ppoint( min, max, _p2 );
-    bbox_ppoint( min, max, _p3 );
+    bbox_ppoint( min, max, _p[0] );
+    bbox_ppoint( min, max, _p[1] );
+    bbox_ppoint( min, max, _p[2] );
 }
 
 
@@ -275,6 +391,9 @@ void STLFile::read_binary( std::ifstream &ifstr )
     uint32_t tcount;
     ifstr.read( (char *)(&tcount), 4 );
 
+    // Check if sensible
+    if( tcount > 10000000 )
+	throw( ErrorUnimplemented( ERROR_LOCATION, "Too high number of triangles" ) );
     _triangle.reserve( tcount );
     
     for( uint32_t a = 0; a < tcount; a++ ) {
@@ -283,9 +402,46 @@ void STLFile::read_binary( std::ifstream &ifstr )
 }
 
 
+void STLFile::read_ascii( std::ifstream &ifstr )
+{
+    //std::cout << "Reading ASCII STL\n";
+
+    // Read first line (header)
+    std::string header;
+    std::getline( ifstr, header );
+
+    //std::cout << "  header = \'" + header + "\'\n";
+
+    // Read line-by-line
+    int linec = 0;
+    while( !ifstr.eof() ) {
+        
+        std::string str;
+        std::getline( ifstr, str );
+	//std::cout << "  line = \'" + str + "\'\n";
+	const char *buf = str.c_str();
+        linec++;
+
+	// Skip whitespace
+	while( isspace( *buf ) )
+	    buf++;
+
+	if( ciscomp( buf, "endsolid", 8 ) )
+	    break;
+
+	_triangle.push_back( Triangle( ifstr, buf, _filename, linec ) );
+    }
+
+    //std::cout << "  Done\n";
+
+    //throw( ErrorUnimplemented( ERROR_LOCATION, "Ascii STL file reader unimplemented" ) );
+}
+
+
 STLFile::STLFile( const std::string &filename )
 {
-    std::ifstream ifstr( filename.c_str() );
+    _filename = filename;
+    std::ifstream ifstr( filename.c_str(), std::ios_base::binary );
     if( !ifstr.good() )
 	throw( Error( ERROR_LOCATION, "Couldn't open file \'" + filename + "\'" ) );
 
@@ -294,10 +450,10 @@ STLFile::STLFile( const std::string &filename )
     // Binary files have free form 80 byte header
     char buf[80];
     ifstr.read( buf, 80 );
-    if( !strncmp( buf, "Solid ", 6 ) ) {
+    if( !strncasecmp( buf, "solid ", 6 ) ) {
 	_ascii = true;
 	ifstr.seekg( 0 );
-	throw( ErrorUnimplemented( ERROR_LOCATION, "Ascii STL file reader unimplemented" ) );
+	read_ascii( ifstr );
     } else {
 	_ascii = false;
 	read_binary( ifstr );
@@ -305,7 +461,7 @@ STLFile::STLFile( const std::string &filename )
 
     ifstr.close();
 
-    build_vtriangle_data();
+    //build_vtriangle_data();
 }
 
 

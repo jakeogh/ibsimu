@@ -2,7 +2,7 @@
  *  \brief Stereolithography CAD file handling
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -55,17 +55,17 @@ class STLFile {
     class Triangle {
 
 	Vec3D    _normal;
-	Vec3D    _p1;
-	Vec3D    _p2;
-	Vec3D    _p3;
+	Vec3D    _p[3];
 	uint16_t _attr;
 
 	void static read_binary_float_vector( Vec3D &x, std::ifstream &ifstr );
+	void static read_ascii_float_vector( Vec3D &x, const char *buf, const std::string &filename, int linec );
 	static void bbox_ppoint( Vec3D &min, Vec3D &max, const Vec3D &p );
 
     public:
 
 	Triangle( std::ifstream &ifstr );
+	Triangle( std::ifstream &ifstr, const char *buf, const std::string &filename, int &linec );
 	~Triangle();
 
 	const Vec3D &normal( void ) const;
@@ -104,6 +104,7 @@ class STLFile {
 	friend std::ostream &operator<<( std::ostream &os, const VTriangle &vtri );
     };
 
+    std::string            _filename;
     bool                   _ascii;
     std::vector<Triangle>  _triangle;  // Original triangle data
 
@@ -111,6 +112,7 @@ class STLFile {
     std::vector<VTriangle> _vtri;      // Vertex made triangles
 
     void read_binary( std::ifstream &ifstr );
+    void read_ascii( std::ifstream &ifstr );
     void build_vtriangle_data( void );
 
 public:

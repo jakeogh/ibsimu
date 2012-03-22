@@ -11,7 +11,6 @@
 #include "stlfile.hpp"
 #include "geometry.hpp"
 #include "gtkplotter.hpp"
-#include "epot_problem.hpp"
 #include "error.hpp"
 #include "ibsimu.hpp"
 
@@ -21,12 +20,11 @@ using namespace std;
 
 void test( int argc, char **argv )
 {
-    //Geometry geom( MODE_3D, Int3D(21,21,21), Vec3D(-1.0e-3,-1.0e-3,-1.0e-3), 1e-3 );
-    //STLSolid *s1 = new STLSolid( "stl_easy.stl" );
+    //Geometry geom( MODE_3D, Int3D(41,41,41), Vec3D(-20e-3,-20e-3,-20e-3), 1e-3 );
+    //STLSolid *s1 = new STLSolid( "box.stl" );
 
-    //Geometry geom( MODE_3D, Int3D(31,71,21), Vec3D(-4e-3,-7e-3,-1e-3), 1e-4 );
-    Geometry geom( MODE_3D, Int3D(61,141,41), Vec3D(-4e-3,-7e-3,-1e-3), 5e-5 );
-    STLSolid *s1 = new STLSolid( "stl_bin.stl" );
+    Geometry geom( MODE_3D, Int3D(41,41,23), Vec3D(10e-3,0e-3,-5e-3), 5e-4 );
+    STLSolid *s1 = new STLSolid( "cylinder_low_res_fillet.stl" );
     s1->debug_print( cout );
 
     geom.set_solid( 7, s1 );
@@ -39,10 +37,7 @@ void test( int argc, char **argv )
     geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
     geom.build_mesh();
 
-
-
-    ScalarField epot( geom );
-    ScalarField scharge( geom );
+    EpotField epot( geom );
 
     GTKPlotter plotter( &argc, &argv );
     plotter.set_geometry( &geom );

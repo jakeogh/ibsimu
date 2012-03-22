@@ -77,6 +77,7 @@ solver2d_smooth_SOURCES = solver2d_smooth.cpp
 solver3d_sphere_SOURCES = solver3d_sphere.cpp
 solvercyl_beam_SOURCES = solvercyl_beam.cpp
 solvercyl_coax_SOURCES = solvercyl_coax.cpp
+stl_SOURCES = stl.cpp
 trajdiaghisto_SOURCES = trajdiaghisto.cpp
 transformation_SOURCES = transformation.cpp
 vecfield_filedef_SOURCES = vecfield_filedef.cpp
@@ -173,6 +174,7 @@ solver2d_smooth \
 solver3d_sphere \
 solvercyl_beam \
 solvercyl_coax \
+stl \
 trajdiaghisto \
 transformation \
 vecfield \
