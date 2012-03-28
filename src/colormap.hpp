@@ -2,7 +2,7 @@
  *  \brief %Colormap graph for plotting
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -78,8 +78,8 @@ class Colormap : public Graph {
     interpolation_e        _interpolation; /*!< \brief Interpolation mode. */
     zscale_e               _zscale;        /*!< \brief zscale mode. */
     
-    double                 _zmin;          /*!< \brief Minimum zval. */
-    double                 _zmax;          /*!< \brief Maximum zval. */
+    double                 _zmin;          /*!< \brief Minimum z-value. */
+    double                 _zmax;          /*!< \brief Maximum z-value. */
 
     double                 _datarange[4];  /*!< \brief Data ranges: xmin, ymin, xmax, ymax. */
     size_t                 _n;             /*!< \brief Size of data-array in x-direction. */
@@ -89,8 +89,13 @@ class Colormap : public Graph {
 
     Interpolation2D       *_intrp;         /*!< \brief Data interpolation. */
 
-    void make_data_interpolation( void );
-    
+    int                    _sign;
+    double                 _scale_A;
+    double                 _scale_B;
+    double                 _scale_C;
+
+    void prepare_scaling( void );
+    void prepare_data_interpolation( void );
     void plot_to_image_surface( cairo_surface_t *surface, const Coordmapper *cm, int plim[4] );
 
 public:
@@ -133,6 +138,10 @@ public:
     void set_data( const double datarange[4], size_t n, size_t m, 
 		   const std::vector<double> &data );
 
+    /*! \brief Does colormap have data?
+     */
+    bool has_data( void ) const;
+
     /*! \brief Set interpolation mode.
      */
     interpolation_e get_interpolation( void ) const;
@@ -143,6 +152,20 @@ public:
      *  INTERPOLATION_BILINEAR or \a INTERPOLATION_BICUBIC.
      */
     void set_interpolation( interpolation_e interpolation );
+
+    /*! \brief Scale value \a val according to zscale mode.
+     *  
+     *  Scales value val, where \a zmin <= \a val <= \a zmax into the
+     *  range between 0.0 and 1.0 according to zscale mode.
+     */
+    double zscale( double val );
+
+    /*! \brief Inverse scale value \a val according to zscale mode.
+     *  
+     *  Inverse function of zscale(). Scales value val, where \a 0 <= \a val <= \a 1 into the
+     *  range between zmin and zmax according to zscale mode.
+     */
+    double zscale_inv( double val );
 
     /*! \brief Get zscale mode.
      */

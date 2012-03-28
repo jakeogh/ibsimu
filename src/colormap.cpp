@@ -78,7 +78,7 @@ Colormap::Colormap( const Colormap &colormap )
     _datarange[2] = colormap._datarange[2];
     _datarange[3] = colormap._datarange[3];
 
-    make_data_interpolation();
+    prepare_data_interpolation();
 }
 
 
@@ -143,7 +143,7 @@ void Colormap::set_data( const double datarange[4], size_t n, size_t m,
 	//_zmin -= 1.0;
     }
 
-    make_data_interpolation();
+    prepare_data_interpolation();
 }
 
 
@@ -156,7 +156,7 @@ interpolation_e Colormap::get_interpolation( void ) const
 void Colormap::set_interpolation( interpolation_e interpolation )
 {
     _interpolation = interpolation;
-    make_data_interpolation();
+    prepare_data_interpolation();
 }
 
 
@@ -169,6 +169,108 @@ zscale_e Colormap::get_zscale( void ) const
 void Colormap::set_zscale( zscale_e zscale )
 {
     _zscale = zscale;
+}
+
+
+void Colormap::prepare_scaling( void )
+{
+    // Error if either end is at zero with LOG scaling
+    if( _zscale == ZSCALE_LOG && _zmin <= 0.0 && _zmax >= 0.0 )
+	throw( Error( ERROR_LOCATION, "zmin and zmax on different sides of zero and using logscale" ) );
+
+    double zspan = _zmax - _zmin;
+    if( _zmin >= -1.0e-6*zspan && _zmax >= 0.0 ) {
+	// Completely on positive side
+	_sign = +1;
+    } else if( _zmax <= 1.0e-6*zspan && _zmin <= 0.0 ) {
+	// Completely on negative side
+	_sign = -1;
+    } else {
+	// Both negative and positive
+	_sign = 0;
+    }
+
+    // Calculate scaling coefficients
+    if( _zscale == ZSCALE_LINEAR ) {
+	_scale_A = _zmin;
+	_scale_B = _zmax;
+    } else if( _zscale == ZSCALE_LOG ) {
+	if( _sign > 0 ) {
+	    _scale_A = log(_zmin);
+	    _scale_B = log(_zmax);
+	} else {
+	    _scale_A = log(-_zmin);
+	    _scale_B = log(-_zmax);
+	}
+    } else if( _zscale == ZSCALE_RELLOG ) {
+	_scale_A = log(0.001);
+	_scale_B = log(1.001);
+    } else {
+	_scale_A = 0.0;
+	_scale_B = 1.0;
+    }
+
+    _scale_C = 1.0/(_scale_B-_scale_A);
+}
+
+
+
+double Colormap::zscale_inv( double val )
+{
+    if( _zscale == ZSCALE_LINEAR ) {
+	return( val/_scale_C + _scale_A );
+    } else if( _zscale == ZSCALE_LOG ) {
+	if( _sign > 0 )
+	    return( exp(val/_scale_C + _scale_A) );
+	else /* if( sign < 0 ) */
+	    return( -exp(val/_scale_C + _scale_A) );
+    } else if( _zscale == ZSCALE_RELLOG ) {
+	if( _sign > 0 )
+	    return( _zmin+(_zmax-_zmin)*(exp(val/_scale_C+_scale_A)-0.001) );
+	else if( _sign < 0 )
+	    return( _zmax+(_zmin-_zmax)*(exp((1.0-val)/_scale_C+_scale_A)-0.001) );
+	else {
+	    if( val > 0.5 )
+		return( 0.0+(_zmax-0.0)*(exp(2.0*(val-0.5)/_scale_C+_scale_A)-0.001) );
+	    else
+		return( 0.0+(_zmin-0.0)*(exp((1.0-2.0*val)/_scale_C+_scale_A)-0.001) );
+	}
+    }
+
+    return( val );
+}
+
+
+double Colormap::zscale( double val )
+{
+    // Prescale value to nominal range [0:1] maintaining
+    // monotonic rising property. Might go over range.
+    if( _zscale == ZSCALE_LINEAR )
+	return( _scale_C*(val-_scale_A) );
+    else if( _zscale == ZSCALE_LOG ) {
+	if( _sign > 0 )
+	    return( _scale_C*(log(val)-_scale_A) );
+	else /* if( sign < 0 ) */
+	    return( _scale_C*(log(-val)-_scale_A) );
+    } else if( _zscale == ZSCALE_RELLOG ) {
+	if( _sign > 0 ) {
+	    double x = (val-_zmin)/(_zmax-_zmin);
+	    return( _scale_C*(log(0.001+x)-_scale_A) );
+	} else if( _sign < 0 ) {
+	    double x = (val-_zmax)/(_zmin-_zmax);
+	    return( 1.0+_scale_C*(_scale_A-log(0.001+x)) );
+	} else {
+	    if( val > 0.0 ) {
+		double x = (val-0.0)/(_zmax-0.0);
+		return( 0.5+0.5*_scale_C*(log(0.001+x)-_scale_A) );
+	    } else {
+		double x = (val-0.0)/(_zmin-0.0);
+		return( 0.5+0.5*_scale_C*(_scale_A-log(0.001+x)) );
+	    }
+	}
+    }
+
+    return( val );
 }
 
 
@@ -190,108 +292,34 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
     if( plim[3] >= height )
 	plim[3] = height-1;
     if( plim[0] >= plim[2] || plim[1] >= plim[3] )
+	return;
+    /*
 	throw( Error( ERROR_LOCATION, (std::string)"incorrect pixel limits: " + 
 		      "plim[0] = " + to_string(plim[0]) + 
 		      ", plim[1] = " + to_string(plim[1]) +
 		      ", plim[2] = " + to_string(plim[2]) + 
 		      ", plim[3] = " + to_string(plim[3]) ) );
+    */
 
     if( !_intrp )
 	throw( Error( ERROR_LOCATION, "no data available" ) );
 
-    // Go through pixel limits
-    // Error if either end is at zero with LOG scaling
-    if( _zscale == ZSCALE_LOG && _zmin <= 0.0 && _zmax >= 0.0 )
-	throw( Error( ERROR_LOCATION, "zmin and zmax on different sides of zero and using logscale" ) );
-
-    //std::cout << "zmin = " << std::scientific << _zmin << "\n";
-    //std::cout << "zmax = " << std::scientific << _zmax << "\n";
-    //std::cout << "1.0e-6*zspan = " << std::scientific << 1.0e-6*(_zmax - _zmin) << "\n";
-
-    int sign;
-    double zspan = _zmax - _zmin;
-#ifdef DEBUG_COLORMAP
-    std::cout << "Colormap::_zmin = " << _zmin << "\n";
-    std::cout << "Colormap::_zmax = " << _zmax << "\n";
-    std::cout << "Colormap::zspan = " << zspan << "\n";
-#endif
-    if( _zmin >= -1.0e-6*zspan && _zmax >= 0.0 ) {
-	// Completely on positive side
-	sign = +1;
-    } else if( _zmax <= 1.0e-6*zspan && _zmin <= 0.0 ) {
-	// Completely on negative side
-	sign = -1;
-    } else {
-	// Both negative and positive
-	sign = 0;
-    }
-
-#ifdef DEBUG_COLORMAP
-    std::cout << "Colormap::sign = " << sign << "\n";
-#endif
-
-    // flush to ensure all writing to the image was done
+    // Flush to ensure all writing to the image was done
     cairo_surface_flush( surface );
 
-    // Calculate scaling coefficients
-    double A = 0.0, B = 0.0;
-    if( _zscale == ZSCALE_LINEAR ) {
-	A = _zmin;
-	B = _zmax;
-    } else if( _zscale == ZSCALE_LOG ) {
-	if( sign > 0 ) {
-	    A = log(_zmin);
-	    B = log(_zmax);
-	} else {
-	    A = log(-_zmin);
-	    B = log(-_zmax);
-	}
-    } else if( _zscale == ZSCALE_RELLOG ) {
-	A = log(0.001);
-	B = log(1.001);
-    }
-    double C = 1.0/(B-A);
+    prepare_scaling();
 
-    for( int i = plim[0]; i <= plim[2]; i++ ) {
-	for( int j = plim[1]; j <= plim[3]; j++ ) {
+    for( int j = plim[1]; j <= plim[3]; j++ ) {
+	for( int i = plim[0]; i <= plim[2]; i++ ) {
 
 	    // Transform to logical coordinates
 	    double x[2] = { i, j };
 	    cm->inv_transform( x[0], x[1] );
-
-	    double val = get_value( x[0], x[1] );
-
-	    // Prescale value to nominal range [0:1] maintaining
-	    // monotonic rising property. Might go over range.
-	    if( _zscale == ZSCALE_LINEAR )
-		val = C*(val-A);
-	    else if( _zscale == ZSCALE_LOG ) {
-		if( sign > 0 )
-		    val = C*(log(val)-A);
-		else /* if( sign < 0 ) */
-		    val = C*(log(-val)-A);
-	    } else if( _zscale == ZSCALE_RELLOG ) {
-		if( sign > 0 ) {
-		    val = (val-_zmin)/(_zmax-_zmin);
-		    val = C*(log(0.001+val) - A);
-		} else if( sign < 0 ) {
-		    val = (val-_zmax)/(_zmin-_zmax);
-		    val = 1.0+C*(A-log(0.001+val));
-		} else {
-		    if( val > 0.0 ) {
-			val = (val-0.0)/(_zmax-0.0);
-			val = 0.5+0.5*C*(log(0.001+val) - A);
-		    } else {
-			val = (val-0.0)/(_zmin-0.0);
-			val = 0.5+0.5*C*(A-log(0.001+val));
-		    }
-		}
-	    }
-	    Color c;
+	    double val = zscale( get_value( x[0], x[1] ) );
 	    if( comp_isinf( val ) || comp_isnan( val ) )
 		continue;
 
-	    c = _palette( val );
+	    Color c = _palette( val );
 	    buf[j*stride+4*i+0] = (unsigned char)(255*c[2]);  // Blue
 	    buf[j*stride+4*i+1] = (unsigned char)(255*c[1]);  // Green
 	    buf[j*stride+4*i+2] = (unsigned char)(255*c[0]);  // Red
@@ -299,7 +327,7 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 	}
     }
 
-    // mark the image dirty so cairo clears its caches.
+    // Mark the image dirty so cairo clears its caches.
     cairo_surface_mark_dirty( surface );
 }
 
@@ -363,23 +391,6 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 	return;
     }
 
-#ifdef DEBUG_COLORMAP
-    cm->debug_print( std::cout );
-    std::cout << "\n";
-    std::cout << "frange[0] = " << frange[0] << "\n"
-	      << "frange[1] = " << frange[1] << "\n"
-	      << "frange[2] = " << frange[2] << "\n"
-	      << "frange[3] = " << frange[3] << "\n\n";
-    std::cout << "prange[0] = " << prange[0] << "\n"
-	      << "prange[1] = " << prange[1] << "\n"
-	      << "prange[2] = " << prange[2] << "\n"
-	      << "prange[3] = " << prange[3] << "\n\n";
-    std::cout << "plim[0] = " << plim[0] << "\n"
-	      << "plim[1] = " << plim[1] << "\n"
-	      << "plim[2] = " << plim[2] << "\n"
-	      << "plim[3] = " << plim[3] << "\n\n";
-#endif
-
     // Prepare by fetching surface and its parameters
     cairo_surface_t *surface = cairo_get_target( cairo );
     if( cairo_image_surface_get_data( surface ) == NULL ) {
@@ -400,7 +411,6 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 	int nlim[4] = { 0, 0, width-1, height-1 };
 	plot_to_image_surface( nsurface, ncm, nlim );
 	delete ncm;
-	//cairo_surface_write_to_png( nsurface, "surface.png" );
 
 	cairo_save( cairo );
 	cairo_set_source_surface( cairo, nsurface, plim[0], plim[1] );
@@ -464,7 +474,7 @@ void Colormap::set_zrange( double min, double max )
 }
 
 
-void Colormap::make_data_interpolation( void )
+void Colormap::prepare_data_interpolation( void )
 {
     // Free old interpolation
     if( _intrp )
