@@ -76,9 +76,9 @@ void Frame::unset_frame_clipping( cairo_t *cairo )
 
 Frame::Frame()
     : _offx(0), _offy(0), _width(640), _height(480), 
-      _fontsize(12.0), _titlespace(10.0), _bg(Color(1,1,1)), _fg(Color(0,0,0)),
-      _legend_enable(true), _legend_pos(LEGEND_POS_TOP_RIGHT),
-      _fixedaspect(PLOT_FIXED_ASPECT_DISABLED), _automargin(true)
+      _fontsize(12.0), _titlespace(10.0), _cmlspace(10.0), _bg(Color(1,1,1)), _fg(Color(0,0,0)),
+      _legend_enable(true), _legend_pos(LEGEND_POS_TOP_RIGHT), _cm_legend(NULL),
+      _cml_enable(true), _fixedaspect(PLOT_FIXED_ASPECT_DISABLED), _automargin(true)
 {
     _legend.set_font_size( _fontsize );
 
@@ -142,6 +142,7 @@ void Frame::set_font_size( double size )
     _legend.set_font_size( size );
     _fontsize = size;
     _titlespace = 10.0/12.0*size;
+    _cmlspace = 10.0/12.0*size;
 }
 
 void Frame::set_automargin( bool enable )
@@ -168,6 +169,7 @@ void Frame::clear_graphs( void )
 {
     _dobj.clear();
     _legend.clear_entries();
+    _cm_legend = NULL;
 }
 
 
@@ -492,6 +494,13 @@ void Frame::calculate_frame( cairo_t *cairo )
 	_tmargin[2] += MAX3(bbox[0][2],bbox[2][2],bbox[3][2])-prec[2];
 	_tmargin[3] += prec[1]-MIN3(bbox[1][1],bbox[2][1],bbox[3][1]);
 
+	// Increase margins to fit in colormap legend
+	if( _cm_legend && _cml_enable ) {
+	    double lw, lh;
+	    _cm_legend->get_size( cairo, lw, lh );
+	    _tmargin[2] += lw + _cmlspace;
+	}
+
 	// Increase margins to fit in plot title
 	if( _title.get_text() != "" ) {
 	    double bb[4];
@@ -673,6 +682,47 @@ void Frame::draw_frame( cairo_t *cairo )
 }
 
 
+void Frame::enable_colormap_legend( bool enable )
+{
+    _cml_enable = enable;
+}
+
+
+void Frame::build_colormap_legend( void )
+{
+    if( _cm_legend )
+	delete _cm_legend;
+    _cm_legend = NULL;
+
+    size_t a;
+    Colormap *cm;
+    for( a = 0; a < _dobj.size(); a++ ) {
+	cm = dynamic_cast<Colormap *>( _dobj[a]._graph );
+	if( cm && _cml_enable )
+	    break;
+    }
+    if( a == _dobj.size() )
+	// Nothing to do
+	return;
+
+    _cm_legend = new ColormapLegend( *cm );
+    _cm_legend->set_font_size( _fontsize );
+}
+
+
+void Frame::draw_colormap_legend( cairo_t *cairo )
+{
+    if( !_cm_legend || !_cml_enable )
+	return;
+
+    double bbox[4];
+    _ruler[3].get_bbox( cairo, bbox, _cm[3], false );
+    _cm_legend->set_height( _height-_tmargin[1]-_tmargin[3] );
+    _cm_legend->plot( cairo, bbox[2] + _cmlspace,
+		      _offy+_height-_tmargin[1] );
+}
+
+
 void Frame::draw_legend( cairo_t *cairo )
 {
     //std::cout << "draw_legend()\n";
@@ -726,6 +776,9 @@ void Frame::draw( cairo_t *cairo )
     std::cout << "height = " << _height << "\n";
 #endif
 
+    // Build colormap legend
+    build_colormap_legend();
+
     // Draw background
     if( _bg[3] != 0.0 ) {
 	cairo_rectangle( cairo, _offx, _offy, _width, _height );
@@ -756,6 +809,7 @@ void Frame::draw( cairo_t *cairo )
     unset_frame_clipping( cairo );
 
     draw_legend( cairo );
+    draw_colormap_legend( cairo );
 
     // Draw frame (on top of user drawn image)
     draw_frame( cairo );

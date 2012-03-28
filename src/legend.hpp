@@ -202,6 +202,10 @@ public:
      */
     void set_font_size( double fontsize );
 
+    /*! \brief Get font size
+     */
+    double get_font_size( void );
+
     /*! \brief Add entry to legend.
      */
     void add_entry( LegendEntry *entry );
@@ -227,6 +231,7 @@ class ColormapLegend : public Legend {
 	Tic( double loc, const std::string &label ) : _loc(loc), _label(label) {}
     };
 
+    double      _width;      /*!< \brief Width of legend box. */
     double      _height;     /*!< \brief Height of legend box. */
 
     double      _fontsize;   /*!< \brief Font size for labels. */
@@ -242,7 +247,9 @@ class ColormapLegend : public Legend {
     Colormap   &_colormap;
 
     void build_legend( double x, double y );
-
+    void plot_colormap_palette_to_image_surface( cairo_surface_t *surface, int plim[4] );
+    void plot_colomap_palette( cairo_t *cairo, int plim[4] );
+    
 public:
 
     /*! \brief Default constructor for legend.
@@ -255,7 +262,7 @@ public:
 
     /*! \brief Plot legend at \a (x,y).
      *
-     *  The point \a (x,y) is the lower left point of the entry.
+     *  The point \a (x,y) is the lower left point of the legend.
      */
     virtual void plot( cairo_t *cairo, double x, double y );
 

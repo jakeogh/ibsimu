@@ -133,6 +133,7 @@ class Frame {
 
     double              _fontsize;      /*!< \brief Font size for labels. */
     double              _titlespace;    /*!< \brief Space from frame title to next item down. */
+    double              _cmlspace;      /*!< \brief Space from colormap legend to next item on the left. */
     Color               _bg;            /*!< \brief Background color. */
     Color               _fg;            /*!< \brief Frame color. */
 
@@ -141,6 +142,8 @@ class Frame {
     bool                _legend_enable; /*!< \brief Legend enable. */
     legend_position_e   _legend_pos;    /*!< \brief Legend position. */
     MultiEntryLegend    _legend;        /*!< \brief Graph legend. */
+    ColormapLegend     *_cm_legend;     /*!< \brief Colormap legend. */
+    bool                _cml_enable;    /*!< \brief Colormap legend enable. */
 
     Label               _title;         /*!< \brief Title for plot. */
 
@@ -154,7 +157,8 @@ class Frame {
 				 	 * by adding the amount of space needed for
 				 	 * tics, labels, legends and titles (xmin, ymin, xmax, ymax). */
 
-
+    void build_colormap_legend( void );
+    void draw_colormap_legend( cairo_t *cairo );
     void draw_legend( cairo_t *cairo );
     void calculate_autoranging( void );
     void calculate_ruler_autoenable( void );
@@ -313,6 +317,10 @@ public:
      */
     void clear_graphs( void );
 
+    /*! \brief Set colormap legend enable/disable.
+     */
+    void enable_colormap_legend( bool enable );
+
     /*! \brief Set legend enable/disable.
      */
     void enable_legend( bool enable );
@@ -320,6 +328,10 @@ public:
     /*! \brief Set legend position. 
      */
     void set_legend_position( legend_position_e pos );
+
+    /*! \brief Set colormap legend.
+     */
+    //void set_colormap_legend( ColormapLegend *legend );
 
     /*! \brief Draw frame and plot contents.
      *

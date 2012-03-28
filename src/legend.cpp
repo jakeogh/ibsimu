@@ -40,6 +40,7 @@
  * permit others to do so.
  */
 
+#include <math.h>
 #include "legend.hpp"
 
 
@@ -141,6 +142,12 @@ void MultiEntryLegend::get_size( cairo_t *cairo, double &width, double &height )
 }
 
 
+double MultiEntryLegend::get_font_size( void )
+{
+    return( _fontsize );
+}
+
+
 void MultiEntryLegend::set_font_size( double fontsize )
 {
     _fontsize = fontsize;
@@ -168,43 +175,145 @@ void ColormapLegend::build_legend( double x, double y )
 {
     _colormap.get_zrange( _range[0], _range[1] );
 
-    // Make 4 tics
+    // Make 6 tics
     _tic.clear();
-    size_t N = 4;
+    size_t N = 6;
     for( size_t a = 0; a < N; a++ ) {
 
-	// zval span should depend on zscale settings
-	double zval = _range[0] + (_range[1]-_range[0])*a/(N-1.0);
-	double xx = COLORMAP_LEGEND_WIDTH*_fontsize + _ticlen_out*2 + _ticspace;
-	double yy = y+_height*a/(N-1.0);
+	// zval should depend on zscale settings
+	double xx = x + _width + 2*_ticlen_out + _ticspace;
+	double yy = y - _height*a/(N-1.0);
 
 	char str[128];
+	double zval = _colormap.zscale_inv( a/(N-1.0) );
 	snprintf( str, 128, "%g", zval );
 
 	_tic.push_back( Tic(yy,str) );
+	_tic[a]._label.set_color( _color );
 	_tic[a]._label.set_location( xx, yy );
 	_tic[a]._label.set_alignment( 0.0, 0.5, true );
     }
 }
 
 
+void ColormapLegend::plot_colormap_palette_to_image_surface( cairo_surface_t *surface, int plim[4] )
+{
+    unsigned char *buf = cairo_image_surface_get_data( surface );
+	
+    int width  = cairo_image_surface_get_width( surface );
+    int height = cairo_image_surface_get_height( surface );
+    int stride = cairo_image_surface_get_stride( surface );
+
+    // Check that drawing is only done to valid buffer
+    if( plim[0] < 0 )
+	plim[0] = 0;
+    if( plim[1] < 0 )
+	plim[1] = 0;
+    if( plim[2] >= width )
+	plim[2] = width-1;
+    if( plim[3] >= height )
+	plim[3] = height-1;
+    if( plim[0] >= plim[2] || plim[1] >= plim[3] )
+	return;
+	/*
+	throw( Error( ERROR_LOCATION, (std::string)"incorrect pixel limits: " + 
+		      "plim[0] = " + to_string(plim[0]) + 
+		      ", plim[1] = " + to_string(plim[1]) +
+		      ", plim[2] = " + to_string(plim[2]) + 
+		      ", plim[3] = " + to_string(plim[3]) ) );
+	*/
+
+    // Flush to ensure all writing to the image was done
+    cairo_surface_flush( surface );
+
+    const Palette &palette = _colormap.palette();
+    for( int j = plim[1]; j <= plim[3]; j++ ) {
+
+	// Transform j to color
+	Color c = palette( (double)(j-plim[3]) / (double)(plim[1]-plim[3]) );
+	
+	for( int i = plim[0]; i <= plim[2]; i++ ) {
+
+	    buf[j*stride+4*i+0] = (unsigned char)(255*c[2]);  // Blue
+	    buf[j*stride+4*i+1] = (unsigned char)(255*c[1]);  // Green
+	    buf[j*stride+4*i+2] = (unsigned char)(255*c[0]);  // Red
+	    buf[j*stride+4*i+3] = (unsigned char)255;         // Alpha
+	}
+    }
+
+    // Mark the image dirty so cairo clears its caches.
+    cairo_surface_mark_dirty( surface );
+}
+
+
+void ColormapLegend::plot_colomap_palette( cairo_t *cairo, int plim[4] )
+{
+    // Prepare by fetching surface and its parameters
+    cairo_surface_t *surface = cairo_get_target( cairo );
+    if( cairo_image_surface_get_data( surface ) == NULL ) {
+
+	// Make a new image surface for plot
+	int width = plim[2]-plim[0]+1;
+	int height = plim[3]-plim[1]+1;
+	cairo_surface_t *nsurface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32,
+								width,
+								height );
+	int nlim[4] = { 0, 0, width-1, height-1 };
+	plot_colormap_palette_to_image_surface( nsurface, nlim );
+
+	cairo_save( cairo );
+	cairo_set_source_surface( cairo, nsurface, plim[0], plim[1] );
+	cairo_pattern_t *pattern = cairo_get_source( cairo );
+	cairo_pattern_set_filter( pattern, CAIRO_FILTER_GOOD );
+	cairo_rectangle( cairo, plim[0], plim[1], width, height );
+	cairo_clip( cairo );
+	cairo_paint( cairo );
+	cairo_restore( cairo );
+	cairo_surface_destroy( nsurface );
+
+    } else {
+
+	// Plot directly to image surface
+	cairo_format_t format = cairo_image_surface_get_format( surface );
+	if( format != CAIRO_FORMAT_ARGB32 )
+	    throw( Error( ERROR_LOCATION, "cairo image surface format not supported" ) );
+
+	plot_colormap_palette_to_image_surface( surface, plim );
+    }
+}
+
+
+// The point (x,y) is the lower left corner of the whole legend, not
+// the location of the corner of the rectangle.
+//
 void ColormapLegend::plot( cairo_t *cairo, double x, double y )
 {
+    //std::cout << "ColormapLegend::plot\n";
+
     build_legend( x, y );
 
-    // Set cairo parameters
+    // Draw colormap palette sample
+    int plim[4] = { floor(x+_ticlen_out+0.5),
+		    floor(y-_height+0.5),
+		    floor(x+_ticlen_out+_width),
+		    floor(y) };
+    plot_colomap_palette( cairo, plim );
+
+    // Draw box and tics
     cairo_save( cairo );
     cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], _color[3] );
     cairo_set_line_width( cairo, 1.0 );
 
-    // Draw box and tics
-    cairo_rectangle( cairo, x+_ticlen_out, y, 
-		     COLORMAP_LEGEND_WIDTH*_fontsize, _height );
+    cairo_rectangle( cairo, x + _ticlen_out, y, 
+		     _width, -_height );
     for( size_t a = 0; a < _tic.size(); a++ ) {
-	cairo_move_to( cairo, x,_tic[a]._loc );
-	cairo_line_to( cairo, x+_ticlen_out+_ticlen_in,_tic[a]._loc );
+	cairo_move_to( cairo, x, _tic[a]._loc );
+	cairo_line_to( cairo, x + _ticlen_out + _ticlen_in, _tic[a]._loc );
+	cairo_move_to( cairo, x + _ticlen_out + _width - _ticlen_in, _tic[a]._loc );
+	cairo_line_to( cairo, x + 2*_ticlen_out + _width, _tic[a]._loc );
     }
     cairo_stroke( cairo );
+
     for( size_t a = 0; a < _tic.size(); a++ ) {
 	_tic[a]._label.draw( cairo );
     }
@@ -217,7 +326,7 @@ void ColormapLegend::get_size( cairo_t *cairo, double &width, double &height )
 {
     build_legend( 0.0, 0.0 );
 
-    double maxwidth = COLORMAP_LEGEND_WIDTH*_fontsize + _ticlen_out*2;
+    double maxwidth = _width + _ticlen_out*2;
     for( size_t a = 0; a < _tic.size(); a++ ) {
 	double bbox[4];
 	_tic[a]._label.get_bbox( cairo, bbox );
@@ -236,6 +345,7 @@ void ColormapLegend::set_font_size( double fontsize )
     _ticlen_in  = 5.0*fontsize/12.0;
     _ticlen_out = 5.0*fontsize/12.0;
     _ticspace   = 5.0*fontsize/12.0;
+    _width      = COLORMAP_LEGEND_WIDTH*fontsize;
 }
 
 
