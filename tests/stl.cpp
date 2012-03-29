@@ -20,12 +20,17 @@ using namespace std;
 
 void test( int argc, char **argv )
 {
-    //Geometry geom( MODE_3D, Int3D(41,41,41), Vec3D(-20e-3,-20e-3,-20e-3), 1e-3 );
+    //Geometry geom( MODE_3D, Int3D(41,41,41), Vec3D(0,0,0), 1e-3 );
     //STLSolid *s1 = new STLSolid( "box.stl" );
+    
+    Geometry geom( MODE_3D, Int3D(8,8,8), Vec3D(-0.2,-0.2,-0.2), 0.2 );
+    STLSolid *s1 = new STLSolid( "tetra.stl" );
+    s1->inside( Vec3D(0,0,0) );
 
-    Geometry geom( MODE_3D, Int3D(41,41,23), Vec3D(10e-3,0e-3,-5e-3), 5e-4 );
-    STLSolid *s1 = new STLSolid( "cylinder_low_res_fillet.stl" );
-    s1->debug_print( cout );
+    //return;
+    //Geometry geom( MODE_3D, Int3D(41,41,23), Vec3D(10e-3,0e-3,-5e-3), 5e-4 );
+    //STLSolid *s1 = new STLSolid( "cylinder_low_res_fillet.stl" );
+    //s1->debug_print( cout );
 
     geom.set_solid( 7, s1 );
     geom.set_boundary( 1, Bound(BOUND_NEUMANN,    0.0) );

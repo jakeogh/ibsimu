@@ -59,7 +59,8 @@ class STLFile {
 	uint16_t _attr;
 
 	void static read_binary_float_vector( Vec3D &x, std::ifstream &ifstr );
-	void static read_ascii_float_vector( Vec3D &x, const char *buf, const std::string &filename, int linec );
+	void static read_ascii_float_vector( Vec3D &x, const char *buf, 
+					     const std::string &filename, int linec );
 	static void bbox_ppoint( Vec3D &min, Vec3D &max, const Vec3D &p );
 
     public:
@@ -76,7 +77,7 @@ class STLFile {
 	
 	void update_bbox( Vec3D &min, Vec3D &max ) const;
 
-	int ray_cross( const Vec3D &x, const Vec3D &l ) const;
+	//int ray_cross( const Vec3D &x, const Vec3D &l ) const;
 
 	void debug_print( std::ostream &os ) const;
     };
@@ -95,7 +96,7 @@ class STLFile {
 	const Vec3D &normal( void ) const;
 	const uint32_t &operator[]( int i ) const;
 
-	bool inside( const Vec3D &x ) const;
+	//bool inside( const Vec3D &x ) const;
 
 	void debug_print( std::ostream &os ) const;
 
@@ -111,9 +112,18 @@ class STLFile {
     std::vector<Vec3D>     _vertex;    // Vertex list
     std::vector<VTriangle> _vtri;      // Vertex made triangles
 
+    std::vector<char>      _vpos;
+    std::vector<char>      _vneg;
+
     void read_binary( std::ifstream &ifstr );
     void read_ascii( std::ifstream &ifstr );
     void build_vtriangle_data( void );
+    void check_vtriangle_data( void );
+    static int pointOriginalTetrahedron( const Vec3D &x, 
+					 const Vec3D &v1, const Vec3D &v2, const Vec3D &v3 );
+    static int sigdeter( const Vec3D &v1, const Vec3D &v2, const Vec3D &v3 );
+    static int sign3d( const Vec3D &p1, const Vec3D &p2, 
+		       const Vec3D &p3, const Vec3D &p4 );
 
 public:
 
@@ -123,7 +133,7 @@ public:
 
     size_t size( void );
 
-    bool inside( const Vec3D &x, double eps = 1.0e-6 ) const;
+    bool inside( const Vec3D &x );
 
     /*! \brief Return bounding box of entity
      */

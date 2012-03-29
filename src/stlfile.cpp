@@ -46,10 +46,10 @@
 #include <ctype.h>
 #include <string.h>
 #include "stlfile.hpp"
+#include "ibsimu.hpp"
 
 
-//#define DEBUG_STL 1
-#define EPS 1.0e-9
+#define DEBUG_STL 1
 
 
 bool ciscomp( const char *str1, const char *str2, size_t n )
@@ -209,6 +209,7 @@ const Vec3D &STLFile::Triangle::operator[]( int i ) const
 }
 
 
+/*
 int STLFile::Triangle::ray_cross( const Vec3D &x, const Vec3D &dir ) const
 {
 #ifdef DEBUG_STL
@@ -259,6 +260,7 @@ int STLFile::Triangle::ray_cross( const Vec3D &x, const Vec3D &dir ) const
 
     return( 1 ); // Collision
 }
+*/
 
 
 const Vec3D &STLFile::Triangle::normal( void ) const
@@ -366,7 +368,9 @@ void STLFile::VTriangle::debug_print( std::ostream &os ) const
 
 const uint32_t &STLFile::VTriangle::operator[]( int i ) const
 {
-    return( _v[i] );
+    if( i >= 0 && i < 3 )
+	return( _v[i] );
+    throw( Error( ERROR_LOCATION, "Indexing error" ) );
 }
 
 
@@ -440,6 +444,9 @@ void STLFile::read_ascii( std::ifstream &ifstr )
 
 STLFile::STLFile( const std::string &filename )
 {
+    ibsimu.message( 1 ) << "Reading STL-file \'" << filename << "\'\n";
+    ibsimu.inc_indent();
+
     _filename = filename;
     std::ifstream ifstr( filename.c_str(), std::ios_base::binary );
     if( !ifstr.good() )
@@ -461,7 +468,12 @@ STLFile::STLFile( const std::string &filename )
 
     ifstr.close();
 
-    //build_vtriangle_data();
+    build_vtriangle_data();
+    check_vtriangle_data();
+    _vpos.assign( _vertex.size(), false );
+    _vneg.assign( _vertex.size(), false );
+
+    ibsimu.dec_indent();
 }
 
 
@@ -471,8 +483,13 @@ STLFile::~STLFile()
 }
 
 
+#define EPS 1.0e-9
+
+
 void STLFile::build_vtriangle_data( void )
 {
+    ibsimu.message( 1 ) << "Making vertex connections\n";
+
     _vtri.clear();
     _vertex.clear();
     _vtri.reserve( _triangle.size() );
@@ -506,6 +523,20 @@ void STLFile::build_vtriangle_data( void )
 	// Add triangle using vertices
 	_vtri.push_back( VTriangle( vert, _triangle[a].normal() ) );
     }
+}
+
+
+void STLFile::check_vtriangle_data( void )
+{
+    ibsimu.message( 1 ) << "Checking mesh data\n";
+    ibsimu.inc_indent();
+
+    // TODO: check edge pairing
+
+    ibsimu.message( 1 ) << _vtri.size() << " triangles\n";
+    ibsimu.message( 1 ) << _vertex.size() << " vertices\n";
+
+    ibsimu.dec_indent();    
 }
 
 
@@ -594,7 +625,6 @@ bool STLFile::inside( const Vec3D &x, double eps ) const
     //std::cout << "IN\n";
     return( true );
 }
-*/
 
 
 bool STLFile::inside( const Vec3D &x, double eps ) const
@@ -648,6 +678,174 @@ bool STLFile::inside( const Vec3D &x, double eps ) const
        << "  tri.p2 = " << t->p2() << "\n"
        << "  tri.p3 = " << t->p3() << "\n";
     throw( Error( ERROR_LOCATION, se.str() ) );
+}
+*/
+
+
+#define OUTSIDE 0
+#define EDGE1 1
+#define EDGE2 2
+#define EDGE3 3
+#define FACE1 4
+#define FACE2 5
+#define FACE3 6
+#define INSIDE 7
+
+#define STL_EPS 1.0e-8
+
+
+int STLFile::sigdeter( const Vec3D &p1, const Vec3D &p2, const Vec3D &p3 )
+{
+    double det = + p1[0]*( p2[1]*p3[2] - p2[2]*p3[1] )
+	         - p1[1]*( p2[0]*p3[2] - p2[2]*p3[0] )
+	         + p1[2]*( p2[0]*p3[1] - p2[1]*p3[0] );
+    if( det <= STL_EPS ) {
+	if( det < -STL_EPS )
+	    return( -1 );
+	return( 0 );
+    }
+    return( +1 );
+}
+
+
+int STLFile::sign3d( const Vec3D &p1, const Vec3D &p2, 
+		     const Vec3D &p3, const Vec3D &p4 )
+{
+    double vol = + (p1[0]*((p2[1]*p3[2]) + (p2[2]*p4[1]) + (p3[1]*p4[2]) -
+			   (p3[2]*p4[1]) - (p4[2]*p2[1]) - (p2[2]*p3[1]) ) )
+	         - (p2[0]*((p1[1]*p3[2]) + (p1[2]*p4[1]) + (p3[1]*p4[2]) -
+			   (p3[2]*p4[1]) - (p1[2]*p3[1]) - (p4[2]*p1[1]) ) )
+	         + (p3[0]*((p1[1]*p2[2]) + (p2[1]*p4[2]) + (p1[2]*p4[1]) -
+			   (p2[2]*p4[1]) - (p4[2]*p1[1]) - (p1[2]*p2[1]) ) )
+	         - (p4[0]*((p1[1]*p2[2]) + (p2[1]*p3[2]) + (p1[2]*p3[1]) -
+			   (p2[2]*p3[1]) - (p3[2]*p1[1]) - (p1[2]*p2[1]) ) );
+    if( vol <= STL_EPS ) {
+	if( vol < -STL_EPS )
+	    return( -1 );
+	return( 0 );
+    }
+    return( +1 );
+}
+
+
+int STLFile::pointOriginalTetrahedron( const Vec3D &x, 
+				       const Vec3D &v1, const Vec3D &v2, const Vec3D &v3 )
+{
+    int s1, s2, s3, s4;
+
+    s1 = -sigdeter(x,v1,v2); 
+    s2 = -sigdeter(x,v2,v3);
+    if( (s1!=0) && (s2!=0) && (s1!=s2) )
+	return OUTSIDE;
+    s3 = -sigdeter(x,v3,v1);
+    s4 = sign3d(x,v1,v2,v3);
+    if( (s1!=0) && (s2!=0) && (s3!=0) && (s4!=0) && 
+	( (s1!=s2) || (s2!=s3) || (s1!=s3) || (s1!=s4) || (s2!=s4) || (s3!=s4) ) ) 
+	return OUTSIDE;
+    if( (s1==s2) && (s2==s3) && (s3==s4) && (s4==s1) )
+	return INSIDE;
+    if( (s1==0) && (s2==s3) )
+	return FACE1;
+    if( (s2==0) && (s1==s3) )
+	return FACE2;
+    if( (s3==0) && (s2==s1) )
+	return FACE3;
+    if( (s1==0) && (s2==0) )
+	return EDGE1;
+    if( (s2==0) && (s3==0) )
+	return EDGE2;
+    if( (s3==0) && (s1==0) )
+	return EDGE3;
+    return OUTSIDE;
+}
+
+
+bool STLFile::inside( const Vec3D &x )
+{
+#ifdef DEBUG_STL
+    std::cout << "inside( " << x << ")\n";
+#endif
+
+    // Clear positive and negative vertex arrays
+    _vpos.assign( _vertex.size(), false );
+    _vneg.assign( _vertex.size(), false );
+
+    int incl = 0;
+    for( int a = 0; a < _vtri.size(); a++ ) {
+	
+#ifdef DEBUG_STL
+	std::cout << "  Triangle " << a << ":\n";
+#endif
+
+	// First, study the position of point x respect to the tetrahedron of face a.
+	int state = pointOriginalTetrahedron( x, 
+					      _vertex[_vtri[a][0]],
+					      _vertex[_vtri[a][1]],
+					      _vertex[_vtri[a][2]] );
+
+#ifdef DEBUG_STL
+	std::cout << "    state = " << state << "\n";
+#endif
+
+	if( state == INSIDE ) {
+	    int s = sigdeter( _vertex[_vtri[a][0]],
+			      _vertex[_vtri[a][1]],
+			      _vertex[_vtri[a][2]] );
+#ifdef DEBUG_STL
+	std::cout << "    inside\n";
+	std::cout << "    s = " << s << "\n";
+#endif
+	    incl += 2*s;
+	} else if( state == FACE1 || state == FACE2 || state == FACE3 ) { 
+	    int s = sigdeter( _vertex[_vtri[a][0]],
+			      _vertex[_vtri[a][1]],
+			      _vertex[_vtri[a][2]] );
+	    incl += s;
+	} else if( state != OUTSIDE ) { 
+	    // The point lies on an original face or an original edge
+	    int s = sigdeter( _vertex[_vtri[a][0]],
+			      _vertex[_vtri[a][1]],
+			      _vertex[_vtri[a][2]] );
+#ifdef DEBUG_STL
+	std::cout << "    vertex\n";
+	std::cout << "    s = " << s << "\n";
+#endif
+
+	    if( s > 0 ) {
+		if( !_vpos[_vtri[a][state-1]] ) {
+		    incl += 2*s;
+		    // Mark the vertex as visited
+		    _vpos[_vtri[a][state-1]] = true;
+		}
+	    } else {
+		if( !_vneg[ _vtri[a][state-1]] ) {
+		    incl += 2*s;
+		    // Mark the vertex as visited
+		    _vneg[_vtri[a][state-1]] = true;
+		}
+	    }
+	} else {
+#ifdef DEBUG_STL
+	std::cout << "    outside\n";
+#endif
+	}
+
+#ifdef DEBUG_STL
+	std::cout << "    incl = " << incl << "\n";
+#endif
+    }
+
+#ifdef DEBUG_STL
+    std::cout << "  End incl = " << incl << "\n";
+    if( incl > 0 )
+	std::cout << "    inside\n";
+    else
+	std::cout << "    outside\n";
+#endif
+
+    if( incl > 0 )
+	return( true ); 
+    return( false );
 }
 
 
