@@ -89,12 +89,13 @@ class Colormap : public Graph {
 
     Interpolation2D       *_intrp;         /*!< \brief Data interpolation. */
 
+    bool                   _zscale_prepared;
     int                    _sign;
     double                 _scale_A;
     double                 _scale_B;
     double                 _scale_C;
 
-    void prepare_scaling( void );
+    void prepare_zscaling( void );
     void prepare_data_interpolation( void );
     void plot_to_image_surface( cairo_surface_t *surface, const Coordmapper *cm, int plim[4] );
 

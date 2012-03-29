@@ -115,6 +115,10 @@ public:
      */
     ~GeomPlot();
 
+    /*! \brief Rebuild plot.
+     */
+    void build_plot( void );
+
     /*! \brief Disable plotting caches from use.
      *
      *  Used by the interactive plotter.
@@ -204,6 +208,11 @@ public:
 	return( _fieldgraph );
     }
 
+    /*! \brief Set colormap legend enable/disable.
+     */
+    void enable_colormap_legend( bool enable ) {
+	_frame->enable_colormap_legend( enable );
+    }
 
     /*! \brief Set particle database used for particle plotting.
      */

@@ -173,11 +173,20 @@ ColormapLegend::ColormapLegend( Colormap &colormap )
 
 void ColormapLegend::build_legend( double x, double y )
 {
-    _colormap.get_zrange( _range[0], _range[1] );
-
     // Make 6 tics
     _tic.clear();
     size_t N = 6;
+    int sign;
+    double zmin = _colormap.zscale_inv( 0.0 );
+    double zmax = _colormap.zscale_inv( 1.0 );
+    double zspan = zmax - zmin;
+    if( zmin >= -1.0e-6*zspan && zmax >= 0.0 ) {
+	sign = +1;
+    } else if( zmax <= 1.0e-6*zspan && zmin <= 0.0 ) {
+	sign = -1;
+    } else {
+	sign = 0;
+    }
     for( size_t a = 0; a < N; a++ ) {
 
 	// zval should depend on zscale settings
@@ -186,9 +195,14 @@ void ColormapLegend::build_legend( double x, double y )
 
 	char str[128];
 	double zval = _colormap.zscale_inv( a/(N-1.0) );
-	snprintf( str, 128, "%g", zval );
+	if( sign == +1 && fabs(zval) < 1e-6*fabs(zmax) )
+	    zval = 0.0;
+	else if( sign == -1 && fabs(zval) < 1e-6*fabs(zmin) )
+	    zval = 0.0;
+	snprintf( str, 128, "%.4g", zval );
 
 	_tic.push_back( Tic(yy,str) );
+	_tic[a]._label.set_font_size( _fontsize );
 	_tic[a]._label.set_color( _color );
 	_tic[a]._label.set_location( xx, yy );
 	_tic[a]._label.set_alignment( 0.0, 0.5, true );
@@ -288,8 +302,6 @@ void ColormapLegend::plot_colomap_palette( cairo_t *cairo, int plim[4] )
 //
 void ColormapLegend::plot( cairo_t *cairo, double x, double y )
 {
-    //std::cout << "ColormapLegend::plot\n";
-
     build_legend( x, y );
 
     // Draw colormap palette sample
@@ -314,9 +326,8 @@ void ColormapLegend::plot( cairo_t *cairo, double x, double y )
     }
     cairo_stroke( cairo );
 
-    for( size_t a = 0; a < _tic.size(); a++ ) {
+    for( size_t a = 0; a < _tic.size(); a++ )
 	_tic[a]._label.draw( cairo );
-    }
 
     cairo_restore( cairo );
 }
@@ -341,7 +352,7 @@ void ColormapLegend::get_size( cairo_t *cairo, double &width, double &height )
 
 void ColormapLegend::set_font_size( double fontsize )
 {
-    _fontsize = fontsize;
+    _fontsize   = fontsize;
     _ticlen_in  = 5.0*fontsize/12.0;
     _ticlen_out = 5.0*fontsize/12.0;
     _ticspace   = 5.0*fontsize/12.0;

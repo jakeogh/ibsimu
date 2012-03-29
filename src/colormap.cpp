@@ -53,7 +53,7 @@
 
 Colormap::Colormap()
     : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), 
-      _zmin(0.0), _zmax(0.0), _n(0), _m(0), _intrp(NULL)
+      _zmin(0.0), _zmax(0.0), _n(0), _m(0), _intrp(NULL), _zscale_prepared(false)
 {
 
 }
@@ -62,7 +62,7 @@ Colormap::Colormap()
 Colormap::Colormap( const double datarange[4], size_t n, size_t m, 
 		    const std::vector<double> &data )
     : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), 
-      _zmin(0.0), _zmax(0.0), _n(0), _m(0), _intrp(NULL)
+      _zmin(0.0), _zmax(0.0), _n(0), _m(0), _intrp(NULL), _zscale_prepared(false)
 {
     set_data( datarange, n, m, data );
 }
@@ -71,7 +71,8 @@ Colormap::Colormap( const double datarange[4], size_t n, size_t m,
 Colormap::Colormap( const Colormap &colormap )
     : _palette(colormap._palette), _interpolation(colormap._interpolation),
       _zscale(colormap._zscale), _zmin(colormap._zmin), _zmax(colormap._zmax),
-      _n(colormap._n), _m(colormap._m), _f(colormap._f), _intrp(NULL)
+      _n(colormap._n), _m(colormap._m), _f(colormap._f), _intrp(NULL), 
+      _zscale_prepared(false)
 {
     _datarange[0] = colormap._datarange[0];
     _datarange[1] = colormap._datarange[1];
@@ -143,6 +144,7 @@ void Colormap::set_data( const double datarange[4], size_t n, size_t m,
 	//_zmin -= 1.0;
     }
 
+    _zscale_prepared = false;
     prepare_data_interpolation();
 }
 
@@ -169,10 +171,11 @@ zscale_e Colormap::get_zscale( void ) const
 void Colormap::set_zscale( zscale_e zscale )
 {
     _zscale = zscale;
+    _zscale_prepared = false;
 }
 
 
-void Colormap::prepare_scaling( void )
+void Colormap::prepare_zscaling( void )
 {
     // Error if either end is at zero with LOG scaling
     if( _zscale == ZSCALE_LOG && _zmin <= 0.0 && _zmax >= 0.0 )
@@ -217,6 +220,10 @@ void Colormap::prepare_scaling( void )
 
 double Colormap::zscale_inv( double val )
 {
+    if( !_zscale_prepared )
+	prepare_zscaling();
+    _zscale_prepared = true;
+
     if( _zscale == ZSCALE_LINEAR ) {
 	return( val/_scale_C + _scale_A );
     } else if( _zscale == ZSCALE_LOG ) {
@@ -243,8 +250,10 @@ double Colormap::zscale_inv( double val )
 
 double Colormap::zscale( double val )
 {
-    // Prescale value to nominal range [0:1] maintaining
-    // monotonic rising property. Might go over range.
+    if( !_zscale_prepared )
+	prepare_zscaling();
+    _zscale_prepared = true;
+
     if( _zscale == ZSCALE_LINEAR )
 	return( _scale_C*(val-_scale_A) );
     else if( _zscale == ZSCALE_LOG ) {
@@ -306,8 +315,6 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 
     // Flush to ensure all writing to the image was done
     cairo_surface_flush( surface );
-
-    prepare_scaling();
 
     for( int j = plim[1]; j <= plim[3]; j++ ) {
 	for( int i = plim[0]; i <= plim[2]; i++ ) {
@@ -471,6 +478,7 @@ void Colormap::set_zrange( double min, double max )
 	_zmin = max;
 	_zmax = min;
     }
+    _zscale_prepared = false;
 }
 
 

@@ -59,6 +59,7 @@ GeomPlotter::~GeomPlotter()
 
 void GeomPlotter::build_plot( void )
 {
+    GeomPlot::build_plot();
 }
 
 

@@ -100,8 +100,6 @@ public:
      */
     void enable( bool enable );
 
-    void set_logscale( bool enable );
-
     /*! \brief Set zrange for plot.
      *
      *  The zrange defaults to automatically scaled range for the

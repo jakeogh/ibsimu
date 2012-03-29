@@ -497,6 +497,7 @@ void Frame::calculate_frame( cairo_t *cairo )
 	// Increase margins to fit in colormap legend
 	if( _cm_legend && _cml_enable ) {
 	    double lw, lh;
+	    _cm_legend->set_height( prec[3]-prec[1] );
 	    _cm_legend->get_size( cairo, lw, lh );
 	    _tmargin[2] += lw + _cmlspace;
 	}

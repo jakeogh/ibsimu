@@ -59,6 +59,7 @@ GeomPlot::GeomPlot( Frame &frame, const Geometry &geom )
     _frame->set_ranges( PLOT_AXIS_Y1, min, max );
     _frame->ruler_autorange_enable( PLOT_AXIS_X1, false, false );
     _frame->ruler_autorange_enable( PLOT_AXIS_Y1, false, false );
+    _frame->enable_colormap_legend( false );
 
     // Add default drawable (solid geometry)
     _solidgraph = new SolidGraph( _geom );
@@ -214,36 +215,54 @@ void GeomPlot::set_fieldgraph_plot( field_type_e fieldplot )
 	delete _fieldgraph;
     _fieldgraph = NULL;
 
+    // Colormap legend disabled by default
+    _frame->enable_colormap_legend( false );
+
     // Define new field graph.
     switch( fieldplot ) {
     case FIELD_NONE:
 	_fieldgraph = new FieldGraph( _geom, (const Field*)NULL, FIELD_NONE );
 	break;
     case FIELD_EPOT:
-	if( _epot )
+	if( _epot ) {
 	    _fieldgraph = new FieldGraph( _geom, _epot, fieldplot );
+	    _fieldgraph->set_view( _view, _level );
+	    _frame->enable_colormap_legend( true );
+	}
 	break;
     case FIELD_SCHARGE:
-	if( _scharge )
+	if( _scharge ) {
 	    _fieldgraph = new FieldGraph( _geom, _scharge, fieldplot );
+	    _fieldgraph->set_view( _view, _level );
+	    _frame->enable_colormap_legend( true );
+	}
 	break;
     case FIELD_TRAJDENS:
-	if( _tdens )
+	if( _tdens ) {
 	    _fieldgraph = new FieldGraph( _geom, _tdens, fieldplot );
+	    _fieldgraph->set_view( _view, _level );
+	    _frame->enable_colormap_legend( true );
+	}
 	break;
     case FIELD_EFIELD:
     case FIELD_EFIELD_X:
     case FIELD_EFIELD_Y:
     case FIELD_EFIELD_Z:
-	if( _efield )
+	if( _efield ) {
 	    _fieldgraph = new FieldGraph( _geom, _efield, fieldplot );
+	    _fieldgraph->set_view( _view, _level );
+	    _frame->enable_colormap_legend( true );
+	}
 	break;
     case FIELD_BFIELD:
     case FIELD_BFIELD_X:
     case FIELD_BFIELD_Y:
     case FIELD_BFIELD_Z:
-	if( _bfield )
+	if( _bfield ) {
 	    _fieldgraph = new FieldGraph( _geom, _bfield, fieldplot );
+	    _fieldgraph->set_view( _view, _level );
+	    _frame->enable_colormap_legend( true );
+	}
 	break;
     default:
 	throw( ErrorUnimplemented( ERROR_LOCATION, "Unimplemented field plotting" ) );
@@ -439,4 +458,12 @@ void GeomPlot::set_view_si( view_e view, double level )
 	throw( ErrorUnimplemented( ERROR_LOCATION ) );
 	break;
     }
+}
+
+
+void GeomPlot::build_plot( void )
+{
+    // Build colormap content inside fieldgraph before plot
+    if( _fieldgraph )
+	_fieldgraph->build_plot();
 }
