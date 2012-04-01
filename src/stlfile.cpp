@@ -73,6 +73,11 @@ bool ciscomp( const char *str1, const char *str2, size_t n )
 }
 
 
+/* ******************** *
+ * Triangle             *
+ * ******************** */
+
+
 void STLFile::Triangle::read_binary_float_vector( Vec3D &x, std::ifstream &ifstr )
 {
     for( size_t a = 0; a < 3; a++ ) {
@@ -196,97 +201,16 @@ STLFile::Triangle::~Triangle()
 }
 
 
-const Vec3D &STLFile::Triangle::operator[]( int i ) const
+uint16_t STLFile::Triangle::attr( void ) const
 {
-    if( i == 0 )
-	return( _p[0] );
-    else if( i == 1 )
-	return( _p[1] );
-    else if( i == 2 )
-	return( _p[2] );
-    else
-	throw( Error( ERROR_LOCATION, "Indexing error" ) );
+    return( _attr );
 }
-
-
-/*
-int STLFile::Triangle::ray_cross( const Vec3D &x, const Vec3D &dir ) const
-{
-#ifdef DEBUG_STL
-    std::cout << "ray_cross( " << x[0] << ", " << x[1] << ", " << x[2] << " )\n";
-#endif
-
-    // Find vectors for two edges sharing _p[0] and normal
-    Vec3D u = _p[1] - _p[0];
-    Vec3D v = _p[2] - _p[0];
-    Vec3D n = cross( u, v );
-    if( n == 0.0 )
-	throw( Error( ERROR_LOCATION, "Zero triangle area" ) );	
-
-    Vec3D w0 = x-_p[0];
-    double a = -n*w0;
-    double b = n*dir;
-    if( fabs(b) < 1.0e-6 ) { // Ray parallel to triangle plane
-	if( a == 0.0 ) // Ray in triangle plane
-	    return( 2 );
-	else
-	    return( 0 ); // No collision
-    }
-
-    double r = a/b;
-    if( r < 0.0 ) // Ray goes away from triangle
-	return( 0 ); // No collision
-
-    Vec3D I = x + r*dir; // Intersection point
-    
-    double uu = u*u;
-    double uv = u*v;
-    double vv = v*v;
-    Vec3D w = I - _p[0];
-    double wu = w*u;
-    double wv = w*v;
-    double D = uv*uv - uu*vv;
-
-    double s = (uv * wv - vv * wu) / D;
-    if( s < 0.0-EPS || s > 1.0+EPS ) 
-	return( 0 );
-    else if( s < 0.0+EPS || s > 1.0-EPS ) 
-	return( 2 ); // Not sure, do perturbation
-    double t = (uv * wu - uu * wv ) / D;
-    if( t < 0.0-EPS || (s+t) > 1.0+EPS )
-	return( 0 );
-    else if( t < 0.0+EPS || (s+t) > 1.0-EPS )
-	return( 2 ); // Not sure, do perturbation
-
-    return( 1 ); // Collision
-}
-*/
 
 
 const Vec3D &STLFile::Triangle::normal( void ) const
 {
     return( _normal );
 }
-
-
-const Vec3D &STLFile::Triangle::p1( void ) const
-{
-    return( _p[0] );
-}
-
-
-const Vec3D &STLFile::Triangle::p2( void ) const
-{
-    return( _p[1] );
-}
-
-
-const Vec3D &STLFile::Triangle::p3( void ) const
-{
-    return( _p[2] );
-}
-
-
 
 
 void STLFile::Triangle::debug_print( std::ostream &os ) const
@@ -325,33 +249,25 @@ void STLFile::Triangle::update_bbox( Vec3D &min, Vec3D &max ) const
  * ******************** */
 
 
-STLFile::VTriangle::VTriangle( uint32_t v1, uint32_t v2, uint32_t v3, const Vec3D &normal )
+STLFile::VTriangle::VTriangle( uint32_t v1, uint32_t v2, uint32_t v3 )
 {
     _v[0] = v1;
     _v[1] = v2;
     _v[2] = v3;
-    _normal = normal;
 }
 
 
-STLFile::VTriangle::VTriangle( const uint32_t v[3], const Vec3D &normal )
+STLFile::VTriangle::VTriangle( const uint32_t v[3] )
 {
     _v[0] = v[0];
     _v[1] = v[1];
     _v[2] = v[2];
-    _normal = normal;
 }
 
 
 STLFile::VTriangle::~VTriangle()
 {
     
-}
-
-
-const Vec3D &STLFile::VTriangle::normal( void ) const
-{
-    return( _normal );
 }
 
 
@@ -362,24 +278,6 @@ void STLFile::VTriangle::debug_print( std::ostream &os ) const
        << std::setw(6) << _v[0] << " "
        << std::setw(6) << _v[1] << " "
        << std::setw(6) << _v[2] << "\n";
-    os << "  normal = " << _normal << "\n";
-}
-
-
-const uint32_t &STLFile::VTriangle::operator[]( int i ) const
-{
-    if( i >= 0 && i < 3 )
-	return( _v[i] );
-    throw( Error( ERROR_LOCATION, "Indexing error" ) );
-}
-
-
-std::ostream &operator<<( std::ostream &os, const STLFile::VTriangle &vtri ) 
-{
-    os << std::setw(6) << to_string(vtri[0]) << " ";
-    os << std::setw(6) << to_string(vtri[1]) << " ";
-    os << std::setw(6) << to_string(vtri[2]) << " ";
-    return( os );
 }
 
 
@@ -398,23 +296,19 @@ void STLFile::read_binary( std::ifstream &ifstr )
     // Check if sensible
     if( tcount > 10000000 )
 	throw( ErrorUnimplemented( ERROR_LOCATION, "Too high number of triangles" ) );
-    _triangle.reserve( tcount );
+    _tri.reserve( tcount );
     
     for( uint32_t a = 0; a < tcount; a++ ) {
-	_triangle.push_back( Triangle( ifstr ) );
+	_tri.push_back( Triangle( ifstr ) );
     }
 }
 
 
 void STLFile::read_ascii( std::ifstream &ifstr )
 {
-    //std::cout << "Reading ASCII STL\n";
-
     // Read first line (header)
     std::string header;
     std::getline( ifstr, header );
-
-    //std::cout << "  header = \'" + header + "\'\n";
 
     // Read line-by-line
     int linec = 0;
@@ -422,7 +316,6 @@ void STLFile::read_ascii( std::ifstream &ifstr )
         
         std::string str;
         std::getline( ifstr, str );
-	//std::cout << "  line = \'" + str + "\'\n";
 	const char *buf = str.c_str();
         linec++;
 
@@ -433,21 +326,20 @@ void STLFile::read_ascii( std::ifstream &ifstr )
 	if( ciscomp( buf, "endsolid", 8 ) )
 	    break;
 
-	_triangle.push_back( Triangle( ifstr, buf, _filename, linec ) );
+	_tri.push_back( Triangle( ifstr, buf, _filename, linec ) );
     }
-
-    //std::cout << "  Done\n";
-
-    //throw( ErrorUnimplemented( ERROR_LOCATION, "Ascii STL file reader unimplemented" ) );
 }
 
 
-STLFile::STLFile( const std::string &filename )
+STLFile::STLFile( const std::string &filename,
+		  double vertex_matching_eps, 
+		  double signed_volume_eps )
+    : _filename(filename), _vertex_matching_eps(vertex_matching_eps), 
+      _signed_volume_eps(signed_volume_eps)
 {
     ibsimu.message( 1 ) << "Reading STL-file \'" << filename << "\'\n";
     ibsimu.inc_indent();
 
-    _filename = filename;
     std::ifstream ifstr( filename.c_str(), std::ios_base::binary );
     if( !ifstr.good() )
 	throw( Error( ERROR_LOCATION, "Couldn't open file \'" + filename + "\'" ) );
@@ -470,6 +362,9 @@ STLFile::STLFile( const std::string &filename )
 
     build_vtriangle_data();
     check_vtriangle_data();
+    calculate_bbox();
+    offset_vtriangle_data();
+    _tri.clear();
     _vpos.assign( _vertex.size(), false );
     _vneg.assign( _vertex.size(), false );
 
@@ -483,21 +378,28 @@ STLFile::~STLFile()
 }
 
 
-#define EPS 1.0e-9
+void STLFile::offset_vtriangle_data( void )
+{
+    _offset = -_bbox[0] + 1.0e-3*(_bbox[1]-_bbox[0]);
+
+    for( size_t a = 0; a < _vertex.size(); a++ )
+	_vertex[a] += _offset;
+}
 
 
 void STLFile::build_vtriangle_data( void )
 {
-    ibsimu.message( 1 ) << "Making vertex connections\n";
+    ibsimu.message(1) << "Making vertex connections\n";
 
     _vtri.clear();
     _vertex.clear();
-    _vtri.reserve( _triangle.size() );
+    _vtri.reserve( _tri.size() );
 
     // Go through all triangles and add coordinates to vertex list if
     // they are not already there. Add vertex triangles in the same
     // time using made vertices.
-    for( size_t a = 0; a < _triangle.size(); a++ ) {
+
+    for( size_t a = 0; a < _tri.size(); a++ ) {
 
 	uint32_t vert[3]; // Vertex indexes for triangle
 
@@ -506,10 +408,10 @@ void STLFile::build_vtriangle_data( void )
 
 	    // Search for vertex indexes, add vertices of triangle if
 	    // they don's exist already.
-	    Vec3D v = _triangle[a][vi];
+	    Vec3D v = _tri[a][vi];
 	    uint32_t b;
 	    for( b = 0; b < _vertex.size(); b++ ) {
-		if( norm2(v-_vertex[b]) < EPS )
+		if( norm2(v-_vertex[b]) < _vertex_matching_eps )
 		    // Vertex found
 		    break;
 	    }
@@ -521,7 +423,7 @@ void STLFile::build_vtriangle_data( void )
 	}
 
 	// Add triangle using vertices
-	_vtri.push_back( VTriangle( vert, _triangle[a].normal() ) );
+	_vtri.push_back( VTriangle( vert ) );
     }
 }
 
@@ -531,317 +433,223 @@ void STLFile::check_vtriangle_data( void )
     ibsimu.message( 1 ) << "Checking mesh data\n";
     ibsimu.inc_indent();
 
-    // TODO: check edge pairing
-
     ibsimu.message( 1 ) << _vtri.size() << " triangles\n";
     ibsimu.message( 1 ) << _vertex.size() << " vertices\n";
+
+    // Check 
+    // 1. Triangle edge pairing. Every triangle must have exactly 
+    // one neighbouring triangle for each of the three edges.
+    // 2. Neighbouring triangles must be defined in same direction.
+    // 3. Zero area triangles.
+    for( uint32_t a = 0; a < _vtri.size(); a++ ) {
+
+	Vec3D V1 = _vertex[_vtri[a][1]] - _vertex[_vtri[a][0]];
+	Vec3D V2 = _vertex[_vtri[a][2]] - _vertex[_vtri[a][0]];
+	double area = 0.5*norm2( cross( V1, V2 ) );
+	if( fabs(area) == 0.0 )
+	    throw( Error( ERROR_LOCATION, "Zero area triangle " + to_string(a) ) );
+	for( uint32_t b = 0; b < 3; b++ ) {
+	    
+	    int e1 = _vtri[a][b];
+	    int e2 = _vtri[a][(b+1)%3];
+
+	    bool found = false;
+	    uint32_t neighbour;
+	    uint32_t c;
+	    for( c = 0; c < _vtri.size(); c++ ) {
+		if( c == a ) continue; // No self-checking
+		for( uint32_t d = 0; d < 3; d++ ) {
+		    
+		    int f1 = _vtri[c][d];
+		    int f2 = _vtri[c][(d+1)%3];
+		    if( f1 == e1 && f2 == e2 ) {
+			// Incorrect orientation
+			throw( Error( ERROR_LOCATION, "Incorrect orientation between neighbouring triangles " +
+				      to_string(a) + " and " + to_string(c) ) );
+		    } else if( f1 == e2 && f2 == e1 ) {
+			// Correct orientation
+			if( found == true )
+			    throw( Error( ERROR_LOCATION, "Double neighbours (" + to_string(neighbour) +
+					  " and " + to_string(c) + ") found for triangle " +
+					  to_string(a) ) );
+			found = true;
+			neighbour = c;
+		    }
+		}
+	    }
+	    if( !found ) {
+		throw( Error( ERROR_LOCATION, "Triangle " + to_string(a) + " neighbour not found" ) );
+	    }
+	}
+    }
 
     ibsimu.dec_indent();    
 }
 
 
-size_t STLFile::size( void )
+size_t STLFile::vertexc( void )
 {
-    return( _triangle.size() );
+    return( _vertex.size() );
+}
+
+size_t STLFile::trianglec( void )
+{
+    return( _vtri.size() );
 }
 
 
 void STLFile::get_bbox( Vec3D &min, Vec3D &max ) const
 {
-    min = Vec3D( std::numeric_limits<double>::infinity(),
-		 std::numeric_limits<double>::infinity(),
-		 std::numeric_limits<double>::infinity() );
-    max = Vec3D( -std::numeric_limits<double>::infinity(),
-		 -std::numeric_limits<double>::infinity(),
-		 -std::numeric_limits<double>::infinity() );
-
-    for( uint32_t a = 0; a < _triangle.size(); a++ ) {
-	_triangle[a].update_bbox( min, max );
-    }
+    min = _bbox[0];
+    max = _bbox[1];
 }
 
 
-/*
-// Tester using vtri and vertex arrays and normals
-bool STLFile::inside( const Vec3D &x, double eps ) const
+void STLFile::calculate_bbox( void )
 {
-    //std::cout << "inside()\n";
+    Vec3D min = Vec3D( std::numeric_limits<double>::infinity(),
+		       std::numeric_limits<double>::infinity(),
+		       std::numeric_limits<double>::infinity() );
+    Vec3D max = Vec3D( -std::numeric_limits<double>::infinity(),
+		       -std::numeric_limits<double>::infinity(),
+		       -std::numeric_limits<double>::infinity() );
 
-    // Search for closest vertex to x
-    int32_t imin = -1;
-    double dmin = std::numeric_limits<double>::infinity();
-    for( uint32_t a = 0; a < _vertex.size(); a++ ) {
-	
-	double d = norm2( x - _vertex[a] );
-	if( d < dmin ) {
-	    dmin = d;
-	    imin = a;
-	}
+    for( uint32_t a = 0; a < _tri.size(); a++ ) {
+	_tri[a].update_bbox( min, max );
     }
 
-    //std::cout << "x         = " << x << "\n";
-    //std::cout << "imin      = " << imin << "\n";
-    //std::cout << "dmin      = " << dmin << "\n";
-    //std::cout << "vertex    = " << _vertex[imin] << "\n";
+    _bbox[0] = min;
+    _bbox[1] = max;
+}
 
-    // No vertices found
-    if( imin == -1 )
-	return( false );
 
-    // Build a list of triangles connected to vertex imin
-    std::vector<uint32_t> tri;
-    //std::cout << "triangles = ";
-    for( size_t a = 0; a < _vtri.size(); a++ ) {
+#define STL_EDGE1   0
+#define STL_EDGE2   1
+#define STL_EDGE3   2
+#define STL_FACE    3
+#define STL_OUTSIDE 4
+#define STL_INSIDE  5
 
-	for( size_t b = 0; b < 3; b++ ) {
-	    if( _vtri[a][b] == (uint32_t)imin ) {
-		//std::cout << a << " ";
-		tri.push_back( a );
-		break;
-	    }
-	}
+
+int STLFile::signvol4( const Vec3D &q0, const Vec3D &q1, 
+		       const Vec3D &q2, const Vec3D &q3 )
+{
+    double x = q0[0]*(-q1[1]*q2[2] + q1[1]*q3[2] + q2[1]*q1[2] - 
+		       q2[1]*q3[2] - q3[1]*q1[2] + q3[1]*q2[2] ) +
+	       q1[0]*( q0[1]*q2[2] - q0[1]*q3[2] - q2[1]*q0[2] + 
+		       q2[1]*q3[2] + q3[1]*q0[2] - q3[1]*q2[2] ) +
+	       q2[0]*(-q0[1]*q1[2] + q0[1]*q3[2] + q1[1]*q0[2] - 
+		       q1[1]*q3[2] - q3[1]*q0[2] + q3[1]*q1[2] ) +
+	       q3[0]*( q0[1]*q1[2] - q0[1]*q2[2] - q1[1]*q0[2] + 
+		       q1[1]*q2[2] + q2[1]*q0[2] - q2[1]*q1[2] );
+    if( x < _signed_volume_eps ) {
+	if( x <= -_signed_volume_eps )
+	    return( -1 );
+	return( 0 );
     }
-    //std::cout << "\n";
+    return( 1 );
+}
 
-    // Check if inside of all triangles on the list.
-    // Return false if point is outside even one triangle.
-    for( size_t a = 0; a < tri.size(); a++ ) {
 
-	//std::cout << "test " << a << ": triangle " << tri[a] << ":\n";
-	uint32_t vertex = _vtri[tri[a]][0];
-	const Vec3D &p1 = _vertex[vertex];
-	const Vec3D &n  = _vtri[tri[a]].normal();
-	double pxn = (x-p1)*n;
-	//std::cout << "  p1    = " << p1 << "\n";
-	//std::cout << "  x-p1  = " << x-p1 << "\n";
-	//std::cout << "  n     = " << n << "\n";
-	//std::cout << "  pxn   = " << pxn << "\n";
-	if( pxn > 0.0 ) {
-	    //std::cout << "OUT\n";
+int STLFile::signvol3( const Vec3D &q1, const Vec3D &q2, const Vec3D &q3 )
+{
+    double x = q1[0]*( q2[1]*q3[2] - q3[1]*q2[2] ) -
+	       q1[1]*( q2[0]*q3[2] - q3[0]*q2[2] ) +
+	       q1[2]*( q2[0]*q3[1] - q3[0]*q2[1] );
+    if( x < _signed_volume_eps ) {
+	if( x <= -_signed_volume_eps )
+	    return( -1 );
+	return( 0 );
+    }
+    return( 1 );
+}
+
+
+/* Classify inclusion of point p in tetrahedron (o,q1,q2,q3), when
+ * The sense of tetrahedron (o,q1,q2,q3) is ss.
+ */
+int STLFile::classify_original_tetrahedron( int ss, const Vec3D &p, 
+					    const Vec3D &q1, const Vec3D &q2, const Vec3D &q3 )
+{
+    int s0,s1,s2,s3;
+
+    if( ss > 0 ) {
+	// Positive sense (o,q1,q2,q3)
+	if( (s1 = signvol3( p, q2, q3 )) < 0 )
+	    return( STL_OUTSIDE );
+	if( (s2 = signvol3( p, q3, q1 )) < 0 )
+	    return( STL_OUTSIDE );
+	if( (s3 = signvol3( p, q1, q2 )) < 0 )
+	    return( STL_OUTSIDE );
+	if( (s0 = signvol4( p, q1, q2, q3 )) < 0 )
+	    return( STL_OUTSIDE );
+    } else {
+	// Negative sense (o,q1,q2,q3)
+	if( (s1 = signvol3( p, q2, q3 )) > 0 )
+	    return( STL_OUTSIDE );
+	if( (s2 = signvol3( p, q3, q1 )) > 0 )
+	    return( STL_OUTSIDE );
+	if( (s3 = signvol3( p, q1, q2 )) > 0 )
+	    return( STL_OUTSIDE );
+	if( (s0 = signvol4( p, q1, q2, q3 )) > 0 )
+	    return( STL_OUTSIDE );
+    }
+
+    // Edges and faces
+    if( s1 == 0 ) {
+	if( s2 == 0 )
+	    return( STL_EDGE3 );
+	else if( s3 == 0 )
+	    return( STL_EDGE2 );
+	return( STL_FACE );
+    } else if( s2 == 0 ) {
+	if( s3 == 0 )
+	    return( STL_EDGE1 );
+	return( STL_FACE );
+    } else if( s3 == 0 ) {
+	return( STL_FACE );
+    }
+
+    return( STL_INSIDE );
+}
+
+
+bool STLFile::inside( const Vec3D &p )
+{
+    Vec3D x = p+_offset;
+    for( uint32_t a = 0; a < 3; a++ ) {
+	if( x[a] <= 0.0 )
 	    return( false );
-	}
     }
-
-    //std::cout << "IN\n";
-    return( true );
-}
-
-
-bool STLFile::inside( const Vec3D &x, double eps ) const
-{
-#ifdef DEBUG_STL
-    std::cout << "\n\ninside( " << x[0] << ", " << x[1] << ", " << x[2] << " )\n";
-#endif
-
-    Vec3D dir( 1.0, 0.0, 0.0 );
-    Vec3D X( x );
-
-    // Perturbation loop 
-    uint32_t a;
-    const Triangle *t = NULL;
-    for( uint32_t b = 0; b < 3; b++ ) {
-
-	int stat = 0;
-        int par = 0;
-        for( a = 0; a < _triangle.size(); a++ ) {
-
-#ifdef DEBUG_STL
-	    std::cout << "triangle " << a << ":\n";
-#endif
-
-	    t = &_triangle[a];
-	    stat = t->ray_cross( X, dir );
-	    if( stat == 1 )
-		par = !par;
-	    else if( stat == 2 ) 
-		break;
-        }
-
-        if( stat != 2 )
-            return( par );
-
-	// Perturbation
-#ifdef DEBUG_STL
-	std::cout << "do perturbation\n";
-#endif
-	if( b == 0 )
-	    X[1] += 1.0e-6;
-	else
-	    X[2] += 1.0e-6;
-    }
-
-    std::stringstream se;
-    se << "Perturbation failed\n"
-       << "  x = " << x << "\n"
-       << "  triangle no = " << a << "\n"
-       << "  tri.p1 = " << t->p1() << "\n"
-       << "  tri.p2 = " << t->p2() << "\n"
-       << "  tri.p3 = " << t->p3() << "\n";
-    throw( Error( ERROR_LOCATION, se.str() ) );
-}
-*/
-
-
-#define OUTSIDE 0
-#define EDGE1 1
-#define EDGE2 2
-#define EDGE3 3
-#define FACE1 4
-#define FACE2 5
-#define FACE3 6
-#define INSIDE 7
-
-#define STL_EPS 1.0e-8
-
-
-int STLFile::sigdeter( const Vec3D &p1, const Vec3D &p2, const Vec3D &p3 )
-{
-    double det = + p1[0]*( p2[1]*p3[2] - p2[2]*p3[1] )
-	         - p1[1]*( p2[0]*p3[2] - p2[2]*p3[0] )
-	         + p1[2]*( p2[0]*p3[1] - p2[1]*p3[0] );
-    if( det <= STL_EPS ) {
-	if( det < -STL_EPS )
-	    return( -1 );
-	return( 0 );
-    }
-    return( +1 );
-}
-
-
-int STLFile::sign3d( const Vec3D &p1, const Vec3D &p2, 
-		     const Vec3D &p3, const Vec3D &p4 )
-{
-    double vol = + (p1[0]*((p2[1]*p3[2]) + (p2[2]*p4[1]) + (p3[1]*p4[2]) -
-			   (p3[2]*p4[1]) - (p4[2]*p2[1]) - (p2[2]*p3[1]) ) )
-	         - (p2[0]*((p1[1]*p3[2]) + (p1[2]*p4[1]) + (p3[1]*p4[2]) -
-			   (p3[2]*p4[1]) - (p1[2]*p3[1]) - (p4[2]*p1[1]) ) )
-	         + (p3[0]*((p1[1]*p2[2]) + (p2[1]*p4[2]) + (p1[2]*p4[1]) -
-			   (p2[2]*p4[1]) - (p4[2]*p1[1]) - (p1[2]*p2[1]) ) )
-	         - (p4[0]*((p1[1]*p2[2]) + (p2[1]*p3[2]) + (p1[2]*p3[1]) -
-			   (p2[2]*p3[1]) - (p3[2]*p1[1]) - (p1[2]*p2[1]) ) );
-    if( vol <= STL_EPS ) {
-	if( vol < -STL_EPS )
-	    return( -1 );
-	return( 0 );
-    }
-    return( +1 );
-}
-
-
-int STLFile::pointOriginalTetrahedron( const Vec3D &x, 
-				       const Vec3D &v1, const Vec3D &v2, const Vec3D &v3 )
-{
-    int s1, s2, s3, s4;
-
-    s1 = -sigdeter(x,v1,v2); 
-    s2 = -sigdeter(x,v2,v3);
-    if( (s1!=0) && (s2!=0) && (s1!=s2) )
-	return OUTSIDE;
-    s3 = -sigdeter(x,v3,v1);
-    s4 = sign3d(x,v1,v2,v3);
-    if( (s1!=0) && (s2!=0) && (s3!=0) && (s4!=0) && 
-	( (s1!=s2) || (s2!=s3) || (s1!=s3) || (s1!=s4) || (s2!=s4) || (s3!=s4) ) ) 
-	return OUTSIDE;
-    if( (s1==s2) && (s2==s3) && (s3==s4) && (s4==s1) )
-	return INSIDE;
-    if( (s1==0) && (s2==s3) )
-	return FACE1;
-    if( (s2==0) && (s1==s3) )
-	return FACE2;
-    if( (s3==0) && (s2==s1) )
-	return FACE3;
-    if( (s1==0) && (s2==0) )
-	return EDGE1;
-    if( (s2==0) && (s3==0) )
-	return EDGE2;
-    if( (s3==0) && (s1==0) )
-	return EDGE3;
-    return OUTSIDE;
-}
-
-
-bool STLFile::inside( const Vec3D &x )
-{
-#ifdef DEBUG_STL
-    std::cout << "inside( " << x << ")\n";
-#endif
 
     // Clear positive and negative vertex arrays
     _vpos.assign( _vertex.size(), false );
     _vneg.assign( _vertex.size(), false );
 
     int incl = 0;
-    for( int a = 0; a < _vtri.size(); a++ ) {
-	
-#ifdef DEBUG_STL
-	std::cout << "  Triangle " << a << ":\n";
-#endif
+    for( uint32_t a = 0; a < _vtri.size(); a++ ) {
 
-	// First, study the position of point x respect to the tetrahedron of face a.
-	int state = pointOriginalTetrahedron( x, 
-					      _vertex[_vtri[a][0]],
-					      _vertex[_vtri[a][1]],
-					      _vertex[_vtri[a][2]] );
-
-#ifdef DEBUG_STL
-	std::cout << "    state = " << state << "\n";
-#endif
-
-	if( state == INSIDE ) {
-	    int s = sigdeter( _vertex[_vtri[a][0]],
-			      _vertex[_vtri[a][1]],
-			      _vertex[_vtri[a][2]] );
-#ifdef DEBUG_STL
-	std::cout << "    inside\n";
-	std::cout << "    s = " << s << "\n";
-#endif
-	    incl += 2*s;
-	} else if( state == FACE1 || state == FACE2 || state == FACE3 ) { 
-	    int s = sigdeter( _vertex[_vtri[a][0]],
-			      _vertex[_vtri[a][1]],
-			      _vertex[_vtri[a][2]] );
-	    incl += s;
-	} else if( state != OUTSIDE ) { 
-	    // The point lies on an original face or an original edge
-	    int s = sigdeter( _vertex[_vtri[a][0]],
-			      _vertex[_vtri[a][1]],
-			      _vertex[_vtri[a][2]] );
-#ifdef DEBUG_STL
-	std::cout << "    vertex\n";
-	std::cout << "    s = " << s << "\n";
-#endif
-
-	    if( s > 0 ) {
-		if( !_vpos[_vtri[a][state-1]] ) {
-		    incl += 2*s;
-		    // Mark the vertex as visited
-		    _vpos[_vtri[a][state-1]] = true;
-		}
-	    } else {
-		if( !_vneg[ _vtri[a][state-1]] ) {
-		    incl += 2*s;
-		    // Mark the vertex as visited
-		    _vneg[_vtri[a][state-1]] = true;
-		}
+	int ss = signvol3( _vertex[_vtri[a][0]],
+			   _vertex[_vtri[a][1]],
+			   _vertex[_vtri[a][2]] );
+	int stat = classify_original_tetrahedron( ss, x,
+						  _vertex[_vtri[a][0]],
+						  _vertex[_vtri[a][1]],
+						  _vertex[_vtri[a][2]] );
+	if( stat == STL_INSIDE ) {
+	    incl += 2*ss;
+	} else if( stat == STL_FACE ) {
+	    incl += ss;
+	} else if( stat != STL_OUTSIDE ) {
+	    if( ss > 0 && !_vpos[_vtri[a][stat]] ) {
+		_vpos[_vtri[a][stat]] = true;
+		incl += 2*ss;
+	    } else if( ss < 0 && !_vneg[_vtri[a][stat]] ) {
+		_vneg[_vtri[a][stat]] = true;
+		incl += 2*ss;
 	    }
-	} else {
-#ifdef DEBUG_STL
-	std::cout << "    outside\n";
-#endif
 	}
-
-#ifdef DEBUG_STL
-	std::cout << "    incl = " << incl << "\n";
-#endif
     }
-
-#ifdef DEBUG_STL
-    std::cout << "  End incl = " << incl << "\n";
-    if( incl > 0 )
-	std::cout << "    inside\n";
-    else
-	std::cout << "    outside\n";
-#endif
 
     if( incl > 0 )
 	return( true ); 
@@ -852,12 +660,6 @@ bool STLFile::inside( const Vec3D &x )
 void STLFile::debug_print( std::ostream &os ) const
 {
     os << "**STLFile\n";
-    os << "  trianglec = " << _triangle.size() << "\n";
-    
-    for( size_t a = 0; a < _triangle.size(); a++ ) {
-	os << "  triangle[" << a << "]:\n";
-	_triangle[a].debug_print( os );
-    }
 
     os << "  vertexc = " << _vertex.size() << "\n";
     for( size_t a = 0; a < _vertex.size(); a++ )
@@ -865,8 +667,10 @@ void STLFile::debug_print( std::ostream &os ) const
 
     os << "  vtric = " << _vtri.size() << "\n";
     for( size_t a = 0; a < _vtri.size(); a++ ) {
-	os << "  vtri[" << a << "] = " << _vtri[a] << ", ";
-	os << "normal = " << _vtri[a].normal() << "\n";
+	os << "  vtriangle[" << a << "]:\n";
+	os << "    v1 = " << _vtri[a][0] << "\n";
+	os << "    v2 = " << _vtri[a][1] << "\n";
+	os << "    v3 = " << _vtri[a][2] << "\n";
     }
 }
 

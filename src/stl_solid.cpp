@@ -55,7 +55,6 @@ STLSolid::STLSolid( const std::string &filename )
     _stl = new STLFile( filename );
 
     if( _stl ) {
-	ibsimu.message( 1 ) << "solid defined using " << _stl->size() << " triangles\n";
 	Vec3D min;
 	Vec3D max;
 	_stl->get_bbox( min, max );

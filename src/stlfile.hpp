@@ -69,48 +69,44 @@ class STLFile {
 	Triangle( std::ifstream &ifstr, const char *buf, const std::string &filename, int &linec );
 	~Triangle();
 
+	uint16_t attr( void ) const;
 	const Vec3D &normal( void ) const;
-	const Vec3D &p1( void ) const;
-	const Vec3D &p2( void ) const;
-	const Vec3D &p3( void ) const;
-	const Vec3D &operator[]( int i ) const;
+	const Vec3D &operator[]( int i ) const {
+	    return( _p[i] );
+	}
 	
 	void update_bbox( Vec3D &min, Vec3D &max ) const;
-
-	//int ray_cross( const Vec3D &x, const Vec3D &l ) const;
-
 	void debug_print( std::ostream &os ) const;
     };
 
     class VTriangle {
 
 	uint32_t _v[3];
-	Vec3D    _normal;
 
     public:
 
-	VTriangle( uint32_t v1, uint32_t v2, uint32_t v3, const Vec3D &normal );
-	VTriangle( const uint32_t v[3], const Vec3D &normal );
+	VTriangle( uint32_t v1, uint32_t v2, uint32_t v3 );
+	VTriangle( const uint32_t v[3] );
 	~VTriangle();
 
-	const Vec3D &normal( void ) const;
-	const uint32_t &operator[]( int i ) const;
-
-	//bool inside( const Vec3D &x ) const;
+	const uint32_t &operator[]( int i ) const {
+	    return( _v[i] );
+	}
 
 	void debug_print( std::ostream &os ) const;
-
-	/*! \brief Outputting to stream.
-	 */
-	friend std::ostream &operator<<( std::ostream &os, const VTriangle &vtri );
     };
 
     std::string            _filename;
     bool                   _ascii;
-    std::vector<Triangle>  _triangle;  // Original triangle data
-
-    std::vector<Vec3D>     _vertex;    // Vertex list
+    std::vector<Triangle>  _tri;       // Original triangles
+    std::vector<Vec3D>     _vertex;    // Vertices
     std::vector<VTriangle> _vtri;      // Vertex made triangles
+
+    Vec3D                  _offset;    // Amount of offset on vertices
+    Vec3D                  _bbox[2];   // bbox: min, max
+
+    double                 _vertex_matching_eps;
+    double                 _signed_volume_eps;
 
     std::vector<char>      _vpos;
     std::vector<char>      _vneg;
@@ -119,20 +115,44 @@ class STLFile {
     void read_ascii( std::ifstream &ifstr );
     void build_vtriangle_data( void );
     void check_vtriangle_data( void );
-    static int pointOriginalTetrahedron( const Vec3D &x, 
-					 const Vec3D &v1, const Vec3D &v2, const Vec3D &v3 );
-    static int sigdeter( const Vec3D &v1, const Vec3D &v2, const Vec3D &v3 );
-    static int sign3d( const Vec3D &p1, const Vec3D &p2, 
-		       const Vec3D &p3, const Vec3D &p4 );
+    void offset_vtriangle_data( void );
+    int classify_original_tetrahedron( int ss, const Vec3D &p, 
+				       const Vec3D &q1, const Vec3D &q2, const Vec3D &q3 );
+    int signvol4( const Vec3D &q0, const Vec3D &q1, 
+		  const Vec3D &q2, const Vec3D &q3 );
+    int signvol3( const Vec3D &q1, const Vec3D &q2, const Vec3D &q3 );
+
+    void calculate_bbox( void );
 
 public:
 
-    STLFile( const std::string &filename );
+    /*! \brief Constructor for STL-file based solid B-rep mesh data.
+     *
+     *  Reads either binary or ascii STL-file from \a
+     *  filename. Triangle vertices are connected if closer that \a
+     *  vertex_matching_eps together (absolute distance in
+     *  meters). During inside() evaluation a tetrahedron volume less
+     *  than \a signed_volume_eps is judged to be in the limits
+     *  of numerical accuracy. 
+     */
+    STLFile( const std::string &filename, 
+	     double vertex_matching_eps = 1.0e-9, 
+	     double signed_volume_eps = 1.0e-15 );
 
+    /*! \brief Destructor.
+     */
     ~STLFile();
 
-    size_t size( void );
+    /*! \brief Return number of vertices.
+     */
+    size_t vertexc( void );
 
+    /*! \brief Return number of triangles.
+     */
+    size_t trianglec( void );
+
+    /*! \brief Return if point \a x is inside solid.
+     */
     bool inside( const Vec3D &x );
 
     /*! \brief Return bounding box of entity
@@ -142,10 +162,6 @@ public:
     /*! \brief Print debugging information to os.
      */
     void debug_print( std::ostream &os ) const;
-
-    /*! \brief Outputting to stream.
-     */
-    friend std::ostream &operator<<( std::ostream &os, const VTriangle &vtri );
 };
 
 
