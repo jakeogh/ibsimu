@@ -400,12 +400,18 @@ public:
     uint8_t solid_dist( uint32_t i, uint32_t dir ) const;
 
     /*! \brief Saves data to a new file \a filename.
+     *
+     *  If \a save_solids is true, also the solid definitions are
+     *  saved. Not all solid types are saveable.
      */
-    void save( const std::string &filename ) const;
+    void save( const std::string &filename, bool save_solids = false ) const;
 
     /*! \brief Saves data to stream \a os.
+     *
+     *  If \a save_solids is true, also the solid definitions are
+     *  saved. Not all solid types are saveable.
      */
-    void save( std::ostream &os ) const;
+    void save( std::ostream &os, bool save_solids = false ) const;
 
     /*! \brief Print debugging information to stream \a os.
      */

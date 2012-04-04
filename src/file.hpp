@@ -47,20 +47,22 @@
 #include <iostream>
 #include <stdint.h>
 
-#define FILEID_GEOMETRY  1001
+#define FILEID_NULL             0
 
-#define FILEID_FUNCSOLID 2001
-#define FILEID_CSGSOLID  2002
-#define FILEID_DXFSOLID  2003
-#define FILEID_STLSOLID  2004
+#define FILEID_GEOMETRY      1001
+
+#define FILEID_FUNCSOLID     2001
+#define FILEID_CSGSOLID      2002
+#define FILEID_DXFSOLID      2003
+#define FILEID_STLSOLID      2004
 
 #define FILEID_PARTICLEDB2D  3001
 #define FILEID_PARTICLEDBCYL 3002
 #define FILEID_PARTICLEDB3D  3003
 
-#define FILEID_SCALARFIELD  4001
+#define FILEID_SCALARFIELD   4001
 
-#define FILEID_VECTORFIELD  5001
+#define FILEID_VECTORFIELD   5001
 
 
 /* **************** *

@@ -106,10 +106,14 @@ Geometry::Geometry( std::istream &is )
     _n = read_int32( is );
     for( uint32_t a = 0; a < _n; a++ ) {
 	int32_t fileid = read_int32( is );
-	if( fileid == FILEID_FUNCSOLID )
+	if( fileid == FILEID_NULL )
+	    _sdata.push_back( NULL );
+	else if( fileid == FILEID_FUNCSOLID )
 	    _sdata.push_back( new FuncSolid( is ) );
 	else if( fileid == FILEID_DXFSOLID )
 	    _sdata.push_back( new DXFSolid( is ) );
+	else if( fileid == FILEID_STLSOLID )
+	    _sdata.push_back( new STLSolid( is ) );
 	else
 	    throw( Error( ERROR_LOCATION, "unknown solid type" ) );
     }
@@ -959,24 +963,28 @@ uint8_t Geometry::solid_dist( uint32_t i, uint32_t dir ) const
 }
 
 
-void Geometry::save( const std::string &filename ) const
+void Geometry::save( const std::string &filename, bool save_solids ) const
 {
     ibsimu.message( 1 ) << "Saving Geometry to file \'" << filename << "\'.\n";
 
     std::ofstream os( filename.c_str(), std::ios_base::binary );
     if( !os.good() )
 	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
-    save( os );
+    save( os, save_solids );
     os.close();
 }
 
 
-void Geometry::save( std::ostream &os ) const
+void Geometry::save( std::ostream &os, bool save_solids ) const
 {
     Mesh::save( os );
     write_int32( os, _n );
-    for( uint32_t a = 0; a < _n; a++ )
-	_sdata[a]->save( os );
+    for( uint32_t a = 0; a < _n; a++ ) {
+	if( save_solids )
+	    _sdata[a]->save( os );
+	else
+	    write_int32( os, FILEID_NULL );
+    }
     for( uint32_t a = 0; a < _n+6; a++ )
 	_bound[a].save( os );
 
