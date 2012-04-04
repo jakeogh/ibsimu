@@ -616,11 +616,16 @@ int STLFile::classify_original_tetrahedron( int ss, const Vec3D &p,
 
 bool STLFile::inside( const Vec3D &p )
 {
-    Vec3D x = p+_offset;
+    // Fast test if outside bbox
     for( uint32_t a = 0; a < 3; a++ ) {
-	if( x[a] <= 0.0 )
+	if( p[a] < _bbox[0][a] )
+	    return( false );
+	if( p[a] > _bbox[1][a] )
 	    return( false );
     }
+    
+    // Offset point
+    Vec3D x = p+_offset;
 
     // Clear positive and negative vertex arrays
     _vpos.assign( _vertex.size(), false );
