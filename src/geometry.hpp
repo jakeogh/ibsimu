@@ -2,7 +2,7 @@
  *  \brief %Geometry definition
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,6 +45,7 @@
 
 
 #include <stdint.h>
+#include <pthread.h>
 #include <vector>
 #include <iostream>
 #include "file.hpp"
@@ -158,6 +159,12 @@ struct Bound
  */
 class Geometry : public Mesh
 {
+    struct BuildMeshData {
+	pthread_t  thread;
+	uint32_t   index;
+	Geometry  *geom;
+    };
+
     uint32_t                   _n;         /*!< \brief Number of solids */
     std::vector<const Solid*>  _sdata;     /*!< \brief Array of solid definitions, size \a _n */
     std::vector<Bound>         _bound;     /*!< \brief Array of boundary conditions, size \a _n+6 */
@@ -166,6 +173,9 @@ class Geometry : public Mesh
     uint32_t                  *_smesh;     /*!< \brief Solid mesh array. */
     std::vector<uint8_t>       _nearsolid; /*!< \brief Near solid data. */
 
+    pthread_mutex_t            _mutex;
+    pthread_cond_t             _cond;
+    uint32_t                   _done;
     
     /*! \brief Check if node is solid (n>=7).
      *
@@ -174,12 +184,6 @@ class Geometry : public Mesh
      *  >= 7 is returned.
      */
     uint32_t is_solid( int32_t i, int32_t j, int32_t k ) const;
-
-    /*! \brief Add a near solid distance to near solid data.
-     *
-     *  Subroutine of add_near_solid_entry().
-     */
-    void add_near_solid_distance( std::vector<uint8_t> &ndist, uint8_t dist );
 
     /*! \brief Add an entry to near solid data.
      *
@@ -194,7 +198,7 @@ class Geometry : public Mesh
      *  Finds surface of solid \a solid between the outer node (\a i,
      *  \a j, \a k) and the inner node in \a sign direction (+/-1) of
      *  of coordinate axis \a coord (0,1 or 2). Returns parametric
-     *  distance (between 0 and 255) from the outer node to the inner
+     *  distance (between 1 and 255) from the outer node to the inner
      *  node.
      */
     uint8_t bracket_ndist( int32_t i, int32_t j, int32_t k, int32_t solid, int sign, int coord ) const;
@@ -205,6 +209,19 @@ class Geometry : public Mesh
 
     Vec3D surface_normal_2d( const Vec3D &x ) const;
     Vec3D surface_normal_3d( const Vec3D &x ) const;
+
+
+    void build_mesh_parallel_near_solid( uint32_t ind, int32_t i, int32_t j, int32_t k );
+    void build_mesh_parallel_prepare_near_solid( uint32_t &near_solid_index, 
+						 int32_t i, int32_t j, int32_t k );
+    void build_mesh_parallel_prepare( void );
+
+
+    void build_mesh_parallel_thread( BuildMeshData *bmd );
+    static void *build_mesh_parallel_entry( void *data );
+    void build_mesh_parallel( void );
+
+    void build_mesh_serial( void );
 
 public:
 

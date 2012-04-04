@@ -48,6 +48,7 @@
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "dxf_solid.hpp"
+#include "stl_solid.hpp"
 #include "error.hpp"
 #include "ibsimu.hpp"
 #include "file.hpp"
@@ -91,6 +92,10 @@ Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
     _built = false;
     _smesh = new uint32_t[_size[0]*_size[1]*_size[2]];
 
+    pthread_mutex_init( &_mutex, NULL );
+    pthread_cond_init( &_cond, NULL );
+
+    ibsimu.message( 1 ) << "Done\n";
     ibsimu.dec_indent();
 }
 
@@ -131,6 +136,9 @@ Geometry::Geometry( std::istream &is )
     read_compressed_block( is, sizeof(uint8_t)*nearsolidsize, 
 			   (int8_t *)&_nearsolid[0] );
 
+    pthread_mutex_init( &_mutex, NULL );
+    pthread_cond_init( &_cond, NULL );
+
     ibsimu.message( 1 ) << "Done\n";
     ibsimu.dec_indent();
 }
@@ -139,6 +147,8 @@ Geometry::Geometry( std::istream &is )
 Geometry::~Geometry()
 {
     delete [] _smesh;
+    pthread_mutex_destroy( &_mutex );
+    pthread_cond_destroy( &_cond );
 }
 
 
@@ -354,8 +364,10 @@ uint8_t Geometry::bracket_ndist( int32_t i, int32_t j, int32_t k, int32_t solid,
 	surf += bp;
     }
 
+    // Don't allow zero distance to be returned
+    if( surf == 0 )
+	return( 1 );
     return( surf );
-    //return( 255 );
 }
 
 
@@ -680,34 +692,25 @@ bool Geometry::is_near_solid( int32_t i, int32_t j, int32_t k ) const
 	    is_solid(i,  j,  k+1) );
 }
 
-void Geometry::add_near_solid_distance( std::vector<uint8_t> &ndist, uint8_t dist )
-{
-    // zero distance is illegal, can cause problems with solver
-    if( dist == 0 )
-	ndist.push_back( 1 );
-    else
-	ndist.push_back( dist );
-}
-
 
 void Geometry::add_near_solid_entry( uint32_t &near_solid_index, int32_t i, int32_t j, int32_t k )
 {
     uint32_t solid = 0;         // Solid number of neighbour
     int nsolids = 0;            // Number of near neighbour solids nodes.
     uint8_t neighbours = 0;     // Bit flags for neighbours
-    std::vector<uint8_t> ndist; // Neighbour distances
+    uint8_t ndist[7];           // Neighbour distances
 
     // X
     if( (solid = is_solid(i-1,j,k)) ) {
 	neighbours += 0x20;
 	nsolids++;
-	add_near_solid_distance( ndist, bracket_ndist( i,j,k, solid, -1, 0 ) );
+	ndist[nsolids] = bracket_ndist( i,j,k, solid, -1, 0 );
     }
     neighbours = neighbours >> 1;
     if( ( solid = is_solid(i+1,j,k)) ) {
 	neighbours += 0x20;
 	nsolids++;
-	add_near_solid_distance( ndist, bracket_ndist( i,j,k, solid, +1, 0 ) );
+	ndist[nsolids] = bracket_ndist( i,j,k, solid, +1, 0 );
     }
     neighbours = neighbours >> 1;
 
@@ -715,13 +718,13 @@ void Geometry::add_near_solid_entry( uint32_t &near_solid_index, int32_t i, int3
     if( (solid = is_solid(i,j-1,k)) ) {
 	neighbours += 0x20;
 	nsolids++;
-	add_near_solid_distance( ndist, bracket_ndist( i,j,k, solid, -1, 1 ) );
+	ndist[nsolids] = bracket_ndist( i,j,k, solid, -1, 1 );
     }
     neighbours = neighbours >> 1;
     if( (solid = is_solid(i,j+1,k)) ) {
 	neighbours += 0x20;
 	nsolids++;
-	add_near_solid_distance( ndist, bracket_ndist( i,j,k, solid, +1, 1 ) );
+	ndist[nsolids] = bracket_ndist( i,j,k, solid, +1, 1 );
     }
     neighbours = neighbours >> 1;
 
@@ -729,20 +732,282 @@ void Geometry::add_near_solid_entry( uint32_t &near_solid_index, int32_t i, int3
     if( (solid = is_solid(i,j,k-1)) ) {
 	neighbours += 0x20;
 	nsolids++;
-	add_near_solid_distance( ndist, bracket_ndist( i,j,k, solid, -1, 2 ) );
+	ndist[nsolids] = bracket_ndist( i,j,k, solid, -1, 2 );
     }
     neighbours = neighbours >> 1;
     if( (solid = is_solid(i,j,k+1)) ) {
 	neighbours += 0x20;
 	nsolids++;
-	add_near_solid_distance( ndist, bracket_ndist( i,j,k, solid, +1, 2 ) );
+	ndist[nsolids] = bracket_ndist( i,j,k, solid, +1, 2 );
     }
 
-    size_t ind = _nearsolid.size();
-    near_solid_index = ind + 1 + sizeof(uint8_t)*nsolids;
+    uint32_t ind = near_solid_index;
+    near_solid_index += nsolids+1;
     _nearsolid.resize( near_solid_index );
-    _nearsolid[ind] = neighbours;
-    memcpy( (void *)&_nearsolid[ind+1], (void *)&ndist[0], sizeof(uint8_t)*nsolids );
+    ndist[0] = neighbours;
+    memcpy( (void *)&_nearsolid[ind], (void *)ndist, nsolids+1 );
+}
+
+
+void Geometry::build_mesh_parallel_near_solid( uint32_t ind, int32_t i, int32_t j, int32_t k )
+{
+    uint32_t solid = 0;         // Solid number of neighbour
+    int nsolids = 0;            // Number of near neighbour solids nodes.
+    uint8_t neighbours = 0;     // Bit flags for neighbours
+    uint8_t ndist[7];           // Neighbour distances
+    
+    // X
+    if( (solid = is_solid(i-1,j,k)) ) {
+	neighbours += 0x20;
+	nsolids++;
+	ndist[nsolids] = bracket_ndist( i,j,k, solid, -1, 0 );
+    }
+    neighbours = neighbours >> 1;
+    if( ( solid = is_solid(i+1,j,k)) ) {
+	neighbours += 0x20;
+	nsolids++;
+	ndist[nsolids] = bracket_ndist( i,j,k, solid, +1, 0 );
+    }
+    neighbours = neighbours >> 1;
+
+    // Y
+    if( (solid = is_solid(i,j-1,k)) ) {
+	neighbours += 0x20;
+	nsolids++;
+	ndist[nsolids] = bracket_ndist( i,j,k, solid, -1, 1 );
+    }
+    neighbours = neighbours >> 1;
+    if( (solid = is_solid(i,j+1,k)) ) {
+	neighbours += 0x20;
+	nsolids++;
+	ndist[nsolids] = bracket_ndist( i,j,k, solid, +1, 1 );
+    }
+    neighbours = neighbours >> 1;
+
+    // Z
+    if( (solid = is_solid(i,j,k-1)) ) {
+	neighbours += 0x20;
+	nsolids++;
+	ndist[nsolids] = bracket_ndist( i,j,k, solid, -1, 2 );
+    }
+    neighbours = neighbours >> 1;
+    if( (solid = is_solid(i,j,k+1)) ) {
+	neighbours += 0x20;
+	nsolids++;
+	ndist[nsolids] = bracket_ndist( i,j,k, solid, +1, 2 );
+    }
+
+    ndist[0] = neighbours;
+    memcpy( (void *)&_nearsolid[ind], (void *)ndist, nsolids+1 );
+}
+
+
+void Geometry::build_mesh_parallel_prepare_near_solid( uint32_t &near_solid_index, 
+						       int32_t i, int32_t j, int32_t k )
+{
+    int nsolids = 0;
+
+    // Count number of near neighbour solid nodes
+    if( is_solid(i-1,j,k) )
+	nsolids++;
+    if( is_solid(i+1,j,k) )
+	nsolids++;
+    if( is_solid(i,j-1,k) )
+	nsolids++;
+    if( is_solid(i,j+1,k) )
+	nsolids++;
+    if( is_solid(i,j,k-1) )
+	nsolids++;
+    if( is_solid(i,j,k+1) )
+	nsolids++;
+
+    near_solid_index += 1 + sizeof(uint8_t)*nsolids;
+}
+
+
+void Geometry::build_mesh_parallel_prepare( void )
+{
+    uint32_t near_solid_index = 0;
+
+    // Mark all nodes and count near solid data size
+    for( int32_t k = 0; k < _size[2]; k++ ) {
+	for( int32_t j = 0; j < _size[1]; j++ ) {
+	    for( int32_t i = 0; i < _size[0]; i++ ) {
+
+		if( mesh(i,j,k) != 0 )
+		    continue;
+
+		if( i == 0 ) {
+		    // Xmin boundary
+		    if( get_boundary(1).type == BOUND_NEUMANN ) {
+			if( is_near_solid(i,j,k) ) {
+			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+			    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
+			} else {
+			    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 1;
+			}
+		    } else {
+			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 1;
+		    }
+
+		} else if( i == _size[0]-1 ) {
+		    // Xmax boundary
+		    if( get_boundary(2).type == BOUND_NEUMANN ) {
+			if( is_near_solid(i,j,k) ) {
+			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+			    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
+			} else {
+			    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 2;
+			}
+		    } else {
+			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 2;
+		    }
+
+		} else if( j == 0 ) {
+		    // Ymin boundary
+		    if( get_boundary(3).type == BOUND_NEUMANN ) {
+			if( is_near_solid(i,j,k) ) {
+			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+			    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
+			} else {
+			    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 3;
+			}
+		    } else {
+			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 3;
+		    }
+
+		} else if( j == _size[1]-1 ) {
+		    // Ymax boundary
+		    if( get_boundary(4).type == BOUND_NEUMANN ) {
+			if( is_near_solid(i,j,k) ) {
+			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+			    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
+			} else {
+			    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 4;
+			}
+		    } else {
+			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 4;
+		    }
+
+		} else if( k == 0 ) {
+		    // Zmin boundary
+		    if( get_boundary(5).type == BOUND_NEUMANN ) {
+			if( is_near_solid(i,j,k) ) {
+			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+			    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
+			} else {
+			    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 5;
+			}
+		    } else {
+			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 5;
+		    }
+
+		} else if( k == _size[2]-1 ) {
+		    // Zmax boundary
+		    if( get_boundary(6).type == BOUND_NEUMANN ) {
+			if( is_near_solid(i,j,k) ) {
+			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+			    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
+			} else {
+			    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 6;
+			}
+		    } else {
+			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 6;
+		    }
+		}
+
+		else if( is_near_solid(i,j,k) ) {
+		    // Near solid
+		    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+		    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
+
+		} else {
+		    // Pure vacuum
+		    mesh(i,j,k) = SMESH_NODE_ID_PURE_VACUUM;
+		}
+	    }
+	}
+    }
+
+    // Reserve space for near solid data
+    _nearsolid.resize( near_solid_index );
+}
+
+
+void Geometry::build_mesh_parallel_thread( BuildMeshData *bmd )
+{
+    // Parallel: Mark solid (Dirichlet) nodes. Others left to zero.
+    for( int32_t k = bmd->index; k < _size[2]; k += ibsimu.get_thread_count() ) {
+	double z = k*_h+_origo[2];
+	for( int32_t j = 0; j < _size[1]; j++ ) {
+	    double y = j*_h+_origo[1];
+	    for( int32_t i = 0; i < _size[0]; i++ ) {
+		double x = i*_h+_origo[0];
+		uint32_t nid = inside( Vec3D(x,y,z) );
+		if( nid )
+		    mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | nid;
+		else
+		    mesh(i,j,k) = 0;
+	    }
+	}
+    }
+
+    // Serial part: edges and preparation for near solid nodes
+    pthread_mutex_lock( &_mutex );
+    _done++;
+    if( _done == ibsimu.get_thread_count() ) {
+	// Mark rest of mesh nodes and prepare for building near solid data
+	build_mesh_parallel_prepare();
+	pthread_cond_broadcast( &_cond );
+    } else {
+	do {
+	    pthread_cond_wait( &_cond, &_mutex );
+	} while( _done != ibsimu.get_thread_count() );
+    }
+    pthread_mutex_unlock( &_mutex );
+
+    // Parallel: Build near solid data
+    for( int32_t k = bmd->index; k < _size[2]; k += ibsimu.get_thread_count() ) {
+	for( int32_t j = 0; j < _size[1]; j++ ) {
+	    for( int32_t i = 0; i < _size[0]; i++ ) {
+
+		uint32_t node = mesh(i,j,k);
+		uint32_t node_id = node & SMESH_NODE_ID_MASK;
+		if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
+		    uint32_t index = node & SMESH_NEAR_SOLID_INDEX_MASK;
+		    build_mesh_parallel_near_solid( index, i, j, k );
+		}
+	    }
+	}
+    }
+}
+
+
+void *Geometry::build_mesh_parallel_entry( void *data )
+{
+    BuildMeshData *bmd = (BuildMeshData *)data;
+    bmd->geom->build_mesh_parallel_thread( bmd );
+    return( NULL );
+}
+
+
+void Geometry::build_mesh_parallel( void )
+{
+    BuildMeshData bmd[ibsimu.get_thread_count()];
+
+    // Prepare common data
+    _done = 0;
+
+    // Start threads
+    for( uint32_t a = 0; a < ibsimu.get_thread_count(); a++ ) {
+	bmd[a].index = a;
+	bmd[a].geom = this;
+	pthread_create( &bmd[a].thread, NULL, build_mesh_parallel_entry, (void *)&bmd[a] );
+    }
+
+    // Join threads
+    for( uint32_t a = 0; a < ibsimu.get_thread_count(); a++ )
+	pthread_join( bmd[a].thread, NULL );    
 }
 
 
@@ -752,7 +1017,56 @@ void Geometry::build_mesh( void )
     ibsimu.inc_indent();
 
     _built = true;
+    
+    //build_mesh_serial();
+    build_mesh_parallel();
 
+    // Report node counts
+    int b;
+    uint32_t ncount = nodecount();
+    uint32_t nvacuum = 0;
+    uint32_t nnearsolid = 0;
+    uint32_t nneumann = 0;
+    uint32_t ndirichlet = 0;
+    int nsolid[_n];
+    for( uint32_t a = 0; a < _n; a++ )
+	nsolid[a] = 0;
+    
+    for( uint32_t a = 0; a < ncount; a++ ) {
+	
+	switch( mesh(a) & SMESH_NODE_ID_MASK ) {
+	case SMESH_NODE_ID_NEAR_SOLID:
+	    nnearsolid++;
+	    break;
+	case SMESH_NODE_ID_PURE_VACUUM:
+	    nvacuum++;
+	    break;
+	case SMESH_NODE_ID_NEUMANN:
+	    nneumann++;
+	    if( (b = (mesh(a) & SMESH_BOUNDARY_NUMBER_MASK)) >= 7 )
+		nsolid[b-7]++;
+	    break;
+	case SMESH_NODE_ID_DIRICHLET:
+	    ndirichlet++;
+	    if( (b = (mesh(a) & SMESH_BOUNDARY_NUMBER_MASK)) >= 7 )
+		nsolid[b-7]++;
+	    break;
+	}
+    }
+    
+    ibsimu.message( 1 ) << "Done. Built mesh with:\n";
+    ibsimu.message( 1 ) << nvacuum << " pure vacuum nodes\n";
+    ibsimu.message( 1 ) << nnearsolid << " near solid nodes\n";
+    ibsimu.message( 1 ) << nneumann << " neumann nodes\n";
+    ibsimu.message( 1 ) << ndirichlet << " dirichlet nodes\n";
+    for( uint32_t a = 0; a < _n; a++ )
+	ibsimu.message( 1 ) << nsolid[a] << " solid " << a+7 << " nodes\n";
+    ibsimu.dec_indent();
+}
+
+
+void Geometry::build_mesh_serial( void )
+{
     // Mark solid (Dirichlet) nodes. Others left to zero.
     for( int32_t k = 0; k < _size[2]; k++ ) {
 	double z = k*_h+_origo[2];
@@ -868,48 +1182,6 @@ void Geometry::build_mesh( void )
 	    }
 	}
     }
-
-    // Report node counts
-    int b;
-    uint32_t ncount = nodecount();
-    uint32_t nvacuum = 0;
-    uint32_t nnearsolid = 0;
-    uint32_t nneumann = 0;
-    uint32_t ndirichlet = 0;
-    int nsolid[_n];
-    for( uint32_t a = 0; a < _n; a++ )
-	nsolid[a] = 0;
-    
-    for( uint32_t a = 0; a < ncount; a++ ) {
-	
-	switch( mesh(a) & SMESH_NODE_ID_MASK ) {
-	case SMESH_NODE_ID_NEAR_SOLID:
-	    nnearsolid++;
-	    break;
-	case SMESH_NODE_ID_PURE_VACUUM:
-	    nvacuum++;
-	    break;
-	case SMESH_NODE_ID_NEUMANN:
-	    nneumann++;
-	    if( (b = (mesh(a) & SMESH_BOUNDARY_NUMBER_MASK)) >= 7 )
-		nsolid[b-7]++;
-	    break;
-	case SMESH_NODE_ID_DIRICHLET:
-	    ndirichlet++;
-	    if( (b = (mesh(a) & SMESH_BOUNDARY_NUMBER_MASK)) >= 7 )
-		nsolid[b-7]++;
-	    break;
-	}
-    }
-    
-    ibsimu.message( 1 ) << "Done. Built mesh with:\n";
-    ibsimu.message( 1 ) << nvacuum << " pure vacuum nodes\n";
-    ibsimu.message( 1 ) << nnearsolid << " near solid nodes\n";
-    ibsimu.message( 1 ) << nneumann << " neumann nodes\n";
-    ibsimu.message( 1 ) << ndirichlet << " dirichlet nodes\n";
-    for( uint32_t a = 0; a < _n; a++ )
-	ibsimu.message( 1 ) << nsolid[a] << " solid " << a+7 << " nodes\n";
-    ibsimu.dec_indent();
 }
 
 
