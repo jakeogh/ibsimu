@@ -2,7 +2,7 @@
  *  \brief %Solid definition using Stereolithography CAD format
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -63,6 +63,12 @@ STLSolid::STLSolid( const std::string &filename )
     }
 
     ibsimu.dec_indent();
+}
+
+
+STLSolid::STLSolid( std::istream &is )
+{
+    throw( ErrorUnimplemented( ERROR_LOCATION ) );
 }
 
 

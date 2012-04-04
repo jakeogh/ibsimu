@@ -2,7 +2,7 @@
  *  \brief %Solid definition using Stereolithography CAD format
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -62,6 +62,10 @@ public:
     /*! \brief Constructor for making a solid reading a STL-file.
      */
     STLSolid( const std::string &filename );
+
+    /*! \brief Constructor for loading solid data from stream \a is.
+     */
+    STLSolid( std::istream &is );
 
     /*! \brief Destructor.
      */
