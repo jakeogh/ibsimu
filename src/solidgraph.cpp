@@ -81,16 +81,17 @@ bool SolidGraph::is_edge( uint32_t node, const int32_t i[3] ) const
 }
 
 
-/* Same as old algorithm but uses near solid data from Geometry for
- * solid surface location when available, otherwise draws surface
- * halfway. Only does drawing in coordinate axes directions from the
- * surface. Direction of travel includes 45 degree directions:
+/* Loop around solid and save points to \a solid. Uses near solid data
+ * from Geometry for solid surface location when available, otherwise
+ * draws on the solid edge node. Only does drawing in coordinate axes
+ * directions from the surface. Direction of travel includes 45 degree
+ * directions:
  *
  *   1 0 7
  *   2 X 6
  *   3 4 5
  */
-void SolidGraph::build_solid_new( SolidPoints *solid, const int32_t j[3], char *done, bool out, uint32_t node )
+void SolidGraph::build_solid( SolidPoints *solid, const int32_t j[3], char *done, bool out, uint32_t node )
 {
     int32_t next[3]  = {j[0], j[1], j[2]};
     int32_t i[3]     = {j[0], j[1], j[2]};
@@ -232,181 +233,6 @@ void SolidGraph::build_solid_new( SolidPoints *solid, const int32_t j[3], char *
 }
 
 
-/* Algorithm goes through the level of solid mesh going through mesh
- * nodes in ordered manner marking the processed nodes in done array
- * until it finds a solid boundary. The solid boundary is then followed
- * counterclockwise bracketing the exact location of surface at each node.
- * Direction of travel is marked with integer number dir:
- *
- *   1 0 7
- *   2 X 6
- *   3 4 5
- */
-void SolidGraph::build_solid( SolidPoints *solid, const int32_t j[3], char *done, bool out, uint32_t node )
-{
-    int32_t next[3]  = {j[0], j[1], j[2]};
-    int32_t i[3]     = {j[0], j[1], j[2]};
-    int32_t first[3] = {j[0], j[1], j[2]};
-    int a, dir, save;
-    int loop_done = 0;
-
-#ifdef DEBUG_SOLIDGRAPH    
-    std::cout << "\nbuild_solid()\n";
-#endif
-
-    // Initialize direction
-    if( out )
-	dir = 3; // Going out of solid -> direction 0 first (3 will be subtracted later)
-    else
-	dir = 9; // Going into solid -> direction 6 first (3 will be subtracted later)
-
-    while( 1 ) {
-
-	// Mark node done
-	done[ i[_vb[0]] + i[_vb[1]]*_geom.size(_vb[0]) ] = 1;
-
-	/* One step counterclockwise from the direction we came from */
-	dir -= 3;
-	if( dir < 0 )
-	    dir += 8;
-	
-	/* Go through directions */
-	for( a = 0; a < 8; a++ ) {
-
-#ifdef DEBUG_SOLIDGRAPH
-	    std::cout << "  Testing dir = " << dir << "\n";
-#endif
-
-	    save = 0;
-	    switch( dir ) {
-	    case 0:
-		save = 1;
-		next[_vb[0]] = i[_vb[0]];
-		next[_vb[1]] = i[_vb[1]]+1;
-		break;
-	    case 1:
-		if( get_mesh( i,  0, +1 ) != node &&
-		    get_mesh( i, -1,  0 ) != node )
-		    save = 1;
-		next[_vb[0]] = i[_vb[0]]-1;
-		next[_vb[1]] = i[_vb[1]]+1;
-		break;
-	    case 2:
-		save = 1;
-		next[_vb[0]] = i[_vb[0]]-1;
-		next[_vb[1]] = i[_vb[1]];
-		break;
-	    case 3:
-		if( get_mesh( i,  0, -1 ) != node &&
-		    get_mesh( i, -1,  0 ) != node )
-		    save = 1;
-		next[_vb[0]] = i[_vb[0]]-1;
-		next[_vb[1]] = i[_vb[1]]-1;
-		break;
-	    case 4:
-		save = 1;
-		next[_vb[0]] = i[_vb[0]];
-		next[_vb[1]] = i[_vb[1]]-1;
-		break;
-	    case 5:
-		if( get_mesh( i,  0, -1 ) != node &&
-		    get_mesh( i, +1,  0 ) != node )
-		    save = 1;
-		next[_vb[0]] = i[_vb[0]]+1;
-		next[_vb[1]] = i[_vb[1]]-1;
-		break;
-	    case 6:
-		save = 1;
-		next[_vb[0]] = i[_vb[0]]+1;
-		next[_vb[1]] = i[_vb[1]];
-		break;
-	    case 7:
-		if( get_mesh( i,  0, +1 ) != node &&
-		    get_mesh( i, +1,  0 ) != node )
-		    save = 1;
-		next[_vb[0]] = i[_vb[0]]+1;
-		next[_vb[1]] = i[_vb[1]]+1;
-		break;
-	    default:
-		throw( Error( ERROR_LOCATION, "algorithm error" ) );
-	    }
-
-#ifdef DEBUG_SOLIDGRAPH
-	    std::cout << "    save = " << save << "\n";
-	    std::cout << "    next = (" 
-		      << next[0] << ", "
-		      << next[1] << ", "
-		      << next[2] << ")\n";
-#endif
-
-	    // If loop is done and direction same as starting direction
-	    if( loop_done && ((dir == 6 && !out) || (dir == 0 && out)) )
-		break;
-
-	    // If next point is an edge point, proceed to the next
-	    // point without saving a point
-	    if( is_edge( node, next ) )
-		break;
-
-	    // Save solid edge point between i and next
-	    if( save ) {
-		Vec3D x1( i[0]*_geom.h()+_geom.origo(0),
-			  i[1]*_geom.h()+_geom.origo(1),
-			  i[2]*_geom.h()+_geom.origo(2) );
-		Vec3D x2( next[0]*_geom.h()+_geom.origo(0),
-			  next[1]*_geom.h()+_geom.origo(1),
-			  next[2]*_geom.h()+_geom.origo(2) );
-
-#ifdef DEBUG_SOLIDGRAPH
-		std::cout << "    Saving point, bracketing between x1 and x2\n";
-		std::cout << "    x1 = ("
-			  << x1[0] << ", "
-			  << x1[1] << ", "
-			  << x1[2] << ")\n";
-		std::cout << "    x2 = ("
-			  << x2[0] << ", "
-			  << x2[1] << ", "
-			  << x2[2] << ")\n";
-#endif
-		Vec3D xsurf;
-		_geom.bracket_surface( node & SMESH_BOUNDARY_NUMBER_MASK, x1, x2, xsurf );
-		//std::cout << "  Saving point (" 
-		//	  << xsurf(vb[0]) << ","
-		//	  << xsurf(vb[1]) << ")\n";
-		//std::cout << solid->N << "\n";
-		//solid->p.reserve( 10 );
-		//std::cout << solid->p.size() << " " << solid->p.capacity() << "\n";
-
-#ifdef DEBUG_SOLIDGRAPH
-		std::cout << "    xsurf = ("
-			  << xsurf[0] << ", "
-			  << xsurf[1] << ", "
-			  << xsurf[2] << ")\n";
-#endif
-		solid->p.push_back( Point( xsurf(_vb[0]), xsurf(_vb[1]) ) );
-	    }
-
-	    // Progress direction counterclockwise
-	    dir++;
-	    if( dir > 7 )
-		dir -= 8;
-	}
-	if( a == 8 || loop_done ) {
-	    //std::cout << "  Loop done\n";
-	    break;
-	}
-
-	i[0] = next[0];
-	i[1] = next[1];
-	i[2] = next[2];
-
-	if( i[0] == first[0] && i[1] == first[1] && i[2] == first[2] ) {
-	    loop_done = 1;
-	}
-    }
-}
-
-
 void SolidGraph::clear_data( void )
 {
     for( size_t a = 0; a < _solid.size(); a++  ) {
@@ -469,8 +295,7 @@ void SolidGraph::build_data( void )
 		    //std::cout << "building continuation\n";
 		    _solid[a]->p.push_back( Point(std::numeric_limits<double>::quiet_NaN(),
 						  std::numeric_limits<double>::quiet_NaN()) );
-		    //build_solid( _solid[a], i, done, (lastnode == node), node );
-		    build_solid_new( _solid[a], i, done, (lastnode == node), node );
+		    build_solid( _solid[a], i, done, (lastnode == node), node );
 		    break;
 		}
 	    }
