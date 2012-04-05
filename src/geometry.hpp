@@ -214,10 +214,15 @@ class Geometry : public Mesh
     void build_mesh_parallel_near_solid( uint32_t ind, int32_t i, int32_t j, int32_t k );
     void build_mesh_parallel_prepare_near_solid( uint32_t &near_solid_index, 
 						 int32_t i, int32_t j, int32_t k );
-    void build_mesh_parallel_prepare( void );
+    void build_mesh_parallel_prepare_3d( void );
+    void build_mesh_parallel_prepare_2d( void );
+    void build_mesh_parallel_prepare_1d( void );
 
-
+    void build_mesh_parallel_thread_3d( BuildMeshData *bmd );
+    void build_mesh_parallel_thread_2d( BuildMeshData *bmd );
+    void build_mesh_parallel_thread_1d( void );
     void build_mesh_parallel_thread( BuildMeshData *bmd );
+
     static void *build_mesh_parallel_entry( void *data );
     void build_mesh_parallel( void );
 

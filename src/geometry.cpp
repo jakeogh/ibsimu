@@ -52,6 +52,7 @@
 #include "error.hpp"
 #include "ibsimu.hpp"
 #include "file.hpp"
+#include "timer.hpp"
 
 
 //#define DEBUG_BRACKET_SURFACE 1
@@ -825,7 +826,7 @@ void Geometry::build_mesh_parallel_prepare_near_solid( uint32_t &near_solid_inde
 }
 
 
-void Geometry::build_mesh_parallel_prepare( void )
+void Geometry::build_mesh_parallel_prepare_3d( void )
 {
     uint32_t near_solid_index = 0;
 
@@ -914,9 +915,8 @@ void Geometry::build_mesh_parallel_prepare( void )
 		    } else {
 			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 6;
 		    }
-		}
 
-		else if( is_near_solid(i,j,k) ) {
+		} else if( is_near_solid(i,j,k) ) {
 		    // Near solid
 		    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
 		    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
@@ -934,7 +934,139 @@ void Geometry::build_mesh_parallel_prepare( void )
 }
 
 
-void Geometry::build_mesh_parallel_thread( BuildMeshData *bmd )
+void Geometry::build_mesh_parallel_prepare_2d( void )
+{
+    uint32_t near_solid_index = 0;
+
+    // Mark all nodes and count near solid data size
+    for( int32_t j = 0; j < _size[1]; j++ ) {
+	for( int32_t i = 0; i < _size[0]; i++ ) {
+
+	    if( mesh(i,j) != 0 )
+		continue;
+
+	    if( i == 0 ) {
+		// Xmin boundary
+		if( get_boundary(1).type == BOUND_NEUMANN ) {
+		    if( is_near_solid(i,j,0) ) {
+			mesh(i,j) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+			build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, 0 );
+		    } else {
+			mesh(i,j) = SMESH_NODE_ID_NEUMANN | 1;
+		    }
+		} else {
+		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 1;
+		}
+
+	    } else if( i == _size[0]-1 ) {
+		// Xmax boundary
+		if( get_boundary(2).type == BOUND_NEUMANN ) {
+		    if( is_near_solid(i,j,0) ) {
+			mesh(i,j) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+			build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, 0 );
+		    } else {
+			mesh(i,j) = SMESH_NODE_ID_NEUMANN | 2;
+		    }
+		} else {
+		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 2;
+		}
+		
+	    } else if( j == 0 ) {
+		// Ymin boundary
+		if( get_boundary(3).type == BOUND_NEUMANN ) {
+		    if( is_near_solid(i,j,0) ) {
+			mesh(i,j) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+			build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, 0 );
+		    } else {
+			mesh(i,j) = SMESH_NODE_ID_NEUMANN | 3;
+		    }
+		} else {
+		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 3;
+		}
+		
+	    } else if( j == _size[1]-1 ) {
+		// Ymax boundary
+		if( get_boundary(4).type == BOUND_NEUMANN ) {
+		    if( is_near_solid(i,j,0) ) {
+			mesh(i,j) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+			build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, 0 );
+		    } else {
+			mesh(i,j) = SMESH_NODE_ID_NEUMANN | 4;
+		    }
+		} else {
+		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 4;
+		}
+
+	    } else if( is_near_solid(i,j,0) ) {
+		// Near solid
+		mesh(i,j) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+		build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, 0 );
+		
+	    } else {
+		// Pure vacuum
+		mesh(i,j) = SMESH_NODE_ID_PURE_VACUUM;
+	    }
+	}
+    }
+
+    // Reserve space for near solid data
+    _nearsolid.resize( near_solid_index );
+}
+
+
+void Geometry::build_mesh_parallel_prepare_1d( void )
+{
+    uint32_t near_solid_index = 0;
+
+    // Mark all nodes and count near solid data size
+    for( int32_t i = 0; i < _size[0]; i++ ) {
+
+	if( mesh(i) != 0 )
+	    continue;
+	
+	if( i == 0 ) {
+	    // Xmin boundary
+	    if( get_boundary(1).type == BOUND_NEUMANN ) {
+		if( is_near_solid(i,0,0) ) {
+		    mesh(i) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+		    build_mesh_parallel_prepare_near_solid( near_solid_index, i, 0, 0 );
+		} else {
+		    mesh(i) = SMESH_NODE_ID_NEUMANN | 1;
+		}
+	    } else {
+		mesh(i) = SMESH_NODE_ID_DIRICHLET | 1;
+	    }
+	    
+	} else if( i == _size[0]-1 ) {
+	    // Xmax boundary
+	    if( get_boundary(2).type == BOUND_NEUMANN ) {
+		if( is_near_solid(i,0,0) ) {
+		    mesh(i) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+		    build_mesh_parallel_prepare_near_solid( near_solid_index, i, 0, 0 );
+		} else {
+		    mesh(i) = SMESH_NODE_ID_NEUMANN | 2;
+		}
+	    } else {
+		mesh(i) = SMESH_NODE_ID_DIRICHLET | 2;
+	    }
+
+	} else if( is_near_solid(i,0,0) ) {
+	    // Near solid
+	    mesh(i) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
+	    build_mesh_parallel_prepare_near_solid( near_solid_index, i, 0, 0 );
+	    
+	} else {
+	    // Pure vacuum
+	    mesh(i) = SMESH_NODE_ID_PURE_VACUUM;
+	}
+    }
+
+    // Reserve space for near solid data
+    _nearsolid.resize( near_solid_index );
+}
+
+
+void Geometry::build_mesh_parallel_thread_3d( BuildMeshData *bmd )
 {
     // Parallel: Mark solid (Dirichlet) nodes. Others left to zero.
     for( int32_t k = bmd->index; k < _size[2]; k += ibsimu.get_thread_count() ) {
@@ -957,7 +1089,7 @@ void Geometry::build_mesh_parallel_thread( BuildMeshData *bmd )
     _done++;
     if( _done == ibsimu.get_thread_count() ) {
 	// Mark rest of mesh nodes and prepare for building near solid data
-	build_mesh_parallel_prepare();
+	build_mesh_parallel_prepare_3d();
 	pthread_cond_broadcast( &_cond );
     } else {
 	do {
@@ -983,6 +1115,88 @@ void Geometry::build_mesh_parallel_thread( BuildMeshData *bmd )
 }
 
 
+void Geometry::build_mesh_parallel_thread_2d( BuildMeshData *bmd )
+{
+    // Parallel: Mark solid (Dirichlet) nodes. Others left to zero.
+    for( int32_t j = bmd->index; j < _size[1]; j += ibsimu.get_thread_count() ) {
+	double y = j*_h+_origo[1];
+	for( int32_t i = 0; i < _size[0]; i++ ) {
+	    double x = i*_h+_origo[0];
+	    uint32_t nid = inside( Vec3D(x,y) );
+	    if( nid )
+		mesh(i,j) = SMESH_NODE_ID_DIRICHLET | nid;
+	    else
+		mesh(i,j) = 0;
+	}
+    }
+
+    // Serial part: edges and preparation for near solid nodes
+    pthread_mutex_lock( &_mutex );
+    _done++;
+    if( _done == ibsimu.get_thread_count() ) {
+	// Mark rest of mesh nodes and prepare for building near solid data
+	build_mesh_parallel_prepare_2d();
+	pthread_cond_broadcast( &_cond );
+    } else {
+	do {
+	    pthread_cond_wait( &_cond, &_mutex );
+	} while( _done != ibsimu.get_thread_count() );
+    }
+    pthread_mutex_unlock( &_mutex );
+
+    // Parallel: Build near solid data
+    for( int32_t j = bmd->index; j < _size[1]; j += ibsimu.get_thread_count() ) {
+	for( int32_t i = 0; i < _size[0]; i++ ) {
+	    
+	    uint32_t node = mesh(i,j);
+	    uint32_t node_id = node & SMESH_NODE_ID_MASK;
+	    if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
+		uint32_t index = node & SMESH_NEAR_SOLID_INDEX_MASK;
+		build_mesh_parallel_near_solid( index, i, j, 0 );
+	    }
+	}
+    }
+}
+
+
+void Geometry::build_mesh_parallel_thread_1d( void )
+{
+    // Mark solid (Dirichlet) nodes. Others left to zero.
+    for( int32_t i = 0; i < _size[0]; i++ ) {
+	double x = i*_h+_origo[0];
+	uint32_t nid = inside( Vec3D(x) );
+	if( nid )
+	    mesh(i) = SMESH_NODE_ID_DIRICHLET | nid;
+	else
+	    mesh(i) = 0;
+    }
+
+    // Mark rest of mesh nodes and prepare for building near solid data
+    build_mesh_parallel_prepare_1d();
+
+    // Build near solid data
+    for( int32_t i = 0; i < _size[0]; i++ ) {	    
+	uint32_t node = mesh(i);
+	uint32_t node_id = node & SMESH_NODE_ID_MASK;
+	if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
+	    uint32_t index = node & SMESH_NEAR_SOLID_INDEX_MASK;
+	    build_mesh_parallel_near_solid( index, i, 0, 0 );
+	}
+    }
+}
+
+
+void Geometry::build_mesh_parallel_thread( BuildMeshData *bmd )
+{
+    if( _geom_mode == MODE_3D )
+	build_mesh_parallel_thread_3d( bmd );
+    else if( _geom_mode == MODE_2D || _geom_mode == MODE_CYL )
+	build_mesh_parallel_thread_2d( bmd );
+    else
+	throw( ErrorAssert( ERROR_LOCATION ) );
+}
+
+
 void *Geometry::build_mesh_parallel_entry( void *data )
 {
     BuildMeshData *bmd = (BuildMeshData *)data;
@@ -993,6 +1207,12 @@ void *Geometry::build_mesh_parallel_entry( void *data )
 
 void Geometry::build_mesh_parallel( void )
 {
+    // Mesh building in 1d is not parallelized
+    if( _geom_mode == MODE_1D ) {
+	build_mesh_parallel_thread_1d();
+	return;
+    }
+
     BuildMeshData bmd[ibsimu.get_thread_count()];
 
     // Prepare common data
@@ -1013,6 +1233,7 @@ void Geometry::build_mesh_parallel( void )
 
 void Geometry::build_mesh( void )
 {
+    Timer t;
     ibsimu.message( 1 ) << "Building mesh\n";
     ibsimu.inc_indent();
 
@@ -1061,6 +1282,11 @@ void Geometry::build_mesh( void )
     ibsimu.message( 1 ) << ndirichlet << " dirichlet nodes\n";
     for( uint32_t a = 0; a < _n; a++ )
 	ibsimu.message( 1 ) << nsolid[a] << " solid " << a+7 << " nodes\n";
+
+    // End timer
+    t.stop();
+
+    ibsimu.message( 1 ) << "time used = " << t << "\n";
     ibsimu.dec_indent();
 }
 
