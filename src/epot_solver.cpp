@@ -239,8 +239,8 @@ void EpotSolver::preprocess( MeshScalarField &epot )
 	}
     }
 
-    // Change near solid nodes on Neumann boundaries to
-    // NODE_ID_NEUMANN and store near solid indexes. Take care to
+    // Change near solid nodes on boundaries to NODE_ID_NEUMANN or
+    // NODE_ID_DIRICHLET and store near solid indexes. Take care to
     // process in the same order as in Geometry class (x overrides y,
     // which overrides z.
 
@@ -250,17 +250,18 @@ void EpotSolver::preprocess( MeshScalarField &epot )
     // Xmin and Xmax
     for( uint32_t bound = 1; bound <= 2; bound++ ) {
 	uint32_t i = 0;
-	if( bound == 2 ) i = _geom.size(0)-1;
-	if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
-	    for( uint32_t k = 0; k < _geom.size(2); k++ ) {
-		for( uint32_t j = 0; j < _geom.size(1); j++ ) {
-		    uint32_t mesh = _geom.mesh(i,j,k);
-		    uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
-		    if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
-			uint32_t index = mesh & SMESH_NEAR_SOLID_INDEX_MASK;
-			_nsind.push_back( index );
+	if( bound == 2 ) i = _geom.size(0)-1;	
+	for( uint32_t k = 0; k < _geom.size(2); k++ ) {
+	    for( uint32_t j = 0; j < _geom.size(1); j++ ) {
+		uint32_t mesh = _geom.mesh(i,j,k);
+		uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+		if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
+		    uint32_t index = mesh & SMESH_NEAR_SOLID_INDEX_MASK;
+		    _nsind.push_back( index );
+		    if( _geom.get_boundary(bound).type == BOUND_NEUMANN )
 			_geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
-		    }
+		    else
+			_geom.mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | bound;
 		}
 	    }
 	}
@@ -271,16 +272,17 @@ void EpotSolver::preprocess( MeshScalarField &epot )
 	for( uint32_t bound = 3; bound <= 4; bound++ ) {
 	    uint32_t j = 0;
 	    if( bound == 4 ) j = _geom.size(1)-1;
-	    if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
-		for( uint32_t k = 0; k < _geom.size(2); k++ ) {
-		    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
-			uint32_t mesh = _geom.mesh(i,j,k);
-			uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
-			if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
-			    uint32_t index = mesh & SMESH_NEAR_SOLID_INDEX_MASK;
-			    _nsind.push_back( index );
+	    for( uint32_t k = 0; k < _geom.size(2); k++ ) {
+		for( uint32_t i = 0; i < _geom.size(0); i++ ) {
+		    uint32_t mesh = _geom.mesh(i,j,k);
+		    uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+		    if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
+			uint32_t index = mesh & SMESH_NEAR_SOLID_INDEX_MASK;
+			_nsind.push_back( index );
+			if( _geom.get_boundary(bound).type == BOUND_NEUMANN )
 			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
-			}
+			else
+			    _geom.mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | bound;
 		    }
 		}
 	    }
@@ -291,24 +293,25 @@ void EpotSolver::preprocess( MeshScalarField &epot )
 	for( uint32_t bound = 5; bound <= 6; bound++ ) {
 	    uint32_t k = 0;
 	    if( bound == 6 ) k = _geom.size(2)-1;
-	    if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
-		for( uint32_t j = 0; j < _geom.size(1); j++ ) {
-		    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
-			uint32_t mesh = _geom.mesh(i,j,k);
-			uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
-			if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
-			    uint32_t index = mesh & SMESH_NEAR_SOLID_INDEX_MASK;
-			    _nsind.push_back( index );
+	    for( uint32_t j = 0; j < _geom.size(1); j++ ) {
+		for( uint32_t i = 0; i < _geom.size(0); i++ ) {
+		    uint32_t mesh = _geom.mesh(i,j,k);
+		    uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+		    if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
+			uint32_t index = mesh & SMESH_NEAR_SOLID_INDEX_MASK;
+			_nsind.push_back( index );
+			if( _geom.get_boundary(bound).type == BOUND_NEUMANN )
 			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
-			}
+			else
+			    _geom.mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | bound;
 		    }
 		}
 	    }
 	}
     }
 
-    // Set forced vacuum nodes and dirichlet nodes to epot. Mark fixed 
-    // vacuum nodes with a tag.
+    // Set forced vacuum nodes and dirichlet nodes to correct
+    // potential. Mark fixed vacuum nodes with a tag.
     for( uint32_t k = 0; k < _geom.size(2); k++ ) {
 	double z = k*_geom.h()+_geom.origo(2);
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
@@ -402,29 +405,29 @@ void EpotSolver::postprocess( void )
     }
 
     // 1. Change PURE_VACUUM_FIX nodes on Neumann boundaries back to
-    // Neumann nodes. 2. Change Neumann nodes on Neumann boundaries
-    // next to solid nodes back to NEAR_SOLID and retrieve stored
-    // solid indexes. Take care to process in the same order as in
-    // Geometry class (x overrides y, which overrides z.
+    // Neumann nodes. 2. Change boundary nodes next to solid nodes
+    // back to NEAR_SOLID and retrieve stored solid indexes. Take care
+    // to process in the same order as in Geometry class (x overrides
+    // y, which overrides z.
     uint32_t near_solid_index = 0;
 
     // Xmin and Xmax
     for( uint32_t bound = 1; bound <= 2; bound++ ) {
 	uint32_t i = 0;
 	if( bound == 2 ) i = _geom.size(0)-1;
-	if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
-	    for( uint32_t k = 0; k < _geom.size(2); k++ ) {
-		for( uint32_t j = 0; j < _geom.size(1); j++ ) {
-		    uint32_t mesh = _geom.mesh(i,j,k);
-		    uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
-		    if( node_id == SMESH_NODE_ID_PURE_VACUUM_FIX ) {
-			_geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
-			node_id = SMESH_NODE_ID_NEUMANN;
-		    }
-		    if( node_id == SMESH_NODE_ID_NEUMANN && _geom.is_near_solid(i,j,k) ) {
-			uint32_t index = _nsind[near_solid_index++];
-			_geom.mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | index;
-		    }
+	for( uint32_t k = 0; k < _geom.size(2); k++ ) {
+	    for( uint32_t j = 0; j < _geom.size(1); j++ ) {
+		uint32_t mesh = _geom.mesh(i,j,k);
+		uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+		if( node_id == SMESH_NODE_ID_PURE_VACUUM_FIX &&
+		    _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+		    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
+		    node_id = SMESH_NODE_ID_NEUMANN;
+		}
+		if( (node_id == SMESH_NODE_ID_NEUMANN || node_id == SMESH_NODE_ID_DIRICHLET) &&
+		    (mesh & SMESH_BOUNDARY_NUMBER_MASK) <= 6 && _geom.is_near_solid(i,j,k) ) {
+		    uint32_t index = _nsind[near_solid_index++];
+		    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | index;
 		}
 	    }
 	}
@@ -435,19 +438,19 @@ void EpotSolver::postprocess( void )
 	for( uint32_t bound = 3; bound <= 4; bound++ ) {
 	    uint32_t j = 0;
 	    if( bound == 4 ) j = _geom.size(1)-1;
-	    if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
-		for( uint32_t k = 0; k < _geom.size(2); k++ ) {
-		    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
-			uint32_t mesh = _geom.mesh(i,j,k);
-			uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
-			if( node_id == SMESH_NODE_ID_PURE_VACUUM_FIX ) {
-			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
-			    node_id = SMESH_NODE_ID_NEUMANN;
-			}
-			if( node_id == SMESH_NODE_ID_NEUMANN && _geom.is_near_solid(i,j,k) ) {
-			    uint32_t index = _nsind[near_solid_index++];
-			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | index;
-			}
+	    for( uint32_t k = 0; k < _geom.size(2); k++ ) {
+		for( uint32_t i = 0; i < _geom.size(0); i++ ) {
+		    uint32_t mesh = _geom.mesh(i,j,k);
+		    uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+		    if( node_id == SMESH_NODE_ID_PURE_VACUUM_FIX &&
+			_geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+			_geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
+			node_id = SMESH_NODE_ID_NEUMANN;
+		    }
+		    if( (node_id == SMESH_NODE_ID_NEUMANN || node_id == SMESH_NODE_ID_DIRICHLET) && 
+			(mesh & SMESH_BOUNDARY_NUMBER_MASK) <= 6 && _geom.is_near_solid(i,j,k) ) {
+			uint32_t index = _nsind[near_solid_index++];
+			_geom.mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | index;
 		    }
 		}
 	    }
@@ -458,19 +461,19 @@ void EpotSolver::postprocess( void )
 	for( uint32_t bound = 5; bound <= 6; bound++ ) {
 	    uint32_t k = 0;
 	    if( bound == 6 ) k = _geom.size(2)-1;
-	    if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
-		for( uint32_t j = 0; j < _geom.size(1); j++ ) {
-		    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
-			uint32_t mesh = _geom.mesh(i,j,k);
-			uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
-			if( node_id == SMESH_NODE_ID_PURE_VACUUM_FIX ) {
-			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
-			    node_id = SMESH_NODE_ID_NEUMANN;
-			}
-			if( node_id == SMESH_NODE_ID_NEUMANN && _geom.is_near_solid(i,j,k) ) {
-			    uint32_t index = _nsind[near_solid_index++];
-			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | index;
-			}
+	    for( uint32_t j = 0; j < _geom.size(1); j++ ) {
+		for( uint32_t i = 0; i < _geom.size(0); i++ ) {
+		    uint32_t mesh = _geom.mesh(i,j,k);
+		    uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+		    if( node_id == SMESH_NODE_ID_PURE_VACUUM_FIX &&
+			_geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+			_geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
+			node_id = SMESH_NODE_ID_NEUMANN;
+		    }
+		    if( (node_id == SMESH_NODE_ID_NEUMANN || node_id == SMESH_NODE_ID_DIRICHLET) &&
+			(mesh & SMESH_BOUNDARY_NUMBER_MASK) <= 6 && _geom.is_near_solid(i,j,k) ) {
+			uint32_t index = _nsind[near_solid_index++];
+			_geom.mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | index;
 		    }
 		}
 	    }

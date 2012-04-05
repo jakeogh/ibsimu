@@ -838,88 +838,52 @@ void Geometry::build_mesh_parallel_prepare_3d( void )
 		if( mesh(i,j,k) != 0 )
 		    continue;
 
-		if( i == 0 ) {
-		    // Xmin boundary
-		    if( get_boundary(1).type == BOUND_NEUMANN ) {
-			if( is_near_solid(i,j,k) ) {
-			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-			    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
-			} else {
-			    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 1;
-			}
-		    } else {
-			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 1;
-		    }
-
-		} else if( i == _size[0]-1 ) {
-		    // Xmax boundary
-		    if( get_boundary(2).type == BOUND_NEUMANN ) {
-			if( is_near_solid(i,j,k) ) {
-			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-			    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
-			} else {
-			    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 2;
-			}
-		    } else {
-			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 2;
-		    }
-
-		} else if( j == 0 ) {
-		    // Ymin boundary
-		    if( get_boundary(3).type == BOUND_NEUMANN ) {
-			if( is_near_solid(i,j,k) ) {
-			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-			    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
-			} else {
-			    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 3;
-			}
-		    } else {
-			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 3;
-		    }
-
-		} else if( j == _size[1]-1 ) {
-		    // Ymax boundary
-		    if( get_boundary(4).type == BOUND_NEUMANN ) {
-			if( is_near_solid(i,j,k) ) {
-			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-			    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
-			} else {
-			    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 4;
-			}
-		    } else {
-			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 4;
-		    }
-
-		} else if( k == 0 ) {
-		    // Zmin boundary
-		    if( get_boundary(5).type == BOUND_NEUMANN ) {
-			if( is_near_solid(i,j,k) ) {
-			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-			    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
-			} else {
-			    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 5;
-			}
-		    } else {
-			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 5;
-		    }
-
-		} else if( k == _size[2]-1 ) {
-		    // Zmax boundary
-		    if( get_boundary(6).type == BOUND_NEUMANN ) {
-			if( is_near_solid(i,j,k) ) {
-			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-			    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
-			} else {
-			    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 6;
-			}
-		    } else {
-			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 6;
-		    }
-
-		} else if( is_near_solid(i,j,k) ) {
+		if( is_near_solid(i,j,k) ) {
 		    // Near solid
 		    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
 		    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
+
+		} else if( i == 0 ) {
+		    // Xmin boundary
+		    if( get_boundary(1).type == BOUND_NEUMANN )
+			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 1;
+		    else
+			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 1;
+
+		} else if( i == _size[0]-1 ) {
+		    // Xmax boundary
+		    if( get_boundary(2).type == BOUND_NEUMANN )
+			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 2;
+		    else
+			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 2;
+
+		} else if( j == 0 ) {
+		    // Ymin boundary
+		    if( get_boundary(3).type == BOUND_NEUMANN )
+			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 3;
+		    else
+			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 3;
+
+		} else if( j == _size[1]-1 ) {
+		    // Ymax boundary
+		    if( get_boundary(4).type == BOUND_NEUMANN )
+			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 4;
+		    else
+			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 4;
+
+		} else if( k == 0 ) {
+		    // Zmin boundary
+		    if( get_boundary(5).type == BOUND_NEUMANN )
+			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 5;
+		    else
+			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 5;
+
+		} else if( k == _size[2]-1 ) {
+		    // Zmax boundary
+		    if( get_boundary(6).type == BOUND_NEUMANN )
+			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 6;
+		    else
+			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 6;
 
 		} else {
 		    // Pure vacuum
@@ -945,62 +909,39 @@ void Geometry::build_mesh_parallel_prepare_2d( void )
 	    if( mesh(i,j) != 0 )
 		continue;
 
-	    if( i == 0 ) {
-		// Xmin boundary
-		if( get_boundary(1).type == BOUND_NEUMANN ) {
-		    if( is_near_solid(i,j,0) ) {
-			mesh(i,j) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-			build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, 0 );
-		    } else {
-			mesh(i,j) = SMESH_NODE_ID_NEUMANN | 1;
-		    }
-		} else {
-		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 1;
-		}
-
-	    } else if( i == _size[0]-1 ) {
-		// Xmax boundary
-		if( get_boundary(2).type == BOUND_NEUMANN ) {
-		    if( is_near_solid(i,j,0) ) {
-			mesh(i,j) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-			build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, 0 );
-		    } else {
-			mesh(i,j) = SMESH_NODE_ID_NEUMANN | 2;
-		    }
-		} else {
-		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 2;
-		}
-		
-	    } else if( j == 0 ) {
-		// Ymin boundary
-		if( get_boundary(3).type == BOUND_NEUMANN ) {
-		    if( is_near_solid(i,j,0) ) {
-			mesh(i,j) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-			build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, 0 );
-		    } else {
-			mesh(i,j) = SMESH_NODE_ID_NEUMANN | 3;
-		    }
-		} else {
-		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 3;
-		}
-		
-	    } else if( j == _size[1]-1 ) {
-		// Ymax boundary
-		if( get_boundary(4).type == BOUND_NEUMANN ) {
-		    if( is_near_solid(i,j,0) ) {
-			mesh(i,j) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-			build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, 0 );
-		    } else {
-			mesh(i,j) = SMESH_NODE_ID_NEUMANN | 4;
-		    }
-		} else {
-		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 4;
-		}
-
-	    } else if( is_near_solid(i,j,0) ) {
+	    if( is_near_solid(i,j,0) ) {
 		// Near solid
 		mesh(i,j) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
 		build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, 0 );
+
+	    } else if( i == 0 ) {
+		// Xmin boundary
+		if( get_boundary(1).type == BOUND_NEUMANN )
+		    mesh(i,j) = SMESH_NODE_ID_NEUMANN | 1;
+		else
+		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 1;
+
+	    } else if( i == _size[0]-1 ) {
+		// Xmax boundary
+		if( get_boundary(2).type == BOUND_NEUMANN )
+		    mesh(i,j) = SMESH_NODE_ID_NEUMANN | 2;
+		else
+		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 2;
+		
+	    } else if( j == 0 ) {
+		// Ymin boundary
+		if( get_boundary(3).type == BOUND_NEUMANN )
+		    mesh(i,j) = SMESH_NODE_ID_NEUMANN | 3;
+		else
+		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 3;
+		
+	    } else if( j == _size[1]-1 ) {
+		// Ymax boundary
+		if( get_boundary(4).type == BOUND_NEUMANN )
+		    mesh(i,j) = SMESH_NODE_ID_NEUMANN | 4;
+		else
+		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 4;
+
 		
 	    } else {
 		// Pure vacuum
