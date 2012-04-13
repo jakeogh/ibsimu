@@ -140,7 +140,6 @@ Geometry::Geometry( std::istream &is )
     pthread_mutex_init( &_mutex, NULL );
     pthread_cond_init( &_cond, NULL );
 
-    ibsimu.message( 1 ) << "Done\n";
     ibsimu.dec_indent();
 }
 

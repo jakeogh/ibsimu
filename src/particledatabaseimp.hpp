@@ -273,6 +273,8 @@ protected:
 	_particles.reserve( N );
 	for( uint32_t a = 0; a < N; a++ )
 	    _particles.push_back( new Particle<PP>( s ) );
+
+	ibsimu.dec_indent();
     }
 
 public:

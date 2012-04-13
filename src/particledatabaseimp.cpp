@@ -69,6 +69,7 @@ ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s
     : _pdb(pdb)
 {
     ibsimu.message( 1 ) << "Constructing ParticleDataBase from stream\n";
+    ibsimu.inc_indent();
 
     _epsabs = read_double( s );
     _epsrel = read_double( s );
