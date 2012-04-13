@@ -306,7 +306,7 @@ void SolidGraph::build_data( void )
 		//std::cout << "push_back done\n";
 		//std::cout << solid[a] << "\n";
 		//build_solid( _solid[a], i, done, (lastnode == node), node );
-		build_solid_new( _solid[a], i, done, (lastnode == node), node );
+		build_solid( _solid[a], i, done, (lastnode == node), node );
 	    }
 	}
     }

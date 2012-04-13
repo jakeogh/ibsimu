@@ -86,7 +86,7 @@ class SolidGraph : public Graph3D {
 
     bool is_edge( uint32_t node, const int32_t i[3] ) const;
     uint32_t get_mesh( const int i[3], int offsetx, int offsety ) const;
-    void build_solid_new( SolidPoints *solid, const int32_t j[3], char *done, bool out, uint32_t node );
+    //void build_solid_new( SolidPoints *solid, const int32_t j[3], char *done, bool out, uint32_t node );
     void build_solid( SolidPoints *solid, const int32_t i[3], char *done, bool out, uint32_t node );
     void build_data( void );
     void clear_data( void );
