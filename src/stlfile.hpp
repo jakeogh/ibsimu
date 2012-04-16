@@ -152,6 +152,11 @@ public:
     size_t trianglec( void );
 
     /*! \brief Return if point \a x is inside solid.
+     *
+     *  Uses algorithm from R. Segura, F. R. Feito, J. Ruiz de Miras,
+     *  C. Ogayar and J. C. Torres, "An Efficient Point Classification
+     *  Algorithm for Triangle Meshes", Journal of Graphics, GPU, and
+     *  Game Tools 10, issue 3, 2005.
      */
     bool inside( const Vec3D &x );
 
