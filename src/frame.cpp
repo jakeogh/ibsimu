@@ -2,7 +2,7 @@
  *  \brief %Frame for plots
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -58,22 +58,6 @@
 #define MIN3(X,Y,Z) ((X) > (Y) ? ((Y) > (Z) ? (Z) : (Y)) : ((X) > (Z) ? (Z) : (X)))
 
 
-void Frame::set_frame_clipping( cairo_t *cairo )
-{
-    cairo_rectangle( cairo, _offx+_tmargin[0], 
-		     _offy+_tmargin[3], 
-		     _width-_tmargin[0]-_tmargin[2], 
-		     _height-_tmargin[1]-_tmargin[3] );
-    cairo_clip( cairo );
-}
-
-
-void Frame::unset_frame_clipping( cairo_t *cairo )
-{
-    cairo_reset_clip( cairo );
-}
-
-
 Frame::Frame()
     : _offx(0), _offy(0), _width(640), _height(480), 
       _fontsize(12.0), _titlespace(10.0), _cmlspace(10.0), _bg(Color(1,1,1)), _fg(Color(0,0,0)),
@@ -109,6 +93,56 @@ Frame::Frame()
     _fenable[3] = false;
     _autorange[6] = true;
     _autorange[7] = true;
+}
+
+
+Frame::Frame( const Frame &frame )
+    : _offx(frame._offx), _offy(frame._offy), _width(frame._width), _height(frame._height),
+      _fontsize(frame._fontsize), _titlespace(frame._titlespace), _cmlspace(frame._cmlspace),
+      _bg(frame._bg), _fg(frame._fg), _dobj(frame._dobj), _legend_enable(frame._legend_enable),
+      _legend_pos(frame._legend_pos), _legend(frame._legend), _cml_enable(frame._cml_enable),
+      _title(frame._title), _fixedaspect(frame._fixedaspect), _automargin(frame._automargin)      
+{
+    for( size_t a = 0; a < 4; a++ ) {
+	_ruler[a] = frame._ruler[a];
+	_cm[a] = frame._cm[a];
+	_enable[a] = frame._enable[a];
+	_fenable[a] = frame._fenable[a];
+	_autorange[2*a+0] = frame._autorange[2*a+0];
+	_autorange[2*a+1] = frame._autorange[2*a+1];
+	_range_min[a] = frame._range_min[a];
+	_range_max[a] = frame._range_max[a];
+	_tmargin[a] = frame._tmargin[a];
+    }
+
+    if( frame._cm_legend ) {
+	_cm_legend = new ColormapLegend( *frame._cm_legend );
+    } else {
+	_cm_legend = NULL;
+    }
+}
+
+
+Frame::~Frame()
+{
+    if( _cm_legend )
+	delete _cm_legend;    
+}
+
+
+void Frame::set_frame_clipping( cairo_t *cairo )
+{
+    cairo_rectangle( cairo, _offx+_tmargin[0], 
+		     _offy+_tmargin[3], 
+		     _width-_tmargin[0]-_tmargin[2], 
+		     _height-_tmargin[1]-_tmargin[3] );
+    cairo_clip( cairo );
+}
+
+
+void Frame::unset_frame_clipping( cairo_t *cairo )
+{
+    cairo_reset_clip( cairo );
 }
 
 
