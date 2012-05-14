@@ -908,7 +908,7 @@ const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
                     X[a]     = 2.0*_origo[a] - X[a];
 		}
 
-	    } else if( x[a] > _max[a] ) {
+	    } else if( X[a] > _max[a] ) {
 		if( _extrpl[2*a+1] == FIELD_ZERO ) {
                     // return zero
                     return( Vec3D(0.0) );
@@ -991,7 +991,7 @@ const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
                     X[a]     = 2.0*_origo[a] - X[a];
 		}
 
-	    } else if( x[a] > _max[a] ) {
+	    } else if( X[a] > _max[a] ) {
 		if( _extrpl[2*a+1] == FIELD_ZERO ) {
                     // return zero
                     return( Vec3D(0.0) );
