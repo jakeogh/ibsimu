@@ -2,7 +2,7 @@
  *  \brief %Particle iterator
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -262,6 +262,7 @@ template <class PP> class ParticleIterator {
     double                     _epsrel;    /*!< \brief Relative error limit. */
     uint32_t                   _maxsteps;  /*!< \brief Maximum number of simulation steps for particle. */
     double                     _maxt;      /*!< \brief Maximum particle lifetime. */
+    bool                       _save_points; /*!< \brief Save all points? */
     uint32_t                   _trajdiv;   /*!< \brief Divisor for saved trajectories,
 					    * if 3, every third trajectory is saved. */
     bool                       _mirror[6]; /*!< \brief Is particle mirrored on boundary? */
@@ -659,6 +660,9 @@ template <class PP> class ParticleIterator {
 #endif
 	for( size_t a = 0; a < _coldata.size(); a++ ) {
 
+	    if( _save_points )
+		save_trajectory_point( _coldata[a]._x );
+
 #ifdef DEBUG_PARTICLE_ITERATOR
 	    std::cout << "  Coldata " << std::setw(4) << a << ": " 
 		      << _coldata[a]._x << ", " 
@@ -896,13 +900,13 @@ public:
      *  particle memory location.
      */
     ParticleIterator( particle_iterator_type_e type, double epsabs, double epsrel, 
-		      bool polyint, uint32_t maxsteps, double maxt, 
+		      bool polyint, uint32_t maxsteps, double maxt, bool save_points,
 		      uint32_t trajdiv, bool mirror[6], MeshScalarField *scharge, 
 		      pthread_mutex_t *scharge_mutex,
 		      const VectorField *efield, const VectorField *bfield, 
 		      const Geometry *geom ) 
 	: _type(type), _polyint(polyint), _epsabs(epsabs), _epsrel(epsrel), _maxsteps(maxsteps), _maxt(maxt), 
-	  _trajdiv(trajdiv), _pidata(scharge,efield,bfield,geom), 
+	  _save_points(save_points), _trajdiv(trajdiv), _pidata(scharge,efield,bfield,geom), 
 	  _thand_cb(0), _tend_cb(0), _bsup_cb(0), _pdb(0), _scharge_mutex(scharge_mutex), 
 	  _stat(geom->number_of_boundaries()) {
 	

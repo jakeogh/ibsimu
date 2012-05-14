@@ -56,7 +56,7 @@
 
 ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb )
     : _epsabs(1e-6), _epsrel(1e-6), _polyint(true), _maxsteps(1000), 
-      _maxt(1e-3), _trajdiv(1), _rhosum(0.0), _iteration(0), 
+      _maxt(1e-3), _save_points(false), _trajdiv(1), _rhosum(0.0), _iteration(0), 
       _relativistic(false), _bsup_cb(NULL), _thand_cb(NULL), _tend_cb(NULL), 
       _pdb(pdb)
 {
@@ -76,6 +76,7 @@ ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s
     _polyint = read_int8( s );
     _maxsteps = read_int32( s );
     _maxt = read_double( s );
+    _save_points = read_int8( s );
     _trajdiv = read_int32( s );
     for( uint32_t a = 0; a < 6; a++ )
 	_mirror[a] = read_int8( s );
@@ -162,6 +163,12 @@ void ParticleDataBaseImp::set_max_time( double maxt )
 }
 
 
+void ParticleDataBaseImp::set_save_all_points( bool save_points )
+{
+    _save_points = save_points;
+}
+
+
 void ParticleDataBaseImp::set_save_trajectories( uint32_t div )
 {
     _trajdiv = div;
@@ -232,6 +239,7 @@ void ParticleDataBaseImp::save( std::ostream &os ) const
     write_int8( os, _polyint );
     write_int32( os, _maxsteps );
     write_double( os, _maxt );
+    write_int8( os, _save_points );
     write_int32( os, _trajdiv );
     for( uint32_t a = 0; a < 6; a++ )
 	write_int8( os, _mirror[a] );
@@ -248,6 +256,7 @@ void ParticleDataBaseImp::debug_print( std::ostream &os ) const
     os << "polyint = "     << _polyint << "\n";
     os << "maxsteps = "    << _maxsteps << "\n";
     os << "maxt = "        << _maxt << "\n";
+    os << "save_points = " << _save_points << "\n";
     os << "trajdiv = "     << _trajdiv << "\n";
     os << "mirror = (";
     for( uint32_t a = 0; a < 5; a++ )

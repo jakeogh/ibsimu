@@ -270,6 +270,14 @@ public:
 
     /*! \brief Set trajectory saving.
      *
+     *  If \a save_points is true, all trajectory intersection with
+     *  mesh boundaries are saved. If \a save_points is false
+     *  (default), only the calculation points are saved.
+     */
+    void set_save_all_points( bool save_points );
+
+    /*! \brief Set trajectory saving.
+     *
      *  If \a div is zero, no trajectories are saved.
      *  If \a div is one, every trajectory is saved.
      *  If \a div N>1, every Nth trajectory is saved.

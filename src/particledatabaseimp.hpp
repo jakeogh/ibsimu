@@ -62,6 +62,7 @@ protected:
     bool                      _polyint;      /*!< \brief Use polynomial(true)/linear(false) interpolation. */
     uint32_t                  _maxsteps;     /*!< \brief Maximum number of steps to calculate. */
     double                    _maxt;         /*!< \brief Maximum particle time in simulation. */
+    bool                      _save_points;  /*!< \brief Save all points? */
     uint32_t                  _trajdiv;      /*!< \brief Divisor for saved trajectories,
 					      * if 3, every third trajectory is saved. */
     bool                      _mirror[6];    /*!< \brief Boundary particle mirroring. */
@@ -111,6 +112,8 @@ public:
     void set_max_steps( uint32_t maxsteps );
 
     void set_max_time( double maxt );
+
+    void set_save_all_points( bool save_points );
 
     void set_save_trajectories( uint32_t div );
 
@@ -521,7 +524,7 @@ public:
 	for( uint32_t a = 0; a < ibsimu.get_thread_count(); a++ ) {
 
 	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
-							   _polyint, _maxsteps, _maxt, _trajdiv, 
+							   _polyint, _maxsteps, _maxt, _save_points, _trajdiv, 
 							   _mirror, &scharge, &scharge_mutex, &efield, &bfield, 
 							   &geom ) );
 	    iterators[a]->set_trajectory_handler_callback( _thand_cb );
