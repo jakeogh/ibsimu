@@ -39,7 +39,7 @@ dnl Check for programs
 dnl ---------------------------------
 
 dnl m4_pattern_allow([AC_PROG_LIBTOOL])
-dnlAC_PROG_LIBTOOL
+dnl AC_PROG_LIBTOOL
 LT_INIT
 AC_PROG_CXX
 dnl AC_PROG_RANLIB
