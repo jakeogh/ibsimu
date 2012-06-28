@@ -2,7 +2,7 @@
  *  \brief %Vector field using multiple meshes.
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -65,6 +65,12 @@
  *  The first (largest and coarsest) field of the multiple mesh vector
  *  field is defined first either with a constructor or using reset()
  *  function. The detailed meshes are then added with add_mesh().
+ *
+ *  The MultiMeshVectorField can't be yet used with electric potential
+ *  solvers. This functionality has been planned to be added in the
+ *  future for possibility of having a higher mesh density in critical
+ *  areas. Currently the MultiMeshVectorFields can only be used as
+ *  magnetic fields.
  *
  */
 class MultiMeshVectorField : public VectorField {

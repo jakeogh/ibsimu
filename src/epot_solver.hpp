@@ -325,7 +325,7 @@ public:
      *  is set to \a Up.
      *
      *  The boundary condition for the plasma should be
-     *  BOUND_NEUMANN with zero volts.
+     *  BOUND_NEUMANN with gradient of zero V/m.
      */
     void set_pexp_plasma( double rhoe, double Te, double Up );
 

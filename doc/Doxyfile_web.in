@@ -34,6 +34,19 @@ PROJECT_NAME           = "IBSimu"
 
 PROJECT_NUMBER         = @VERSION@
 
+# Using the PROJECT_BRIEF tag one can provide an optional one line description
+# for a project that appears at the top of each page and should give viewer
+# a quick idea about the purpose of the project. Keep the description short.
+
+PROJECT_BRIEF          =
+
+# With the PROJECT_LOGO tag one can specify an logo or icon that is
+# included in the documentation. The maximum height of the logo should not
+# exceed 55 pixels and the maximum width should not exceed 200 pixels.
+# Doxygen will copy the logo to the output directory.
+
+PROJECT_LOGO           =
+
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or
 # absolute) base path where the generated documentation will be put.
 # If a relative path is entered, it will be relative to the location
@@ -280,14 +293,29 @@ DISTRIBUTE_GROUP_DOC   = NO
 
 SUBGROUPING            = YES
 
-# When TYPEDEF_HIDES_STRUCT is enabled, a typedef of a struct, union,
-# or enum is documented as struct, union, or enum with the name of the
-# typedef. So typedef struct TypeS {} TypeT, will appear in the
-# documentation as a struct with name TypeT. When disabled the typedef
-# will appear as a member of a file, namespace, or class. And the
-# struct will be named TypeS. This can typically be useful for C code
-# in case the coding convention dictates that all compound types are
-# typedef'ed and only the typedef is referenced, never the tag name.
+# When the INLINE_GROUPED_CLASSES tag is set to YES, classes, structs and
+# unions are shown inside the group in which they are included (e.g. using
+# @ingroup) instead of on a separate page (for HTML and Man pages) or
+# section (for LaTeX and RTF).
+
+INLINE_GROUPED_CLASSES = NO
+
+# When the INLINE_SIMPLE_STRUCTS tag is set to YES, structs, classes, and
+# unions with only public data fields will be shown inline in the documentation
+# of the scope in which they are defined (i.e. file, namespace, or group
+# documentation), provided this scope is documented. If set to NO (the default),
+# structs, classes, and unions are shown on a separate page (for HTML and Man
+# pages) or section (for LaTeX and RTF).
+
+INLINE_SIMPLE_STRUCTS  = NO
+
+# When TYPEDEF_HIDES_STRUCT is enabled, a typedef of a struct, union, or enum
+# is documented as struct, union, or enum with the name of the typedef. So
+# typedef struct TypeS {} TypeT, will appear in the documentation as a struct
+# with name TypeT. When disabled the typedef will appear as a member of a file,
+# namespace, or class. And the struct will be named TypeS. This can typically
+# be useful for C code in case the coding convention dictates that all compound
+# types are typedef'ed and only the typedef is referenced, never the tag name.
 
 TYPEDEF_HIDES_STRUCT   = NO
 
@@ -318,7 +346,7 @@ SYMBOL_CACHE_SIZE      = 0
 # be hidden unless the EXTRACT_PRIVATE and EXTRACT_STATIC tags are set
 # to YES
 
-EXTRACT_ALL            = YES
+EXTRACT_ALL            = NO
 
 # If the EXTRACT_PRIVATE tag is set to YES all private members of a
 # class will be included in the documentation.
@@ -334,7 +362,7 @@ EXTRACT_STATIC         = NO
 # defined locally in source files will be included in the documentation.
 # If set to NO only classes defined in header files are included.
 
-EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_LOCAL_CLASSES  = NO
 
 # This flag is only useful for Objective-C code. When set to YES local
 # methods, which are defined in the implementation section but not in
@@ -522,7 +550,7 @@ SHOW_FILES             = YES
 # Quick Index and from the Folder Tree View (if specified). The
 # default is YES.
 
-SHOW_NAMESPACES        = YES
+SHOW_NAMESPACES        = NO
 
 # The FILE_VERSION_FILTER tag can be used to specify a program or
 # script that doxygen should invoke to get the current version for
@@ -544,6 +572,15 @@ FILE_VERSION_FILTER    =
 # the name of the layout file.
 
 LAYOUT_FILE            =
+
+# The CITE_BIB_FILES tag can be used to specify one or more bib files
+# containing the references data. This must be a list of .bib files. The
+# .bib extension is automatically appended if omitted. Using this command
+# requires the bibtex tool to be installed. See also
+# http://en.wikipedia.org/wiki/BibTeX for more info. For LaTeX the style
+# of the bibliography can be controlled using LATEX_BIB_STYLE.
+
+CITE_BIB_FILES         =
 
 #---------------------------------------------------------------------------
 # configuration options related to warning and progress messages
@@ -607,109 +644,111 @@ WARN_LOGFILE           =
 # "myfile.cpp" or directories like "/usr/src/myproject". Separate the
 # files or directories with spaces.
 
-INPUT                  = \
-../src/bicgstab_solver.hpp \
-../src/callback.hpp \
-../src/ccolmatrix.hpp \
-../src/color.hpp \
-../src/colormap.hpp \
-../src/compmath.hpp \
-../src/config.hpp \
-../src/constants.hpp \
-../src/convergence.hpp \
-../src/coordmapper.hpp \
-../src/coordmatrix.hpp \
-../src/crowmatrix.hpp \
-../src/csgobject_solid.hpp \
-../src/diag_precond.hpp \
-../src/dxf_solid.hpp \
-../src/empty_precond.hpp \
-../src/epot_efield.hpp \
-../src/epot_problem.hpp \
-../src/eqpotgraph.hpp \
-../src/error.hpp \
-../src/fielddiagplot.hpp \
-../src/fielddiagplotter.hpp \
-../src/fieldgraph.hpp \
-../src/file.hpp \
-../src/fonts.hpp \
-../src/frame.hpp \
-../src/func_solid.hpp \
-../src/geometry.hpp \
-../src/geomplot.hpp \
-../src/geomplotter.hpp \
-../src/graph3d.hpp \
-../src/graph.hpp \
-../src/gs_solver.hpp \
-../src/gtkfielddiagdialog.hpp \
-../src/gtkfielddiagexportdialog.hpp \
-../src/gtkfielddiagwindow.hpp \
-../src/gtkgeomwindow.hpp \
-../src/gtkhardcopy.hpp \
-../src/gtkparticlediagdialog.hpp \
-../src/gtkparticlediagexportdialog.hpp \
-../src/gtkparticlediagwindow.hpp \
-../src/gtkplotter.hpp \
-../src/gtkpreferences.hpp \
-../src/gtkwindow.hpp \
-../src/hbio.hpp \
-../src/histogram.hpp \
-../src/ibsimu.hpp \
-../src/ilu0_precond.hpp \
-../src/interpolation.hpp \
-../src/label.hpp \
-../src/legend.hpp \
-../src/lineclip.hpp \
-../src/mat3d.hpp \
-../src/matrix.hpp \
-../src/meshgraph.hpp \
-../src/mesh.hpp \
-../src/meshvectorfield.hpp \
-../src/multimeshvectorfield.hpp \
-../src/mvector.hpp \
-../src/mydxfblocks.hpp \
-../src/mydxfentities.hpp \
-../src/mydxffile.hpp \
-../src/mydxfheader.hpp \
-../src/mydxftables.hpp \
-../src/palette.hpp \
-../src/particledatabase.hpp \
-../src/particlediagplot.hpp \
-../src/particlediagplotter.hpp \
-../src/particlegraph.hpp \
-../src/particleiterator.hpp \
-../src/particles.hpp \
-../src/particlestatistics.hpp \
-../src/plotter.hpp \
-../src/polysolver.hpp \
-../src/precond.hpp \
-../src/problem.hpp \
-../src/qrandom.hpp \
-../src/readascii.hpp \
-../src/ruler.hpp \
-../src/scalarfield.hpp \
-../src/scharge.hpp \
-../src/scheduler.hpp \
-../src/solidgraph.hpp \
-../src/solid.hpp \
-../src/solver.hpp \
-../src/sort.hpp \
-../src/statusprint.hpp \
-../src/stlfile.hpp \
-../src/stl_solid.hpp \
-../src/symbols.hpp \
-../src/timer.hpp \
-../src/trajectorydiagnostics.hpp \
-../src/trajectoryhandler.hpp \
-../src/trajectory.hpp \
-../src/transformation.hpp \
-../src/types.hpp \
-../src/umfpack_solver.hpp \
-../src/vec3d.hpp \
-../src/vec4d.hpp \
-../src/vectorfield.hpp \
-../src/xygraph.hpp \
+INPUT                  = ../src/ \
 main_dev.dxy
+#
+#../src/bicgstab_solver.hpp \
+#../src/callback.hpp \
+#../src/ccolmatrix.hpp \
+#../src/color.hpp \
+#../src/colormap.hpp \
+#../src/compmath.hpp \
+#../src/config.hpp \
+#../src/constants.hpp \
+#../src/convergence.hpp \
+#../src/coordmapper.hpp \
+#../src/coordmatrix.hpp \
+#../src/crowmatrix.hpp \
+#../src/csgobject_solid.hpp \
+#../src/diag_precond.hpp \
+#../src/dxf_solid.hpp \
+#../src/empty_precond.hpp \
+#../src/epot_efield.hpp \
+#../src/epot_problem.hpp \
+#../src/eqpotgraph.hpp \
+#../src/error.hpp \
+#../src/fielddiagplot.hpp \
+#../src/fielddiagplotter.hpp \
+#../src/fieldgraph.hpp \
+#../src/file.hpp \
+#../src/fonts.hpp \
+#../src/frame.hpp \
+#../src/func_solid.hpp \
+#../src/geometry.hpp \
+#../src/geomplot.hpp \
+#../src/geomplotter.hpp \
+#../src/graph3d.hpp \
+#../src/graph.hpp \
+#../src/gs_solver.hpp \
+#../src/gtkfielddiagdialog.hpp \
+#../src/gtkfielddiagexportdialog.hpp \
+#../src/gtkfielddiagwindow.hpp \
+#../src/gtkgeomwindow.hpp \
+#../src/gtkhardcopy.hpp \
+#../src/gtkparticlediagdialog.hpp \
+#../src/gtkparticlediagexportdialog.hpp \
+#../src/gtkparticlediagwindow.hpp \
+#../src/gtkplotter.hpp \
+#../src/gtkpreferences.hpp \
+#../src/gtkwindow.hpp \
+#../src/hbio.hpp \
+#../src/histogram.hpp \
+#../src/ibsimu.hpp \
+#../src/ilu0_precond.hpp \
+#../src/interpolation.hpp \
+#../src/label.hpp \
+#../src/legend.hpp \
+#../src/lineclip.hpp \
+#../src/mat3d.hpp \
+#../src/matrix.hpp \
+#../src/meshgraph.hpp \
+#../src/mesh.hpp \
+#../src/meshvectorfield.hpp \
+#../src/multimeshvectorfield.hpp \
+#../src/mvector.hpp \
+#../src/mydxfblocks.hpp \
+#../src/mydxfentities.hpp \
+#../src/mydxffile.hpp \
+#../src/mydxfheader.hpp \
+#../src/mydxftables.hpp \
+#../src/palette.hpp \
+#../src/particledatabase.hpp \
+#../src/particlediagplot.hpp \
+#../src/particlediagplotter.hpp \
+#../src/particlegraph.hpp \
+#../src/particleiterator.hpp \
+#../src/particles.hpp \
+#../src/particlestatistics.hpp \
+#../src/plotter.hpp \
+#../src/polysolver.hpp \
+#../src/precond.hpp \
+#../src/problem.hpp \
+#../src/qrandom.hpp \
+#../src/readascii.hpp \
+#../src/ruler.hpp \
+#../src/scalarfield.hpp \
+#../src/scharge.hpp \
+#../src/scheduler.hpp \
+#../src/solidgraph.hpp \
+#../src/solid.hpp \
+#../src/solver.hpp \
+#../src/sort.hpp \
+#../src/statusprint.hpp \
+#../src/stlfile.hpp \
+#../src/stl_solid.hpp \
+#../src/symbols.hpp \
+#../src/timer.hpp \
+#../src/trajectorydiagnostics.hpp \
+#../src/trajectoryhandler.hpp \
+#../src/trajectory.hpp \
+#../src/transformation.hpp \
+#../src/types.hpp \
+#../src/umfpack_solver.hpp \
+#../src/vec3d.hpp \
+#../src/vec4d.hpp \
+#../src/vectorfield.hpp \
+#../src/xygraph.hpp \
+
 
 # This tag can be used to specify the character encoding of the source
 # files that doxygen parses. Internally doxygen uses the UTF-8

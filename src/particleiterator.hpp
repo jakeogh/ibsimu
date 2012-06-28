@@ -884,14 +884,15 @@ public:
      *  interpolation, false means use linear interpolation
      *  \param maxsteps Maximum number of steps to take before particle is killed
      *  \param maxt Maximum flight time for a particle
+     *  \param save_points Flag for saving all intersection points of trajectories
      *  \param trajdiv Trajectory saving divisor. Only every trajdiv:th particle 
      *  trajectory saved.
      *  \param mirror %Particle mirroring on surfaces
      *  \param scharge Space charge field to save to
+     *  \param scharge_mutex Space charge write mutex
      *  \param efield Electric field in the geometry
      *  \param bfield Magnetic field in the geometry
-     *  \param g %Geometry definition
-     *  \param first Pointer to first particle of the database.
+     *  \param geom %Geometry definition
      *
      *  The particle iterator is given the settings for calculation
      *  and geometry, electric field and space charge map to

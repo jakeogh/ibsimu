@@ -429,7 +429,7 @@ public:
     /*! \brief Fetch errors and indices of corresponding problems.
      *
      *  \param e Container where errors are appended
-     *  \param p Container where problems are appended
+     *  \param pi Container where problems are appended
      *  \return Number of error problems added to containers
      *
      *  Errors are removed from %Scheduler.

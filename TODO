@@ -1,6 +1,15 @@
 		TODO list
 		=========
 
+Tag data files
+
+Randomize particle plotting
+
+Make particle groups
+
+New geometry collision detection routine (no need for solid inclusion
+test after initial build)
+
 Export for particle plotter
  - colormap and scatter
 

@@ -2,7 +2,7 @@
  *  \brief Multigrid solver for electric potential problem
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,7 +47,7 @@
 #include "epot_solver.hpp"
 
 
-/*! \brief Subroutine class for Multigrid
+/*! \brief Subroutine class for EpotMGSolver.
  *
  *  Preprocesses the solid mesh and does relaxation rounds on one
  *  problem level.
