@@ -156,6 +156,10 @@ public:
 
     /*! \brief Scale solid.
      */
+    void scale( double sx );
+
+    /*! \brief Scale solid.
+     */
     void scale( const Vec3D &sx );
 
     /*! \brief Rotate solid around x-axis.

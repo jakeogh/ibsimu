@@ -181,35 +181,36 @@ void DXFSolid::set_transformation( const Transformation &T )
 void DXFSolid::translate( const Vec3D &dx ) 
 {
     _T = _T * Transformation::translation( -dx );
-    //_T.translate( dx ); wrong way
+}
+
+
+void DXFSolid::scale( double sx ) 
+{
+    _T = _T * Transformation::scaling( Vec3D(1.0/sx, 1.0/sx, 1.0/sx) );
 }
 
 
 void DXFSolid::scale( const Vec3D &sx ) 
 {
     _T = _T * Transformation::scaling( Vec3D(1.0/sx[0], 1.0/sx[1], 1.0/sx[2]) );
-    //_T.scale( sx ); wrong way
 }
 
 
 void DXFSolid::rotate_x( double a ) 
 {
     _T = _T * Transformation::rotation_x( -a );
-    //_T.rotate_x( a ); wrong way
 }
 
 
 void DXFSolid::rotate_y( double a ) 
 {
     _T = _T * Transformation::rotation_y( -a );
-    //_T.rotate_y( a ); wrong way
 }
 
 
 void DXFSolid::rotate_z( double a ) 
 {
     _T = _T * Transformation::rotation_z( -a );
-    //_T.rotate_z( a ); wrong way
 }
 
 
