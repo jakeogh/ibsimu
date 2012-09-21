@@ -68,7 +68,8 @@ STLSolid::STLSolid( const std::string &filename )
 
 STLSolid::STLSolid( std::istream &is )
 {
-    throw( ErrorUnimplemented( ERROR_LOCATION ) );
+    ibsimu.message( 1 ) << "Warning: loading of STLSolid not implemented\n";
+    ibsimu.flush();
 }
 
 
@@ -104,9 +105,11 @@ void STLSolid::debug_print( std::ostream &os ) const
 }
 
 
-void STLSolid::save( std::ostream &s ) const
+void STLSolid::save( std::ostream &os ) const
 {
-    throw( ErrorUnimplemented( ERROR_LOCATION ) );
+    write_int32( os, FILEID_STLSOLID );
+    ibsimu.message( 1 ) << "Warning: saving of STLSolid not implemented\n";
+    ibsimu.flush();
 }
 
 

@@ -2,7 +2,7 @@
  *  \brief %Solid definition using MyDXF
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -97,7 +97,8 @@ DXFSolid::DXFSolid( MyDXFFile *dxffile, const std::string &layername )
 DXFSolid::DXFSolid( std::istream &is )
     : _func(&unity), _entities(NULL), _selection(NULL)
 {
-    
+    ibsimu.message( 1 ) << "Warning: loading of DXFSolid not implemented\n";
+    ibsimu.flush();
 }
 
 
@@ -228,5 +229,7 @@ void DXFSolid::debug_print( std::ostream &os ) const
 void DXFSolid::save( std::ostream &os ) const
 {
     write_int32( os, FILEID_DXFSOLID );
+    ibsimu.message( 1 ) << "Warning: saving of DXFSolid not implemented\n";
+    ibsimu.flush();
 }
 

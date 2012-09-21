@@ -2,7 +2,7 @@
  *  \brief Source code for func_solid.cpp
  */
 
-/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -42,6 +42,7 @@
 
 #include <iostream>
 #include "func_solid.hpp"
+#include "ibsimu.hpp"
 #include "error.hpp"
 
 
@@ -54,8 +55,10 @@ bool FuncSolid::inside( const Vec3D &x ) const
 
 
 FuncSolid::FuncSolid( std::istream &is )
+    : _func(NULL)
 {
-    _func = 0;
+    ibsimu.message( 1 ) << "Warning: loading of FuncSolid not implemented\n";
+    ibsimu.flush();
 }
 
 
@@ -69,6 +72,8 @@ void FuncSolid::debug_print( std::ostream &os ) const
 void FuncSolid::save( std::ostream &os ) const
 {
     write_int32( os, FILEID_FUNCSOLID );
+    ibsimu.message( 1 ) << "Warning: saving of FuncSolid not implemented\n";
+    ibsimu.flush();
 }
 
 
