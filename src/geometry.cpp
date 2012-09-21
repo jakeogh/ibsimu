@@ -234,7 +234,7 @@ Bound Geometry::get_boundary( uint32_t n ) const
 uint32_t Geometry::inside( const Vec3D &x ) const
 {
     for( ssize_t a = _sdata.size()-1; a >= 0 ; a-- ) {
-	if( _sdata[a]->inside( x ) )
+	if( _sdata[a] && _sdata[a]->inside( x ) )
 	    return( a+7 );
     }
     double eps = 1.0e-6*h();
