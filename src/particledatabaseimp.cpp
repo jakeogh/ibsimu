@@ -86,6 +86,18 @@ ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s
 }
 
 
+ParticleDataBaseImp::ParticleDataBaseImp( const ParticleDataBaseImp &pdb )
+{
+
+}
+
+
+const ParticleDataBaseImp &ParticleDataBaseImp::operator=( const ParticleDataBaseImp &pdb )
+{
+    return( *this );
+}
+
+
 ParticleDataBaseImp::~ParticleDataBaseImp()
 {
 
@@ -289,7 +301,6 @@ ParticleDataBase2DImp::ParticleDataBase2DImp( const ParticleDataBase2DImp &pdb )
 ParticleDataBase2DImp::ParticleDataBase2DImp( ParticleDataBase *pdb, std::istream &s )
     : ParticleDataBasePPImp<ParticleP2D>(pdb,s)
 {
-    
 }
 
 
@@ -539,18 +550,6 @@ void ParticleDataBase2DImp::build_trajectory_density_field( MeshScalarField &tde
 }
 
 
-void ParticleDataBase2DImp::save( const std::string &filename ) const
-{
-    ibsimu.message( 1 ) << "Saving ParticleDataBase2D to file \'" << filename << "\'.\n";
-
-    std::ofstream os( filename.c_str(), std::ios_base::binary );
-    if( !os.good() )
-	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
-    save( os );
-    os.close();
-}
-
-
 void ParticleDataBase2DImp::save( std::ostream &os ) const
 {
     ParticleDataBasePPImp<ParticleP2D>::save( os );
@@ -586,7 +585,6 @@ ParticleDataBaseCylImp::ParticleDataBaseCylImp( const ParticleDataBaseCylImp &pd
 ParticleDataBaseCylImp::ParticleDataBaseCylImp( ParticleDataBase *pdb, std::istream &s )
     : ParticleDataBasePPImp<ParticlePCyl>(pdb,s)
 {
-    
 }
 
 
@@ -914,18 +912,6 @@ void ParticleDataBaseCylImp::add_2d_gaussian_beam_with_emittance( uint32_t N, do
 }
 
 
-void ParticleDataBaseCylImp::save( const std::string &filename ) const
-{
-    ibsimu.message( 1 ) << "Saving ParticleDataBaseCyl to file \'" << filename << "\'.\n";
-
-    std::ofstream os( filename.c_str(), std::ios_base::binary );
-    if( !os.good() )
-	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
-    save( os );
-    os.close();
-}
-
-
 void ParticleDataBaseCylImp::save( std::ostream &os ) const
 {
     ParticleDataBasePPImp<ParticlePCyl>::save( os );
@@ -961,7 +947,6 @@ ParticleDataBase3DImp::ParticleDataBase3DImp( const ParticleDataBase3DImp &pdb )
 ParticleDataBase3DImp::ParticleDataBase3DImp( ParticleDataBase *pdb, std::istream &s )
     : ParticleDataBasePPImp<ParticleP3D>(pdb,s)
 {
-
 }
 
 
@@ -1702,18 +1687,6 @@ void ParticleDataBase3DImp::build_trajectory_density_field( MeshScalarField &tde
 	    tdens( tdens.size(0)-1, j, k ) *= 2.0;
 	}
     }
-}
-
-
-void ParticleDataBase3DImp::save( const std::string &filename ) const
-{
-    ibsimu.message( 1 ) << "Saving ParticleDataBase3D to file \'" << filename << "\'.\n";
-
-    std::ofstream os( filename.c_str(), std::ios_base::binary );
-    if( !os.good() )
-	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
-    save( os );
-    os.close();
 }
 
 

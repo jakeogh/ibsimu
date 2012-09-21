@@ -287,6 +287,9 @@ ParticleDataBase2D::ParticleDataBase2D( const ParticleDataBase2D &pdb )
 
 ParticleDataBase2D::ParticleDataBase2D( std::istream &s )
 {
+    int32_t fileid = read_int32( s );
+    if( fileid != FILEID_PARTICLEDB2D )
+	throw( Error( ERROR_LOCATION, "unknown input reading ParticleDataBase2D from stream" ) );
     _imp = new ParticleDataBase2DImp( this, s );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
@@ -372,7 +375,14 @@ void ParticleDataBase2D::add_2d_gaussian_beam_with_emittance( uint32_t N, double
 
 void ParticleDataBase2D::save( const std::string &filename ) const
 {
-    _imp->save( filename );
+    ibsimu.message( 1 ) << "Saving ParticleDataBase2D to file \'" << filename << "\'.\n";
+
+    std::ofstream os( filename.c_str(), std::ios_base::binary );
+    if( !os.good() )
+	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
+    write_int32( os, FILEID_PARTICLEDB2D );
+    _imp->save( os );
+    os.close();
 }
 
 
@@ -409,6 +419,9 @@ ParticleDataBaseCyl::ParticleDataBaseCyl( const ParticleDataBaseCyl &pdb )
 
 ParticleDataBaseCyl::ParticleDataBaseCyl( std::istream &s )
 {
+    int32_t fileid = read_int32( s );
+    if( fileid != FILEID_PARTICLEDBCYL )
+	throw( Error( ERROR_LOCATION, "unknown input reading ParticleDataBaseCyl from stream" ) );
     _imp = new ParticleDataBaseCylImp( this, s );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
@@ -494,7 +507,14 @@ void ParticleDataBaseCyl::add_2d_gaussian_beam_with_emittance( uint32_t N, doubl
 
 void ParticleDataBaseCyl::save( const std::string &filename ) const
 {
-    _imp->save( filename );
+    ibsimu.message( 1 ) << "Saving ParticleDataBaseCyl to file \'" << filename << "\'.\n";
+
+    std::ofstream os( filename.c_str(), std::ios_base::binary );
+    if( !os.good() )
+	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
+    write_int32( os, FILEID_PARTICLEDBCYL );
+    _imp->save( os );
+    os.close();
 }
 
 
@@ -531,6 +551,9 @@ ParticleDataBase3D::ParticleDataBase3D( const ParticleDataBase3D &pdb )
 
 ParticleDataBase3D::ParticleDataBase3D( std::istream &s )
 {
+    int32_t fileid = read_int32( s );
+    if( fileid != FILEID_PARTICLEDB3D )
+	throw( Error( ERROR_LOCATION, "unknown input reading ParticleDataBase3D from stream" ) );
     _imp = new ParticleDataBase3DImp( this, s );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
@@ -651,7 +674,14 @@ void ParticleDataBase3D::export_path_manager_data( std::string filename,
 
 void ParticleDataBase3D::save( const std::string &filename ) const
 {
-    _imp->save( filename );
+    ibsimu.message( 1 ) << "Saving ParticleDataBase3D to file \'" << filename << "\'.\n";
+
+    std::ofstream os( filename.c_str(), std::ios_base::binary );
+    if( !os.good() )
+	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
+    write_int32( os, FILEID_PARTICLEDB3D );
+    _imp->save( os );
+    os.close();
 }
 
 

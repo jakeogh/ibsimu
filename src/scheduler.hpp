@@ -355,6 +355,15 @@ class Scheduler {
 	return( scheduler->scheduler_main() );
     }
 
+    /*! \brief Private copy constructor
+     */
+    Scheduler( const Scheduler &s ) {}
+
+    /*! \brief Private copy operator
+     */
+    const Scheduler &operator=( const Scheduler &s ) {
+	return( *this );
+    }
 
 public:
 

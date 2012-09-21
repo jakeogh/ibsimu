@@ -83,13 +83,17 @@ protected:
 
     ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s );
 
+    ParticleDataBaseImp( const ParticleDataBaseImp &pdb );
+
+    const ParticleDataBaseImp &operator=( const ParticleDataBaseImp &pdb );
+
     /*! \brief Convert energy to velocity.
      *
      *  Energy \a E given in Joules and mass \a m in kg.
      */
     static double energy_to_velocity( double E, double m );
     
-    void save( std::ostream &s ) const;
+    void save( std::ostream &os ) const;
 
 public:
 
@@ -266,9 +270,13 @@ protected:
     std::vector<Particle<PP> *>                        _particles; /*!< \brief Particles. */
     Scheduler<ParticleIterator<PP>,Particle<PP>,Error> _scheduler; /*!< \brief Scheduler for solver. */
 
+    /*! \brief Constructor, using API pdb
+     */
     ParticleDataBasePPImp( ParticleDataBase *pdb )
 	: ParticleDataBaseImp(pdb), _scheduler(_particles) {}
 
+    /*! \brief Constructor from stream, using API pdb
+     */
     ParticleDataBasePPImp( ParticleDataBase *pdb, std::istream &s ) 
 	: ParticleDataBaseImp(pdb,s), _scheduler(_particles) {
 
@@ -278,6 +286,29 @@ protected:
 	    _particles.push_back( new Particle<PP>( s ) );
 
 	ibsimu.dec_indent();
+    }
+
+    /*! \brief Copy constructor
+     */
+    ParticleDataBasePPImp( const ParticleDataBasePPImp &pdb ) 
+	: ParticleDataBaseImp(pdb), _scheduler(_particles) {
+
+	_particles.reserve( pdb._particles.size() );
+	for( size_t a; a < pdb._particles.size(); a++ )
+	    _particles.push_back( new Particle<PP>( *pdb._particles[a] ) );
+    }
+
+    /*! \brief Copy assignment operator
+     */
+    const ParticleDataBasePPImp &operator=( const ParticleDataBasePPImp &pdb ) {
+
+	for( size_t a; a < pdb._particles.size(); a++ )
+	    delete _particles[a];
+	_particles.clear();
+	_particles.reserve( pdb._particles.size() );
+	for( size_t a; a < pdb._particles.size(); a++ )
+	    _particles.push_back( new Particle<PP>( *pdb._particles[a] ) );
+	return( *this );
     }
 
 public:
@@ -659,7 +690,6 @@ public:
 					      double a, double b, double e,
 					      double Ex, double x0, double y0 );
 
-    void save( const std::string &filename ) const;
     void save( std::ostream &os ) const;
 
     void debug_print( std::ostream &os ) const;
@@ -706,7 +736,6 @@ public:
 					      double a, double b, double e,
 					      double Ex, double x0 );
 
-    void save( const std::string &filename ) const;
     void save( std::ostream &os ) const;
 
     void debug_print( std::ostream &os ) const;
@@ -771,7 +800,6 @@ public:
 				   double ref_E, double ref_q, double ref_m, 
 				   Vec3D c, Vec3D o, Vec3D p ) const;    
 
-    void save( const std::string &filename ) const;
     void save( std::ostream &os ) const;
 
     void debug_print( std::ostream &os ) const;
