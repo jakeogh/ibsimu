@@ -289,6 +289,10 @@ void STLFile::VTriangle::debug_print( std::ostream &os ) const
 
 void STLFile::read_binary( std::ifstream &ifstr )
 {
+    // Skip header
+    char buf[80];
+    ifstr.read( buf, 80 );
+
     // Read number of triangles
     uint32_t tcount;
     ifstr.read( (char *)(&tcount), 4 );
@@ -297,10 +301,10 @@ void STLFile::read_binary( std::ifstream &ifstr )
     if( tcount > 10000000 )
 	throw( ErrorUnimplemented( ERROR_LOCATION, "Too high number of triangles" ) );
     _tri.reserve( tcount );
-    
-    for( uint32_t a = 0; a < tcount; a++ ) {
+
+    // Read triangles
+    for( uint32_t a = 0; a < tcount; a++ )
 	_tri.push_back( Triangle( ifstr ) );
-    }
 }
 
 
@@ -344,20 +348,28 @@ STLFile::STLFile( const std::string &filename,
     if( !ifstr.good() )
 	throw( Error( ERROR_LOCATION, "Couldn't open file \'" + filename + "\'" ) );
 
-    // Check if ascii
-    // Ascii files start with "solid "
-    // Binary files have free form 80 byte header
-    char buf[80];
-    ifstr.read( buf, 80 );
+    /* Check if ascii
+     * Ascii files start with "solid XXX\n", on first line where XXX is free
+     * form text. Second line starts with "facet normal" with possible leading whitespace
+     * Binary files have free form 80 byte header
+     */
+    _ascii = false;
+    char buf[1024];
+    ifstr.read( buf, 1024 );
     if( !strncasecmp( buf, "solid ", 6 ) ) {
-	_ascii = true;
-	ifstr.seekg( 0 );
-	read_ascii( ifstr );
-    } else {
-	_ascii = false;
-	read_binary( ifstr );
+	// Might be ascii, seek next line
+	int a = 6;
+	while( buf[a] != '\n' ) a++;
+	while( isspace(buf[a]) ) a++;
+	if( !strncasecmp( &buf[a], "facet normal", 12 ) )
+	    _ascii = true;
     }
 
+    ifstr.seekg( 0 );
+    if( _ascii )
+	read_ascii( ifstr );
+    else
+	read_binary( ifstr );
     ifstr.close();
 
     build_vtriangle_data();

@@ -327,6 +327,7 @@ solidgraph.hpp \
 solver.hpp \
 sort.hpp \
 statusprint.hpp \
+stlfile.hpp \
 stl_solid.hpp \
 timer.hpp \
 trajectory.hpp \

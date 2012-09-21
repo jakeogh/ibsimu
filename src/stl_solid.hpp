@@ -84,35 +84,37 @@ public:
      */
     void debug_print( std::ostream &os ) const;
 
+    /*! \brief Set transformation to unity.
+     */
+    void reset_transformation( void ) ;
+
+    /*! \brief Set transformation.
+     */
+    void set_transformation( const Transformation &T );
+
     /*! \brief Translate solid.
      */
-    void translate( const Vec3D &dx ) {
-        _T.translate( -1.0*dx );
-    }
+    void translate( const Vec3D &dx );
 
     /*! \brief Scale solid.
      */
-    void scale( const Vec3D &sx ) {
-        _T.scale( Vec3D(1.0/sx[0], 1.0/sx[1], 1.0/sx[2]) );
-    }
+    void scale( double sx );
+
+    /*! \brief Scale solid.
+     */
+    void scale( const Vec3D &sx );
 
     /*! \brief Rotate solid around x-axis.
      */
-    void rotate_x( double a ) {
-        _T.rotate_x( -a );
-    }
+    void rotate_x( double a );
 
     /*! \brief Rotate solid around y-axis.
      */
-    void rotate_y( double a ) {
-        _T.rotate_y( -a );
-    }
+    void rotate_y( double a );
 
     /*! \brief Rotate solid around z-axis.
      */
-    void rotate_z( double a ) {
-        _T.rotate_z( -a );
-    }
+    void rotate_z( double a );
 
     /*! \brief Saves solid data to stream.
      */

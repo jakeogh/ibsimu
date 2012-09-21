@@ -88,6 +88,56 @@ bool STLSolid::inside( const Vec3D &x ) const
     return( _stl->inside( y ) );
 }
 
+
+void STLSolid::reset_transformation( void ) 
+{
+    _T.reset();
+}
+
+
+void STLSolid::set_transformation( const Transformation &T ) 
+{
+    // T is inverse the matrix presented to user
+    _T = T.inverse();
+}
+
+
+void STLSolid::translate( const Vec3D &dx ) 
+{
+    _T = _T * Transformation::translation( -dx );
+}
+
+
+void STLSolid::scale( double sx ) 
+{
+    _T = _T * Transformation::scaling( Vec3D(1.0/sx, 1.0/sx, 1.0/sx) );
+}
+
+
+void STLSolid::scale( const Vec3D &sx ) 
+{
+    _T = _T * Transformation::scaling( Vec3D(1.0/sx[0], 1.0/sx[1], 1.0/sx[2]) );
+}
+
+
+void STLSolid::rotate_x( double a ) 
+{
+    _T = _T * Transformation::rotation_x( -a );
+}
+
+
+void STLSolid::rotate_y( double a ) 
+{
+    _T = _T * Transformation::rotation_y( -a );
+}
+
+
+void STLSolid::rotate_z( double a ) 
+{
+    _T = _T * Transformation::rotation_z( -a );
+}
+
+
 STLFile *STLSolid::get_stl_file( void ) const
 {
     return( _stl );

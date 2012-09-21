@@ -128,12 +128,12 @@ public:
 
     /*! \brief Constructor for STL-file based solid B-rep mesh data.
      *
-     *  Reads either binary or ascii STL-file from \a
-     *  filename. Triangle vertices are connected if closer that \a
+     *  Reads either binary or ascii STL-file from \a filename.
+     *  Triangle vertices are connected if closer that \a
      *  vertex_matching_eps together (absolute distance in
      *  meters). During inside() evaluation a tetrahedron volume less
-     *  than \a signed_volume_eps is judged to be in the limits
-     *  of numerical accuracy. 
+     *  than \a signed_volume_eps is judged to be in the limits of
+     *  numerical accuracy.
      */
     STLFile( const std::string &filename, 
 	     double vertex_matching_eps = 1.0e-9, 
