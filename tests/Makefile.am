@@ -35,7 +35,6 @@ mgsolver3d_sphere_SOURCES = mgsolver3d_sphere.cpp
 mgsolver2d_coax_SOURCES = mgsolver2d_coax.cpp
 mgsolver1d_dirichlet_SOURCES = mgsolver1d_dirichlet.cpp
 mgsolver1d_neumann_SOURCES = mgsolver1d_neumann.cpp
-multimeshvecfield_SOURCES = multimeshvecfield.cpp
 mvector_SOURCES = mvector.cpp
 nsimp_plasmacyl_SOURCES = nsimp_plasmacyl.cpp
 nsimp_plasma2d_SOURCES = nsimp_plasma2d.cpp
@@ -52,7 +51,6 @@ particles_mirror_SOURCES = particles_mirror.cpp
 particles_nofield_SOURCES = particles_nofield.cpp
 particles_relativistic_SOURCES = particles_relativistic.cpp
 particles_trajectory_SOURCES = particles_trajectory.cpp
-plasma1d_SOURCES = plasma1d.cpp
 plasma2d_SOURCES = plasma2d.cpp
 plasma3d_SOURCES = plasma3d.cpp
 plasmacyl_SOURCES = plasmacyl.cpp
@@ -132,7 +130,6 @@ mgsolver3d_sphere \
 mgsolver2d_coax \
 mgsolver1d_dirichlet \
 mgsolver1d_neumann \
-multimeshvecfield \
 mvector \
 nsimp_plasmacyl \
 nsimp_plasma2d \
@@ -149,7 +146,6 @@ particles_mirror \
 particles_nofield \
 particles_relativistic \
 particles_trajectory \
-plasma1d \
 plasma2d \
 plasma3d \
 plasmacyl \

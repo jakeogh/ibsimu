@@ -191,7 +191,6 @@ plotter.hpp \
 polysolver.cpp \
 polysolver.hpp \
 precond.hpp \
-problem.hpp \
 random.cpp \
 random.hpp \
 readascii.cpp \
