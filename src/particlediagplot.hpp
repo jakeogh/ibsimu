@@ -56,11 +56,13 @@
 
 
 
+/*! \brief %Particle diagnostic plot type.
+ */
 enum particle_diag_plot_type_e {
-    PARTICLE_DIAG_PLOT_NONE = 0,
-    PARTICLE_DIAG_PLOT_SCATTER,
-    PARTICLE_DIAG_PLOT_HISTO2D,
-    PARTICLE_DIAG_PLOT_HISTO1D
+    PARTICLE_DIAG_PLOT_NONE = 0, /*!< \brief Dummy diagnostic type. Does nothing. */
+    PARTICLE_DIAG_PLOT_SCATTER,  /*!< \brief Scatter plot. */
+    PARTICLE_DIAG_PLOT_HISTO2D,  /*!< \brief 2D histogram. */
+    PARTICLE_DIAG_PLOT_HISTO1D   /*!< \brief 1D histogram. */
 };
 
 
@@ -128,6 +130,11 @@ public:
      *  from \a pdb in geometry \a geom. The particle diagnostic is
      *  defined by diagnostic \a type and diagnostic axes \a diagx and
      *  \a diagy.
+     *
+     *  The EmittanceConv class is automatically used to convert
+     *  particle data from cylindrically symmetric simulations if
+     *  (y,y') or (z,z') plot is requested with plot type
+     *  PARTICLE_DIAG_PLOT_HISTO2D.
      */
     ParticleDiagPlot( Frame &frame, const Geometry &geom, const ParticleDataBase &pdb, 
 		      coordinate_axis_e axis, double level, 

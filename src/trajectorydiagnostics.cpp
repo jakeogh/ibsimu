@@ -54,8 +54,6 @@
 
 //#define DEBUG_EMITTANCECONV 1
 
-#define EMITTANCE_ROTN 100
-
 
 void TrajectoryDiagnosticColumn::mirror( coordinate_axis_e axis, double level )
 {
@@ -376,16 +374,19 @@ int min( int n1, int n2, int n3, int n4 )
 }
 
 
-EmittanceConv::EmittanceConv( int n, int m,
+EmittanceConv::EmittanceConv( uint32_t n, uint32_t m,
 			      const std::vector<double> &r,
 			      const std::vector<double> &rp,
 			      const std::vector<double> &ap,
-			      const std::vector<double> &I )
+			      const std::vector<double> &I,
+			      uint32_t rotn,
+			      double xmin, double xpmin, 
+			      double xmax, double xpmax )
 {
     int N = min( r.size(), rp.size(), ap.size(), I.size() );
 
     // Find ranges
-    double range[4] = { 0.0, 0.0, 0.0, 0.0 };
+    double range[4] = { xmin, xpmin, xmax, xpmax };
 
     // xmax = rmax, xmin = -rmax
     double rmax = 0.0;
@@ -393,18 +394,22 @@ EmittanceConv::EmittanceConv( int n, int m,
 	if( r[a] > rmax )
 	    rmax = r[a];
     }
-    range[0] = -rmax;
-    range[2] = rmax;
+    if( isnan(range[0]) )
+	range[0] = -rmax;
+    if( isnan(range[2]) )
+	range[2] = rmax;
 
     // xpmax
-    double xpmax = 0.0;
+    double _xpmax = 0.0;
     for( int a = 0; a < N; a++ ) {
 	double xpm = sqrt( rp[a]*rp[a] + ap[a]*ap[a] );
-	if( xpm > xpmax )
-	    xpmax = xpm;
+	if( xpm > _xpmax )
+	    _xpmax = xpm;
     }
-    range[1] = -xpmax;
-    range[3] = xpmax;
+    if( isnan(range[1]) )
+	range[1] = -_xpmax;
+    if( isnan(range[3]) )
+	range[3] = _xpmax;
 
     // Make grid
     _grid = new Histogram2D( n, m, range );
@@ -444,11 +449,11 @@ EmittanceConv::EmittanceConv( int n, int m,
 	double x2 = 0.0; // Avoid numerical noise
 	double xp2 = 0.0;
 	double xxp = 0.0;
-	double dI = I[a]/EMITTANCE_ROTN;
-	for( int b = 0; b < EMITTANCE_ROTN; b++ ) {
+	double dI = I[a]/rotn;
+	for( int b = 0; b < rotn; b++ ) {
 
 	    double rnd  = ((double)rand())/RAND_MAX;
-	    double ang  = 2.0*M_PI*(b+rnd)/EMITTANCE_ROTN;
+	    double ang  = 2.0*M_PI*(b+rnd)/rotn;
 	    double sint = sin( ang );
 	    double cost = cos( ang );
 
@@ -459,11 +464,15 @@ EmittanceConv::EmittanceConv( int n, int m,
 	    xp2 += xp*xp*dI;
 	    xxp += x*xp*dI;
 
+	    _grid->accumulate_closest( x, xp, dI );
+
+	    /*
 	    int i = (int)floor( (x -range[0]) / _grid->nstep() + 0.5 );
 	    int j = (int)floor( (xp-range[1]) / _grid->mstep() + 0.5 );
 
 	    if( i >= 0 && i < n && j >= 0 && j < m )
 		_grid->accumulate( i, j, dI );
+	    */
 	}
 
 	_x2 += x2;
