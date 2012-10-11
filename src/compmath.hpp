@@ -2,7 +2,7 @@
  *  \brief Compatibility math
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -46,6 +46,7 @@
 
 int comp_isinf( double x );
 int comp_isnan( double x );
+double comp_sign( double x );
 
 
 #endif

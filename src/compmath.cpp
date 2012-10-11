@@ -2,7 +2,7 @@
  *  \brief Compatibility math
  */
 
-/* Copyright (c) 2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,7 +47,7 @@ int comp_isinf( double x )
 {
     if( (x == x) && ((x - x) != 0.0) )
 	return( x < 0.0 ? -1 : 1 );
-    else 
+    else
         return( 0 );
 }
 
@@ -56,12 +56,17 @@ int comp_isnan( double x )
 {
     if( x == x )
 	return( 0 );
-    else 
+    else
         return( 1 );
 }
 
 
-
-
+double comp_sign( double x )
+{
+    if( x <= 0.0 )
+	return( -1.0 );
+    else
+	return( 1.0 );
+}
 
 
