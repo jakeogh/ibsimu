@@ -739,6 +739,7 @@ template <class PP> class ParticleIterator {
 	// r-direction and constant acceleration in x-direction
 	double dt = -x2[3]/x2[4];
 	PP xc;
+	xc.clear();
 	xc[0] = x2[0]+dt;
 	xc[1] = x2[1]+(x2[2]+0.5*dxdt[1]*dt)*dt;
 	xc[2] = x2[2];

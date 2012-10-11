@@ -46,6 +46,7 @@
 
 #include <vector>
 #include <string>
+#include <string.h>
 #include <gsl/gsl_errno.h>
 #include "geometry.hpp"
 #include "meshscalarfield.hpp"
@@ -164,6 +165,10 @@ public:
      *  Returns "A/m".
      */
     static const std::string IQ_unit() { return( "A/m" ); }
+
+    /*! \brief Clear point to zero.
+     */
+    void clear() { memset( (void *)_x, 0, 5*sizeof(double) ); }
 
     /*! \brief Returns the location of particle point in Vec3D.
      */
@@ -338,6 +343,10 @@ public:
      *  Returns "A".
      */
     static const std::string IQ_unit() { return( "A" ); }
+
+    /*! \brief Clear point to zero.
+     */
+    void clear() { memset( (void *)_x, 0, 6*sizeof(double) ); }
 
     /*! \brief Returns the location of particle point in Vec3D.
      */
@@ -516,6 +525,10 @@ public:
      *  Returns "A".
      */
     static const std::string IQ_unit() { return( "A" ); }
+
+    /*! \brief Clear point to zero.
+     */
+    void clear() { memset( (void *)_x, 0, 7*sizeof(double) ); }
 
     /*! \brief Returns the location of particle point in Vec3D.
      */
