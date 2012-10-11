@@ -43,6 +43,7 @@
 
 #include <fstream>
 #include "particledatabaseimp.hpp"
+#include "compmath.hpp"
 #include "random.hpp"
 #include "constants.hpp"
 #include "mat3d.hpp"
@@ -363,10 +364,54 @@ void ParticleDataBase2DImp::add_2d_beam_with_energy( uint32_t N, double J, doubl
 						     double E, double Tp, double Tt, 
 						     double x1, double y1, double x2, double y2 )
 {
-    add_2d_beam_with_velocity( N, J, q, m, energy_to_velocity(E*CHARGE_E,m*MASS_U), 
-			       sqrt(Tp*CHARGE_E/(m*MASS_U)), 
-			       sqrt(Tt*CHARGE_E/(m*MASS_U)), 
-			       x1, y1, x2, y2 );
+    //add_2d_beam_with_velocity( N, J, q, m, energy_to_velocity(E*CHARGE_E,m*MASS_U), 
+    //sqrt(Tp*CHARGE_E/(m*MASS_U)), 
+    //sqrt(Tt*CHARGE_E/(m*MASS_U)), 
+    //x1, y1, x2, y2 );
+
+    ibsimu.message( 1 ) << "Defining a 2d beam\n";
+
+    _particles.reserve( _particles.size()+N );
+
+    m *= MASS_U;
+    q *= CHARGE_E;
+    E *= CHARGE_E;
+    Tp *= CHARGE_E;
+    Tt *= CHARGE_E;
+    double v = energy_to_velocity(E,m);
+    double dvp = sqrt(Tp/m);
+    double dvt = sqrt(Tt/m);
+
+    QRandom qrng( 2 );
+    qrng.set_transformation( 0, Gaussian_Transformation() );
+    qrng.set_transformation( 1, Gaussian_Transformation() );
+
+    double s = sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) );
+    _rhosum += J/v;
+    double IQ = J*s/N; // IQ is in units A/m for 2D
+    double vt[2];
+    ParticleP2D x;
+    x[0] = 0.0;
+    Vec3D transverse( x2-x1, y2-y1, 0.0 );
+    transverse /= transverse.norm2();
+    Vec3D parallel( transverse[1], -transverse[0], 0.0 );
+
+    double Isum = 0.0;
+    for( uint32_t a = 0; a < N; a++ ) {
+	x[1] = x1 + (x2-x1)*(a+0.5)/((double)N);
+	x[3] = y1 + (y2-y1)*(a+0.5)/((double)N);
+
+	qrng.get( vt );
+	double pveld = dvp*vt[1];
+	double pvel = sqrt( 2.0*E/m + comp_sign(pveld)*pveld*pveld );
+	x[2] = transverse[0]*dvt*vt[0] + parallel[0]*pvel;
+	x[4] = transverse[1]*dvt*vt[0] + parallel[1]*pvel;
+
+	add_particle( Particle2D( IQ, q, m, x ) );
+	Isum += IQ;
+    }
+
+    ibsimu.message( 1 ) << "  Total beam current " << Isum << " A/m\n";
 }
 
 

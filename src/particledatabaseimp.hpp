@@ -294,7 +294,7 @@ protected:
 	: ParticleDataBaseImp(pdb), _scheduler(_particles) {
 
 	_particles.reserve( pdb._particles.size() );
-	for( size_t a; a < pdb._particles.size(); a++ )
+	for( size_t a = 0; a < pdb._particles.size(); a++ )
 	    _particles.push_back( new Particle<PP>( *pdb._particles[a] ) );
     }
 
@@ -306,7 +306,7 @@ protected:
 	    delete _particles[a];
 	_particles.clear();
 	_particles.reserve( pdb._particles.size() );
-	for( size_t a; a < pdb._particles.size(); a++ )
+	for( size_t a = 0; a < pdb._particles.size(); a++ )
 	    _particles.push_back( new Particle<PP>( *pdb._particles[a] ) );
 	return( *this );
     }
