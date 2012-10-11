@@ -7,6 +7,7 @@ crowmatrix_SOURCES = crowmatrix.cpp
 efield_extrpl_SOURCES = efield_extrpl.cpp
 efield_SOURCES = efield.cpp
 efieldtest_2d_SOURCES = efieldtest_2d.cpp
+energy_SOURCES = energy.cpp
 emittance3d_SOURCES = emittance3d.cpp
 emittanceconv_SOURCES = emittanceconv.cpp
 emittancedef2d_SOURCES = emittancedef2d.cpp
@@ -102,6 +103,7 @@ crowmatrix \
 efield \
 efield_extrpl \
 efieldtest_2d \
+energy \
 emittance3d \
 emittanceconv \
 emittancedef2d \
