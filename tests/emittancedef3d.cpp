@@ -9,9 +9,7 @@
 #include <iomanip>
 #include <iostream>
 #include "geometry.hpp"
-#include "epot_problem.hpp"
 #include "epot_efield.hpp"
-#include "bicgstab_solver.hpp"
 #include "particledatabase.hpp"
 #include "particlediagplotter.hpp"
 #include "meshvectorfield.hpp"
@@ -33,17 +31,9 @@ void test( int argc, char **argv )
     geom.set_boundary( 6, Bound(BOUND_DIRICHLET, 0.0) );
     geom.build_mesh();
 
-    EpotProblem p;
-    p.construct( geom );
-
-    ScalarField epot( geom );
-    ScalarField scharge( geom );
-
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
-
-    EpotEfield efield( geom, epot );
+    EpotField epot( geom );
+    MeshScalarField scharge( geom );
+    EpotEfield efield( epot );
     MeshVectorField bfield;
 
     ParticleDataBase3D pdb;

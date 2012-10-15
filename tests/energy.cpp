@@ -8,7 +8,6 @@
 #include <cstdlib>
 #include <fstream>
 #include <iomanip>
-#include "epot_gssolver.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_field.hpp"
@@ -34,11 +33,8 @@ void parallel( int argc, char **argv )
     geom.set_boundary( 4, Bound(BOUND_DIRICHLET,  0.0) );
     geom.build_mesh();
 
-    EpotGSSolver solver( geom );
     EpotField epot( geom );
     MeshScalarField scharge( geom );
-    solver.solve( epot, scharge );
-
     EpotEfield efield( epot );
     MeshVectorField bfield;
 
@@ -87,11 +83,8 @@ void transverse( int argc, char **argv )
     geom.set_boundary( 4, Bound(BOUND_DIRICHLET,  0.0) );
     geom.build_mesh();
 
-    EpotGSSolver solver( geom );
     EpotField epot( geom );
     MeshScalarField scharge( geom );
-    solver.solve( epot, scharge );
-
     EpotEfield efield( epot );
     MeshVectorField bfield;
 
