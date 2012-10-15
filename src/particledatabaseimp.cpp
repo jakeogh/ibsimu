@@ -364,15 +364,11 @@ void ParticleDataBase2DImp::add_2d_beam_with_energy( uint32_t N, double J, doubl
 						     double E, double Tp, double Tt, 
 						     double x1, double y1, double x2, double y2 )
 {
-    //add_2d_beam_with_velocity( N, J, q, m, energy_to_velocity(E*CHARGE_E,m*MASS_U), 
-    //sqrt(Tp*CHARGE_E/(m*MASS_U)), 
-    //sqrt(Tt*CHARGE_E/(m*MASS_U)), 
-    //x1, y1, x2, y2 );
-
     ibsimu.message( 1 ) << "Defining a 2d beam\n";
 
     _particles.reserve( _particles.size()+N );
 
+    // Convert input parameters
     m *= MASS_U;
     q *= CHARGE_E;
     E *= CHARGE_E;
@@ -403,7 +399,7 @@ void ParticleDataBase2DImp::add_2d_beam_with_energy( uint32_t N, double J, doubl
 
 	qrng.get( vt );
 	double pveld = dvp*vt[1];
-	double pvel = sqrt( 2.0*E/m + comp_sign(pveld)*pveld*pveld );
+	double pvel = sqrt( 2.0*E/m + pveld*pveld );
 	x[2] = transverse[0]*dvt*vt[0] + parallel[0]*pvel;
 	x[4] = transverse[1]*dvt*vt[0] + parallel[1]*pvel;
 
@@ -811,10 +807,58 @@ void ParticleDataBaseCylImp::add_2d_beam_with_energy( uint32_t N, double J, doub
 						      double E, double Tp, double Tt, 
 						      double x1, double y1, double x2, double y2 )
 {
-    add_2d_beam_with_velocity( N, J, q, m, energy_to_velocity(E*CHARGE_E,m*MASS_U), 
-			       sqrt(Tp*CHARGE_E/(m*MASS_U)), 
-			       sqrt(Tt*CHARGE_E/(m*MASS_U)), 
-			       x1, y1, x2, y2 );
+    ibsimu.message( 1 ) << "Defining a cylindrical beam\n";
+
+    _particles.reserve( _particles.size()+N );
+
+    // Convert input parameters
+    m *= MASS_U;
+    q *= CHARGE_E;
+    E *= CHARGE_E;
+    Tp *= CHARGE_E;
+    Tt *= CHARGE_E;
+    double v = energy_to_velocity(E,m);
+    double dvp = sqrt(Tp/m);
+    double dvt = sqrt(Tt/m);
+
+    // 0: temperature parallel to defining line (transverse to beam)
+    // 1: temperature perpendicular to line (parallel to beam)
+    // 2: temperature in angular direction (skew velocity)
+    QRandom qrng( 3 ); 
+    qrng.set_transformation( 0, Gaussian_Transformation() );
+    qrng.set_transformation( 1, Gaussian_Transformation() );
+    qrng.set_transformation( 2, Gaussian_Transformation() ); 
+
+    double s = sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) );
+    _rhosum += J/v;
+    double IQ = 2.0*M_PI*J*s/N;
+    double vt[3];
+    ParticlePCyl x;
+    x[0] = 0.0;
+    Vec3D transverse( x2-x1, y2-y1, 0.0 );
+    transverse /= transverse.norm2();
+    Vec3D parallel( transverse[1], -transverse[0], 0.0 );
+
+    double Isum = 0.0;
+    for( uint32_t a = 0; a < N; a++ ) {
+	x[1] = x1 + (x2-x1)*(a+0.5)/((double)N);
+	x[3] = y1 + (y2-y1)*(a+0.5)/((double)N);
+
+	qrng.get( vt );
+	double pveld = dvp*vt[1];
+        double pvel = sqrt( 2.0*E/m + pveld*pveld );
+	x[2] = transverse[0]*dvt*vt[0] + parallel[0]*pvel;
+	x[4] = transverse[1]*dvt*vt[0] + parallel[1]*pvel;
+	if( x[3] == 0.0 )
+	    x[5] = 0.0;
+	else
+	    x[5] = dvt*vt[2]/x[3];
+
+	add_particle( ParticleCyl( IQ*x[3], q, m, x ) );
+	Isum += IQ*x[3];
+    }
+
+    ibsimu.message( 1 ) << "  Total beam current " << Isum << " A\n";
 }
 
 
@@ -826,10 +870,18 @@ void ParticleDataBaseCylImp::add_2d_full_gaussian_beam( uint32_t N, double I, do
 
     _particles.reserve( _particles.size()+N );
 
+    // Convert input parameters
     m *= MASS_U;
     q *= CHARGE_E;
+    Ex *= CHARGE_E;
+    Tp *= CHARGE_E;
+    Tt *= CHARGE_E;
+    double v = energy_to_velocity(Ex,m);
+    double dvp = sqrt(Tp/m);
+    double dvt = sqrt(Tt/m);
 
-    QRandom qrng( 5 ); // vx, y, vy, z, vz
+    // Random number generator for vx, y, vy, z, vz
+    QRandom qrng( 5 ); 
     qrng.set_transformation( 0, Gaussian_Transformation() );
     qrng.set_transformation( 1, Gaussian_Transformation() );
     qrng.set_transformation( 2, Gaussian_Transformation() );
@@ -839,10 +891,6 @@ void ParticleDataBaseCylImp::add_2d_full_gaussian_beam( uint32_t N, double I, do
 
     double IQ = I/N;
     double Isum = 0.0;
-
-    double vx0 = sqrt(2.0*Ex*CHARGE_E/m);
-    double dp = sqrt(Tp*CHARGE_E/m);
-    double dt = sqrt(Tt*CHARGE_E/m);
 
     ParticlePCyl x;
     x[0] = 0.0;
@@ -855,11 +903,12 @@ void ParticleDataBaseCylImp::add_2d_full_gaussian_beam( uint32_t N, double I, do
 	if( rn[1] < 0 || rn[3] < 0 )
 	    continue;
 
-	double vx = vx0 + dp*rn[0];
+	double pveld = dvp*rn[0];
+        double vx = sqrt( 2.0*Ex/m + pveld*pveld );
 	double y = dr*rn[1];
-	double vy = dt*rn[2];
+	double vy = dvt*rn[2];
 	double z = dr*rn[3];
-	double vz = dt*rn[4];
+	double vz = dvt*rn[4];
 
 	// Convert to cylindrical coordinates
 	double r  = sqrt( y*y + z*z );
@@ -1081,16 +1130,86 @@ void ParticleDataBase3DImp::add_cylindrical_beam_with_energy( uint32_t N, double
 							      double E, double Tp, double Tt, Vec3D c,
 							      Vec3D dir1, Vec3D dir2, double r )
 {
-    add_cylindrical_beam_with_velocity( N, J, q, m, 
-					energy_to_velocity(E*CHARGE_E,m*MASS_U), 
-					sqrt(Tp*CHARGE_E/(m*MASS_U)),
-					sqrt(Tt*CHARGE_E/(m*MASS_U)),
-					c, dir1, dir2, r );
+    ibsimu.message( 1 ) << "Defining a cylindrical beam\n";
+
+    _particles.reserve( _particles.size()+N );
+
+    // Convert input parameters
+    m *= MASS_U;
+    q *= CHARGE_E;
+    E *= CHARGE_E;
+    Tp *= CHARGE_E;
+    Tt *= CHARGE_E;
+    double v = energy_to_velocity(E,m);
+    double dvp = sqrt(Tp/m);
+    double dvt = sqrt(Tt/m);
+
+    // Random number generator for two positions and three velocities (gaussian)
+    QRandom qrng( 5 );
+    qrng.set_transformation( 2, Gaussian_Transformation() );
+    qrng.set_transformation( 3, Gaussian_Transformation() );
+    qrng.set_transformation( 4, Gaussian_Transformation() );
+    double qx[5];
+    double px[6];
+
+    _rhosum += J/v;
+    double IQ = M_PI*r*r*J/N;
+
+    // Calculate and check base vectors
+    Vec3D dir3 = cross( dir1, dir2 );
+    dir2 = cross( dir1, dir3 );
+    dir1.normalize();
+    dir2.normalize();
+    dir3.normalize();
+    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] )
+	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
+
+    // Prepare particle
+    ParticleP3D x;
+    x[0] = 0.0;
+
+    double Isum = 0.0;
+    uint32_t a = 0;
+    while( a < N ) {
+
+	qrng.get( qx );
+
+	// Position in natural (dir1,dir2,dir3) coordinates
+	px[0] = -r + 2.0*r*qx[0];
+	px[1] = -r + 2.0*r*qx[1];
+	px[2] = 0.0;
+
+	// Reject points outside radius r circle
+ 	if( px[0]*px[0] + px[1]*px[1] > r*r )
+	    continue;
+
+	// Velocities in natural (dir1,dir2,dir3) coordinates
+	px[3] = dvt*qx[2];
+	px[4] = dvt*qx[3];
+	double pveld = dvp*qx[4];
+        px[5] = sqrt( 2.0*E/m + pveld*pveld );
+
+	// Map to world coordinates
+	x[1] = dir1[0]*px[0] + dir2[0]*px[1] + dir3[0]*px[2] + c[0];
+	x[2] = dir1[0]*px[3] + dir2[0]*px[4] + dir3[0]*px[5];
+	x[3] = dir1[1]*px[0] + dir2[1]*px[1] + dir3[1]*px[2] + c[1];
+	x[4] = dir1[1]*px[3] + dir2[1]*px[4] + dir3[1]*px[5];
+	x[5] = dir1[2]*px[0] + dir2[2]*px[1] + dir3[2]*px[2] + c[2];
+	x[6] = dir1[2]*px[3] + dir2[2]*px[4] + dir3[2]*px[5];
+
+	add_particle( Particle3D( IQ, q, m, x ) );
+	Isum += IQ;
+	a++;
+    }
+
+    ibsimu.message( 1 ) << "  Total beam current " << Isum << " A\n";
 }
+
 
 void ParticleDataBase3DImp::add_rectangular_beam_with_velocity( uint32_t N, double J, double q, double m, 
 								double v, double dvp, double dvt, Vec3D c, 
-								Vec3D dir1, Vec3D dir2, double size1, double size2 )
+								Vec3D dir1, Vec3D dir2, 
+								double size1, double size2 )
 {
     ibsimu.message( 1 ) << "Defining a rectangular beam\n";
 
@@ -1129,10 +1248,12 @@ void ParticleDataBase3DImp::add_rectangular_beam_with_velocity( uint32_t N, doub
 
 	qrng.get( qx );
 
-	// Calculate in natural (dir1,dir2,dir3) coordinates
+	// Position in natural (dir1,dir2,dir3) coordinates
 	px[0] = size1*(2.0*qx[0]-1.0);
 	px[1] = size2*(2.0*qx[1]-1.0);
 	px[2] = 0.0;
+
+	// Velocities in natural (dir1,dir2,dir3) coordinates
 	px[3] = dvt*qx[2];
 	px[4] = dvt*qx[3];
 	px[5] = dvp*qx[4] + v;
@@ -1156,13 +1277,78 @@ void ParticleDataBase3DImp::add_rectangular_beam_with_velocity( uint32_t N, doub
 
 void ParticleDataBase3DImp::add_rectangular_beam_with_energy( uint32_t N, double J, double q, double m, 
 							      double E, double Tp, double Tt, Vec3D c, 
-							      Vec3D dir1, Vec3D dir2, double size1, double size2 )
+							      Vec3D dir1, Vec3D dir2, 
+							      double size1, double size2 )
 {
-    add_rectangular_beam_with_velocity( N, J, q, m, 
-					energy_to_velocity(E*CHARGE_E,m*MASS_U), 
-					sqrt(Tp*CHARGE_E/(m*MASS_U)),
-					sqrt(Tt*CHARGE_E/(m*MASS_U)),
-					c, dir1, dir2, size1, size2 );
+    ibsimu.message( 1 ) << "Defining a rectangular beam\n";
+
+    _particles.reserve( _particles.size()+N );
+
+    // Convert input parameters
+    m *= MASS_U;
+    q *= CHARGE_E;
+    E *= CHARGE_E;
+    Tp *= CHARGE_E;
+    Tt *= CHARGE_E;
+    double v = energy_to_velocity(E,m);
+    double dvp = sqrt(Tp/m);
+    double dvt = sqrt(Tt/m);
+
+    // Random number generator for two positions and three velocities (gaussian)
+    QRandom qrng( 5 );
+    qrng.set_transformation( 2, Gaussian_Transformation() );
+    qrng.set_transformation( 3, Gaussian_Transformation() );
+    qrng.set_transformation( 4, Gaussian_Transformation() );
+    double qx[5];
+    double px[6];
+
+    // Charge
+    _rhosum += J/v;
+    double IQ = 4.0*size1*size2*J/N;
+
+    // Calculate and check base vectors
+    Vec3D dir3 = cross( dir1, dir2 );
+    dir2 = cross( dir1, dir3 );
+    dir1.normalize();
+    dir2.normalize();
+    dir3.normalize();
+    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] ) {
+	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
+    }
+
+    // Prepare particle
+    ParticleP3D x;
+    x[0] = 0.0;
+
+    double Isum = 0.0;
+    uint32_t a = 0;
+    while( a < N ) {
+
+	qrng.get( qx );
+
+	// Calculate in natural (dir1,dir2,dir3) coordinates
+	px[0] = size1*(2.0*qx[0]-1.0);
+	px[1] = size2*(2.0*qx[1]-1.0);
+	px[2] = 0.0;
+	px[3] = dvt*qx[2];
+	px[4] = dvt*qx[3];
+	double pveld = dvp*qx[4];
+        px[5] = sqrt( 2.0*E/m + pveld*pveld );
+
+	// Map to world coordinates
+	x[1] = dir1[0]*px[0] + dir2[0]*px[1] + dir3[0]*px[2] + c[0];
+	x[2] = dir1[0]*px[3] + dir2[0]*px[4] + dir3[0]*px[5];
+	x[3] = dir1[1]*px[0] + dir2[1]*px[1] + dir3[1]*px[2] + c[1];
+	x[4] = dir1[1]*px[3] + dir2[1]*px[4] + dir3[1]*px[5];
+	x[5] = dir1[2]*px[0] + dir2[2]*px[1] + dir3[2]*px[2] + c[2];
+	x[6] = dir1[2]*px[3] + dir2[2]*px[4] + dir3[2]*px[5];
+
+	add_particle( Particle3D( IQ, q, m, x ) );
+	Isum += IQ;
+	a++;
+    }
+
+    ibsimu.message( 1 ) << "  Total beam current " << Isum << " A\n";
 }
 
 
