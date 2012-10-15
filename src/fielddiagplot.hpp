@@ -67,12 +67,16 @@
 #define FIELDD_DIAG_BFIELD_Z FIELD_BFIELD_Z
 
 
+/*! \brief Location type for field diagnostics.
+ *
+ *  Indicator for coordinate
+ */
 enum field_loc_type_e {
-    FIELDD_LOC_NONE = 0,
-    FIELDD_LOC_X,
-    FIELDD_LOC_Y,
-    FIELDD_LOC_Z,
-    FIELDD_LOC_DIST
+    FIELDD_LOC_NONE = 0, /*!< \brief Dummy location */
+    FIELDD_LOC_X,        /*!< \brief Location x-coordinate */
+    FIELDD_LOC_Y,        /*!< \brief Location y-coordinate */
+    FIELDD_LOC_Z,        /*!< \brief Location z-coordinate */
+    FIELDD_LOC_DIST      /*!< \brief Location as distance */
 };
 
 
