@@ -7,24 +7,32 @@
 
 #include <fstream>
 #include <iomanip>
-#include "bicgstab_solver.hpp"
-#include "epot_problem.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
 #include "error.hpp"
+#include "ibsimu.hpp"
+#include "constants.hpp"
 
 
 using namespace std;
 
 
-const double eps0 = 8.85418781762e-12;
+double r1 = 0.01;
+double r2 = 1000.0*5.0e-5;
+double rho = 1.0e-4;
+double I_over_v = M_PI*r1*r1*rho;
+double coef = I_over_v/(2.0*M_PI*EPSILON0);
+
+
+
 double phi( double r )
 {
     if( r < 0.01 )
-	return( -2823522.6669*r*r + 1191.20915203 );
+	return( -coef*( r*r/(2.0*r1*r1) + log(r1/r2) - 0.5 ) );
     else if( r < 0.05 )
-	return( -564.704533379*log(r) - 1691.70359567 );
+	return( -coef*log(r/r2) );
     else
 	return( 0.0 );
 }
@@ -34,40 +42,36 @@ void test( int argc, char **argv )
 {
     bool err = false;
 
-    Geometry g( MODE_CYL, Int3D(5,1001,1), Vec3D(0,0,0), 5.0e-5 );
-    g.set_boundary( 1, Bound(BOUND_NEUMANN,   0.0) );
-    g.set_boundary( 2, Bound(BOUND_NEUMANN,   0.0) );
-    g.set_boundary( 3, Bound(BOUND_NEUMANN,   0.0) );
-    g.set_boundary( 4, Bound(BOUND_DIRICHLET, 0.0) );
-    g.build_mesh();
+    Geometry geom( MODE_CYL, Int3D(5,1001,1), Vec3D(0,0,0), 5.0e-5 );
+    geom.set_boundary( 1, Bound(BOUND_NEUMANN,   0.0) );
+    geom.set_boundary( 2, Bound(BOUND_NEUMANN,   0.0) );
+    geom.set_boundary( 3, Bound(BOUND_NEUMANN,   0.0) );
+    geom.set_boundary( 4, Bound(BOUND_DIRICHLET, 0.0) );
+    geom.build_mesh();
 
-    EpotProblem p;
-    p.construct( g );
-
-    ScalarField epot( g );
-    ScalarField scharge( g );
-    for( int a = 0; a < g.size(0); a++ ) {
-	for( int b = 0; b < g.size(1); b++ ) {
-	    //double x = a*g.h();
-	    double r = b*g.h();
+    EpotBiCGSTABSolver solver( geom );
+    EpotField epot( geom );
+    MeshScalarField scharge( geom );
+    for( unsigned int a = 0; a < geom.size(0); a++ ) {
+	for( unsigned int b = 0; b < geom.size(1); b++ ) {
+	    //double x = a*geom.h();
+	    double r = b*geom.h();
 	    if( r < 0.01 )
 		scharge(a,b) = 1.0e-4;
 	}
     }
 
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
+    solver.solve( epot, scharge );
 
     ofstream ostr( "solvercyl_beam.dat" );
     ostr << "# "
 	 << setw(12) << "r (m)" << " " 
 	 << setw(14) << "potential (V)" << " "
 	 << setw(14) << "theory (V)" << "\n";
-    for( int a = 0; a < g.size(0); a++ ) {
-	for( int b = 0; b < g.size(1); b++ ) {
-	    //double x = a*g.h();
-	    double r = b*g.h();
+    for( unsigned int a = 0; a < geom.size(0); a++ ) {
+	for( unsigned int b = 0; b < geom.size(1); b++ ) {
+	    //double x = a*geom.h();
+	    double r = b*geom.h();
 	    if( r < 0.05 && fabs( (epot(a,b) - phi(r))/phi(r) ) > 0.05 &&
 		fabs( (epot(a,b) - phi(r)) ) > 0.1 )
 		err = true;
