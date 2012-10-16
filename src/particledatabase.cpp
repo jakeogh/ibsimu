@@ -638,11 +638,22 @@ void ParticleDataBase3D::add_rectangular_beam_with_energy( uint32_t N, double J,
 
 
 void ParticleDataBase3D::add_3d_KV_beam_with_emittance( uint32_t N, double I, double q, double m,
-							double ay, double by, double ey,
-							double az, double bz, double ez,
-							double Ex, double x0, double y0, double z0 )
+							double E0,
+							double a1, double b1, double e1,
+							double a2, double b2, double e2,
+							Vec3D c, Vec3D dir1, Vec3D dir2 )
 {
-    _imp->add_3d_KV_beam_with_emittance( N, I, q, m, ay, by, ey, az, bz, ez, Ex, x0, y0, z0 );
+    _imp->add_3d_KV_beam_with_emittance( N, I, q, m, E0, a1, b1, e1, a2, b2, e2, c, dir1, dir2 );
+}
+
+
+void ParticleDataBase3D::add_3d_waterbag_beam_with_emittance( uint32_t N, double I, double q, double m,
+							      double E0,
+							      double a1, double b1, double e1,
+							      double a2, double b2, double e2,
+							      Vec3D c, Vec3D dir1, Vec3D dir2 )
+{
+    _imp->add_3d_waterbag_beam_with_emittance( N, I, q, m, E0, a1, b1, e1, a2, b2, e2, c, dir1, dir2 );
 }
 
 

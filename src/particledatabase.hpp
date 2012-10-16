@@ -1001,23 +1001,50 @@ public:
      *  Adds a beam consisting of \a N particles and a total current
      *  of \a I (A). The particles are defined to have equal currents,
      *  charge \a q (in multiples of e) and mass \a m (u). The
-     *  starting energy of the beam is \a Ex (eV) and the starting
-     *  location \a (x0,y0,z0) (center point). The beam propagates to
-     *  positive x-direction. The beam is made to match Twiss
-     *  parameters \f$ \alpha_y \f$ (a), \f$ \beta_y \f$ (b), \f$
-     *  \epsilon_{y,\mathrm{rms}} \f$ (e) in projectional direction
-     *  (y,y') and \f$ \alpha_z \f$ (a), \f$ \beta_z \f$ (b), \f$
-     *  \epsilon_{z,\mathrm{rms}} \f$ (e) in projectional direction
-     *  (z,z').
+     *  starting energy of the beam is \a E0 (eV) and the starting
+     *  location \a c (center point). The beam propagates to the
+     *  direction \a dir3 = \a dir1 x \a dir2, where \a dir1 and \a
+     *  dir2 are the emittance axes. The beam is made to match Twiss
+     *  parameters \f$ \alpha_1 \f$ (a1), \f$ \beta_1 \f$ (b1), \f$
+     *  \epsilon_{1,\mathrm{rms}} \f$ (e1) in the first projectional
+     *  direction \a dir1 and \f$ \alpha_2 \f$ (a2), \f$ \beta_2 \f$
+     *  (b2), \f$ \epsilon_{2,\mathrm{rms}} \f$ (e2) in the second
+     *  projectional direction \a dir2.
      *
-     *  The beam spread in the projectional space is made according to
-     *  KV/hard-edged (Kapchinsky-Vladimirsky) distribution.
+     *  The beam spread in the transverse phase space is made
+     *  according to KV/hard-edged (Kapchinsky-Vladimirsky)
+     *  distribution.
      */
     void add_3d_KV_beam_with_emittance( uint32_t N, double I, double q, double m,
-					double ay, double by, double ey,
-					double az, double bz, double ez,
-					double Ex, double x0, double y0, double z0 );
+					double E0,
+					double a1, double b1, double e1,
+					double a2, double b2, double e2,
+					Vec3D c, Vec3D dir1, Vec3D dir2 );
 
+    /*! \brief Add a 3d beam with defined waterbag emittance.
+     *
+     *  Adds a beam consisting of \a N particles and a total current
+     *  of \a I (A). The particles are defined to have equal currents,
+     *  charge \a q (in multiples of e) and mass \a m (u). The
+     *  starting energy of the beam is \a E0 (eV) and the starting
+     *  location \a c (center point). The beam propagates to the
+     *  direction \a dir3 = \a dir1 x \a dir2, where \a dir1 and \a
+     *  dir2 are the emittance axes. The beam is made to match Twiss
+     *  parameters \f$ \alpha_1 \f$ (a1), \f$ \beta_1 \f$ (b1), \f$
+     *  \epsilon_{1,\mathrm{rms}} \f$ (e1) in the first projectional
+     *  direction \a dir1 and \f$ \alpha_2 \f$ (a2), \f$ \beta_2 \f$
+     *  (b2), \f$ \epsilon_{2,\mathrm{rms}} \f$ (e2) in the second
+     *  projectional direction \a dir2.
+     *
+     *  The beam spread in the transverse phase space is made
+     *  according to waterbag distribution.
+     */
+    void add_3d_waterbag_beam_with_emittance( uint32_t N, double I, double q, double m,
+					      double E0,
+					      double a1, double b1, double e1,
+					      double a2, double b2, double e2,
+					      Vec3D c, Vec3D dir1, Vec3D dir2 );
+    
     /*! \brief Add a 3d beam with defined gaussian emittance.
      *
      *  Adds a beam consisting of \a N particles and a total current
@@ -1033,8 +1060,8 @@ public:
      *  (b2), \f$ \epsilon_{2,\mathrm{rms}} \f$ (e2) in the second
      *  projectional direction \a dir2.
      *
-     *  The beam spread in the projectional space is made according to
-     *  Gaussian distribution.
+     *  The beam spread in the transverse phase space is made
+     *  according to Gaussian distribution.
      */
     void add_3d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
 					      double E0, 

@@ -876,7 +876,7 @@ void ParticleDataBaseCylImp::add_2d_full_gaussian_beam( uint32_t N, double I, do
     Ex *= CHARGE_E;
     Tp *= CHARGE_E;
     Tt *= CHARGE_E;
-    double v = energy_to_velocity(Ex,m);
+    //double v = energy_to_velocity(Ex,m);
     double dvp = sqrt(Tp/m);
     double dvt = sqrt(Tt/m);
 
@@ -1353,64 +1353,185 @@ void ParticleDataBase3DImp::add_rectangular_beam_with_energy( uint32_t N, double
 
 
 void ParticleDataBase3DImp::add_3d_KV_beam_with_emittance( uint32_t N, double I, double q, double m,
-							   double ay, double by, double ey,
-							   double az, double bz, double ez,
-							   double Ex, double x0, double y0, double z0 )
+							   double E0,
+							   double a1, double b1, double e1,
+							   double a2, double b2, double e2,
+							   Vec3D c, Vec3D dir1, Vec3D dir2 )
 {
-    ibsimu.message( 1 ) << "Defining a 3d beam using Twiss parameters\n";
+    ibsimu.message( 1 ) << "Defining a 3d KV beam using Twiss parameters\n";
 
     _particles.reserve( _particles.size()+N );
 
-    ey *= 4.0; // KV-distributed emittance limited inside 4*e_rms ellipse
-    ez *= 4.0; // KV-distributed emittance limited inside 4*e_rms ellipse
+    e1 *= 4.0; // KV-distributed emittance limited inside 4*e_rms ellipse
+    e2 *= 4.0;
 
     m *= MASS_U;
     q *= CHARGE_E;
 
+    // Calculate and check base vectors
+    Vec3D dir3 = cross( dir1, dir2 );
+    dir2 = cross( dir1, dir3 );
+    dir1.normalize();
+    dir2.normalize();
+    dir3.normalize();
+    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] )
+	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
+
     QRandom qrng( 4 );
     double rn[4];
 
-    double gy = (1.0 + ay*ay)/by;
-    double gz = (1.0 + az*az)/bz;
-    
-    double ymax = sqrt( by*ey );
-    double ypmax = sqrt( gy*ey );
-    double zmax = sqrt( bz*ez );
-    double zpmax = sqrt( gz*ez );
+    double g1 = (1.0 + a1*a1)/b1;
+    double h1 = 0.5*(b1+g1);
+    double rmaj1 = sqrt(0.5*e1)*(sqrt(h1+1.0)+sqrt(h1-1.0));
+    double rmin1 = sqrt(0.5*e1)*(sqrt(h1+1.0)-sqrt(h1-1.0));
+    double theta1 = 0.5*atan2( -2.0*a1, b1-g1 );
+
+    double g2 = (1.0 + a2*a2)/b2;
+    double h2 = 0.5*(b2+g2);
+    double rmaj2 = sqrt(0.5*e2)*(sqrt(h2+1.0)+sqrt(h2-1.0));
+    double rmin2 = sqrt(0.5*e2)*(sqrt(h2+1.0)-sqrt(h2-1.0));
+    double theta2 = 0.5*atan2( -2.0*a2, b2-g2 );
 
     double IQ = I/N;
 
-    ParticleP3D x;
-    x[0] = 0.0;
-    x[1] = x0;
-    x[2] = sqrt(2.0*Ex*CHARGE_E/m);
+    ParticleP3D x, px;
+    px[0] = x[0] = 0.0;
+    px[5] = 0.0;
+    px[6] = sqrt(2.0*E0*CHARGE_E/m);
 
     uint32_t n = 0;
     while( n < N ) {
 
 	qrng.get( rn );
 
-	// Randomize (y,y',z,z')
-	double y = -ymax + 2.0*ymax*rn[0];
-	double yp = -ypmax + 2.0*ypmax*rn[1];
-	double z = -zmax + 2.0*zmax*rn[2];
-	double zp = -zpmax + 2.0*zpmax*rn[3];
+	// Randomize point inside unit sphere
+	double rrmaj1 = -1.0 + 2.0*rn[0];
+	double rrmin1 = -1.0 + 2.0*rn[1];
+	double rrmaj2 = -1.0 + 2.0*rn[2];
+	double rrmin2 = -1.0 + 2.0*rn[3];
 
-	// Check if inside ellipse
-	double yp1, yp2;
-	int nroots = solve_quadratic( by, 2.0*ay*y, gy*y*y-ey, &yp1, &yp2 );
-	if( nroots != 2 || yp < yp1 || yp > yp2 )
+	// Check if inside sphere
+	double radius2 = rrmaj1*rrmaj1 + rrmin1*rrmin1 + rrmaj2*rrmaj2 + rrmin2*rrmin2;
+	if( radius2 > 1.0 )
 	    continue;
-	double zp1, zp2;
-	nroots = solve_quadratic( bz, 2.0*az*z, gz*z*z-ez, &zp1, &zp2 );
-	if( nroots != 2 || zp < zp1 || zp > zp2 )
+
+	// Project to surface
+	double norm = 1.0/sqrt(radius2);
+	rrmaj1 *= norm;
+	rrmin1 *= norm;
+	rrmaj2 *= norm;
+	rrmin2 *= norm;
+
+	// Scale to ellipsoid
+	rrmaj1 *= rmaj1;
+	rrmin1 *= rmin1;
+	rrmaj2 *= rmaj2;
+	rrmin2 *= rmin2;
+
+	// Rotate to correct angle: p1, v1, p2, v2, where
+	// v1 = vz*x1' and v2 = vz*x2'
+	px[1] = rrmaj1*cos(theta1) - rrmin1*sin(theta1);
+	px[2] = px[6]*(rrmaj1*sin(theta1) + rrmin1*cos(theta1));
+	px[3] = rrmaj2*cos(theta2) - rrmin2*sin(theta2);
+	px[4] = px[6]*(rrmaj2*sin(theta2) + rrmin2*cos(theta2));
+
+	// Map to world coordinates x, vx, y, vy, z, vz 
+	x[1] = dir1[0]*px[1] + dir2[0]*px[3] + dir3[0]*px[5] + c[0];
+	x[2] = dir1[0]*px[2] + dir2[0]*px[4] + dir3[0]*px[6];
+	x[3] = dir1[1]*px[1] + dir2[1]*px[3] + dir3[1]*px[5] + c[1];
+	x[4] = dir1[1]*px[2] + dir2[1]*px[4] + dir3[1]*px[6];
+	x[5] = dir1[2]*px[1] + dir2[2]*px[3] + dir3[2]*px[5] + c[2];
+	x[6] = dir1[2]*px[2] + dir2[2]*px[4] + dir3[2]*px[6];
+
+	add_particle( Particle3D( IQ, q, m, x ) );
+	n++;
+    }
+}
+
+
+void ParticleDataBase3DImp::add_3d_waterbag_beam_with_emittance( uint32_t N, double I, double q, double m,
+								 double E0,
+								 double a1, double b1, double e1,
+								 double a2, double b2, double e2,
+								 Vec3D c, Vec3D dir1, Vec3D dir2 )
+{
+    ibsimu.message( 1 ) << "Defining a 3d Waterbag beam using Twiss parameters\n";
+
+    _particles.reserve( _particles.size()+N );
+
+    e1 *= 6.0; // Waterbag distributed emittance limited inside 6*e_rms ellipse
+    e2 *= 6.0;
+
+    m *= MASS_U;
+    q *= CHARGE_E;
+
+    // Calculate and check base vectors
+    Vec3D dir3 = cross( dir1, dir2 );
+    dir2 = cross( dir1, dir3 );
+    dir1.normalize();
+    dir2.normalize();
+    dir3.normalize();
+    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] )
+	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
+
+    QRandom qrng( 4 );
+    double rn[4];
+
+    double g1 = (1.0 + a1*a1)/b1;
+    double h1 = 0.5*(b1+g1);
+    double rmaj1 = sqrt(0.5*e1)*(sqrt(h1+1.0)+sqrt(h1-1.0));
+    double rmin1 = sqrt(0.5*e1)*(sqrt(h1+1.0)-sqrt(h1-1.0));
+    double theta1 = 0.5*atan2( -2.0*a1, b1-g1 );
+
+    double g2 = (1.0 + a2*a2)/b2;
+    double h2 = 0.5*(b2+g2);
+    double rmaj2 = sqrt(0.5*e2)*(sqrt(h2+1.0)+sqrt(h2-1.0));
+    double rmin2 = sqrt(0.5*e2)*(sqrt(h2+1.0)-sqrt(h2-1.0));
+    double theta2 = 0.5*atan2( -2.0*a2, b2-g2 );
+
+    double IQ = I/N;
+
+    ParticleP3D x, px;
+    px[0] = x[0] = 0.0;
+    px[5] = 0.0;
+    px[6] = sqrt(2.0*E0*CHARGE_E/m);
+
+    uint32_t n = 0;
+    while( n < N ) {
+
+	qrng.get( rn );
+
+	// Randomize point inside unit sphere
+	double rrmaj1 = -1.0 + 2.0*rn[0];
+	double rrmin1 = -1.0 + 2.0*rn[1];
+	double rrmaj2 = -1.0 + 2.0*rn[2];
+	double rrmin2 = -1.0 + 2.0*rn[3];
+
+	// Check if inside sphere
+	double radius2 = rrmaj1*rrmaj1 + rrmin1*rrmin1 + rrmaj2*rrmaj2 + rrmin2*rrmin2;
+	if( radius2 > 1.0 )
 	    continue;
-	
-	// Set up particle
-	x[3] = y0 + y;
-	x[4] = x[2]*yp;
-	x[5] = z0 + z;
-	x[6] = x[2]*zp;
+
+	// Scale to ellipsoid
+	rrmaj1 *= rmaj1;
+	rrmin1 *= rmin1;
+	rrmaj2 *= rmaj2;
+	rrmin2 *= rmin2;
+
+	// Rotate to correct angle: p1, v1, p2, v2, where
+	// v1 = vz*x1' and v2 = vz*x2'
+	px[1] = rrmaj1*cos(theta1) - rrmin1*sin(theta1);
+	px[2] = px[6]*(rrmaj1*sin(theta1) + rrmin1*cos(theta1));
+	px[3] = rrmaj2*cos(theta2) - rrmin2*sin(theta2);
+	px[4] = px[6]*(rrmaj2*sin(theta2) + rrmin2*cos(theta2));
+
+	// Map to world coordinates x, vx, y, vy, z, vz 
+	x[1] = dir1[0]*px[1] + dir2[0]*px[3] + dir3[0]*px[5] + c[0];
+	x[2] = dir1[0]*px[2] + dir2[0]*px[4] + dir3[0]*px[6];
+	x[3] = dir1[1]*px[1] + dir2[1]*px[3] + dir3[1]*px[5] + c[1];
+	x[4] = dir1[1]*px[2] + dir2[1]*px[4] + dir3[1]*px[6];
+	x[5] = dir1[2]*px[1] + dir2[2]*px[3] + dir3[2]*px[5] + c[2];
+	x[6] = dir1[2]*px[2] + dir2[2]*px[4] + dir3[2]*px[6];
 
 	add_particle( Particle3D( IQ, q, m, x ) );
 	n++;
@@ -1424,7 +1545,7 @@ void ParticleDataBase3DImp::add_3d_gaussian_beam_with_emittance( uint32_t N, dou
 								 double a2, double b2, double e2,
 								 Vec3D c, Vec3D dir1, Vec3D dir2 )
 {
-    ibsimu.message( 1 ) << "Defining a 3d beam using Twiss parameters\n";
+    ibsimu.message( 1 ) << "Defining a 3d gaussian beam using Twiss parameters\n";
 
     _particles.reserve( _particles.size()+N );
 
@@ -1437,9 +1558,8 @@ void ParticleDataBase3DImp::add_3d_gaussian_beam_with_emittance( uint32_t N, dou
     dir1.normalize();
     dir2.normalize();
     dir3.normalize();
-    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] ) {
+    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] )
 	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
-    }
 
     QRandom qrng( 4 );
     qrng.set_transformation( 0, Gaussian_Transformation() );
@@ -1477,13 +1597,14 @@ void ParticleDataBase3DImp::add_3d_gaussian_beam_with_emittance( uint32_t N, dou
 	w[2] = rmaj2*rn[2];
 	w[3] = rmin2*rn[3];
 
-	// Rotate to correct angle
+	// Rotate to correct angle p1, v1, p2, v2, where
+	// v1 = vz*x1' and v2 = vz*x2'
 	px[1] = w[0]*cos(theta1) - w[1]*sin(theta1);
 	px[2] = px[6]*(w[0]*sin(theta1) + w[1]*cos(theta1));
 	px[3] = w[2]*cos(theta2) - w[3]*sin(theta2);
 	px[4] = px[6]*(w[2]*sin(theta2) + w[3]*cos(theta2));
 
-	// Map to world coordinates
+	// Map to world coordinates x, vx, y, vy, z, vz 
 	x[1] = dir1[0]*px[1] + dir2[0]*px[3] + dir3[0]*px[5] + c[0];
 	x[2] = dir1[0]*px[2] + dir2[0]*px[4] + dir3[0]*px[6];
 	x[3] = dir1[1]*px[1] + dir2[1]*px[3] + dir3[1]*px[5] + c[1];
