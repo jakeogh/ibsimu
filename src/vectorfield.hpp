@@ -61,8 +61,7 @@ public:
      */
     virtual ~VectorField() {}
 
-    /*! \brief Operator for getting interpolated field value
-     *  at \a x.
+    /*! \brief Operator for getting field value at \a x.
      */
     virtual const Vec3D operator()( const Vec3D &x ) const = 0;
 
