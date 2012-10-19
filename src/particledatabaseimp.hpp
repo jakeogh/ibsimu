@@ -57,22 +57,22 @@ class ParticleDataBaseImp {
 
 protected:
 
-    double                    _epsabs;       /*!< \brief Absolute error limit for calculation. */
-    double                    _epsrel;       /*!< \brief Relative error limit for calculation. */
-    bool                      _polyint;      /*!< \brief Use polynomial(true)/linear(false) interpolation. */
-    uint32_t                  _maxsteps;     /*!< \brief Maximum number of steps to calculate. */
-    double                    _maxt;         /*!< \brief Maximum particle time in simulation. */
-    bool                      _save_points;  /*!< \brief Save all points? */
-    uint32_t                  _trajdiv;      /*!< \brief Divisor for saved trajectories,
-					      * if 3, every third trajectory is saved. */
-    bool                      _mirror[6];    /*!< \brief Boundary particle mirroring. */
+    double                     _epsabs;       /*!< \brief Absolute error limit for calculation. */
+    double                     _epsrel;       /*!< \brief Relative error limit for calculation. */
+    trajectory_interpolation_e _intrp;        /*!< \brief Use polynomial(true)/linear(false) interpolation. */
+    uint32_t                   _maxsteps;     /*!< \brief Maximum number of steps to calculate. */
+    double                     _maxt;         /*!< \brief Maximum particle time in simulation. */
+    bool                       _save_points;  /*!< \brief Save all points? */
+    uint32_t                   _trajdiv;      /*!< \brief Divisor for saved trajectories,
+					       * if 3, every third trajectory is saved. */
+    bool                       _mirror[6];    /*!< \brief Boundary particle mirroring. */
 
-    double                    _rhosum;       /*!< \brief Sum of space charge density in defined beams (C/m3). */
+    double                     _rhosum;       /*!< \brief Sum of space charge density in defined beams (C/m3). */
 
-    ParticleStatistics        _stat;         /*!< \brief Particle statistics. */
+    ParticleStatistics         _stat;         /*!< \brief Particle statistics. */
 
-    uint32_t                  _iteration;    /*!< \brief Iteration number. */    
-    bool                      _relativistic; /*!< \brief Relativistic particle iteration. */
+    uint32_t                   _iteration;    /*!< \brief Iteration number. */    
+    bool                       _relativistic; /*!< \brief Relativistic particle iteration. */
 
     const CallbackFunctorD_V        *_bsup_cb;       /*!< \brief Location dependent magnetic field suppression. */
     const TrajectoryHandlerCallback *_thand_cb;      /*!< \brief Trajectory handler callback. */
@@ -113,6 +113,10 @@ public:
     
     bool get_polyint( void ) const;
     
+    void set_trajectory_interpolation( trajectory_interpolation_e intrp );
+
+    trajectory_interpolation_e get_trajectory_interpolation( void ) const;
+
     void set_max_steps( uint32_t maxsteps );
 
     void set_max_time( double maxt );
@@ -555,7 +559,7 @@ public:
 	for( uint32_t a = 0; a < ibsimu.get_thread_count(); a++ ) {
 
 	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
-							   _polyint, _maxsteps, _maxt, _save_points, _trajdiv, 
+							   _intrp, _maxsteps, _maxt, _save_points, _trajdiv, 
 							   _mirror, &scharge, &scharge_mutex, &efield, &bfield, 
 							   &geom ) );
 	    iterators[a]->set_trajectory_handler_callback( _thand_cb );

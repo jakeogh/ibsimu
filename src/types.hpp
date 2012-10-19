@@ -142,6 +142,15 @@ enum bound_e {
 #define PARTICLE_VZ  6
 
 
+/*! \brief Trajectory interpolation type.
+ */
+enum trajectory_interpolation_e {
+    TRAJECTORY_INTERPOLATION_POLYNOMIAL = 0, /*!< \brief Polynomial interpolation */
+    TRAJECTORY_INTERPOLATION_LINEAR,         /*!< \brief Linear interpolation */
+    TRAJECTORY_INTERPOLATION_SQRT            /*!< \brief Square root interpolation */
+};
+
+
 /*! \brief Coordinate axis identifier.
  */
 enum coordinate_axis_e {

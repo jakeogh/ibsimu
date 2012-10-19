@@ -257,7 +257,7 @@ template <class PP> class ParticleIterator {
 
     particle_iterator_type_e   _type;      /**< \brief Iteratory type. */
 
-    bool                       _polyint;   /*!< \brief Interpolation type to use. True means use polynomial */
+    trajectory_interpolation_e _intrp;     /*!< \brief Interpolation type. */
     double                     _epsabs;    /*!< \brief Absolute error limit. */
     double                     _epsrel;    /*!< \brief Relative error limit. */
     uint32_t                   _maxsteps;  /*!< \brief Maximum number of simulation steps for particle. */
@@ -592,7 +592,7 @@ template <class PP> class ParticleIterator {
     void build_coldata( bool force_linear, const PP &x1, const PP &x2 ) {
 
 	try {
-	    if( _polyint && !force_linear )
+	    if( _intrp == TRAJECTORY_INTERPOLATION_POLYNOMIAL && !force_linear )
 		ColData<PP>::build_coldata_poly( _coldata, *_pidata._geom, x1, x2 );
 	    else
 		ColData<PP>::build_coldata_linear( _coldata, *_pidata._geom, x1, x2 );
@@ -881,8 +881,7 @@ public:
      *  \param type Particle iterator type used
      *  \param epsabs Absolute error limit in iteration
      *  \param epsrel Relative error limit in iteration
-     *  \param polyint Interpolation type to use. True means use polynomial
-     *  interpolation, false means use linear interpolation
+     *  \param intrp Interpolation type.
      *  \param maxsteps Maximum number of steps to take before particle is killed
      *  \param maxt Maximum flight time for a particle
      *  \param save_points Flag for saving all intersection points of trajectories
@@ -902,12 +901,12 @@ public:
      *  particle memory location.
      */
     ParticleIterator( particle_iterator_type_e type, double epsabs, double epsrel, 
-		      bool polyint, uint32_t maxsteps, double maxt, bool save_points,
+		      trajectory_interpolation_e intrp, uint32_t maxsteps, double maxt, bool save_points,
 		      uint32_t trajdiv, bool mirror[6], MeshScalarField *scharge, 
 		      pthread_mutex_t *scharge_mutex,
 		      const VectorField *efield, const VectorField *bfield, 
 		      const Geometry *geom ) 
-	: _type(type), _polyint(polyint), _epsabs(epsabs), _epsrel(epsrel), _maxsteps(maxsteps), _maxt(maxt), 
+	: _type(type), _intrp(intrp), _epsabs(epsabs), _epsrel(epsrel), _maxsteps(maxsteps), _maxt(maxt), 
 	  _save_points(save_points), _trajdiv(trajdiv), _pidata(scharge,efield,bfield,geom), 
 	  _thand_cb(0), _tend_cb(0), _bsup_cb(0), _pdb(0), _scharge_mutex(scharge_mutex), 
 	  _stat(geom->number_of_boundaries()) {

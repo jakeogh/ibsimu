@@ -116,11 +116,23 @@ bool ParticleDataBase::get_polyint( void ) const
     return( _imp->get_polyint() );
 }
 
+void ParticleDataBase::set_trajectory_interpolation( trajectory_interpolation_e intrp )
+{
+    _imp-> set_trajectory_interpolation( intrp );
+}
+
+
+trajectory_interpolation_e ParticleDataBase::get_trajectory_interpolation( void ) const
+{
+    return( _imp->get_trajectory_interpolation() );
+}
+
 
 void ParticleDataBase::set_max_steps( uint32_t maxsteps ) 
 {
     _imp->set_max_steps( maxsteps );
 }
+
 
 void ParticleDataBase::set_max_time( double maxt ) 
 {
