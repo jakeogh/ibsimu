@@ -93,6 +93,8 @@ const Vec3D AxisymmetricVectorField::operator()( const Vec3D &x ) const
     Vec3D B;
 
     if( _geom_mode == MODE_3D ) {
+	if( x[2] < _spline->x[0] || x[2] > _spline->x[_spline->size-1] )
+	    return( 0.0 );
 	double Bz0  = gsl_spline_eval( _spline, x[2], _accel );
 	double Bzp  = gsl_spline_eval_deriv( _spline, x[2], _accel );
 	double Bzpp = gsl_spline_eval_deriv2( _spline, x[2], _accel );
@@ -103,6 +105,8 @@ const Vec3D AxisymmetricVectorField::operator()( const Vec3D &x ) const
 	double theta = atan2( x[1], x[0] );
 	B = Vec3D( Br*cos(theta), Br*sin(theta), Bz );
     } else /* _geom_mode == MODE_CYL */ {
+	if( x[0] < _spline->x[0] || x[0] > _spline->x[_spline->size-1] )
+	    return( 0.0 );
 	double Bz0  = gsl_spline_eval( _spline, x[0], _accel );
 	double Bzp  = gsl_spline_eval_deriv( _spline, x[0], _accel );
 	double Bzpp = gsl_spline_eval_deriv2( _spline, x[0], _accel );

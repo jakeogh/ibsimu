@@ -77,6 +77,9 @@ public:
      *  of magnetic field data on the symmetry axis. If geom_mode is
      *  MODE_CYL the symmetry axis is x. If geom_mode is MODE_3D, the
      *  symmetry axis is z. Other geomtry modes are not supported.
+     *
+     *  The magnetic field outside the defined z is zero. No
+     *  extrapolation is done.
      */
     AxisymmetricVectorField( geom_mode_e geom_mode, 
 			     std::vector<double> z, 
