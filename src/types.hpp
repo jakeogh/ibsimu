@@ -146,8 +146,7 @@ enum bound_e {
  */
 enum trajectory_interpolation_e {
     TRAJECTORY_INTERPOLATION_POLYNOMIAL = 0, /*!< \brief Polynomial interpolation */
-    TRAJECTORY_INTERPOLATION_LINEAR,         /*!< \brief Linear interpolation */
-    TRAJECTORY_INTERPOLATION_SQRT            /*!< \brief Square root interpolation */
+    TRAJECTORY_INTERPOLATION_LINEAR          /*!< \brief Linear interpolation */
 };
 
 
