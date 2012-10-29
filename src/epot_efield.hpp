@@ -103,8 +103,10 @@ public:
      *  extrapolation of the last three electric potential values for
      *  calculation of electric field (EFIELD_EXTRAPOLATE) or it can
      *  return the mirror of the electric field across the mesh
-     *  boundary (EFIELD_MIRROR) or it can return a zero electric
-     *  field outside the mesh.
+     *  boundary like f(x)=f(-x) (EFIELD_MIRROR), or it can return the
+     *  mirror of the electric field across the mesh boundary like
+     *  f_x(x,y,z)=-f_x(-x,y,z) (EFIELD_ANTIMIRROR), or it can return
+     *  a zero electric field outside the mesh.
      *
      *  The use of EFIELD_MIRROR in case of symmetric cases, where
      *  beam is traversing next to the geometry boundary, is necessary

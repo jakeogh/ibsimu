@@ -69,13 +69,16 @@ enum geom_mode_e {
  *  This parameter is used to control the behaviour of the field
  *  evaluators outside the defined area. The field value can be
  *  extrapolated from the closest defined points (\a
- *  FIELD_EXTRAPOLATE), the field can be mirrored (\a FIELD_MIRROR),
- *  the field evaluator can simply return zero (\a FIELD_ZERO) or the
- *  field evaluator can return not-a-number, NaN (\a FIELD_NAN ).
+ *  FIELD_EXTRAPOLATE), the field can be mirrored as f(x) = f(-x) (\a
+ *  FIELD_MIRROR) anti-mirrored as f_x(x,y,z) = -f_x(-x,y,z) (\a
+ *  FIELD_ANTIMIRROR), the field evaluator can simply return zero (\a
+ *  FIELD_ZERO) or the field evaluator can return not-a-number, NaN
+ *  (\a FIELD_NAN ).
  */
 enum field_extrpl_e {
     FIELD_EXTRAPOLATE = 0,  /*!< \brief Extrapolate field outside boundary */
-    FIELD_MIRROR,           /*!< \brief Mirror field on boundary */
+    FIELD_MIRROR,           /*!< \brief Mirror field on boundary like f(x) = f(-x) */
+    FIELD_ANTIMIRROR,       /*!< \brief Mirror field on boundary like f(x) = -f(-x) */
     FIELD_ZERO,             /*!< \brief Return zero outside boundary */
     FIELD_NAN               /*!< \brief Return not-a-number outside boundary */
 };

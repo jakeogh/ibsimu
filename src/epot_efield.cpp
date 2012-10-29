@@ -395,6 +395,9 @@ void EpotEfield::debug_print( std::ostream &os ) const
 	case FIELD_MIRROR:
 	    os << "FIELD_MIRROR";
 	    break;
+	case FIELD_ANTIMIRROR:
+	    os << "FIELD_ANTIMIRROR";
+	    break;
 	case FIELD_ZERO:
 	    os << "FIELD_ZERO";
 	    break;
@@ -453,6 +456,8 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 		R[0] = 0.0;
 		break;
 	    } else if( _extrpl[0] == FIELD_MIRROR ) {
+		X[0] = 2.0*_geom->origo(0) - X[0];
+	    } else if( _extrpl[0] == FIELD_ANTIMIRROR ) {
 		sign[0] *= -1.0;
 		X[0] = 2.0*_geom->origo(0) - X[0];
 	    }
@@ -468,6 +473,8 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 		R[0] = 0.0;
 		break;
 	    } else if( _extrpl[1] == FIELD_MIRROR ) {
+		X[0] = 2.0*_geom->max(0) - X[0];
+	    } else if( _extrpl[1] == FIELD_ANTIMIRROR ) {
 		sign[0] *= -1.0;
 		X[0] = 2.0*_geom->max(0) - X[0];
 	    }
@@ -502,6 +509,8 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 		    // Outside double the simulation box: return zero
 		    break;
 		} else if( _extrpl[2*a] == FIELD_MIRROR ) {
+		    X[a] = 2.0*_geom->origo(a) - X[a];
+		} else if( _extrpl[2*a] == FIELD_ANTIMIRROR ) {
 		    sign[a] *= -1.0;
 		    X[a] = 2.0*_geom->origo(a) - X[a];
 		}
@@ -516,6 +525,8 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 		    // Outside double the simulation box: return zero
 		    break;
 		} else if( _extrpl[2*a+1] == FIELD_MIRROR ) {
+		    X[a] = 2.0*_geom->max(a) - X[a];
+		} else if( _extrpl[2*a+1] == FIELD_ANTIMIRROR ) {
 		    sign[a] *= -1.0;
 		    X[a] = 2.0*_geom->max(a) - X[a];
 		}
@@ -589,6 +600,8 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 		    // Outside double the simulation box: return zero
 		    break;
 		} else if( _extrpl[2*a] == FIELD_MIRROR ) {
+		    X[a] = 2.0*_geom->origo(a) - X[a];
+		} else if( _extrpl[2*a] == FIELD_ANTIMIRROR ) {
 		    sign[a] *= -1.0;
 		    X[a] = 2.0*_geom->origo(a) - X[a];
 		}
@@ -604,6 +617,8 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 		    // Outside double the simulation box: return zero
 		    break;
 		} else if( _extrpl[2*a+1] == FIELD_MIRROR ) {
+		    X[a] = 2.0*_geom->max(a) - X[a];
+		} else if( _extrpl[2*a+1] == FIELD_ANTIMIRROR ) {
 		    sign[a] *= -1.0;
 		    X[a] = 2.0*_geom->max(a) - X[a];
 		}

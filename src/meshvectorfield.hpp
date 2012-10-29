@@ -198,9 +198,12 @@ public:
      *  to the \a extrpl array. The interpolation function can use an
      *  extrapolation of the last two field values (\a
      *  FIELD_EXTRAPOLATE) or it can return the mirror of the field
-     *  across the mesh boundary (\a FIELD_MIRROR), can return a zero
-     *  field (\a FIELD_ZERO) or it can return a NaN (\a FIELD_NAN)
-     *  outside the mesh. The \a FIELD_EXTRAPOLATE is the default behaviour.
+     *  across the mesh boundary like f(x) = f(-x) (\a FIELD_MIRROR),
+     *  it can return the mirror of the field across the mesh boundary
+     *  like f_x(x,y,z) = -f_x(-x,y,z) (\a FIELD_ANTIMIRROR), it can
+     *  return a zero field (\a FIELD_ZERO) or it can return a NaN (\a
+     *  FIELD_NAN) outside the mesh. The \a FIELD_EXTRAPOLATE is the
+     *  default behaviour.
      *
      *  The use of \a FIELD_MIRROR in case of symmetric cases, where
      *  beam is traversing next to the geometry boundary, is necessary

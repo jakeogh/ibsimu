@@ -840,12 +840,12 @@ const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
 	    } else if( _extrpl[0] == FIELD_NAN ) {
 		// return NaN
 		return( Vec3D(std::numeric_limits<double>::quiet_NaN()) );
-	    }
-	    if( X[0] < _origo[0]-_size[0]*_h ) {
+	    } else if( X[0] < _origo[0]-_size[0]*_h ) {
 		// Outside double the simulation box: return zero
 		return( Vec3D(0.0) );
-	    }
-	    if( _extrpl[0] == FIELD_MIRROR ) {
+	    } else if( _extrpl[0] == FIELD_MIRROR ) {
+		X[0]  = 2.0*_origo[0] - X[0];
+	    } else if( _extrpl[0] == FIELD_ANTIMIRROR ) {
 		sign[0] *= -1.0;
 		X[0]  = 2.0*_origo[0] - X[0];
 	    }
@@ -857,12 +857,12 @@ const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
 	    } else if( _extrpl[1] == FIELD_NAN ) {
 		// return NaN
 		return( Vec3D(std::numeric_limits<double>::quiet_NaN()) );
-	    }
-	    if( X[0] > _origo[0]+2.0*_size[0]*_h ) {
+	    } else if( X[0] > _origo[0]+2.0*_size[0]*_h ) {
 		// Outside double the simulation box: return zero
 		return( R );
-	    }
-	    if( _extrpl[1] == FIELD_MIRROR ) {
+	    } else if( _extrpl[1] == FIELD_MIRROR ) {
+		X[0]  = 2.0*_max[0] - X[0];
+	    } else if( _extrpl[1] == FIELD_ANTIMIRROR ) {
 		sign[0] *= -1.0;
 		X[0]  = 2.0*_max[0] - X[0];
 	    }
@@ -898,12 +898,12 @@ const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
                 } else if( _extrpl[2*a] == FIELD_NAN ) {
 		    // return NaN
 		    return( Vec3D(std::numeric_limits<double>::quiet_NaN()) );
-		}
-		if( X[a] < _origo[a]-_size[a]*_h ) {
+		} else if( X[a] < _origo[a]-_size[a]*_h ) {
 		    // Limit to double the simulation box -> return zero
 		    return( R );
-		}
-		if( _extrpl[2*a] == FIELD_MIRROR ) {
+		} else if( _extrpl[2*a] == FIELD_MIRROR ) {
+                    X[a]     = 2.0*_origo[a] - X[a];
+		} else if( _extrpl[2*a] == FIELD_ANTIMIRROR ) {
                     sign[a] *= -1.0;
                     X[a]     = 2.0*_origo[a] - X[a];
 		}
@@ -915,12 +915,12 @@ const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
                 } else if( _extrpl[2*a+1] == FIELD_NAN ) {
 		    // return NaN
 		    return( Vec3D(std::numeric_limits<double>::quiet_NaN()) );
-		}
-		if( X[a] > _origo[a]+2.0*_size[a]*_h ) {
+		} else if( X[a] > _origo[a]+2.0*_size[a]*_h ) {
 		    // Limit to double the simulation box -> return zero
 		    return( R );
-		}
-                if( _extrpl[2*a+1] == FIELD_MIRROR ) {
+		} else if( _extrpl[2*a+1] == FIELD_MIRROR ) {
+                    X[a]     = 2.0*_max[a] - X[a];
+		} else if( _extrpl[2*a+1] == FIELD_ANTIMIRROR ) {
                     sign[a] *= -1.0;
                     X[a]     = 2.0*_max[a] - X[a];
 		}
@@ -981,12 +981,12 @@ const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
                 } else if( _extrpl[2*a] == FIELD_NAN ) {
 		    // return NaN
 		    return( Vec3D(std::numeric_limits<double>::quiet_NaN()) );
-		}
-		if( X[a] < _origo[a]-_size[a]*_h ) {
+		} else if( X[a] < _origo[a]-_size[a]*_h ) {
 		    // Limit to double the simulation box -> return zero
 		    return( Vec3D(0.0) );
-		}
-		if( _extrpl[2*a] == FIELD_MIRROR ) {
+		} else if( _extrpl[2*a] == FIELD_MIRROR ) {
+                    X[a]     = 2.0*_origo[a] - X[a];
+		} else if( _extrpl[2*a] == FIELD_ANTIMIRROR ) {
                     sign[a] *= -1.0;
                     X[a]     = 2.0*_origo[a] - X[a];
 		}
@@ -998,12 +998,12 @@ const Vec3D MeshVectorField::operator()( const Vec3D &x ) const
                 } else if( _extrpl[2*a+1] == FIELD_NAN ) {
 		    // return NaN
 		    return( Vec3D(std::numeric_limits<double>::quiet_NaN()) );
-		}
-		if( X[a] > _origo[a]+2.0*_size[a]*_h ) {
+		} else if( X[a] > _origo[a]+2.0*_size[a]*_h ) {
 		    // Limit to double the simulation box -> return zero
 		    return( Vec3D(0.0) );
-		}
-                if( _extrpl[2*a+1] == FIELD_MIRROR ) {
+		} else if( _extrpl[2*a+1] == FIELD_MIRROR ) {
+                    X[a]     = 2.0*_max[a] - X[a];
+		} else if( _extrpl[2*a+1] == FIELD_ANTIMIRROR ) {
                     sign[a] *= -1.0;
                     X[a]     = 2.0*_max[a] - X[a];
 		}
