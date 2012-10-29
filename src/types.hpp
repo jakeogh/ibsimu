@@ -123,18 +123,34 @@ enum bound_e {
 };
 
 
-/*! \brief Defined keywords for accessing particle point coordinates.
- */
+/*! \brief Keyword for accessing particle time. */
 #define PARTICLE_T   0
+/*! \brief Keyword for accessing particle position in x-direction. */
 #define PARTICLE_X   1
+/*! \brief Keyword for accessing particle velocity in x-direction. */
 #define PARTICLE_VX  2
+/*! \brief Keyword for accessing particle position in y-direction. */
 #define PARTICLE_Y   3
+/*! \brief Keyword for accessing particle velocity in y-direction. */
 #define PARTICLE_VY  4
+/*! \brief Keyword for accessing particle position in r-direction. */
 #define PARTICLE_R   3
+/*! \brief Keyword for accessing particle velocity in r-direction. */
 #define PARTICLE_VR  4
+/*! \brief Keyword for accessing particle angular velocity. */
 #define PARTICLE_W   5
+/*! \brief Keyword for accessing particle position in z-direction. */
 #define PARTICLE_Z   5
+/*! \brief Keyword for accessing particle velocity in z-direction. */
 #define PARTICLE_VZ  6
+
+
+/*! \brief Trajectory interpolation type.
+ */
+enum trajectory_interpolation_e {
+    TRAJECTORY_INTERPOLATION_POLYNOMIAL = 0, /*!< \brief Polynomial interpolation */
+    TRAJECTORY_INTERPOLATION_LINEAR          /*!< \brief Linear interpolation */
+};
 
 
 /*! \brief Coordinate axis identifier.

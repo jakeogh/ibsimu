@@ -113,6 +113,10 @@ public:
 	
 	coldata.clear();
 
+#ifdef DEBUG_PARTICLE_ITERATOR
+	std::cout << "Building coldata using linear interpolation\n";
+#endif
+
 	for( size_t a = 0; a < PP::dim(); a++ ) {
 	    
             int a1 = (int)floor( (x1[2*a+1]-mesh.origo(a))/mesh.h() );
@@ -130,7 +134,10 @@ public:
                     (x2[2*a+1] - x1[2*a+1]);
                 if( K < 0.0 ) K = 0.0;
                 else if( K > 1.0 ) K = 1.0;
-                //std::cout << "Found valid root: " << K << "\n";
+
+#ifdef DEBUG_PARTICLE_ITERATOR
+		std::cout << "  Adding point " << x1 + (x2-x1)*K << "\n";
+#endif
 
                 if( x2[2*a+1] > x1[2*a+1] )
                     coldata.push_back( ColData( x1 + (x2-x1)*K, a+1 ) );
@@ -141,6 +148,10 @@ public:
 
 	// Sort intersections in increasing time order
 	sort( coldata.begin(), coldata.end() );
+
+#ifdef DEBUG_PARTICLE_ITERATOR
+	std::cout << "  Coldata built\n";
+#endif
     }
 
     /*! \brief Find mesh intersections of polynomially interpolated
@@ -219,6 +230,11 @@ public:
 			}
 			if( mesh.geom_mode() == MODE_CYL )
 			    xcol[5] = x1[5] + K[b]*(x2[5]-x1[5]);
+
+#ifdef DEBUG_PARTICLE_ITERATOR
+			std::cout << "  Adding point " << xcol << "\n";
+#endif
+
 			if( xcol[2*a+2] >= 0.0 )
 			    coldata.push_back( ColData( xcol, a+1 ) );
 			else
@@ -257,7 +273,7 @@ template <class PP> class ParticleIterator {
 
     particle_iterator_type_e   _type;      /**< \brief Iteratory type. */
 
-    bool                       _polyint;   /*!< \brief Interpolation type to use. True means use polynomial */
+    trajectory_interpolation_e _intrp;     /*!< \brief Interpolation type. */
     double                     _epsabs;    /*!< \brief Absolute error limit. */
     double                     _epsrel;    /*!< \brief Relative error limit. */
     uint32_t                   _maxsteps;  /*!< \brief Maximum number of simulation steps for particle. */
@@ -592,7 +608,7 @@ template <class PP> class ParticleIterator {
     void build_coldata( bool force_linear, const PP &x1, const PP &x2 ) {
 
 	try {
-	    if( _polyint && !force_linear )
+	    if( _intrp == TRAJECTORY_INTERPOLATION_POLYNOMIAL && !force_linear )
 		ColData<PP>::build_coldata_poly( _coldata, *_pidata._geom, x1, x2 );
 	    else
 		ColData<PP>::build_coldata_linear( _coldata, *_pidata._geom, x1, x2 );
@@ -664,11 +680,11 @@ template <class PP> class ParticleIterator {
 		save_trajectory_point( _coldata[a]._x );
 
 #ifdef DEBUG_PARTICLE_ITERATOR
-	    std::cout << "  Coldata " << std::setw(4) << a << ": " 
-		      << _coldata[a]._x << ", " 
-		      << std::setw(3) << i[0] << " "
-		      << std::setw(3) << i[1] << " "
-		      << std::setw(3) << i[2] << " "
+	    std::cout << "  Coldata " << std::setw(4) << a << ": x = " 
+		      << _coldata[a]._x << ", i = (" 
+		      << std::setw(3) << i[0] << ", "
+		      << std::setw(3) << i[1] << ", "
+		      << std::setw(3) << i[2] << "), dir = "
 	    	      << std::setw(3) << _coldata[a]._dir << "\n";
 #endif
 
@@ -881,8 +897,7 @@ public:
      *  \param type Particle iterator type used
      *  \param epsabs Absolute error limit in iteration
      *  \param epsrel Relative error limit in iteration
-     *  \param polyint Interpolation type to use. True means use polynomial
-     *  interpolation, false means use linear interpolation
+     *  \param intrp Interpolation type.
      *  \param maxsteps Maximum number of steps to take before particle is killed
      *  \param maxt Maximum flight time for a particle
      *  \param save_points Flag for saving all intersection points of trajectories
@@ -902,12 +917,12 @@ public:
      *  particle memory location.
      */
     ParticleIterator( particle_iterator_type_e type, double epsabs, double epsrel, 
-		      bool polyint, uint32_t maxsteps, double maxt, bool save_points,
+		      trajectory_interpolation_e intrp, uint32_t maxsteps, double maxt, bool save_points,
 		      uint32_t trajdiv, bool mirror[6], MeshScalarField *scharge, 
 		      pthread_mutex_t *scharge_mutex,
 		      const VectorField *efield, const VectorField *bfield, 
 		      const Geometry *geom ) 
-	: _type(type), _polyint(polyint), _epsabs(epsabs), _epsrel(epsrel), _maxsteps(maxsteps), _maxt(maxt), 
+	: _type(type), _intrp(intrp), _epsabs(epsabs), _epsrel(epsrel), _maxsteps(maxsteps), _maxt(maxt), 
 	  _save_points(save_points), _trajdiv(trajdiv), _pidata(scharge,efield,bfield,geom), 
 	  _thand_cb(0), _tend_cb(0), _bsup_cb(0), _pdb(0), _scharge_mutex(scharge_mutex), 
 	  _stat(geom->number_of_boundaries()) {
@@ -1052,15 +1067,15 @@ public:
 	size_t nstp = 0; // Steps taken
 	while( nstp < _maxsteps && x[0] < _maxt ) {
 
+	    // Take a step.
+	    x2 = x;
+
 #ifdef DEBUG_PARTICLE_ITERATOR
 	    std::cout << "\n*** Step ***\n";
 	    std::cout << "  x  = " << x2 << "\n";
 	    std::cout << "  dt = " << dt << " (proposed)\n";
 #endif
 	    
-	    // Take a step.
-	    x2 = x;
-
 	    while( true ) {
 		int retval = gsl_odeiv_evolve_apply( _evolve, _control, _step, &_system, 
 						     &x2[0], _maxt, &dt, &x2[1] );
@@ -1092,7 +1107,6 @@ public:
 
 #ifdef DEBUG_PARTICLE_ITERATOR
 	    std::cout << "Step accepted from x1 to x2:\n";
-	    std::cout << "  dt = " << dt << " (taken)\n";
 	    std::cout << "  x1 = " << x << "\n";
 	    std::cout << "  x2 = " << x2 << "\n";
 #endif

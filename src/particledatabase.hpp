@@ -50,6 +50,7 @@
 #include "trajectorydiagnostics.hpp"
 #include "particlestatistics.hpp"
 #include "constants.hpp"
+#include "types.hpp"
 
 
 /*! \brief Trajectory handler callback.
@@ -245,17 +246,30 @@ public:
 
     /*! \brief Set the interpolation type to polynomial(true) or linear(false).
      *
-     *  Polynomial interpolation is the default.
+     *  \deprecated This function is deprecated. It can still be used
+     *  to set polynomial or linear interpolation.
      */
     void set_polyint( bool polyint );
     
     /*! \brief Get current interpolation type.
      *
-     *  True is returned if polynomial interpolation is enabled and
-     *  false if disabled.
+     *  \deprecated This function is deprecated. It can still be used
+     *  to get the interpolation type for polynomial(true) or
+     *  linear(false) interpolation. If interpolation type is
+     *  something else, the function will return false.
      */
     bool get_polyint( void ) const;
     
+    /*! \brief Set trajectory interpolation type.
+     *
+     *  Defaults to polynomial interpolation.
+     */
+    void set_trajectory_interpolation( trajectory_interpolation_e intrp );
+
+    /*! \brief Get trajectory interpolation type.
+     */
+    trajectory_interpolation_e get_trajectory_interpolation( void ) const;
+
     /*! \brief Set maximum number of steps to iterate.
      *
      *  One thousand (1000) steps is the default
