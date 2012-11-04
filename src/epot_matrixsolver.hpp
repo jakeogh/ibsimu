@@ -74,7 +74,7 @@ protected:
      */
     class Node2DoF {
         Int3D         _size;          /*!< \brief Size of mesh */
-        uint32_t     *_n2d;          /*!< \brief Nodes to degrees of freedom array. */
+        uint32_t     *_n2d;           /*!< \brief Nodes to degrees of freedom array. */
         
     public:
         
