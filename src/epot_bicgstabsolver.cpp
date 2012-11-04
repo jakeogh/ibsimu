@@ -43,6 +43,7 @@
 
 #include <limits>
 #include "bicgstab.hpp"
+#include "hbio.hpp"
 #include "ilu0_precond.hpp"
 #include "epot_bicgstabsolver.hpp"
 #include "ibsimu.hpp"
@@ -165,6 +166,11 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 	const Matrix *A;
 	const Vector *B;
 	get_vecmat( &A, &B );
+
+	//Output matrix for testing
+	//HBIO hb;
+	//hb.set_matrix( *A );
+	//hb.write( "matrix.hb" );
 
 	ILU0_Precond pc( *A );
         imax = _imax;
