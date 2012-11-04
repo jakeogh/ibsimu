@@ -1,8 +1,8 @@
-/*! \file sort.hpp
- *  \brief Insertion sort algorithm
+/*! \file ilu1_precond.hpp
+ *  \brief ILU1 preconditioner for sparse matrices
  */
 
-/* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,26 +40,78 @@
  * permit others to do so.
  */
 
-#ifndef SORT_HPP
-#define SORT_HPP 1
+#ifndef ILU1_PRECOND_HPP
+#define ILU1_PRECOND_HPP 1
 
 
-/*! \brief Sort index-value pairs in ascending index order. 
- *  
- *  Sort uses insertion sort algorithm, which is rather fast with
- *  small arrays, which should be the case with most sparse matrix
- *  applications.
+#include "matrix.hpp"
+#include "crowmatrix.hpp"
+#include "precond.hpp"
+
+
+/*! \brief First level fill-in incomplete LU preconditioner class.
  */
-void insertion_sort_iv( int *ind, double *val, int start, int end );
+class ILU1_Precond : public Precond {
+
+    CRowMatrix *_LU;
+
+    static void add_element( int *ptr, int **col, int n, int &nz, int &asize, int c );
+
+    /*! \brief Construct a precursor LU matrix and level array.
+     *
+     *  Makes LU matrix a copy of \a A with zero elements where level
+     *  is 1.
+     */
+    void preprocess( const CRowMatrix &A );
+
+    /*! \brief Finish incomplete LU decomposition after preprocessing.
+     */
+    void factorize( const CRowMatrix &A );
+
+public:
+
+    /*! \brief Constructor for an ILU1 preconditioner for matrix \a A.
+     */
+    ILU1_Precond( const CRowMatrix &A );
+
+    /*! \brief Destructor.
+     */
+    ~ILU1_Precond();
+
+    const CRowMatrix *get_matrix( void ) const {
+	return( _LU );
+    }
+
+    /*! \brief Print debugging information to os.
+     */
+    void debug_print( std::ostream &os ) const;
+
+    /*! \brief Solve \a M* \a x = \a b and return \a x.
+     */
+    void solve( Vector &x, const Vector &b ) const;
+};
 
 
-/*! \brief Sort indices in ascending index order. 
- *  
- *  Sort uses insertion sort algorithm, which is rather fast with
- *  small arrays, which should be the case with most sparse matrix
- *  applications.
- */
-void insertion_sort_i( int *ind, int start, int end );
 
 
 #endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

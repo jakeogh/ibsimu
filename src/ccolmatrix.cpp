@@ -2,7 +2,7 @@
  *  \brief Compressed column sparse matrix algebra
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -147,13 +147,13 @@ CColMatrix::CColMatrix( int n, int m )
 }
 
 
-CColMatrix::CColMatrix( int n, int m, int nz, 
+CColMatrix::CColMatrix( int n, int m, int nz, int asize,
 			int *ptr, int *row, double *val )
 {
     _n     = n;
     _m     = m;
     _nz    = nz;
-    _asize = nz;
+    _asize = asize;
     _ptr   = ptr;
     _row   = row;
     _val   = val;
@@ -444,11 +444,11 @@ void CColMatrix::order_ascending( void )
 {
     /* Sort each column. */
     for( int i = 0; i < _m; i++ )
-	sort_iv( _row, _val, _ptr[i], _ptr[i+1] );
+	insertion_sort_iv( _row, _val, _ptr[i], _ptr[i+1] );
 }
 
 
-bool CColMatrix::check_ascending( void )
+bool CColMatrix::check_ascending( void ) const
 {
     /* Check each column. */
     for( int i = 0; i < _m; i++ ) {

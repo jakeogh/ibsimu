@@ -2,7 +2,7 @@
  *  \brief Compressed column sparse matrix algebra
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -118,7 +118,7 @@ public:
      *  allocation compatibility reasons, arrays \a ptr, \a row and \a
      *  val should be allocated using \a malloc and/or \a realloc.
      */
-    CColMatrix( int n, int m, int nz, 
+    CColMatrix( int n, int m, int nz, int asize,
 		int *ptr, int *row, double *val );
 
     /*! \brief Copy constructor.
@@ -208,7 +208,7 @@ public:
     /*! \brief Check if matrix data is in ascending row index
      *  order within each column.
      */
-    bool check_ascending( void );
+    bool check_ascending( void ) const;
 
     /*! \brief Print debugging information to os.
      */
