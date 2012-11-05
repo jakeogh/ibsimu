@@ -13,6 +13,7 @@ bicgstab.hpp \
 callback.hpp \
 ccolmatrix.cpp \
 ccolmatrix.hpp \
+cfifo.hpp \
 color.hpp \
 colormap.cpp \
 colormap.hpp \
@@ -240,6 +241,7 @@ axisymmetricvectorfield.hpp \
 bicgstab.hpp \
 callback.hpp \
 ccolmatrix.hpp \
+cfifo.hpp \
 color.hpp \
 colormap.hpp \
 config.h \

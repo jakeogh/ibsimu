@@ -2,7 +2,7 @@
  *  \brief Space charge deposition functions
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,6 +47,7 @@
 #include <pthread.h>
 #include "scalarfield.hpp"
 #include "particles.hpp"
+#include "cfifo.hpp"
 
 
 /*! \brief Finalize space charge calculation.
@@ -56,7 +57,7 @@
  *  for potential solvers. Also corrects boundary space charge values.
  *
  */
-void scharge_finalize( MeshScalarField &scharge );
+void scharge_finalize_pic( MeshScalarField &scharge );
 
 
 /*! \brief Function for adding charge to space charge density map from
@@ -69,8 +70,8 @@ void scharge_finalize( MeshScalarField &scharge );
  *  supposed to be used so that \a x1 and \a x2 are at the mesh
  *  intersection points, through which particle trajectory has passed.
  */
-void scharge_add_from_trajectory( MeshScalarField &scharge, pthread_mutex_t *mutex, 
-				  double IQ, const ParticleP2D &x1, const ParticleP2D &x2 );
+void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t *mutex, 
+				      double IQ, const ParticleP2D &x1, const ParticleP2D &x2 );
 
 
 /*! \brief Function for adding charge to space charge density map from
@@ -79,8 +80,8 @@ void scharge_add_from_trajectory( MeshScalarField &scharge, pthread_mutex_t *mut
  *  Same as for scharge_add_from_trajectory(). Now IQ is real current
  *  (A).
  */
-void scharge_add_from_trajectory( MeshScalarField &scharge, pthread_mutex_t *mutex, 
-				  double IQ, const ParticlePCyl &x1, const ParticlePCyl &x2 );
+void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t *mutex, 
+				      double IQ, const ParticlePCyl &x1, const ParticlePCyl &x2 );
 
 
 /*! \brief Function for adding charge to space charge density map from
@@ -89,27 +90,20 @@ void scharge_add_from_trajectory( MeshScalarField &scharge, pthread_mutex_t *mut
  *  Same as for scharge_add_from_trajectory(). Now IQ is real current
  *  (A).
  */
-void scharge_add_from_trajectory( MeshScalarField &scharge, pthread_mutex_t *mutex, 
-				  double IQ, const ParticleP3D &x1, const ParticleP3D &x2 );
+void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t *mutex, 
+				      double IQ, const ParticleP3D &x1, const ParticleP3D &x2 );
 
+
+
+void scharge_finalize_linear( MeshScalarField &scharge );
+
+void scharge_add_from_trajectory_linear( MeshScalarField &scharge, pthread_mutex_t *mutex, 
+					 double I, int dir, const CFiFo<ParticleP2D,4> &cdpast, const int i[3] );
+
+void scharge_add_from_trajectory_linear( MeshScalarField &scharge, pthread_mutex_t *mutex, 
+					 double I, int dir, const CFiFo<ParticleP3D,4> &cdpast, const int i[3] );
+
+void scharge_add_from_trajectory_linear( MeshScalarField &scharge, pthread_mutex_t *mutex, 
+					 double I, int dir, const CFiFo<ParticlePCyl,4> &cdpast, const int i[3] );
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

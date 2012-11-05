@@ -153,6 +153,15 @@ enum trajectory_interpolation_e {
 };
 
 
+/*! \brief Space charge depostition type.
+ */
+enum scharge_deposition_e {
+    SCHARGE_DEPOSITION_PIC = 0,  /*!< \brief Particle-in-cell type deposition to neighbouring nodes in each cell */
+    SCHARGE_DEPOSITION_LINEAR    /*!< \brief Deposition to nodes as a linear function of distance to 
+				  *   closet trajectory segment */
+};
+
+
 /*! \brief Coordinate axis identifier.
  */
 enum coordinate_axis_e {

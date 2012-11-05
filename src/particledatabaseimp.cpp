@@ -56,7 +56,8 @@
 
 
 ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb )
-    : _epsabs(1e-6), _epsrel(1e-6), _intrp(TRAJECTORY_INTERPOLATION_POLYNOMIAL), _maxsteps(1000), 
+    : _epsabs(1e-6), _epsrel(1e-6), _intrp(TRAJECTORY_INTERPOLATION_POLYNOMIAL), 
+      _scharge_dep(SCHARGE_DEPOSITION_PIC), _maxsteps(1000), 
       _maxt(1e-3), _save_points(false), _trajdiv(1), _rhosum(0.0), _iteration(0), 
       _relativistic(false), _bsup_cb(NULL), _thand_cb(NULL), _tend_cb(NULL), 
       _pdb(pdb)
@@ -75,6 +76,7 @@ ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s
     _epsabs = read_double( s );
     _epsrel = read_double( s );
     _intrp = (trajectory_interpolation_e)read_int8( s );
+    _scharge_dep = (scharge_deposition_e)read_int8( s );
     _maxsteps = read_int32( s );
     _maxt = read_double( s );
     _save_points = read_int8( s );
@@ -177,6 +179,18 @@ trajectory_interpolation_e ParticleDataBaseImp::get_trajectory_interpolation( vo
     return( _intrp );
 }
 
+
+void ParticleDataBaseImp::set_scharge_deposition( scharge_deposition_e type )
+{
+    _scharge_dep = type;
+}
+
+
+scharge_deposition_e ParticleDataBaseImp::get_scharge_deposition( void ) const
+{
+    return( _scharge_dep );
+}
+
     
 void ParticleDataBaseImp::set_max_steps( uint32_t maxsteps )
 {
@@ -268,6 +282,7 @@ void ParticleDataBaseImp::save( std::ostream &os ) const
     write_double( os, _epsabs );
     write_double( os, _epsrel );
     write_int8( os, _intrp );
+    write_int8( os, _scharge_dep );
     write_int32( os, _maxsteps );
     write_double( os, _maxt );
     write_int8( os, _save_points );
@@ -285,6 +300,7 @@ void ParticleDataBaseImp::debug_print( std::ostream &os ) const
     os << "epsabs = "      << _epsabs << "\n";
     os << "epsrel = "      << _epsrel << "\n";
     os << "intrp = "       << _intrp << "\n";
+    os << "scharge_dep = " << _scharge_dep << "\n";
     os << "maxsteps = "    << _maxsteps << "\n";
     os << "maxt = "        << _maxt << "\n";
     os << "save_points = " << _save_points << "\n";

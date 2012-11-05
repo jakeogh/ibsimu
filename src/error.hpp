@@ -287,6 +287,10 @@ public:
      *  The index \a i is supposed to be smaller than \a n.
      */
     ErrorRange( const ErrorLocation &loc, uint32_t i, uint32_t n );
+
+    /*! \brief Constructor for error message for indexing error.
+     */
+    ErrorRange( const ErrorLocation &loc, const std::string &str );
 };
 
 

@@ -2,7 +2,7 @@
  *  \brief Space charge deposition functions
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,6 +40,8 @@
  * permit others to do so.
  */
 
+#include <limits>
+
 #include "scharge.hpp"
 #include "ibsimu.hpp"
 
@@ -47,9 +49,9 @@
 //#define DEBUG_SCHARGE 1
 
 
-void scharge_finalize( MeshScalarField &scharge )
+void scharge_finalize_pic( MeshScalarField &scharge )
 {
-    ibsimu.message( 1 ) << "Finalizing space charge density map\n";
+    ibsimu.message( 1 ) << "Finalizing space charge density map (PIC method)\n";
     ibsimu.inc_indent();
 
     switch( scharge.geom_mode() ) {
@@ -132,8 +134,30 @@ void scharge_finalize( MeshScalarField &scharge )
 }
 
 
-void scharge_add_from_trajectory( MeshScalarField &scharge, pthread_mutex_t *mutex, 
-				  double IQ, const ParticleP2D &x1, const ParticleP2D &x2 )
+void scharge_finalize_linear( MeshScalarField &scharge )
+{
+    ibsimu.message( 1 ) << "Finalizing space charge density map (LINEAR method)\n";
+    ibsimu.inc_indent();
+
+    switch( scharge.geom_mode() ) {
+    case MODE_2D:
+    {
+	// Convert to space charge density map
+	scharge /= scharge.h();
+	break;
+    }
+    default:
+    {
+	throw( Error( ERROR_LOCATION, "unsupported dimension number" ) );
+    }
+    }
+
+    ibsimu.dec_indent();
+}
+
+	
+void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t *mutex, 
+				      double IQ, const ParticleP2D &x1, const ParticleP2D &x2 )
 {
     double x[2];
     double t[2];
@@ -191,8 +215,8 @@ void scharge_add_from_trajectory( MeshScalarField &scharge, pthread_mutex_t *mut
 }
 
 
-void scharge_add_from_trajectory( MeshScalarField &scharge, pthread_mutex_t *mutex, 
-				  double IQ, const ParticlePCyl &x1, const ParticlePCyl &x2 )
+void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t *mutex, 
+				      double IQ, const ParticlePCyl &x1, const ParticlePCyl &x2 )
 {
     double x[2];
     double t[2];
@@ -234,8 +258,8 @@ void scharge_add_from_trajectory( MeshScalarField &scharge, pthread_mutex_t *mut
 }
 
 
-void scharge_add_from_trajectory( MeshScalarField &scharge, pthread_mutex_t *mutex, 
-				  double IQ, const ParticleP3D &x1, const ParticleP3D &x2 )
+void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t *mutex, 
+				      double IQ, const ParticleP3D &x1, const ParticleP3D &x2 )
 {
     double x[3];
     double t[3];
@@ -272,4 +296,154 @@ void scharge_add_from_trajectory( MeshScalarField &scharge, pthread_mutex_t *mut
     scharge( p+1+scharge.size(0) ) += t[0]*t[1]*t[2]*Q;
     pthread_mutex_unlock( mutex );
 }
+
+
+double distance( const double x[2], const ParticleP2D &p )
+{
+    double t1 = x[0]-p[1];
+    double t2 = x[1]-p[3];
+    return( sqrt(t1*t1+t2*t2) );
+}
+
+
+double distance( const double x[2], const double y[2] )
+{
+    double t1 = x[0]-y[0];
+    double t2 = x[1]-y[1];
+    return( sqrt(t1*t1+t2*t2) );
+}
+
+
+/* Find closest distance from x to line segment between particle
+ * points p1 and p2. Return the distance and set interpolated particle
+ * coordinates at this location in intrp. Uses linear interpolation.
+ */
+double closest_point( ParticleP2D &intrp, const double x[2], 
+		      const ParticleP2D &p1, const ParticleP2D &p2 )
+{
+    double t1 = p1[1]-p2[1];
+    double t2 = p1[3]-p2[3];
+    double l2 = t1*t1+t2*t2;  // l2=|p1-p2|^2
+    if( l2 == 0.0 ) {
+	intrp = p1;
+	return( distance( x, p1 ) );
+    }
+		
+    // Use parametric presentation of line: p1 + t*(p2-p1)
+    // Projection of point x to line is at t = [(x-p1) . (p2-p1)] / |p2-p1|^2
+    double d1[2] = { x[0]-p1[1], x[1]-p1[3] };
+    double d2[2] = { p2[1]-p1[1], p2[3]-p1[3] };
+    double t = ( d1[0]*d2[0] + d1[1]*d2[1] ) / l2;
+    if( t < 0.0 ) {
+	intrp = p1;
+	return( distance( x, p1 ) );
+    } else if( t > 1.0 ) {
+	intrp = p2;
+	return( distance( x, p2 ) );
+    }
+    intrp = p1 + t*(p2-p1);
+    return( distance( x, intrp ) );
+}
+
+
+void scharge_add_from_trajectory_linear( MeshScalarField &scharge, pthread_mutex_t *mutex, 
+					 double I, int dir, const CFiFo<ParticleP2D,4> &cdpast, const int i[3] )
+{
+#ifdef DEBUG_SCHARGE
+    std::cout << "scharge_add_from_trajectory\n";
+    std::cout << "I = " << I << "\n";
+    std::cout << "dir = " << dir << "\n";
+    std::cout << "i = { " << i[0] << ", " << i[1] << ", " << i[2] << " }\n";
+#endif
+
+    int ni[2][3];
+    if( dir == -1 ) {
+	// Left
+	ni[0][0] = i[0]+1;
+	ni[0][1] = i[1];
+	ni[1][0] = i[0]+1;
+	ni[1][1] = i[1]+1;
+    } else if( dir == +1 ) {
+	// Right
+	ni[0][0] = i[0];
+	ni[0][1] = i[1];
+	ni[1][0] = i[0];
+	ni[1][1] = i[1]+1;
+    } else if( dir == -2 ) {
+	// Down
+	ni[0][0] = i[0];
+	ni[0][1] = i[1]+1;
+	ni[1][0] = i[0]+1;
+	ni[1][1] = i[1]+1;
+    } else if( dir == +2 ) {
+	// Up
+	ni[0][0] = i[0];
+	ni[0][1] = i[1];
+	ni[1][0] = i[0]+1;
+	ni[1][1] = i[1];
+    }
+    
+    // Process nodes
+    for( int b = 0; b < 2; b++ ) {
+	double x[2] = { scharge.origo(0)+ni[b][0]*scharge.h(),
+		        scharge.origo(1)+ni[b][1]*scharge.h() };
+#ifdef DEBUG_SCHARGE
+	std::cout << "Finding closest point to node " << ni[b][0] 
+		  << ", " << ni[b][1] << "\n";
+	std::cout << "x = " << x[0] << ", " << x[1] << "\n";
+#endif
+	// Find closest point to past trajectory
+	double d_closest = std::numeric_limits<double>::infinity();
+	ParticleP2D p_closest;
+	for( int c = 1; c < cdpast.size(); c++ ) {
+	    ParticleP2D p;
+	    double d = closest_point( p, x, cdpast[c-1], cdpast[c] );
+	    if( d < d_closest ) {
+		p_closest = p;
+		d_closest = d;
+	    }
+#ifdef DEBUG_SCHARGE
+	    std::cout << "Segment " << c << "\n";
+	    std::cout << "p1 = " << cdpast[c-1] << "\n";
+	    std::cout << "p2 = " << cdpast[c] << "\n";
+	    std::cout << "d = " << d << "\n";
+	    std::cout << "p = " << p << "\n";
+#endif
+	}
+
+#ifdef DEBUG_SCHARGE
+	std::cout << "Done\n";
+	std::cout << "d_closest = " << d_closest << "\n";
+	std::cout << "p_closest = " << p_closest << "\n";
+#endif
+	// Use closest point to calculate rho*h=IQ/v
+	if( d_closest > scharge.h() )
+	    continue;
+	double v = sqrt( p_closest[2]*p_closest[2] + p_closest[4]*p_closest[4] );
+	double Q = I*(scharge.h()-d_closest)/(scharge.h()*v);
+	pthread_mutex_lock( mutex );
+	scharge( ni[b][0], ni[b][1] ) += Q;
+	pthread_mutex_unlock( mutex );	
+#ifdef DEBUG_SCHARGE
+	std::cout << "v = " << v << "\n";
+	std::cout << "Q = " << Q << "\n";
+#endif
+    }
+}
+
+
+void scharge_add_from_trajectory_linear( MeshScalarField &scharge, pthread_mutex_t *mutex, 
+					 double I, int dir, const CFiFo<ParticleP3D,4> &cdpast, const int i[3] )
+{
+
+}
+
+
+void scharge_add_from_trajectory_linear( MeshScalarField &scharge, pthread_mutex_t *mutex, 
+					 double I, int dir, const CFiFo<ParticlePCyl,4> &cdpast, const int i[3] )
+{
+
+}
+
+
 

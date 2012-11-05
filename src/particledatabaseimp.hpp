@@ -62,7 +62,8 @@ protected:
 
     double                     _epsabs;       /*!< \brief Absolute error limit for calculation. */
     double                     _epsrel;       /*!< \brief Relative error limit for calculation. */
-    trajectory_interpolation_e _intrp;        /*!< \brief Use polynomial(true)/linear(false) interpolation. */
+    trajectory_interpolation_e _intrp;        /*!< \brief Trajectory interpolation type. */
+    scharge_deposition_e       _scharge_dep;  /*!< \brief Space charge deposition type. */
     uint32_t                   _maxsteps;     /*!< \brief Maximum number of steps to calculate. */
     double                     _maxt;         /*!< \brief Maximum particle time in simulation. */
     bool                       _save_points;  /*!< \brief Save all points? */
@@ -119,6 +120,10 @@ public:
     void set_trajectory_interpolation( trajectory_interpolation_e intrp );
 
     trajectory_interpolation_e get_trajectory_interpolation( void ) const;
+
+    void set_scharge_deposition( scharge_deposition_e type );
+
+    scharge_deposition_e get_scharge_deposition( void ) const;
 
     void set_max_steps( uint32_t maxsteps );
 
@@ -562,9 +567,9 @@ public:
 	for( uint32_t a = 0; a < ibsimu.get_thread_count(); a++ ) {
 
 	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
-							   _intrp, _maxsteps, _maxt, _save_points, _trajdiv, 
-							   _mirror, &scharge, &scharge_mutex, &efield, &bfield, 
-							   &geom ) );
+							   _intrp, _scharge_dep, _maxsteps, _maxt, 
+							   _save_points, _trajdiv, _mirror, &scharge, 
+							   &scharge_mutex, &efield, &bfield, &geom ) );
 	    iterators[a]->set_trajectory_handler_callback( _thand_cb );
 	    iterators[a]->set_trajectory_end_callback( _tend_cb, _pdb );
 	    iterators[a]->set_bfield_suppression_callback( _bsup_cb );
@@ -611,14 +616,17 @@ public:
 	    throw( err[0] );
 	}
 
-	// Collectstatistics. Free all allocated memory.
+	// Collect statistics. Free all allocated memory.
 	for( uint32_t a = 0; a < ibsimu.get_thread_count(); a++ ) {
 	    ParticleStatistics stat = iterators[a]->get_statistics();
 	    _stat += stat;
 	    delete iterators[a];
 	}
 
-	scharge_finalize( scharge );
+	if( _scharge_dep == SCHARGE_DEPOSITION_LINEAR )
+	    scharge_finalize_linear( scharge );
+	else
+	    scharge_finalize_pic( scharge );
 	
 	t.stop();
 	ibsimu.message( 1 ) << "Particle histories (" << _particles.size() << " total):\n";

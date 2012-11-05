@@ -116,15 +116,28 @@ bool ParticleDataBase::get_polyint( void ) const
     return( _imp->get_polyint() );
 }
 
+
 void ParticleDataBase::set_trajectory_interpolation( trajectory_interpolation_e intrp )
 {
-    _imp-> set_trajectory_interpolation( intrp );
+    _imp->set_trajectory_interpolation( intrp );
 }
 
 
 trajectory_interpolation_e ParticleDataBase::get_trajectory_interpolation( void ) const
 {
     return( _imp->get_trajectory_interpolation() );
+}
+
+
+void ParticleDataBase::set_scharge_deposition( scharge_deposition_e type )
+{
+    _imp->set_scharge_deposition( type );
+}
+
+
+scharge_deposition_e ParticleDataBase::get_scharge_deposition( void ) const
+{
+    return( _imp->get_scharge_deposition() );
 }
 
 

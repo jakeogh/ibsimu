@@ -270,6 +270,16 @@ public:
      */
     trajectory_interpolation_e get_trajectory_interpolation( void ) const;
 
+    /*! \brief Set space charge deposition type.
+     *
+     *  Defaults to SCHARGE_DEPOSITION_PIC.
+     */
+    void set_scharge_deposition( scharge_deposition_e type );
+
+    /*! \brief Get space charge deposition type.
+     */
+    scharge_deposition_e get_scharge_deposition( void ) const;
+
     /*! \brief Set maximum number of steps to iterate.
      *
      *  One thousand (1000) steps is the default

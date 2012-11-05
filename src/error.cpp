@@ -378,3 +378,9 @@ ErrorRange::ErrorRange( const ErrorLocation &loc, uint32_t i, uint32_t n )
     _error_str = ss.str();
 }
 
+
+ErrorRange::ErrorRange( const ErrorLocation &loc, const std::string &str )
+    : Error( loc, str )
+{
+
+}

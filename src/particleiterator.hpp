@@ -60,6 +60,7 @@
 #include "scheduler.hpp"
 #include "polysolver.hpp"
 #include "particledatabase.hpp"
+#include "cfifo.hpp"
 
 
 //#define DEBUG_PARTICLE_ITERATOR 1
@@ -88,6 +89,10 @@ public:
     int               _dir;       /*!< \brief Direction of particle at intersection.
 				   *  i: -1/+1, j: -2/+2, k: -3:/+3. */
     
+    /*! \brief Default constructor.
+     */
+    ColData() : _dir(0) {}
+
     /*! \brief Constructor for collision at \a x into direction \a dir.
      */
     ColData( PP x, int dir ) : _x(x), _dir(dir) {}
@@ -266,36 +271,38 @@ public:
  */
 template <class PP> class ParticleIterator {
 
-    gsl_odeiv_system           _system;    /**< \brief GSL ODE integrator system. */
-    gsl_odeiv_step            *_step;      /**< \brief GSL ODE integrator stepper. */
-    gsl_odeiv_control         *_control;   /**< \brief GSL ODE integrator constrol. */
-    gsl_odeiv_evolve          *_evolve;    /**< \brief GSL ODE integrator integrator. */
+    gsl_odeiv_system           _system;      /**< \brief GSL ODE integrator system. */
+    gsl_odeiv_step            *_step;        /**< \brief GSL ODE integrator stepper. */
+    gsl_odeiv_control         *_control;     /**< \brief GSL ODE integrator constrol. */
+    gsl_odeiv_evolve          *_evolve;      /**< \brief GSL ODE integrator integrator. */
 
-    particle_iterator_type_e   _type;      /**< \brief Iteratory type. */
+    particle_iterator_type_e   _type;        /**< \brief Iteratory type. */
 
-    trajectory_interpolation_e _intrp;     /*!< \brief Interpolation type. */
-    double                     _epsabs;    /*!< \brief Absolute error limit. */
-    double                     _epsrel;    /*!< \brief Relative error limit. */
-    uint32_t                   _maxsteps;  /*!< \brief Maximum number of simulation steps for particle. */
-    double                     _maxt;      /*!< \brief Maximum particle lifetime. */
+    trajectory_interpolation_e _intrp;       /*!< \brief Interpolation type. */
+    scharge_deposition_e       _scharge_dep; /*!< \brief Space charge deposition type. */
+    double                     _epsabs;      /*!< \brief Absolute error limit. */
+    double                     _epsrel;      /*!< \brief Relative error limit. */
+    uint32_t                   _maxsteps;    /*!< \brief Maximum number of simulation steps for particle. */
+    double                     _maxt;        /*!< \brief Maximum particle lifetime. */
     bool                       _save_points; /*!< \brief Save all points? */
-    uint32_t                   _trajdiv;   /*!< \brief Divisor for saved trajectories,
-					    * if 3, every third trajectory is saved. */
-    bool                       _mirror[6]; /*!< \brief Is particle mirrored on boundary? */
+    uint32_t                   _trajdiv;     /*!< \brief Divisor for saved trajectories,
+					      * if 3, every third trajectory is saved. */
+    bool                       _mirror[6];   /*!< \brief Is particle mirrored on boundary? */
 
-    ParticleIteratorData       _pidata;    /*!< \brief User data provided to PP::get_derivatives(). */
+    ParticleIteratorData       _pidata;      /*!< \brief User data provided to PP::get_derivatives(). */
     const TrajectoryHandlerCallback *_thand_cb; /*!< \brief Trajectory handler callback. */
     const TrajectoryEndCallback     *_tend_cb;  /*!< \brief Trajectory end callback. */
     const TrajectoryEndCallback     *_bsup_cb;  /*!< \brief B-field plasma suppression callback. */
     ParticleDataBase          *_pdb;            /*!< \brief Particle database pointer for adding secondary particles. */
     pthread_mutex_t           *_scharge_mutex;  /*!< \brief Space charge mutex. */
 
-    PP                         _xi;        /*!< \brief Previous mesh intersection coordinates 
-					    *   or starting point. */
-    std::vector<PP>            _traj;      /*!< \brief %Particle trajectory data for current trajectory. */
-    std::vector<ColData<PP> >  _coldata;   /*!< \brief Mesh intersection coordinate data. */
+    PP                         _xi;          /*!< \brief Previous mesh intersection coordinates 
+					      *   or starting point. */
+    std::vector<PP>            _traj;        /*!< \brief %Particle trajectory data for current trajectory. */
+    std::vector<ColData<PP> >  _coldata;     /*!< \brief %Mesh intersection coordinate data. */
+    CFiFo<PP,4>                _cdpast;      /*!< \brief Past three intersection coords. */
 
-    ParticleStatistics         _stat;      /*!< \brief Particle statistics. */
+    ParticleStatistics         _stat;        /*!< \brief Particle statistics. */
 
 
 
@@ -618,6 +625,7 @@ template <class PP> class ParticleIterator {
 
     }
 
+
     /*! \brief Handle particle iteration step from coordinates \a x1 to \a x2.
      *
      *  Searches mesh intersections between points \a x1 and \a x2 and
@@ -687,15 +695,21 @@ template <class PP> class ParticleIterator {
 		      << std::setw(3) << i[2] << "), dir = "
 	    	      << std::setw(3) << _coldata[a]._dir << "\n";
 #endif
+	    // Update space charge for mesh volume i
+	    if( _scharge_dep == SCHARGE_DEPOSITION_LINEAR && _pidata._scharge ) {
+		_cdpast.push( _coldata[a]._x );
+		scharge_add_from_trajectory_linear( *_pidata._scharge, _scharge_mutex, particle.IQ(),
+						    _coldata[a]._dir, _cdpast, i );
+	    }
 
-	    // Advance particle in mesh, check for possible collisions and
-	    // do mirroring.
+	    // Advance particle in mesh, update i, check for possible
+	    // collisions and do mirroring for trajectory and coldata.
 	    handle_trajectory_advance( particle, a, i, x2 );
 
-	    // Update space charge for one mesh.
-	    if( _pidata._scharge )
-		scharge_add_from_trajectory( *_pidata._scharge, _scharge_mutex, particle.IQ(), 
-					     _xi, _coldata[a]._x );
+	    if( _scharge_dep == SCHARGE_DEPOSITION_PIC && _pidata._scharge ) {
+		scharge_add_from_trajectory_pic( *_pidata._scharge, _scharge_mutex, particle.IQ(), 
+						 _xi, _coldata[a]._x );
+	    }
 
 	    // Call trajectory handler callback
 	    if( _thand_cb )
@@ -717,7 +731,7 @@ template <class PP> class ParticleIterator {
 		return( false );
 	    }
 
-	    // Update last intersection point xi.
+	    // Update last accepted intersection point xi.
 	    _xi = _coldata[a]._x;
 	}
 
@@ -898,6 +912,7 @@ public:
      *  \param epsabs Absolute error limit in iteration
      *  \param epsrel Relative error limit in iteration
      *  \param intrp Interpolation type.
+     *  \param scharge_dep Space charge deposition type.
      *  \param maxsteps Maximum number of steps to take before particle is killed
      *  \param maxt Maximum flight time for a particle
      *  \param save_points Flag for saving all intersection points of trajectories
@@ -917,12 +932,14 @@ public:
      *  particle memory location.
      */
     ParticleIterator( particle_iterator_type_e type, double epsabs, double epsrel, 
-		      trajectory_interpolation_e intrp, uint32_t maxsteps, double maxt, bool save_points,
+		      trajectory_interpolation_e intrp, scharge_deposition_e scharge_dep, 
+		      uint32_t maxsteps, double maxt, bool save_points,
 		      uint32_t trajdiv, bool mirror[6], MeshScalarField *scharge, 
 		      pthread_mutex_t *scharge_mutex,
 		      const VectorField *efield, const VectorField *bfield, 
 		      const Geometry *geom ) 
-	: _type(type), _intrp(intrp), _epsabs(epsabs), _epsrel(epsrel), _maxsteps(maxsteps), _maxt(maxt), 
+	: _type(type), _intrp(intrp), _scharge_dep(scharge_dep), _epsabs(epsabs), _epsrel(epsrel), 
+	  _maxsteps(maxsteps), _maxt(maxt), 
 	  _save_points(save_points), _trajdiv(trajdiv), _pidata(scharge,efield,bfield,geom), 
 	  _thand_cb(0), _tend_cb(0), _bsup_cb(0), _pdb(0), _scharge_mutex(scharge_mutex), 
 	  _stat(geom->number_of_boundaries()) {
@@ -1039,8 +1056,12 @@ public:
 		  << x[3] << " " 
 		  << x[4] << "\n";
 #endif
-	_pidata._qm = particle->qm();
+	_pidata._qm = particle->qm();	
 	_xi = x;
+	if( _scharge_dep == SCHARGE_DEPOSITION_LINEAR ) {
+	    _cdpast.clear();
+	    _cdpast.push( x );
+	}
 
 	// Reset integrator
 	gsl_odeiv_step_reset( _step );
