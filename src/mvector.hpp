@@ -64,6 +64,9 @@
  *  formulas are stored without calculating them until a destination
  *  of the result of the operation is known. This is is done to avoid
  *  excess copying and use of temporary variables during calculation.
+ *
+ *  Uses BLAS if preprocessor directive USE_BLAS is defined, see
+ *  config.hpp.
  */
 class Vector {
     int       _n;    //!< Number of elements.
@@ -207,11 +210,13 @@ public:
      */
     Vector( const Vector &vec );
 
-    /*! \brief Constructor for setting vector to the result of linear algebra.
+    /*! \brief Constructor for setting vector to the result of linear
+     *  algebra.
      */
     Vector( const VectorLA &vecla );
 
-    /*! \brief Constructor for setting vector to the result of matrix multiplication.
+    /*! \brief Constructor for setting vector to the result of matrix
+     *  multiplication.
      */
     Vector( const struct MatrixMulVec &matvec );
 

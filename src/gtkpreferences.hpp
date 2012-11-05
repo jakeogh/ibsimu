@@ -2,7 +2,7 @@
  *  \brief Preferences for plot windows
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -61,32 +61,19 @@ class GTKPreferences
 
 public:
 
+    /*! \brief Create common preferences for plot windows.
+     */
     GTKPreferences( class GTKWindow *gtkwindow, GtkWidget *window, Frame *frame );
 
+    /*! \brief Destructor.
+     */
     ~GTKPreferences();
 
+    /*! \brief Run the dialog.
+     */
     void run( void );
 
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

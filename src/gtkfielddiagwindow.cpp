@@ -1,8 +1,8 @@
 /*! \file gtkfielddiagwindow.cpp
- *  \brief Source code for gtkfielddiagwindow.cpp
+ *  \brief Field diagnostic window
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -225,23 +225,4 @@ std::string GTKFieldDiagWindow::track_text( double x, double y )
     
     return( ss.str() );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

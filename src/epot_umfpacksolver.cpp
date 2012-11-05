@@ -194,7 +194,7 @@ void EpotUMFPACKSolver::subsolve( MeshScalarField &epot, const MeshScalarField &
     if( linear() ) {
 
 	// Fetch matrix form of problem
-	const Matrix *A;
+	const CRowMatrix *A;
 	const Vector *B;
 	get_vecmat( &A, &B );
 
@@ -204,7 +204,7 @@ void EpotUMFPACKSolver::subsolve( MeshScalarField &epot, const MeshScalarField &
     } else {
 
 	int32_t a;
-        const Matrix *J;
+        const CRowMatrix *J;
         const Vector *R;
         double accR = 0.0, accX = 0.0;
         Vector dX;

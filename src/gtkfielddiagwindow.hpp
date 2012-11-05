@@ -84,14 +84,11 @@ public:
 			const Vec3D &x1, const Vec3D &x2, 
 			const field_diag_type_e diag[2], const field_loc_type_e loc[2] );
 
+    /*! \brief Destructor.
+     */
     virtual ~GTKFieldDiagWindow();
 
 };
 
 
 #endif
-
-
-
-
-

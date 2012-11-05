@@ -1,5 +1,5 @@
 /*! \file gtkpreferences.cpp
- *  \brief Source code for gtkpreferences.cpp
+ *  \brief Preferences for plot windows
  */
 
 /* Copyright (c) 2005-2009,2012 Taneli Kalvas. All rights reserved.
@@ -178,22 +178,4 @@ void GTKPreferences::run( void )
 
     gtk_widget_destroy( dialog );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

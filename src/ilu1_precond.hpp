@@ -55,63 +55,70 @@ class ILU1_Precond : public Precond {
 
     CRowMatrix *_LU;
 
+    ILU1_Precond( const ILU1_Precond &pc ) {}
+    const ILU1_Precond &operator=( const ILU1_Precond &pc ) { return( *this ); }
+
     static void add_element( int *ptr, int **col, int n, int &nz, int &asize, int c );
-
-    /*! \brief Construct a precursor LU matrix and level array.
-     *
-     *  Makes LU matrix a copy of \a A with zero elements where level
-     *  is 1.
-     */
-    void preprocess( const CRowMatrix &A );
-
-    /*! \brief Finish incomplete LU decomposition after preprocessing.
-     */
-    void factorize( const CRowMatrix &A );
 
 public:
 
-    /*! \brief Constructor for an ILU1 preconditioner for matrix \a A.
+    /*! \brief Constructor for an ILU1 preconditioner.
      */
-    ILU1_Precond( const CRowMatrix &A );
+    ILU1_Precond();
 
     /*! \brief Destructor.
      */
     ~ILU1_Precond();
 
-    const CRowMatrix *get_matrix( void ) const {
-	return( _LU );
-    }
+    /*! \brief Get a new copy of preconditioner.
+     *
+     *  Does not copy matrix.
+     */
+    ILU1_Precond *copy( void ) const { return( new ILU1_Precond( *this ) ); }
+
+    /*! \brief Prepare preconditioner for matrices with non-zero
+     *  pattern equal to \a A.
+     *
+     *  Assumes ascending order matrix. Makes LU matrix a copy of \a A
+     *  with elements where level is 1.
+     */
+    void prepare( const CRowMatrix &A );
+
+    /*! \brief Construct preconditioner for matrix \a A.
+     *
+     *  Assumes ascending order matrix.
+     */
+    void construct( const CRowMatrix &A );
+
+    /*! \brief Clear preconditioner.
+     *
+     *  Clears preconditioner. Both prepare() and construct()
+     *  functions have to be called after this.
+     */
+    void clear( void );
+
+    /*! \brief Return false if prepare is needed.
+     *
+     *  Returns true if prepare is not needed and false if it is.
+     */
+    bool is_prepared( void ) const;
+
+    /*! \brief Return LU matrix.
+     */
+    const CRowMatrix *get_matrix( void ) const;
 
     /*! \brief Print debugging information to os.
      */
     void debug_print( std::ostream &os ) const;
 
+    /*! \brief Return string indicating type of preconditioner.
+     */
+    std::string typestring( void ) const;
+    
     /*! \brief Solve \a M* \a x = \a b and return \a x.
      */
     void solve( Vector &x, const Vector &b ) const;
 };
 
 
-
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

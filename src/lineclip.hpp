@@ -2,7 +2,7 @@
  *  \brief Floating point line clipping for cairo
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -51,7 +51,7 @@
  *  Cairo graphics coordinates are internally handled using fixed
  *  point algebra for speed. This causes problems in clipping
  *  algorithm when there are large scale differences in
- *  coordinates. This class is provided for the user to overcomme this
+ *  coordinates. This class is provided for the user to overcome this
  *  problem by using floating point algebra for line clipping.
  */
 class LineClip {
@@ -80,34 +80,50 @@ class LineClip {
 
 public:
 
+    /*! \brief Construct line clipper
+     */
     LineClip( cairo_t *cairo );
+
+    /*! \brief Destructor
+     */
     ~LineClip();
 
+    /*! \brief Set clipping area
+     */
     void set( double xmin, double ymin, double xmax, double ymax );
+
+    /*! \brief Reset clip
+     *
+     *  Sets clip limits to infinity and forgets last coordinate.
+     */
     void reset();
 
+    /*! \brief Move to (x,y)
+     */
     void move_to( double x, double y );
+
+    /*! \brief Line to (x,y)
+     */
     void line_to( double x, double y );
+
+    /*! \brief Curve to (x,y)
+     *
+     *  Curve is drawn with lines in cairo. Number is subdivisions is
+     *  made large enough to contain the error at typically less than
+     *  1 pixel.
+     */
     void curve_to( double x1, double y1,
 		   double x2, double y2,
 		   double x3, double y3 );
+
+    /*! \brief Close path
+     */
     void close_path();
+
+    /*! \brief Close path and fill enclosed area
+     */
     void fill();
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

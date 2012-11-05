@@ -1,5 +1,5 @@
 /*! \file func_solid.cpp
- *  \brief Source code for func_solid.cpp
+ *  \brief %Solid definition based on C functions.
  */
 
 /* Copyright (c) 2005-2009,2011-2012 Taneli Kalvas. All rights reserved.
@@ -75,6 +75,4 @@ void FuncSolid::save( std::ostream &os ) const
     ibsimu.message( 1 ) << "Warning: saving of FuncSolid not implemented\n";
     ibsimu.flush();
 }
-
-
 

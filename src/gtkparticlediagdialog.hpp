@@ -2,7 +2,7 @@
  *  \brief Dialog for constructing particle diagnostic windows
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -103,31 +103,22 @@ class GTKParticleDiagDialog
 
 public:
 
+    /*! \brief Dialog window for starting interactive particle diagnostics.
+     *
+     *  The \a window is the parent of the dialog, the \a plotter is
+     *  the main data container and \a plane and \a val define the
+     *  plane of diagnostics.
+     */
     GTKParticleDiagDialog( GtkWidget *window, GTKPlotter &plotter, int plane, double val );
 
+    /*! \brief Destructor.
+     */
     ~GTKParticleDiagDialog();
 
+    /*! \brief Run the dialog.
+     */
     void run( void );
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

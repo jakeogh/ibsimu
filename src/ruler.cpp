@@ -1,5 +1,5 @@
 /*! \file ruler.cpp
- *  \brief Source code for ruler.cpp
+ *  \brief Rulers for plot frames
  */
 
 /* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.

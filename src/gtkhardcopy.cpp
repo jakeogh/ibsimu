@@ -1,8 +1,8 @@
 /*! \file gtkhardcopy.cpp
- *  \brief Source code for gtkhardcopy.cpp
+ *  \brief Dialog window for producing hard copies
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -574,22 +574,4 @@ void GTKHardcopy::write_pdf( const char *filename )
     cairo_surface_destroy( surface );    
 #endif
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

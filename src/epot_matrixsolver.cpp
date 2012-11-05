@@ -659,6 +659,9 @@ void EpotMatrixSolver::build_mat_vec( void )
 	    }
         }
     }
+
+    // Order matrix
+    _fd_mat->order_ascending();
 }
 
 
@@ -669,7 +672,7 @@ void EpotMatrixSolver::postprocess( void )
 }
 
 
-void EpotMatrixSolver::get_vecmat( const Matrix **A, const Vector **B )
+void EpotMatrixSolver::get_vecmat( const CRowMatrix **A, const Vector **B )
 {
     build_mat_vec();
     *A = _fd_mat;
@@ -677,7 +680,7 @@ void EpotMatrixSolver::get_vecmat( const Matrix **A, const Vector **B )
 }
 
 
-void EpotMatrixSolver::get_resjac( const Matrix **J, const Vector **R, const Vector &X )
+void EpotMatrixSolver::get_resjac( const CRowMatrix **J, const Vector **R, const Vector &X )
 {
     // Build residual and jacobian from linear matric and vector.
     // Calculate R = J0*X - B(X) and J = J0 + I*D(X)

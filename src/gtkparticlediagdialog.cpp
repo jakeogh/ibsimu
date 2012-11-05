@@ -1,5 +1,5 @@
 /*! \file gtkparticlediagdialog.cpp
- *  \brief Source code for gtkparticlediagdialog.cpp
+ *  \brief Dialog for constructing particle diagnostic windows
  */
 
 /* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
@@ -630,11 +630,4 @@ void GTKParticleDiagDialog::run( void )
 
     gtk_widget_destroy( dialog );
 }
-
-
-
-
-
-
-
 

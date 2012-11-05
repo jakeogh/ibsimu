@@ -1,5 +1,5 @@
 /*! \file trajectorydiagnostics.cpp
- *  \brief Source code for trajectorydiagnostics.cpp
+ *  \brief Trajectory diagnostics
  */
 
 /* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
@@ -695,9 +695,4 @@ EmittanceConv::~EmittanceConv()
     if( _grid )
 	delete _grid;
 }
-
-
-
-
-
 

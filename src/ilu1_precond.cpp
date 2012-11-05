@@ -65,8 +65,29 @@ void ILU1_Precond::add_element( int *ptr, int **col, int n, int &nz, int &asize,
 }
 
 
-void ILU1_Precond::preprocess( const CRowMatrix &A )
+std::string ILU1_Precond::typestring( void ) const
 {
+    return( "ILU1" );
+}
+    
+
+ILU1_Precond::ILU1_Precond()
+{
+    _LU = NULL;
+}
+
+
+ILU1_Precond::~ILU1_Precond()
+{
+    delete _LU;
+}
+
+
+void ILU1_Precond::prepare( const CRowMatrix &A )
+{
+    if( _LU != NULL )
+	delete _LU;
+
     // Make checks
     if( A.columns() != A.rows() )
 	throw( ErrorDim( ERROR_LOCATION, "matrix not square" ) );
@@ -101,12 +122,12 @@ void ILU1_Precond::preprocess( const CRowMatrix &A )
 		if( j <= k )
 		    continue;
 		
-		// Find if (i,j) exists in A
+		// Find if (i,j) exists in UL
 		int mp;
-		for( mp = kp+1; mp < A.ptr(i+1); mp++ )
-		    if( A.col(mp) == j )
-			break; // Exists, no elements added
-		if( mp == A.ptr(i+1) ) {
+		for( mp = ptr[i]+kp-A.ptr(i)+1; mp < nz; mp++ )
+		    if( col[mp] == j )
+			break; // Exists
+		if( mp == nz ) {
 		    // Does not exist, add new element to LU
 		    add_element( ptr, &col, n, nz, asize, j );
 		}
@@ -121,18 +142,19 @@ void ILU1_Precond::preprocess( const CRowMatrix &A )
     for( int i = 0; i < n; i++ )
 	insertion_sort_i( col, ptr[i], ptr[i+1] );
 
+    // Create LU matrix with zero value elements
     double *val = (double *)calloc( nz, sizeof(double) );
     _LU = new CRowMatrix( n, n, nz, nz, ptr, col, val );
 }
 
 
-void ILU1_Precond::factorize( const CRowMatrix &A )
+void ILU1_Precond::construct( const CRowMatrix &A )
 {
     if( !A.check_ascending() )
 	throw( ErrorDim( ERROR_LOCATION, "matrix not in ascending order" ) );
 
     // Set LU matrix element values from A
-    // only using original A elemets as input (ILU1)
+    // only using original A elements as input (ILU1)
     for( int i = 0; i < _LU->rows(); i++ ) {
 	int k = A.ptr(i);
 	int kmax = A.ptr(i+1);
@@ -185,56 +207,37 @@ void ILU1_Precond::factorize( const CRowMatrix &A )
 }
 
 
-ILU1_Precond::ILU1_Precond( const CRowMatrix &A )
+void ILU1_Precond::clear( void )
 {
-    preprocess( A );
-    factorize( A );
+    if( _LU != NULL )
+	delete _LU;
+    _LU = NULL;
 }
 
 
-ILU1_Precond::~ILU1_Precond()
+bool ILU1_Precond::is_prepared( void ) const
 {
-    delete _LU;
+    return( _LU );
+}
+
+
+const CRowMatrix *ILU1_Precond::get_matrix( void ) const
+{
+    return( _LU );
 }
 
 
 void ILU1_Precond::debug_print( std::ostream &os ) const
 {
-    os << "LU = \n" << *_LU << "\n\n";
+    if( _LU == NULL )
+	os << "LU = NULL\n";
+    else
+	os << "LU = \n" << *_LU << "\n\n";
 }
 
 
 void ILU1_Precond::solve( Vector &x, const Vector &b ) const
 {
-    /*
-    Vector y(_L->rows());
-
-    if( b.size() != _L->rows() )
-	throw( ErrorDim( ERROR_LOCATION, "matrix dimension does not match vector" ) );
-
-    _L->lower_unit_solve( y, b );
-    _U->upper_diag_solve( x, y );
-    */
+    _LU->LU_solve( x, b );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

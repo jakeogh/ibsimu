@@ -1,8 +1,8 @@
 /*! \file fielddiagplotter.cpp
- *  \brief Source code for fielddiagplotter.cpp
+ *  \brief Non-interactive field diagnostic plotter
  */
 
-/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -59,11 +59,4 @@ void FieldDiagPlotter::build_plot( void )
 {
     FieldDiagPlot::build_plot();
 }
-
-
-
-
-
-
-
 

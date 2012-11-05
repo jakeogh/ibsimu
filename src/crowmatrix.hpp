@@ -361,12 +361,22 @@ public:
 
     /*! \brief Solves \a A*x = \a b for upper diagonal matrix.
      *
-     *  Matrix has to have only upper diagonal elements. The diagonal
-     *  element has to be the first entry on each column (sorted
-     *  ascending order).
+     *  Matrix has elements only in the upper triangle.
+     *
+     *  Assumes matrix is in sorted ascending order.
      */
     void upper_diag_solve( Vector &x, const Vector &b ) const;
 
+    /*! \brief Solves \a A*x = \a b for packed LU matrix.
+     *
+     *  The \a L and \a U matrices are packed in a single matrix \a A.
+     *  The \a L matrix is a lower triangular matrix with unit
+     *  diagonal (unit diagonal not saved in \a A) and the \a U matrix
+     *  is upper diagonal matrix.
+     *
+     *  Assumes matrix is in sorted ascending order.
+     */
+    void LU_solve( Vector &x, const Vector &b ) const;
 
     friend class CColMatrix;
     friend class CoordMatrix;

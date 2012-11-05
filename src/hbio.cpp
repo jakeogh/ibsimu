@@ -1,8 +1,8 @@
 /*! \file hbio.cpp
- *  \brief Source code for hbio.cpp
+ *  \brief Harwell Boeing sparse matrix file handling
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -397,6 +397,9 @@ void HBIO::read( const std::string filename )
 	nrhsix = 0;
     }
 
+    // Keep compilers happy, un-unsed variable
+    if( nrhsix ) ;
+
     // Make checks
     if( strcmp( mxtype, "RUA" ) )
 	throw( Error( ERROR_LOCATION, "Only RUA matrices are supported" ) );
@@ -486,7 +489,7 @@ void HBIO::read( const std::string filename )
     }
 
     // Set matrix
-    mat = CColMatrix( n, m, nz, m_ptr, m_row, m_val );
+    mat = CColMatrix( n, m, nz, nz, m_ptr, m_row, m_val );
 
     // Read right hand side vectors
     if( rhscrd > 0 ) {

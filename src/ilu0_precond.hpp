@@ -2,7 +2,7 @@
  *  \brief ILU0 preconditioner for sparse matrices
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -44,65 +44,77 @@
 #define ILU0_PRECOND_HPP 1
 
 
-#include "matrix.hpp"
 #include "crowmatrix.hpp"
-#include "ccolmatrix.hpp"
 #include "precond.hpp"
 
 
 /*! \brief Zero fill-in incomplete LU preconditioner class.
  */
 class ILU0_Precond : public Precond {
-    Matrix *_L, *_U;
+
+    CRowMatrix *_LU;
+
+    ILU0_Precond( const ILU0_Precond &pc ) {}
+    const ILU0_Precond &operator=( const ILU0_Precond &pc ) { return( *this ); }
 
 public:
 
-    /*! \brief Constructor for an ILU0 preconditioner for matrix \a A.
+    /*! \brief Constructor for an ILU0 preconditioner.
      */
-    ILU0_Precond( const Matrix &A );
+    ILU0_Precond();
 
     /*! \brief Destructor.
      */
     ~ILU0_Precond();
 
+    /*! \brief Get a new copy of preconditioner.
+     *
+     *  Does not copy matrix.
+     */
+    ILU0_Precond *copy( void ) const { return( new ILU0_Precond( *this ) ); }
+
+    /*! \brief Prepare preconditioner for matrices with non-zero
+     *  pattern equal to \a A. 
+     *
+     *  Assumes ascending order matrix.
+     */
+    void prepare( const CRowMatrix &A );
+
+    /*! \brief Construct preconditioner for matrix \a A.
+     *
+     *  Assumes ascending order matrix.
+     */
+    void construct( const CRowMatrix &A );
+
+    /*! \brief Clear preconditioner.
+     *
+     *  Clears preconditioner. Both prepare() and construct()
+     *  functions have to be called after this.
+     */
+    void clear( void );
+
+    /*! \brief Return false if prepare is needed.
+     *
+     *  Returns true if prepare is not needed and false if it is.
+     */
+    bool is_prepared( void ) const;
+
+    /*! \brief Return LU matrix.
+     */
+    const CRowMatrix *get_matrix( void ) const;
+
     /*! \brief Print debugging information to os.
      */
     void debug_print( std::ostream &os ) const;
 
-    /*! \brief Returns a pointer to the internal L matrix.
+    /*! \brief Return string indicating type of preconditioner.
      */
-    const Matrix *get_L( void ) const { return( _L ); }
+    std::string typestring( void ) const;
     
-    /*! \brief Returns a pointer to the internal U matrix.
-     */
-    const Matrix *get_U( void ) const { return( _U ); }
-
     /*! \brief Solve \a M* \a x = \a b and return \a x.
      */
     void solve( Vector &x, const Vector &b ) const;
 };
 
 
-
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

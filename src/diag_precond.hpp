@@ -2,7 +2,7 @@
  *  \brief Diagonal preconditioner
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -44,51 +44,65 @@
 #define DIAG_PRECOND_HPP 1
 
 
-#include "matrix.hpp"
+#include "crowmatrix.hpp"
 #include "precond.hpp"
 
 
 /*! \brief Diagonal preconditioner class.
  */
 class Diag_Precond : public Precond {
+
     Vector diag;
+
+    Diag_Precond( const Diag_Precond &pc ) {}
+    const Diag_Precond &operator=( const Diag_Precond &pc ) { return( *this ); }
 
 public:
 
-    /*! \brief Constructor for a diagonal preconditioner for matrix \a A.
+    /*! \brief Constructor for a diagonal preconditioner.
      */
-    Diag_Precond( const Matrix &A );
+    Diag_Precond();
 
     /*! \brief Destructor.
      */
     ~Diag_Precond() {};
 
+    /*! \brief Get a new copy of preconditiner.
+     *
+     *  Does not copy matrix.
+     */
+    Diag_Precond *copy( void ) const { return( new Diag_Precond( *this ) ); }
+
+    /*! \brief Prepare preconditioner for matrices with non-zero
+     *  pattern equal to \a A.
+     */
+    void prepare( const CRowMatrix &A );
+
+    /*! \brief Construct preconditioner for matrix \a A.
+     */
+    void construct( const CRowMatrix &A );
+
+    /*! \brief Clear preconditioner.
+     *
+     *  Clears preconditioner. Both prepare() and construct()
+     *  functions have to be called after this.
+     */
+    void clear( void );
+
+    /*! \brief Return false if prepare is needed.
+     *
+     *  Returns true if prepare is not needed and false if it is.
+     */
+    bool is_prepared( void ) const { return( true ); }
+
+    /*! \brief Return string indicating type of preconditioner.
+     */
+    std::string typestring( void ) const;
+    
     /*! \brief Solve \a M* \a x = \a b and return \a x.
      */
     void solve( Vector &x, const Vector &b ) const;
 };
 
 
-
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
