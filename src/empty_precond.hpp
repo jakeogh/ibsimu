@@ -2,7 +2,7 @@
  *  \brief Dummy preconditioner
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -50,6 +50,10 @@
 /*! \brief Empty preconditioner class.
  */
 class Empty_Precond : public Precond {
+
+    Empty_Precond( const Empty_Precond &pc ) {}
+    const Empty_Precond &operator=( const Empty_Precond &pc ) { return( *this ); }
+
 public:
 
     /*! \brief Constructor.
@@ -60,6 +64,38 @@ public:
      */
     ~Empty_Precond() {}
 
+    /*! \brief Get a new copy of preconditioner.
+     */
+    Empty_Precond *copy( void ) const { return( new Empty_Precond( *this ) ); }
+
+    /*! \brief Prepare preconditioner for matrices with non-zero
+     *  pattern equal to \a A.
+     */
+    void prepare( const CRowMatrix &A ) {}
+
+    /*! \brief Construct preconditioner for matrix \a A.
+     */
+    void construct( const CRowMatrix &A ) {}
+
+    /*! \brief Clear preconditioner.
+     *
+     *  Clears preconditioner. Both prepare() and construct()
+     *  functions have to be called after this.
+     */
+    void clear( void ) {}
+
+    /*! \brief Return false if prepare is needed.
+     *
+     *  Returns true if prepare is not needed and false if it is.
+     */
+    bool is_prepared( void ) const { return( true ); }
+
+    /*! \brief Return string indicating type of preconditioner.
+     */
+    std::string typestring( void ) const {
+	return( "Empty" );
+    }    
+    
     /*! \brief Return \a x = \a b.
      */
     inline void solve( Vector &x, const Vector &b ) const {

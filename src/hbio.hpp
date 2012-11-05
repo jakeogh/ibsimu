@@ -2,7 +2,7 @@
  *  \brief Harwell Boeing sparse matrix file handling
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -70,77 +70,81 @@ class HBIO {
     int         valacc;       //!< Value accuracy
     int         rhsacc;       //!< Right hand side accuracy
 
-    CColMatrix mat;          //!< Matrix
-    Vector     rhs;          //!< Right hand side vector
-    Vector     sol;          //!< Solution vector
+    CColMatrix  mat;          //!< Matrix
+    Vector      rhs;          //!< Right hand side vector
+    Vector      sol;          //!< Solution vector
 
 public:
 
-    /*! \brief Constructor.
+    /*! \brief Constructor
      */
     HBIO();
 
-    /*! \brief 
+    /*! \brief Destructor
+     */
+    ~HBIO();
+
+    /*! \brief Write file \a filename
      */
     void write( const std::string filename ) const;
 
-    /*! \brief 
+    /*! \brief Read file \a filename
      */
     void read( const std::string filename );
 
-    /*! \brief 
+    /*! \brief Get file title (max 72 chars)
      */
     const std::string get_title( void ) const;
 
-    /*! \brief 
+    /*! \brief Set file title (max 72 chars)
      */
     void set_title( const std::string ttitle );
 
-    /*! \brief 
+    /*! \brief Get file key (max 8 chars)
      */
     const std::string get_key( void ) const;
 
-    /*! \brief 
+    /*! \brief Set file key (max 8 chars)
      */
     void set_key( const std::string kkey );
 
-    /*! \brief 
+    /*! \brief Get value accuracy (in chars)
      */
     int get_valacc( void ) const;
 
-    /*! \brief 
+    /*! \brief Set value accuracy (in chars)
      */
     void set_valacc( int vvalacc );
 
-    /*! \brief 
+    /*! \brief Get right hand side accuracy (in chars)
      */
     int get_rhsacc( void ) const;
 
-    /*! \brief 
+    /*! \brief Set right hand side accuracy (in chars)
      */
     void set_rhsacc( int rrhsacc );
 
-    /*! \brief 
+    /*! \brief Get matrix
      */
     void get_matrix( CColMatrix &mmat ) const;
 
-    /*! \brief 
+    /*! \brief Set matrix
      */
     void set_matrix( const CColMatrix &mmat );
 
-    /*! \brief 
+    /*! \brief Get right hand side vector
      */
     void get_rhs_vector( Vector &rrhs ) const;
 
-    /*! \brief 
+    /*! \brief Set right hand side vector
      */
     void set_rhs_vector( const Vector &rrhs );
 
-    /*! \brief 
+    /*! \brief Get solution vector
      */
     void get_solution_vector( Vector &ssol ) const;
 
-    /*! \brief 
+    /*! \brief Set solution vector
      */
     void set_solution_vector( const Vector &ssol );
 };
@@ -150,6 +154,11 @@ inline HBIO::HBIO()
 {
     valacc = 8;
     rhsacc = 8;
+}
+
+
+inline HBIO::~HBIO()
+{
 }
 
 
@@ -201,26 +210,4 @@ inline void HBIO::set_rhsacc( int rrhsacc )
 }
 
 
-
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

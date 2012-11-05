@@ -1,8 +1,8 @@
 /*! \file fonts.cpp
- *  \brief Source code for fonts.cpp
+ *  \brief %Font handling
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -601,24 +601,4 @@ void FontLib::draw_text( cairo_t *cairo, const std::string &str, double &x, doub
 {
     process( cairo, str, NULL, x, y );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

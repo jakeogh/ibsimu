@@ -2,7 +2,7 @@
  *  \brief Compressed row sparse matrix algebra
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -147,13 +147,13 @@ CRowMatrix::CRowMatrix( int n, int m )
 }
 
 
-CRowMatrix::CRowMatrix( int n, int m, int nz, 
+CRowMatrix::CRowMatrix( int n, int m, int nz, int asize,
 			int *ptr, int *col, double *val )
 {
     _n     = n;
     _m     = m;
     _nz    = nz;
-    _asize = nz;
+    _asize = asize;
     _ptr   = ptr;
     _col   = col;
     _val   = val;
@@ -444,11 +444,11 @@ void CRowMatrix::order_ascending( void )
 {
     /* Sort each row. */
     for( int i = 0; i < _n; i++ )
-	sort_iv( _col, _val, _ptr[i], _ptr[i+1] );
+	insertion_sort_iv( _col, _val, _ptr[i], _ptr[i+1] );
 }
 
 
-bool CRowMatrix::check_ascending( void )
+bool CRowMatrix::check_ascending( void ) const
 {
     /* Check each row. */
     for( int i = 0; i < _n; i++ ) {
@@ -674,9 +674,34 @@ void CRowMatrix::upper_diag_solve( Vector &x, const Vector &b ) const
 }
 
 
+void CRowMatrix::LU_solve( Vector &x, const Vector &b ) const
+{
+    // Make checks
+    if( _n != _m )
+	throw( ErrorDim( ERROR_LOCATION, "matrix not squrare" ) );
+    if( b.size() != _m )
+	throw( ErrorDim( ERROR_LOCATION, "matrix dimension does not match vector" ) );
 
+    x = b;
 
+    // Solve L*x=b
+    for( int i = 0; i < _n; i++ ) {
+	for( int j = _ptr[i]; j < _ptr[i+1]; j++ ) {
+	    if( _col[j] >= i ) 
+		break;
+	    x[i] -= _val[j]*x[_col[j]];
+	}
+    }
 
-
-
+    // Solve U*x=x
+    for( int i = _n-1; i >= 0; i-- ) {
+	int j = _ptr[i+1]-1;
+	for( ; j > _ptr[i]; j-- ) {
+	    if( _col[j] == i )
+		break;
+	    x[i] -= _val[j] * x[_col[j]];
+	}
+	x[i] /= _val[j];
+    }
+}
 

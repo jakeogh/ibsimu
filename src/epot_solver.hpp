@@ -368,24 +368,6 @@ public:
  * Solver interface                       *
  * ************************************** */
 
-    /*! \brief Return const pointers to the matrix \a A and vector \a
-     *  B of the linear problem.
-     *
-     *  This function should only be called by Solver, while method
-     *  Problem::solve() is running and only in case of linear
-     *  problem.
-     */
-    void get_vecmat( const Matrix **A, const Vector **B ) const;
-
-    /*! \brief Return const pointers to jacobian matrix and residual
-     *  vector of the problem to \a J and \a R at \a X.
-     *
-     *  This function should only be called by Solver, while method
-     *  Problem::solve() is running and only in case of nonlinear
-     *  problem.
-     */
-    void get_resjac( const Matrix **J, const Vector **R, const Vector &X ) const;
-
     /*! \brief Return true if problem is linear.
      */
     bool linear( void ) const;

@@ -1,8 +1,8 @@
 /*! \file mvector.cpp
- *  \brief Source code for mvector.cpp
+ *  \brief N-dimensional vector
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -138,6 +138,11 @@ inline void Vector::callocate( void )
 
 inline void Vector::reallocate( void )
 {
+    if( _n == 0 ) {
+	_val = NULL;
+	return;
+    }
+
     double *tmp;
     if( !(tmp = (double *)realloc( _val, _n*sizeof(double) )) ) {
 	free( _val );
@@ -547,23 +552,4 @@ void swap( Vector &vec1, Vector &vec2 )
     vec2._n   = tn;
     vec2._val = tval;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

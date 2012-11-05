@@ -1,8 +1,8 @@
 /*! \file precond.hpp
- *  \brief Base for preconditioners
+ *  \brief Base class for preconditioners
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,9 +45,16 @@
 
 
 #include "mvector.hpp"
+#include "crowmatrix.hpp"
 
 
 /*! \brief Abstract base preconditioner class.
+ *
+ *  Preconditioners are made in two steps. A prepare() function is
+ *  called to prepare the preconditioner for processing matrices with
+ *  a certain non-zero pattern. The construct() function can then be
+ *  used to build the preconditioner for a certain matrix of this
+ *  type.
  */
 class Precond {
 public:
@@ -56,7 +63,36 @@ public:
      */
     virtual ~Precond() {};
 
+    /*! \brief Get a new copy of preconditiner.
+     */
+    virtual Precond *copy( void ) const = 0;
 
+    /*! \brief Prepare preconditioner for matrices with non-zero
+     *  pattern equal to \a A.
+     */
+    virtual void prepare( const CRowMatrix &A ) = 0;
+
+    /*! \brief Construct preconditioner for matrix \a A.
+     */
+    virtual void construct( const CRowMatrix &A ) = 0;
+
+    /*! \brief Clear preconditioner.
+     *
+     *  Clears preconditioner. Both prepare() and construct()
+     *  functions have to be called after this.
+     */
+    virtual void clear( void ) = 0;
+
+    /*! \brief Return false if prepare is needed.
+     *
+     *  Returns true if prepare is not needed and false if it is.
+     */
+    virtual bool is_prepared( void ) const = 0;
+
+    /*! \brief Return string indicating type of preconditioner.
+     */
+    virtual std::string typestring( void ) const = 0;
+    
     /*! \brief Solve \a M* \a x = \a b and return x. Here \a M is a
      *  preconditioner matrix built for matrix \a A. See
      *  implementations of Precond for more information.
@@ -66,23 +102,3 @@ public:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

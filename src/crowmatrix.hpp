@@ -117,9 +117,11 @@ public:
      *  The constructed matrix uses \a ptr, \a col and \a val as its
      *  internal data. The arrays are not copied! For memory
      *  allocation compatibility reasons, arrays \a ptr, \a col and \a
-     *  val should be allocated using \a malloc and/or \a realloc.
+     *  val should be allocated using \a malloc and/or \a realloc.  \a
+     *  nz is the number of non-zeros and \a asize is the number of
+     *  allocated elements.
      */
-    CRowMatrix( int n, int m, int nz, 
+    CRowMatrix( int n, int m, int nz, int asize,
 		int *ptr, int *col, double *val );
 
     /*! \brief Copy constructor.
@@ -210,7 +212,7 @@ public:
     /*! \brief Check if matrix data is in ascending column index
      *  order within each row.
      */
-    bool check_ascending( void );
+    bool check_ascending( void ) const;
 
     /*! \brief Print debugging information to os.
      */
@@ -268,7 +270,7 @@ public:
      *
      *  Using this function for defining a large matrix gains
      *  drasticly in speed. The function leaves all but the next row
-     *  pointers unmodified. Therefore the matrix is unvalid and
+     *  pointers unmodified. Therefore the matrix is invalid and
      *  should not be accessed with other functions before all rows
      *  have been defined.
      */
@@ -359,12 +361,22 @@ public:
 
     /*! \brief Solves \a A*x = \a b for upper diagonal matrix.
      *
-     *  Matrix has to have only upper diagonal elements. The diagonal
-     *  element has to be the first entry on each column (sorted
-     *  ascending order).
+     *  Matrix has elements only in the upper triangle.
+     *
+     *  Assumes matrix is in sorted ascending order.
      */
     void upper_diag_solve( Vector &x, const Vector &b ) const;
 
+    /*! \brief Solves \a A*x = \a b for packed LU matrix.
+     *
+     *  The \a L and \a U matrices are packed in a single matrix \a A.
+     *  The \a L matrix is a lower triangular matrix with unit
+     *  diagonal (unit diagonal not saved in \a A) and the \a U matrix
+     *  is upper diagonal matrix.
+     *
+     *  Assumes matrix is in sorted ascending order.
+     */
+    void LU_solve( Vector &x, const Vector &b ) const;
 
     friend class CColMatrix;
     friend class CoordMatrix;

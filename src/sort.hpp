@@ -2,7 +2,7 @@
  *  \brief Insertion sort algorithm
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,48 +40,26 @@
  * permit others to do so.
  */
 
+#ifndef SORT_HPP
+#define SORT_HPP 1
+
+
 /*! \brief Sort index-value pairs in ascending index order. 
  *  
  *  Sort uses insertion sort algorithm, which is rather fast with
  *  small arrays, which should be the case with most sparse matrix
  *  applications.
  */
-inline void sort_iv( int *ind, double *val, int start, int end )
-{
-    int keyind, k, l;
-    double keyval;
-    
-    for( k = start+1; k < end; k++ ) {
-	// Take a new key
-	keyind = ind[k];
-	keyval = val[k];
-	// Move smaller values up one position
-	for( l = k; l > start && ind[l-1] > keyind; l-- ) {
-	    ind[l] = ind[l-1];
-	    val[l] = val[l-1];
-	}
-	// Insert key
-	ind[l] = keyind;
-	val[l] = keyval;
-    }
-}
+void insertion_sort_iv( int *ind, double *val, int start, int end );
 
 
+/*! \brief Sort indices in ascending index order. 
+ *  
+ *  Sort uses insertion sort algorithm, which is rather fast with
+ *  small arrays, which should be the case with most sparse matrix
+ *  applications.
+ */
+void insertion_sort_i( int *ind, int start, int end );
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#endif

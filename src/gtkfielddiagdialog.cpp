@@ -1,5 +1,5 @@
 /*! \file gtkfielddiagdialog.cpp
- *  \brief Source code for gtkfielddiagdialog.cpp
+ *  \brief Dialog for constructing field diagnostic windows
  */
 
 /* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.

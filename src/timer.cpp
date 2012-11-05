@@ -1,5 +1,5 @@
 /*! \file timer.cpp
- *  \brief Source code for timer.cpp
+ *  \brief %Timer for cputime and realtime
  */
 
 /* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.

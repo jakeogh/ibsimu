@@ -2,7 +2,7 @@
  *  \brief BiCGSTAB matrix solver for electric potential problem
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -43,6 +43,7 @@
 
 #include <limits>
 #include "bicgstab.hpp"
+#include "hbio.hpp"
 #include "ilu0_precond.hpp"
 #include "epot_bicgstabsolver.hpp"
 #include "ibsimu.hpp"
@@ -56,16 +57,19 @@ EpotBiCGSTABSolver::EpotBiCGSTABSolver( Geometry &geom,
 					uint32_t newton_imax,
 					bool gnewton )
     : EpotMatrixSolver(geom), _eps(eps), _imax(imax), _iter(0), _res(0.0), _gnewton(gnewton),
-      _newton_Reps(newton_Reps), _newton_dXeps(newton_dXeps), _newton_imax(newton_imax)      
+      _newton_Reps(newton_Reps), _newton_dXeps(newton_dXeps), _newton_imax(newton_imax)
 {
     if( eps <= 0.0 || newton_Reps <= 0.0 || newton_dXeps <= 0.0 )
         throw( ErrorDim( ERROR_LOCATION, "invalid accuracy request" ) );
+
+    _pc = new ILU0_Precond;
 }
 
 
 EpotBiCGSTABSolver::EpotBiCGSTABSolver( Geometry &geom, std::istream &s )
     : EpotMatrixSolver(geom,s)
 {
+    _pc = new ILU0_Precond;
     throw( ErrorUnimplemented( ERROR_LOCATION ) );
 
 }
@@ -79,7 +83,16 @@ void EpotBiCGSTABSolver::save( std::ostream &s ) const
 
 EpotBiCGSTABSolver::~EpotBiCGSTABSolver()
 {
+    if( _pc )
+	delete _pc;
+}
 
+
+void EpotBiCGSTABSolver::set_preconditioner( Precond &pc )
+{
+    if( _pc )
+	delete _pc;
+    _pc = pc.copy();
 }
 
 
@@ -140,6 +153,7 @@ uint32_t EpotBiCGSTABSolver::get_iter( void ) const
 void EpotBiCGSTABSolver::reset_problem( void )
 {
     reset_matrix();
+    _pc->clear();
 }
 
 
@@ -155,21 +169,24 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 
     if( linear() ) {
 
-	ibsimu.message( 1 ) << "Using BiCGSTAB solver("
+	ibsimu.message( 1 ) << "Using BiCGSTAB-" << _pc->typestring() << " solver("
 			    << " imax = " << _imax
 			    << ", eps = " << _eps
 			    << " )\n";
 	ibsimu.flush();
 	    
 	// Fetch matrix form of problem
-	const Matrix *A;
+	const CRowMatrix *A;
 	const Vector *B;
 	get_vecmat( &A, &B );
 
-	ILU0_Precond pc( *A );
+	if( !_pc->is_prepared() )
+	    _pc->prepare( *A );
+	_pc->construct( *A );
+
         imax = _imax;
         eps = _eps / _res_coef;
-        bicgstab( *A, *B, X, pc, imax, eps );
+        bicgstab( *A, *B, X, *_pc, imax, eps );
 	_iter = imax;
 	_res = _res_coef * eps;
 
@@ -183,14 +200,15 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 
 	int32_t a;
 	uint32_t imax_sum = 0;
-        const Matrix *J;
+        const CRowMatrix *J;
         const Vector *R;
         double accR = 0.0, accX = 0.0;
         Vector dX;
 
 	if( _gnewton ) {
 
-	    ibsimu.message( 1 ) << "Using Newton-Raphson BiCGSTAB solver("
+	    ibsimu.message( 1 ) << "Using Globally convergent Newton-Raphson BiCGSTAB-" 
+				<< _pc->typestring() << " solver("
 				<< " imax = " << _imax
 				<< ", eps = " << _eps
 				<< ", newton_imax = " << _newton_imax
@@ -212,14 +230,17 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
             get_resjac( &J, &R, X );
             double f = ssqr( *R );
 
+	    if( !_pc->is_prepared() )
+		_pc->prepare( *J );
+
 	    for( a = 0; a < (int)_newton_imax; a++ ) {
 
                 // Calculate dX = J^{-1}*R
-                ILU0_Precond pc( *J );
+		_pc->construct( *J );
                 imax = _imax - imax_sum;
                 eps = _eps / _res_coef;
                 dX.clear();
-                bicgstab( *J, *R, dX, pc, imax, eps );
+                bicgstab( *J, *R, dX, *_pc, imax, eps );
                 imax_sum += imax;
 
                 // Search for acceptable step for which residual decreases
@@ -254,7 +275,7 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 
 	} else {
 
-	    ibsimu.message( 1 ) << "Using Newton-Raphson BiCGSTAB solver("
+	    ibsimu.message( 1 ) << "Using Newton-Raphson BiCGSTAB-" << _pc->typestring() << " solver("
 				<< " imax = " << _imax
 				<< ", eps = " << _eps
 				<< ", newton_imax = " << _newton_imax
@@ -272,11 +293,14 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 
 		// Calculate dX = J^{-1}*R
 		get_resjac( &J, &R, X );
-		ILU0_Precond pc( *J );
+		if( !_pc->is_prepared() )
+		    _pc->prepare( *J );
+		_pc->construct( *J );
+
 		imax = _imax - imax_sum;
 		eps = _eps / _res_coef;
 		dX.clear();
-		bicgstab( *J, *R, dX, pc, imax, eps );
+		bicgstab( *J, *R, dX, *_pc, imax, eps );
 		imax_sum += imax;
 		
 		// Take step

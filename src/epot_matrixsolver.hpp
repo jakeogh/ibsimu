@@ -74,7 +74,7 @@ protected:
      */
     class Node2DoF {
         Int3D         _size;          /*!< \brief Size of mesh */
-        uint32_t     *_n2d;          /*!< \brief Nodes to degrees of freedom array. */
+        uint32_t     *_n2d;           /*!< \brief Nodes to degrees of freedom array. */
         
     public:
         
@@ -125,12 +125,12 @@ protected:
     /*! \brief Return const pointers to the matrix \a A and vector \a
      *  B of the linear problem.
      */
-    void get_vecmat( const Matrix **A, const Vector **B );
+    void get_vecmat( const CRowMatrix **A, const Vector **B );
 
     /*! \brief Return const pointers to jacobian matrix and residual
      *  vector of the problem to \a J and \a R at \a X.
      */
-    void get_resjac( const Matrix **J, const Vector **R, const Vector &X );
+    void get_resjac( const CRowMatrix **J, const Vector **R, const Vector &X );
 
     /*! \brief Return true if problem is linear.
      */

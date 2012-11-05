@@ -2,7 +2,7 @@
  *  \brief Basis for matrix implementations
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -52,7 +52,7 @@
  *
  *  This container object is used to store a matrix-vector
  *  multiplication operation. For more information about the use of
- *  MCRowMatrixMulVec, see MCRowMatrix.
+ *  MatrixMulVec, see MCRowMatrix.
  */
 struct MatrixMulVec {
     const class Matrix  *_mat; //!< Pointer to matrix.
@@ -141,8 +141,26 @@ public:
      */
     MatrixMulVec operator*( const class Vector &vec ) const;
 
+    /*  \brief Calculates \a x = \a A*b.
+     *
+     *  Called by Vector through MatrixMulVec for efficient use of
+     *  operator* in matrix-vector multiplication.
+     */
     virtual void multiply_by_vector( Vector &res, const Vector &rhs ) const = 0;
+
+    /*! \brief Solves \a A*x = \a b for lower unit diagonal matrix.
+     *
+     *  Matrix has to have elements only in the lower triangle. Unit
+     *  diagonal is implied, it is not to be saved to matrix.
+     */
     virtual void lower_unit_solve( Vector &y, const Vector &b ) const = 0;
+
+    /*! \brief Solves \a A*x = \a b for upper diagonal matrix.
+     *
+     *  Matrix has to have only upper diagonal elements. The diagonal
+     *  element has to be the first entry on each column (sorted
+     *  ascending order).
+     */
     virtual void upper_diag_solve( Vector &x, const Vector &y ) const = 0;
 
     friend class Vector;
@@ -172,25 +190,4 @@ inline double &Matrix::set( int i, int j )
 std::ostream &operator<<( std::ostream &os, const Matrix &mat );
 
 
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

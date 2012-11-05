@@ -2,7 +2,7 @@
  *  \brief Dialog window for producing hard copies
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -96,34 +96,26 @@ class GTKHardcopy
 
 
     void write_pdf( const char *filename );
+
 public:
 
+    /*! \brief Crate an interactive dialog for producing hardcopies.
+     *
+     *  The \a window is the parent of the dialog, the \a frame
+     *  contains the plot to be copied, \a width and \a height are the
+     *  default values for the plot size.
+     */
     GTKHardcopy( GtkWidget *window, Frame *frame, size_t width, size_t height );
 
+    /*! \brief Destructor.
+     */
     ~GTKHardcopy();
 
+    /*! \brief Run the dialog.
+     */
     void run( void );
 
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

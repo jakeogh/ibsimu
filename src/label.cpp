@@ -1,8 +1,8 @@
 /*! \file label.cpp
- *  \brief Source code for label.cpp
+ *  \brief Plot labels
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -494,24 +494,3 @@ std::ostream &operator<<( std::ostream &os, const Label &label )
     os << label._text;
     return( os );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,8 +1,8 @@
 /*! \file polysolver.cpp
- *  \brief Source code for polysolver.cpp
+ *  \brief Polynomial solver
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -533,22 +533,3 @@ uint32_t solve_quartic( double a, double b, double c, double d,
 
     return 2;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

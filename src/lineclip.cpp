@@ -1,8 +1,8 @@
 /*! \file lineclip.cpp
- *  \brief Source code for lineclip.cpp
+ *  \brief Floating point line clipping for cairo
  */
 
-/* Copyright (c) 2005-2010 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -796,23 +796,3 @@ void LineClip::fill()
     line_to( first[0], first[1] );
     cairo_fill( p_dc );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

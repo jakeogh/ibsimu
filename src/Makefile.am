@@ -121,6 +121,8 @@ icons.cpp \
 icons.hpp \
 ilu0_precond.cpp \
 ilu0_precond.hpp \
+ilu1_precond.cpp \
+ilu1_precond.hpp \
 interpolation.cpp \
 interpolation.hpp \
 label.cpp \
@@ -208,6 +210,7 @@ solid.hpp \
 solidgraph.cpp \
 solidgraph.hpp \
 solver.hpp \
+sort.cpp \
 sort.hpp \
 statusprint.cpp \
 statusprint.hpp \
@@ -285,6 +288,7 @@ hbio.hpp \
 histogram.hpp \
 ibsimu.hpp \
 ilu0_precond.hpp \
+ilu1_precond.hpp \
 interpolation.hpp \
 label.hpp \
 legend.hpp \

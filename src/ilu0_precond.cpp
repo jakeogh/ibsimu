@@ -2,7 +2,7 @@
  *  \brief ILU0 preconditioner for sparse matrices
  */
 
-/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,255 +45,105 @@
 #include <stdlib.h>
 
 
-
-void ILU0_Precond_constructor( Matrix **_L, Matrix **_U, const CRowMatrix &A )
+std::string ILU0_Precond::typestring( void ) const
 {
-    int i, j, k, pn, qn, rn;
-    double mult;
-    int l_nz = 0;
-    int u_nz = 0;
-
-    // Make checks
-    if( A.columns() != A.rows() )
-	throw( ErrorDim( ERROR_LOCATION, "matrix not squrare" ) );
-
-    // Calculate number of non-zeros in each matrix and check
-    // existance of diagonal.
-    int d;
-    for( i = 0; i < A.rows(); i++ ) {
-	d = 0;
-	for( j = A.ptr(i); j < A.ptr(i+1); j++ ) {
-	    if( A.col(j) < i )
-		l_nz++;
-	    else if( A.col(j) > i )
-		u_nz++;
-	    else {
-		u_nz++;
-		d++;
-	    }
-	}
-	if( d < 1 )
-	    throw( Error( ERROR_LOCATION, "no diagonal entry on row " + to_string(i) ) );
-	else if( d > 1 )
-	    throw( Error( ERROR_LOCATION, "multiple diagonal entries on row " + to_string(i) ) );
-    }
-
-    // Initialize matrices
-    CRowMatrix *L = new CRowMatrix( A.rows(), A.rows() );
-    CRowMatrix *U = new CRowMatrix( A.rows(), A.rows() );
-    L->set_nz( l_nz );
-    U->set_nz( u_nz );
-
-    // Build L and U matrices
-    L->ptr(0) = U->ptr(0) = 0;
-    for( i = 0; i < A.rows(); i++ ) {
-	L->ptr(i+1) = L->ptr(i);
-	U->ptr(i+1) = U->ptr(i);
-    
-	for( j = A.ptr(i); j < A.ptr(i+1); j++ )
-	    if( A.col(j) < i ) {
-		k = L->ptr(i+1)++;
-		L->val(k) = A.val(j);
-		L->col(k) = A.col(j);
-	    } else {
-		k = U->ptr(i+1)++;
-		U->val(k) = A.val(j);
-		U->col(k) = A.col(j);
-	    }
-    }
-
-    L->order_ascending();
-    U->order_ascending();
-
-    // Factor matrix
-    for( i = 1; i < A.rows(); i++ ) {
-	for( j = L->ptr(i); j < L->ptr(i+1); j++ ) {
-	    pn = U->ptr(L->col(j));
-	    if( U->val(pn) == 0.0 ) {
-		delete L;
-		delete U;
-		throw( Error( ERROR_LOCATION, "zero pivot in incomplete LU factorization on row " + to_string(i) ) );
-	    }
-	    mult = (L->val(j) /= U->val(pn));
-
-	    qn = j + 1;
-	    rn = U->ptr(i);
-
-	    for( pn++; pn < U->ptr(L->col(j)+1) && U->col(pn) < i; pn++ ) {
-		while( qn < L->ptr(i+1) && L->col(qn) < U->col(pn) )
-		    qn++;
-		if( qn < L->ptr(i+1) && U->col(pn) == L->col(qn) )
-		    L->val(qn) -= mult * U->val(pn);
-	    }
-	    for( ; pn < U->ptr(L->col(j)+1); pn++ ) {
-		while( rn < U->ptr(i+1) && U->col(rn) < U->col(pn) )
-		    rn++;
-		if( rn < U->ptr(i+1) && U->col(pn) == U->col(rn) )
-		    U->val(rn) -= mult * U->val(pn);
-	    }
-	}
-    }
-
-    // Save matrices
-    *_L = L;
-    *_U = U;
+    return( "ILU0" );
 }
-
-
-void ILU0_Precond_constructor( Matrix **_L, Matrix **_U, const CColMatrix &A )
-{
-    int i, j, k, pn, qn, rn;
-    double mult;
-    int l_nz = 0;
-    int u_nz = 0;
-
-    // Make checks
-    if( A.columns() != A.rows() )
-	throw( ErrorDim( ERROR_LOCATION, "matrix not squrare" ) );
-
-    // Calculate number of non-zeros in each matrix and check
-    // existance of diagonal.
-    int d;
-    for( i = 0; i < A.rows(); i++ ) {
-	d = 0;
-	for( j = A.ptr(i); j < A.ptr(i+1); j++ ) {
-	    if( A.row(j) > i )
-		l_nz++;
-	    else if( A.row(j) < i )
-		u_nz++;
-	    else {
-		u_nz++;
-		d++;
-	    }
-	}
-	if( d < 1 )
-	    throw( Error( ERROR_LOCATION, "no diagonal entry on column " + to_string(i) ) );
-	else if( d > 1 )
-	    throw( Error( ERROR_LOCATION, "multiple diagonal entries on column " + to_string(i) ) );
-    }
-
-    // Initialize matrices
-    CColMatrix *L = new CColMatrix( A.rows(), A.rows() );
-    CColMatrix *U = new CColMatrix( A.rows(), A.rows() );
-    L->set_nz( l_nz );
-    U->set_nz( u_nz );
-
-    // Build L and U matrices
-    L->ptr(0) = U->ptr(0) = 0;
-    for( i = 0; i < A.rows(); i++ ) {
-	L->ptr(i+1) = L->ptr(i);
-	U->ptr(i+1) = U->ptr(i);
     
-	for( j = A.ptr(i); j < A.ptr(i+1); j++ )
-	    if( A.row(j) > i ) {
-		k = L->ptr(i+1)++;
-		L->val(k) = A.val(j);
-		L->row(k) = A.row(j);
-	    } else {
-		k = U->ptr(i+1)++;
-		U->val(k) = A.val(j);
-		U->row(k) = A.row(j);
-	    }
-    }
 
-    L->order_ascending();
-    U->order_ascending();
-
-    // Factor matrix
-    for( i = 0; i < A.rows() - 1; i++ ) {
-	mult = U->val(U->ptr(i+1)-1);
-	if( mult == 0.0 ) {
-	    delete L;
-	    delete U;
-	    throw( Error( ERROR_LOCATION, "zero pivot in incomplete LU factorization on column " + to_string(i) ) );
-	}
-
-	for( j = L->ptr(i); j < L->ptr(i+1); j++ )
-	    L->val(j) /= mult;
-
-	for( j = U->ptr(i+1); j < U->ptr(i+2)-1; j++ ) {
-	    mult = U->val(j);
-	    qn = j + 1;
-	    rn = L->ptr(i+1);
-	    for( pn = L->ptr(U->row(j)); pn < L->ptr(U->row(j)+1) && L->row(pn) <= i + 1; 
-		 pn++ ) {
-		while( qn < U->ptr(i+2) && U->row(qn) < L->row(pn) )
-		    qn++;
-		if( qn < U->ptr(i+2) && L->row(pn) == U->row(qn) )
-		    U->val(qn) -= mult * L->val(pn);
-	    }
-	    for( ; pn < L->ptr(U->row(j)+1); pn++ ) {
-		while( rn < L->ptr(i+2) && L->row(rn) < L->row(pn) )
-		    rn++;
-		if( rn < L->ptr(i+2) && L->row(pn) == L->row(rn) )
-		    L->val(rn) -= mult * L->val(pn);
-	    }
-	}
-    }
-
-    // Save matrices
-    *_L = L;
-    *_U = U;
-}
-
-
-ILU0_Precond::ILU0_Precond( const Matrix &A )
+ILU0_Precond::ILU0_Precond()
 {
-    const CRowMatrix *rmat;
-    const CColMatrix *cmat;
-
-    if( (rmat = dynamic_cast<const CRowMatrix *>(&A)) != 0 )
-	ILU0_Precond_constructor( &_L, &_U, *rmat );
-    else if( (cmat = dynamic_cast<const CColMatrix *>(&A)) != 0 )
-	ILU0_Precond_constructor( &_L, &_U, *cmat );
-    else
-	throw( ErrorUnimplemented( ERROR_LOCATION, "ILU0_Precond unimplemented for matrix type" ) );
+    _LU = NULL;
 }
 
 
 ILU0_Precond::~ILU0_Precond()
 {
-    delete _L;
-    delete _U;
+    delete _LU;
+}
+
+
+void ILU0_Precond::prepare( const CRowMatrix &A )
+{
+    if( _LU != NULL )
+	delete _LU;
+
+    _LU = new CRowMatrix( A );
+}
+
+
+void ILU0_Precond::construct( const CRowMatrix &A )
+{
+    // Copy A contents
+    memcpy( &_LU->val(0), &A.val(0), A.nz_elements()*sizeof(double) );
+
+    // Go through IKJ Gaussian elimination algorithm 
+    for( int i = 1; i < _LU->rows(); i++ ) {
+
+	// Go through columns 0 <= k < i
+	for( int kp = _LU->ptr(i); kp < _LU->ptr(i+1); kp++ ) {
+	    int k = _LU->col(kp);
+	    if( k >= i )
+		break;
+
+	    // Find diagonal (k,k)
+	    int jp;
+	    for( jp = _LU->ptr(k); jp < _LU->ptr(k+1); jp++ )
+		if( _LU->col(jp) == k )  break;
+
+	    double mult = _LU->val(kp)/_LU->val(jp);
+	    _LU->val(kp) = mult;
+
+	    // Process elements (k,j), for j > k
+	    for( jp++; jp < _LU->ptr(k+1); jp++ ) {
+		int j = _LU->col(jp);
+		
+		// Find (i,j), do nothing if not found (ILU0)
+		for( int mp = kp+1; mp < _LU->ptr(i+1); mp++ ) {
+		    if( _LU->col(mp) == j ) {
+			_LU->val(mp) -= mult*_LU->val(jp);
+			break;
+		    }
+		}
+	    }
+	}
+    }
+
+    // Done factorizing
+}
+
+
+void ILU0_Precond::clear( void )
+{
+    if( _LU != NULL )
+	delete _LU;
+    _LU = NULL;
+}
+
+
+bool ILU0_Precond::is_prepared( void ) const
+{
+    return( _LU );
+}
+
+
+const CRowMatrix *ILU0_Precond::get_matrix( void ) const
+{
+    return( _LU );
 }
 
 
 void ILU0_Precond::debug_print( std::ostream &os ) const
 {
-    os << "U = \n" << *_U << "\n\n";
-    os << "L = \n" << *_L << "\n\n";
+    if( _LU == NULL )
+	os << "LU = NULL\n";
+    else
+	os << "LU = \n" << *_LU << "\n\n";
 }
 
 
 void ILU0_Precond::solve( Vector &x, const Vector &b ) const
 {
-    Vector y(_L->rows());
-
-    if( b.size() != _L->rows() )
-	throw( ErrorDim( ERROR_LOCATION, "matrix dimension does not match vector" ) );
-
-    _L->lower_unit_solve( y, b );
-    _U->upper_diag_solve( x, y );
+    _LU->LU_solve( x, b );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

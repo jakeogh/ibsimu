@@ -87,23 +87,5 @@ public:
     friend std::ostream &operator<<( std::ostream &os, const Timer &t );
 };
 
+
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

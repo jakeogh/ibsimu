@@ -1,8 +1,8 @@
 /*! \file diag_precond.cpp
- *  \brief Source code for diag_precond.cpp
+ *  \brief Diagonal preconditioner
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -44,18 +44,41 @@
 #include "error.hpp"
 
 
-Diag_Precond::Diag_Precond( const Matrix &mat )
+std::string Diag_Precond::typestring( void ) const
+{
+    return( "Diag" );
+}
+    
+
+Diag_Precond::Diag_Precond()
+{
+}
+
+
+void Diag_Precond::prepare( const CRowMatrix &A )
+{
+    // Do nothing
+}
+
+
+void Diag_Precond::construct( const CRowMatrix &A )
 {
     // Make checks
-    if( mat.columns() != mat.rows() )
-	throw( ErrorDim( ERROR_LOCATION, "matrix not squrare" ) );
+    if( A.columns() != A.rows() )
+	throw( ErrorDim( ERROR_LOCATION, "matrix not square" ) );
 
-    diag.resize( mat.rows() );
-    for( int i = 0; i < mat.rows(); i++ ) {
-	if( mat.get(i,i) == 0 )
+    diag.resize( A.rows() );
+    for( int i = 0; i < A.rows(); i++ ) {
+	if( A.get(i,i) == 0 )
 	    throw( Error( ERROR_LOCATION, "Zero element on diagonal at i=" + to_string(i) ) );
-	diag[i] = 1.0/mat.get(i,i);
+	diag[i] = 1.0/A.get(i,i);
     }
+}
+
+
+void Diag_Precond::clear( void )
+{
+    diag.resize( 0 );
 }
 
 
@@ -66,27 +89,6 @@ void Diag_Precond::solve( Vector &x, const Vector &b ) const
     x.resize( diag.size() );
 
     for( int i = 0; i < diag.size(); i++ )
-	x[i] = diag[i]*b[i];
+	x[i] = b[i]/diag[i];
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

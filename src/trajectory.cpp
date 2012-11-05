@@ -360,21 +360,3 @@ void TrajectoryRep1D::debug_print( std::ostream &os ) const
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

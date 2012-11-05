@@ -1,5 +1,5 @@
-/*! \file diag_precond.hpp
- *  \brief Diagonal preconditioner
+/*! \file sort.cpp
+ *  \brief Insertion sort algorithm
  */
 
 /* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
@@ -40,69 +40,42 @@
  * permit others to do so.
  */
 
-#ifndef DIAG_PRECOND_HPP
-#define DIAG_PRECOND_HPP 1
+
+#include "sort.hpp"
 
 
-#include "crowmatrix.hpp"
-#include "precond.hpp"
-
-
-/*! \brief Diagonal preconditioner class.
- */
-class Diag_Precond : public Precond {
-
-    Vector diag;
-
-    Diag_Precond( const Diag_Precond &pc ) {}
-    const Diag_Precond &operator=( const Diag_Precond &pc ) { return( *this ); }
-
-public:
-
-    /*! \brief Constructor for a diagonal preconditioner.
-     */
-    Diag_Precond();
-
-    /*! \brief Destructor.
-     */
-    ~Diag_Precond() {};
-
-    /*! \brief Get a new copy of preconditiner.
-     *
-     *  Does not copy matrix.
-     */
-    Diag_Precond *copy( void ) const { return( new Diag_Precond( *this ) ); }
-
-    /*! \brief Prepare preconditioner for matrices with non-zero
-     *  pattern equal to \a A.
-     */
-    void prepare( const CRowMatrix &A );
-
-    /*! \brief Construct preconditioner for matrix \a A.
-     */
-    void construct( const CRowMatrix &A );
-
-    /*! \brief Clear preconditioner.
-     *
-     *  Clears preconditioner. Both prepare() and construct()
-     *  functions have to be called after this.
-     */
-    void clear( void );
-
-    /*! \brief Return false if prepare is needed.
-     *
-     *  Returns true if prepare is not needed and false if it is.
-     */
-    bool is_prepared( void ) const { return( true ); }
-
-    /*! \brief Return string indicating type of preconditioner.
-     */
-    std::string typestring( void ) const;
+void insertion_sort_iv( int *ind, double *val, int start, int end )
+{
+    int keyind, k, l;
+    double keyval;
     
-    /*! \brief Solve \a M* \a x = \a b and return \a x.
-     */
-    void solve( Vector &x, const Vector &b ) const;
-};
+    for( k = start+1; k < end; k++ ) {
+	// Take a new key
+	keyind = ind[k];
+	keyval = val[k];
+	// Move smaller values up one position
+	for( l = k; l > start && ind[l-1] > keyind; l-- ) {
+	    ind[l] = ind[l-1];
+	    val[l] = val[l-1];
+	}
+	// Insert key
+	ind[l] = keyind;
+	val[l] = keyval;
+    }
+}
 
 
-#endif
+void insertion_sort_i( int *ind, int start, int end )
+{
+    int keyind, k, l;
+    
+    for( k = start+1; k < end; k++ ) {
+	// Take a new key
+	keyind = ind[k];
+	// Move smaller values up one position
+	for( l = k; l > start && ind[l-1] > keyind; l-- )
+	    ind[l] = ind[l-1];
+	// Insert key
+	ind[l] = keyind;
+    }
+}
