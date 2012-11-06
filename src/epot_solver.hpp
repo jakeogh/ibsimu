@@ -52,6 +52,8 @@
 #include "geometry.hpp"
 
 
+/*! \brief Initial plasma volume definition.
+ */
 class InitialPlasma : public CallbackFunctorB_V {
 
     coordinate_axis_e _axis;
