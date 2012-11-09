@@ -40,6 +40,10 @@
  * permit others to do so.
  */
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include <cmath>
 #include <cairo-svg.h>
 #include <cairo-ps.h>
@@ -199,6 +203,20 @@ void GTKHardcopy::run( void )
 						     GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 						     GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
 						     NULL );
+#ifdef HAVE_UNISTD_H
+    size_t size = 1024;
+    char *buf;
+    while( 1 ) {
+	buf = new char[size];
+	char *ret = getcwd( buf, size );
+	if( ret )
+	    break;
+	delete [] buf;
+    }
+    GFile *gfile = g_file_new_for_path( buf );
+    gtk_file_chooser_set_current_folder_file( GTK_FILE_CHOOSER(dialog), gfile, NULL );
+    g_object_unref( gfile );
+#endif
     gtk_file_chooser_set_current_name( GTK_FILE_CHOOSER(dialog), "hardcopy" );
     gtk_file_chooser_set_show_hidden( GTK_FILE_CHOOSER(dialog), TRUE );
     gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(dialog), TRUE );
