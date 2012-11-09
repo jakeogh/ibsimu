@@ -55,31 +55,63 @@
 //#define DEBUG_SOLIDGRAPH 1
 
 
-uint32_t SolidGraph::get_mesh( const int32_t i[3], int offsetx, int offsety ) const
+void SolidGraph::SolidPoints::add_point( Point x )
 {
-    int j[3] = { i[0], i[1], i[2] };
+#ifdef DEBUG_SOLIDGRAPH
+    std::cout << "  Add point (" << x[0] << ", " << x[1] << ")\n";
+#endif
 
-    j[_vb[0]] += offsetx;
-    j[_vb[1]] += offsety;
-
-    return( _geom.mesh_check( j[0], j[1], j[2] ) );
+    _p.push_back( x );
 }
 
 
-/* Return true if node at (i,j,k) is solid mesh node number N and is
- * an edge node. Here a node is counted as an edge node if some of the
- * four nearest neighbours differs from solid number N. Therefore also
- * simulation area boundaries will be counted as edges.
- */
-bool SolidGraph::is_edge( uint32_t node, const int32_t i[3] ) const
+bool SolidGraph::is_edge( uint32_t N, uint32_t node1, uint32_t node2 )
 {
-    return( get_mesh( i, 0, 0 ) == node &&
-	    ( get_mesh( i, -1,  0 ) != node ||
-	      get_mesh( i, +1,  0 ) != node ||
-	      get_mesh( i,  0, -1 ) != node ||
-	      get_mesh( i,  0, +1 ) != node ) );
+    return( (N == node1 && N != node2) ||
+	    (N != node1 && N == node2) );
 }
 
+
+void SolidGraph::step( int32_t &nextx, int32_t &nexty, int32_t dir )
+{
+    if( dir == 0 ) {
+	nexty = nexty+2;
+    } else if( dir == 1 ) {
+	if( nexty%2 == 0 ) {
+	    nexty = nexty+1;
+	} else {
+	    nextx = nextx-1;
+	    nexty = nexty+1;
+	}
+    } else if( dir == 2 ) {
+	nextx = nextx-1;
+    } else if( dir == 3 ) {
+	if( nexty%2 == 0 ) {
+	    nexty = nexty-1;
+	} else {
+	    nextx = nextx-1;
+	    nexty = nexty-1;
+	}
+    } else if( dir == 4 ) {
+	nexty = nexty-2;
+    } else if( dir == 5 ) {
+	if( nexty%2 == 0 ) {
+	    nextx = nextx+1;
+	    nexty = nexty-1;
+	} else {
+	    nexty = nexty-1;
+	}
+    } else if( dir == 6 ) {
+	nextx = nextx+1;
+    } else if( dir == 7 ) {
+	if( nexty%2 == 0 ) {
+	    nextx = nextx+1;
+	    nexty = nexty+1;
+	} else {
+	    nexty = nexty+1;
+	}
+    }
+}
 
 /* Loop around solid and save points to \a solid. Uses near solid data
  * from Geometry for solid surface location when available, otherwise
@@ -91,145 +123,199 @@ bool SolidGraph::is_edge( uint32_t node, const int32_t i[3] ) const
  *   2 X 6
  *   3 4 5
  */
-void SolidGraph::build_solid( SolidPoints *solid, const int32_t j[3], char *done, bool out, uint32_t node )
+void SolidGraph::loop( SolidPoints *solid, int32_t x, int32_t y,
+		       char *done, uint32_t sizex, uint32_t sizey )
 {
-    int32_t next[3]  = {j[0], j[1], j[2]};
-    int32_t i[3]     = {j[0], j[1], j[2]};
-    int32_t first[3] = {j[0], j[1], j[2]};
-    int a, dir;
-    int loop_done = 0;
-
 #ifdef DEBUG_SOLIDGRAPH    
-    std::cout << "\nbuild_solid()\n";
+    std::cout << "\nSolidGraph::loop()\n";
 #endif
 
-    // Initialize direction
-    if( out )
-	dir = 3; // Going out of solid -> direction 0 first (X will be subtracted later)
-    else
-	dir = 9; // Going into solid -> direction 3 first (X will be subtracted later)
+    // Construct node id
+    uint32_t nodeid = SMESH_NODE_ID_DIRICHLET | solid->N();
 
-    while( 1 ) {
+    // Save starting point
+    int32_t startx = x;
+    int32_t starty = y;
 
-	// Mark node done
-	done[ i[_vb[0]] + i[_vb[1]]*_geom.size(_vb[0]) ] = 1;
+    // Initialize mesh coordinates
+    int32_t i1[3];
+    int32_t i2[3];
+    i1[_vb[2]] = _level;
+    i2[_vb[2]] = _level;
 
-	// One step counterclockwise from the direction we came from
-	dir -= 3;
-	if( dir < 0 )
-	    dir += 8;
-	
-	// Go through directions
-	for( a = 0; a < 8; a++ ) {
+    // Get mesh coordinates
+    bool even = (y%2 == 0);
+    i1[_vb[0]] = x-1;
+    i1[_vb[1]] = y/2-1;
+    if( even ) {
+	i2[_vb[0]] = i1[_vb[0]]+1;
+	i2[_vb[1]] = i1[_vb[1]];
+    } else {
+	i2[_vb[0]] = i1[_vb[0]];
+	i2[_vb[1]] = i1[_vb[1]]+1;
+    }
+    // Get node IDs
+    uint32_t node1 = _geom.mesh_check( i1[0], i1[1], i1[2] );
+    uint32_t node2 = _geom.mesh_check( i2[0], i2[1], i2[2] );
+
+    // Loop around solid
+    do {
 
 #ifdef DEBUG_SOLIDGRAPH
-	    std::cout << "  Testing dir = " << dir << "\n";
+	std::cout << "  At (x,y) = (" << x << ", " << y << ")\n";
+	std::cout << "        i1 = (" << i1[0] << ", " << i1[1] << ", " << i1[2] << ")\n";
+	std::cout << "        i2 = (" << i2[0] << ", " << i2[1] << ", " << i2[2] << ")\n";
+	if( node1 == nodeid )
+	    std::cout << "     node1 = " << node1 << " (inside)\n";
+	else
+	    std::cout << "     node1 = " << node1 << " (outside)\n";
+	if( node2 == nodeid )
+	    std::cout << "     node2 = " << node2 << " (inside)\n";
+	else
+	    std::cout << "     node2 = " << node2 << " (outside)\n";
 #endif
 
-	    switch( dir ) {
-	    case 0:
-		next[_vb[0]] = i[_vb[0]];
-		next[_vb[1]] = i[_vb[1]]+1;
-		break;
-	    case 1:
-		next[_vb[0]] = i[_vb[0]]-1;
-		next[_vb[1]] = i[_vb[1]]+1;
-		break;
-	    case 2:
-		next[_vb[0]] = i[_vb[0]]-1;
-		next[_vb[1]] = i[_vb[1]];
-		break;
-	    case 3:
-		next[_vb[0]] = i[_vb[0]]-1;
-		next[_vb[1]] = i[_vb[1]]-1;
-		break;
-	    case 4:
-		next[_vb[0]] = i[_vb[0]];
-		next[_vb[1]] = i[_vb[1]]-1;
-		break;
-	    case 5:
-		next[_vb[0]] = i[_vb[0]]+1;
-		next[_vb[1]] = i[_vb[1]]-1;
-		break;
-	    case 6:
-		next[_vb[0]] = i[_vb[0]]+1;
-		next[_vb[1]] = i[_vb[1]];
-		break;
-	    case 7:
-		next[_vb[0]] = i[_vb[0]]+1;
-		next[_vb[1]] = i[_vb[1]]+1;
-		break;
-	    }
+	// Mark done
+	done[x+y*sizex] = 1;
 
+	// Save the point and get next dir
+	int32_t dir;
+	if( even ) {
+	    if( node1 == nodeid ) {
+		// Solid on left, go up-right
 #ifdef DEBUG_SOLIDGRAPH
-	    std::cout << "    save = " << save << "\n";
-	    std::cout << "    next = (" 
-		      << next[0] << ", "
-		      << next[1] << ", "
-		      << next[2] << ")\n";
+		std::cout << "  Solid on left\n";
 #endif
-
-	    // If loop is done and direction same as starting direction
-	    if( loop_done && ((dir == 6 && !out) || (dir == 0 && out)) )
-		break;
-
-	    // If next point is an edge point, proceed to the next
-	    // point without saving a point
-	    if( is_edge( node, next ) )
-		break;
-
-	    // Save solid surface location between i and next
-	    if( dir == 0 || dir == 2 || dir == 4 || dir == 6 ) {
-
-		uint32_t mesh = _geom.mesh_check( next[0], next[1], next[2] );
-		if( (mesh & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEAR_SOLID ) {
-		    uint32_t dir_to_solid;
-		    if( dir == 0 ) {
-			dir_to_solid = 2*_vb[1];
-			double dist = (255-_geom.solid_dist( next[0], next[1], next[2], dir_to_solid ))/255.0;
-			solid->p.push_back( Point( i[_vb[0]]*_geom.h()+_geom.origo(_vb[0]),
-						   (i[_vb[1]]+dist)*_geom.h()+_geom.origo(_vb[1]) ) );
-		    } else if( dir == 2 ) {
-			dir_to_solid = 2*_vb[0]+1;
-			double dist = (255-_geom.solid_dist( next[0], next[1], next[2], dir_to_solid ))/255.0;
-			solid->p.push_back( Point( (i[_vb[0]]-dist)*_geom.h()+_geom.origo(_vb[0]),
-						   i[_vb[1]]*_geom.h()+_geom.origo(_vb[1]) ) );
-		    } else if( dir == 4 ) {
-			dir_to_solid = 2*_vb[1]+1;
-			double dist = (255-_geom.solid_dist( next[0], next[1], next[2], dir_to_solid ))/255.0;
-			solid->p.push_back( Point( i[_vb[0]]*_geom.h()+_geom.origo(_vb[0]),
-						   (i[_vb[1]]-dist)*_geom.h()+_geom.origo(_vb[1]) ) );
-		    } else { // dir == 6
-			dir_to_solid = 2*_vb[0];
-			double dist = (255-_geom.solid_dist( next[0], next[1], next[2], dir_to_solid ))/255.0;
-			solid->p.push_back( Point( (i[_vb[0]]+dist)*_geom.h()+_geom.origo(_vb[0]),
-						   i[_vb[1]]*_geom.h()+_geom.origo(_vb[1]) ) );
-		    }
+		dir = 7; 
+		if( (node2 & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEAR_SOLID ) {
+		    int32_t soliddir = 2*_vb[0];
+#ifdef DEBUG_SOLIDGRAPH
+		    std::cout << "  soliddir = " << soliddir << "\n";
+#endif
+		    double dist = _geom.solid_dist( i2[0], i2[1], i2[2], soliddir )/255.0;
+		    solid->add_point( Point( (i2[_vb[0]]-dist)*_geom.h()+_geom.origo(_vb[0]),
+					     i2[_vb[1]]*_geom.h()+_geom.origo(_vb[1]) ) );
 		} else {
-		    // Save edge node location (would halfway work better?)
-		    solid->p.push_back( Point( i[_vb[0]]*_geom.h()+_geom.origo(_vb[0]),
-					       i[_vb[1]]*_geom.h()+_geom.origo(_vb[1]) ) );
+		    solid->add_point( Point( (i2[_vb[0]]-0.5)*_geom.h()+_geom.origo(_vb[0]),
+					     i2[_vb[1]]*_geom.h()+_geom.origo(_vb[1]) ) );
+		}
+	    } else {
+		// Solid on right, go down-left
+#ifdef DEBUG_SOLIDGRAPH
+		std::cout << "  Solid on right\n";
+#endif
+		dir = 3;
+		if( (node1 & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEAR_SOLID ) {
+		    int32_t soliddir = 2*_vb[0]+1;
+#ifdef DEBUG_SOLIDGRAPH
+		    std::cout << "  soliddir = " << soliddir << "\n";
+#endif
+		    double dist = _geom.solid_dist( i1[0], i1[1], i1[2], soliddir )/255.0;
+		    solid->add_point( Point( (i1[_vb[0]]+dist)*_geom.h()+_geom.origo(_vb[0]),
+					     i1[_vb[1]]*_geom.h()+_geom.origo(_vb[1]) ) );
+		} else {
+		    solid->add_point( Point( (i1[_vb[0]]+0.5)*_geom.h()+_geom.origo(_vb[0]),
+					     i1[_vb[1]]*_geom.h()+_geom.origo(_vb[1]) ) );
 		}
 	    }
+	} else {
+	    if( node1 == nodeid ) {
+		// Solid on bottom, go up-left
+#ifdef DEBUG_SOLIDGRAPH
+		std::cout << "  Solid on bottom\n";
+#endif
+		dir = 1;
+		if( (node2 & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEAR_SOLID ) {
+		    int32_t soliddir = 2*_vb[1];
+#ifdef DEBUG_SOLIDGRAPH
+		    std::cout << "  soliddir = " << soliddir << "\n";
+#endif
+		    double dist = _geom.solid_dist( i2[0], i2[1], i2[2], soliddir )/255.0;
+		    solid->add_point( Point( i2[_vb[0]]*_geom.h()+_geom.origo(_vb[0]),
+					     (i2[_vb[1]]-dist)*_geom.h()+_geom.origo(_vb[1]) ) );
+		} else {
+		    solid->add_point( Point( i2[_vb[0]]*_geom.h()+_geom.origo(_vb[0]),
+					     (i2[_vb[1]]-0.5)*_geom.h()+_geom.origo(_vb[1]) ) );
+		}
+	    } else {
+		// Solid on top, go down-right
+#ifdef DEBUG_SOLIDGRAPH
+		std::cout << "  Solid on top\n";
+#endif
+		dir = 5;
+		if( (node1 & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEAR_SOLID ) {
+		    int32_t soliddir = 2*_vb[1]+1;
+#ifdef DEBUG_SOLIDGRAPH
+		    std::cout << "  soliddir = " << soliddir << "\n";
+#endif
+		    double dist = _geom.solid_dist( i1[0], i1[1], i1[2], soliddir )/255.0;
+		    solid->add_point( Point( i1[_vb[0]]*_geom.h()+_geom.origo(_vb[0]),
+					     (i1[_vb[1]]+dist)*_geom.h()+_geom.origo(_vb[1]) ) );
+		} else {
+		    solid->add_point( Point( i1[_vb[0]]*_geom.h()+_geom.origo(_vb[0]),
+					     (i1[_vb[1]]+0.5)*_geom.h()+_geom.origo(_vb[1]) ) );
+		}
+	    }
+	}
 
-	    // Progress direction counterclockwise
+#ifdef DEBUG_SOLIDGRAPH
+	    std::cout << "  Find next step\n";
+#endif
+
+	// Find next step
+	for( int32_t a = 0; a < 8; a++ ) {
+
+	    int32_t nextx = x;
+	    int32_t nexty = y;
+	    step( nextx, nexty, dir );
+
+	    // Get mesh coordinates
+	    even = (nexty%2 == 0);
+	    i1[_vb[0]] = nextx-1;
+	    i1[_vb[1]] = nexty/2-1;
+	    if( even ) {
+		i2[_vb[0]] = i1[_vb[0]]+1;
+		i2[_vb[1]] = i1[_vb[1]];
+	    } else {
+		i2[_vb[0]] = i1[_vb[0]];
+		i2[_vb[1]] = i1[_vb[1]]+1;
+	    }
+	    // Get node id's    
+	    node1 = _geom.mesh_check( i1[0], i1[1], i1[2] );
+	    node2 = _geom.mesh_check( i2[0], i2[1], i2[2] );
+
+#ifdef DEBUG_SOLIDGRAPH
+	    std::cout << "    Probing dir = " << dir << "\n";
+	    std::cout << "      (x,y) = (" << nextx << ", " << nexty << ")\n";	
+	    std::cout << "         i1 = (" << i1[0] << ", " << i1[1] << ", " << i1[2] << ")\n";
+	    std::cout << "         i2 = (" << i2[0] << ", " << i2[1] << ", " << i2[2] << ")\n";
+	    if( node1 == nodeid )
+		std::cout << "        node1 = " << node1 << " (inside)\n";
+	    else
+		std::cout << "        node1 = " << node1 << " (outside)\n";
+	    if( node2 == nodeid )
+		std::cout << "        node2 = " << node2 << " (inside)\n";
+	    else
+		std::cout << "        node2 = " << node2 << " (outside)\n";
+#endif
+
+	    // Accept if edge
+	    if( is_edge( nodeid, node1, node2 ) ) {
+#ifdef DEBUG_SOLIDGRAPH
+		std::cout << "    Accepting step\n";
+#endif
+		x = nextx;
+		y = nexty;
+		break;
+	    }
+	    // Otherwise proceed to next direction
 	    dir++;
 	    if( dir > 7 )
 		dir -= 8;
 	}
-	if( a == 8 || loop_done ) {
-	    //std::cout << "  Loop done\n";
-	    break;
-	}
 
-	i[0] = next[0];
-	i[1] = next[1];
-	i[2] = next[2];
+    } while( x != startx || y != starty );
 
-	if( i[0] == first[0] && i[1] == first[1] && i[2] == first[2] ) {
-	    loop_done = 1;
-	}
-    }
 }
 
 
@@ -242,76 +328,75 @@ void SolidGraph::clear_data( void )
 }
 
 
-void SolidGraph::build_data( void )
+void SolidGraph::build_solid( uint32_t N, char *done, uint32_t sizex, uint32_t sizey )
 {
-    // Clear old plot
-    clear_data();
+#ifdef DEBUG_SOLIDGRAPH
+    std::cout << "build_solid()\n";
+#endif
+    
+    // Create points container
+    SolidPoints *solid = new SolidPoints( N );
+    uint32_t nodeid = SMESH_NODE_ID_DIRICHLET | N;
 
-    // Array for marking processed nodes
-    char *done = new char[ _geom.size(_vb[0]) * _geom.size(_vb[1]) ];
-    memset( done, 0, _geom.size(_vb[0])*_geom.size(_vb[1])*sizeof(char) );
+    // Go through done array
+    int32_t i1[3];  // Mesh coordinates
+    int32_t i2[3];  // Mesh coordinates
+    i1[_vb[2]] = _level;
+    i2[_vb[2]] = _level;
+    for( int32_t y = 0; y < (int32_t)sizey; y++ ) {
+	bool even = (y%2 == 0);
+	uint32_t xcount = (even ? sizex-1 : sizex);
+	for( int32_t x = 0; x < (int32_t)xcount; x++ ) {
 
-    // Go through mesh
-    int32_t i[3];
-    uint32_t lastnode;
-    uint32_t node = SMESH_NODE_ID_PURE_VACUUM;
-    i[_vb[2]] = (int)floor(_level+0.5);
-    for( i[_vb[1]] = 0; i[_vb[1]] < (int32_t)_geom.size(_vb[1]); i[_vb[1]]++ ) {
-	for( i[_vb[0]] = 0; i[_vb[0]] < (int32_t)_geom.size(_vb[0]); i[_vb[0]]++ ) {
+#ifdef DEBUG_SOLIDGRAPH
+	    std::cout << "Processing x = " << x 
+		      << ", y = " << y << "\n";
+#endif
 
-	    //std::cout << "Processing (" 
-	    // << i[0] << "," 
-	    // << i[1] << "," 
-	    // << i[2] << "): ";
+	    // Skip if already processed
+	    if( done[x+y*sizex] )
+		continue;
 
-	    // Skip until unprocessed edge is found
-	    lastnode = node;
-	    node = _geom.mesh( i[0], i[1], i[2] );
-	    uint32_t nodeid = node & SMESH_NODE_ID_MASK;
-	    if( nodeid == SMESH_NODE_ID_NEAR_SOLID ||
-		nodeid == SMESH_NODE_ID_NEAR_SOLID_FIX ||
-		nodeid == SMESH_NODE_ID_PURE_VACUUM ||
-		nodeid == SMESH_NODE_ID_PURE_VACUUM_FIX ||
-		nodeid == SMESH_NODE_ID_NEUMANN ) {
-		//std::cout << "vacuum\n";
-		continue;
-	    } else if( nodeid == SMESH_NODE_ID_DIRICHLET &&
-		       (node & SMESH_BOUNDARY_NUMBER_MASK) < 7 ) {
-		//std::cout << "Dirichlet simulation box boundary\n";
-		continue;
-	    } else if( done[ i[_vb[0]] + i[_vb[1]]*_geom.size(_vb[0]) ] ) {
-		//std::cout << "done\n";
-		continue;
-	    } else if( !is_edge( node, i ) ) {
-		//std::cout << "not an edge\n";
-		continue;
+	    i1[_vb[0]] = x-1;
+	    i1[_vb[1]] = y/2-1;
+	    if( even ) {
+		i2[_vb[0]] = i1[_vb[0]]+1;
+		i2[_vb[1]] = i1[_vb[1]];
+	    } else {
+		i2[_vb[0]] = i1[_vb[0]];
+		i2[_vb[1]] = i1[_vb[1]]+1;
 	    }
 
-	    // If solid is a continuation of processed solid
-	    size_t a;
-	    for( a = 0; a < _solid.size(); a++ ) {
-		if( (node & SMESH_BOUNDARY_NUMBER_MASK) == _solid[a]->N ) {
-		    // Add break
-		    //std::cout << "building continuation\n";
-		    _solid[a]->p.push_back( Point(std::numeric_limits<double>::quiet_NaN(),
-						  std::numeric_limits<double>::quiet_NaN()) );
-		    build_solid( _solid[a], i, done, (lastnode == node), node );
-		    break;
-		}
+#ifdef DEBUG_SOLIDGRAPH
+	    std::cout << "Processing i1 = (" 
+		      << i1[0] << "," 
+		      << i1[1] << "," 
+		      << i1[2] << "), i2 = ("
+		      << i2[0] << "," 
+		      << i2[1] << "," 
+		      << i2[2] << ")\n";
+#endif
+
+	    uint32_t node1 = _geom.mesh_check( i1[0], i1[1], i1[2] );
+	    uint32_t node2 = _geom.mesh_check( i2[0], i2[1], i2[2] );
+	    if( !is_edge( nodeid, node1, node2 ) )
+		continue;
+
+#ifdef DEBUG_SOLIDGRAPH
+	    std::cout << "Found edge\n";
+#endif
+
+	    if( solid->size() != 0 ) {
+		// Add break before new loop
+		solid->add_point( Point(std::numeric_limits<double>::quiet_NaN(),
+					std::numeric_limits<double>::quiet_NaN()) );
 	    }
-	    if( a == _solid.size() ) {
-		// Create a new solid
-		//std::cout << "building new\n";
-		_solid.push_back( new SolidPoints( node & SMESH_BOUNDARY_NUMBER_MASK ) );
-		//std::cout << "push_back done\n";
-		//std::cout << solid[a] << "\n";
-		//build_solid( _solid[a], i, done, (lastnode == node), node );
-		build_solid( _solid[a], i, done, (lastnode == node), node );
-	    }
+	    loop( solid, x, y, done, sizex, sizey );
 	}
     }
 
-    delete [] done;
+    // Save points container
+    _solid.push_back( solid );
 }
 
 
@@ -334,8 +419,82 @@ void SolidGraph::disable_cache( void )
 }
 
 
+void SolidGraph::build_data( void )
+{
+#ifdef DEBUG_SOLIDGRAPH
+    std::cout << "SolidGraph::build_data()\n";
+#endif
+
+    // Clear old data
+    clear_data();
+
+    // Array for marking processed nodes
+    // size + 2 in both directions for marking over the boundary
+    // 2*size-1 in y direction for half steps
+    uint32_t sizex = _geom.size(_vb[0])+2;
+    uint32_t sizey = 2*(_geom.size(_vb[1])+2) - 1;
+
+    // Reserve done array
+    char *done = new char[sizex*sizey];
+
+    // Build data for all solids
+    for( size_t a = 0; a < _geom.number_of_solids(); a++ ) {
+
+	// Clear done array
+	memset( done, 0, sizex*sizey*sizeof(char) );
+
+	build_solid( 7+a, done, sizex, sizey );
+    }
+
+    // Free done array
+    delete [] done;
+}
+
+
+void SolidGraph::plot_data( cairo_t *cairo, LineClip &lc, const Coordmapper *cm )
+{
+#ifdef DEBUG_SOLIDGRAPH
+    std::cout << "SolidGraph::plot_data()\n";
+#endif
+
+    // Plot all solids
+    for( size_t a = 0; a < _solid.size(); a++ ) {
+
+	SolidPoints &sp = *_solid[a];
+	if( sp.size() == 0 )
+	    continue;
+
+	double xout[2];
+	cm->transform( xout, sp[0].x );
+	lc.move_to( xout[0], xout[1] );
+
+	for( size_t b = 1; b < sp.size(); b++ ) {
+	    if( comp_isnan( sp[b].x[0] ) ) {
+		// Break in path, separate paths
+		do b++;
+		while( b != sp.size() && comp_isnan( sp[b].x[0] ) );
+		if( b == sp.size() )
+		    break;
+		lc.close_path();
+		cm->transform( xout, sp[b].x );
+		lc.move_to( xout[0], xout[1] );
+	    } else {
+		cm->transform( xout, sp[b].x );
+		lc.line_to( xout[0], xout[1] );
+	    }
+	}
+
+	lc.fill();
+    }
+}
+
+
 void SolidGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
+#ifdef DEBUG_SOLIDGRAPH
+    std::cout << "SolidGraph::plot()\n";
+#endif
+
     if( !_cache || _solid.size() == 0 || _oview != _view || _olevel != _level ) {
 	// First round or change happened
 	build_data();
@@ -354,32 +513,7 @@ void SolidGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
     LineClip lc( cairo );
     lc.set( clip[0], clip[1], clip[2], clip[3] );
 
-    for( size_t a = 0; a < _solid.size(); a++ ) {
-
-	SolidPoints *sp = _solid[a];
-	double xout[2];
-	cm->transform( xout, sp->p[0].x );
-	lc.move_to( xout[0], xout[1] );
-
-	for( size_t b = 1; b < sp->p.size(); b++ ) {
-	    if( comp_isnan( sp->p[b].x[0] ) ) {
-		// Break in path, separate paths
-		do b++;
-		while( b != sp->p.size() && comp_isnan( sp->p[b].x[0] ) );
-		if( b == sp->p.size() )
-		    break;
-		lc.close_path();
-		cm->transform( xout, sp->p[b].x );
-		lc.move_to( xout[0], xout[1] );
-	    } else {
-		cm->transform( xout, sp->p[b].x );
-		lc.line_to( xout[0], xout[1] );
-	    }
-	}
-
-	lc.fill();
-    }
-
+    plot_data( cairo, lc, cm );
 }
 
 

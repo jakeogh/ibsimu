@@ -48,6 +48,7 @@
 #include "geometry.hpp"
 #include "graph3d.hpp"
 #include "color.hpp"
+#include "lineclip.hpp"
 
 
 /*! \brief A 2D cut view of the geometry solids.
@@ -67,11 +68,17 @@ class SolidGraph : public Graph3D {
 	const double &operator[]( int32_t i ) const { return( x[i] ); }
     };
 
-    struct SolidPoints {
-	uint32_t           N;    /* Solid number of electrode, N>=7 */
-	std::vector<Point> p;    /* Coordinate points of electrode boundary */
+    class SolidPoints {
+	uint32_t           _N;    /* Solid number of electrode, N>=7 */
+	std::vector<Point> _p;    /* Coordinate points of electrode boundary */
+    public:
+	SolidPoints( uint32_t N ) : _N(N) {}
 	
-	SolidPoints( uint32_t N ) : N(N) {}
+	void add_point( Point x );
+	uint32_t N( void ) { return( _N ); }
+	size_t size( void ) { return( _p.size() ); }
+	Point &operator[]( int32_t i ) { return( _p[i] ); }
+	const Point &operator[]( int32_t i ) const { return( _p[i] ); }
     };
 
     const Geometry                      &_geom;
@@ -80,15 +87,17 @@ class SolidGraph : public Graph3D {
     std::vector<SolidPoints *>           _solid;
 
     view_e                               _oview;
-    double                               _olevel;
+    int                                  _olevel;
 
     bool                                 _cache;
 
-    bool is_edge( uint32_t node, const int32_t i[3] ) const;
-    uint32_t get_mesh( const int i[3], int offsetx, int offsety ) const;
-    //void build_solid_new( SolidPoints *solid, const int32_t j[3], char *done, bool out, uint32_t node );
-    void build_solid( SolidPoints *solid, const int32_t i[3], char *done, bool out, uint32_t node );
+    static void step( int32_t &nextx, int32_t &nexty, int32_t dir );
+    static bool is_edge( uint32_t N, uint32_t node1, uint32_t node2 );
+    void loop( SolidPoints *solid, int32_t x, int32_t y,
+	       char *done, uint32_t sizex, uint32_t sizey );
+    void build_solid( uint32_t N, char *done, uint32_t sizex, uint32_t sizey );
     void build_data( void );
+    void plot_data( cairo_t *cairo, LineClip &lc, const Coordmapper *cm );
     void clear_data( void );
     
 public:
