@@ -47,20 +47,24 @@
 #include "ibsimu.hpp"
 
 
+STLSolid::STLSolid()
+{
+
+}
+
+
 STLSolid::STLSolid( const std::string &filename )
 {
     ibsimu.message( 1 ) << "Defining electrode from STL file \'" << filename << "\'\n";
     ibsimu.inc_indent();
 
-    _stl = new STLFile( filename );
+    _stl.push_back( new STLFile( filename ) );
 
-    if( _stl ) {
-	Vec3D min;
-	Vec3D max;
-	_stl->get_bbox( min, max );
-	ibsimu.message( 1 ) << "bbox min = " << min << "\n";
-	ibsimu.message( 1 ) << "bbox max = " << max << "\n";
-    }
+    Vec3D min;
+    Vec3D max;
+    _stl[0]->get_bbox( min, max );
+    ibsimu.message( 1 ) << "bbox min = " << min << "\n";
+    ibsimu.message( 1 ) << "bbox max = " << max << "\n";
 
     ibsimu.dec_indent();
 }
@@ -75,8 +79,8 @@ STLSolid::STLSolid( std::istream &is )
 
 STLSolid::~STLSolid()
 {
-    if( _stl )
-	delete _stl;
+    for( size_t a = 0; a < _stl.size(); a++ )
+	delete _stl[a];
 }
 
 
@@ -85,7 +89,12 @@ bool STLSolid::inside( const Vec3D &x ) const
     // Transform 3D -> 3D
     Vec3D y = _T.transform_point( x );
 
-    return( _stl->inside( y ) );
+    for( size_t a = 0; a < _stl.size(); a++ ) {
+	if( _stl[a]->inside( y ) )
+	    return( true );
+    }
+
+    return( false );
 }
 
 
@@ -138,20 +147,27 @@ void STLSolid::rotate_z( double a )
 }
 
 
-STLFile *STLSolid::get_stl_file( void ) const
+void STLSolid::add_stl_file( class STLFile *stl )
 {
-    return( _stl );
+    _stl.push_back( stl );    
+}
+
+
+STLFile *STLSolid::get_stl_file( uint32_t i ) const
+{
+    if( i >= _stl.size() )
+	throw( ErrorRange( ERROR_LOCATION, i, _stl.size() ) );
+    return( _stl[i] );
 }
 
 
 void STLSolid::debug_print( std::ostream &os ) const
 {
     os << "**STLSolid\n";
-    //_T.debug_print( os );
-    if( _stl )
-	_stl->debug_print( os );
-    else
-	os << "stl = NULL\n";
+    _T.debug_print( os );
+    for( size_t a = 0; a < _stl.size(); a++ ) {
+	_stl[a]->debug_print( os );
+    }
 }
 
 
@@ -161,9 +177,4 @@ void STLSolid::save( std::ostream &os ) const
     ibsimu.message( 1 ) << "Warning: saving of STLSolid not implemented\n";
     ibsimu.flush();
 }
-
-
-
-
-
 

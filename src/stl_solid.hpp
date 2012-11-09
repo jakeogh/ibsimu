@@ -51,13 +51,21 @@
 
 /*! \brief %STL solid
  *
+ *  A solid object constructed from one or a union of several entities
+ *  from STL-files.
  */
 class STLSolid : public Solid {
 
-    Transformation         _T;
-    class STLFile         *_stl;
+    Transformation               _T;
+    std::vector<class STLFile *> _stl;
     
 public:
+
+    /*! \brief Default constructor.
+     *
+     *  Create and empty object.
+     */
+    STLSolid();
 
     /*! \brief Constructor for making a solid reading a STL-file.
      */
@@ -76,9 +84,16 @@ public:
      */
     virtual bool inside( const Vec3D &x ) const;
 
-    /*! \brief Return a pointer to the STL-file.
+    /*! \brief Add entity from STL-file to object.
+     *
+     *  The STLFile stl is owned by STLSolid after calling this
+     *  function. It is destructed when STLSolid is destructed.
      */
-    class STLFile *get_stl_file( void ) const;
+    void add_stl_file( class STLFile *stl );
+
+    /*! \brief Return a pointer to the STL-file \a i.
+     */
+    class STLFile *get_stl_file( uint32_t i = 0 ) const;
 
     /*! \brief Print debugging information to os.
      */
