@@ -562,7 +562,7 @@ void ParticleDataBase2DImp::add_tdens_from_segment( MeshScalarField &tdens, doub
 	t[a] = ( x[a]-(i[a]*tdens.h()+tdens.origo(a)) ) * tdens.div_h();
 	
 	if( i[a] < 0 || i[a] >= (int32_t)tdens.size(a)-1 )
-	    continue;
+	    return;
     }
     dx = sqrt( dx );
 
@@ -706,6 +706,9 @@ void ParticleDataBaseCylImp::add_tdens_from_segment( MeshScalarField &tdens, dou
     dx = sqrt( dx );
 
     for( size_t a = 0; a < 2; a++ ) {
+	if( i[a] < 0 || i[a] >= (int32_t)tdens.size(a) )
+	    return;
+	/*
 	// Add charge to boundaries when over simulation area
 	if( i[a] < 0 ) {
 	    i[a] = 0;
@@ -714,6 +717,7 @@ void ParticleDataBaseCylImp::add_tdens_from_segment( MeshScalarField &tdens, dou
 	    i[a] = tdens.size(a)-2;
 	    t[a] = 1.0;
 	}
+	*/
     }
 
     double J = IQ*dx; // A*m
@@ -1997,7 +2001,7 @@ void ParticleDataBase3DImp::add_tdens_from_segment( MeshScalarField &tdens, doub
 	t[a] = ( x[a]-(i[a]*tdens.h()+tdens.origo(a)) ) * tdens.div_h();
 	
 	if( i[a] < 0 || i[a] >= (int32_t)(tdens.size(a)-1) )
-	    continue;
+	    return;
     }
     dx = sqrt( dx );
 
