@@ -235,6 +235,8 @@ vec4d.cpp \
 vec4d.hpp \
 vectorfield.cpp \
 vectorfield.hpp \
+vtriangle.cpp \
+vtriangle.hpp \
 xygraph.cpp \
 xygraph.hpp
 
@@ -346,6 +348,7 @@ types.hpp \
 vec3d.hpp \
 vec4d.hpp \
 vectorfield.hpp \
+vtriangle.hpp \
 xygraph.hpp
 
 if UMFPACK

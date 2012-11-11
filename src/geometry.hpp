@@ -50,6 +50,7 @@
 #include <iostream>
 #include "file.hpp"
 #include "vec3d.hpp"
+#include "vtriangle.hpp"
 #include "solid.hpp"
 #include "mesh.hpp"
 #include "types.hpp"
@@ -173,9 +174,14 @@ class Geometry : public Mesh
     uint32_t                  *_smesh;     /*!< \brief Solid mesh array. */
     std::vector<uint8_t>       _nearsolid; /*!< \brief Near solid data. */
 
-    pthread_mutex_t            _mutex;
-    pthread_cond_t             _cond;
-    uint32_t                   _done;
+    pthread_mutex_t            _mutex;     /*!< \brief Mutex for parallel mesh build. */
+    pthread_cond_t             _cond;      /*!< \brief Condition for parallel mesh build. */
+    uint32_t                   _done;      /*!< \brief State variable for parallel mesh build. */
+
+    std::vector<Vec3D>         _vertex;    /*!< \brief List of vertices for surface triangles. */
+    std::vector<VTriangle>     _triangle;  /*!< \brief List of surface triangles. */
+    std::vector<int32_t>       _triptr;    /*!< \brief Pointer from mesh cube to first triangle 
+					    *   (-1) for no surface. */
     
     /*! \brief Check if node is solid (n>=7).
      *
@@ -227,6 +233,13 @@ class Geometry : public Mesh
     void build_mesh_parallel( void );
 
     void build_mesh_serial( void );
+
+    static const int32_t mc_ambigous[60];
+    static const int32_t mc_faces[15*256];
+
+    Vec3D mc_surface( int32_t i, int32_t j, int32_t k, int32_t cn, int32_t ei ) const;
+    int32_t mc_case( int32_t i, int32_t j, int32_t k ) const;
+    void mc_triangulate( int32_t i, int32_t j, int32_t k );
 
 public:
 
@@ -335,6 +348,10 @@ public:
      */
     void build_mesh( void );
 
+    /*! \brief Build surface triangulation data.
+     */
+    void build_surface( void );
+
     /*! \brief Returns a const reference to solid mesh array.
      */
     const uint32_t &mesh( int32_t i ) const { return( _smesh[i] ); }
@@ -404,7 +421,7 @@ public:
 
     /*! \brief Returns distance of solid boundary from point.
      *
-     *  Returns the distance (0 to 255) of near solid into direction
+     *  Returns the distance (0 to 255) of solid surface in direction
      *  \a dir from near solid point at (\a i, \a j, \a k). The
      *  direction \a dir is an integer from 0 to 5, with 0 meaning -x,
      *  1 meaning +x, 2 meaning -y, 3 meaning +y, 4 meaning -z and 5
