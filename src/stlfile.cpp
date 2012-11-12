@@ -509,7 +509,7 @@ size_t STLFile::vertexc( void )
 
 const Vec3D &STLFile::vertex( uint32_t i ) const
 {
-    return( _vertex[i] );
+    return( _vertex[i]-_offset );
 }
 
 
