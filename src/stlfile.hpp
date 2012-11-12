@@ -141,9 +141,9 @@ public:
      */
     size_t vertexc( void );
 
-    /*! \brief Return reference to vertex \a i.
+    /*! \brief Return vertex \a i coordinates.
      */
-    const Vec3D &vertex( uint32_t i ) const;
+    Vec3D vertex( uint32_t i ) const;
 
     /*! \brief Return number of triangles.
      */

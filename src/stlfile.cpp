@@ -125,8 +125,6 @@ STLFile::Triangle::Triangle( std::ifstream &ifstr )
 
 STLFile::Triangle::Triangle( std::ifstream &ifstr, const char *buf, const std::string &filename, int &linec )
 {
-    //std::cout << "  Making new Triangle\n";
-
     if( !ciscomp( buf, "facet normal", 12 ) )
 	throw( Error( ERROR_LOCATION, "Unexpected input on line " + to_string(linec) +
 		      ", expecting \'facet normal\'." ) );
@@ -319,15 +317,17 @@ STLFile::STLFile( const std::string &filename,
     _ascii = false;
     char buf[1024];
     ifstr.read( buf, 1024 );
-    if( !strncasecmp( buf, "solid ", 6 ) ) {
+    std::streamsize c = ifstr.gcount();
+    if( c > 6 && !strncasecmp( buf, "solid ", 6 ) ) {
 	// Might be ascii, seek next line
 	int a = 6;
-	while( buf[a] != '\n' ) a++;
-	while( isspace(buf[a]) ) a++;
-	if( !strncasecmp( &buf[a], "facet normal", 12 ) )
+	while( a < c && buf[a] != '\n' ) a++;
+	while( a < c && isspace(buf[a]) ) a++;
+	if( a+12 < c && !strncasecmp( &buf[a], "facet normal", 12 ) )
 	    _ascii = true;
     }
 
+    ifstr.clear(); // Clear possible eofbit/failbit
     ifstr.seekg( 0 );
     if( _ascii )
 	read_ascii( ifstr );
@@ -507,7 +507,7 @@ size_t STLFile::vertexc( void )
 }
 
 
-const Vec3D &STLFile::vertex( uint32_t i ) const
+Vec3D STLFile::vertex( uint32_t i ) const
 {
     return( _vertex[i]-_offset );
 }
