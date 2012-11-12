@@ -45,6 +45,7 @@
 
 
 #include <iostream>
+#include <vector>
 #include "solid.hpp"
 #include "transformation.hpp"
 
