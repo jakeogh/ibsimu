@@ -55,7 +55,7 @@
  */
 class GTKPreferences
 {
-    class GTKWindow *_gtkwindow;
+    class GTKFrameWindow *_gtkwindow;
     GtkWidget       *_window;
     Frame           *_frame;
 
@@ -63,7 +63,7 @@ public:
 
     /*! \brief Create common preferences for plot windows.
      */
-    GTKPreferences( class GTKWindow *gtkwindow, GtkWidget *window, Frame *frame );
+    GTKPreferences( class GTKFrameWindow *gtkwindow, GtkWidget *window, Frame *frame );
 
     /*! \brief Destructor.
      */

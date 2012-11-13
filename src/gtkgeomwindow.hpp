@@ -46,7 +46,7 @@
 
 #include <vector>
 
-#include "gtkwindow.hpp"
+#include "gtkframewindow.hpp"
 #include "geomplot.hpp"
 #include "meshscalarfield.hpp"
 #include "epot_field.hpp"
@@ -55,9 +55,9 @@
 
 
 
-/*! \brief Interactive geometry plotter.
+/*! \brief Interactive geometry plotter window.
  */
-class GTKGeomWindow : public GTKWindow {
+class GTKGeomWindow : public GTKFrameWindow {
 
     struct PreferencesData {
 	GtkWidget *manual_eqlines_entry;
@@ -162,27 +162,4 @@ public:
 };
 
 
-
-
-
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

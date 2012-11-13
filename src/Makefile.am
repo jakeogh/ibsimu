@@ -87,6 +87,10 @@ gtkfielddiagexportdialog.cpp \
 gtkfielddiagexportdialog.hpp \
 gtkfielddiagwindow.cpp \
 gtkfielddiagwindow.hpp \
+gtkframewindow.cpp \
+gtkframewindow.hpp \
+gtkgeom3dwindow.cpp \
+gtkgeom3dwindow.hpp \
 gtkgeomwindow.cpp \
 gtkgeomwindow.hpp \
 gtkhardcopy.cpp \
@@ -286,6 +290,7 @@ graph.hpp \
 graph3d.hpp \
 gtkfielddiagexportdialog.hpp \
 gtkplotter.hpp \
+gtkwindow.hpp \
 hbio.hpp \
 histogram.hpp \
 ibsimu.hpp \

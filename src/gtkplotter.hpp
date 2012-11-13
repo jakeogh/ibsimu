@@ -44,19 +44,17 @@
 #define GTKPLOTTER_HPP 1
 
 
-#include <cairo.h>
-#include <string>
-#include <list>
+#include <vector>
 #include <gtk/gtk.h>
-
 #include "geometry.hpp"
-#include "scalarfield.hpp"
+#include "meshscalarfield.hpp"
 #include "epot_field.hpp"
 #include "epot_efield.hpp"
 #include "vectorfield.hpp"
 #include "particledatabase.hpp"
 #include "particlediagplot.hpp"
 #include "fielddiagplot.hpp"
+#include "gtkwindow.hpp"
 
 
 /*! \brief GTK %Plotter class
@@ -67,17 +65,17 @@
  */
 class GTKPlotter {
 
-    static bool             _gtk_initialized;
+    static bool              _gtk_initialized;
 
-    std::list<class GTKWindow *>  _windows;
+    std::vector<GTKWindow *> _windows;
     
-    const Geometry         *_geom;
-    const EpotField        *_epot;
-    const EpotEfield       *_efield;
-    const MeshScalarField  *_scharge;
-    const MeshScalarField  *_tdens;
-    const VectorField      *_bfield;
-    const ParticleDataBase *_pdb;
+    const Geometry          *_geom;
+    const EpotField         *_epot;
+    const EpotEfield        *_efield;
+    const MeshScalarField   *_scharge;
+    const MeshScalarField   *_tdens;
+    const VectorField       *_bfield;
+    const ParticleDataBase  *_pdb;
 
 public:
 
@@ -103,6 +101,7 @@ public:
     void set_bfield( const VectorField *bfield );
     void set_particledatabase( const ParticleDataBase *pdb );    
 
+    GTKWindow *new_geometry_3d_plot_window( void );
     GTKWindow *new_geometry_plot_window( void );
     GTKWindow *new_particle_plot_window( coordinate_axis_e axis, double level, 
 					 particle_diag_plot_type_e type,
@@ -112,8 +111,7 @@ public:
 				      const field_diag_type_e diag[2], 
 				      const field_loc_type_e loc[2] );
 
-    //GTKWindow *new_window( void );
-    void delete_window( class GTKWindow *window );
+    void delete_window( GTKWindow *window );
 };
 
 

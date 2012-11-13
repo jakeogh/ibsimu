@@ -63,7 +63,7 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       &plotter,
 			      const MeshScalarField  *tdens,
 			      const VectorField      *bfield,
 			      const ParticleDataBase *pdb )
-  : GTKWindow(plotter), _geomplot(_frame,geom), 
+  : GTKFrameWindow(plotter), _geomplot(_frame,geom), 
     _geom(geom), _epot(epot), _efield(efield), _scharge(scharge), _tdens(tdens), _bfield(bfield), _pdb(pdb),
     _tool(TOOL_UNKNOWN), _prefdata(NULL)
 {
