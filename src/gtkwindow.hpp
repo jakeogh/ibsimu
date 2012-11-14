@@ -50,9 +50,13 @@ class GTKWindow {
 
 public:
 
+    /*! \brief Constructor.
+     */
     GTKWindow();
 
-    ~GTKWindow();
+    /*! \brief Destructor.
+     */
+    virtual ~GTKWindow();
 };
 
 

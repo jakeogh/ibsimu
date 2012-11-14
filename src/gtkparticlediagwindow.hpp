@@ -102,30 +102,11 @@ public:
 			   trajectory_diagnostic_e diagx, 
 			   trajectory_diagnostic_e diagy );
 
+    /*! \brief Destructor.
+     */
     virtual ~GTKParticleDiagWindow();
 
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

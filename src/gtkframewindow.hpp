@@ -160,6 +160,8 @@ protected:
 
 public:
 
+    /*! \brief Destructor.
+     */
     virtual ~GTKFrameWindow();
 
     virtual void *build_preferences( GtkWidget *notebook );

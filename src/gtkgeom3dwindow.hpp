@@ -54,6 +54,84 @@
  */
 class GTKGeom3DWindow : public GTKWindow {
 
+    /*! \brief Camera.
+     *
+     */
+    class Camera {
+
+    public:
+
+	/*! \brief Destructor.
+	 */
+	virtual ~Camera();
+
+	/*! \brief Initialize camera.
+	 *
+	 *  Sets up viewport, projection and modelview matrices for
+	 *  camera view of the geometry.
+	 */
+	void initalize_camera( void ) = 0;
+
+	/*! \brief Set up viewport size.
+	 */
+	void set_size( double width, double height ) = 0;
+
+	/*! \brief Change view relative to current.
+	 *
+	 *  Sets \a (x,y) as the new center of view and changes zoom
+	 *  setting with factor \a fac.
+	 */
+	void set_view_relative( double x, double y, double fac ) = 0;
+
+	/*! \brief Change view target.
+	 */
+	void set_target_location( const Vec3D &target ) = 0;
+
+	/*! \brief Change camera location.
+	 */
+	void set_camera_location( const Vec3D &camera ) = 0;
+
+	/*! \brief Change camera up direction.
+	 */
+	void set_camera_up( const Vec3D &up ) = 0;
+
+	/*! \brief Change near and far planes.
+	 */
+	void set_zplanes( double near, double far ) = 0;
+
+	/*! \brief Change near and far planes.
+	 */
+	void set_zplanes( double near, double far ) = 0;
+    };
+
+    /*! \brief Constructor.
+     */
+    class PerspectiveCamera : public Camera {
+
+	double          _zoomFactor = 0.5;
+	double          _near = 1.0;
+	double          _far = 100.0;
+	double          _left;
+	double          _right;
+	double          _bottom;
+	double          _top;
+	Vec3D           _target;
+	Vec3D           _up(0,1,0);
+	Vec3D           _location(0,0,4);
+	Transformation  _modeltrans;
+
+    public:
+
+	/*! \brief Constructor.
+	 */
+	PerspectiveCamera();
+
+	/*! \brief Destructor.
+	 */
+	virtual ~PerspectiveCamera();
+
+    };
+
     GTKPlotter       &_plotter;
     const Geometry   &_geom;
 
@@ -70,6 +148,8 @@ class GTKGeom3DWindow : public GTKWindow {
     size_t            _height;
 
     int               _tool;
+
+    Camera           *_camera;
 
     void move( int action, double x, double y );
     void zoom_out( double x, double y );
@@ -125,10 +205,14 @@ class GTKGeom3DWindow : public GTKWindow {
 
 public:
 
+    /*! \brief Constructor.
+     */
     GTKGeom3DWindow( GTKPlotter &plotter,
 		     const Geometry &geom );
 
-    ~GTKGeom3DWindow();
+    /*! \brief Destructor.
+     */
+    virtual ~GTKGeom3DWindow();
 };
 
 

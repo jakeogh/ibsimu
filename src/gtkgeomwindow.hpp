@@ -149,6 +149,8 @@ class GTKGeomWindow : public GTKFrameWindow {
 
 public:
 
+    /*! \brief Constructor.
+     */
     GTKGeomWindow( class GTKPlotter &plotter,
 		   const Geometry &geom,
 		   const EpotField *epot,
@@ -158,7 +160,9 @@ public:
 		   const VectorField *bfield,
 		   const ParticleDataBase *pdb );
     
-    ~GTKGeomWindow();
+    /*! \brief Destructor.
+     */
+    virtual ~GTKGeomWindow();
 };
 
 
