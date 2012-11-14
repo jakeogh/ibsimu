@@ -42,6 +42,7 @@
 
 
 #include "gtkgeom3dwindow.hpp"
+#include "camera.hpp"
 #include "icons.hpp"
 
 
@@ -54,7 +55,13 @@
 
 GTKGeom3DWindow::GTKGeom3DWindow( GTKPlotter &plotter,
 				  const Geometry &geom )
-    : _plotter(plotter), _geom(geom), _width(640), _height(480)
+    : _plotter(plotter), _geom(geom), _width(640), _height(480), _camera(NULL)
+{
+    init_window();
+}
+
+
+void GTKGeom3DWindow::init_window( void )
 {
     // Window
     _window = gtk_window_new( GTK_WINDOW_TOPLEVEL );

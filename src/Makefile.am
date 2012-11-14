@@ -11,6 +11,8 @@ axisymmetricvectorfield.hpp \
 bicgstab.cpp \
 bicgstab.hpp \
 callback.hpp \
+camera.cpp \
+camera.hpp \
 ccolmatrix.cpp \
 ccolmatrix.hpp \
 cfifo.hpp \
