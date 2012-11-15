@@ -41,13 +41,15 @@
  */
 
 
+#include <GL/gl.h>
+#include <GL/glu.h>
 #include "camera.hpp"
 
 
 PerspectiveCamera::PerspectiveCamera()
-    : _width(640), _height(480), _zoomFactor(1.0), 
+    : _width(640), _height(480), _zoom(1.0), 
       _near(1.0), _far(100.0), 
-      _target(Vec3D(0,0,0)), _up(Vec3D(0,1,0)), _location(Vec3D(0,0,1))
+      _target(Vec3D(0,0,0)), _up(Vec3D(0,1,0)), _camera(Vec3D(0,0,1))
 {
 
 }
@@ -64,15 +66,27 @@ void PerspectiveCamera::gl_initalize_camera( void )
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
     if( _width > _height ) {
-	_left = -1.0;
-	_right = 1.0;
-	_bottom = -(double)_height/_width;
-	_top = (double)_height/_width;
-    } else {
 	_left = -(double)_width/_height;
 	_right = (double)_width/_height;
 	_bottom = -1.0;
 	_top = 1.0;
+	/*
+	_left = -1.0;
+	_right = 1.0;
+	_bottom = -(double)_height/_width;
+	_top = (double)_height/_width;
+	*/
+    } else {
+	_left = -1.0;
+	_right = 1.0;
+	_bottom = -(double)_height/_width;
+	_top = (double)_height/_width;
+	/*
+	_left = -(double)_width/_height;
+	_right = (double)_width/_height;
+	_bottom = -1.0;
+	_top = 1.0;
+	*/
     }
     glFrustum( _left*_zoom, 
                _right*_zoom, 
@@ -99,7 +113,7 @@ void PerspectiveCamera::set_view_relative( double x, double y, double fac )
 {
     double u = _zoom*(_left + (_right-_left)*(x/_width));
     double v = _zoom*(_bottom + (_top-_bottom)*(1.0-y/_height));
-    Vec3D viewdir = target-camera;
+    Vec3D viewdir = _target-_camera;
     viewdir.normalize();
     viewdir *= _near;
     Vec3D right = cross(viewdir,_up);
@@ -108,6 +122,12 @@ void PerspectiveCamera::set_view_relative( double x, double y, double fac )
     real_up.normalize();
     _target = _camera + viewdir + u*right + v*real_up;
     _zoom *= fac;
+}
+
+
+void PerspectiveCamera::set_field_of_view( double zoom )
+{
+    _zoom = zoom;
 }
 
 

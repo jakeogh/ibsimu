@@ -48,41 +48,60 @@
 #include <gtk/gtk.h>
 #include "gtkwindow.hpp"
 #include "gtkplotter.hpp"
+#include "transformation.hpp"
 
 
 /*! \brief Interactive geometry plotter window.
  */
 class GTKGeom3DWindow : public GTKWindow {
 
-    GTKPlotter       &_plotter;
-    const Geometry   &_geom;
+    GTKPlotter        &_plotter;
+    const Geometry    &_geom;
 
-    GtkWidget        *_window;
-    GtkWidget        *_darea;
-    GtkWidget        *_menubar;
-    GtkWidget        *_menu_file;
-    GtkWidget        *_toolbar;
-    GtkWidget        *_statusbar;
+    GtkWidget         *_window;
+    GtkWidget         *_darea;
+    GtkWidget         *_menubar;
+    GtkWidget         *_menu_file;
+    GtkWidget         *_toolbar;
+    GtkWidget         *_statusbar;
 
-    GtkToolItem      *_radioitem;
+    GtkToolItem       *_radioitem;
 
-    size_t            _width;
-    size_t            _height;
+    size_t             _width;
+    size_t             _height;
 
-    int               _tool;
+    int                _tool;
+    double             _oldx;
+    double             _oldy;
+    double             _endx;
+    double             _endy;
 
-    class Camera     *_camera;
-    Transformation    _modeltrans;
+    class Camera      *_camera;
+    Vec3D              _center;
+    double             _scale;
+    Transformation     _modeltrans;
 
+    std::vector<Vec3D> _csurface[6];
+
+    void init_camera_and_model( void );
     void init_window( void );
+    void cplane_add_vertex( int32_t p, const int32_t i[3], const int32_t vb[3], double dx, double dy );
+    double cplane_dist( const int32_t i[3], const int32_t vb[3], int32_t dx, int32_t dy, int32_t dir );
+    int32_t case2d( const int32_t i[3], const int32_t vb[3] );
+    void build_cut_plane( int32_t p, const int32_t vb[3], int32_t level );
+    void build_cut_planes( void );
+    void draw_cut_planes( void );
     void draw_model( void );
     void draw_bbox( void );
+    void draw( void );
 
     void move( int action, double x, double y );
     void zoom_out( double x, double y );
     void zoom_in( double x, double y );
     void zoom_window( int action, double x, double y );
     void zoom_fit( void );
+
+    void track( int action, double x, double y );
 
     void darea_motion( GdkEventMotion *event );
     void darea_enter( GdkEventCrossing *event );

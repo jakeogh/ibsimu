@@ -126,6 +126,18 @@ CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"
 
 
 dnl -------------
+dnl gtkglext-1.0
+
+if $PKG_CONFIG --exists gtkglext-1.0 ; then
+  PKG_CHECK_MODULES([GTKGLEXT], [gtkglext-1.0])
+else
+  AC_MSG_ERROR([required library gtkglext-1.0 not found])
+fi
+LIBS="$LIBS $GTKGLEXT_LIBS"
+CPPFLAGS="$CPPFLAGS $GTKGLEXT_CFLAGS"
+
+
+dnl -------------
 dnl libpng
 
 if $PKG_CONFIG --exists libpng ; then

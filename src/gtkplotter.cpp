@@ -41,6 +41,7 @@
  */
 
 
+#include <gtk/gtkgl.h>
 #include "gtkplotter.hpp"
 #include "gtkgeomwindow.hpp"
 #include "gtkgeom3dwindow.hpp"
@@ -60,13 +61,16 @@ GTKPlotter::GTKPlotter( int *argc, char ***argv )
 {
     if( !_gtk_initialized ) {
 
+	std::cout << "Init GTK/OpenGL\n";
+
 	// Initialize gtk
 	if( gtk_init_check( argc, argv ) == FALSE )
 	    throw( Error( ERROR_LOCATION, "Couldn't initialize GTK" ) );
 	_gtk_initialized = true;
 
 	// Initialize OpenGL
-	gtk_gl_init( argc, argv );
+	if( gtk_gl_init_check( argc, argv ) == FALSE )
+	    throw( Error( ERROR_LOCATION, "Couldn't initialize GTK/OpenGL" ) );
     }
 }
 

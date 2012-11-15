@@ -58,7 +58,7 @@ public:
     
     /*! \brief Destructor.
      */
-    virtual ~Camera();
+    virtual ~Camera() {}
     
     /*! \brief Initialize camera.
      *
@@ -77,6 +77,13 @@ public:
      *  setting with factor \a fac.
      */
     virtual void set_view_relative( double x, double y, double fac ) = 0;
+
+    /*! \brief Change field of view.
+     *
+     *  The field of view is set to \a +/-zoom at distance \a near
+     *  from the camera in the longer direction (horizontal/vertical).
+     */
+    virtual void set_field_of_view( double zoom ) = 0;
     
     /*! \brief Change view target.
      */
@@ -111,7 +118,7 @@ class PerspectiveCamera : public Camera {
     double          _top;
     Vec3D           _target;
     Vec3D           _up;
-    Vec3D           _location;
+    Vec3D           _camera;
     
 public:
     
@@ -141,6 +148,13 @@ public:
      */
     virtual void set_view_relative( double x, double y, double fac );
 
+    /*! \brief Change field of view.
+     *
+     *  The field of view is set to \a +/-zoom at distance \a near
+     *  from the camera in the longer direction (horizontal/vertical).
+     */
+    virtual void set_field_of_view( double zoom );
+    
     /*! \brief Change view target.
      */
     virtual void set_target_location( const Vec3D &target );

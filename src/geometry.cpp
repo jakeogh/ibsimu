@@ -1232,72 +1232,6 @@ void Geometry::build_mesh( void )
 }
 
 
-/* Ambigous cases array
- */
-const int Geometry::mc_ambigous[60] = {
-    61,
-    62,
-    87,
-    91,
-    93,
-    94,
-    95,
-    107,
-    109,
-    117,
-    121,
-    122,
-    123,
-    124,
-    126,
-    135,
-    149,
-    150,
-    151,
-    154,
-    158,
-    163,
-    165,
-    166,
-    167,
-    169,
-    170,
-    171,
-    172,
-    173,
-    174,
-    175,
-    180,
-    181,
-    182,
-    183,
-    186,
-    188,
-    189,
-    195,
-    197,
-    199,
-    202,
-    203,
-    210,
-    211,
-    213,
-    214,
-    218,
-    219,
-    222,
-    225,
-    227,
-    229,
-    231,
-    233,
-    234,
-    237,
-    245,
-    250
-};
-
-
 /* Faces array
  *
  * TrianglesA.lut.txt
@@ -1572,7 +1506,7 @@ const int Geometry::mc_faces[15*256] = {
 #define MC_V8 128
 
 
-#define MC_DEBUG 1
+//#define MC_DEBUG 1
 
 
 int Geometry::mc_case( int32_t i, int32_t j, int32_t k ) const
@@ -1584,7 +1518,7 @@ int Geometry::mc_case( int32_t i, int32_t j, int32_t k ) const
     // Go through mesh nodes surrounding cube (i,j,k)
     int res = 0;
     uint32_t node;
-    uint32_t ptr = i + j*_size[0] + k*_size[0]*_size[1];
+    uint32_t ptr = (k*_size[1] + j)*_size[0] + i;
 
     // Node 1 (i,j,k)
     node = _smesh[ptr];
@@ -1835,6 +1769,20 @@ void Geometry::build_surface( void )
     ibsimu.message( 1 ) << "Done.\n";
     ibsimu.message( 1 ) << "time used = " << t << "\n";
     ibsimu.dec_indent();
+}
+
+
+int32_t Geometry::surface_trianglec( int32_t i, int32_t j, int32_t k ) const
+{
+    int32_t cn = mc_case( i, j, k );
+    int32_t offset = 15*cn;
+    int32_t ti;
+    for( ti = 0; ti < 5; ti++ ) {
+	if( mc_faces[offset] == -1 )
+	    break;
+	offset += 3;
+    }
+    return( ti );
 }
 
 

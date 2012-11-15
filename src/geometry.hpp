@@ -234,7 +234,6 @@ class Geometry : public Mesh
 
     void build_mesh_serial( void );
 
-    static const int32_t mc_ambigous[60];
     static const int32_t mc_faces[15*256];
 
     Vec3D mc_surface( int32_t i, int32_t j, int32_t k, int32_t cn, int32_t ei ) const;
@@ -348,10 +347,6 @@ public:
      */
     void build_mesh( void );
 
-    /*! \brief Build surface triangulation data.
-     */
-    void build_surface( void );
-
     /*! \brief Returns a const reference to solid mesh array.
      */
     const uint32_t &mesh( int32_t i ) const { return( _smesh[i] ); }
@@ -437,6 +432,44 @@ public:
      *  for mesh.
      */
     uint8_t solid_dist( uint32_t i, uint32_t dir ) const;
+
+    /*! \brief Build surface triangulation data.
+     */
+    void build_surface( void );
+    
+    /*! \brief Return total surface vertex count.
+     */
+    int32_t surface_vertexc( void ) const {
+	return( _vertex.size() );
+    }
+
+    /*! \brief Return total surface triangle count.
+     */
+    int32_t surface_trianglec( void ) const {
+	return( _triangle.size() );
+    }
+
+    /*! \brief Return reference to surface vertex \a a.
+     */
+    const Vec3D &surface_vertex( int32_t a ) const {
+	return( _vertex[a] );
+    }
+
+    /*! \brief Return reference to surface triangle \a a.
+     */
+    const VTriangle &surface_triangle( int32_t a ) const {
+	return( _triangle[a] );
+    }
+
+    /*! \brief Return index of surface triangle at mesh cube \a (i,j,k).
+     */
+    int32_t surface_triangle_ptr( int32_t i, int32_t j, int32_t k ) const {
+	return( _triptr[(k*(_size[1]-1) + j)*(_size[0]-1) + i] );
+    }
+
+    /*! \brief Return surface triangle count at mesh cube \a (i,j,k).
+     */
+    int32_t surface_trianglec( int32_t i, int32_t j, int32_t k ) const;
 
     /*! \brief Saves data to a new file \a filename.
      *
