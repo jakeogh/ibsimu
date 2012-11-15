@@ -58,6 +58,20 @@ GTKGeom3DWindow::GTKGeom3DWindow( GTKPlotter &plotter,
     : _plotter(plotter), _geom(geom), _width(640), _height(480), _camera(NULL)
 {
     init_window();
+
+    // Initialize OpenGL
+    GdkGLConfigMode mode = (GdkGLConfigMode)( GDK_GL_MODE_RGBA |
+					      GDK_GL_MODE_DEPTH |
+					      GDK_GL_MODE_DOUBLE );
+    GdkGLConfig *gl_config = gdk_gl_config_new_by_mode( mode );
+    if( !gl_config )
+        g_assert_not_reached();
+
+    if( !gtk_widget_set_gl_capability( _darea, gl_config, NULL, TRUE,
+				       GDK_GL_RGBA_TYPE ) )
+        g_assert_not_reached();
+
+    gtk_widget_show_all( _window );
 }
 
 
@@ -254,7 +268,6 @@ void GTKGeom3DWindow::init_window( void )
     gtk_container_add( GTK_CONTAINER(_window), vbox );
 
     gtk_window_present( GTK_WINDOW(_window) );
-    gtk_widget_show_all( _window );
 }
 
 
@@ -272,13 +285,70 @@ void GTKGeom3DWindow::delete_window( void )
 
 void GTKGeom3DWindow::configure( void )
 {
+    // Initialize OpenGL context
+    GdkGLContext *gl_context = gtk_widget_get_gl_context( _darea );
+    GdkGLDrawable *gl_drawable = gtk_widget_get_gl_drawable( _darea );
+    if( !gdk_gl_drawable_gl_begin( gl_drawable, gl_context ) )
+	g_assert_not_reached();
 
+    // Set OpenGL viewport
+    GtkAllocation alloc;
+    gtk_widget_get_allocation( _darea, &alloc );
+    glViewport( 0, 0, alloc.width, alloc.height );
+    _width = alloc.width;
+    _height = alloc.height;
+
+    // Setup OpenGL
+    float light_ambient[] = { 1.0, 1.0, 1.0, 0.0 };
+    float light_position[] = { 0.0, 0.0, -50.0, 0.0 };
+    glLightfv( GL_LIGHT0, GL_AMBIENT, light_ambient );
+    glLightfv( GL_LIGHT0, GL_POSITION, light_position );
+
+    glEnable( GL_LIGHTING );
+    glEnable( GL_LIGHT0 );
+    glEnable( GL_DEPTH_TEST );
+
+    // Close OpenGL context
+    gdk_gl_drawable_gl_end( gl_drawable );
+}
+
+
+void GTKGeom3DWindow::draw_model( void )
+{
+    // Clear
+    glClearColor( 1.0, 1.0, 1.0, 0.0 );
+    glClearDepth( 1.0 );
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+    // Set model transformation
+    glMultMatrixd( &_modeltrans[0] );
+
+    // Draw model
+    
+
+    // Draw bbox
+    draw_bbox();
 }
 
 
 void GTKGeom3DWindow::expose( void )
 {
+    // Initialize OpenGL context
+    GdkGLContext *gl_context = gtk_widget_get_gl_context( _darea );
+    GdkGLDrawable *gl_drawable = gtk_widget_get_gl_drawable( _darea );
+    if( !gdk_gl_drawable_gl_begin( gl_drawable, gl_context ) )
+	g_assert_not_reached();
 
+    // Setup camera and draw
+    camera->gl_initalize_camera();
+    draw_model();
+
+    // Finish draw and close OpenGL context
+    if( gdk_gl_drawable_is_double_buffered( gl_drawable) )
+        gdk_gl_drawable_swap_buffers( gl_drawable ); 
+    else
+        glFlush();
+    gdk_gl_drawable_gl_end( gl_drawable );
 }
 
 

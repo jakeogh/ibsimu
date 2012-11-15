@@ -45,8 +45,9 @@
 
 
 PerspectiveCamera::PerspectiveCamera()
-    : _zoomFactor(0.5), _near(1.0), _far(100.0), 
-      _up(Vec3D(0,1,0)), _location(Vec3D(0,0,1))
+    : _width(640), _height(480), _zoomFactor(1.0), 
+      _near(1.0), _far(100.0), 
+      _target(Vec3D(0,0,0)), _up(Vec3D(0,1,0)), _location(Vec3D(0,0,1))
 {
 
 }
@@ -60,43 +61,78 @@ PerspectiveCamera::~PerspectiveCamera()
 
 void PerspectiveCamera::gl_initalize_camera( void )
 {
+    glMatrixMode( GL_PROJECTION );
+    glLoadIdentity();
+    if( _width > _height ) {
+	_left = -1.0;
+	_right = 1.0;
+	_bottom = -(double)_height/_width;
+	_top = (double)_height/_width;
+    } else {
+	_left = -(double)_width/_height;
+	_right = (double)_width/_height;
+	_bottom = -1.0;
+	_top = 1.0;
+    }
+    glFrustum( _left*_zoom, 
+               _right*_zoom, 
+               _bottom*_zoom, 
+               _top*_zoom, 
+               _near, _far );
 
+    glMatrixMode( GL_MODELVIEW );
+    glLoadIdentity( );
+    gluLookAt( _camera[0],_camera[1],_camera[2], 
+	       _target[0],_target[1],_target[2], 
+	       _up[0],_up[1],_up[2] );
 }
 
 
 void PerspectiveCamera::set_size( double width, double height )
 {
-
+    _width = width;
+    _height = height;
 }
 
 
 void PerspectiveCamera::set_view_relative( double x, double y, double fac )
 {
-
+    double u = _zoom*(_left + (_right-_left)*(x/_width));
+    double v = _zoom*(_bottom + (_top-_bottom)*(1.0-y/_height));
+    Vec3D viewdir = target-camera;
+    viewdir.normalize();
+    viewdir *= _near;
+    Vec3D right = cross(viewdir,_up);
+    Vec3D real_up = cross(right,viewdir);
+    right.normalize();
+    real_up.normalize();
+    _target = _camera + viewdir + u*right + v*real_up;
+    _zoom *= fac;
 }
 
 
 void PerspectiveCamera::set_target_location( const Vec3D &target )
 {
-
+    _target = target;
 }
 
 
 void PerspectiveCamera::set_camera_location( const Vec3D &camera )
 {
-
+    _camera = camera;
 }
 
 
 void PerspectiveCamera::set_camera_up( const Vec3D &up )
 {
-
+    _up = up;
 }
 
 
 void PerspectiveCamera::set_zplanes( double near, double far )
 {
-
+    _near = near;
+    _far = far;
 }
 
 

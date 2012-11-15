@@ -72,8 +72,11 @@ class GTKGeom3DWindow : public GTKWindow {
     int               _tool;
 
     class Camera     *_camera;
+    Transformation    _modeltrans;
 
     void init_window( void );
+    void draw_model( void );
+    void draw_bbox( void );
 
     void move( int action, double x, double y );
     void zoom_out( double x, double y );

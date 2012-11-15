@@ -59,9 +59,14 @@ GTKPlotter::GTKPlotter( int *argc, char ***argv )
       _bfield(NULL), _pdb(NULL)
 {
     if( !_gtk_initialized ) {
+
+	// Initialize gtk
 	if( gtk_init_check( argc, argv ) == FALSE )
 	    throw( Error( ERROR_LOCATION, "Couldn't initialize GTK" ) );
 	_gtk_initialized = true;
+
+	// Initialize OpenGL
+	gtk_gl_init( argc, argv );
     }
 }
 

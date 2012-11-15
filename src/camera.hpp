@@ -100,7 +100,9 @@ public:
  */
 class PerspectiveCamera : public Camera {
     
-    double          _zoomFactor;
+    double          _width;
+    double          _height;
+    double          _zoom;
     double          _near;
     double          _far;
     double          _left;
@@ -110,7 +112,6 @@ class PerspectiveCamera : public Camera {
     Vec3D           _target;
     Vec3D           _up;
     Vec3D           _location;
-    Transformation  _modeltrans;
     
 public:
     
@@ -136,10 +137,10 @@ public:
     /*! \brief Change view relative to current.
      *
      *  Sets \a (x,y) as the new center of view and changes zoom
-     *  setting with factor \a fac.
+     *  setting by multiplying with factor \a fac.
      */
     virtual void set_view_relative( double x, double y, double fac );
-    
+
     /*! \brief Change view target.
      */
     virtual void set_target_location( const Vec3D &target );
