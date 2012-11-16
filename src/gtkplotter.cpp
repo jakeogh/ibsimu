@@ -61,8 +61,6 @@ GTKPlotter::GTKPlotter( int *argc, char ***argv )
 {
     if( !_gtk_initialized ) {
 
-	std::cout << "Init GTK/OpenGL\n";
-
 	// Initialize gtk
 	if( gtk_init_check( argc, argv ) == FALSE )
 	    throw( Error( ERROR_LOCATION, "Couldn't initialize GTK" ) );

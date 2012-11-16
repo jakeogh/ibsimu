@@ -1762,8 +1762,8 @@ void Geometry::build_surface( void )
 	}
     }
 
-    STLFile stlfile( _vertex, _triangle );
-    stlfile.save( "geometry.stl" );
+    //STLFile stlfile( _vertex, _triangle );
+    //stlfile.save( "geometry.stl" );
 
     t.stop();
     ibsimu.message( 1 ) << "Done.\n";

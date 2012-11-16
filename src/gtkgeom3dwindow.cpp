@@ -60,11 +60,18 @@ GTKGeom3DWindow::GTKGeom3DWindow( GTKPlotter &plotter,
 				  const Geometry &geom )
     : _plotter(plotter), _geom(geom), _width(640), _height(480), _camera(NULL)
 {
-    init_camera_and_model();
+    _clevel[0] = 0;
+    _clevel[1] = _geom.size(0)-1;
+    _clevel[2] = 0;
+    _clevel[3] = _geom.size(1)-1;
+    _clevel[4] = 0;
+    _clevel[5] = _geom.size(2)-1;
+
+    init_camera_and_rotation();
+    init_model();
     init_window();
 
     // Initialize OpenGL
-    std::cout << "Init OpenGL config\n";
     GdkGLConfigMode mode = (GdkGLConfigMode)( GDK_GL_MODE_RGBA |
 					      GDK_GL_MODE_DEPTH |
 					      GDK_GL_MODE_DOUBLE );
@@ -88,7 +95,57 @@ GTKGeom3DWindow::GTKGeom3DWindow( GTKPlotter &plotter,
 }
 
 
-void GTKGeom3DWindow::init_camera_and_model( void )
+void GTKGeom3DWindow::build_geometry_surface( void )
+{
+    // Clear old and reserve space
+    _gsurface.clear();
+    _gsurface.reserve( 12*_geom.surface_trianglec() );
+
+    // Go through all mesh cubes inside cut levels
+    for( int32_t k = _clevel[4]; k < _clevel[5]; k++ ) {
+	for( int32_t j = _clevel[2]; j < _clevel[3]; j++ ) {
+	    for( int32_t i = _clevel[0]; i < _clevel[1]; i++ ) {
+
+		// Copy surface triangles in cube
+		int32_t ptr = _geom.surface_triangle_ptr( i, j, k );
+		int32_t tric = _geom.surface_trianglec( i, j, k );
+		for( int32_t a = 0; a < tric; a++ ) {
+		    const VTriangle &tri = _geom.surface_triangle( ptr+a );
+		    const Vec3D &x0 = _geom.surface_vertex( tri[0] );
+		    const Vec3D &x1 = _geom.surface_vertex( tri[1] );
+		    const Vec3D &x2 = _geom.surface_vertex( tri[2] );
+		    Vec3D norm = cross( x1-x0, x2-x0 );
+		    norm.normalize();
+		    _gsurface.push_back( norm[0] );
+		    _gsurface.push_back( norm[1] );
+		    _gsurface.push_back( norm[2] );
+		    Vec3D xx0 = _scale*(x0-_center);
+		    _gsurface.push_back( xx0[0] );
+		    _gsurface.push_back( xx0[1] );
+		    _gsurface.push_back( xx0[2] );
+		    Vec3D xx1 = _scale*(x1-_center);
+		    _gsurface.push_back( xx1[0] );
+		    _gsurface.push_back( xx1[1] );
+		    _gsurface.push_back( xx1[2] );
+		    Vec3D xx2 = _scale*(x2-_center);
+		    _gsurface.push_back( xx2[0] );
+		    _gsurface.push_back( xx2[1] );
+		    _gsurface.push_back( xx2[2] );
+		}
+	    }
+	}
+    }
+}
+
+
+void GTKGeom3DWindow::init_model( void )
+{
+    build_geometry_surface();
+    build_cut_planes();
+}
+
+
+void GTKGeom3DWindow::init_camera_and_rotation( void )
 {
     // Calculate scale
     _center = 0.5*(_geom.origo() + _geom.max());
@@ -111,10 +168,9 @@ void GTKGeom3DWindow::init_camera_and_model( void )
 
 void GTKGeom3DWindow::init_window( void )
 {
-    std::cout << "Init Window\n";
-
     // Window
     _window = gtk_window_new( GTK_WINDOW_TOPLEVEL );
+    gtk_window_set_title( GTK_WINDOW(_window), "Simulation 3d geometry" );
     g_signal_connect( G_OBJECT(_window), "delete_event",
 		      G_CALLBACK(window_delete_signal), 
 		      (gpointer)this );
@@ -149,11 +205,9 @@ void GTKGeom3DWindow::init_window( void )
     item_edit = gtk_menu_item_new_with_mnemonic( "_Edit" );
     gtk_menu_item_set_submenu( GTK_MENU_ITEM(item_edit), menu_edit );
     gtk_menu_shell_insert( GTK_MENU_SHELL(_menubar), item_edit, 1 );
-    /*
     g_signal_connect( G_OBJECT(item_preferences), "activate",
                       G_CALLBACK(menuitem_preferences_signal),
                       (gpointer)this );
-    */
 
     // Tool bar
     _toolbar = gtk_toolbar_new();
@@ -255,6 +309,22 @@ void GTKGeom3DWindow::init_window( void )
 		      G_CALLBACK(menuitem_tool_change_signal),
 		      (gpointer)this );
     
+    // Creating separator
+    toolitem = gtk_separator_tool_item_new();
+    gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
+
+    // Creating "Geom 2D" button
+    pixbuf = gdk_pixbuf_new_from_inline( -1, icon_geom3d_inline, FALSE, NULL );
+    icon = gtk_image_new_from_pixbuf( pixbuf );
+    toolitem = gtk_tool_button_new( icon, "2D geometry view" );
+#if GTK_CHECK_VERSION(2,12,0)
+    gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "2D geometry view" );
+#endif
+    gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
+    g_signal_connect( G_OBJECT(toolitem), "clicked",
+		      G_CALLBACK(menuitem_geom2d_signal),
+		      (gpointer)this );
+
     // Add toolbar to vbox
     gtk_box_pack_start( GTK_BOX(vbox), _toolbar, FALSE, TRUE, 0 );
 
@@ -323,8 +393,6 @@ void GTKGeom3DWindow::delete_window( void )
 
 void GTKGeom3DWindow::configure( void )
 {
-    std::cout << "Configure\n";
-
     // Initialize OpenGL context
     GdkGLContext *gl_context = gtk_widget_get_gl_context( _darea );
     GdkGLDrawable *gl_drawable = gtk_widget_get_gl_drawable( _darea );
@@ -381,13 +449,10 @@ void GTKGeom3DWindow::draw_bbox( void )
     glBegin( GL_LINES );
     glVertex3d( min[0], min[1], min[2] );
     glVertex3d( min[0], min[1], max[2] );
-
     glVertex3d( min[0], max[1], min[2] );
     glVertex3d( min[0], max[1], max[2] );
-
     glVertex3d( max[0], max[1], min[2] );
     glVertex3d( max[0], max[1], max[2] );
-
     glVertex3d( max[0], min[1], min[2] );
     glVertex3d( max[0], min[1], max[2] );
     glEnd();
@@ -402,25 +467,13 @@ void GTKGeom3DWindow::draw_model( void )
     glMaterialfv( GL_FRONT, GL_DIFFUSE, material_diffuse );
     glMaterialfv( GL_FRONT, GL_AMBIENT, material_ambient );
 
-    Vec3D x[3];
-    for( int32_t i = 0; i < _geom.surface_trianglec(); i++ ) {
-	const VTriangle &tri = _geom.surface_triangle(i);
-	
-	uint32_t v0 = tri[0];
-	x[0] = _scale*(_geom.surface_vertex(v0)-_center);
-	uint32_t v1 = tri[1];
-	x[1] = _scale*(_geom.surface_vertex(v1)-_center);
-	uint32_t v2 = tri[2];
-	x[2] = _scale*(_geom.surface_vertex(v2)-_center);
-
-	Vec3D norm = cross( x[1]-x[0], x[2]-x[0] );
-	norm.normalize();
+    for( size_t a = 0; a < _gsurface.size(); a+=12 ) {
 
 	glBegin( GL_TRIANGLES );
-	glNormal3dv( &norm[0] );
-	glVertex3dv( &x[0][0] );
-	glVertex3dv( &x[1][0] );
-	glVertex3dv( &x[2][0] );
+	glNormal3fv( &_gsurface[a+0] );
+	glVertex3fv( &_gsurface[a+3] );
+	glVertex3fv( &_gsurface[a+6] );
+	glVertex3fv( &_gsurface[a+9] );
 	glEnd();
     }
 }
@@ -435,20 +488,22 @@ void GTKGeom3DWindow::draw_cut_planes( void )
     glMaterialfv( GL_FRONT, GL_AMBIENT, material_ambient );
 
     for( int32_t p = 0; p < 6; p++ ) {
-	for( uint32_t i = 0; i < _csurface[p].size(); i+=3 ) {
 	
-	    Vec3D x0 = _scale*(_csurface[p][i+0]-_center);
-	    Vec3D x1 = _scale*(_csurface[p][i+1]-_center);
-	    Vec3D x2 = _scale*(_csurface[p][i+2]-_center);
+	float norm[3] = {0.0, 0.0, 0.0};
+	if( p == 0 ) norm[0] = 1.0;
+	else if( p == 1 ) norm[0] = -1.0;
+	else if( p == 2 ) norm[1] = 1.0;
+	else if( p == 3 ) norm[1] = -1.0;
+	else if( p == 4 ) norm[2] = 1.0;
+	else norm[2] = -1.0;
 
-	    Vec3D norm = cross( x1-x0, x2-x0 );
-	    norm.normalize();
-	
+	for( uint32_t i = 0; i < _csurface[p].size(); i+=9 ) {
+
 	    glBegin( GL_TRIANGLES );
-	    glNormal3dv( &norm[0] );
-	    glVertex3dv( &x0[0] );
-	    glVertex3dv( &x1[0] );
-	    glVertex3dv( &x2[0] );
+	    glNormal3fv( norm );
+	    glVertex3fv( &_csurface[p][i+0] );
+	    glVertex3fv( &_csurface[p][i+3] );
+	    glVertex3fv( &_csurface[p][i+6] );
 	    glEnd();
 	}
     }
@@ -499,7 +554,10 @@ void GTKGeom3DWindow::cplane_add_vertex( int32_t p, const int32_t i[3], const in
     u[vb[1]] += dy;
 
     Vec3D x( _geom.origo(0)+_geom.h()*u[0], _geom.origo(1)+_geom.h()*u[1], _geom.origo(2)+_geom.h()*u[2] );
-    _csurface[p].push_back( x );
+    Vec3D xx = _scale*(x-_center);
+    _csurface[p].push_back( xx[0] );
+    _csurface[p].push_back( xx[1] );
+    _csurface[p].push_back( xx[2] );
 }
 
 
@@ -518,16 +576,19 @@ void GTKGeom3DWindow::build_cut_plane( int32_t p, int32_t const vb[3], int32_t l
     i[vb[2]] = level;
 
     // Go through mesh squares in cut plane
-    int32_t sizex = _geom.size(vb[0])-1;
-    int32_t sizey = _geom.size(vb[1])-1;
-    for( int32_t y = 0; y < sizey; y++ ) {
+    int32_t minx = _clevel[2*vb[0]];
+    int32_t maxx = _clevel[2*vb[0]+1];
+    int32_t miny = _clevel[2*vb[1]];
+    int32_t maxy = _clevel[2*vb[1]+1];
+    for( int32_t y = miny; y < maxy; y++ ) {
 	i[vb[1]] = y;
 
-	for( int32_t x = 0; x < sizex; x++ ) {
+	for( int32_t x = minx; x < maxx; x++ ) {
 	    i[vb[0]] = x;
 
 	    // Construct case number
 	    int32_t cn = case2d( i, vb );
+	    std::cout << cn << "\n";
 
 	    double dist;
 	    double dist2;
@@ -537,19 +598,19 @@ void GTKGeom3DWindow::build_cut_plane( int32_t p, int32_t const vb[3], int32_t l
 		break;
 	    case 1:
 		// (i,j) in
-		dist = cplane_dist( i, vb, 0, 1, 2*vb[0] );
-		cplane_add_vertex( p, i, vb, dist, 0.0 );
-		cplane_add_vertex( p, i, vb, 0.0, 0.0 );
-		dist = cplane_dist( i, vb, 1, 0, 2*vb[1] );
+		dist = cplane_dist( i, vb, 1, 0, 2*vb[0] );
+		cplane_add_vertex( p, i, vb, 1.0-dist, 0.0 );
+		dist = cplane_dist( i, vb, 0, 1, 2*vb[1] );
 		cplane_add_vertex( p, i, vb, 0.0, 1.0-dist );
+		cplane_add_vertex( p, i, vb, 0.0, 0.0 );
 		break;
 	    case 2:
 		// (i+1,j) in
 		dist = cplane_dist( i, vb, 0, 0, 2*vb[0]+1 );
 		cplane_add_vertex( p, i, vb, dist, 0.0 );
-		cplane_add_vertex( p, i, vb, 0.0, 0.0 );
-		dist = cplane_dist( i, vb, 1, 0, 2*vb[1] );
-		cplane_add_vertex( p, i, vb, 0.0, 1.0-dist );
+		cplane_add_vertex( p, i, vb, 1.0, 0.0 );
+		dist = cplane_dist( i, vb, 1, 1, 2*vb[1] );
+		cplane_add_vertex( p, i, vb, 1.0, 1.0-dist );
 		break;
 	    case 3:
 		// (i,j) and (i+1,j) in
@@ -706,17 +767,45 @@ void GTKGeom3DWindow::build_cut_planes( void )
 {
     int vb[3];
 
+    // Clear old
+    for( int a = 0; a < 6; a++ )
+	_csurface[a].clear();
+
+    // X=0
+    vb[0] = 1;
+    vb[1] = 2;
+    vb[2] = 0;
+    build_cut_plane( 0, vb, _clevel[0] );
+
+    // X=size(0)-1
+    vb[0] = 2;
+    vb[1] = 1;
+    vb[2] = 0;
+    build_cut_plane( 1, vb, _clevel[1] );
+
+    // Y=0
+    vb[0] = 2;
+    vb[1] = 0;
+    vb[2] = 1;
+    build_cut_plane( 2, vb, _clevel[2] );
+
+    // Y=size(1)-1
+    vb[0] = 0;
+    vb[1] = 2;
+    vb[2] = 1;
+    build_cut_plane( 3, vb, _clevel[3] );
+
     // Z=0
     vb[0] = 0;
     vb[1] = 1;
     vb[2] = 2;
-    build_cut_plane( 0, vb, 0 );
+    build_cut_plane( 4, vb, _clevel[4] );
 
     // Z=size(2)-1
     vb[0] = 1;
     vb[1] = 0;
     vb[2] = 2;
-    build_cut_plane( 1, vb, _geom.size(2)-1 );
+    build_cut_plane( 5, vb, _clevel[5] );
 }
 
 
@@ -731,7 +820,6 @@ void GTKGeom3DWindow::draw( void )
     glMultMatrixd( &_modeltrans[0] );
 
     // Draw model
-    build_cut_planes();
     draw_cut_planes();
     draw_model();
 
@@ -810,7 +898,7 @@ void GTKGeom3DWindow::zoom_window( int action, double x, double y )
 
 void GTKGeom3DWindow::zoom_fit( void )
 {
-    init_camera_and_model();
+    init_camera_and_rotation();
     gtk_widget_queue_draw_area( _darea, 0, 0, _width, _height );
 }
 
@@ -905,10 +993,78 @@ void GTKGeom3DWindow::menuitem_tool_change( GtkToolButton *button )
 
 void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 {
+    GtkWidget *dialog = gtk_dialog_new_with_buttons( "Plot preferences",
+						     GTK_WINDOW(_window),
+						     (GtkDialogFlags)(GTK_DIALOG_MODAL | 
+								      GTK_DIALOG_DESTROY_WITH_PARENT), 
+						     GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
+						     GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
+						     NULL );
+    GtkWidget *vbox = GTK_DIALOG(dialog)->vbox;
 
+    // ****************************************************************************
+
+    GtkWidget *vbox2 = gtk_vbox_new( FALSE, 0 );
+
+    // Cut levels
+    GtkWidget *spinbutton[6];
+    for( int a = 0; a < 6; a++ ) {
+	GtkWidget *hbox = gtk_hbox_new( TRUE, 30 );
+	GtkWidget *label;
+	if( a == 0 ) {
+	    label = gtk_label_new( "Cut level xmin" );
+	    spinbutton[a] = gtk_spin_button_new_with_range( 0, _geom.size(0)-1, 1.0 );
+	} else if( a == 1 ) {
+	    label = gtk_label_new( "Cut level xmax" );
+	    spinbutton[a] = gtk_spin_button_new_with_range( 0, _geom.size(0)-1, 1.0 );
+	} else if( a == 2 ) {
+	    label = gtk_label_new( "Cut level ymin" );
+	    spinbutton[a] = gtk_spin_button_new_with_range( 0, _geom.size(1)-1, 1.0 );
+	} else if( a == 3 ) {
+	    label = gtk_label_new( "Cut level ymax" );
+	    spinbutton[a] = gtk_spin_button_new_with_range( 0, _geom.size(1)-1, 1.0 );
+	} else if( a == 4 ) {
+	    label = gtk_label_new( "Cut level zmin" );
+	    spinbutton[a] = gtk_spin_button_new_with_range( 0, _geom.size(2)-1, 1.0 );
+	} else if( a == 5 ) {
+	    label = gtk_label_new( "Cut level zmax" );
+	    spinbutton[a] = gtk_spin_button_new_with_range( 0, _geom.size(2)-1, 1.0 );
+	}
+	gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+	gtk_spin_button_set_value( GTK_SPIN_BUTTON(spinbutton[a]), _clevel[a] );
+	gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+	gtk_box_pack_start( GTK_BOX(hbox), spinbutton[a], FALSE, TRUE, 0 );
+	gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+    }
+
+    // Notebook, page 1
+    GtkWidget *label = gtk_label_new( "Cut levels" );
+    GtkWidget *notebook = gtk_notebook_new();
+    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox2, label );
+
+    // Pack notebook
+    gtk_box_pack_start( GTK_BOX(vbox), notebook, FALSE, TRUE, 0 );
+
+    gtk_widget_show_all( dialog );
+    if( gtk_dialog_run( GTK_DIALOG(dialog) ) == GTK_RESPONSE_ACCEPT ) {
+
+	for( int a = 0; a < 6; a++ ) {
+	    _clevel[a] = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(spinbutton[a]) );
+	}
+
+	// Rebuild model and refresh output
+	init_model();
+	gtk_widget_queue_draw_area( _darea, 0, 0, _width, _height );
+    }
+
+    gtk_widget_destroy( dialog );
 }
 
 
+void GTKGeom3DWindow::geom2d_launch( void )
+{
+    _plotter.new_geometry_plot_window();
+}
 
 
 /* **********************************************
@@ -1006,6 +1162,14 @@ void GTKGeom3DWindow::menuitem_tool_change_signal( GtkToolButton *button,
 {
     GTKGeom3DWindow *window = (GTKGeom3DWindow *)object;
     window->menuitem_tool_change( button );
+}
+
+
+void GTKGeom3DWindow::menuitem_geom2d_signal( GtkToolButton *button,
+					    gpointer object )
+{
+    GTKGeom3DWindow *window = (GTKGeom3DWindow *)object;
+    window->geom2d_launch();
 }
 
 

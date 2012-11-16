@@ -131,6 +131,7 @@ class GTKGeomWindow : public GTKFrameWindow {
     void darea_motion2( GdkEventMotion *event );
     void darea_button2( GdkEventButton *event );
     void field_activate( void );
+    void geom3d_launch( void );
 
     static void combobox_signal( GtkComboBox *combobox,
 				 gpointer object );
@@ -138,6 +139,8 @@ class GTKGeomWindow : public GTKFrameWindow {
 				   gpointer object );
     static void menuitem_tool_change_signal( GtkToolButton *button,
 					     gpointer object );
+    static void menuitem_geom3d_signal( GtkToolButton *button,
+					gpointer object );
     static gboolean darea_motion_signal2( GtkWidget *widget, 
 					  GdkEventMotion *event,
 					  gpointer object );

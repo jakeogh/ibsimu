@@ -113,6 +113,18 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       &plotter,
 		      G_CALLBACK(menuitem_tool_change_signal),
 		      (gpointer)this );
 
+    // Creating "Geom 3D" button
+    pixbuf = gdk_pixbuf_new_from_inline( -1, icon_geom3d_inline, FALSE, NULL );
+    icon = gtk_image_new_from_pixbuf( pixbuf );
+    toolitem = gtk_tool_button_new( icon, "3D geometry view" );
+#if GTK_CHECK_VERSION(2,12,0)
+    gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "3D geometry view" );
+#endif
+    gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
+    g_signal_connect( G_OBJECT(toolitem), "clicked",
+		      G_CALLBACK(menuitem_geom3d_signal),
+		      (gpointer)this );
+
     // Creating separator
     toolitem = gtk_separator_tool_item_new();
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
@@ -1067,33 +1079,41 @@ void GTKGeomWindow::menuitem_tool_change( GtkToolButton *button )
 }
 
 
+void GTKGeomWindow::geom3d_launch( void )
+{
+    _plotter.new_geometry_3d_plot_window();
+}
+
+
 void GTKGeomWindow::combobox_signal( GtkComboBox *combobox,
 				     gpointer object )
 {
-    GTKGeomWindow *plotter = (GTKGeomWindow *)object;
-    plotter->combobox( combobox );
+    GTKGeomWindow *window = (GTKGeomWindow *)object;
+    window->combobox( combobox );
 }
 
 
 void GTKGeomWindow::spinbutton_signal( GtkSpinButton *spinbutton,
 				       gpointer object )
 {
-    GTKGeomWindow *plotter = (GTKGeomWindow *)object;
-    plotter->spinbutton( spinbutton );
+    GTKGeomWindow *window = (GTKGeomWindow *)object;
+    window->spinbutton( spinbutton );
 }
-
 
 
 void GTKGeomWindow::menuitem_tool_change_signal( GtkToolButton *button,
 						 gpointer object )
 {
-    GTKGeomWindow *plotter = (GTKGeomWindow *)object;
-    plotter->menuitem_tool_change( button );
+    GTKGeomWindow *window = (GTKGeomWindow *)object;
+    window->menuitem_tool_change( button );
 }
 
 
-
-
-
+void GTKGeomWindow::menuitem_geom3d_signal( GtkToolButton *button,
+					    gpointer object )
+{
+    GTKGeomWindow *window = (GTKGeomWindow *)object;
+    window->geom3d_launch();
+}
 
 

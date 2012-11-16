@@ -81,15 +81,22 @@ class GTKGeom3DWindow : public GTKWindow {
     double             _scale;
     Transformation     _modeltrans;
 
-    std::vector<Vec3D> _csurface[6];
+    int32_t            _clevel[6];
+    std::vector<float> _csurface[6];  // Sequences of 3*3 numbers, x0,x1,x2
+    std::vector<float> _gsurface;     // Sequences of 4*3 numbers, norm,x0,x1,x2
 
-    void init_camera_and_model( void );
     void init_window( void );
+
+    void init_model( void );
+    void init_camera_and_rotation( void );
+
     void cplane_add_vertex( int32_t p, const int32_t i[3], const int32_t vb[3], double dx, double dy );
     double cplane_dist( const int32_t i[3], const int32_t vb[3], int32_t dx, int32_t dy, int32_t dir );
     int32_t case2d( const int32_t i[3], const int32_t vb[3] );
     void build_cut_plane( int32_t p, const int32_t vb[3], int32_t level );
     void build_cut_planes( void );
+    void build_geometry_surface( void );
+
     void draw_cut_planes( void );
     void draw_model( void );
     void draw_bbox( void );
@@ -100,6 +107,7 @@ class GTKGeom3DWindow : public GTKWindow {
     void zoom_in( double x, double y );
     void zoom_window( int action, double x, double y );
     void zoom_fit( void );
+    void geom2d_launch( void );
 
     void track( int action, double x, double y );
 
@@ -127,6 +135,8 @@ class GTKGeom3DWindow : public GTKWindow {
 					  gpointer object );
     static void menuitem_zoom_fit_signal( GtkToolButton *button,
 					  gpointer object );
+    static void menuitem_geom2d_signal( GtkToolButton *button,
+					gpointer object );
     static void menuitem_preferences_signal( GtkMenuItem *menuitem,
 					     gpointer object );
 
