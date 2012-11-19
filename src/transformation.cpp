@@ -168,6 +168,16 @@ Transformation Transformation::inverse( void ) const
 }
 
 
+Transformation Transformation::transpose( void ) const
+{
+    Transformation ret( x[0], x[4], x[8], x[12],
+			x[1], x[5], x[9], x[13],
+			x[2], x[6], x[10], x[14],
+			x[3], x[7], x[11], x[15] );
+    return( ret );
+}
+
+
 const Transformation &Transformation::operator*=( double s )
 {
     for( size_t i = 0; i < 16; i++ )
@@ -230,32 +240,10 @@ Vec4D Transformation::operator%( const Vec4D &v ) const
 }
 
 
-Vec4D Transformation::transform( const Vec4D &xin ) const
-{
-    return( *this * xin );
-}
-
-
-Vec3D Transformation::transform_point( const Vec3D &xin ) const
-{
-    Vec4D r = *this * Vec4D( xin[0], xin[1], xin[2], 1.0 );
-
-    return( Vec3D( r[0], r[1], r[2] ) );
-}
-
-
 Vec3D Transformation::inv_transform_point( const Vec3D &xin ) const
 {
     Transformation t = this->inverse();
     Vec4D r = t * Vec4D( xin[0], xin[1], xin[2], 1.0 );
-
-    return( Vec3D( r[0], r[1], r[2] ) );
-}
-
-
-Vec3D Transformation::transform_vector( const Vec3D &xin ) const
-{
-    Vec4D r = *this * Vec4D( xin[0], xin[1], xin[2], 0.0 );
 
     return( Vec3D( r[0], r[1], r[2] ) );
 }
@@ -412,7 +400,7 @@ std::ostream &operator<<( std::ostream &os, const Transformation &t )
 {
     for( size_t i = 0; i < 4; i++ ) {
 	for( size_t j = 0; j < 4; j++ ) {
-	    os << std::setw(12) << to_string(t.x[4*j+i]).substr(0,12) << " ";
+	    os << std::setw(12) << to_string(t.x[4*i+j]).substr(0,12) << " ";
 	}
 	os << "\n";
     }

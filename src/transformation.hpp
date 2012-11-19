@@ -55,16 +55,21 @@
  *  4-vectors of type Vec4D. The transformation contains convenience
  *  functions for making affine transformations on 3-vectors of type
  *  Vec3D.
+ *
+ *  The Transformation object is a 4x4 matrix with convenience
+ *  functions for transformation related operations. The matrix is
+ *  stored in row first order:
+ *  \code
+ *   0  1  2  3
+ *   4  5  6  7
+ *   8  9 10 11
+ *  12 13 14 15
+ *  \endcode
  */
 class Transformation
 {
 
-    double x[16]; /* Matrix data in row first order:
-		   *   0  1  2  3
-		   *   4  5  6  7
-		   *   8  9 10 11
-		   *  12 13 14 15
-		   */
+    double x[16];
 
 public:
 
@@ -91,10 +96,6 @@ public:
      */
     ~Transformation();
 
-
-
-
-
     /*! \brief Indexing for transformation matrix.
      */
     double &operator[]( int i ) {
@@ -107,6 +108,10 @@ public:
         return( x[i] );
     }
     
+    /*! \brief Return transpose matrix.
+     */
+    Transformation transpose( void ) const;
+
     /*! \brief Return determinant of matrix.
      */
     double determinant( void ) const;
@@ -142,23 +147,29 @@ public:
      */
     Vec4D operator%( const Vec4D &v ) const;
 
-
-
-
-
     /*! \brief Transform homogenous vector \a xin.
      */
-    Vec4D transform( const Vec4D &xin ) const;
+    Vec4D transform( const Vec4D &xin ) const {
+	return( *this * xin );
+    }
 
-
-
-
+    /*! \brief Transform point \a xin to homogenous space.
+     *
+     *  Homogenization of output vector is not done.
+     */
+    Vec4D transform_homogenous_point( const Vec3D &xin ) const {
+	return( *this * Vec4D( xin[0], xin[1], xin[2], 1.0 ) );
+    }
+    
     /*! \brief Transform point \a xin.
      *
      *  Assumes the transformation is affine. Homogenization of output
      *  vector is not done.
      */
-    Vec3D transform_point( const Vec3D &xin ) const;
+    Vec3D transform_point( const Vec3D &xin ) const {
+	Vec4D r = *this * Vec4D( xin[0], xin[1], xin[2], 1.0 );	
+	return( Vec3D( r[0], r[1], r[2] ) );
+    }
 
     /*! \brief Inverse transform point \a xin.
      *
@@ -171,15 +182,15 @@ public:
      */
     Vec3D inv_transform_point( const Vec3D &xin ) const;
 
-
-
-
     /*! \brief Transform vector \a xin.
      *
      *  Assumes the transformation is affine. Homogenization of output
      *  vector is not done.
      */
-    Vec3D transform_vector( const Vec3D &xin ) const;
+    Vec3D transform_vector( const Vec3D &xin ) const {
+	Vec4D r = *this * Vec4D( xin[0], xin[1], xin[2], 0.0 );	
+	return( Vec3D( r[0], r[1], r[2] ) );
+    }
 
     /*! \brief Inverse transform vector \a xin.
      *
@@ -191,9 +202,6 @@ public:
      *  is done inverse() and transform_vector() functions should be used.
      */
     Vec3D inv_transform_vector( const Vec3D &xin ) const;
-
-
-
 
     /*! \brief Reset transformation.
      *
@@ -325,8 +333,4 @@ public:
 };
 
 
-
-
 #endif
-
-
