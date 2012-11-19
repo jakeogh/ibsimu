@@ -81,6 +81,8 @@ geomplot.cpp \
 geomplot.hpp \
 geomplotter.cpp \
 geomplotter.hpp \
+glrenderer.cpp \
+glrenderer.hpp \
 graph.hpp \
 graph3d.hpp \
 gtkfielddiagdialog.cpp \
@@ -206,12 +208,16 @@ random.cpp \
 random.hpp \
 readascii.cpp \
 readascii.hpp \
+renderer.cpp \
+renderer.hpp \
 ruler.cpp \
 ruler.hpp \
 scalarfield.hpp \
 scharge.cpp \
 scharge.hpp \
 scheduler.hpp \
+softwarerenderer.cpp \
+softwarerenderer.hpp \
 solid.hpp \
 solidgraph.cpp \
 solidgraph.hpp \

@@ -41,11 +41,9 @@
  */
 
 
-#include <gtk/gtkgl.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include "softwarerenderer.hpp"
+#include "glrenderer.hpp"
 #include "gtkgeom3dwindow.hpp"
-#include "camera.hpp"
 #include "icons.hpp"
 
 
@@ -58,7 +56,7 @@
 
 GTKGeom3DWindow::GTKGeom3DWindow( GTKPlotter &plotter,
 				  const Geometry &geom )
-    : _plotter(plotter), _geom(geom), _width(640), _height(480), _camera(NULL)
+    : _plotter(plotter), _geom(geom), _width(640), _height(480)
 {
     _clevel[0] = 0;
     _clevel[1] = _geom.size(0)-1;
@@ -71,19 +69,9 @@ GTKGeom3DWindow::GTKGeom3DWindow( GTKPlotter &plotter,
     init_model();
     init_window();
 
-    // Initialize OpenGL
-    GdkGLConfigMode mode = (GdkGLConfigMode)( GDK_GL_MODE_RGBA |
-					      GDK_GL_MODE_DEPTH |
-					      GDK_GL_MODE_DOUBLE );
-    GdkGLConfig *gl_config = gdk_gl_config_new_by_mode( mode );
-    if( !gl_config )
-        g_assert_not_reached();
+    //_renderer = new GLRenderer( _darea );
+    _renderer = new SoftwareRenderer( _darea );
 
-    if( !gtk_widget_set_gl_capability( _darea, gl_config, NULL, TRUE,
-				       GDK_GL_RGBA_TYPE ) )
-        g_assert_not_reached();
-
-    // Must be set after set_gl_capability
     g_signal_connect( G_OBJECT(_darea), "configure_event",
 		      G_CALLBACK(darea_configure_signal), 
 		      (gpointer)this );
@@ -99,7 +87,7 @@ void GTKGeom3DWindow::build_geometry_surface( void )
 {
     // Clear old and reserve space
     _gsurface.clear();
-    _gsurface.reserve( 12*_geom.surface_trianglec() );
+    _gsurface.reserve( 4*_geom.surface_trianglec() );
 
     // Go through all mesh cubes inside cut levels
     for( int32_t k = _clevel[4]; k < _clevel[5]; k++ ) {
@@ -116,21 +104,10 @@ void GTKGeom3DWindow::build_geometry_surface( void )
 		    const Vec3D &x2 = _geom.surface_vertex( tri[2] );
 		    Vec3D norm = cross( x1-x0, x2-x0 );
 		    norm.normalize();
-		    _gsurface.push_back( norm[0] );
-		    _gsurface.push_back( norm[1] );
-		    _gsurface.push_back( norm[2] );
-		    Vec3D xx0 = _scale*(x0-_center);
-		    _gsurface.push_back( xx0[0] );
-		    _gsurface.push_back( xx0[1] );
-		    _gsurface.push_back( xx0[2] );
-		    Vec3D xx1 = _scale*(x1-_center);
-		    _gsurface.push_back( xx1[0] );
-		    _gsurface.push_back( xx1[1] );
-		    _gsurface.push_back( xx1[2] );
-		    Vec3D xx2 = _scale*(x2-_center);
-		    _gsurface.push_back( xx2[0] );
-		    _gsurface.push_back( xx2[1] );
-		    _gsurface.push_back( xx2[2] );
+		    _gsurface.push_back( norm );
+		    _gsurface.push_back( _scale*(x0-_center) );
+		    _gsurface.push_back( _scale*(x1-_center) );
+		    _gsurface.push_back( _scale*(x2-_center) );
 		}
 	    }
 	}
@@ -153,13 +130,12 @@ void GTKGeom3DWindow::init_camera_and_rotation( void )
     _scale = 1.0/size.norm2();
 
     // Init camera
-    _camera = new PerspectiveCamera;
-    _camera->set_zplanes( 1.0, 3.0 );
-    _camera->set_camera_location( Vec3D(0,0,2) );
-    _camera->set_target_location( Vec3D(0,0,0) );
-    _camera->set_camera_up( Vec3D(0,1,0) );
-    _camera->set_size( _width, _height );
-    _camera->set_field_of_view( 0.25 );
+    _near = 1.0;
+    _far = 3.0;
+    _camera = Vec3D(0,0,2);
+    _target = Vec3D(0,0,0);
+    _up = Vec3D(0,1,0);
+    _zoom = 0.25;
 
     // Init model transformation
     _modeltrans = Transformation::unity();
@@ -346,14 +322,7 @@ void GTKGeom3DWindow::init_window( void )
 			   GDK_BUTTON_PRESS_MASK |
 			   GDK_BUTTON_RELEASE_MASK |
 			   GDK_BUTTON_MOTION_MASK );
-    /*
-    g_signal_connect( G_OBJECT(_darea), "configure_event",
-		      G_CALLBACK(darea_configure_signal), 
-		      (gpointer)this );
-    g_signal_connect( G_OBJECT(_darea), "expose_event",
-		      G_CALLBACK(darea_expose_signal), 
-		      (gpointer)this );
-    */
+
     g_signal_connect( G_OBJECT(_darea), "button_press_event",
 		      G_CALLBACK(darea_button_signal),
 		      (gpointer)this );
@@ -380,8 +349,6 @@ void GTKGeom3DWindow::init_window( void )
 
 GTKGeom3DWindow::~GTKGeom3DWindow()
 {
-    if( _camera )
-	delete _camera;
 }
 
 
@@ -393,103 +360,64 @@ void GTKGeom3DWindow::delete_window( void )
 
 void GTKGeom3DWindow::configure( void )
 {
-    // Initialize OpenGL context
-    GdkGLContext *gl_context = gtk_widget_get_gl_context( _darea );
-    GdkGLDrawable *gl_drawable = gtk_widget_get_gl_drawable( _darea );
-    if( !gdk_gl_drawable_gl_begin( gl_drawable, gl_context ) )
-	g_assert_not_reached();
-
-    // Set OpenGL viewport
     GtkAllocation alloc;
     gtk_widget_get_allocation( _darea, &alloc );
-    glViewport( 0, 0, alloc.width, alloc.height );
     _width = alloc.width;
     _height = alloc.height;
-
-    // Set camera
-    _camera->set_size( _width, _height );
-
-    // Setup OpenGL rendering
-    float light_ambient[] = { 1.0, 1.0, 1.0, 0.0 };
-    float light_position[] = { 0.0, 0.0, -50.0, 0.0 };
-    glLightfv( GL_LIGHT0, GL_AMBIENT, light_ambient );
-    glLightfv( GL_LIGHT0, GL_POSITION, light_position );
-
-    glEnable( GL_LIGHTING );
-    glEnable( GL_LIGHT0 );
-    glEnable( GL_DEPTH_TEST );
-
-    // Close OpenGL context
-    gdk_gl_drawable_gl_end( gl_drawable );
 }
 
 
 void GTKGeom3DWindow::draw_bbox( void )
 {
-    Vec3D min = _scale*(_geom.origo()-_center);
-    Vec3D max = _scale*(_geom.max()-_center);
+    _renderer->disable_lighting();
 
-    glDisable( GL_LIGHTING );
-    glColor3f( 0.0, 0.0, 0.0 );
+    Vec3D pad = 0.01*_geom.h()*Vec3D(1,1,1);
+    Vec3D min = _scale*(_geom.origo()-pad-_center);
+    Vec3D max = _scale*(_geom.max()+pad-_center);
 
-    glBegin( GL_LINE_LOOP );
-    glVertex3d( min[0], min[1], min[2] );
-    glVertex3d( min[0], max[1], min[2] );
-    glVertex3d( max[0], max[1], min[2] );
-    glVertex3d( max[0], min[1], min[2] );
-    glEnd();
+    Vec3D x0 = min;
+    Vec3D x1 = Vec3D(  );
+    _renderer->line( Vec3D( min[0], min[1], min[2] ),
+		     Vec3D( min[0], max[1], min[2] ) );
+    _renderer->line( Vec3D( min[0], max[1], min[2] ),
+		     Vec3D( max[0], max[1], min[2] ) );
+    _renderer->line( Vec3D( max[0], max[1], min[2] ),
+		     Vec3D( max[0], min[1], min[2] ) );
+    _renderer->line( Vec3D( max[0], min[1], min[2] ),
+		     Vec3D( min[0], min[1], min[2] ) );
 
-    glBegin( GL_LINE_LOOP );
-    glVertex3d( min[0], min[1], max[2] );
-    glVertex3d( min[0], max[1], max[2] );
-    glVertex3d( max[0], max[1], max[2] );
-    glVertex3d( max[0], min[1], max[2] );
-    glEnd();
+    _renderer->line( Vec3D( min[0], min[1], max[2] ),
+		     Vec3D( min[0], max[1], max[2] ) );
+    _renderer->line( Vec3D( min[0], max[1], max[2] ),
+		     Vec3D( max[0], max[1], max[2] ) );
+    _renderer->line( Vec3D( max[0], max[1], max[2] ),
+		     Vec3D( max[0], min[1], max[2] ) );
+    _renderer->line( Vec3D( max[0], min[1], max[2] ),
+		     Vec3D( min[0], min[1], max[2] ) );
 
-    glBegin( GL_LINES );
-    glVertex3d( min[0], min[1], min[2] );
-    glVertex3d( min[0], min[1], max[2] );
-    glVertex3d( min[0], max[1], min[2] );
-    glVertex3d( min[0], max[1], max[2] );
-    glVertex3d( max[0], max[1], min[2] );
-    glVertex3d( max[0], max[1], max[2] );
-    glVertex3d( max[0], min[1], min[2] );
-    glVertex3d( max[0], min[1], max[2] );
-    glEnd();
+    _renderer->line( Vec3D( min[0], min[1], min[2] ),
+		     Vec3D( min[0], min[1], max[2] ) );
+    _renderer->line( Vec3D( min[0], max[1], min[2] ),
+		     Vec3D( min[0], max[1], max[2] ) );
+    _renderer->line( Vec3D( max[0], max[1], min[2] ),
+		     Vec3D( max[0], max[1], max[2] ) );
+    _renderer->line( Vec3D( max[0], min[1], min[2] ),
+		     Vec3D( max[0], min[1], max[2] ) );
 }
 
 
 void GTKGeom3DWindow::draw_model( void )
 {
-    glEnable( GL_LIGHTING );
-    float material_diffuse[] =  { 0.2, 0.2, 0.8, 0.0 };
-    float material_ambient[] =  { 0.0, 0.0, 0.2, 0.0 };
-    glMaterialfv( GL_FRONT, GL_DIFFUSE, material_diffuse );
-    glMaterialfv( GL_FRONT, GL_AMBIENT, material_ambient );
-
-    for( size_t a = 0; a < _gsurface.size(); a+=12 ) {
-
-	glBegin( GL_TRIANGLES );
-	glNormal3fv( &_gsurface[a+0] );
-	glVertex3fv( &_gsurface[a+3] );
-	glVertex3fv( &_gsurface[a+6] );
-	glVertex3fv( &_gsurface[a+9] );
-	glEnd();
-    }
+    for( size_t a = 0; a < _gsurface.size(); a+=4 )
+	_renderer->flat_triangle( _gsurface[a+1], _gsurface[a+2], _gsurface[a+3], _gsurface[a+0] );
 }
 
 
 void GTKGeom3DWindow::draw_cut_planes( void )
 {
-    glEnable( GL_LIGHTING );
-    float material_diffuse[] =  { 0.2, 0.2, 0.8, 0.0 };
-    float material_ambient[] =  { 0.0, 0.0, 0.2, 0.0 };
-    glMaterialfv( GL_FRONT, GL_DIFFUSE, material_diffuse );
-    glMaterialfv( GL_FRONT, GL_AMBIENT, material_ambient );
-
     for( int32_t p = 0; p < 6; p++ ) {
 	
-	float norm[3] = {0.0, 0.0, 0.0};
+	Vec3D norm( 0.0, 0.0, 0.0 );
 	if( p == 0 ) norm[0] = 1.0;
 	else if( p == 1 ) norm[0] = -1.0;
 	else if( p == 2 ) norm[1] = 1.0;
@@ -497,15 +425,8 @@ void GTKGeom3DWindow::draw_cut_planes( void )
 	else if( p == 4 ) norm[2] = 1.0;
 	else norm[2] = -1.0;
 
-	for( uint32_t i = 0; i < _csurface[p].size(); i+=9 ) {
-
-	    glBegin( GL_TRIANGLES );
-	    glNormal3fv( norm );
-	    glVertex3fv( &_csurface[p][i+0] );
-	    glVertex3fv( &_csurface[p][i+3] );
-	    glVertex3fv( &_csurface[p][i+6] );
-	    glEnd();
-	}
+	for( uint32_t a = 0; a < _csurface[p].size(); a+=3 )
+	    _renderer->flat_triangle( _csurface[p][a+0], _csurface[p][a+1], _csurface[p][a+2], norm );
     }
 }
 
@@ -554,10 +475,7 @@ void GTKGeom3DWindow::cplane_add_vertex( int32_t p, const int32_t i[3], const in
     u[vb[1]] += dy;
 
     Vec3D x( _geom.origo(0)+_geom.h()*u[0], _geom.origo(1)+_geom.h()*u[1], _geom.origo(2)+_geom.h()*u[2] );
-    Vec3D xx = _scale*(x-_center);
-    _csurface[p].push_back( xx[0] );
-    _csurface[p].push_back( xx[1] );
-    _csurface[p].push_back( xx[2] );
+    _csurface[p].push_back( _scale*(x-_center) );
 }
 
 
@@ -588,7 +506,7 @@ void GTKGeom3DWindow::build_cut_plane( int32_t p, int32_t const vb[3], int32_t l
 
 	    // Construct case number
 	    int32_t cn = case2d( i, vb );
-	    std::cout << cn << "\n";
+	    //std::cout << cn << "\n";
 
 	    double dist;
 	    double dist2;
@@ -809,15 +727,26 @@ void GTKGeom3DWindow::build_cut_planes( void )
 }
 
 
-void GTKGeom3DWindow::draw( void )
+void GTKGeom3DWindow::expose( void )
 {
-    // Clear
-    glClearColor( 1.0, 1.0, 1.0, 0.0 );
-    glClearDepth( 1.0 );
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    _renderer->start_rendering();
 
-    // Set model transformation
-    glMultMatrixd( &_modeltrans[0] );
+    // View
+    _renderer->set_projection_frustum( -_zoom*_width/_height, _zoom*_width/_height,
+				       -_zoom, _zoom,
+				       _near, _far );
+    _renderer->set_view_look_at( _camera, _target, _up );
+
+    _renderer->set_light_location( Vec3D(0,0,-50) );
+    _renderer->set_light_diffuse_color( Vec3D(1,1,1) );
+    _renderer->set_light_ambient_color( Vec3D(1,1,1) );
+
+    _renderer->set_material_ambient_color( Vec3D(0.0,0.0,0.2) );
+    _renderer->set_material_diffuse_color( Vec3D(0.0,0.0,0.8) );
+
+    _renderer->set_model_transformation( _modeltrans );
+
+    _renderer->enable_view_settings();
 
     // Draw model
     draw_cut_planes();
@@ -825,27 +754,8 @@ void GTKGeom3DWindow::draw( void )
 
     // Draw bbox
     draw_bbox();
-}
 
-
-void GTKGeom3DWindow::expose( void )
-{
-    // Initialize OpenGL context
-    GdkGLContext *gl_context = gtk_widget_get_gl_context( _darea );
-    GdkGLDrawable *gl_drawable = gtk_widget_get_gl_drawable( _darea );
-    if( !gdk_gl_drawable_gl_begin( gl_drawable, gl_context ) )
-	g_assert_not_reached();
-
-    // Setup camera and draw
-    _camera->gl_initalize_camera();
-    draw();
-
-    // Finish draw and close OpenGL context
-    if( gdk_gl_drawable_is_double_buffered( gl_drawable) )
-        gdk_gl_drawable_swap_buffers( gl_drawable ); 
-    else
-        glFlush();
-    gdk_gl_drawable_gl_end( gl_drawable );
+    _renderer->end_rendering();
 }
 
 
@@ -858,8 +768,8 @@ void GTKGeom3DWindow::move( int action, double x, double y )
     } else {
 	double dx = x-_oldx;
 	double dy = y-_oldy;
-	_modeltrans.rotate_y_before( -3.0*dx/_width );
-	_modeltrans.rotate_x_before( -3.0*dy/_height );
+	_modeltrans.rotate_y( 3.0*dx/_width );
+	_modeltrans.rotate_x( 3.0*dy/_height );
 	_oldx = x;
 	_oldy = y;
 	gtk_widget_queue_draw_area( _darea, 0, 0, _width, _height );
@@ -869,14 +779,46 @@ void GTKGeom3DWindow::move( int action, double x, double y )
 
 void GTKGeom3DWindow::zoom_out( double x, double y )
 {
-    _camera->set_view_relative( x, y, 1.414 );
+    double fac = 1.414;
+    double left = -_zoom*_width/_height;
+    double right= _zoom*_width/_height;
+    double top = _zoom;
+    double bottom = -_zoom;
+    double u = (left + (right-left)*(x/_width));
+    double v = (bottom + (top-bottom)*(1.0-y/_height));
+    Vec3D viewdir = _target-_camera;
+    viewdir.normalize();
+    viewdir *= _near;
+    Vec3D rightdir = cross(viewdir,_up);
+    Vec3D real_up = cross(rightdir,viewdir);
+    rightdir.normalize();
+    real_up.normalize();
+    _target = _camera + _near*viewdir + u*rightdir + v*real_up;
+    _zoom *= fac;
+
     gtk_widget_queue_draw_area( _darea, 0, 0, _width, _height );
 }
 
 
 void GTKGeom3DWindow::zoom_in( double x, double y )
 {
-    _camera->set_view_relative( x, y, 0.707 );
+    double fac = 0.707;
+    double left = -_zoom*_width/_height;
+    double right= _zoom*_width/_height;
+    double top = _zoom;
+    double bottom = -_zoom;
+    double u = (left + (right-left)*(x/_width));
+    double v = (bottom + (top-bottom)*(1.0-y/_height));
+    Vec3D viewdir = _target-_camera;
+    viewdir.normalize();
+    viewdir *= _near;
+    Vec3D rightdir = cross(viewdir,_up);
+    Vec3D real_up = cross(rightdir,viewdir);
+    rightdir.normalize();
+    real_up.normalize();
+    _target = _camera + _near*viewdir + u*rightdir + v*real_up;
+    _zoom *= fac;
+
     gtk_widget_queue_draw_area( _darea, 0, 0, _width, _height );
 }
 

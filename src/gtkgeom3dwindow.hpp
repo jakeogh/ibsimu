@@ -76,14 +76,21 @@ class GTKGeom3DWindow : public GTKWindow {
     double             _endx;
     double             _endy;
 
-    class Camera      *_camera;
-    Vec3D              _center;
-    double             _scale;
+    double             _near;
+    double             _far;
+    Vec3D              _camera;
+    Vec3D              _target;
+    Vec3D              _up;
+    double             _zoom;
     Transformation     _modeltrans;
 
+    class Renderer    *_renderer;
+    Vec3D              _center;
+    double             _scale;
+
     int32_t            _clevel[6];
-    std::vector<float> _csurface[6];  // Sequences of 3*3 numbers, x0,x1,x2
-    std::vector<float> _gsurface;     // Sequences of 4*3 numbers, norm,x0,x1,x2
+    std::vector<Vec3D> _csurface[6];  // Sequences of 3: x0,x1,x2
+    std::vector<Vec3D> _gsurface;     // Sequences of 4: norm,x0,x1,x2
 
     void init_window( void );
 
@@ -100,7 +107,6 @@ class GTKGeom3DWindow : public GTKWindow {
     void draw_cut_planes( void );
     void draw_model( void );
     void draw_bbox( void );
-    void draw( void );
 
     void move( int action, double x, double y );
     void zoom_out( double x, double y );
