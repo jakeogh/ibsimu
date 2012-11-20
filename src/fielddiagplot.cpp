@@ -351,7 +351,7 @@ void FieldDiagPlot::build_plot( void )
 	}
     }
     if( datax == NULL )
-	throw( Error( ERROR_LOCATION, "both x-axes undefined" ) );
+	throw( Error( ERROR_LOCATION, "both x-axes undefined or constant" ) );
 
 
     // Y data
