@@ -68,7 +68,9 @@ GTKPlotter::GTKPlotter( int *argc, char ***argv )
 
 	// Initialize OpenGL
 	if( gtk_gl_init_check( argc, argv ) == FALSE )
-	    throw( Error( ERROR_LOCATION, "Couldn't initialize GTK/OpenGL" ) );
+	    throw( Error( ERROR_LOCATION, "Couldn't initialize GTKGLExt" ) );
+	if( gdk_gl_query_extension() == FALSE )
+	    throw( Error( ERROR_LOCATION, "No OpenGL available" ) );
     }
 }
 

@@ -121,6 +121,8 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       &plotter,
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "3D geometry view" );
 #endif
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
+    if( _geom.geom_mode() != MODE_3D || !_geom.surface_built() )
+	gtk_widget_set_sensitive( GTK_WIDGET(toolitem), FALSE );
     g_signal_connect( G_OBJECT(toolitem), "clicked",
 		      G_CALLBACK(menuitem_geom3d_signal),
 		      (gpointer)this );

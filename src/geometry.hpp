@@ -180,8 +180,7 @@ class Geometry : public Mesh
 
     std::vector<Vec3D>         _vertex;    /*!< \brief List of vertices for surface triangles. */
     std::vector<VTriangle>     _triangle;  /*!< \brief List of surface triangles. */
-    std::vector<int32_t>       _triptr;    /*!< \brief Pointer from mesh cube to first triangle 
-					    *   (-1) for no surface. */
+    std::vector<int32_t>       _triptr;    /*!< \brief Pointer from mesh cube to first triangle. */
     
     /*! \brief Check if node is solid (n>=7).
      *
@@ -236,8 +235,11 @@ class Geometry : public Mesh
 
     static const int32_t mc_faces[15*256];
 
-    Vec3D mc_surface( int32_t i, int32_t j, int32_t k, int32_t cn, int32_t ei ) const;
-    int32_t mc_case( int32_t i, int32_t j, int32_t k ) const;
+    Vec3D mc_surface( int32_t i, int32_t j, int32_t k, uint8_t cn, int32_t ei ) const;
+    uint8_t mc_case( int32_t i, int32_t j, int32_t k ) const;
+    int32_t mc_trianglec( uint8_t cn ) const;
+    int32_t mc_add_vertex_try( const Vec3D &x, int32_t i, int32_t j, int32_t k ) const;
+    int32_t mc_add_vertex( const Vec3D &x, int32_t i, int32_t j, int32_t k );
     void mc_triangulate( int32_t i, int32_t j, int32_t k );
 
 public:
@@ -341,6 +343,10 @@ public:
     /*! \brief Is the solid mesh built?
      */
     bool built( void ) const { return( _built ); }
+
+    /*! \brief Is the solid surface representation built?
+     */
+    bool surface_built( void ) const { return( _triptr.size() ); }
 
     /*! \brief Builds (or rebuilds) the solid mesh from solid
      *  definitions.

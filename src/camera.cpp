@@ -70,23 +70,11 @@ void PerspectiveCamera::gl_initalize_camera( void )
 	_right = (double)_width/_height;
 	_bottom = -1.0;
 	_top = 1.0;
-	/*
-	_left = -1.0;
-	_right = 1.0;
-	_bottom = -(double)_height/_width;
-	_top = (double)_height/_width;
-	*/
     } else {
 	_left = -1.0;
 	_right = 1.0;
 	_bottom = -(double)_height/_width;
 	_top = (double)_height/_width;
-	/*
-	_left = -(double)_width/_height;
-	_right = (double)_width/_height;
-	_bottom = -1.0;
-	_top = 1.0;
-	*/
     }
     glFrustum( _left*_zoom, 
                _right*_zoom, 

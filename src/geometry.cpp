@@ -1509,14 +1509,14 @@ const int Geometry::mc_faces[15*256] = {
 //#define MC_DEBUG 1
 
 
-int Geometry::mc_case( int32_t i, int32_t j, int32_t k ) const
+uint8_t Geometry::mc_case( int32_t i, int32_t j, int32_t k ) const
 {
 #ifdef MC_DEBUG
     std::cout << "mc_case( " << i << ", " << j << ", " << k << " ) ";
 #endif
 
     // Go through mesh nodes surrounding cube (i,j,k)
-    int res = 0;
+    uint8_t res = 0;
     uint32_t node;
     uint32_t ptr = (k*_size[1] + j)*_size[0] + i;
 
@@ -1579,7 +1579,7 @@ int Geometry::mc_case( int32_t i, int32_t j, int32_t k ) const
 }
 
 
-Vec3D Geometry::mc_surface( int32_t i, int32_t j, int32_t k, int32_t cn, int32_t ei ) const
+Vec3D Geometry::mc_surface( int32_t i, int32_t j, int32_t k, uint8_t cn, int32_t ei ) const
 {
 #ifdef MC_DEBUG
     std::cout << "mc_surface( " << i << ", " << j << ", " << k << ", " << cn << ", " << ei << " )\n";
@@ -1686,12 +1686,64 @@ Vec3D Geometry::mc_surface( int32_t i, int32_t j, int32_t k, int32_t cn, int32_t
 }
 
 
+int32_t Geometry::mc_trianglec( uint8_t cn ) const
+{
+    int32_t offset = 15*cn;
+    int32_t ti;
+    for( ti = 0; ti < 5; ti++ ) {
+	if( mc_faces[offset] == -1 )
+	    break;
+	offset += 3;
+    }
+    return( ti );
+}
+
+
+int32_t Geometry::mc_add_vertex_try( const Vec3D &x, int32_t i, int32_t j, int32_t k ) const
+{
+    if( i < 0 || j < 0 || k < 0 )
+	return( -1 );
+
+    uint8_t cn = mc_case( i, j, k );
+    int32_t tricount = mc_trianglec( cn );
+    int32_t triptr = surface_triangle_ptr( i, j, k );
+
+    for( int32_t a = 0; a < tricount; a++ ) {
+	const VTriangle &tri = _triangle[triptr+a];
+	for( int32_t b = 0; b < 3; b++ ) {
+	    const Vec3D &y = _vertex[tri[b]];
+	    if( norm2(x-y) < _h/512.0 )
+		return( tri[b] );
+	}
+    }
+
+    return( -1 );
+}
+
+
+int32_t Geometry::mc_add_vertex( const Vec3D &x, int32_t i, int32_t j, int32_t k )
+{
+    // Try if vertex x exists in neighbours
+    int32_t v;
+    if( (v=mc_add_vertex_try( x, i-1, j, k )) != -1 )
+	return( v );
+    if( (v=mc_add_vertex_try( x, i, j-1, k )) != -1 )
+	return( v );
+    if( (v=mc_add_vertex_try( x, i, j, k-1 )) != -1 )
+	return( v );
+
+    // New vertex
+    _vertex.push_back( x );
+    return( _vertex.size()-1 );
+}
+
+
 void Geometry::mc_triangulate( int32_t i, int32_t j, int32_t k )
 {
 #ifdef MC_DEBUG
     std::cout << "mc_triangulate( " << i << ", " << j << ", " << k << " )\n";
 #endif
-    int32_t cn = mc_case( i, j, k );
+    uint8_t cn = mc_case( i, j, k );
     int offset = 15*cn;
 
 #ifdef MC_DEBUG
@@ -1711,17 +1763,15 @@ void Geometry::mc_triangulate( int32_t i, int32_t j, int32_t k )
 	    break;
 
 	// Add vertices
-	// This is very simple for now, every vertex of each triangle saved as
-	// a separate entity. Algorithm needed for finding duplicates vertices.
+	int32_t v[3];
 	for( int a = 0; a < 3; a++ ) {
 	    int32_t ei = mc_faces[offset+a];
 	    Vec3D x = mc_surface( i, j, k, cn, ei );
-	    _vertex.push_back( x );
+	    v[a] = mc_add_vertex( x, i, j, k );
 	}
 	
 	// Add triangle
-	size_t vsize = _vertex.size();
-	_triangle.push_back( VTriangle( vsize-3, vsize-2, vsize-1 ) );
+	_triangle.push_back( VTriangle( v[0], v[1], v[2] ) );
 	
 	offset += 3;
     }
@@ -1762,10 +1812,9 @@ void Geometry::build_surface( void )
 	}
     }
 
-    //STLFile stlfile( _vertex, _triangle );
-    //stlfile.save( "geometry.stl" );
-
     t.stop();
+    ibsimu.message( 1 ) << _triangle.size() << " triangles\n";
+    ibsimu.message( 1 ) << _vertex.size() << " vertices\n";
     ibsimu.message( 1 ) << "Done.\n";
     ibsimu.message( 1 ) << "time used = " << t << "\n";
     ibsimu.dec_indent();
@@ -1774,7 +1823,7 @@ void Geometry::build_surface( void )
 
 int32_t Geometry::surface_trianglec( int32_t i, int32_t j, int32_t k ) const
 {
-    int32_t cn = mc_case( i, j, k );
+    uint8_t cn = mc_case( i, j, k );
     int32_t offset = 15*cn;
     int32_t ti;
     for( ti = 0; ti < 5; ti++ ) {

@@ -47,6 +47,7 @@
 #include "gtkgeom3dwindow.hpp"
 #include "camera.hpp"
 #include "icons.hpp"
+#include "ibsimu.hpp"
 
 
 #define TOOL_UNKNOWN  -1
@@ -58,8 +59,12 @@
 
 GTKGeom3DWindow::GTKGeom3DWindow( GTKPlotter &plotter,
 				  const Geometry &geom )
-    : _plotter(plotter), _geom(geom), _width(640), _height(480), _camera(NULL)
+    : _plotter(plotter), _geom(geom), _width(640), _height(480), _camera(NULL), _list(0)
 {
+    if( !_geom.surface_built() ) {
+	throw( Error( ERROR_LOCATION, "geometry surface not built" ) );	
+    }
+
     _clevel[0] = 0;
     _clevel[1] = _geom.size(0)-1;
     _clevel[2] = 0;
@@ -77,11 +82,11 @@ GTKGeom3DWindow::GTKGeom3DWindow( GTKPlotter &plotter,
 					      GDK_GL_MODE_DOUBLE );
     GdkGLConfig *gl_config = gdk_gl_config_new_by_mode( mode );
     if( !gl_config )
-        g_assert_not_reached();
+	throw( Error( ERROR_LOCATION, "Couldn't initialize OpenGL" ) );
 
     if( !gtk_widget_set_gl_capability( _darea, gl_config, NULL, TRUE,
 				       GDK_GL_RGBA_TYPE ) )
-        g_assert_not_reached();
+	throw( Error( ERROR_LOCATION, "Couldn't initialize OpenGL" ) );
 
     // Must be set after set_gl_capability
     g_signal_connect( G_OBJECT(_darea), "configure_event",
@@ -95,10 +100,22 @@ GTKGeom3DWindow::GTKGeom3DWindow( GTKPlotter &plotter,
 }
 
 
+void GTKGeom3DWindow::clear_surface_data( void )
+{
+    _gsurface.clear();
+    for( int a = 0; a < 6; a++ )
+	_csurface[a].clear();
+
+    if( _list ) {
+	glDeleteLists( _list, 1 );
+	_list = 0;
+    }
+}
+
+
 void GTKGeom3DWindow::build_geometry_surface( void )
 {
-    // Clear old and reserve space
-    _gsurface.clear();
+    // Reserve space
     _gsurface.reserve( 12*_geom.surface_trianglec() );
 
     // Go through all mesh cubes inside cut levels
@@ -140,6 +157,7 @@ void GTKGeom3DWindow::build_geometry_surface( void )
 
 void GTKGeom3DWindow::init_model( void )
 {
+    clear_surface_data();
     build_geometry_surface();
     build_cut_planes();
 }
@@ -314,7 +332,7 @@ void GTKGeom3DWindow::init_window( void )
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
 
     // Creating "Geom 2D" button
-    pixbuf = gdk_pixbuf_new_from_inline( -1, icon_geom3d_inline, FALSE, NULL );
+    pixbuf = gdk_pixbuf_new_from_inline( -1, icon_geom2d_inline, FALSE, NULL );
     icon = gtk_image_new_from_pixbuf( pixbuf );
     toolitem = gtk_tool_button_new( icon, "2D geometry view" );
 #if GTK_CHECK_VERSION(2,12,0)
@@ -346,14 +364,6 @@ void GTKGeom3DWindow::init_window( void )
 			   GDK_BUTTON_PRESS_MASK |
 			   GDK_BUTTON_RELEASE_MASK |
 			   GDK_BUTTON_MOTION_MASK );
-    /*
-    g_signal_connect( G_OBJECT(_darea), "configure_event",
-		      G_CALLBACK(darea_configure_signal), 
-		      (gpointer)this );
-    g_signal_connect( G_OBJECT(_darea), "expose_event",
-		      G_CALLBACK(darea_expose_signal), 
-		      (gpointer)this );
-    */
     g_signal_connect( G_OBJECT(_darea), "button_press_event",
 		      G_CALLBACK(darea_button_signal),
 		      (gpointer)this );
@@ -410,11 +420,6 @@ void GTKGeom3DWindow::configure( void )
     _camera->set_size( _width, _height );
 
     // Setup OpenGL rendering
-    float light_ambient[] = { 1.0, 1.0, 1.0, 0.0 };
-    float light_position[] = { 0.0, 0.0, -50.0, 0.0 };
-    glLightfv( GL_LIGHT0, GL_AMBIENT, light_ambient );
-    glLightfv( GL_LIGHT0, GL_POSITION, light_position );
-
     glEnable( GL_LIGHTING );
     glEnable( GL_LIGHT0 );
     glEnable( GL_DEPTH_TEST );
@@ -588,7 +593,7 @@ void GTKGeom3DWindow::build_cut_plane( int32_t p, int32_t const vb[3], int32_t l
 
 	    // Construct case number
 	    int32_t cn = case2d( i, vb );
-	    std::cout << cn << "\n";
+	    //std::cout << cn << "\n";
 
 	    double dist;
 	    double dist2;
@@ -767,10 +772,6 @@ void GTKGeom3DWindow::build_cut_planes( void )
 {
     int vb[3];
 
-    // Clear old
-    for( int a = 0; a < 6; a++ )
-	_csurface[a].clear();
-
     // X=0
     vb[0] = 1;
     vb[1] = 2;
@@ -820,11 +821,30 @@ void GTKGeom3DWindow::draw( void )
     glMultMatrixd( &_modeltrans[0] );
 
     // Draw model
-    draw_cut_planes();
-    draw_model();
+    if( _list == 0 ) {
+	_list = glGenLists( 1 );
+	glNewList( _list, GL_COMPILE_AND_EXECUTE );
+
+	draw_cut_planes();
+	draw_model();
+	glEndList();
+    } else {
+	glCallList( _list );
+    }
 
     // Draw bbox
     draw_bbox();
+}
+
+
+void GTKGeom3DWindow::setup_lights( void )
+{
+    glMatrixMode( GL_MODELVIEW );
+    glLoadIdentity( );
+    float light_ambient[] = { 1.0, 1.0, 1.0, 0.0 };
+    float light_position[] = { 0.0, 0.0, -50.0, 0.0 };
+    glLightfv( GL_LIGHT0, GL_AMBIENT, light_ambient );
+    glLightfv( GL_LIGHT0, GL_POSITION, light_position );
 }
 
 
@@ -836,7 +856,8 @@ void GTKGeom3DWindow::expose( void )
     if( !gdk_gl_drawable_gl_begin( gl_drawable, gl_context ) )
 	g_assert_not_reached();
 
-    // Setup camera and draw
+    // Setup camera, lights and draw
+    setup_lights();
     _camera->gl_initalize_camera();
     draw();
 

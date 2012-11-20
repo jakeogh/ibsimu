@@ -81,6 +81,7 @@ class GTKGeom3DWindow : public GTKWindow {
     double             _scale;
     Transformation     _modeltrans;
 
+    uint32_t           _list;
     int32_t            _clevel[6];
     std::vector<float> _csurface[6];  // Sequences of 3*3 numbers, x0,x1,x2
     std::vector<float> _gsurface;     // Sequences of 4*3 numbers, norm,x0,x1,x2
@@ -96,11 +97,14 @@ class GTKGeom3DWindow : public GTKWindow {
     void build_cut_plane( int32_t p, const int32_t vb[3], int32_t level );
     void build_cut_planes( void );
     void build_geometry_surface( void );
+    void clear_surface_data( void );
 
     void draw_cut_planes( void );
     void draw_model( void );
     void draw_bbox( void );
     void draw( void );
+
+    void setup_lights( void );
 
     void move( int action, double x, double y );
     void zoom_out( double x, double y );
