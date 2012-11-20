@@ -104,7 +104,7 @@ GTKWindow *GTKPlotter::new_geometry_plot_window( void )
 
 GTKWindow *GTKPlotter::new_geometry_3d_plot_window( void )
 {
-    GTKWindow *window = new GTKGeom3DWindow( *this, *_geom );
+    GTKWindow *window = new GTKGeom3DWindow( *this, *_geom, _pdb );
     _windows.push_back( window );
 
     return( window );

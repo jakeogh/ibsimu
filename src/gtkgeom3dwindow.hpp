@@ -55,43 +55,43 @@
  */
 class GTKGeom3DWindow : public GTKWindow {
 
-    GTKPlotter        &_plotter;
-    const Geometry    &_geom;
+    GTKPlotter             &_plotter;
+    const Geometry         &_geom;
+    const ParticleDataBase *_pdb;
 
-    GtkWidget         *_window;
-    GtkWidget         *_darea;
-    GtkWidget         *_menubar;
-    GtkWidget         *_menu_file;
-    GtkWidget         *_toolbar;
-    GtkWidget         *_statusbar;
+    GtkWidget              *_window;
+    GtkWidget              *_darea;
+    GtkWidget              *_menubar;
+    GtkWidget              *_menu_file;
+    GtkWidget              *_toolbar;
+    GtkWidget              *_statusbar;
 
-    GtkToolItem       *_radioitem;
+    GtkToolItem            *_radioitem;
 
-    size_t             _width;
-    size_t             _height;
+    size_t                  _width;
+    size_t                  _height;
 
-    int                _tool;
-    double             _oldx;
-    double             _oldy;
-    double             _endx;
-    double             _endy;
+    int                     _tool;
+    double                  _oldx;
+    double                  _oldy;
+    double                  _endx;
+    double                  _endy;
 
-    double             _near;
-    double             _far;
-    Vec3D              _camera;
-    Vec3D              _target;
-    Vec3D              _up;
-    double             _zoom;
-    Transformation     _modeltrans;
+    double                  _near;
+    double                  _far;
+    Vec3D                   _camera;
+    Vec3D                   _target;
+    Vec3D                   _up;
+    double                  _zoom;
+    Transformation          _modeltrans;
 
-    class Renderer    *_renderer;
-    Vec3D              _center;
-    double             _scale;
+    class Renderer         *_renderer;
+    Vec3D                   _center;
+    double                  _scale;
 
-    uint32_t           _list;
-    int32_t            _clevel[6];
-    std::vector<Vec3D> _csurface[6];  // Sequences of 3: x0,x1,x2
-    std::vector<Vec3D> _gsurface;     // Sequences of 4: norm,x0,x1,x2
+    int32_t                 _clevel[6];
+    std::vector<Vec3D>      _csurface[6];  // Sequences of 3: x0,x1,x2
+    std::vector<Vec3D>      _gsurface;     // Sequences of 4: norm,x0,x1,x2
 
     void init_window( void );
 
@@ -109,6 +109,7 @@ class GTKGeom3DWindow : public GTKWindow {
     void draw_cut_planes( void );
     void draw_model( void );
     void draw_bbox( void );
+    void draw_beam( void );
 
     void setup_lights( void );
 
@@ -174,7 +175,8 @@ public:
     /*! \brief Constructor.
      */
     GTKGeom3DWindow( GTKPlotter &plotter,
-		     const Geometry &geom );
+		     const Geometry &geom,
+		     const ParticleDataBase *pdb );
 
     /*! \brief Destructor.
      */

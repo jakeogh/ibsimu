@@ -56,8 +56,9 @@
 
 
 GTKGeom3DWindow::GTKGeom3DWindow( GTKPlotter &plotter,
-				  const Geometry &geom )
-    : _plotter(plotter), _geom(geom), _width(640), _height(480)
+				  const Geometry &geom,
+				  const ParticleDataBase *pdb )
+    : _plotter(plotter), _geom(geom), _pdb(pdb), _width(640), _height(480)
 {
     if( !_geom.surface_built() ) {
 	throw( Error( ERROR_LOCATION, "geometry surface not built" ) );	
@@ -383,6 +384,7 @@ void GTKGeom3DWindow::configure( void )
 
 void GTKGeom3DWindow::draw_bbox( void )
 {
+    _renderer->set_color( Vec3D(0,0,0) );
     _renderer->disable_lighting();
 
     Vec3D pad = 0.01*_geom.h()*Vec3D(1,1,1);
@@ -737,6 +739,37 @@ void GTKGeom3DWindow::build_cut_planes( void )
 }
 
 
+void GTKGeom3DWindow::draw_beam( void )
+{
+    if( !_pdb )
+	return;
+
+    _renderer->set_color( Vec3D(1,0,0) );
+    _renderer->disable_lighting();
+
+    // Loop through all particles
+    const size_t particlediv = 100;
+    for( size_t a = 0; a < _pdb->size(); a += particlediv ) {
+
+	// No plotting if one or less trajectory points
+	if( _pdb->traj_size( a ) <= 1 )
+	    continue;
+
+	// Loop through all particle trajectory points
+	double t;
+	Vec3D ox, x, v;
+	_pdb->trajectory_point( t, ox, v, a, 0 );
+	for( size_t b = 1; b < _pdb->traj_size( a ); b++ ) {
+	    
+	    _pdb->trajectory_point( t, x, v, a, b );
+	    _renderer->line( _scale*(ox-_center), 
+			     _scale*(x-_center) );
+	    ox = x;
+	}	
+    }
+}
+
+
 void GTKGeom3DWindow::expose( void )
 {
     _renderer->start_rendering();
@@ -761,15 +794,15 @@ void GTKGeom3DWindow::expose( void )
     // Draw model
     draw_cut_planes();
     draw_model();
-
-    // Draw bbox
+    draw_beam();
     draw_bbox();
 
     _renderer->end_rendering();
 }
 
 
-// action 0: button press (move start), 1: pointer move, 2: release button (move end)
+// action 0: button press (move start), 1: pointer move, 
+// 2: release button (move end)
 void GTKGeom3DWindow::move( int action, double x, double y )
 {
     if( action == 0 ) {
