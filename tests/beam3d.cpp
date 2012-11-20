@@ -13,8 +13,7 @@
 #include <fstream>
 #include <iomanip>
 
-#include "bicgstab_solver.hpp"
-#include "epot_problem.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
@@ -64,26 +63,24 @@ void test( int argc, char **argv )
     geom.set_boundary( 7, Bound(BOUND_DIRICHLET,    0.0) );
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET,  1000.0) );
     geom.build_mesh();
+    geom.build_surface();
 
-    EpotProblem p;
-    p.construct( geom );
+    EpotField epot( geom );
+    MeshScalarField scharge( geom );
 
-    ScalarField epot( geom );
-    ScalarField scharge( geom );
+    EpotBiCGSTABSolver solver( geom );
 
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-
-    EpotEfield efield( geom, epot );
+    EpotEfield efield( epot );
     MeshVectorField bfield;
 
     ParticleDataBase3D pdb;
     pdb.set_thread_count( 4 );
     bool pmirror[6] = { false, false, false, false, false, false };
     pdb.set_mirror( pmirror );
-    for( size_t a = 0; a < 1; a++ ) {
+    for( size_t a = 0; a < 3; a++ ) {
 
-	p.solve( epot, scharge );
+	solver.solve( epot, scharge );
+	efield.recalculate();
 
 	pdb.clear();
 	pdb.add_cylindrical_beam_with_energy( 4000, 50.0, 1.0, 1.0, 
@@ -95,7 +92,7 @@ void test( int argc, char **argv )
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
     }
 
-    if( false ) {
+    if( true ) {
 	GTKPlotter plotter( &argc, &argv );
 	plotter.set_geometry( &geom );
 	plotter.set_epot( &epot );
