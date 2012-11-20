@@ -76,7 +76,7 @@ public:
      *  Constructor for axisymmetric magnetic field based on an array
      *  of magnetic field data on the symmetry axis. If geom_mode is
      *  MODE_CYL the symmetry axis is x. If geom_mode is MODE_3D, the
-     *  symmetry axis is z. Other geomtry modes are not supported.
+     *  symmetry axis is z. Other geometry modes are not supported.
      *
      *  The magnetic field outside the defined z is zero. No
      *  extrapolation is done.
