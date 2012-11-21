@@ -41,7 +41,12 @@
  */
 
 
+#include "config.h"
+
+#ifdef OPENGL
 #include <gtk/gtkgl.h>
+#endif
+
 #include "gtkplotter.hpp"
 #include "gtkgeomwindow.hpp"
 #include "gtkgeom3dwindow.hpp"
@@ -53,6 +58,7 @@
 
 
 bool GTKPlotter::_gtk_initialized = false;
+bool GTKPlotter::_opengl = false;
 
 
 GTKPlotter::GTKPlotter( int *argc, char ***argv )
@@ -66,11 +72,13 @@ GTKPlotter::GTKPlotter( int *argc, char ***argv )
 	    throw( Error( ERROR_LOCATION, "Couldn't initialize GTK" ) );
 	_gtk_initialized = true;
 
+#ifdef OPENGL
+	_opengl = true;
 	// Initialize OpenGL
-	if( gtk_gl_init_check( argc, argv ) == FALSE )
-	    throw( Error( ERROR_LOCATION, "Couldn't initialize GTKGLExt" ) );
-	if( gdk_gl_query_extension() == FALSE )
-	    throw( Error( ERROR_LOCATION, "No OpenGL available" ) );
+	if( gtk_gl_init_check( argc, argv ) == FALSE ||
+	    gdk_gl_query_extension() == FALSE )
+	    _opengl = false;
+#endif
     }
 }
 
@@ -78,6 +86,18 @@ GTKPlotter::GTKPlotter( int *argc, char ***argv )
 GTKPlotter::~GTKPlotter()
 {
     
+}
+
+
+void GTKPlotter::force_software_renderer( void ) const
+{
+    _opengl = false;
+}
+
+
+bool GTKPlotter::opengl( void ) const
+{
+    return( _opengl );
 }
 
 

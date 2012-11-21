@@ -93,8 +93,11 @@ class GTKGeom3DWindow : public GTKWindow {
     std::vector<Vec3D>      _csurface[6];  // Sequences of 3: x0,x1,x2
     std::vector<Vec3D>      _gsurface;     // Sequences of 4: norm,x0,x1,x2
 
-    void init_window( void );
+    int32_t                 _pdiv;
+    bool                    _bbox;
 
+    void init_window( void );
+    void init_renderer( void );
     void init_model( void );
     void init_camera_and_rotation( void );
 
@@ -119,6 +122,8 @@ class GTKGeom3DWindow : public GTKWindow {
     void zoom_window( int action, double x, double y );
     void zoom_fit( void );
     void geom2d_launch( void );
+    void hardcopy( void );
+
 
     void track( int action, double x, double y );
 

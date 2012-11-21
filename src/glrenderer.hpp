@@ -47,6 +47,7 @@
 
 #include <gtk/gtkgl.h>
 #include "renderer.hpp"
+#include "error.hpp"
 
 
 /*! \brief OpenGL 3D renderer.
@@ -57,9 +58,17 @@ class GLRenderer : public Renderer {
     GdkGLContext   *_glcontext;
     GdkGLDrawable  *_gldrawable;
 
-    Vec3D           _color;
-
 public:
+
+    /*! \brief Class for OpenGL initialization error.
+     */
+    class ErrorGLInit : public Error {	
+    public:
+
+	/*! \brief Error constructor.
+	 */
+	ErrorGLInit() {}
+    };
 
     GLRenderer( GtkWidget *darea );
     virtual ~GLRenderer();

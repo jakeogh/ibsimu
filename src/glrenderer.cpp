@@ -44,6 +44,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include "glrenderer.hpp"
+#include "ibsimu.hpp"
 
 
 GLRenderer::GLRenderer( GtkWidget *darea )
@@ -54,11 +55,14 @@ GLRenderer::GLRenderer( GtkWidget *darea )
 					      GDK_GL_MODE_DOUBLE );
     GdkGLConfig *gl_config = gdk_gl_config_new_by_mode( mode );
     if( !gl_config )
-        g_assert_not_reached();
+        throw( ErrorGLInit() );
 
     if( !gtk_widget_set_gl_capability( darea, gl_config, NULL, TRUE,
 				       GDK_GL_RGBA_TYPE ) )
-        g_assert_not_reached();
+        throw( ErrorGLInit() );
+
+    ibsimu.message( 1 ) << "Using GLRenderer\n";
+    ibsimu.flush();
 }
 
 

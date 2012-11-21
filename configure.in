@@ -70,6 +70,27 @@ AS_IF([test "x$enable_sigsegv_stack" != "xno"], [
   CPPFLAGS="$CPPFLAGS -DSIGSEGV_STACK"
 ])
 
+dnl OpenGL/GdkGLExt
+dnl Check by default, can be disabled
+dnl ---------------------------------
+AC_ARG_WITH([opengl],
+  [AS_HELP_STRING([--with-opengl],
+                  [enable opengl 3d geometry plotter @<:@default=check@:>@])],
+                  [],
+                  [with_opengl=check])
+AS_IF([test "x$with_opengl" != xno],
+      [if $PKG_CONFIG --exists gtkglext-1.0 ; then
+         PKG_CHECK_MODULES([GTKGLEXT], [gtkglext-1.0])
+         USEOPENGL="yes"
+         AC_DEFINE([OPENGL], [1], [Define to 1 if GtkGLExt/OpenGL dependent code is to be compiled.])
+         LIBS="$LIBS $GTKGLEXT_LIBS"
+         CPPFLAGS="$CPPFLAGS $GTKGLEXT_CFLAGS"
+       elif "x$with_opengl" != xcheck; then
+         AC_MSG_ERROR([--with-opengl was given, but test for library gtkglext-1.0 failed])
+       fi]
+)
+AM_CONDITIONAL([OPENGL], [test x$USEOPENGL = xyes])
+
 AC_ARG_WITH([umfpack],
   [AS_HELP_STRING([--with-umfpack],
                   [enable optional support for umfpack solver])],
@@ -128,13 +149,6 @@ CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"
 dnl -------------
 dnl gtkglext-1.0
 
-if $PKG_CONFIG --exists gtkglext-1.0 ; then
-  PKG_CHECK_MODULES([GTKGLEXT], [gtkglext-1.0])
-else
-  AC_MSG_ERROR([required library gtkglext-1.0 not found])
-fi
-LIBS="$LIBS $GTKGLEXT_LIBS"
-CPPFLAGS="$CPPFLAGS $GTKGLEXT_CFLAGS"
 
 
 dnl -------------

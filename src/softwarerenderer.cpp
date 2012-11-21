@@ -43,13 +43,15 @@
 
 #include <limits>
 #include "softwarerenderer.hpp"
+#include "ibsimu.hpp"
 
 
 SoftwareRenderer::SoftwareRenderer( GtkWidget *darea )
     : _darea(darea), _cairo(NULL), _surface(NULL), 
       _buf(NULL), _zbuf(NULL)
 {
-
+    ibsimu.message( 1 ) << "Using SoftwareRenderer\n";
+    ibsimu.flush();
 }
 
 

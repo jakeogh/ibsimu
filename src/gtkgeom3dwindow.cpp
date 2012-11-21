@@ -41,8 +41,13 @@
  */
 
 
-#include "softwarerenderer.hpp"
+#include "config.h"
+
+#ifdef OPENGL
 #include "glrenderer.hpp"
+#endif
+
+#include "softwarerenderer.hpp"
 #include "gtkgeom3dwindow.hpp"
 #include "icons.hpp"
 #include "ibsimu.hpp"
@@ -58,7 +63,8 @@
 GTKGeom3DWindow::GTKGeom3DWindow( GTKPlotter &plotter,
 				  const Geometry &geom,
 				  const ParticleDataBase *pdb )
-    : _plotter(plotter), _geom(geom), _pdb(pdb), _width(640), _height(480)
+    : _plotter(plotter), _geom(geom), _pdb(pdb), _width(640), _height(480),
+      _pdiv(100), _bbox(true)
 {
     if( !_geom.surface_built() ) {
 	throw( Error( ERROR_LOCATION, "geometry surface not built" ) );	
@@ -74,9 +80,7 @@ GTKGeom3DWindow::GTKGeom3DWindow( GTKPlotter &plotter,
     init_camera_and_rotation();
     init_model();
     init_window();
-
-    //_renderer = new GLRenderer( _darea );
-    _renderer = new SoftwareRenderer( _darea );
+    init_renderer();
 
     g_signal_connect( G_OBJECT(_darea), "configure_event",
 		      G_CALLBACK(darea_configure_signal), 
@@ -96,6 +100,27 @@ void GTKGeom3DWindow::clear_surface_data( void )
 	_csurface[a].clear();
 }
 
+
+void GTKGeom3DWindow::init_renderer( void )
+{
+#ifdef OPENGL
+    if( _plotter.opengl() ) {
+	try {
+	    // Try initializing OpenGL renderer
+	    _renderer = new GLRenderer( _darea );
+	} catch( GLRenderer::ErrorGLInit e ) {
+	    // Fallback to software renderer
+	    _renderer = new SoftwareRenderer( _darea );
+	}
+    } else {
+	// No GdkGLExt initialized
+	_renderer = new SoftwareRenderer( _darea );
+    }
+#else
+    // Only software renderer available
+    _renderer = new SoftwareRenderer( _darea );
+#endif
+}
 
 
 void GTKGeom3DWindow::build_geometry_surface( void )
@@ -384,6 +409,9 @@ void GTKGeom3DWindow::configure( void )
 
 void GTKGeom3DWindow::draw_bbox( void )
 {
+    if( !_bbox )
+	return;
+
     _renderer->set_color( Vec3D(0,0,0) );
     _renderer->disable_lighting();
 
@@ -741,17 +769,16 @@ void GTKGeom3DWindow::build_cut_planes( void )
 
 void GTKGeom3DWindow::draw_beam( void )
 {
-    if( !_pdb )
+    if( !_pdb || _pdiv == 0 )
 	return;
 
     _renderer->set_color( Vec3D(1,0,0) );
     _renderer->disable_lighting();
 
     // Loop through all particles
-    const size_t particlediv = 100;
-    for( size_t a = 0; a < _pdb->size(); a += particlediv ) {
+    for( size_t a = 0; a < _pdb->size(); a += _pdiv ) {
 
-	// No plotting if one or less trajectory points
+	// pdiv plotting if one or less trajectory points
 	if( _pdb->traj_size( a ) <= 1 )
 	    continue;
 
@@ -986,16 +1013,41 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 						     GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
 						     NULL );
     GtkWidget *vbox = GTK_DIALOG(dialog)->vbox;
+    GtkWidget *notebook = gtk_notebook_new();
 
     // ****************************************************************************
 
     GtkWidget *vbox2 = gtk_vbox_new( FALSE, 0 );
 
+    GtkWidget *label = gtk_label_new( "Particlediv" );
+    GtkWidget *spinbutton_pdiv = gtk_spin_button_new_with_range( 0, 10000, 1.0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON(spinbutton_pdiv), _pdiv );
+    GtkWidget *hbox = gtk_hbox_new( TRUE, 30 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), spinbutton_pdiv, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+
+    label = gtk_label_new( "BBox" );
+    GtkWidget *button_bbox = gtk_check_button_new_with_label( "on/off" );
+    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(button_bbox), _bbox );
+    hbox = gtk_hbox_new( TRUE, 30 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), button_bbox, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+
+    // Notebook page
+    label = gtk_label_new( "Misc" );
+    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox2, label );
+
+    // ****************************************************************************
+
+    vbox2 = gtk_vbox_new( FALSE, 0 );
+
     // Cut levels
     GtkWidget *spinbutton[6];
     for( int a = 0; a < 6; a++ ) {
-	GtkWidget *hbox = gtk_hbox_new( TRUE, 30 );
-	GtkWidget *label;
+	hbox = gtk_hbox_new( TRUE, 30 );
 	if( a == 0 ) {
 	    label = gtk_label_new( "Cut level xmin" );
 	    spinbutton[a] = gtk_spin_button_new_with_range( 0, _geom.size(0)-1, 1.0 );
@@ -1022,10 +1074,11 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 	gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
     }
 
-    // Notebook, page 1
-    GtkWidget *label = gtk_label_new( "Cut levels" );
-    GtkWidget *notebook = gtk_notebook_new();
+    // Notebook page
+    label = gtk_label_new( "Cut levels" );
     gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox2, label );
+
+    // ****************************************************************************
 
     // Pack notebook
     gtk_box_pack_start( GTK_BOX(vbox), notebook, FALSE, TRUE, 0 );
@@ -1033,6 +1086,11 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
     gtk_widget_show_all( dialog );
     if( gtk_dialog_run( GTK_DIALOG(dialog) ) == GTK_RESPONSE_ACCEPT ) {
 
+	// Misc
+	_pdiv = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(spinbutton_pdiv) );
+	_bbox = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(button_bbox) );
+
+	// Cut levels
 	for( int a = 0; a < 6; a++ ) {
 	    _clevel[a] = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(spinbutton[a]) );
 	}
@@ -1049,6 +1107,12 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 void GTKGeom3DWindow::geom2d_launch( void )
 {
     _plotter.new_geometry_plot_window();
+}
+
+
+void GTKGeom3DWindow::hardcopy( void )
+{
+
 }
 
 
@@ -1161,7 +1225,8 @@ void GTKGeom3DWindow::menuitem_geom2d_signal( GtkToolButton *button,
 void GTKGeom3DWindow::menuitem_hardcopy_signal( GtkToolButton *button,
 						gpointer object )
 {
-    //GTKGeom3DWindow *window = (GTKGeom3DWindow *)object;
+    GTKGeom3DWindow *window = (GTKGeom3DWindow *)object;
+    window->hardcopy();
 }
 
 

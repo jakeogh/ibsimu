@@ -46,11 +46,11 @@
 
 Renderer::Renderer() 
  : _light_diffuse_color(1.0,1.0,1.0), 
-   _light_location(1,1,1),
+   _light_location(1.0,1.0,1.0),
    _light_ambient_color(1.0,1.0,1.0),
    _material_diffuse_color(0.8,0.0,0.0), 
-   _material_ambient_color(0.2,0.0,0.0)
-
+   _material_ambient_color(0.2,0.0,0.0),
+   _color(0.0,0.0,0.0)
 {
 
 }

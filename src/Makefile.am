@@ -11,8 +11,6 @@ axisymmetricvectorfield.hpp \
 bicgstab.cpp \
 bicgstab.hpp \
 callback.hpp \
-camera.cpp \
-camera.hpp \
 ccolmatrix.cpp \
 ccolmatrix.hpp \
 cfifo.hpp \
@@ -81,8 +79,6 @@ geomplot.cpp \
 geomplot.hpp \
 geomplotter.cpp \
 geomplotter.hpp \
-glrenderer.cpp \
-glrenderer.hpp \
 graph.hpp \
 graph3d.hpp \
 gtkfielddiagdialog.cpp \
@@ -363,6 +359,10 @@ vec4d.hpp \
 vectorfield.hpp \
 vtriangle.hpp \
 xygraph.hpp
+
+if OPENGL
+libibsimu_1_0_5new_solver_la_SOURCES += glrenderer.cpp glrenderer.hpp
+endif
 
 if UMFPACK
 libibsimu_1_0_5new_solver_la_SOURCES += epot_umfpacksolver.cpp epot_umfpacksolver.hpp 

@@ -292,16 +292,6 @@ void GTKFrameWindow::configure( void )
 }
 
 
-gboolean GTKFrameWindow::darea_configure_signal( GtkWidget *widget, 
-					     GdkEventConfigure *event, 
-					     gpointer object )
-{
-    GTKFrameWindow *plotter = (GTKFrameWindow *)object;
-    plotter->configure();
-    return( FALSE );
-}
-
-
 void GTKFrameWindow::expose( int x, int y, int width, int height )
 {
     //std::cout << "Expose\n";
@@ -315,17 +305,6 @@ void GTKFrameWindow::expose( int x, int y, int width, int height )
     cairo_translate( cairo, 0, 0 );
     cairo_paint( cairo );
     cairo_destroy( cairo );
-}
-
-
-gboolean GTKFrameWindow::darea_expose_signal( GtkWidget *widget, 
-					  GdkEventExpose *event, 
-					  gpointer object )
-{
-    GTKFrameWindow *plotter = (GTKFrameWindow *)object;
-    plotter->expose( event->area.x, event->area.y, 
-		     event->area.width, event->area.height );
-    return( FALSE );
 }
 
 
@@ -677,36 +656,6 @@ void GTKFrameWindow::darea_leave( GdkEventCrossing *event )
 }
 
 
-gboolean GTKFrameWindow::darea_motion_signal( GtkWidget *widget, 
-					 GdkEventMotion *event,
-					 gpointer object )
-{
-    GTKFrameWindow *plotter = (GTKFrameWindow *)object;
-    plotter->darea_motion( event );
-    return( FALSE );  
-}
-
-
-gboolean GTKFrameWindow::darea_enter_signal( GtkWidget *widget, 
-					GdkEventCrossing *event,
-					gpointer object )
-{
-    GTKFrameWindow *plotter = (GTKFrameWindow *)object;
-    plotter->darea_enter( event );
-    return( FALSE );  
-}
-
-
-gboolean GTKFrameWindow::darea_leave_signal( GtkWidget *widget, 
-					GdkEventCrossing *event,
-					gpointer object )
-{
-    GTKFrameWindow *plotter = (GTKFrameWindow *)object;
-    plotter->darea_leave( event );
-    return( FALSE );
-}
-
-
 void GTKFrameWindow::darea_button( GdkEventButton *event )
 {
     if( (_tool == TOOL_MOVE && event->type == GDK_BUTTON_PRESS && event->button == 1) ||
@@ -729,16 +678,6 @@ void GTKFrameWindow::darea_button( GdkEventButton *event )
 }
 					     
 
-gboolean GTKFrameWindow::darea_button_signal( GtkWidget *widget, 
-					 GdkEventButton *event,
-					 gpointer object )
-{
-    GTKFrameWindow *plotter = (GTKFrameWindow *)object;
-    plotter->darea_button( event );
-    return( FALSE );
-}
-
-
 void GTKFrameWindow::delete_window( void )
 {
     if( _tool == TOOL_TRACK )
@@ -748,37 +687,11 @@ void GTKFrameWindow::delete_window( void )
 }
 
 
-gboolean GTKFrameWindow::window_delete_signal( GtkWidget *widget, 
-					  GdkEventExpose *event, 
-					  gpointer object )
-{
-    GTKFrameWindow *plotter = (GTKFrameWindow *)object;
-    plotter->delete_window();
-    return( FALSE );
-}
-
-
 void GTKFrameWindow::menuitem_preferences( GtkMenuItem *menuitem )
 {
     //std::cout << "menu preferences\n";
     GTKPreferences preferences( this, _window, &_frame );
     preferences.run();
-}
-
-
-void GTKFrameWindow::menuitem_preferences_signal( GtkMenuItem *menuitem,
-					     gpointer object )
-{
-    GTKFrameWindow *plotter = (GTKFrameWindow *)object;
-    plotter->menuitem_preferences( menuitem );
-}
-
-
-void GTKFrameWindow::menuitem_quit_signal( GtkMenuItem *menuitem,
-				      gpointer object )
-{
-    GTKFrameWindow *plotter = (GTKFrameWindow *)object;
-    plotter->delete_window();
 }
 
 
@@ -822,30 +735,6 @@ void GTKFrameWindow::menuitem_tool_change( GtkToolButton *button )
 }
 
 
-void GTKFrameWindow::menuitem_tool_change_signal( GtkToolButton *button,
-					     gpointer object )
-{
-    GTKFrameWindow *plotter = (GTKFrameWindow *)object;
-    plotter->menuitem_tool_change( button );
-}
-
-
-void GTKFrameWindow::menuitem_hardcopy_signal( GtkToolButton *button,
-					  gpointer object )
-{
-    GTKFrameWindow *plotter = (GTKFrameWindow *)object;
-    plotter->hardcopy();
-}
-
-
-void GTKFrameWindow::menuitem_zoom_fit_signal( GtkToolButton *button,
-					  gpointer object )
-{
-    GTKFrameWindow *plotter = (GTKFrameWindow *)object;
-    plotter->zoom_fit();
-}
-
-
 void GTKFrameWindow::draw_and_expose( void )
 {
     // Redraw and enforce expose
@@ -864,4 +753,124 @@ void GTKFrameWindow::hardcopy( void )
     // Reset frame settings
     //_frame.set_geometry( _width, _height, 0, 0 );
 }
+
+
+
+
+
+/* *********************************************** *
+ * Static signal functions                         *
+ * *********************************************** */
+
+
+void GTKFrameWindow::menuitem_tool_change_signal( GtkToolButton *button,
+						  gpointer object )
+{
+    GTKFrameWindow *window = (GTKFrameWindow *)object;
+    window->menuitem_tool_change( button );
+}
+
+
+void GTKFrameWindow::menuitem_hardcopy_signal( GtkToolButton *button,
+					       gpointer object )
+{
+    GTKFrameWindow *window = (GTKFrameWindow *)object;
+    window->hardcopy();
+}
+
+
+void GTKFrameWindow::menuitem_zoom_fit_signal( GtkToolButton *button,
+					       gpointer object )
+{
+    GTKFrameWindow *window = (GTKFrameWindow *)object;
+    window->zoom_fit();
+}
+
+
+gboolean GTKFrameWindow::darea_configure_signal( GtkWidget *widget, 
+						 GdkEventConfigure *event, 
+						 gpointer object )
+{
+    GTKFrameWindow *window = (GTKFrameWindow *)object;
+    window->configure();
+    return( FALSE );
+}
+
+
+gboolean GTKFrameWindow::darea_expose_signal( GtkWidget *widget, 
+					      GdkEventExpose *event, 
+					      gpointer object )
+{
+    GTKFrameWindow *window = (GTKFrameWindow *)object;
+    window->expose( event->area.x, event->area.y, 
+		     event->area.width, event->area.height );
+    return( FALSE );
+}
+
+
+gboolean GTKFrameWindow::darea_motion_signal( GtkWidget *widget, 
+					      GdkEventMotion *event,
+					      gpointer object )
+{
+    GTKFrameWindow *window = (GTKFrameWindow *)object;
+    window->darea_motion( event );
+    return( FALSE );  
+}
+
+
+gboolean GTKFrameWindow::darea_enter_signal( GtkWidget *widget, 
+					     GdkEventCrossing *event,
+					     gpointer object )
+{
+    GTKFrameWindow *window = (GTKFrameWindow *)object;
+    window->darea_enter( event );
+    return( FALSE );  
+}
+
+
+gboolean GTKFrameWindow::darea_leave_signal( GtkWidget *widget, 
+					     GdkEventCrossing *event,
+					     gpointer object )
+{
+    GTKFrameWindow *window = (GTKFrameWindow *)object;
+    window->darea_leave( event );
+    return( FALSE );
+}
+
+
+gboolean GTKFrameWindow::darea_button_signal( GtkWidget *widget, 
+					      GdkEventButton *event,
+					      gpointer object )
+{
+    GTKFrameWindow *window = (GTKFrameWindow *)object;
+    window->darea_button( event );
+    return( FALSE );
+}
+
+
+gboolean GTKFrameWindow::window_delete_signal( GtkWidget *widget, 
+					       GdkEventExpose *event, 
+					       gpointer object )
+{
+    GTKFrameWindow *window = (GTKFrameWindow *)object;
+    window->delete_window();
+    return( FALSE );
+}
+
+
+void GTKFrameWindow::menuitem_preferences_signal( GtkMenuItem *menuitem,
+						  gpointer object )
+{
+    GTKFrameWindow *window = (GTKFrameWindow *)object;
+    window->menuitem_preferences( menuitem );
+}
+
+
+void GTKFrameWindow::menuitem_quit_signal( GtkMenuItem *menuitem,
+					   gpointer object )
+{
+    GTKFrameWindow *window = (GTKFrameWindow *)object;
+    window->delete_window();
+}
+
 
