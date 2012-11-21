@@ -47,13 +47,20 @@
 
 
 SoftwareRenderer::SoftwareRenderer( GtkWidget *darea )
-    : _darea(darea), _cairo(NULL), _surface(NULL), 
+    : _darea(darea), _surface(NULL), 
       _buf(NULL), _zbuf(NULL)
 {
     ibsimu.message( 1 ) << "Using SoftwareRenderer\n";
     ibsimu.flush();
 }
 
+
+SoftwareRenderer::SoftwareRenderer( cairo_surface_t *surface )
+    : _darea(NULL), _surface(surface), 
+      _buf(NULL), _zbuf(NULL)
+{
+
+}
 
 SoftwareRenderer::~SoftwareRenderer()
 {
@@ -295,16 +302,30 @@ void SoftwareRenderer::flat_2d_triangle( int x0, int y0, double z0,
 }
 
 
+void SoftwareRenderer::enable_view_settings( void )
+{
+    // Prepare matrices
+    _modelview = _view*_model;
+    _normalmatrix = _modelview.inverse().transpose();
+    _totalmatrix = _projection*_modelview;
+
+    // Normalize light direction (infinitely far away model)
+    //_light_location = _modelview.transform_vector( _light_location );
+    _light_location.normalize();
+}
+
+
 void SoftwareRenderer::start_rendering( void )
 {
-    _width = _darea->allocation.width;
-    _height = _darea->allocation.height;
-    if( _cairo ) {
-        cairo_destroy( _cairo );
-        cairo_surface_destroy( _surface );
+    if( _darea ) {
+	// Make image surface for rendering
+	_width = _darea->allocation.width;
+	_height = _darea->allocation.height;
+	_surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, _width, _height );
+    } else {
+	_width = cairo_image_surface_get_width( _surface );
+	_height = cairo_image_surface_get_height( _surface );
     }
-    _surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, _width, _height );
-    _cairo = cairo_create( _surface );
     _buf = cairo_image_surface_get_data( _surface );
     _stride = cairo_image_surface_get_stride( _surface );
 
@@ -319,39 +340,28 @@ void SoftwareRenderer::start_rendering( void )
 }
 
 
-void SoftwareRenderer::enable_view_settings( void )
-{
-    // Prepare matrices
-    _modelview = _view*_model;
-    _normalmatrix = _modelview.inverse().transpose();
-    _totalmatrix = _projection*_modelview;
-
-    // Normalize light direction (infinitely far away model)
-    //_light_location = _modelview.transform_vector( _light_location );
-    _light_location.normalize();
-}
-
-
 void SoftwareRenderer::end_rendering( void )
 {
     cairo_surface_mark_dirty( _surface );
 
-    cairo_t *cairo;
-    cairo = gdk_cairo_create( _darea->window );
-    cairo_set_source_surface( cairo, _surface, 0, 0 );
-    cairo_pattern_set_filter( cairo_get_source(cairo), CAIRO_FILTER_FAST );
-    cairo_rectangle( cairo, 0, 0, _width, _height );
-    cairo_clip( cairo );
-    cairo_scale( cairo, 50, 50 );
-    cairo_translate( cairo, 0, 0 );
-    cairo_paint( cairo );
-    cairo_destroy( cairo );
+    if( _darea ) {
+	// Copy image surface to window
+	cairo_t *cairo;
+	cairo = gdk_cairo_create( _darea->window );
+	cairo_set_source_surface( cairo, _surface, 0, 0 );
+	cairo_pattern_set_filter( cairo_get_source(cairo), CAIRO_FILTER_FAST );
+	cairo_rectangle( cairo, 0, 0, _width, _height );
+	cairo_clip( cairo );
+	cairo_scale( cairo, 50, 50 );
+	cairo_translate( cairo, 0, 0 );
+	cairo_paint( cairo );
+	cairo_destroy( cairo );
 
-    if( _cairo ) {
-        cairo_destroy( _cairo );
-        cairo_surface_destroy( _surface );
+	// Free image surface
+	if( _surface )
+	    cairo_surface_destroy( _surface );
+	_surface = NULL;
     }
-    _cairo = NULL;
 
     if( _zbuf )
 	delete [] _zbuf;

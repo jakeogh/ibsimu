@@ -41,6 +41,7 @@
  */
 
 
+#include <cairo.h>
 #include "config.h"
 
 #ifdef OPENGL
@@ -49,6 +50,7 @@
 
 #include "softwarerenderer.hpp"
 #include "gtkgeom3dwindow.hpp"
+#include "gtkhardcopy.hpp"
 #include "icons.hpp"
 #include "ibsimu.hpp"
 
@@ -129,11 +131,9 @@ void GTKGeom3DWindow::init_window( void )
     g_signal_connect( G_OBJECT(item_quit), "activate",
 		      G_CALLBACK(menuitem_quit_signal),
 		      (gpointer)this );
-    /*
     g_signal_connect( G_OBJECT(item_hardcopy), "activate",
 		      G_CALLBACK(menuitem_hardcopy_signal),
 		      (gpointer)this );
-    */
     gtk_box_pack_start( GTK_BOX(vbox), _menubar, FALSE, TRUE, 0 );
 
     // Add Edit/Configure menu
@@ -162,11 +162,9 @@ void GTKGeom3DWindow::init_window( void )
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Hardcopy" );
 #endif
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
-    /*
     g_signal_connect( G_OBJECT(toolitem), "clicked",
 		      G_CALLBACK(menuitem_hardcopy_signal),
 		      (gpointer)this );
-    */
     
     // Creating separator
     toolitem = gtk_separator_tool_item_new();
@@ -636,7 +634,8 @@ void GTKGeom3DWindow::geom2d_launch( void )
 
 void GTKGeom3DWindow::hardcopy( void )
 {
-
+    GTKHardcopy hardcopy( _window, &_geom3dplot, _width, _height );
+    hardcopy.run();
 }
 
 

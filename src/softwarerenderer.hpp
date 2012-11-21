@@ -52,20 +52,14 @@
 
 /*! \brief Software 3D z-buffer renderer.
  *
- *  Capable of rendering flat shaded triangles
+ *  Capable of rendering flat shaded triangles and lines in 3D space.
  *
  *  Intended for replacing OpenGL when it is not available and for
  *  making hardcopies.
- *
- *  1. modelview
- *  2. projection
- *  3. divide by w
- *  4. viewport
  */
 class SoftwareRenderer : public Renderer {
 
     GtkWidget       *_darea;
-    cairo_t         *_cairo;
     cairo_surface_t *_surface;
     unsigned char   *_buf;
     int              _width;
@@ -94,7 +88,16 @@ class SoftwareRenderer : public Renderer {
 
 public:
 
+    /*! \brief Constructor for rendering to drawing area.
+     */
     SoftwareRenderer( GtkWidget *darea );
+
+    /*! \brief Constructor for rendering to cairo image surface.
+     */
+    SoftwareRenderer( cairo_surface_t *surface );
+
+    /*! \brief Destructor.
+     */
     virtual ~SoftwareRenderer();
 
 

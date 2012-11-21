@@ -47,6 +47,7 @@
 #include <gtk/gtk.h>
 #include <png.h>
 #include "frame.hpp"
+#include "geom3dplot.hpp"
 
 
 
@@ -57,13 +58,16 @@ class GTKHardcopy
 {
     GtkWidget        *_window;
     Frame            *_frame;
+    Geom3DPlot       *_geom3dplot;
 
     double            _aspect;
     size_t            _width;
     size_t            _height;
 
+    GtkWidget        *_dialog;
     GtkWidget        *_spinx;
     GtkWidget        *_spiny;
+    GtkWidget        *_expander;
 
     static void spinx_signal( GtkSpinButton *spinbutton,
 			      gpointer object );
@@ -72,9 +76,12 @@ class GTKHardcopy
     static int type_from_extension( const char *filename );
     static void ensure_extension( std::string &filename, 
 				  const std::string &extension );
-    static void treeview_changed( GtkTreeSelection *selection,
-				  gpointer userdata );
+    static void treeview_changed_signal( GtkTreeSelection *selection,
+					 gpointer userdata );
     
+
+    void treeview_changed( GtkTreeSelection *selection );
+
     void spinx( void );
     void spiny( void );
 
@@ -86,26 +93,30 @@ class GTKHardcopy
     void write_to_png( cairo_surface_t *p_surface, 
 		       int width, int height, 
 		       const char *filename );
+
+    void write_png_frame( cairo_surface_t *surface, const char *filename );
+    void write_png_geom3dplot( cairo_surface_t *surface, const char *filename );
+
     void write_png( const char *filename );
-
-
     void write_eps( const char *filename );
-
-
     void write_svg( const char *filename );
-
-
     void write_pdf( const char *filename );
 
 public:
 
-    /*! \brief Crate an interactive dialog for producing hardcopies.
+    /*! \brief Create an interactive dialog for producing hardcopies
+     *  of frame based plots.
      *
      *  The \a window is the parent of the dialog, the \a frame
      *  contains the plot to be copied, \a width and \a height are the
      *  default values for the plot size.
      */
     GTKHardcopy( GtkWidget *window, Frame *frame, size_t width, size_t height );
+
+    /*! \brief Create an interactive dialog for producing hardcopies
+     *  of 3D geometries.
+     */
+    GTKHardcopy( GtkWidget *window, Geom3DPlot *geom3dplot, size_t width, size_t height );
 
     /*! \brief Destructor.
      */
