@@ -117,16 +117,16 @@ void GLRenderer::enable_view_settings( void )
     T = _view.transpose();
     glLoadMatrixd( &T[0] );
 
-    float l[3] = { _light_location[0], _light_location[1], _light_location[2] };
+    float l[4] = { _light_location[0], _light_location[1], _light_location[2], 0.0 };
     glLightfv( GL_LIGHT0, GL_POSITION, l );
-    float c1[3] = { _light_ambient_color[0], _light_ambient_color[1], _light_ambient_color[2] };
+    float c1[4] = { _light_ambient_color[0], _light_ambient_color[1], _light_ambient_color[2], 1.0 };
     glLightfv( GL_LIGHT0, GL_AMBIENT, c1 );
-    float c2[3] = { _light_diffuse_color[0], _light_diffuse_color[1], _light_diffuse_color[2] };
+    float c2[4] = { _light_diffuse_color[0], _light_diffuse_color[1], _light_diffuse_color[2], 1.0 };
     glLightfv( GL_LIGHT0, GL_DIFFUSE, c2 );
 
-    float c3[3] = { _material_ambient_color[0], _material_ambient_color[1], _material_ambient_color[2] };
+    float c3[4] = { _material_ambient_color[0], _material_ambient_color[1], _material_ambient_color[2], 1.0 };
     glMaterialfv( GL_FRONT, GL_AMBIENT, c3 );
-    float c4[3] = { _material_diffuse_color[0], _material_diffuse_color[1], _material_diffuse_color[2] };
+    float c4[4] = { _material_diffuse_color[0], _material_diffuse_color[1], _material_diffuse_color[2], 1.0 };
     glMaterialfv( GL_FRONT, GL_DIFFUSE, c4 );
 
     T = _model.transpose();
