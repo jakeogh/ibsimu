@@ -450,7 +450,7 @@ EmittanceConv::EmittanceConv( uint32_t n, uint32_t m,
 	double xp2 = 0.0;
 	double xxp = 0.0;
 	double dI = I[a]/rotn;
-	for( int b = 0; b < rotn; b++ ) {
+	for( uint32_t b = 0; b < rotn; b++ ) {
 
 	    double rnd  = ((double)rand())/RAND_MAX;
 	    double ang  = 2.0*M_PI*(b+rnd)/rotn;
