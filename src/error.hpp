@@ -2,7 +2,7 @@
  *  \brief %Error classes and handling
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -287,6 +287,13 @@ public:
      *  The index \a i is supposed to be smaller than \a n.
      */
     ErrorRange( const ErrorLocation &loc, uint32_t i, uint32_t n );
+
+    /*! \brief Constructor for error message for one dimensional indexing error.
+     *
+     *  The index \a i is supposed to be smaller than \a n. Additional
+     *  message string.
+     */
+    ErrorRange( const ErrorLocation &loc, uint32_t i, uint32_t n, const std::string &str );
 
     /*! \brief Constructor for error message for indexing error.
      */

@@ -48,16 +48,16 @@
 #include <gtk/gtk.h>
 #include "gtkwindow.hpp"
 #include "gtkplotter.hpp"
-#include "transformation.hpp"
+#include "geom3dplot.hpp"
 
 
-/*! \brief Interactive geometry plotter window.
+/*! \brief Interactive geometry 3D plotter window.
  */
 class GTKGeom3DWindow : public GTKWindow {
 
     GTKPlotter             &_plotter;
+    Geom3DPlot              _geom3dplot;
     const Geometry         &_geom;
-    const ParticleDataBase *_pdb;
 
     GtkWidget              *_window;
     GtkWidget              *_darea;
@@ -65,11 +65,10 @@ class GTKGeom3DWindow : public GTKWindow {
     GtkWidget              *_menu_file;
     GtkWidget              *_toolbar;
     GtkWidget              *_statusbar;
-
     GtkToolItem            *_radioitem;
 
-    size_t                  _width;
-    size_t                  _height;
+    uint32_t                _width;
+    uint32_t                _height;
 
     int                     _tool;
     double                  _oldx;
@@ -77,44 +76,10 @@ class GTKGeom3DWindow : public GTKWindow {
     double                  _endx;
     double                  _endy;
 
-    double                  _near;
-    double                  _far;
-    Vec3D                   _camera;
-    Vec3D                   _target;
-    Vec3D                   _up;
-    double                  _zoom;
-    Transformation          _modeltrans;
-
     class Renderer         *_renderer;
-    Vec3D                   _center;
-    double                  _scale;
-
-    int32_t                 _clevel[6];
-    std::vector<Vec3D>      _csurface[6];  // Sequences of 3: x0,x1,x2
-    std::vector<Vec3D>      _gsurface;     // Sequences of 4: norm,x0,x1,x2
-
-    int32_t                 _pdiv;
-    bool                    _bbox;
 
     void init_window( void );
     void init_renderer( void );
-    void init_model( void );
-    void init_camera_and_rotation( void );
-
-    void cplane_add_vertex( int32_t p, const int32_t i[3], const int32_t vb[3], double dx, double dy );
-    double cplane_dist( const int32_t i[3], const int32_t vb[3], int32_t dx, int32_t dy, int32_t dir );
-    int32_t case2d( const int32_t i[3], const int32_t vb[3] );
-    void build_cut_plane( int32_t p, const int32_t vb[3], int32_t level );
-    void build_cut_planes( void );
-    void build_geometry_surface( void );
-    void clear_surface_data( void );
-
-    void draw_cut_planes( void );
-    void draw_model( void );
-    void draw_bbox( void );
-    void draw_beam( void );
-
-    void setup_lights( void );
 
     void move( int action, double x, double y );
     void zoom_out( double x, double y );
@@ -123,7 +88,6 @@ class GTKGeom3DWindow : public GTKWindow {
     void zoom_fit( void );
     void geom2d_launch( void );
     void hardcopy( void );
-
 
     void track( int action, double x, double y );
 

@@ -379,6 +379,15 @@ ErrorRange::ErrorRange( const ErrorLocation &loc, uint32_t i, uint32_t n )
 }
 
 
+ErrorRange::ErrorRange( const ErrorLocation &loc, uint32_t i, uint32_t n, const std::string &str )
+    : Error(loc)
+{
+    std::ostringstream ss;
+    ss << "index out of range ( " << i << " >= " << n << " )";
+    _error_str = ss.str() + ", " +  str;
+}
+
+
 ErrorRange::ErrorRange( const ErrorLocation &loc, const std::string &str )
     : Error( loc, str )
 {

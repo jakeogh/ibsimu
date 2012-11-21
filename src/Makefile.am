@@ -73,6 +73,8 @@ frame.cpp \
 frame.hpp \
 func_solid.cpp \
 func_solid.hpp \
+geom3dplot.cpp \
+geom3dplot.hpp \
 geometry.cpp \
 geometry.hpp \
 geomplot.cpp \
