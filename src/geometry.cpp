@@ -58,15 +58,100 @@
 //#define DEBUG_BRACKET_SURFACE 1
 
 
+Bound::Bound( bound_e type, double value ) 
+    : _type(type), _value(value), _functor(NULL)
+{
+
+}
+
+
+Bound::Bound( bound_e type, const CallbackFunctorD_V *functor )
+    : _type(type), _value(0.0), _functor(functor)
+{
+
+}
+
+
+bound_e Bound::type( void ) const
+{
+    return( _type );
+}
+
+
+void Bound::set_value( double value )
+{
+    _functor = NULL;
+    _value = value;
+}
+
+
+double Bound::value( void ) const
+{
+    if( _functor )
+	throw( Error( ERROR_LOCATION, "non-constant boundary value" ) );	
+    return( _value );
+}
+
+
+double Bound::value( const Vec3D &x ) const
+{
+    if( _functor )
+	return( (*_functor)( x ) );
+    return( _value );
+}
+
+
+bool Bound::is_constant() const
+{
+    return( !_functor );
+}
+
+
+Bound::Bound( std::istream &is ) 
+{
+    // Before version number 2, data was started by type 0 or 1.
+    int32_t version = read_int32( is );
+    if( version < 2 ) {
+	_type = (bound_e)version;
+	_value = read_double( is );
+	_functor = NULL;
+    } else {
+	_type = (bound_e)read_int32( is );
+	_value = read_double( is );
+	if( read_int32( is ) )
+	    ibsimu.message( MSG_WARNING, 1 ) << "Warning: functor boundary value was loaded.\n";
+	_functor = NULL;
+    }
+}
+
+
+void Bound::save( std::ostream &os ) const
+{
+    write_int32( os, 2 ); // version
+    write_int32( os, _type );
+    write_double( os, _value );
+    if( _functor ) {
+	ibsimu.message( MSG_WARNING, 1 ) << "Warning: functor boundary value was saved.\n";
+	write_int32( os, 1 );
+    } else {
+	write_int32( os, 0 );
+    }
+}
+
+
 std::ostream &operator<<( std::ostream &os, const Bound &b )
 {
-    if( b.type == BOUND_NEUMANN )
+    if( b._type == BOUND_NEUMANN )
 	os << "(BOUND_NEUMANN, ";
     else 
 	os << "(BOUND_DIRICHLET, ";
-    os << b.val << ")";
+    if( b._functor )
+	os << "<functor>)";
+    else
+	os << b._value << ")";
     return( os );
 }
+
 
 
 Geometry::Geometry( geom_mode_e geom_mode, Int3D size, Vec3D origo, double h )
@@ -215,7 +300,7 @@ void Geometry::set_boundary( uint32_t n, const Bound &b )
     if( n <= 0 || n > _n+6 )
 	throw( Error( ERROR_LOCATION, "illegal solid number " + to_string(n) ) );
 
-    if( n >= 7 && b.type != BOUND_DIRICHLET )
+    if( n >= 7 && b.type() != BOUND_DIRICHLET )
 	throw( Error( ERROR_LOCATION, "trying to set solid " + to_string(n) + " as Neumann boundary" ) );
 
     _bound[n-1] = b;
@@ -844,42 +929,42 @@ void Geometry::build_mesh_parallel_prepare_3d( void )
 
 		} else if( i == 0 ) {
 		    // Xmin boundary
-		    if( get_boundary(1).type == BOUND_NEUMANN )
+		    if( get_boundary(1).type() == BOUND_NEUMANN )
 			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 1;
 		    else
 			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 1;
 
 		} else if( i == _size[0]-1 ) {
 		    // Xmax boundary
-		    if( get_boundary(2).type == BOUND_NEUMANN )
+		    if( get_boundary(2).type() == BOUND_NEUMANN )
 			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 2;
 		    else
 			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 2;
 
 		} else if( j == 0 ) {
 		    // Ymin boundary
-		    if( get_boundary(3).type == BOUND_NEUMANN )
+		    if( get_boundary(3).type() == BOUND_NEUMANN )
 			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 3;
 		    else
 			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 3;
 
 		} else if( j == _size[1]-1 ) {
 		    // Ymax boundary
-		    if( get_boundary(4).type == BOUND_NEUMANN )
+		    if( get_boundary(4).type() == BOUND_NEUMANN )
 			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 4;
 		    else
 			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 4;
 
 		} else if( k == 0 ) {
 		    // Zmin boundary
-		    if( get_boundary(5).type == BOUND_NEUMANN )
+		    if( get_boundary(5).type() == BOUND_NEUMANN )
 			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 5;
 		    else
 			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 5;
 
 		} else if( k == _size[2]-1 ) {
 		    // Zmax boundary
-		    if( get_boundary(6).type == BOUND_NEUMANN )
+		    if( get_boundary(6).type() == BOUND_NEUMANN )
 			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 6;
 		    else
 			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 6;
@@ -915,28 +1000,28 @@ void Geometry::build_mesh_parallel_prepare_2d( void )
 
 	    } else if( i == 0 ) {
 		// Xmin boundary
-		if( get_boundary(1).type == BOUND_NEUMANN )
+		if( get_boundary(1).type() == BOUND_NEUMANN )
 		    mesh(i,j) = SMESH_NODE_ID_NEUMANN | 1;
 		else
 		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 1;
 
 	    } else if( i == _size[0]-1 ) {
 		// Xmax boundary
-		if( get_boundary(2).type == BOUND_NEUMANN )
+		if( get_boundary(2).type() == BOUND_NEUMANN )
 		    mesh(i,j) = SMESH_NODE_ID_NEUMANN | 2;
 		else
 		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 2;
 		
 	    } else if( j == 0 ) {
 		// Ymin boundary
-		if( get_boundary(3).type == BOUND_NEUMANN )
+		if( get_boundary(3).type() == BOUND_NEUMANN )
 		    mesh(i,j) = SMESH_NODE_ID_NEUMANN | 3;
 		else
 		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 3;
 		
 	    } else if( j == _size[1]-1 ) {
 		// Ymax boundary
-		if( get_boundary(4).type == BOUND_NEUMANN )
+		if( get_boundary(4).type() == BOUND_NEUMANN )
 		    mesh(i,j) = SMESH_NODE_ID_NEUMANN | 4;
 		else
 		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 4;
@@ -966,7 +1051,7 @@ void Geometry::build_mesh_parallel_prepare_1d( void )
 	
 	if( i == 0 ) {
 	    // Xmin boundary
-	    if( get_boundary(1).type == BOUND_NEUMANN ) {
+	    if( get_boundary(1).type() == BOUND_NEUMANN ) {
 		if( is_near_solid(i,0,0) ) {
 		    mesh(i) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
 		    build_mesh_parallel_prepare_near_solid( near_solid_index, i, 0, 0 );
@@ -979,7 +1064,7 @@ void Geometry::build_mesh_parallel_prepare_1d( void )
 	    
 	} else if( i == _size[0]-1 ) {
 	    // Xmax boundary
-	    if( get_boundary(2).type == BOUND_NEUMANN ) {
+	    if( get_boundary(2).type() == BOUND_NEUMANN ) {
 		if( is_near_solid(i,0,0) ) {
 		    mesh(i) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
 		    build_mesh_parallel_prepare_near_solid( near_solid_index, i, 0, 0 );
@@ -1260,14 +1345,14 @@ void Geometry::build_mesh_serial( void )
     for( uint32_t bound = 1; bound <= 2; bound++ ) {
 	int32_t i = 0;
 	if( bound == 2 ) i = _size[0]-1;
-	if( get_boundary(bound).type == BOUND_NEUMANN )
+	if( get_boundary(bound).type() == BOUND_NEUMANN )
 	    nid = SMESH_NODE_ID_NEUMANN | bound;
 	else
 	    nid = SMESH_NODE_ID_DIRICHLET | bound;
 	for( int32_t k = 0; k < _size[2]; k++ ) {
 	    for( int32_t j = 0; j < _size[1]; j++ ) {
 		if( mesh(i,j,k) == 0 ) {
-		    if( get_boundary(bound).type == BOUND_NEUMANN && is_near_solid(i,j,k) ) {
+		    if( get_boundary(bound).type() == BOUND_NEUMANN && is_near_solid(i,j,k) ) {
 			// Mark node as near solid vacuum and build near solid data
 			mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
 			add_near_solid_entry( near_solid_index, i, j, k );
@@ -1285,14 +1370,14 @@ void Geometry::build_mesh_serial( void )
 	for( uint32_t bound = 3; bound <= 4; bound++ ) {
 	    int32_t j = 0;
 	    if( bound == 4 ) j = _size[1]-1;
-	    if( get_boundary(bound).type == BOUND_NEUMANN )
+	    if( get_boundary(bound).type() == BOUND_NEUMANN )
 		nid = SMESH_NODE_ID_NEUMANN | bound;
 	    else
 		nid = SMESH_NODE_ID_DIRICHLET | bound;
 	    for( int32_t k = 0; k < _size[2]; k++ ) {
 		for( int32_t i = 0; i < _size[0]; i++ ) {
 		    if( mesh(i,j,k) == 0 ) {
-			if( get_boundary(bound).type == BOUND_NEUMANN && is_near_solid(i,j,k) ) {
+			if( get_boundary(bound).type() == BOUND_NEUMANN && is_near_solid(i,j,k) ) {
 			    // Mark node as near solid vacuum and build near solid data
 			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
 			    add_near_solid_entry( near_solid_index, i, j, k );
@@ -1309,14 +1394,14 @@ void Geometry::build_mesh_serial( void )
 	for( uint32_t bound = 5; bound <= 6; bound++ ) {
 	    int32_t k = 0;
 	    if( bound == 6 ) k = _size[2]-1;
-	    if( get_boundary(bound).type == BOUND_NEUMANN )
+	    if( get_boundary(bound).type() == BOUND_NEUMANN )
 		nid = SMESH_NODE_ID_NEUMANN | bound;
 	    else
 		nid = SMESH_NODE_ID_DIRICHLET | bound;
 	    for( int32_t j = 0; j < _size[1]; j++ ) {
 		for( int32_t i = 0; i < _size[0]; i++ ) {
 		    if( mesh(i,j,k) == 0 ) {
-			if( get_boundary(bound).type == BOUND_NEUMANN && is_near_solid(i,j,k) ) {
+			if( get_boundary(bound).type() == BOUND_NEUMANN && is_near_solid(i,j,k) ) {
 			    // Mark node as near solid vacuum and build near solid data
 			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
 			    add_near_solid_entry( near_solid_index, i, j, k );

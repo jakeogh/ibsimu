@@ -2,7 +2,7 @@
  *  \brief Poisson equation problem for solving electric potential.
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -258,7 +258,7 @@ void EpotSolver::preprocess( MeshScalarField &epot )
 		if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
 		    uint32_t index = mesh & SMESH_NEAR_SOLID_INDEX_MASK;
 		    _nsind.push_back( index );
-		    if( _geom.get_boundary(bound).type == BOUND_NEUMANN )
+		    if( _geom.get_boundary(bound).type() == BOUND_NEUMANN )
 			_geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
 		    else
 			_geom.mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | bound;
@@ -279,7 +279,7 @@ void EpotSolver::preprocess( MeshScalarField &epot )
 		    if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
 			uint32_t index = mesh & SMESH_NEAR_SOLID_INDEX_MASK;
 			_nsind.push_back( index );
-			if( _geom.get_boundary(bound).type == BOUND_NEUMANN )
+			if( _geom.get_boundary(bound).type() == BOUND_NEUMANN )
 			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
 			else
 			    _geom.mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | bound;
@@ -300,7 +300,7 @@ void EpotSolver::preprocess( MeshScalarField &epot )
 		    if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
 			uint32_t index = mesh & SMESH_NEAR_SOLID_INDEX_MASK;
 			_nsind.push_back( index );
-			if( _geom.get_boundary(bound).type == BOUND_NEUMANN )
+			if( _geom.get_boundary(bound).type() == BOUND_NEUMANN )
 			    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
 			else
 			    _geom.mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | bound;
@@ -312,12 +312,13 @@ void EpotSolver::preprocess( MeshScalarField &epot )
 
     // Set forced vacuum nodes and dirichlet nodes to correct
     // potential. Mark fixed vacuum nodes with a tag.
+    Vec3D x;
     for( uint32_t k = 0; k < _geom.size(2); k++ ) {
-	double z = k*_geom.h()+_geom.origo(2);
+	x[2] = _geom.origo(2) + _geom.h()*k;
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
-	    double y = j*_geom.h()+_geom.origo(1);
+	    x[1] = _geom.origo(1) + _geom.h()*j;
 	    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
-		double x = i*_geom.h()+_geom.origo(0);
+		x[0] = _geom.origo(0) + _geom.h()*i;
 
 		uint32_t mesh = _geom.mesh(i,j,k);
 		uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
@@ -325,7 +326,7 @@ void EpotSolver::preprocess( MeshScalarField &epot )
 		    node_id == SMESH_NODE_ID_PURE_VACUUM ) {
 
 		    // Vacuum
-		    if( _force_pot_func && (*_force_pot_func)(Vec3D(x,y,z)) ) {
+		    if( _force_pot_func && (*_force_pot_func)( x ) ) {
 
 			// Mark as fixed vacuum
 			_geom.mesh(i,j,k) |= SMESH_NODE_FIXED;
@@ -333,7 +334,7 @@ void EpotSolver::preprocess( MeshScalarField &epot )
 
 		    } else if( (_plasma == PLASMA_PEXP_INITIAL ||
 				_plasma == PLASMA_NSIMP_INITIAL) && 
-			       _init_plasma_func && (*_init_plasma_func)(Vec3D(x,y,z)) ) {
+			       _init_plasma_func && (*_init_plasma_func)( x ) ) {
 
 			// Mark as fixed vacuum
 			_geom.mesh(i,j,k) |= SMESH_NODE_FIXED;
@@ -343,7 +344,7 @@ void EpotSolver::preprocess( MeshScalarField &epot )
 
 		} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
 
-		    if( _force_pot_func && (*_force_pot_func)(Vec3D(x,y,z)) ) {
+		    if( _force_pot_func && (*_force_pot_func)( x ) ) {
 
 			// Mark as fixed vacuum
 			_geom.mesh(i,j,k) = SMESH_NODE_ID_PURE_VACUUM_FIX;
@@ -351,7 +352,7 @@ void EpotSolver::preprocess( MeshScalarField &epot )
 
 		    } else if( (_plasma == PLASMA_PEXP_INITIAL ||
 				_plasma == PLASMA_NSIMP_INITIAL) && 
-			       _init_plasma_func && (*_init_plasma_func)(Vec3D(x,y,z)) ) {
+			       _init_plasma_func && (*_init_plasma_func)( x ) ) {
 
 			// Mark as fixed vacuum
 			_geom.mesh(i,j,k) = SMESH_NODE_ID_PURE_VACUUM_FIX;
@@ -363,7 +364,7 @@ void EpotSolver::preprocess( MeshScalarField &epot )
 		    
 		    // Dirichlet
 		    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
-		    epot(i,j,k) = _geom.get_boundary( boundary ).val;
+		    epot(i,j,k) = _geom.get_boundary( boundary ).value( x );
 
 		} else {
 
@@ -420,7 +421,7 @@ void EpotSolver::postprocess( void )
 		uint32_t mesh = _geom.mesh(i,j,k);
 		uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
 		if( node_id == SMESH_NODE_ID_PURE_VACUUM_FIX &&
-		    _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+		    _geom.get_boundary(bound).type() == BOUND_NEUMANN ) {
 		    _geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
 		    node_id = SMESH_NODE_ID_NEUMANN;
 		}
@@ -443,7 +444,7 @@ void EpotSolver::postprocess( void )
 		    uint32_t mesh = _geom.mesh(i,j,k);
 		    uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
 		    if( node_id == SMESH_NODE_ID_PURE_VACUUM_FIX &&
-			_geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+			_geom.get_boundary(bound).type() == BOUND_NEUMANN ) {
 			_geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
 			node_id = SMESH_NODE_ID_NEUMANN;
 		    }
@@ -466,7 +467,7 @@ void EpotSolver::postprocess( void )
 		    uint32_t mesh = _geom.mesh(i,j,k);
 		    uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
 		    if( node_id == SMESH_NODE_ID_PURE_VACUUM_FIX &&
-			_geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+			_geom.get_boundary(bound).type() == BOUND_NEUMANN ) {
 			_geom.mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | bound;
 			node_id = SMESH_NODE_ID_NEUMANN;
 		    }

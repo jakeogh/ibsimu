@@ -2,7 +2,7 @@
  *  \brief Multigrid solver for electric potential problem
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -249,8 +249,9 @@ void EpotMGSolver::prepare_mg_geom( void )
 	    for( uint32_t b = 7; b <= _geom.number_of_boundaries(); b++ )
 		geom->set_solid( b, _geom.get_solid(b) );
 	    for( uint32_t b = 1; b <= _geom.number_of_boundaries(); b++ ) {
+		// Boundaries are of same type but value is zero.
 		Bound bound = _geom.get_boundary(b);
-		bound.val = 0.0;
+		bound.set_value( 0.0 );
 		geom->set_boundary( b, bound );
 	    }
 	    geom->build_mesh();
@@ -304,31 +305,39 @@ void EpotMGSolver::preprocess( MeshScalarField &epot, const MeshScalarField &sch
     }
 
     // Build rhs for top level
-    for( uint32_t b = 0; b < _geom.nodecount(); b++ ) {
+    Vec3D x;
+    for( uint32_t k = 0; k < _geom.size(2); k++ ) {
+	x[2] = _geom.origo(2) + _geom.h()*k;
+	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
+	    x[1] = _geom.origo(1) + _geom.h()*j;
+	    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
+		x[0] = _geom.origo(0) + _geom.h()*i;
 
-	uint32_t mesh = _geomv[0]->mesh(b);
-	uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
-	if( node_id == SMESH_NODE_ID_NEAR_SOLID ||
-	    node_id == SMESH_NODE_ID_PURE_VACUUM ) {
+		uint32_t mesh = _geomv[0]->mesh(i,j,k);
+		uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+		if( node_id == SMESH_NODE_ID_NEAR_SOLID ||
+		    node_id == SMESH_NODE_ID_PURE_VACUUM ) {
 		
-	    // Ordinary vacuum/near solid
-	    (*_rhsv[0])(b) = -epot.h()*epot.h()*scharge(b)/EPSILON0;
+		    // Ordinary vacuum/near solid
+		    (*_rhsv[0])(i,j,k) = -epot.h()*epot.h()*scharge(i,j,k)/EPSILON0;
 
-	} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
-	    
-	    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
-	    if( _geom.geom_mode() == MODE_CYL && boundary == 3 ) {
+		} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
+		    
+		    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
+		    if( _geom.geom_mode() == MODE_CYL && boundary == 3 ) {
 		
-		// Symmetry axis (vacuum)
-		(*_rhsv[0])(b) = -epot.h()*epot.h()*scharge(b)/EPSILON0;
-		
-	    } else {
-		
-		// Ordinary Neumann node
-		if( _neumann_order == 2 )
-		    (*_rhsv[0])(b) = 2.0*epot.h()*_geom.get_boundary( boundary ).val;
-		else
-		    (*_rhsv[0])(b) = epot.h()*_geom.get_boundary( boundary ).val;
+			// Symmetry axis (vacuum)
+			(*_rhsv[0])(i,j,k) = -epot.h()*epot.h()*scharge(i,j,k)/EPSILON0;
+			
+		    } else {
+			
+			// Ordinary Neumann node
+			if( _neumann_order == 2 )
+			    (*_rhsv[0])(i,j,k) = 2.0*epot.h()*_geom.get_boundary( boundary ).value( x );
+			else
+			    (*_rhsv[0])(i,j,k) = epot.h()*_geom.get_boundary( boundary ).value( x );
+		    }
+		}
 	    }
 	}
     }

@@ -2,7 +2,7 @@
  *  \brief Matrix solver for electric potential problem
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -177,7 +177,7 @@ private:
     void add_near_solid_node_cyl( uint32_t i, uint32_t j );
     void add_near_solid_node_3d( uint32_t i, uint32_t j, uint32_t k );
     void add_near_solid_node( uint32_t i, uint32_t j, uint32_t k );
-    void add_neumann_node( uint32_t i, uint32_t j, uint32_t k, uint32_t boundary );
+    void add_neumann_node( uint32_t i, uint32_t j, uint32_t k, const Vec3D &x, uint32_t boundary );
 
 public:
 

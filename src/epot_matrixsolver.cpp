@@ -2,7 +2,7 @@
  *  \brief Matrix solver for electric potential problem
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -447,7 +447,8 @@ void EpotMatrixSolver::add_near_solid_node( uint32_t i, uint32_t j, uint32_t k )
 }
 
 
-void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, uint32_t boundary )
+void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, 
+					 const Vec3D &x, uint32_t boundary )
 {
     uint32_t a = _n2d(i,j,k) & N2D_INDEX_MASK;
 
@@ -457,11 +458,11 @@ void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, uin
 	    set_link( a, _n2d(i,j,k), 3.0 );
             set_link( a, _n2d(i+1,j,k), -4.0 );
             set_link( a, _n2d(i+2,j,k), 1.0 );
-	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).val;
+	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).value( x );
 	} else {
 	    set_link( a, _n2d(i,j,k), 1.0 );
             set_link( a, _n2d(i+1,j,k), -1.0 );
-	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).val;
+	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).value( x );
 	}	
 	break;
     case 2:
@@ -469,11 +470,11 @@ void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, uin
 	    set_link( a, _n2d(i-2,j,k), 1.0 );
             set_link( a, _n2d(i-1,j,k), -4.0 );
             set_link( a, _n2d(i,j,k), 3.0 );
-	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).val;
+	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).value( x );
 	} else {
 	    set_link( a, _n2d(i-1,j,k), -1.0 );
             set_link( a, _n2d(i,j,k), 1.0 );
-	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).val;
+	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).value( x );
 	}
 	break;
     case 3:
@@ -500,11 +501,11 @@ void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, uin
 	    set_link( a, _n2d(i,j,k), 3.0 );
             set_link( a, _n2d(i,j+1,k), -4.0 );
             set_link( a, _n2d(i,j+2,k), 1.0 );
-	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).val;
+	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).value( x );
 	} else {
 	    set_link( a, _n2d(i,j,k), 1.0 );
             set_link( a, _n2d(i,j+1,k), -1.0 );
-	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).val;
+	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).value( x );
 	}	
 	break;
     case 4:
@@ -512,11 +513,11 @@ void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, uin
 	    set_link( a, _n2d(i,j-2,k), 1.0 );
             set_link( a, _n2d(i,j-1,k), -4.0 );
             set_link( a, _n2d(i,j,k), 3.0 );
-	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).val;
+	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).value( x );
 	} else {
 	    set_link( a, _n2d(i,j-1,k), -1.0 );
             set_link( a, _n2d(i,j,k), 1.0 );
-	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).val;
+	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).value( x );
 	}
 	break;
     case 5:
@@ -524,11 +525,11 @@ void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, uin
 	    set_link( a, _n2d(i,j,k), 3.0 );
             set_link( a, _n2d(i,j,k+1), -4.0 );
             set_link( a, _n2d(i,j,k+2), 1.0 );
-	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).val;
+	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).value( x );
 	} else {
 	    set_link( a, _n2d(i,j,k), 1.0 );
             set_link( a, _n2d(i,j,k+1), -1.0 );
-	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).val;
+	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).value( x );
 	}	
 	break;
     case 6:
@@ -536,11 +537,11 @@ void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, uin
 	    set_link( a, _n2d(i,j,k-2), 1.0 );
             set_link( a, _n2d(i,j,k-1), -4.0 );
             set_link( a, _n2d(i,j,k), 3.0 );
-	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).val;
+	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).value( x );
 	} else {
 	    set_link( a, _n2d(i,j,k-1), -1.0 );
             set_link( a, _n2d(i,j,k), 1.0 );
-	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).val;
+	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).value( x );
 	}
 	break;
     }
@@ -631,12 +632,13 @@ void EpotMatrixSolver::build_mat_vec( void )
     _fd_vec->clear();
 
     // Build matrix and rhs vector
+    Vec3D x;
     for( uint32_t k = 0; k < _geom.size(2); k++ ) {
+	x[2] = _geom.origo(2) + _geom.h()*k;
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
+	    x[1] = _geom.origo(1) + _geom.h()*j;
             for( uint32_t i = 0; i < _geom.size(0); i++ ) {
-
-		//ibsimu.message( 1 ) << "\n";
-		//ibsimu.message( 1 ) << "epot(" << i << ", " << j << ", " << k << ") = " << epot(i,j,k) << "\n";
+		x[0] = _geom.origo(0) + _geom.h()*i;
 
 		uint32_t a = (k*_geom.size(1)+j)*_geom.size(0)+i;
 		uint32_t mesh = _geom.mesh(a);
@@ -654,7 +656,7 @@ void EpotMatrixSolver::build_mat_vec( void )
 		    add_near_solid_node( i, j, k );
 		} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
 		    //ibsimu.message( 1 ) << "Neumann\n";
-		    add_neumann_node( i, j, k, mesh & SMESH_BOUNDARY_NUMBER_MASK );
+		    add_neumann_node( i, j, k, x, mesh & SMESH_BOUNDARY_NUMBER_MASK );
 		}
 	    }
         }

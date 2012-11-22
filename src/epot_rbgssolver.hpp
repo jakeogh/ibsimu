@@ -49,6 +49,9 @@
 #include <pthread.h>
 
 
+/*! \brief Parallelized Red-Black Gauss-Seidel solver for electric
+ *  potential problem.
+ */
 class EpotRBGSSolver : public EpotSolver {
 
     MeshScalarField *_epot;

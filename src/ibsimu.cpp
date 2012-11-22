@@ -61,9 +61,11 @@ IBSimu::IBSimu( const IBSimu &ibs )
 IBSimu::IBSimu()
     : _hello(false), _threadcount(1), _os(&std::cout), _indent(0)
 {
-    // Set message level thresholds to default
+    // Set message level thresholds to defaults
     for( int a = 0; a < MSG_COUNT; a++ )
 	_message_threshold[a] = 0;
+    _message_threshold[MSG_WARNING] = 1;
+    _message_threshold[MSG_ERROR] = 1;
 
 #if defined(_GNU_SOURCE) && defined(HAVE_SIGINFO_T)
     // Set a catch for segmentation fault

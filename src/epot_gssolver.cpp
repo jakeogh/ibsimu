@@ -2,7 +2,7 @@
  *  \brief Gauss-Seidel solver for electric potential problem
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -813,31 +813,39 @@ void EpotGSSolver::preprocess( const MeshScalarField &scharge )
     _rhs = new MeshScalarField( (const Mesh)scharge );
 
     // Build rhs
-    for( uint32_t a = 0; a < _geom.nodecount(); a++ ) {
+    Vec3D x;
+    for( uint32_t k = 0; k < _geom.size(2); k++ ) {
+	x[2] = _geom.origo(2) + _geom.h()*k;
+	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
+	    x[1] = _geom.origo(1) + _geom.h()*j;
+	    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
+		x[0] = _geom.origo(0) + _geom.h()*i;
 
-	uint32_t mesh = _geom.mesh(a);
-	uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
-	if( node_id == SMESH_NODE_ID_NEAR_SOLID ||
-	    node_id == SMESH_NODE_ID_PURE_VACUUM ) {
+		uint32_t mesh = _geom.mesh(i,j,k);
+		uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
+		if( node_id == SMESH_NODE_ID_NEAR_SOLID ||
+		    node_id == SMESH_NODE_ID_PURE_VACUUM ) {
 
-	    // Ordinary vacuum/near solid
-	    (*_rhs)(a) = -scharge(a)*_geom.h()*_geom.h()/EPSILON0;
+		    // Ordinary vacuum/near solid
+		    (*_rhs)(i,j,k) = -scharge(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 
-	} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
+		} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
 
-	    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
-	    if( _geom.geom_mode() == MODE_CYL && boundary == 3 ) {
+		    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
+		    if( _geom.geom_mode() == MODE_CYL && boundary == 3 ) {
 			
-		// Symmetry axis (vacuum)
-		(*_rhs)(a) = -scharge(a)*_geom.h()*_geom.h()/EPSILON0;
+			// Symmetry axis (vacuum)
+			(*_rhs)(i,j,k) = -scharge(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 
-	    } else {
+		    } else {
 		
-		// Ordinary Neumann node
-		if( _neumann_order == 2 )
-		    (*_rhs)(a) = 2.0*_geom.h()*_geom.get_boundary( boundary ).val;
-		else
-		    (*_rhs)(a) = _geom.h()*_geom.get_boundary( boundary ).val;
+			// Ordinary Neumann node
+			if( _neumann_order == 2 )
+			    (*_rhs)(i,j,k) = 2.0*_geom.h()*_geom.get_boundary( boundary ).value( x );
+			else
+			    (*_rhs)(i,j,k) = _geom.h()*_geom.get_boundary( boundary ).value( x );
+		    }
+		}
 	    }
 	}
     }

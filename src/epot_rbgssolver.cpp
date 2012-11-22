@@ -1,3 +1,46 @@
+/*! \file epot_rbgssolver.cpp
+ *  \brief Red-Black Gauss-Seidel solver for electric potential problem
+ */
+
+/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
+ *
+ * You can redistribute this software and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ * 
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this library (file "COPYING" included in the package);
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * 
+ * If you have questions about your rights to use or distribute this
+ * software, please contact Berkeley Lab's Technology Transfer
+ * Department at TTD@lbl.gov. Other questions, comments and bug
+ * reports should be sent directly to the author via email at
+ * taneli.kalvas@jyu.fi.
+ * 
+ * NOTICE. This software was developed under partial funding from the
+ * U.S.  Department of Energy.  As such, the U.S. Government has been
+ * granted for itself and others acting on its behalf a paid-up,
+ * nonexclusive, irrevocable, worldwide license in the Software to
+ * reproduce, prepare derivative works, and perform publicly and
+ * display publicly.  Beginning five (5) years after the date
+ * permission to assert copyright is obtained from the U.S. Department
+ * of Energy, and subject to any subsequent five (5) year renewals,
+ * the U.S. Government is granted for itself and others acting on its
+ * behalf a paid-up, nonexclusive, irrevocable, worldwide license in
+ * the Software to reproduce, prepare derivative works, distribute
+ * copies to the public, perform publicly and display publicly, and to
+ * permit others to do so.
+ */
+
+
 #include "epot_rbgssolver.hpp"
 #include "ibsimu.hpp"
 #include "timer.hpp"
@@ -6,7 +49,7 @@
 
 
 EpotRBGSSolver::EpotRBGSSolver( Geometry &geom )
-    : EpotSolver( geom ), _rhs(NULL), _imax(10000), _eps(1.0e-6), _w(1.66), _sp(NULL)
+    : EpotSolver( geom ), _rhs(NULL), _imax(10000), _eps(1.0e-6), _w(1.0), _sp(NULL)
 {
     pthread_mutex_init( &_mutex, NULL );
     pthread_cond_init( &_cond, NULL );
@@ -552,7 +595,7 @@ void EpotRBGSSolver::preprocess( const MeshScalarField &scharge )
     for( uint32_t bound = 1; bound <= 2; bound++ ) {
 	uint32_t i = 0;
 	if( bound == 2 ) i = _geom.size(0)-1;
-	if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+	if( _geom.get_boundary(bound).type() == BOUND_NEUMANN ) {
 	    for( uint32_t k = 0; k < _geom.size(2); k++ ) {
 		for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 		    uint32_t mesh = _geom.mesh(i,j,k);
@@ -572,7 +615,7 @@ void EpotRBGSSolver::preprocess( const MeshScalarField &scharge )
 	for( uint32_t bound = 3; bound <= 4; bound++ ) {
 	    uint32_t j = 0;
 	    if( bound == 4 ) j = _geom.size(1)-1;
-	    if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+	    if( _geom.get_boundary(bound).type() == BOUND_NEUMANN ) {
 		for( uint32_t k = 0; k < _geom.size(2); k++ ) {
 		    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
 			uint32_t mesh = _geom.mesh(i,j,k);
@@ -592,7 +635,7 @@ void EpotRBGSSolver::preprocess( const MeshScalarField &scharge )
 	for( uint32_t bound = 5; bound <= 6; bound++ ) {
 	    uint32_t k = 0;
 	    if( bound == 6 ) k = _geom.size(2)-1;
-	    if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+	    if( _geom.get_boundary(bound).type() == BOUND_NEUMANN ) {
 		for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 		    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
 			uint32_t mesh = _geom.mesh(i,j,k);
@@ -610,12 +653,13 @@ void EpotRBGSSolver::preprocess( const MeshScalarField &scharge )
 
     // Build rhs and set forced vacuum nodes and dirichlet nodes to
     // epot. Mark fixed vacuum nodes with a tag.
+    Vec3D x;
     for( uint32_t k = 0; k < _geom.size(2); k++ ) {
-	double z = k*_geom.h()+_geom.origo(2);
+	x[2] = _geom.origo(2) + _geom.h()*k;
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
-	    double y = j*_geom.h()+_geom.origo(1);
+	    x[1] = _geom.origo(1) + _geom.h()*j;
 	    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
-		double x = i*_geom.h()+_geom.origo(0);
+		x[0] = _geom.origo(0) + _geom.h()*i;
 
 		uint32_t mesh = _geom.mesh(i,j,k);
 		uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
@@ -623,13 +667,13 @@ void EpotRBGSSolver::preprocess( const MeshScalarField &scharge )
 		    node_id == SMESH_NODE_ID_PURE_VACUUM ) {
 
 		    // Vacuum
-		    if( _force_pot_func && (*_force_pot_func)(Vec3D(x,y,z)) ) {
+		    if( _force_pot_func && (*_force_pot_func)( x ) ) {
 
 			// Mark as fixed vacuum
 			_geom.mesh(i,j,k) |= SMESH_NODE_FIXED;
 			(*_epot)(i,j,k) = _force_pot;
 
-		    } else if ( _init_plasma_func && (*_init_plasma_func)(Vec3D(x,y,z)) ) {
+		    } else if ( _init_plasma_func && (*_init_plasma_func)( x ) ) {
 
 			// Mark as fixed vacuum
 			_geom.mesh(i,j,k) |= SMESH_NODE_FIXED;
@@ -645,13 +689,13 @@ void EpotRBGSSolver::preprocess( const MeshScalarField &scharge )
 
 		    // Neumann
 		    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
-		    (*_rhs)(i,j,k) = _geom.h()*_geom.get_boundary( boundary ).val;
+		    (*_rhs)(i,j,k) = _geom.h()*_geom.get_boundary( boundary ).value( x );
 
 		} else if( node_id == SMESH_NODE_ID_DIRICHLET ) {
 		    
 		    // Dirichlet
 		    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
-		    (*_epot)(i,j,k) = _geom.get_boundary( boundary ).val;
+		    (*_epot)(i,j,k) = _geom.get_boundary( boundary ).value( x );
 
 		}
 	    }
@@ -696,7 +740,7 @@ void EpotRBGSSolver::postprocess( void )
     for( uint32_t bound = 1; bound <= 2; bound++ ) {
 	uint32_t i = 0;
 	if( bound == 2 ) i = _geom.size(0)-1;
-	if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+	if( _geom.get_boundary(bound).type() == BOUND_NEUMANN ) {
 	    for( uint32_t k = 0; k < _geom.size(2); k++ ) {
 		for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 		    uint32_t mesh = _geom.mesh(i,j,k);
@@ -715,7 +759,7 @@ void EpotRBGSSolver::postprocess( void )
 	for( uint32_t bound = 3; bound <= 4; bound++ ) {
 	    uint32_t j = 0;
 	    if( bound == 4 ) j = _geom.size(1)-1;
-	    if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+	    if( _geom.get_boundary(bound).type() == BOUND_NEUMANN ) {
 		for( uint32_t k = 0; k < _geom.size(2); k++ ) {
 		    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
 			uint32_t mesh = _geom.mesh(i,j,k);
@@ -734,7 +778,7 @@ void EpotRBGSSolver::postprocess( void )
 	for( uint32_t bound = 5; bound <= 6; bound++ ) {
 	    uint32_t k = 0;
 	    if( bound == 6 ) k = _geom.size(2)-1;
-	    if( _geom.get_boundary(bound).type == BOUND_NEUMANN ) {
+	    if( _geom.get_boundary(bound).type() == BOUND_NEUMANN ) {
 		for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 		    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
 			uint32_t mesh = _geom.mesh(i,j,k);

@@ -53,42 +53,69 @@
 #include "solid.hpp"
 #include "mesh.hpp"
 #include "types.hpp"
+#include "callback.hpp"
 
 
 /*! \brief Boundary condition definition class.
  *
- *  Contains boundary condition type and numerical boundary value.
- *  Dirichlet here means fixed, preset potential at the boundary 
- *  \f[ \phi = \phi_0. \f]
- *  Neumann here means that the first derivative of the potential 
- *  with respect to the unit outward normal (out of solid into the 
- *  vacuum) of the surface is preset 
- *  \f[ - \frac{\partial \phi}{\partial \vec{n}} 
- *      = - \sum_i n_i \frac{\partial \phi}{\partial x_i} 
- *      = q_0. \f]
+ *  Contains boundary condition type and numerical boundary value or a
+ *  pointer to a callback functor providing the boundary value as a
+ *  function of coordinates \a (x,y,z).  Dirichlet here means fixed,
+ *  preset potential at the boundary \f[ \phi = \phi_0. \f] Neumann
+ *  here means that the first derivative of the potential with respect
+ *  to the unit outward normal (out of solid into the vacuum) of the
+ *  surface is preset \f[ - \frac{\partial \phi}{\partial \vec{n}} = -
+ *  \sum_i n_i \frac{\partial \phi}{\partial x_i} = q_0. \f]
  */
-struct Bound 
+class Bound 
 {
-    bound_e         type;
-    double          val;
+    bound_e                   _type;    /*!< \brief Boundary type. */
+    double                    _value;   /*!< \brief Boundary value if constant. */
+    const CallbackFunctorD_V *_functor; /*!< \brief Value functor, NULL if constant. */
 
-    /*! \brief Constructor.
+public:
+
+    /*! \brief Constructor for constant value boundary.
      */
-    Bound( bound_e t, double v ) : type(t), val(v) {}
+    Bound( bound_e type, double value );
+
+    /*! \brief Constructor for varying value boundary.
+     */
+    Bound( bound_e type, const CallbackFunctorD_V *functor );
 
     /*! \brief Constructor for loading boundary condition from a file.
      */
-    Bound( std::istream &is ) {
-    	type = (bound_e)read_int32( is );
-    	val = read_double( is );
-    }
+    Bound( std::istream &is );
+
+    /*! \brief Return boundary type.
+     */
+    bound_e type( void ) const;
+
+    /*! \brief Set constant boundary value.
+     */
+    void set_value( double value );
+
+    /*! \brief Return constant boundary value.
+     *
+     *  This function works only if boundary value is
+     *  constant. Otherwise throws an error.
+     */
+    double value( void ) const;
+
+    /*! \brief Return boundary value at \a x.
+     */
+    double value( const Vec3D &x ) const;
+
+    /*! \brief Return if boundary value is constant.
+     *
+     *  Returns true if boundary value is constant and false if it is
+     *  a function of location.
+     */
+    bool is_constant() const;
 
     /*! \brief Saves data to stream \a os.
      */
-    void save( std::ostream &os ) const {
-	write_int32( os, type );
-	write_double( os, val );
-    }
+    void save( std::ostream &os ) const;
 
     /*! \brief Outputting to stream.
      */

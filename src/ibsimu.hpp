@@ -56,12 +56,17 @@
 class Timer;
 
 
-#define MSG_COUNT 4
+/*! \brief Message type count.
+ *
+ *  Must match number of types of message_type_e.
+ */
+#define MSG_COUNT 5
 
-/*! \brief Output type
+/*! \brief Output type.
  */
 enum message_type_e {
     MSG_VERBOSE = 0,
+    MSG_WARNING,
     MSG_ERROR,
     MSG_DEBUG_GENERAL,
     MSG_DEBUG_DXF
@@ -165,8 +170,9 @@ public:
      *  Only messages with level lower than or equal to the threshold
      *  will be printed. A value of 1 is used for standard amount of
      *  output. Value of 2 for extended amount of output. Message
-     *  thresholds default to 0 (no output). For enabling the debug
-     *  messages, the library has to be compiled with debugging enabled.
+     *  threshold for MSG_VERBOSE defaults to 0 (no output), MSG_ERROR
+     *  and MSG_WARNING default to 1. For enabling the debug messages,
+     *  the library has to be compiled with debugging enabled.
      */
     void set_message_threshold( message_type_e type, int32_t level );
 
