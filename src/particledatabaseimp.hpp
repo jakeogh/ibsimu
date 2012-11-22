@@ -378,6 +378,91 @@ public:
 	vel = x.velocity();
     }
 
+    virtual void trajectories_at_plane( std::vector< Particle<PP> > &tdata,
+					coordinate_axis_e axis,
+					double val ) const {
+
+	ibsimu.message( 1 ) << "Making trajectory diagnostics at " 
+			    << coordinate_axis_string[axis] << " = " << val << "\n";
+	ibsimu.inc_indent();
+
+	// Check query
+	switch( PP::geom_mode() ) {
+	case MODE_1D:
+	    throw( Error( ERROR_LOCATION, "unsupported dimension number" ) );
+	    break;
+	case MODE_2D:
+	    if( axis == AXIS_R || axis == AXIS_Z )
+		throw( Error( ERROR_LOCATION, "nonexistent axis" ) );
+	    break;
+	case MODE_CYL:
+	    if( axis == AXIS_Y || axis == AXIS_Z )
+		throw( Error( ERROR_LOCATION, "nonexistent axis" ) );
+	    break;
+	case MODE_3D:
+	    if( axis == AXIS_R )
+		throw( Error( ERROR_LOCATION, "nonexistent axis" ) );
+	    break;
+	default:
+	    throw( Error( ERROR_LOCATION, "unsupported dimension number" ) );
+	}
+
+	// Prepare output vector
+	tdata.clear();
+
+	// Set coordinate index
+	int crd;
+	switch( axis ) {
+	case AXIS_X:
+	    crd = 0;
+	    break;
+	case AXIS_Y:
+	case AXIS_R:
+	    crd = 1;
+	    break;
+	case AXIS_Z:
+	    crd = 2;
+	    break;
+	default:
+	    throw( Error( ERROR_LOCATION, "unsupported axis" ) );
+	}
+
+	// Scan through particle trajectory points
+	double Isum = 0.0;
+	std::vector<PP> intsc;
+	for( size_t a = 0; a < _particles.size(); a++ ) {
+	    size_t N = _particles[a]->traj_size();
+	    if( N < 2 )
+		continue;
+	    PP x1 = _particles[a]->traj(0);
+	    for( size_t b = 1; b < N; b++ ) {
+		PP x2 = _particles[a]->traj(b);
+		intsc.clear();
+		size_t nintsc;
+		if( b == 1 )
+		    nintsc = PP::trajectory_intersections_at_plane( intsc, crd, val, x1, x2, -1 );
+		else if( b == N-1 )
+		    nintsc = PP::trajectory_intersections_at_plane( intsc, crd, val, x1, x2, +1 );
+		else
+		    nintsc = PP::trajectory_intersections_at_plane( intsc, crd, val, x1, x2, 0 );
+		for( size_t c = 0; c < nintsc; c++ ) {
+		    Isum += _particles[a]->IQ();
+		    tdata.push_back( Particle<PP>( _particles[a]->IQ(), _particles[a]->q(),
+						   _particles[a]->m(), intsc[c] ) );
+		}
+
+		x1 = x2;
+	    }
+	}
+
+	ibsimu.message( 1 ) << "number of trajectories = " << tdata.size() << "\n";
+	if( PP::geom_mode() == MODE_2D )
+	    ibsimu.message( 1 ) << "total current = " << Isum << " A/m\n";
+	else
+	    ibsimu.message( 1 ) << "total current = " << Isum << " A\n";
+	ibsimu.dec_indent();	
+    }
+
     virtual void trajectories_at_plane( TrajectoryDiagnosticData &tdata, 
 					coordinate_axis_e axis,
 					double val,

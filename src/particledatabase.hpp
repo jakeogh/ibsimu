@@ -552,6 +552,13 @@ public:
 
     using ParticleDataBase::trajectory_point;
 
+    /*! \brief Gets trajectory data at plane \a axis = \a val as
+     *  particles in vector \a tdata.
+     */
+    void trajectories_at_plane( std::vector<Particle2D> &tdata,
+				coordinate_axis_e axis,
+				double val ) const;
+
 /* ************************************** *
  * Particle definition                    *
  * ************************************** */
@@ -740,6 +747,13 @@ public:
 
     using ParticleDataBase::trajectory_point;
 
+    /*! \brief Gets trajectory data at plane \a axis = \a val as
+     *  particles in vector \a tdata.
+     */
+    void trajectories_at_plane( std::vector<ParticleCyl> &tdata,
+				coordinate_axis_e axis,
+				double val ) const;
+
 /* ************************************** *
  * Particle definition                    *
  * ************************************** */
@@ -914,6 +928,13 @@ public:
     virtual const ParticleP3D &trajectory_point( uint32_t i, uint32_t j ) const;
 
     using ParticleDataBase::trajectory_point;
+
+    /*! \brief Gets trajectory data at plane \a axis = \a val as
+     *  particles in vector \a tdata.
+     */
+    void trajectories_at_plane( std::vector<Particle3D> &tdata,
+				coordinate_axis_e axis,
+				double val ) const;
 
 /* ************************************** *
  * Particle definition                    *

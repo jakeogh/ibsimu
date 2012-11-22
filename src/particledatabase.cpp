@@ -354,6 +354,14 @@ const ParticleP2D &ParticleDataBase2D::trajectory_point( uint32_t i, uint32_t j 
 }
 
 
+void ParticleDataBase2D::trajectories_at_plane( std::vector<Particle2D> &tdata,
+						coordinate_axis_e axis,
+						double val ) const
+{
+    _imp->trajectories_at_plane( tdata, axis, val );
+}
+
+
 void ParticleDataBase2D::add_particle( double IQ, double q, double m, const ParticleP2D &x )
 {
     _imp->add_particle( IQ, q, m, x );
@@ -486,6 +494,14 @@ const ParticlePCyl &ParticleDataBaseCyl::trajectory_point( uint32_t i, uint32_t 
 }
 
 
+void ParticleDataBaseCyl::trajectories_at_plane( std::vector<ParticleCyl> &tdata,
+						 coordinate_axis_e axis,
+						 double val ) const
+{
+    _imp->trajectories_at_plane( tdata, axis, val );
+}
+
+
 void ParticleDataBaseCyl::add_particle( double IQ, double q, double m, const ParticlePCyl &x )
 {
     _imp->add_particle( IQ, q, m, x );
@@ -615,6 +631,14 @@ const Particle3D &ParticleDataBase3D::particle( uint32_t i ) const
 const ParticleP3D &ParticleDataBase3D::trajectory_point( uint32_t i, uint32_t j ) const
 {
     return( _imp->trajectory_point( i, j ) );
+}
+
+
+void ParticleDataBase3D::trajectories_at_plane( std::vector<Particle3D> &tdata,
+						coordinate_axis_e axis,
+						double val ) const
+{
+    _imp->trajectories_at_plane( tdata, axis, val );
 }
 
 
