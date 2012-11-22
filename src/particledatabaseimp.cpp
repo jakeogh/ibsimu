@@ -561,7 +561,7 @@ void ParticleDataBase2DImp::add_tdens_from_segment( MeshScalarField &tdens, doub
 	i[a] = (int32_t)floor( ( x[a]-tdens.origo(a) ) * tdens.div_h() );
 	t[a] = ( x[a]-(i[a]*tdens.h()+tdens.origo(a)) ) * tdens.div_h();
 	
-	if( i[a] < 0 || i[a] >= (int32_t)tdens.size(a)-1 )
+	if( i[a] < 0 || i[a] >= (int32_t)(tdens.size(a)-1) )
 	    return;
     }
     dx = sqrt( dx );
@@ -681,14 +681,14 @@ void ParticleDataBaseCylImp::add_tdens_from_segment( MeshScalarField &tdens, dou
     double dx = 0.0;
     double x[2];
     double t[2];
-    int i[2];
+    int32_t i[2];
 
     // x-direction
     double xx = ( x2[1] - x1[1] );
     xx = xx*xx;
     dx += xx;
     x[0] = 0.5*( x1[1] + x2[1] );
-    i[0] = (int)floor( ( x[0]-tdens.origo(0) ) * tdens.div_h() );
+    i[0] = (int32_t)floor( ( x[0]-tdens.origo(0) ) * tdens.div_h() );
     t[0] = ( x[0]-(i[0]*tdens.h()+tdens.origo(0)) ) * tdens.div_h();
 
     // r-direction
@@ -696,7 +696,7 @@ void ParticleDataBaseCylImp::add_tdens_from_segment( MeshScalarField &tdens, dou
     xx = xx*xx;
     dx += xx;
     x[1] = 0.5*( x1[3] + x2[3] );
-    i[1] = (int)floor( ( x[1]-tdens.origo(1) ) * tdens.div_h() );
+    i[1] = (int32_t)floor( ( x[1]-tdens.origo(1) ) * tdens.div_h() );
     double rj1 = i[1]*tdens.h()+tdens.origo(1);
     double rj2 = rj1+tdens.h();
     rj1 = rj1*rj1;
@@ -705,8 +705,9 @@ void ParticleDataBaseCylImp::add_tdens_from_segment( MeshScalarField &tdens, dou
     
     dx = sqrt( dx );
 
+    // Check that no deposition is done over field size
     for( size_t a = 0; a < 2; a++ ) {
-	if( i[a] < 0 || i[a] >= (int32_t)tdens.size(a) )
+	if( i[a] < 0 || i[a] >= (int32_t)(tdens.size(a)-1) )
 	    return;
 	/*
 	// Add charge to boundaries when over simulation area
@@ -1997,7 +1998,7 @@ void ParticleDataBase3DImp::add_tdens_from_segment( MeshScalarField &tdens, doub
 	double xx = ( x2[2*a+1] - x1[2*a+1] );
 	dx  += xx*xx;
 	x[a] = 0.5*( x1[2*a+1] + x2[2*a+1] );
-	i[a] = (int)floor( ( x[a]-tdens.origo(a) ) * tdens.div_h() );
+	i[a] = (int32_t)floor( ( x[a]-tdens.origo(a) ) * tdens.div_h() );
 	t[a] = ( x[a]-(i[a]*tdens.h()+tdens.origo(a)) ) * tdens.div_h();
 	
 	if( i[a] < 0 || i[a] >= (int32_t)(tdens.size(a)-1) )
