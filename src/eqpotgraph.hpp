@@ -79,7 +79,7 @@ class EqPotGraph : public Graph3D {
     };
 
     Color                               _color;
-    const MeshScalarField               _epot;
+    const MeshScalarField              &_epot;
     const Geometry                     &_geom;
     bool                                _data_built;
 
