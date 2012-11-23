@@ -219,9 +219,9 @@ enum trajectory_diagnostic_e {
     DIAG_CURR,     /*!< \brief Current (I) */
     DIAG_EK,       /*!< \brief Kinetic energy (eV) */
     DIAG_QM,       /*!< \brief Charge per mass (e/u) */
-    DIAG_CHARGE,   /*!< \brief Particle charge (e) */
-    DIAG_MASS,     /*!< \brief Particle mass (u) */
-    DIAG_NO        /*!< \brief Particle index number. Useful for debugging. */
+    DIAG_CHARGE,   /*!< \brief %Particle charge (e) */
+    DIAG_MASS,     /*!< \brief %Particle mass (u) */
+    DIAG_NO        /*!< \brief %Particle index number. Useful for debugging. */
 };
 
 
