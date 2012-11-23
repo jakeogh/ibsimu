@@ -1,8 +1,8 @@
-/*! \file stl_solid.hpp
- *  \brief %Solid definition using Stereolithography CAD format
+/*! \file solid.hpp
+ *  \brief Base for solid definition
  */
 
-/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,70 +40,67 @@
  * permit others to do so.
  */
 
-#ifndef STLSOLID_HPP
-#define STLSOLID_HPP 1
-
-
-#include <iostream>
-#include <vector>
 #include "solid.hpp"
-#include "transformation.hpp"
 
 
-/*! \brief %STL solid
- *
- *  A solid object constructed from one or a union of several entities
- *  from STL-files.
- */
-class STLSolid : public Solid {
+Solid::Solid()
+{
 
-    std::vector<class STLFile *> _stl;
-    
-public:
-
-    /*! \brief Default constructor.
-     *
-     *  Create and empty object.
-     */
-    STLSolid();
-
-    /*! \brief Constructor for making a solid reading a STL-file.
-     */
-    STLSolid( const std::string &filename );
-
-    /*! \brief Constructor for loading solid data from stream \a is.
-     */
-    STLSolid( std::istream &is );
-
-    /*! \brief Destructor.
-     */
-    virtual ~STLSolid();
-
-    /*! \brief Return if 3D point \a x in simulation space is inside
-     *  solid.
-     */
-    virtual bool inside( const Vec3D &x ) const;
-
-    /*! \brief Add entity from STL-file to object.
-     *
-     *  The STLFile stl is owned by STLSolid after calling this
-     *  function. It is destructed when STLSolid is destructed.
-     */
-    void add_stl_file( class STLFile *stl );
-
-    /*! \brief Return a pointer to the STL-file \a i.
-     */
-    class STLFile *get_stl_file( uint32_t i = 0 ) const;
-
-    /*! \brief Print debugging information to os.
-     */
-    void debug_print( std::ostream &os ) const;
-
-    /*! \brief Saves solid data to stream.
-     */
-    virtual void save( std::ostream &s ) const;
-};
+}
 
 
-#endif
+Solid::~Solid()
+{
+
+}
+
+
+void Solid::reset_transformation( void ) 
+{
+    _T.reset();
+}
+
+
+void Solid::set_transformation( const Transformation &T ) 
+{
+    // T is inverse of the matrix presented to user
+    _T = T.inverse();
+}
+
+
+void Solid::translate( const Vec3D &dx ) 
+{
+    _T = _T * Transformation::translation( -dx );
+}
+
+
+void Solid::scale( double sx ) 
+{
+    _T = _T * Transformation::scaling( Vec3D(1.0/sx, 1.0/sx, 1.0/sx) );
+}
+
+
+void Solid::scale( const Vec3D &sx ) 
+{
+    _T = _T * Transformation::scaling( Vec3D(1.0/sx[0], 1.0/sx[1], 1.0/sx[2]) );
+}
+
+
+void Solid::rotate_x( double a ) 
+{
+    _T = _T * Transformation::rotation_x( -a );
+}
+
+
+void Solid::rotate_y( double a ) 
+{
+    _T = _T * Transformation::rotation_y( -a );
+}
+
+
+void Solid::rotate_z( double a ) 
+{
+    _T = _T * Transformation::rotation_z( -a );
+}
+
 

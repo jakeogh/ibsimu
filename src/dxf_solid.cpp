@@ -97,7 +97,7 @@ DXFSolid::DXFSolid( MyDXFFile *dxffile, const std::string &layername )
 DXFSolid::DXFSolid( std::istream &is )
     : _func(&unity), _entities(NULL), _selection(NULL)
 {
-    ibsimu.message( 1 ) << "Warning: loading of DXFSolid not implemented\n";
+    ibsimu.message( MSG_WARNING, 1 ) << "Warning: loading of DXFSolid not implemented\n";
     ibsimu.flush();
 }
 
@@ -165,55 +165,6 @@ bool DXFSolid::inside( const Vec3D &x ) const
 }
 
 
-void DXFSolid::reset_transformation( void ) 
-{
-    _T.reset();
-}
-
-
-void DXFSolid::set_transformation( const Transformation &T ) 
-{
-    // T is inverse the matrix presented to user
-    _T = T.inverse();
-}
-
-
-void DXFSolid::translate( const Vec3D &dx ) 
-{
-    _T = _T * Transformation::translation( -dx );
-}
-
-
-void DXFSolid::scale( double sx ) 
-{
-    _T = _T * Transformation::scaling( Vec3D(1.0/sx, 1.0/sx, 1.0/sx) );
-}
-
-
-void DXFSolid::scale( const Vec3D &sx ) 
-{
-    _T = _T * Transformation::scaling( Vec3D(1.0/sx[0], 1.0/sx[1], 1.0/sx[2]) );
-}
-
-
-void DXFSolid::rotate_x( double a ) 
-{
-    _T = _T * Transformation::rotation_x( -a );
-}
-
-
-void DXFSolid::rotate_y( double a ) 
-{
-    _T = _T * Transformation::rotation_y( -a );
-}
-
-
-void DXFSolid::rotate_z( double a ) 
-{
-    _T = _T * Transformation::rotation_z( -a );
-}
-
-
 void DXFSolid::debug_print( std::ostream &os ) const
 {
     os << "**DXFSolid\n";
@@ -230,7 +181,7 @@ void DXFSolid::debug_print( std::ostream &os ) const
 void DXFSolid::save( std::ostream &os ) const
 {
     write_int32( os, FILEID_DXFSOLID );
-    ibsimu.message( 1 ) << "Warning: saving of DXFSolid not implemented\n";
+    ibsimu.message( MSG_WARNING, 1 ) << "Warning: saving of DXFSolid not implemented\n";
     ibsimu.flush();
 }
 

@@ -2,7 +2,7 @@
  *  \brief Base for solid definition
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -46,24 +46,76 @@
 
 #include <iostream>
 #include "vec3d.hpp"
+#include "transformation.hpp"
 
 
-/*! \brief Abstract solid class.
+/*! \brief %Solid base class.
  *
  *  %Solid class holds the definition for one solid. %Solid class is
- *  an abstract base class. Different implementation may exist.
+ *  a base class, different implementation exist.
  */
 class Solid {
+
+protected:
     
+    Transformation         _T;
+
+    /*! \brief Constructor.
+     */
+    Solid();
+
 public:
 
     /*! \brief Virtual destructor.
      */
-    virtual ~Solid() {}
+    virtual ~Solid();
 
     /*! \brief Return if point x is inside solid.
      */
     virtual bool inside( const Vec3D &x ) const = 0;
+
+    /*! \brief Set transformation to unity.
+     *
+     *  Resets the primary 3D to 3D transformation to unity.
+     */
+    void reset_transformation( void );
+
+    /*! \brief Set transformation.
+     *
+     *  Sets the primary 3D to 3D transformation as a copy of
+     *  transformation of \a T.
+     */
+    void set_transformation( const Transformation &T );
+
+    /*! \brief Translate solid.
+     */
+    void translate( const Vec3D &dx );
+
+    /*! \brief Scale solid.
+     */
+    void scale( double sx );
+
+    /*! \brief Scale solid.
+     */
+    void scale( const Vec3D &sx );
+
+    /*! \brief Rotate solid around x-axis.
+     *
+     *  Rotate around x-axis for \a a radians.
+     */
+    void rotate_x( double a );
+
+    /*! \brief Rotate solid around y-axis.
+     *
+     *  Rotate around y-axis for \a a radians.
+     */
+    void rotate_y( double a );
+
+    /*! \brief Rotate solid around z-axis.
+     *
+     *  Rotate around z-axis for \a a radians.
+     */
+    void rotate_z( double a );
 
     /*! \brief Print debugging information to os.
      */
@@ -76,22 +128,3 @@ public:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

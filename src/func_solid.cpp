@@ -50,14 +50,17 @@ bool FuncSolid::inside( const Vec3D &x ) const
 {
     if( !_func )
 	throw( Error( ERROR_LOCATION, "solid function not defined" ) );
-    return( _func( x[0], x[1], x[2] ) );
+
+    // Transform 3D -> 3D
+    Vec3D y = _T.transform_point( x );
+    return( _func( y[0], y[1], y[2] ) );
 }
 
 
 FuncSolid::FuncSolid( std::istream &is )
     : _func(NULL)
 {
-    ibsimu.message( 1 ) << "Warning: loading of FuncSolid not implemented\n";
+    ibsimu.message( MSG_WARNING, 1 ) << "Warning: loading of FuncSolid not implemented\n";
     ibsimu.flush();
 }
 
@@ -72,7 +75,7 @@ void FuncSolid::debug_print( std::ostream &os ) const
 void FuncSolid::save( std::ostream &os ) const
 {
     write_int32( os, FILEID_FUNCSOLID );
-    ibsimu.message( 1 ) << "Warning: saving of FuncSolid not implemented\n";
+    ibsimu.message( MSG_WARNING, 1 ) << "Warning: saving of FuncSolid not implemented\n";
     ibsimu.flush();
 }
 

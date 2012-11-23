@@ -206,6 +206,7 @@ scalarfield.hpp \
 scharge.cpp \
 scharge.hpp \
 scheduler.hpp \
+solid.cpp \
 solid.hpp \
 solidgraph.cpp \
 solidgraph.hpp \

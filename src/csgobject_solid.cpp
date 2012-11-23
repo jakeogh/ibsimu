@@ -2,7 +2,7 @@
  *  \brief Solid definition using CSGObject
  */
 
-/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,13 +47,17 @@
 
 CSGObjectSolid::CSGObjectSolid( std::istream &s )
 {
+    ibsimu.message( MSG_WARNING, 1 ) << "Warning: loading of CSGObjectSolid not implemented\n";
+    ibsimu.flush();
     _object = 0;
 }
 
 
 bool CSGObjectSolid::inside( const Vec3D &x ) const
 {
-    return( _object->inside( Vector4( x[0], x[1], x[2], 1.0 ) ) );
+    // Transform 3D -> 3D
+    Vec3D y = _T.transform_point( x );
+    return( _object->inside( Vector4( y[0], y[1], y[2], 1.0 ) ) );
 }
 
 
@@ -66,6 +70,8 @@ void CSGObjectSolid::debug_print( std::ostream &os ) const
 void CSGObjectSolid::save( std::ostream &fout ) const
 {
     write_int32( fout, FILEID_CSGSOLID );
+    ibsimu.message( MSG_WARNING, 1 ) << "Warning: saving of CSGObjectSolid not implemented\n";
+    ibsimu.flush();
 }
 
 

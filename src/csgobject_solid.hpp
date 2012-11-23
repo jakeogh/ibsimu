@@ -2,7 +2,7 @@
  *  \brief %Solid definition using CSGObject
  */
 
-/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
