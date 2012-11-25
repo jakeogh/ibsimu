@@ -453,6 +453,26 @@ template <class PP> class ParticleIterator {
     }
 
 
+    /*! \brief Return if node (i,j) is a solid node
+     */
+    bool is_solid( int i, int j ) {
+	uint32_t node = _pidata._geom->mesh( i, j );
+	if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	    (node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	    return( true );
+	return( false );
+    }
+
+    /*! \brief Return if node (i,j,k) is a solid node
+     */
+    bool is_solid( int i, int j, int k ) {
+	uint32_t node = _pidata._geom->mesh( i, j, k );
+	if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	    (node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	    return( true );
+	return( false );
+    }
+
     /*! \brief Handle particle mesh intersection.
      *
      *  Particle mesh coordinates \a i are advanced through
@@ -466,76 +486,72 @@ template <class PP> class ParticleIterator {
 	// Check for collisions with solids and advance coordinates i.
 	if( PP::dim() == 2 ) {
 	    if( _coldata[c]._dir == -1 ) {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0],  i[1]+1)) >= 7 ) &&
+		if( (is_solid(i[0],i[1]) || is_solid(i[0], i[1]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[0]--;
 	    } else if( _coldata[c]._dir == +1 ) {
-		if( ( abs(_pidata._geom->mesh(i[0]+1,i[1]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1)) >= 7 ) &&
+		if( (is_solid(i[0]+1,i[1]) || is_solid(i[0]+1,i[1]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[0]++;
 	    } else if( _coldata[c]._dir == -2 ) {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]  )) >= 7 ) &&
+		if( (is_solid(i[0],i[1]) || is_solid(i[0]+1,i[1])) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[1]--;
 	    } else {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1]+1)) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1)) >= 7 ) &&
+		if( (is_solid(i[0],  i[1]+1) || is_solid(i[0]+1,i[1]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[1]++;
 	    }
 	} else if( PP::dim() == 3 ) {
 	    if( _coldata[c]._dir == -1 ) {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1],  i[2]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2]  )) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0],  i[1],  i[2]+1)) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2]+1)) >= 7 ) &&
+		if( (is_solid(i[0],  i[1],  i[2]  ) || 
+		     is_solid(i[0],  i[1]+1,i[2]  ) ||
+		     is_solid(i[0],  i[1],  i[2]+1) ||
+		     is_solid(i[0],  i[1]+1,i[2]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[0]--;
 	    } else if( _coldata[c]._dir == +1 ) {
-		if( ( abs(_pidata._geom->mesh(i[0]+1,i[1],  i[2]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2]  )) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0]+1,i[1],  i[2]+1)) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2]+1)) >= 7 ) &&
+		if( (is_solid(i[0]+1,i[1],  i[2]  ) || 
+		     is_solid(i[0]+1,i[1]+1,i[2]  ) ||
+		     is_solid(i[0]+1,i[1],  i[2]+1) ||
+		     is_solid(i[0]+1,i[1]+1,i[2]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[0]++;
 	    } else if( _coldata[c]._dir == -2 ) {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1],i[2]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1],i[2]  )) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0],  i[1],i[2]+1)) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0]+1,i[1],i[2]+1)) >= 7 ) &&
+		if( (is_solid(i[0],  i[1],i[2]  ) || 
+		     is_solid(i[0]+1,i[1],i[2]  ) ||
+		     is_solid(i[0],  i[1],i[2]+1) ||
+		     is_solid(i[0]+1,i[1],i[2]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[1]--;
 	    } else if( _coldata[c]._dir == +2 ) {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2]  )) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2]+1)) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2]+1)) >= 7 ) &&
+		if( (is_solid(i[0],  i[1]+1,i[2]  ) || 
+		     is_solid(i[0]+1,i[1]+1,i[2]  ) ||
+		     is_solid(i[0],  i[1]+1,i[2]+1) ||
+		     is_solid(i[0]+1,i[1]+1,i[2]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[1]++;
 	    } else if( _coldata[c]._dir == -3 ) {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1],  i[2]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1],  i[2]  )) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2])) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2])) >= 7 ) &&
+		if( (is_solid(i[0],  i[1],  i[2]) || 
+		     is_solid(i[0]+1,i[1],  i[2]) ||
+		     is_solid(i[0],  i[1]+1,i[2]) ||
+		     is_solid(i[0]+1,i[1]+1,i[2])) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[2]--;
 	    } else {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1],  i[2]+1)) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1],  i[2]+1)) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2]+1)) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2]+1)) >= 7 ) &&
+		if( (is_solid(i[0],  i[1],  i[2]+1) || 
+		     is_solid(i[0]+1,i[1],  i[2]+1) ||
+		     is_solid(i[0],  i[1]+1,i[2]+1) ||
+		     is_solid(i[0]+1,i[1]+1,i[2]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
 		    return( false );
 		i[2]++;
