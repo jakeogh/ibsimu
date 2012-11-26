@@ -2,7 +2,7 @@
  *  \brief %Graph for particle plots
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -51,14 +51,12 @@
 
 
 ParticleGraph::ParticleGraph( const Geometry &geom, const ParticleDataBase &pdb, 
-			      int particlediv, bool qm_discr )
-    : Graph3D(geom), _geom(geom), _pdb(pdb), _particlediv(particlediv), 
+			      uint32_t particle_div, uint32_t particle_offset,
+			      bool qm_discr )
+    : Graph3D(geom), _geom(geom), _pdb(pdb), 
+      _particle_div(particle_div), _particle_offset(particle_offset),
       _coordsize(3), _qm_discr(qm_discr)
 {
-    // Check input
-    if( _particlediv <= 0 )
-	_particlediv = 0;
-
     // Allocate work space
     _coord = new double[2*_coordsize];
 
@@ -82,11 +80,10 @@ ParticleGraph::~ParticleGraph()
 }
 
 
-void ParticleGraph::set_particle_div( size_t particle_div )
+void ParticleGraph::set_particle_div( uint32_t particle_div, uint32_t particle_offset )
 {
-    _particlediv = particle_div;
-    if( _particlediv <= 0 )
-	_particlediv = 0;
+    _particle_div = particle_div;
+    _particle_offset = particle_offset;
 }
 
 
@@ -102,7 +99,7 @@ void ParticleGraph::set_qm_discretation( bool qm_discr )
  *  the trajectory.
  */
 void ParticleGraph::draw_linear( const Coordmapper *cm, LineClip &lc, 
-				double x[5], bool first ) const
+				 double x[5], bool first ) const
 {
     double xout[2];
     cm->transform( xout, x );
@@ -114,8 +111,8 @@ void ParticleGraph::draw_linear( const Coordmapper *cm, LineClip &lc,
 
 
 void ParticleGraph::get_point( const Coordmapper *cm, double *coord, double s, 
-			      double Ax, double Bx, double Cx, double Dx, 
-			      double Ay, double By, double Cy, double Dy ) const
+			       double Ax, double Bx, double Cx, double Dx, 
+			       double Ay, double By, double Cy, double Dy ) const
 {
     double x[2] = { ((Ax*s + Bx)*s + Cx)*s + Dx, 
 		    ((Ay*s + By)*s + Cy)*s + Dy };
@@ -129,7 +126,7 @@ void ParticleGraph::get_point( const Coordmapper *cm, double *coord, double s,
  *  indicates first point of the trajectory.
  */
 void ParticleGraph::draw_curve( const Coordmapper *cm, LineClip &lc, 
-			       double x[5], bool first )
+				double x[5], bool first )
 {
     if( first ) {
 	// Save first point
@@ -220,18 +217,10 @@ void ParticleGraph::draw_curve( const Coordmapper *cm, LineClip &lc,
 }
 
 
-
-
-
-
-
-
-
-
 void ParticleGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
     // No plotting
-    if( _particlediv == 0 )
+    if( _particle_div == 0 )
 	return;
 
     // Q/M discriminator set
@@ -248,7 +237,7 @@ void ParticleGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double ra
     lc.set( clip[0], clip[1], clip[2], clip[3] );
 
     // Loop through all particles
-    for( size_t a = 0; a < _pdb.size(); a += _particlediv ) {
+    for( size_t a = _particle_offset; a < _pdb.size(); a += _particle_div ) {
 
 	// No plotting if one or less trajectory points
 	if( _pdb.traj_size( a ) <= 1 )
@@ -315,23 +304,3 @@ void ParticleGraph::clear_colors( void )
 {
     _color.clear();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

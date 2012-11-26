@@ -2,7 +2,7 @@
  *  \brief %Graph for particle plots
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -67,16 +67,17 @@
  */
 class ParticleGraph : public Graph3D {
     
-    const Geometry         &_geom;       /*!< \brief Reference to simulation geometry. */
-    const ParticleDataBase &_pdb;        /*!< \brief Reference to particle database. */
-    int                     _particlediv;/*!< \brief Particle plot divisor. */
+    const Geometry         &_geom;            /*!< \brief Reference to simulation geometry. */
+    const ParticleDataBase &_pdb;             /*!< \brief Reference to particle database. */
+    uint32_t                _particle_div;    /*!< \brief Particle plot divisor. */
+    uint32_t                _particle_offset; /*!< \brief Particle plot offset. */
 
-    std::vector<Color>      _color;      /*!< \brief Colors for trajectories. */
+    std::vector<Color>      _color;           /*!< \brief Colors for trajectories. */
 
-    double                  _ox[5];      /*!< \brief Workspace for particleplot_draw_cruve() */
-    size_t                  _coordsize;  /*!< \brief Size of array _coord divided by two */
-    double                 *_coord;      /*!< \brief Workspace for particleplot_draw_curve() */
-    bool                    _qm_discr;   /*!< \brief q/m discriminator enable, default true */
+    double                  _ox[5];           /*!< \brief Workspace for particleplot_draw_curve() */
+    size_t                  _coordsize;       /*!< \brief Size of array _coord divided by two */
+    double                 *_coord;           /*!< \brief Workspace for particleplot_draw_curve() */
+    bool                    _qm_discr;        /*!< \brief q/m discriminator enable, default true */
 
     void get_point( const Coordmapper *cm, double *coord, double s, 
 		    double Ax, double Bx, double Cx, double Dx, 
@@ -93,19 +94,21 @@ public:
     /*! \brief Constructor for particle plotter.
      */
     ParticleGraph( const Geometry &g, const ParticleDataBase &pdb,
-		  int particlediv = 10, bool qm_discr = true );
-
+		   uint32_t particle_div = 11, uint32_t particle_offset = 0, 
+		   bool qm_discr = true );
+    
     /*! \brief Destructor.
      */
     virtual ~ParticleGraph();
 
-    /*! \brief Set particle divisor.
+    /*! \brief Set particle divisor and offset.
      *
-     *  Zero for no plotting, one for plotting every particle, two for
-     *  plotting every second particle, three for plotting every
-     *  third particle, etc. Defaults to 10.
+     *  Set \a particle_div to zero for no plotting, one for plotting
+     *  every particle, two for plotting every second particle, three
+     *  for plotting every third particle, etc. Defaults to
+     *  11. Plotter skips the first \a particle_offset particles.
      */
-    void set_particle_div( size_t particle_div );
+    void set_particle_div( uint32_t particle_div, uint32_t particle_offset );
 
     /*! \brief Enable q/m discretation
      *

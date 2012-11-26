@@ -48,7 +48,7 @@ GeomPlot::GeomPlot( Frame &frame, const Geometry &geom )
     : _frame(&frame), _geom(geom), _epot(NULL), _scharge(NULL), _tdens(NULL), _bfield(NULL),
       _efield(NULL), _pdb(NULL), _fieldgraph(NULL), _solidgraph(NULL), _eqpotgraph(NULL), 
       _particlegraph(NULL), _meshgraph(NULL), _view(VIEW_XY), _level(0),
-      _eqlines_auto(20), _particle_div(10), _scharge_field(false), _qm_discretation(true), 
+      _eqlines_auto(20), _particle_div(11), _scharge_field(false), _qm_discretation(true), 
       _mesh(false), _cache(true)
 {
     // Set frame basic properties
@@ -153,7 +153,7 @@ void GeomPlot::set_eqlines_manual( const std::vector<double> &pot )
 }
 
 
-void GeomPlot::set_eqlines_auto( size_t N ) 
+void GeomPlot::set_eqlines_auto( uint32_t N ) 
 {
     _eqlines_auto = N;
     if( _eqpotgraph )
@@ -285,7 +285,7 @@ void GeomPlot::set_particledatabase( const ParticleDataBase *pdb )
     if( _pdb ) {
 	_particlegraph = new ParticleGraph( _geom, *_pdb );
 	_particlegraph->set_view( _view, _level );
-	_particlegraph->set_particle_div( _particle_div );
+	_particlegraph->set_particle_div( _particle_div, _particle_offset );
 	_particlegraph->set_qm_discretation( _qm_discretation );
     }
 
@@ -293,11 +293,12 @@ void GeomPlot::set_particledatabase( const ParticleDataBase *pdb )
 }
 
 
-void GeomPlot::set_particle_div( size_t particle_div ) 
+void GeomPlot::set_particle_div( uint32_t particle_div, uint32_t particle_offset ) 
 {
     _particle_div = particle_div;
+    _particle_offset = particle_offset;
     if( _particlegraph )
-	_particlegraph->set_particle_div( _particle_div );
+	_particlegraph->set_particle_div( _particle_div, _particle_offset );
 }
 
 

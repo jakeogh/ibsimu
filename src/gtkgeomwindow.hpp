@@ -62,7 +62,8 @@ class GTKGeomWindow : public GTKWindow {
     struct PreferencesData {
 	GtkWidget *manual_eqlines_entry;
 	GtkWidget *automatic_eqlines_spin;
-	GtkWidget *particlediv_spin;
+	GtkWidget *particle_div_spin;
+	GtkWidget *particle_offset_spin;
 
 	GtkWidget *qmdiscretation_check;
 	GtkWidget *meshen_check;

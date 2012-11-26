@@ -2,7 +2,7 @@
  *  \brief %Geometry plotting
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -64,7 +64,8 @@
  *
  *  Collection of graphs for building Geometry plots containing
  *  solids, equipotential lines, space charge field, particle
- *  trajectories and mesh lines.
+ *  trajectories and mesh lines. Uses Fieldgraph, SolidGraph,
+ *  EqPotGraph, ParticleGraph and MeshGraph for plotting.
  */
 class GeomPlot {
 
@@ -89,9 +90,10 @@ class GeomPlot {
     int                     _level;
     int                     _vb[3];
 
-    size_t                  _eqlines_auto;
+    uint32_t                _eqlines_auto;
     std::vector<double>     _eqlines_manual;
-    size_t                  _particle_div;
+    uint32_t                _particle_div;
+    uint32_t                _particle_offset;
     bool                    _scharge_field;
     bool                    _qm_discretation;
     bool                    _mesh;
@@ -144,11 +146,11 @@ public:
      *  is the minimum potential in the system and max is the maximum
      *  potential in the system.
      */
-    void set_eqlines_auto( size_t N );
+    void set_eqlines_auto( uint32_t N );
 
     /*! \brief Get the number of automatic equipotential lines.
      */
-    size_t get_eqlines_auto( void ) const {
+    uint32_t get_eqlines_auto( void ) const {
 	return( _eqlines_auto );
     }
 
@@ -224,18 +226,25 @@ public:
      */
     void set_particledatabase( const ParticleDataBase *pdb );
 
-    /*! \brief Set particle divisor.
+    /*! \brief Set particle divisor and offset.
      *
-     *  Zero for no plotting, one for plotting every particle, two for
-     *  plotting every second particle, three for plotting every
-     *  third particle, etc. Defaults to 10.
+     *  Set \a particle_div to zero for no plotting, one for plotting
+     *  every particle, two for plotting every second particle, three
+     *  for plotting every third particle, etc. Defaults to
+     *  11. Plotter skips the first \a particle_offset particles.
      */
-    void set_particle_div( size_t particle_div );
+    void set_particle_div( uint32_t particle_div, uint32_t particle_offset = 0 );
 
     /*! \brief Get particle divisor.
      */
-    size_t get_particle_div( void ) const {
+    uint32_t get_particle_div( void ) const {
 	return( _particle_div );
+    }
+
+    /*! \brief Get particle offset.
+     */
+    uint32_t get_particle_offset( void ) const {
+	return( _particle_offset );
     }
 
     /*! \brief Set q/m particle discretation.

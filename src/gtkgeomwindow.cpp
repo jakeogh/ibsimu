@@ -543,10 +543,21 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     label = gtk_label_new( "Trajectory division" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     size_t particle_div = _geomplot.get_particle_div();
-    GtkObject *particlediv_adj = gtk_adjustment_new( particle_div, 0, 10000, 1, 10, 0 );
-    _prefdata->particlediv_spin = gtk_spin_button_new( GTK_ADJUSTMENT(particlediv_adj), 1, 0 );
+    GtkObject *particle_div_adj = gtk_adjustment_new( particle_div, 0, 1000000, 1, 10, 0 );
+    _prefdata->particle_div_spin = gtk_spin_button_new( GTK_ADJUSTMENT(particle_div_adj), 1, 0 );
     gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->particlediv_spin, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->particle_div_spin, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+
+    // Particle division, offset
+    hbox = gtk_hbox_new( TRUE, 30 );
+    label = gtk_label_new( "Trajectory offset" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    size_t particle_offset = _geomplot.get_particle_offset();
+    GtkObject *particle_offset_adj = gtk_adjustment_new( particle_offset, 0, 1000000, 1, 10, 0 );
+    _prefdata->particle_offset_spin = gtk_spin_button_new( GTK_ADJUSTMENT(particle_offset_adj), 1, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->particle_offset_spin, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
     // QM discretation
@@ -875,9 +886,10 @@ void GTKGeomWindow::read_preferences( GtkWidget *notebook, void *pdata )
     }
     _geomplot.set_eqlines_manual( eqlines_manual );
 
-    // Particle division
-    size_t particle_div = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(_prefdata->particlediv_spin) );
-    _geomplot.set_particle_div( particle_div );
+    // Particle division and offset
+    uint32_t particle_div = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(_prefdata->particle_div_spin) );
+    uint32_t particle_offset = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(_prefdata->particle_offset_spin) );
+    _geomplot.set_particle_div( particle_div, particle_offset );
 
     // QM discretation
     bool qm_discretation = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->qmdiscretation_check) );
