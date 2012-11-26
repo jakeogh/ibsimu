@@ -559,6 +559,8 @@ public:
 				coordinate_axis_e axis,
 				double val ) const;
 
+    using ParticleDataBase::trajectories_at_plane;
+
 /* ************************************** *
  * Particle definition                    *
  * ************************************** */
@@ -754,6 +756,8 @@ public:
 				coordinate_axis_e axis,
 				double val ) const;
 
+    using ParticleDataBase::trajectories_at_plane;
+
 /* ************************************** *
  * Particle definition                    *
  * ************************************** */
@@ -935,6 +939,8 @@ public:
     void trajectories_at_plane( std::vector<Particle3D> &tdata,
 				coordinate_axis_e axis,
 				double val ) const;
+
+    using ParticleDataBase::trajectories_at_plane;
 
 /* ************************************** *
  * Particle definition                    *
