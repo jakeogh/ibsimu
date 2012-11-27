@@ -2,7 +2,7 @@
  *  \brief Field diagnostic window
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -44,13 +44,13 @@
 #define GTKFIELDDIAGWINDOW_HPP 1
 
 
-#include "gtkwindow.hpp"
+#include "gtkframewindow.hpp"
 #include "fielddiagplot.hpp"
 
 
 /*! \brief Interactive field diagnostic plotter
  */
-class GTKFieldDiagWindow : public GTKWindow {
+class GTKFieldDiagWindow : public GTKFrameWindow {
 
     const Geometry            &_geom;
     FieldDiagPlot              _plot;

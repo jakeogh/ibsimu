@@ -2,7 +2,7 @@
  *  \brief Three-by-three matrices.
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -121,8 +121,18 @@ public:
     double determinant( void ) const;
 
     /*! \brief Return inverse matrix.
+     *
+     *  Throws an error if determinant is zero. For more thorough
+     *  checking (determinant close to zero, for example), see the
+     *  other form of inverse().
      */
     Mat3D inverse( void ) const;
+
+    /*! \brief Return inverse matrix.
+     *
+     *  Calculate inverse matrix. Use pre-calculated determinant \a det.
+     */
+    Mat3D inverse( double det ) const;
 
     /*! \brief Matrix-vector multiplication.
      */

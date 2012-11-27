@@ -77,6 +77,7 @@ protected:
 
     uint32_t                   _iteration;    /*!< \brief Iteration number. */    
     bool                       _relativistic; /*!< \brief Relativistic particle iteration. */
+    bool                       _surface_collision; /*!< \brief Surface collision model. */
 
     const CallbackFunctorD_V        *_bsup_cb;       /*!< \brief Location dependent magnetic field suppression. */
     const TrajectoryHandlerCallback *_thand_cb;      /*!< \brief Trajectory handler callback. */
@@ -112,6 +113,8 @@ public:
     void set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb );
 
     void set_relativistic( bool enable );
+
+    void set_surface_collision( bool surface_collision );
 
     void set_polyint( bool polyint );
     
@@ -659,6 +662,7 @@ public:
 	    iterators[a]->set_trajectory_end_callback( _tend_cb, _pdb );
 	    iterators[a]->set_bfield_suppression_callback( _bsup_cb );
 	    iterators[a]->set_relativistic( _relativistic );
+	    iterators[a]->set_surface_collision( _surface_collision );
 	}
 
 #ifdef DEBUG_PARTICLE_ITERATOR

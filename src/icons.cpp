@@ -52,4 +52,6 @@
 #include "icon_zoom_out.hpp"
 #include "icon_particle_diag.hpp"
 #include "icon_field_diag.hpp"
+#include "icon_geom2d.hpp"
+#include "icon_geom3d.hpp"
 

@@ -63,7 +63,7 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       &plotter,
 			      const MeshScalarField  *tdens,
 			      const VectorField      *bfield,
 			      const ParticleDataBase *pdb )
-  : GTKWindow(plotter), _geomplot(_frame,geom), 
+  : GTKFrameWindow(plotter), _geomplot(_frame,geom), 
     _geom(geom), _epot(epot), _efield(efield), _scharge(scharge), _tdens(tdens), _bfield(bfield), _pdb(pdb),
     _tool(TOOL_UNKNOWN), _prefdata(NULL)
 {
@@ -111,6 +111,20 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       &plotter,
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "toggled",
 		      G_CALLBACK(menuitem_tool_change_signal),
+		      (gpointer)this );
+
+    // Creating "Geom 3D" button
+    pixbuf = gdk_pixbuf_new_from_inline( -1, icon_geom3d_inline, FALSE, NULL );
+    icon = gtk_image_new_from_pixbuf( pixbuf );
+    toolitem = gtk_tool_button_new( icon, "3D geometry view" );
+#if GTK_CHECK_VERSION(2,12,0)
+    gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "3D geometry view" );
+#endif
+    gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
+    if( _geom.geom_mode() != MODE_3D || !_geom.surface_built() )
+	gtk_widget_set_sensitive( GTK_WIDGET(toolitem), FALSE );
+    g_signal_connect( G_OBJECT(toolitem), "clicked",
+		      G_CALLBACK(menuitem_geom3d_signal),
 		      (gpointer)this );
 
     // Creating separator
@@ -1079,33 +1093,41 @@ void GTKGeomWindow::menuitem_tool_change( GtkToolButton *button )
 }
 
 
+void GTKGeomWindow::geom3d_launch( void )
+{
+    _plotter.new_geometry_3d_plot_window();
+}
+
+
 void GTKGeomWindow::combobox_signal( GtkComboBox *combobox,
 				     gpointer object )
 {
-    GTKGeomWindow *plotter = (GTKGeomWindow *)object;
-    plotter->combobox( combobox );
+    GTKGeomWindow *window = (GTKGeomWindow *)object;
+    window->combobox( combobox );
 }
 
 
 void GTKGeomWindow::spinbutton_signal( GtkSpinButton *spinbutton,
 				       gpointer object )
 {
-    GTKGeomWindow *plotter = (GTKGeomWindow *)object;
-    plotter->spinbutton( spinbutton );
+    GTKGeomWindow *window = (GTKGeomWindow *)object;
+    window->spinbutton( spinbutton );
 }
-
 
 
 void GTKGeomWindow::menuitem_tool_change_signal( GtkToolButton *button,
 						 gpointer object )
 {
-    GTKGeomWindow *plotter = (GTKGeomWindow *)object;
-    plotter->menuitem_tool_change( button );
+    GTKGeomWindow *window = (GTKGeomWindow *)object;
+    window->menuitem_tool_change( button );
 }
 
 
-
-
-
+void GTKGeomWindow::menuitem_geom3d_signal( GtkToolButton *button,
+					    gpointer object )
+{
+    GTKGeomWindow *window = (GTKGeomWindow *)object;
+    window->geom3d_launch();
+}
 
 

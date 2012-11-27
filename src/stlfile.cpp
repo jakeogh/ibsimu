@@ -125,8 +125,6 @@ STLFile::Triangle::Triangle( std::ifstream &ifstr )
 
 STLFile::Triangle::Triangle( std::ifstream &ifstr, const char *buf, const std::string &filename, int &linec )
 {
-    //std::cout << "  Making new Triangle\n";
-
     if( !ciscomp( buf, "facet normal", 12 ) )
 	throw( Error( ERROR_LOCATION, "Unexpected input on line " + to_string(linec) +
 		      ", expecting \'facet normal\'." ) );
@@ -244,43 +242,6 @@ void STLFile::Triangle::update_bbox( Vec3D &min, Vec3D &max ) const
 
 
 
-/* ******************** *
- * VTriangle            *
- * ******************** */
-
-
-STLFile::VTriangle::VTriangle( uint32_t v1, uint32_t v2, uint32_t v3 )
-{
-    _v[0] = v1;
-    _v[1] = v2;
-    _v[2] = v3;
-}
-
-
-STLFile::VTriangle::VTriangle( const uint32_t v[3] )
-{
-    _v[0] = v[0];
-    _v[1] = v[1];
-    _v[2] = v[2];
-}
-
-
-STLFile::VTriangle::~VTriangle()
-{
-    
-}
-
-
-void STLFile::VTriangle::debug_print( std::ostream &os ) const
-{
-    os << "**VTriangle\n";    
-    os << "  v = "  
-       << std::setw(6) << _v[0] << " "
-       << std::setw(6) << _v[1] << " "
-       << std::setw(6) << _v[2] << "\n";
-}
-
-
 
 /* ******************** *
  * STLFile              *
@@ -356,15 +317,17 @@ STLFile::STLFile( const std::string &filename,
     _ascii = false;
     char buf[1024];
     ifstr.read( buf, 1024 );
-    if( !strncasecmp( buf, "solid ", 6 ) ) {
+    std::streamsize c = ifstr.gcount();
+    if( c > 6 && !strncasecmp( buf, "solid ", 6 ) ) {
 	// Might be ascii, seek next line
 	int a = 6;
-	while( buf[a] != '\n' ) a++;
-	while( isspace(buf[a]) ) a++;
-	if( !strncasecmp( &buf[a], "facet normal", 12 ) )
+	while( a < c && buf[a] != '\n' ) a++;
+	while( a < c && isspace(buf[a]) ) a++;
+	if( a+12 < c && !strncasecmp( &buf[a], "facet normal", 12 ) )
 	    _ascii = true;
     }
 
+    ifstr.clear(); // Clear possible eofbit/failbit
     ifstr.seekg( 0 );
     if( _ascii )
 	read_ascii( ifstr );
@@ -387,6 +350,45 @@ STLFile::STLFile( const std::string &filename,
 STLFile::~STLFile()
 {
     
+}
+
+
+STLFile::STLFile( const std::vector<Vec3D> &vertex,
+		  const std::vector<VTriangle> &triangle )
+{
+    _vertex = vertex;
+    _vtri = triangle;
+}
+
+
+void STLFile::save( const std::string &filename, bool ascii ) const
+{
+    if( !ascii )
+	throw( ErrorUnimplemented( ERROR_LOCATION, "Binary file save not implemented" ) );	
+
+    std::ofstream os( filename.c_str(), std::ios_base::binary );
+    if( !os.good() )
+	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\' for writing" ) );
+
+    os << "solid " << filename << "\n";
+
+    for( size_t a = 0; a < _vtri.size(); a++ ) {    
+
+	os << "facet normal 0 0 0\n";
+	os << "outer loop\n";
+	for( size_t b = 0; b < 3; b++ ) {    
+	    uint32_t v = _vtri[a][b];
+	    os << "vertex " <<  _vertex[v][0]
+	       << " " << _vertex[v][1]
+	       << " " << _vertex[v][2] << "\n";
+	}
+	os << "endloop\n";
+	os << "endfacet\n";
+    }
+    
+    os << "endsolid\n";
+
+    os.close();
 }
 
 
@@ -504,9 +506,22 @@ size_t STLFile::vertexc( void )
     return( _vertex.size() );
 }
 
+
+Vec3D STLFile::vertex( uint32_t i ) const
+{
+    return( _vertex[i]-_offset );
+}
+
+
 size_t STLFile::trianglec( void )
 {
     return( _vtri.size() );
+}
+
+
+const VTriangle &STLFile::vtriangle( uint32_t i ) const
+{
+    return( _vtri[i] );
 }
 
 

@@ -1,5 +1,5 @@
-/*! \file gtkwindow.hpp
- *  \brief Window for GTK plots
+/*! \file glrenderer.hpp
+ *  \brief OpenGL 3D renderer
  */
 
 /* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
@@ -40,23 +40,57 @@
  * permit others to do so.
  */
 
-#ifndef GTKWINDOW_HPP
-#define GTKWINDOW_HPP 1
+
+#ifndef GLRENDERER_HPP
+#define GLRENDERER_HPP 1
 
 
-/*! \brief Base class for interactive plotters.
+#include <gtk/gtkgl.h>
+#include "renderer.hpp"
+#include "error.hpp"
+
+
+/*! \brief OpenGL 3D renderer.
  */
-class GTKWindow {
+class GLRenderer : public Renderer {
+
+    GtkWidget      *_darea;
+    GdkGLContext   *_glcontext;
+    GdkGLDrawable  *_gldrawable;
 
 public:
 
-    /*! \brief Constructor.
+    /*! \brief Class for OpenGL initialization error.
      */
-    GTKWindow();
+    class ErrorGLInit : public Error {	
+    public:
 
-    /*! \brief Destructor.
-     */
-    virtual ~GTKWindow();
+	/*! \brief Error constructor.
+	 */
+	ErrorGLInit() {}
+    };
+
+    GLRenderer( GtkWidget *darea );
+    virtual ~GLRenderer();
+
+
+    virtual void start_rendering( void );
+    virtual void end_rendering( void );
+
+
+    virtual void disable_lighting( void );
+    virtual void enable_lighting( void );
+
+
+    virtual void enable_view_settings( void );
+
+
+    virtual void flat_triangle( const Vec3D &x0, 
+				const Vec3D &x1, 
+				const Vec3D &x2,
+				const Vec3D &n );
+    virtual void line( const Vec3D &x0,
+		       const Vec3D &x1 );
 };
 
 

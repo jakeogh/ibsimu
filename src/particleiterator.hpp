@@ -51,6 +51,7 @@
 #include <gsl/gsl_odeiv.h>
 #include <gsl/gsl_poly.h>
 #include "geometry.hpp"
+#include "mat3d.hpp"
 #include "compmath.hpp"
 #include "trajectory.hpp"
 #include "particles.hpp"
@@ -64,6 +65,9 @@
 
 
 //#define DEBUG_PARTICLE_ITERATOR 1
+
+
+#define COLLISION_EPS 1.0e-6
 
 
 /*! \brief %Particle iterator type.
@@ -288,6 +292,7 @@ template <class PP> class ParticleIterator {
     uint32_t                   _trajdiv;     /*!< \brief Divisor for saved trajectories,
 					      * if 3, every third trajectory is saved. */
     bool                       _mirror[6];   /*!< \brief Is particle mirrored on boundary? */
+    bool                       _surface_collision;
 
     ParticleIteratorData       _pidata;      /*!< \brief User data provided to PP::get_derivatives(). */
     const TrajectoryHandlerCallback *_thand_cb; /*!< \brief Trajectory handler callback. */
@@ -305,7 +310,6 @@ template <class PP> class ParticleIterator {
     ParticleStatistics         _stat;        /*!< \brief Particle statistics. */
 
 
-
     /*! \brief Save trajectory point \a x.
      *
      *  Throw error if run out of memory.
@@ -319,7 +323,134 @@ template <class PP> class ParticleIterator {
 	}
     }
 
-    /*! \brief Check for particle collision with solid
+    /*! \brief Return solid number from nodes around cube (i,j,k).
+     */
+    uint32_t get_solid( int i, int j, int k ) {
+	uint32_t node;
+	if( PP::dim() == 2 ) {
+	    node = _pidata._geom->mesh( i, j );
+	    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+		(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+		return( node & SMESH_BOUNDARY_NUMBER_MASK );
+	    node = _pidata._geom->mesh( i+1, j );
+	    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+		(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+		return( node & SMESH_BOUNDARY_NUMBER_MASK );
+	    node = _pidata._geom->mesh( i, j+1 );
+	    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+		(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+		return( node & SMESH_BOUNDARY_NUMBER_MASK );
+	    node = _pidata._geom->mesh( i+1, j+1 );
+	    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+		(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+		return( node & SMESH_BOUNDARY_NUMBER_MASK );
+	} else {
+	    node = _pidata._geom->mesh( i, j, k );
+	    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+		(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+		return( node & SMESH_BOUNDARY_NUMBER_MASK );
+	    node = _pidata._geom->mesh( i+1, j, k );
+	    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+		(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+		return( node & SMESH_BOUNDARY_NUMBER_MASK );
+	    node = _pidata._geom->mesh( i, j+1, k );
+	    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+		(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+		return( node & SMESH_BOUNDARY_NUMBER_MASK );
+	    node = _pidata._geom->mesh( i+1, j+1, k );
+	    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+		(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+		return( node & SMESH_BOUNDARY_NUMBER_MASK );
+	    node = _pidata._geom->mesh( i, j, k+1 );
+	    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+		(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+		return( node & SMESH_BOUNDARY_NUMBER_MASK );
+	    node = _pidata._geom->mesh( i+1, j, k+1 );
+	    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+		(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+		return( node & SMESH_BOUNDARY_NUMBER_MASK );
+	    node = _pidata._geom->mesh( i, j+1, k+1 );
+	    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+		(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+		return( node & SMESH_BOUNDARY_NUMBER_MASK );
+	    node = _pidata._geom->mesh( i+1, j+1, k+1 );
+	    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+		(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+		return( node & SMESH_BOUNDARY_NUMBER_MASK );
+	}
+	return( 0 );
+    }
+
+    /*! \brief Check for particle collision with triangulated solid surface.
+     *
+     *  Checks for intersection between trajectory segment and surface
+     *  triangles in grid cell i.
+     */
+    bool check_collision_surface( Particle<PP> &particle, const PP &x1, const PP &x2, 
+				  PP &status_x, const int i[3] ) {
+
+	Vec3D v1 = x1.location();
+	Vec3D v2 = x2.location();
+	
+	int32_t tric = _pidata._geom->surface_trianglec( i[0], i[1], i[2] );
+	int32_t ptr = _pidata._geom->surface_triangle_ptr( i[0], i[1], i[2] );
+
+	// Go through surface triangles at mesh cube i
+	for( int32_t a = 0; a < tric; a++ ) {
+	    const VTriangle &tri = _pidata._geom->surface_triangle( ptr+a );
+	    const Vec3D &va = _pidata._geom->surface_vertex( tri[0] );
+	    const Vec3D &vb = _pidata._geom->surface_vertex( tri[1] );
+	    const Vec3D &vc = _pidata._geom->surface_vertex( tri[2] );
+
+	    // Solve for intersection between trajectory segment and surface triangle
+	    // r1 + (r2-r1)*K[0] = ra + (rb-ra)*K[1] + (rc-ra)*K[2]
+	    Mat3D m( v2[0]-v1[0], -vb[0]+va[0], -vc[0]+va[0],
+		     v2[1]-v1[1], -vb[1]+va[1], -vc[1]+va[1],
+		     v2[2]-v1[2], -vb[2]+va[2], -vc[2]+va[2] );
+	    double mdet = m.determinant();
+	    if( mdet == 0.0 )
+		continue;
+	    Mat3D minv = m.inverse( mdet );
+	    Vec3D off( -v1[0]+va[0], -v1[1]+va[1], -v1[2]+va[2] );
+	    Vec3D K = minv*off;
+
+	    // Check for intersection at valid ranges
+	    // Allow COLLISION_EPS amount of overlap, double inclusion is 
+	    // not an issue here, missing an intersection is a problem.
+	    if( K[0] > -COLLISION_EPS && K[0] < 1.0+COLLISION_EPS && 
+		K[1] > -COLLISION_EPS && K[1] < 1.0+COLLISION_EPS && 
+		K[2] > -COLLISION_EPS && K[2] < 1.0+COLLISION_EPS ) {
+
+#ifdef DEBUG_PARTICLE_ITERATOR
+		std::cout << "Found collision with triangle " << ptr+a << "\n";
+#endif
+
+		// Found intersection, set collision coordinates
+		for( size_t a = 0; a < PP::size(); a++ )
+		    status_x[a] = x1[a] + K[0]*(x2[a]-x1[a]);
+
+		// Remove all points from trajectory after time status_x[0].
+		// Does this ever happen???
+		for( size_t a = _traj.size()-1; a > 0; a-- ) {
+		    if( _traj[a][0] > status_x[0] )
+			_traj.pop_back();
+		    else
+			break;
+		}
+
+		// Update status and statistics
+		particle.set_status( PARTICLE_COLL );
+		uint32_t solid = get_solid( i[0], i[1], i[2] );
+		_stat.add_bound_collision( solid, particle.IQ() );
+
+		return( false );
+	    }
+	}
+
+	return( true );
+    }
+
+    /*! \brief Check for particle collision with solid surface with inside().
      *
      *  Particle propagates from x1 to x2, where x1 is in
      *  vacuum. Checks if x2 is inside solid and if it is, the
@@ -327,7 +458,8 @@ template <class PP> class ParticleIterator {
      *  coordinates at status_x are set to collision coordinates.
      *  Returns false if particle collided.
      */
-    bool check_collision( Particle<PP> &particle, const PP &x1, const PP &x2, PP &status_x ) {
+    bool check_collision_solid( Particle<PP> &particle, const PP &x1, const PP &x2, 
+				PP &status_x ) {
 
 	// If inside solid, bracket for collision point
 	Vec3D v2 = x2.location();
@@ -358,6 +490,18 @@ template <class PP> class ParticleIterator {
 	_stat.add_bound_collision( bound, particle.IQ() );
 
 	return( false ); // Collision happened.
+    }
+
+    /*! \brief Check for particle collision with solid
+     *
+     *  Two different algorithms.
+     */
+    bool check_collision( Particle<PP> &particle, const PP &x1, const PP &x2, 
+			  PP &status_x, const int i[3] ) {
+
+	if( _surface_collision )
+	    return( check_collision_surface( particle, x1, x2, status_x, i ) );
+	return( check_collision_solid( particle, x1, x2, status_x ) );
     }
 
 
@@ -453,6 +597,26 @@ template <class PP> class ParticleIterator {
     }
 
 
+    /*! \brief Return if node (i,j) is a solid node
+     */
+    bool is_solid( int i, int j ) {
+	uint32_t node = _pidata._geom->mesh( i, j );
+	if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	    (node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	    return( true );
+	return( false );
+    }
+
+    /*! \brief Return if node (i,j,k) is a solid node
+     */
+    bool is_solid( int i, int j, int k ) {
+	uint32_t node = _pidata._geom->mesh( i, j, k );
+	if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	    (node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	    return( true );
+	return( false );
+    }
+
     /*! \brief Handle particle mesh intersection.
      *
      *  Particle mesh coordinates \a i are advanced through
@@ -466,77 +630,73 @@ template <class PP> class ParticleIterator {
 	// Check for collisions with solids and advance coordinates i.
 	if( PP::dim() == 2 ) {
 	    if( _coldata[c]._dir == -1 ) {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0],  i[1]+1)) >= 7 ) &&
-		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
+		if( (is_solid(i[0],i[1]) || is_solid(i[0], i[1]+1)) &&
+		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
 		    return( false );
 		i[0]--;
 	    } else if( _coldata[c]._dir == +1 ) {
-		if( ( abs(_pidata._geom->mesh(i[0]+1,i[1]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1)) >= 7 ) &&
-		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
+		if( (is_solid(i[0]+1,i[1]) || is_solid(i[0]+1,i[1]+1)) &&
+		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
 		    return( false );
 		i[0]++;
 	    } else if( _coldata[c]._dir == -2 ) {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]  )) >= 7 ) &&
-		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
+		if( (is_solid(i[0],i[1]) || is_solid(i[0]+1,i[1])) &&
+		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
 		    return( false );
 		i[1]--;
 	    } else {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1]+1)) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1)) >= 7 ) &&
-		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
+		if( (is_solid(i[0],  i[1]+1) || is_solid(i[0]+1,i[1]+1)) &&
+		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
 		    return( false );
 		i[1]++;
 	    }
 	} else if( PP::dim() == 3 ) {
 	    if( _coldata[c]._dir == -1 ) {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1],  i[2]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2]  )) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0],  i[1],  i[2]+1)) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2]+1)) >= 7 ) &&
-		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
+		if( (is_solid(i[0],  i[1],  i[2]  ) || 
+		     is_solid(i[0],  i[1]+1,i[2]  ) ||
+		     is_solid(i[0],  i[1],  i[2]+1) ||
+		     is_solid(i[0],  i[1]+1,i[2]+1)) &&
+		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
 		    return( false );
 		i[0]--;
 	    } else if( _coldata[c]._dir == +1 ) {
-		if( ( abs(_pidata._geom->mesh(i[0]+1,i[1],  i[2]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2]  )) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0]+1,i[1],  i[2]+1)) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2]+1)) >= 7 ) &&
-		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
+		if( (is_solid(i[0]+1,i[1],  i[2]  ) || 
+		     is_solid(i[0]+1,i[1]+1,i[2]  ) ||
+		     is_solid(i[0]+1,i[1],  i[2]+1) ||
+		     is_solid(i[0]+1,i[1]+1,i[2]+1)) &&
+		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
 		    return( false );
 		i[0]++;
 	    } else if( _coldata[c]._dir == -2 ) {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1],i[2]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1],i[2]  )) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0],  i[1],i[2]+1)) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0]+1,i[1],i[2]+1)) >= 7 ) &&
-		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
+		if( (is_solid(i[0],  i[1],i[2]  ) || 
+		     is_solid(i[0]+1,i[1],i[2]  ) ||
+		     is_solid(i[0],  i[1],i[2]+1) ||
+		     is_solid(i[0]+1,i[1],i[2]+1)) &&
+		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
 		    return( false );
 		i[1]--;
 	    } else if( _coldata[c]._dir == +2 ) {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2]  )) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2]+1)) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2]+1)) >= 7 ) &&
-		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
+		if( (is_solid(i[0],  i[1]+1,i[2]  ) || 
+		     is_solid(i[0]+1,i[1]+1,i[2]  ) ||
+		     is_solid(i[0],  i[1]+1,i[2]+1) ||
+		     is_solid(i[0]+1,i[1]+1,i[2]+1)) &&
+		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
 		    return( false );
 		i[1]++;
 	    } else if( _coldata[c]._dir == -3 ) {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1],  i[2]  )) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1],  i[2]  )) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2])) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2])) >= 7 ) &&
-		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
+		if( (is_solid(i[0],  i[1],  i[2]) || 
+		     is_solid(i[0]+1,i[1],  i[2]) ||
+		     is_solid(i[0],  i[1]+1,i[2]) ||
+		     is_solid(i[0]+1,i[1]+1,i[2])) &&
+		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
 		    return( false );
 		i[2]--;
 	    } else {
-		if( ( abs(_pidata._geom->mesh(i[0],  i[1],  i[2]+1)) >= 7 || 
-		      abs(_pidata._geom->mesh(i[0]+1,i[1],  i[2]+1)) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0],  i[1]+1,i[2]+1)) >= 7 ||
-		      abs(_pidata._geom->mesh(i[0]+1,i[1]+1,i[2]+1)) >= 7 ) &&
-		    !check_collision( particle, _xi, _coldata[c]._x, x2 ) )
+		if( (is_solid(i[0],  i[1],  i[2]+1) || 
+		     is_solid(i[0]+1,i[1],  i[2]+1) ||
+		     is_solid(i[0],  i[1]+1,i[2]+1) ||
+		     is_solid(i[0]+1,i[1]+1,i[2]+1)) &&
+		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
 		    return( false );
 		i[2]++;
 	    }
@@ -939,8 +1099,8 @@ public:
 		      const VectorField *efield, const VectorField *bfield, 
 		      const Geometry *geom ) 
 	: _type(type), _intrp(intrp), _scharge_dep(scharge_dep), _epsabs(epsabs), _epsrel(epsrel), 
-	  _maxsteps(maxsteps), _maxt(maxt), 
-	  _save_points(save_points), _trajdiv(trajdiv), _pidata(scharge,efield,bfield,geom), 
+	  _maxsteps(maxsteps), _maxt(maxt), _save_points(save_points), _trajdiv(trajdiv), 
+	  _surface_collision(false), _pidata(scharge,efield,bfield,geom), 
 	  _thand_cb(0), _tend_cb(0), _bsup_cb(0), _pdb(0), _scharge_mutex(scharge_mutex), 
 	  _stat(geom->number_of_boundaries()) {
 	
@@ -984,6 +1144,17 @@ public:
 	gsl_odeiv_evolve_free( _evolve );
 	gsl_odeiv_control_free( _control );
 	gsl_odeiv_step_free( _step );
+    }
+
+
+    /*! \brief Enable/disable surface collision model.
+     */
+    void set_surface_collision( bool surface_collision ) {
+	if( surface_collision && _pidata._geom->geom_mode() == MODE_2D )
+	    throw( Error( ERROR_LOCATION, "2D surface collision not supported" ) );
+	if( surface_collision && !_pidata._geom->surface_built() )
+	    throw( Error( ERROR_LOCATION, "surface model not built" ) );
+	_surface_collision = surface_collision;
     }
 
 
@@ -1126,6 +1297,9 @@ public:
 	    if( x2[0] == x[0] )
 		throw( Error( ERROR_LOCATION, "too small step size" ) );
 
+	    // Increase step count.
+	    nstp++;
+
 #ifdef DEBUG_PARTICLE_ITERATOR
 	    std::cout << "Step accepted from x1 to x2:\n";
 	    std::cout << "  x1 = " << x << "\n";
@@ -1150,9 +1324,6 @@ public:
 
 	    // Save trajectory point
 	    save_trajectory_point( x2 );
-	    
-	    // Increase step count.
-	    nstp++;
 	}
 
 #ifdef DEBUG_PARTICLE_ITERATOR

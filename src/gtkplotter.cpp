@@ -40,23 +40,25 @@
  * permit others to do so.
  */
 
-#include <sstream>
-#include "ibsimu.hpp"
-#include "error.hpp"
+
+#include "config.h"
+
+#ifdef OPENGL
+#include <gtk/gtkgl.h>
+#endif
+
 #include "gtkplotter.hpp"
-#include "gtkwindow.hpp"
 #include "gtkgeomwindow.hpp"
+#include "gtkgeom3dwindow.hpp"
 #include "gtkparticlediagwindow.hpp"
 #include "gtkfielddiagwindow.hpp"
-
-
-/* ************************************************ *
- * GTK PLOTTER
- * ************************************************ */
+#include "ibsimu.hpp"
+#include "error.hpp"
 
 
 
 bool GTKPlotter::_gtk_initialized = false;
+bool GTKPlotter::_opengl = false;
 
 
 GTKPlotter::GTKPlotter( int *argc, char ***argv )
@@ -64,9 +66,19 @@ GTKPlotter::GTKPlotter( int *argc, char ***argv )
       _bfield(NULL), _pdb(NULL)
 {
     if( !_gtk_initialized ) {
+
+	// Initialize gtk
 	if( gtk_init_check( argc, argv ) == FALSE )
 	    throw( Error( ERROR_LOCATION, "Couldn't initialize GTK" ) );
 	_gtk_initialized = true;
+
+#ifdef OPENGL
+	_opengl = true;
+	// Initialize OpenGL
+	if( gtk_gl_init_check( argc, argv ) == FALSE ||
+	    gdk_gl_query_extension() == FALSE )
+	    _opengl = false;
+#endif
     }
 }
 
@@ -74,6 +86,18 @@ GTKPlotter::GTKPlotter( int *argc, char ***argv )
 GTKPlotter::~GTKPlotter()
 {
     
+}
+
+
+void GTKPlotter::force_software_renderer( void ) const
+{
+    _opengl = false;
+}
+
+
+bool GTKPlotter::opengl( void ) const
+{
+    return( _opengl );
 }
 
 
@@ -96,6 +120,16 @@ GTKWindow *GTKPlotter::new_geometry_plot_window( void )
 
     return( window );
 }
+
+
+GTKWindow *GTKPlotter::new_geometry_3d_plot_window( void )
+{
+    GTKWindow *window = new GTKGeom3DWindow( *this, *_geom, _pdb );
+    _windows.push_back( window );
+
+    return( window );
+}
+
 
 GTKWindow *GTKPlotter::new_particle_plot_window( coordinate_axis_e axis, double level, 
 						 particle_diag_plot_type_e type,
@@ -129,20 +163,15 @@ GTKWindow *GTKPlotter::new_field_plot_window( size_t N, const Vec3D &x1, const V
 
 void GTKPlotter::delete_window( GTKWindow *window )
 {
-    std::list<GTKWindow *>::iterator it;
-
-    //ibsimu.message( 1 ) << "Delete window\n";
-
-    for( it = _windows.begin(); it != _windows.end(); it++ ) {
-	if( *it == window ) {
-	    delete *it;
-	    _windows.erase( it );
+    for( size_t a = 0; a < _windows.size(); a++ ) {
+	if( _windows[a] == window ) {
+	    delete( window );
+	    _windows.erase( _windows.begin()+a );
 	    break;
 	}
     }
 
     if( _windows.size() == 0 ) {
-	//ibsimu.message( 1 ) << "Last window deleted\n";
 	gtk_main_quit();
     }
 }
@@ -152,6 +181,7 @@ const Geometry *GTKPlotter::get_geometry( void ) const
 {
     return( _geom );
 }
+
 
 const EpotField *GTKPlotter::get_epot( void ) const
 {
@@ -200,10 +230,12 @@ void GTKPlotter::set_epot( const EpotField *epot )
     _epot = epot;
 }
 
+
 void GTKPlotter::set_efield( const EpotEfield *efield )
 {
     _efield = efield;
 }
+
 
 void GTKPlotter::set_scharge( const MeshScalarField *scharge )
 {
@@ -227,10 +259,4 @@ void GTKPlotter::set_particledatabase( const ParticleDataBase *pdb )
 {
     _pdb = pdb;
 }
-
-
-
-
-
-
 

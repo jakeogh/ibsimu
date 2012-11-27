@@ -50,6 +50,7 @@
 #include <iostream>
 #include "file.hpp"
 #include "vec3d.hpp"
+#include "vtriangle.hpp"
 #include "solid.hpp"
 #include "mesh.hpp"
 #include "types.hpp"
@@ -200,9 +201,13 @@ class Geometry : public Mesh
     uint32_t                  *_smesh;     /*!< \brief Solid mesh array. */
     std::vector<uint8_t>       _nearsolid; /*!< \brief Near solid data. */
 
-    pthread_mutex_t            _mutex;
-    pthread_cond_t             _cond;
-    uint32_t                   _done;
+    pthread_mutex_t            _mutex;     /*!< \brief Mutex for parallel mesh build. */
+    pthread_cond_t             _cond;      /*!< \brief Condition for parallel mesh build. */
+    uint32_t                   _done;      /*!< \brief State variable for parallel mesh build. */
+
+    std::vector<Vec3D>         _vertex;    /*!< \brief List of vertices for surface triangles. */
+    std::vector<VTriangle>     _triangle;  /*!< \brief List of surface triangles. */
+    std::vector<int32_t>       _triptr;    /*!< \brief Pointer from mesh cube to first triangle. */
     
     /*! \brief Check if node is solid (n>=7).
      *
@@ -254,6 +259,15 @@ class Geometry : public Mesh
     void build_mesh_parallel( void );
 
     void build_mesh_serial( void );
+
+    static const int32_t mc_faces[15*256];
+
+    Vec3D mc_surface( int32_t i, int32_t j, int32_t k, uint8_t cn, int32_t ei ) const;
+    uint8_t mc_case( int32_t i, int32_t j, int32_t k ) const;
+    int32_t mc_trianglec( uint8_t cn ) const;
+    int32_t mc_add_vertex_try( const Vec3D &x, int32_t i, int32_t j, int32_t k ) const;
+    int32_t mc_add_vertex( const Vec3D &x, int32_t i, int32_t j, int32_t k );
+    void mc_triangulate( int32_t i, int32_t j, int32_t k );
 
 public:
 
@@ -357,6 +371,10 @@ public:
      */
     bool built( void ) const { return( _built ); }
 
+    /*! \brief Is the solid surface representation built?
+     */
+    bool surface_built( void ) const { return( _triptr.size() ); }
+
     /*! \brief Builds (or rebuilds) the solid mesh from solid
      *  definitions.
      */
@@ -431,7 +449,7 @@ public:
 
     /*! \brief Returns distance of solid boundary from point.
      *
-     *  Returns the distance (0 to 255) of near solid into direction
+     *  Returns the distance (0 to 255) of solid surface in direction
      *  \a dir from near solid point at (\a i, \a j, \a k). The
      *  direction \a dir is an integer from 0 to 5, with 0 meaning -x,
      *  1 meaning +x, 2 meaning -y, 3 meaning +y, 4 meaning -z and 5
@@ -447,6 +465,44 @@ public:
      *  for mesh.
      */
     uint8_t solid_dist( uint32_t i, uint32_t dir ) const;
+
+    /*! \brief Build surface triangulation data.
+     */
+    void build_surface( void );
+    
+    /*! \brief Return total surface vertex count.
+     */
+    int32_t surface_vertexc( void ) const {
+	return( _vertex.size() );
+    }
+
+    /*! \brief Return total surface triangle count.
+     */
+    int32_t surface_trianglec( void ) const {
+	return( _triangle.size() );
+    }
+
+    /*! \brief Return reference to surface vertex \a a.
+     */
+    const Vec3D &surface_vertex( int32_t a ) const {
+	return( _vertex[a] );
+    }
+
+    /*! \brief Return reference to surface triangle \a a.
+     */
+    const VTriangle &surface_triangle( int32_t a ) const {
+	return( _triangle[a] );
+    }
+
+    /*! \brief Return index of surface triangle at mesh cube \a (i,j,k).
+     */
+    int32_t surface_triangle_ptr( int32_t i, int32_t j, int32_t k ) const {
+	return( _triptr[(k*(_size[1]-1) + j)*(_size[0]-1) + i] );
+    }
+
+    /*! \brief Return surface triangle count at mesh cube \a (i,j,k).
+     */
+    int32_t surface_trianglec( int32_t i, int32_t j, int32_t k ) const;
 
     /*! \brief Saves data to a new file \a filename.
      *

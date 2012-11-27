@@ -73,6 +73,8 @@ frame.cpp \
 frame.hpp \
 func_solid.cpp \
 func_solid.hpp \
+geom3dplot.cpp \
+geom3dplot.hpp \
 geometry.cpp \
 geometry.hpp \
 geomplot.cpp \
@@ -87,6 +89,10 @@ gtkfielddiagexportdialog.cpp \
 gtkfielddiagexportdialog.hpp \
 gtkfielddiagwindow.cpp \
 gtkfielddiagwindow.hpp \
+gtkframewindow.cpp \
+gtkframewindow.hpp \
+gtkgeom3dwindow.cpp \
+gtkgeom3dwindow.hpp \
 gtkgeomwindow.cpp \
 gtkgeomwindow.hpp \
 gtkhardcopy.cpp \
@@ -200,6 +206,8 @@ random.cpp \
 random.hpp \
 readascii.cpp \
 readascii.hpp \
+renderer.cpp \
+renderer.hpp \
 ruler.cpp \
 ruler.hpp \
 scalarfield.hpp \
@@ -208,6 +216,8 @@ scharge.hpp \
 scheduler.hpp \
 solid.cpp \
 solid.hpp \
+softwarerenderer.cpp \
+softwarerenderer.hpp \
 solidgraph.cpp \
 solidgraph.hpp \
 solver.hpp \
@@ -236,6 +246,8 @@ vec4d.cpp \
 vec4d.hpp \
 vectorfield.cpp \
 vectorfield.hpp \
+vtriangle.cpp \
+vtriangle.hpp \
 xygraph.cpp \
 xygraph.hpp
 
@@ -285,6 +297,7 @@ graph.hpp \
 graph3d.hpp \
 gtkfielddiagexportdialog.hpp \
 gtkplotter.hpp \
+gtkwindow.hpp \
 hbio.hpp \
 histogram.hpp \
 ibsimu.hpp \
@@ -347,7 +360,12 @@ types.hpp \
 vec3d.hpp \
 vec4d.hpp \
 vectorfield.hpp \
+vtriangle.hpp \
 xygraph.hpp
+
+if OPENGL
+libibsimu_1_0_5new_solver_la_SOURCES += glrenderer.cpp glrenderer.hpp
+endif
 
 if UMFPACK
 libibsimu_1_0_5new_solver_la_SOURCES += epot_umfpacksolver.cpp epot_umfpacksolver.hpp 

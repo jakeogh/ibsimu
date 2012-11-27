@@ -1,8 +1,8 @@
-/*! \file gtkwindow.hpp
- *  \brief Window for GTK plots
+/*! \file vtriangle.hpp
+ *  \brief Vertex-based triangle representation
  */
 
-/* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,23 +40,36 @@
  * permit others to do so.
  */
 
-#ifndef GTKWINDOW_HPP
-#define GTKWINDOW_HPP 1
+
+#ifndef VTRIANGLE_HPP
+#define VTRIANGLE_HPP 1
 
 
-/*! \brief Base class for interactive plotters.
+#include <iostream>
+#include <stdint.h>
+
+
+/*! \brief Vertex-based triangle representation.
  */
-class GTKWindow {
-
+class VTriangle {
+    
+    uint32_t _v[3];
+    
 public:
+    
+    VTriangle( uint32_t v1, uint32_t v2, uint32_t v3 );
+    VTriangle( const uint32_t v[3] );
+    ~VTriangle();
+    
+    const uint32_t &operator[]( int i ) const {
+	return( _v[i] );
+    }
 
-    /*! \brief Constructor.
-     */
-    GTKWindow();
-
-    /*! \brief Destructor.
-     */
-    virtual ~GTKWindow();
+    uint32_t &operator[]( int i ) {
+	return( _v[i] );
+    }
+    
+    void debug_print( std::ostream &os ) const;
 };
 
 

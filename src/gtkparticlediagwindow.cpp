@@ -2,7 +2,7 @@
  *  \brief %Particle diagnostic window.
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -53,7 +53,7 @@ GTKParticleDiagWindow::GTKParticleDiagWindow( GTKPlotter &plotter, const Particl
 					      particle_diag_plot_type_e type,
 					      trajectory_diagnostic_e diagx, 
 					      trajectory_diagnostic_e diagy )
-    : GTKWindow(plotter), _plot(_frame, geom, pdb, axis, level, type, diagx, diagy), _prefdata(NULL)
+    : GTKFrameWindow(plotter), _plot(_frame, geom, pdb, axis, level, type, diagx, diagy), _prefdata(NULL)
 {
     // Set window title
     gtk_window_set_title( GTK_WINDOW(_window), "Particle diagnostics" );

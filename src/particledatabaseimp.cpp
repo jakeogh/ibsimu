@@ -59,7 +59,8 @@ ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb )
     : _epsabs(1e-6), _epsrel(1e-6), _intrp(TRAJECTORY_INTERPOLATION_POLYNOMIAL), 
       _scharge_dep(SCHARGE_DEPOSITION_PIC), _maxsteps(1000), 
       _maxt(1e-3), _save_points(false), _trajdiv(1), _rhosum(0.0), _iteration(0), 
-      _relativistic(false), _bsup_cb(NULL), _thand_cb(NULL), _tend_cb(NULL), 
+      _relativistic(false), _surface_collision(false),
+      _bsup_cb(NULL), _thand_cb(NULL), _tend_cb(NULL),
       _pdb(pdb)
 {
     for( size_t a = 0; a < 6; a++ )
@@ -147,6 +148,12 @@ void ParticleDataBaseImp::set_trajectory_end_callback( const TrajectoryEndCallba
 void ParticleDataBaseImp::set_relativistic( bool enable )
 {
     _relativistic = enable;
+}
+
+
+void ParticleDataBaseImp::set_surface_collision( bool surface_collision )
+{
+    _surface_collision = surface_collision;
 }
 
 
@@ -1716,17 +1723,15 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
 	    // K[0]: parametric distance from x1 to x2
  	    // K[1]: distance in direction o
 	    // K[2]: distance in direction p
-	    Vec3D K;
-	    try {
-		Mat3D m( x2[1]-x1[1], -o[0], -p[0],
-			 x2[3]-x1[3], -o[1], -p[1],
-			 x2[5]-x1[5], -o[2], -p[2] );
-		Mat3D minv = m.inverse();
-		Vec3D off( c[0]-x1[1], c[1]-x1[3], c[2]-x1[5] );
-		K = minv*off;
-	    } catch(...) {
+	    Mat3D m( x2[1]-x1[1], -o[0], -p[0],
+		     x2[3]-x1[3], -o[1], -p[1],
+		     x2[5]-x1[5], -o[2], -p[2] );
+	    double mdet = m.determinant();
+	    if( mdet == 0.0 )
 		continue;
-	    }
+	    Mat3D minv = m.inverse( mdet );
+	    Vec3D off( c[0]-x1[1], c[1]-x1[3], c[2]-x1[5] );
+	    Vec3D K = minv*off;
 	    
 	    if( K[0] >= 0.0 && K[0] < 1.0 ) {
 		// Crossing found between x1 and x2, accumulate total current

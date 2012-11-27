@@ -49,6 +49,8 @@ bool solid2( double x, double y, double z )
 void test( int argc, char **argv )
 {
     Geometry geom( MODE_3D, Int3D(121,73,73), Vec3D(0,0,0), 0.0001 );
+    //Geometry geom( MODE_3D, Int3D(241,145,145), Vec3D(0,0,0), 0.00005 );
+    //Geometry geom( MODE_3D, Int3D(481,289,289), Vec3D(0,0,0), 0.000025 );
 
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
@@ -63,6 +65,7 @@ void test( int argc, char **argv )
     geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0)  );
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, -8.0e3) );
     geom.build_mesh();
+    geom.build_surface();
 
     EpotMGSolver solver( geom );
     solver.set_levels( 4 );
@@ -83,6 +86,7 @@ void test( int argc, char **argv )
     bool pmirror[6] = { false, false, true, false, true, false };
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
+    pdb.set_surface_collision( true );
 
     Emittance emit;
 
@@ -91,7 +95,7 @@ void test( int argc, char **argv )
     conv.add_scharge( scharge );
     conv.add_emittance( 0, emit );
 	
-    for( size_t i = 0; i < 5; i++ ) {
+    for( size_t i = 0; i < 1; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
@@ -104,7 +108,14 @@ void test( int argc, char **argv )
 	efield.recalculate();
 
 	pdb.clear();
-	pdb.add_cylindrical_beam_with_energy( 50000, 600.0, 1.0, 1.0, 
+	/*
+	pdb.add_particle( Particle3D( 1.0, 1.0, 1.0, 
+				      ParticleP3D( 0.0,
+						   0.0, 1e6,
+						   4.0e-4, 0.0,
+						   4.0e-4, 0.0) ) );
+	*/
+	pdb.add_cylindrical_beam_with_energy( 5000, 600.0, 1.0, 1.0, 
 					      5.0, 0.0, 0.5, 
 					      Vec3D(0,0,0),
 					      Vec3D(0,1,0),
@@ -116,19 +127,33 @@ void test( int argc, char **argv )
 	emit = pplotter.calculate_emittance();
 	conv.evaluate_iteration();
 
-	if( false ) {
-	    MeshScalarField tdens( geom );
-	    pdb.build_trajectory_density_field( tdens );
-	    GTKPlotter plotter( &argc, &argv );
-	    plotter.set_geometry( &geom );
-	    plotter.set_epot( &epot );
-	    plotter.set_efield( &efield );
-	    plotter.set_trajdens( &tdens );
-	    plotter.set_scharge( &scharge );
-	    plotter.set_particledatabase( &pdb );
-	    plotter.new_geometry_plot_window();
-	    plotter.run();
-	}
+    }
+
+    std::vector<trajectory_diagnostic_e> diagnostics;
+    diagnostics.push_back( DIAG_NO );
+    TrajectoryDiagnosticData tdata;
+    pdb.trajectories_at_plane( tdata, AXIS_Y, 0.004, diagnostics );
+    for( uint32_t a = 0; a < tdata.traj_size(); a++ ) {
+	std::cout << tdata(a,0) << "\n";
+    }
+
+    Particle3D p = pdb.particle( 4695 );
+    
+
+    //pdb.debug_print( std::cout );
+    
+    if( true ) {
+	MeshScalarField tdens( geom );
+	pdb.build_trajectory_density_field( tdens );
+	GTKPlotter plotter( &argc, &argv );
+	plotter.set_geometry( &geom );
+	plotter.set_epot( &epot );
+	plotter.set_efield( &efield );
+	plotter.set_trajdens( &tdens );
+	plotter.set_scharge( &scharge );
+	plotter.set_particledatabase( &pdb );
+	plotter.new_geometry_plot_window();
+	plotter.run();
     }
 
     ofstream ofconv( "plasma3d_conv.dat" );

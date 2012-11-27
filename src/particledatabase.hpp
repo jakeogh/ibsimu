@@ -244,6 +244,12 @@ public:
      */
     void set_relativistic( bool enable );
 
+    /*! \brief Set surface collision model to be used.
+     *
+     *  Defaults to false, which enabled the inside-test for collisions,
+     */
+    void set_surface_collision( bool surface_collision );
+
     /*! \brief Set the interpolation type to polynomial(true) or linear(false).
      *
      *  \deprecated This function is deprecated. It can still be used

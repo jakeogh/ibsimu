@@ -47,6 +47,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <stdint.h>
+#include "vtriangle.hpp"
 #include "vec3d.hpp"
 
 
@@ -76,23 +78,6 @@ class STLFile {
 	}
 	
 	void update_bbox( Vec3D &min, Vec3D &max ) const;
-	void debug_print( std::ostream &os ) const;
-    };
-
-    class VTriangle {
-
-	uint32_t _v[3];
-
-    public:
-
-	VTriangle( uint32_t v1, uint32_t v2, uint32_t v3 );
-	VTriangle( const uint32_t v[3] );
-	~VTriangle();
-
-	const uint32_t &operator[]( int i ) const {
-	    return( _v[i] );
-	}
-
 	void debug_print( std::ostream &os ) const;
     };
 
@@ -126,7 +111,7 @@ class STLFile {
 
 public:
 
-    /*! \brief Constructor for STL-file based solid B-rep mesh data.
+    /*! \brief Constructor for STL data from file.
      *
      *  Reads either binary or ascii STL-file from \a filename.
      *  Triangle vertices are connected if closer that \a
@@ -139,17 +124,34 @@ public:
 	     double vertex_matching_eps = 1.0e-9, 
 	     double signed_volume_eps = 1.0e-15 );
 
+    /*! \brief Constructor for $STLFile from triangle and vertex data
+     */
+    STLFile( const std::vector<Vec3D> &vertex,
+	     const std::vector<VTriangle> &triangle );
+
     /*! \brief Destructor.
      */
     ~STLFile();
+
+    /*! \brief Write to file.
+     */
+    void save( const std::string &filename, bool ascii = true ) const;
 
     /*! \brief Return number of vertices.
      */
     size_t vertexc( void );
 
+    /*! \brief Return vertex \a i coordinates.
+     */
+    Vec3D vertex( uint32_t i ) const;
+
     /*! \brief Return number of triangles.
      */
     size_t trianglec( void );
+
+    /*! \brief Return vertex triangle \a i.
+     */
+    const VTriangle &vtriangle( uint32_t i ) const;
 
     /*! \brief Return if point \a x is inside solid.
      *

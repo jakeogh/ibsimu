@@ -1,5 +1,5 @@
-/*! \file gtkwindow.hpp
- *  \brief Window for GTK plots
+/*! \file renderer.hpp
+ *  \brief 3D renderer base class
  */
 
 /* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
@@ -40,23 +40,77 @@
  * permit others to do so.
  */
 
-#ifndef GTKWINDOW_HPP
-#define GTKWINDOW_HPP 1
+
+#ifndef RENDERER_HPP
+#define RENDERER_HPP 1
 
 
-/*! \brief Base class for interactive plotters.
+#include <cairo.h>
+#include "transformation.hpp"
+
+
+/*! \brief 3D renderer base class.
+ *
+ *  Front-end for 3D renderer classes used in 3D geometry plotters.
  */
-class GTKWindow {
+class Renderer {
+
+protected:
+
+    Vec3D            _light_diffuse_color;
+    Vec3D            _light_location;
+    Vec3D            _light_ambient_color;
+
+    Vec3D            _material_diffuse_color;
+    Vec3D            _material_ambient_color;
+
+    Vec3D            _color;
+
+    Transformation   _model;
+    Transformation   _view;
+    Transformation   _projection;
 
 public:
 
-    /*! \brief Constructor.
-     */
-    GTKWindow();
+    Renderer();
+    virtual ~Renderer();
 
-    /*! \brief Destructor.
-     */
-    virtual ~GTKWindow();
+
+    void set_light_diffuse_color( Vec3D color );
+    void set_light_location( Vec3D location );
+    void set_light_ambient_color( Vec3D color );
+
+    void set_material_diffuse_color( Vec3D color );
+    void set_material_ambient_color( Vec3D color );
+    void set_color( Vec3D color );
+
+
+    void set_model_transformation( const Transformation &model );
+    void set_projection_frustum( double left, double right,
+				 double bottom, double top,
+				 double near, double far );
+    void set_view_look_at( const Vec3D &camera, 
+			   const Vec3D &target,
+			   const Vec3D &up );
+
+
+    virtual void start_rendering( void ) = 0;
+    virtual void end_rendering( void ) = 0;
+
+
+    virtual void disable_lighting( void ) = 0;
+    virtual void enable_lighting( void ) = 0;
+
+
+    virtual void enable_view_settings( void ) = 0;
+
+
+    virtual void flat_triangle( const Vec3D &x0, 
+				const Vec3D &x1, 
+				const Vec3D &x2,
+				const Vec3D &n ) = 0;
+    virtual void line( const Vec3D &x0,
+		       const Vec3D &x1 ) = 0;
 };
 
 

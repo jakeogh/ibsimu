@@ -49,11 +49,19 @@
 #include <cairo-ps.h>
 #include <cairo-pdf.h>
 #include "gtkhardcopy.hpp"
+#include "softwarerenderer.hpp"
 
 
 
 GTKHardcopy::GTKHardcopy( GtkWidget *window, Frame *frame, size_t width, size_t height )
-    : _window(window), _frame(frame), _width(width), _height(height)
+    : _window(window), _frame(frame), _geom3dplot(NULL), _width(width), _height(height)
+{
+    _aspect = (double)_height/_width;
+}
+
+
+GTKHardcopy::GTKHardcopy( GtkWidget *window, Geom3DPlot *geom3dplot, size_t width, size_t height )
+    : _window(window), _frame(NULL), _geom3dplot(geom3dplot), _width(width), _height(height)
 {
     _aspect = (double)_height/_width;
 }
@@ -83,10 +91,8 @@ int GTKHardcopy::type_from_extension( const char *filename )
 	return( 2 );
     else if( !strcmp( filename+b, ".eps" ) || !strcmp( filename+b, ".ps" ) )
 	return( 3 );
-#ifdef CAIRO_HAS_PDF_SURFACE
     else if( !strcmp( filename+b, ".pdf" ) )
 	return( 4 );
-#endif    
 
     return( 0 );
 }
@@ -119,12 +125,17 @@ void GTKHardcopy::ensure_extension( std::string &filename, const std::string &ex
 }
 
 
-void GTKHardcopy::treeview_changed( GtkTreeSelection *selection,
-				    gpointer userdata )
+void GTKHardcopy::treeview_changed_signal( GtkTreeSelection *selection,
+					   gpointer userdata )
 {
-    GtkWidget *dialog = (GtkWidget *)userdata;
-    GtkWidget *expander = gtk_file_chooser_get_extra_widget( GTK_FILE_CHOOSER(dialog) );
-    char *filename_ptr = gtk_file_chooser_get_filename( GTK_FILE_CHOOSER(dialog) );
+    GTKHardcopy *hardcopy = (GTKHardcopy *)userdata;
+    hardcopy->treeview_changed( selection );
+}
+
+
+void GTKHardcopy::treeview_changed( GtkTreeSelection *selection )
+{
+    char *filename_ptr = gtk_file_chooser_get_filename( GTK_FILE_CHOOSER(_dialog) );
     std::string filename( filename_ptr );
     GtkTreeModel *model;
     GtkTreeIter iter;
@@ -135,32 +146,32 @@ void GTKHardcopy::treeview_changed( GtkTreeSelection *selection,
 
     switch( active ) {
     case 0:
-	gtk_expander_set_label( GTK_EXPANDER(expander), "Select File _Type (By Extension)" );
+	gtk_expander_set_label( GTK_EXPANDER(_expander), "Select File _Type (By Extension)" );
 	return;
 	break;
     case 1:
 	ensure_extension( filename, ".png" );
-	gtk_expander_set_label( GTK_EXPANDER(expander), "Select File _Type (PNG Image)" );
+	gtk_expander_set_label( GTK_EXPANDER(_expander), "Select File _Type (PNG Image)" );
 	break;
     case 2:
 	ensure_extension( filename, ".svg" );
-	gtk_expander_set_label( GTK_EXPANDER(expander), "Select File _Type (SVG Image)" );
+	gtk_expander_set_label( GTK_EXPANDER(_expander), "Select File _Type (SVG Image)" );
 	break;
     case 3:
 	ensure_extension( filename, ".eps" );
-	gtk_expander_set_label( GTK_EXPANDER(expander), "Select File _Type (Encapsulated Postscript)" );
+	gtk_expander_set_label( GTK_EXPANDER(_expander), "Select File _Type (Encapsulated Postscript)" );
 	break;
 #ifdef CAIRO_HAS_PDF_SURFACE
     case 4:
 	ensure_extension( filename, ".pdf" );
-	gtk_expander_set_label( GTK_EXPANDER(expander), "Select File _Type (Portable Document Format)" );
+	gtk_expander_set_label( GTK_EXPANDER(_expander), "Select File _Type (Portable Document Format)" );
 	break;
 #endif
     default:
 	throw( Error( ERROR_LOCATION, "unsupported file type" ) );
     }
 
-    gtk_file_chooser_set_current_name( GTK_FILE_CHOOSER(dialog), filename.c_str() );
+    gtk_file_chooser_set_current_name( GTK_FILE_CHOOSER(_dialog), filename.c_str() );
     g_free( filename_ptr );
 }
 
@@ -197,12 +208,12 @@ void GTKHardcopy::spiny_signal( GtkSpinButton *spinbutton,
 
 void GTKHardcopy::run( void )
 {
-    GtkWidget *dialog = gtk_file_chooser_dialog_new( "Make a hardcopy",
-						     GTK_WINDOW(_window),
-						     GTK_FILE_CHOOSER_ACTION_SAVE,
-						     GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-						     GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
-						     NULL );
+    _dialog = gtk_file_chooser_dialog_new( "Make a hardcopy",
+					    GTK_WINDOW(_window),
+					    GTK_FILE_CHOOSER_ACTION_SAVE,
+					    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+					    GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+					    NULL );
 #ifdef HAVE_UNISTD_H
     size_t size = 1024;
     char *buf;
@@ -214,36 +225,36 @@ void GTKHardcopy::run( void )
 	delete [] buf;
     }
     GFile *gfile = g_file_new_for_path( buf );
-    gtk_file_chooser_set_current_folder_file( GTK_FILE_CHOOSER(dialog), gfile, NULL );
+    gtk_file_chooser_set_current_folder_file( GTK_FILE_CHOOSER(_dialog), gfile, NULL );
     g_object_unref( gfile );
 #endif
-    gtk_file_chooser_set_current_name( GTK_FILE_CHOOSER(dialog), "hardcopy" );
-    gtk_file_chooser_set_show_hidden( GTK_FILE_CHOOSER(dialog), TRUE );
-    gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(dialog), TRUE );
+    gtk_file_chooser_set_current_name( GTK_FILE_CHOOSER(_dialog), "hardcopy" );
+    gtk_file_chooser_set_show_hidden( GTK_FILE_CHOOSER(_dialog), TRUE );
+    gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(_dialog), TRUE );
 
     // Set filters
     GtkFileFilter *filter = gtk_file_filter_new();
     gtk_file_filter_set_name( filter, "All files" );
     gtk_file_filter_add_pattern( filter, "*" );
-    gtk_file_chooser_add_filter( GTK_FILE_CHOOSER(dialog), filter );
+    gtk_file_chooser_add_filter( GTK_FILE_CHOOSER(_dialog), filter );
     filter = gtk_file_filter_new();
     gtk_file_filter_set_name( filter, "PNG image (*.png)" );
     gtk_file_filter_add_pattern( filter, "*.png" );
-    gtk_file_chooser_add_filter( GTK_FILE_CHOOSER(dialog), filter );
+    gtk_file_chooser_add_filter( GTK_FILE_CHOOSER(_dialog), filter );
     filter = gtk_file_filter_new();
     gtk_file_filter_set_name( filter, "SVG image (*.svg)" );
     gtk_file_filter_add_pattern( filter, "*.svg" );
-    gtk_file_chooser_add_filter( GTK_FILE_CHOOSER(dialog), filter );
+    gtk_file_chooser_add_filter( GTK_FILE_CHOOSER(_dialog), filter );
     filter = gtk_file_filter_new();
     gtk_file_filter_set_name( filter, "Postscript (*.ps,*.eps)" );
     gtk_file_filter_add_pattern( filter, "*.ps" );
     gtk_file_filter_add_pattern( filter, "*.eps" );
-    gtk_file_chooser_add_filter( GTK_FILE_CHOOSER(dialog), filter );
+    gtk_file_chooser_add_filter( GTK_FILE_CHOOSER(_dialog), filter );
 #ifdef CAIRO_HAS_PDF_SURFACE
     filter = gtk_file_filter_new();
     gtk_file_filter_set_name( filter, "PDF (*.pdf)" );
     gtk_file_filter_add_pattern( filter, "*.pdf" );
-    gtk_file_chooser_add_filter( GTK_FILE_CHOOSER(dialog), filter );
+    gtk_file_chooser_add_filter( GTK_FILE_CHOOSER(_dialog), filter );
 #endif 
 
     // File type
@@ -259,23 +270,25 @@ void GTKHardcopy::run( void )
 			0, "PNG Image",    
 			1, "png", 
 			2, 1, -1);
-    gtk_list_store_append( list_store, &iter );
-    gtk_list_store_set( list_store, &iter, 
-			0, "SVG Image",    
-			1, "svg", 
-			2, 2, -1);
-    gtk_list_store_append( list_store, &iter );
-    gtk_list_store_set( list_store, &iter, 
-			0, "Encapsulated Postscript", 
-			1, "eps",
-			2, 3, -1);
+    if( _frame ) {
+	gtk_list_store_append( list_store, &iter );
+	gtk_list_store_set( list_store, &iter, 
+			    0, "SVG Image",    
+			    1, "svg", 
+			    2, 2, -1);
+	gtk_list_store_append( list_store, &iter );
+	gtk_list_store_set( list_store, &iter, 
+			    0, "Encapsulated Postscript", 
+			    1, "eps",
+			    2, 3, -1);
 #ifdef CAIRO_HAS_PDF_SURFACE
-    gtk_list_store_append( list_store, &iter );
-    gtk_list_store_set( list_store, &iter, 
-			0, "Portable Document Format", 
-			1, "pdf",
-			2, 4, -1);
+	gtk_list_store_append( list_store, &iter );
+	gtk_list_store_set( list_store, &iter, 
+			    0, "Portable Document Format", 
+			    1, "pdf",
+			    2, 4, -1);
 #endif
+    }
     GtkWidget *treeview = gtk_tree_view_new_with_model( GTK_TREE_MODEL(list_store) );  
     GtkCellRenderer *renderer;
     GtkTreeViewColumn *column;
@@ -292,14 +305,14 @@ void GTKHardcopy::run( void )
     gtk_tree_model_get_iter_first( GTK_TREE_MODEL(list_store), &iter );
     gtk_tree_selection_select_iter( selection, &iter );
     g_signal_connect( G_OBJECT(selection), "changed",
-		      G_CALLBACK(treeview_changed),
-		      (gpointer)dialog );
+		      G_CALLBACK(treeview_changed_signal),
+		      (gpointer)this );
 
     // Expander for treeview object (file type selector)
-    GtkWidget *expander = gtk_expander_new_with_mnemonic( "Select File _Type (By Extension)" );
-    gtk_expander_set_use_underline( GTK_EXPANDER(expander), TRUE );
-    gtk_expander_set_expanded( GTK_EXPANDER(expander), FALSE );
-    gtk_container_add( GTK_CONTAINER(expander), treeview );
+    _expander = gtk_expander_new_with_mnemonic( "Select File _Type (By Extension)" );
+    gtk_expander_set_use_underline( GTK_EXPANDER(_expander), TRUE );
+    gtk_expander_set_expanded( GTK_EXPANDER(_expander), FALSE );
+    gtk_container_add( GTK_CONTAINER(_expander), treeview );
 
 
     // Spinbutton for resolution
@@ -325,33 +338,64 @@ void GTKHardcopy::run( void )
     // Pack Extra widgets for file chooser in a vbox
     GtkWidget *vbox;
     vbox = gtk_vbox_new( FALSE, 2 );
-    gtk_box_pack_start( GTK_BOX(vbox), expander, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox), _expander, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
     // Set extra widgets to file chooser
-    gtk_file_chooser_set_extra_widget( GTK_FILE_CHOOSER(dialog), vbox );
+    gtk_file_chooser_set_extra_widget( GTK_FILE_CHOOSER(_dialog), vbox );
 
-    gtk_widget_show_all( dialog );
-    if( gtk_dialog_run( GTK_DIALOG(dialog) ) == GTK_RESPONSE_ACCEPT ) {
+    gtk_widget_show_all( _dialog );
+    if( gtk_dialog_run( GTK_DIALOG(_dialog) ) == GTK_RESPONSE_ACCEPT ) {
 
-	/* Process filename extension */
-	int active = 0;//gtk_combo_box_get_active( GTK_COMBO_BOX(combo) );
-	char *filename = gtk_file_chooser_get_filename( GTK_FILE_CHOOSER(dialog) );
+	// Process filename extension
+	GtkTreeModel *model;
+	GtkTreeIter iter;
+	int active = 0;
+	gtk_tree_selection_get_selected( selection, &model, &iter );
+	gtk_tree_model_get( model, &iter, 2, &active, -1 );
+	char *filename = gtk_file_chooser_get_filename( GTK_FILE_CHOOSER(_dialog) );
 
 	if( active == 0 ) {
+	    // Automatic file type from extension
 	    active = type_from_extension( filename );
 	    if( active == 0 ) {
-		/* Print error message */
-		GtkWidget *error = gtk_message_dialog_new( GTK_WINDOW(dialog), GTK_DIALOG_MODAL, 
+		// Print error message
+		GtkWidget *error = gtk_message_dialog_new( GTK_WINDOW(_dialog), GTK_DIALOG_MODAL, 
 							   GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,
 							   "Unknown file name extension" );
 		gtk_widget_show_all( error );
 		gtk_dialog_run( GTK_DIALOG(error) );
 		gtk_widget_destroy( error );
 
-		gtk_widget_destroy( dialog );
+		gtk_widget_destroy( _dialog );
 		return;
 	    }
+#ifndef CAIRO_HAS_PDF_SURFACE
+	    if( active == 4 ) {
+		// Print error message
+		GtkWidget *error = gtk_message_dialog_new( GTK_WINDOW(_dialog), GTK_DIALOG_MODAL, 
+							   GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,
+							   "No pdf output compiled in" );
+		gtk_widget_show_all( error );
+		gtk_dialog_run( GTK_DIALOG(error) );
+		gtk_widget_destroy( error );
+
+		gtk_widget_destroy( _dialog );
+		return;		
+	    }
+#endif
+	}
+
+	if( _frame == NULL && active != 1 ) {
+	    GtkWidget *error = gtk_message_dialog_new( GTK_WINDOW(_dialog), GTK_DIALOG_MODAL, 
+						       GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,
+						       "Only png output possible from 3D viewer" );
+	    gtk_widget_show_all( error );
+	    gtk_dialog_run( GTK_DIALOG(error) );
+	    gtk_widget_destroy( error );
+	    
+	    gtk_widget_destroy( _dialog );
+	    return;
 	}
 
 	// Get resolution
@@ -380,7 +424,7 @@ void GTKHardcopy::run( void )
 	g_free( filename );
     }
 
-    gtk_widget_destroy( dialog );
+    gtk_widget_destroy( _dialog );
 
 }
 
@@ -496,6 +540,19 @@ void GTKHardcopy::write_png( const char *filename )
     cairo_surface_t *surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, _width, _height );
     if( cairo_surface_status( surface ) )
 	throw( Error( ERROR_LOCATION, "error creating cairo surface" ) );
+
+    if( _frame )
+	write_png_frame( surface, filename );
+    else
+	write_png_geom3dplot( surface, filename );
+
+    // Free surface
+    cairo_surface_destroy( surface );
+}
+
+
+void GTKHardcopy::write_png_frame( cairo_surface_t *surface, const char *filename )
+{
     cairo_t *cairo = cairo_create( surface );
     if( cairo_status( cairo ) )
 	throw( Error( ERROR_LOCATION, "error creating cairo" ) );
@@ -504,15 +561,22 @@ void GTKHardcopy::write_png( const char *filename )
     _frame->set_geometry( _width, _height, 0, 0 );
     _frame->draw( cairo );
 
-    // Write png
+    // Write clipped png
     int rwidth, rheight;
     get_image_size( surface, rwidth, rheight );
     write_to_png( surface, rwidth, rheight, filename );
-    //cairo_surface_write_to_png( surface, filename );
 
-    // Free cairo and surface
     cairo_destroy( cairo );
-    cairo_surface_destroy( surface );
+}
+
+
+void GTKHardcopy::write_png_geom3dplot( cairo_surface_t *surface, const char *filename )
+{
+    SoftwareRenderer r( surface );
+    _geom3dplot->draw( &r );
+
+    // Write png as is
+    cairo_surface_write_to_png( surface, filename );
 }
 
 

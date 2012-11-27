@@ -2,7 +2,7 @@
  *  \brief Field diagnostic window
  */
 
-/* Copyright (c) 2005-2011,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,6 +40,7 @@
  * permit others to do so.
  */
 
+
 #include <limits>
 #include "gtkfielddiagwindow.hpp"
 #include "gtkfielddiagexportdialog.hpp"
@@ -49,7 +50,7 @@ GTKFieldDiagWindow::GTKFieldDiagWindow( GTKPlotter &plotter, const Geometry &geo
 					const Vec3D &x1, const Vec3D &x2,
 					const field_diag_type_e diag[2], 
 					const field_loc_type_e loc[2] )
-    : GTKWindow(plotter), _geom(geom), _plot(_frame,geom)
+    : GTKFrameWindow(plotter), _geom(geom), _plot(_frame,geom)
 {
     _plot.set_epot( plotter.get_epot() );
     _plot.set_efield( plotter.get_efield() );

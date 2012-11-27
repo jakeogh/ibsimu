@@ -2,7 +2,7 @@
  *  \brief %Particle diagnostic window.
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -44,7 +44,7 @@
 #define GTKPARTICLEDIAGWINDOW_HPP 1
 
 
-#include "gtkwindow.hpp"
+#include "gtkframewindow.hpp"
 #include "particledatabase.hpp"
 #include "particlediagplot.hpp"
 #include "types.hpp"
@@ -52,7 +52,7 @@
 
 /*! \brief Interactive particle diagnostics plotter.
  */
-class GTKParticleDiagWindow : public GTKWindow {
+class GTKParticleDiagWindow : public GTKFrameWindow {
 
     ParticleDiagPlot _plot;
 
@@ -102,30 +102,11 @@ public:
 			   trajectory_diagnostic_e diagx, 
 			   trajectory_diagnostic_e diagy );
 
+    /*! \brief Destructor.
+     */
     virtual ~GTKParticleDiagWindow();
 
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -46,7 +46,7 @@
 
 #include <vector>
 
-#include "gtkwindow.hpp"
+#include "gtkframewindow.hpp"
 #include "geomplot.hpp"
 #include "meshscalarfield.hpp"
 #include "epot_field.hpp"
@@ -55,9 +55,9 @@
 
 
 
-/*! \brief Interactive geometry plotter.
+/*! \brief Interactive geometry plotter window.
  */
-class GTKGeomWindow : public GTKWindow {
+class GTKGeomWindow : public GTKFrameWindow {
 
     struct PreferencesData {
 	GtkWidget *manual_eqlines_entry;
@@ -132,6 +132,7 @@ class GTKGeomWindow : public GTKWindow {
     void darea_motion2( GdkEventMotion *event );
     void darea_button2( GdkEventButton *event );
     void field_activate( void );
+    void geom3d_launch( void );
 
     static void combobox_signal( GtkComboBox *combobox,
 				 gpointer object );
@@ -139,6 +140,8 @@ class GTKGeomWindow : public GTKWindow {
 				   gpointer object );
     static void menuitem_tool_change_signal( GtkToolButton *button,
 					     gpointer object );
+    static void menuitem_geom3d_signal( GtkToolButton *button,
+					gpointer object );
     static gboolean darea_motion_signal2( GtkWidget *widget, 
 					  GdkEventMotion *event,
 					  gpointer object );
@@ -150,6 +153,8 @@ class GTKGeomWindow : public GTKWindow {
 
 public:
 
+    /*! \brief Constructor.
+     */
     GTKGeomWindow( class GTKPlotter &plotter,
 		   const Geometry &geom,
 		   const EpotField *epot,
@@ -159,31 +164,10 @@ public:
 		   const VectorField *bfield,
 		   const ParticleDataBase *pdb );
     
-    ~GTKGeomWindow();
+    /*! \brief Destructor.
+     */
+    virtual ~GTKGeomWindow();
 };
 
 
-
-
-
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

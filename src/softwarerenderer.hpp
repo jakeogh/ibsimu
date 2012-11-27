@@ -1,5 +1,5 @@
-/*! \file gtkwindow.hpp
- *  \brief Window for GTK plots
+/*! \file softwarerenderer.hpp
+ *  \brief Software 3D renderer
  */
 
 /* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
@@ -40,23 +40,84 @@
  * permit others to do so.
  */
 
-#ifndef GTKWINDOW_HPP
-#define GTKWINDOW_HPP 1
+
+#ifndef SOFTWARERENDERER_HPP
+#define SOFTWARERENDERER_HPP 1
 
 
-/*! \brief Base class for interactive plotters.
+#include <cairo.h>
+#include <gtk/gtk.h>
+#include "renderer.hpp"
+
+
+/*! \brief Software 3D z-buffer renderer.
+ *
+ *  Capable of rendering flat shaded triangles and lines in 3D space.
+ *
+ *  Intended for replacing OpenGL when it is not available and for
+ *  making hardcopies.
  */
-class GTKWindow {
+class SoftwareRenderer : public Renderer {
+
+    GtkWidget       *_darea;
+    cairo_surface_t *_surface;
+    unsigned char   *_buf;
+    int              _width;
+    int              _height;
+    int              _stride;
+
+    double          *_zbuf;
+
+    Transformation   _modelview;
+    Transformation   _totalmatrix;
+    Transformation   _normalmatrix;
+
+    void swap( int &x0, int &y0, double &z0, 
+	       int &x1, int &y1, double &z1 );
+
+
+    void set_pixel( int i, int j, const Vec3D &color );
+    void clear( const Vec3D &color );
+    void flat_2d_triangle( int x0, int y0, double z0,
+			   int x1, int y1, double z1,
+			   int x2, int y2, double z2,
+			   const Vec3D &color );
+    void line_2d( int x0, int y0, double z0,
+		  int x1, int y1, double z1,
+		  const Vec3D &color );
 
 public:
 
-    /*! \brief Constructor.
+    /*! \brief Constructor for rendering to drawing area.
      */
-    GTKWindow();
+    SoftwareRenderer( GtkWidget *darea );
+
+    /*! \brief Constructor for rendering to cairo image surface.
+     */
+    SoftwareRenderer( cairo_surface_t *surface );
 
     /*! \brief Destructor.
      */
-    virtual ~GTKWindow();
+    virtual ~SoftwareRenderer();
+
+
+    virtual void start_rendering( void );
+    virtual void end_rendering( void );
+
+
+    virtual void disable_lighting( void );
+    virtual void enable_lighting( void );
+
+
+    virtual void enable_view_settings( void );
+
+
+    virtual void flat_triangle( const Vec3D &x0, 
+				const Vec3D &x1, 
+				const Vec3D &x2,
+				const Vec3D &n );
+    virtual void line( const Vec3D &x0,
+		       const Vec3D &x1 );
 };
 
 
