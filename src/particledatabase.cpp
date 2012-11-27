@@ -105,6 +105,12 @@ void ParticleDataBase::set_relativistic( bool enable )
 }
 
 
+void ParticleDataBase::set_surface_collision( bool surface_collision )
+{
+    _imp->set_surface_collision( surface_collision );
+}
+
+
 void ParticleDataBase::set_polyint( bool polyint ) 
 {
     _imp->set_polyint( polyint );

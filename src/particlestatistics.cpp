@@ -211,6 +211,9 @@ uint32_t ParticleStatistics::sum_steps( void ) const
 
 void ParticleStatistics::add_bound_collision( uint32_t bound, double IQ )
 {
+    if( bound <= 0 )
+	throw( Error( ERROR_LOCATION, "invalid boundary number: (bound = " + to_string(bound)
+		      + ")" ) );
     if( bound > _bound_collisions.size() )
 	throw( Error( ERROR_LOCATION, "invalid boundary number: (bound = " + to_string(bound)
 		      + ") >= (nboundaries = " + to_string(_bound_collisions.size() + ")" ) ) );
