@@ -117,6 +117,8 @@ public:
     double determinant( void ) const;
 
     /*! \brief Return inverse matrix.
+     *
+     *  Throws an error if determinant is zero.
      */
     Transformation inverse( void ) const;
 

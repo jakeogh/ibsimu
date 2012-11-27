@@ -2,7 +2,7 @@
  *  \brief Three-by-three matrices.
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -84,9 +84,25 @@ Mat3D Mat3D::inverse( void ) const
 {
     double idet = determinant();
     if( idet == 0.0 )
-	throw( Error( ERROR_LOCATION, "Can't invert matrix: zero determinant" ) );
+	throw( Error( ERROR_LOCATION, "can't invert matrix: zero determinant" ) );
     idet = 1.0/idet;
 
+    Mat3D result( (a[4]*a[8]-a[5]*a[7])*idet,
+		  (a[2]*a[7]-a[1]*a[8])*idet,
+		  (a[1]*a[5]-a[2]*a[4])*idet,
+		  (a[5]*a[6]-a[3]*a[8])*idet,
+		  (a[0]*a[8]-a[2]*a[6])*idet,
+		  (a[2]*a[3]-a[0]*a[5])*idet,
+		  (a[3]*a[7]-a[4]*a[6])*idet,
+		  (a[1]*a[6]-a[0]*a[7])*idet,
+		  (a[0]*a[4]-a[1]*a[3])*idet );
+    return( result );
+}
+
+
+Mat3D Mat3D::inverse( double det ) const
+{
+    double idet = 1.0/det;
     Mat3D result( (a[4]*a[8]-a[5]*a[7])*idet,
 		  (a[2]*a[7]-a[1]*a[8])*idet,
 		  (a[1]*a[5]-a[2]*a[4])*idet,

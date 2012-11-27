@@ -130,7 +130,11 @@ double Transformation::determinant( void ) const
 
 Transformation Transformation::inverse( void ) const
 {
-    double idet = 1.0/determinant();
+    double idet = determinant();
+    if( idet == 0.0 )
+	throw( Error( ERROR_LOCATION, "can't invert matrix: zero determinant" ) );
+    idet = 1.0/idet;
+
     Transformation ret( x[6]*x[11]*x[13] - x[7]*x[10]*x[13] + x[7]*x[9]*x[14] - 
 			x[5]*x[11]*x[14] - x[6]*x[9]*x[15] + x[5]*x[10]*x[15],
 			x[3]*x[10]*x[13] - x[2]*x[11]*x[13] - x[3]*x[9]*x[14] + 
