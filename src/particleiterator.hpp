@@ -62,9 +62,21 @@
 #include "polysolver.hpp"
 #include "particledatabase.hpp"
 #include "cfifo.hpp"
+#include "ibsimu.hpp"
 
 
 //#define DEBUG_PARTICLE_ITERATOR 1
+
+
+#ifdef DEBUG_PARTICLE_ITERATOR 
+#define DEBUG_MESSAGE(x) ibsimu.message(MSG_DEBUG_GENERAL,1) << x
+#define DEBUG_INC_INDENT() ibsimu.inc_indent()
+#define DEBUG_DEC_INDENT() ibsimu.dec_indent()
+#else
+#define DEBUG_MESSAGE(x) do {} while(0)
+#define DEBUG_INC_INDENT() do {} while(0)
+#define DEBUG_DEC_INDENT() do {} while(0)
+#endif
 
 
 #define COLLISION_EPS 1.0e-6
@@ -120,11 +132,10 @@ public:
     static void build_coldata_linear( std::vector<ColData> &coldata, const Mesh &mesh,
 				      const PP &x1, const PP &x2 ) {
 	
-	coldata.clear();
+	DEBUG_MESSAGE( "Building coldata using linear interpolation\n" );
+	DEBUG_INC_INDENT();
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "Building coldata using linear interpolation\n";
-#endif
+	coldata.clear();
 
 	for( size_t a = 0; a < PP::dim(); a++ ) {
 	    
@@ -144,9 +155,7 @@ public:
                 if( K < 0.0 ) K = 0.0;
                 else if( K > 1.0 ) K = 1.0;
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-		std::cout << "  Adding point " << x1 + (x2-x1)*K << "\n";
-#endif
+		DEBUG_MESSAGE( "Adding point " << x1 + (x2-x1)*K << "\n" );
 
                 if( x2[2*a+1] > x1[2*a+1] )
                     coldata.push_back( ColData( x1 + (x2-x1)*K, a+1 ) );
@@ -158,9 +167,8 @@ public:
 	// Sort intersections in increasing time order
 	sort( coldata.begin(), coldata.end() );
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "  Coldata built\n";
-#endif
+	DEBUG_DEC_INDENT();
+	DEBUG_MESSAGE( "Coldata built\n" );
     }
 
     /*! \brief Find mesh intersections of polynomially interpolated
@@ -174,9 +182,8 @@ public:
     static void build_coldata_poly( std::vector<ColData> &coldata, const Mesh &mesh,
 				    const PP &x1, const PP &x2 ) {
 	
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "Building coldata using polynomial interpolation\n";
-#endif
+	DEBUG_MESSAGE( "Building coldata using polynomial interpolation\n" );
+	DEBUG_INC_INDENT();
 
 	coldata.clear();
 
@@ -205,26 +212,20 @@ public:
 
 		    // Intersection point
 		    double val = mesh.origo(a) + mesh.h() * j;
-		    if( val < mesh.origo(a) )
+		    if( val < mesh.origo(a)-mesh.h() )
 			break;
-		    else if( val > mesh.max(a) )
+		    else if( val > mesh.max(a)+mesh.h() )
 			break;
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-		    std::cout << "  Searching intersections at coord(" << a << ") = " << val << "\n";
-#endif
+		    DEBUG_MESSAGE( "Searching intersections at coord(" << a << ") = " << val << "\n" );
+
 		    Kcount = traj[a].solve( K, val );
 		    if( Kcount == 0 )
 			break; // No valid roots
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-		    std::cout << "  Found " << Kcount << " valid roots: ";
-		    for( int p = 0; p < Kcount; p++ )
-			std::cout << K[p] << " ";
-		    std::cout << "\n";
-#endif
-
 		    // Save roots to coldata
+		    DEBUG_MESSAGE( "Found " << Kcount << " valid roots\n" );
+		    DEBUG_INC_INDENT();
 		    for( int b = 0; b < Kcount; b++ ) {
 			PP xcol;
 			double x, v;
@@ -240,15 +241,15 @@ public:
 			if( mesh.geom_mode() == MODE_CYL )
 			    xcol[5] = x1[5] + K[b]*(x2[5]-x1[5]);
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-			std::cout << "  Adding point " << xcol << "\n";
-#endif
+			DEBUG_MESSAGE( "K = " << K[b] << "\n" );
+			DEBUG_MESSAGE( "Adding point " << xcol << "\n" );
 
 			if( xcol[2*a+2] >= 0.0 )
 			    coldata.push_back( ColData( xcol, a+1 ) );
 			else
 			    coldata.push_back( ColData( xcol, -a-1 ) );
 		    }
+		    DEBUG_DEC_INDENT();
 
 		    j += dj;
 		}
@@ -258,9 +259,8 @@ public:
 	// Sort intersections in increasing time order
 	sort( coldata.begin(), coldata.end() );
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "  Coldata built\n";
-#endif
+	DEBUG_DEC_INDENT();
+	DEBUG_MESSAGE( "Coldata built\n" );
     }
 
 };
@@ -389,6 +389,9 @@ template <class PP> class ParticleIterator {
     bool check_collision_surface( Particle<PP> &particle, const PP &x1, const PP &x2, 
 				  PP &status_x, const int i[3] ) {
 
+	DEBUG_MESSAGE( "Checking collisions with solids - surface check\n" );
+	DEBUG_INC_INDENT();
+
 	Vec3D v1 = x1.location();
 	Vec3D v2 = x2.location();
 	
@@ -421,10 +424,6 @@ template <class PP> class ParticleIterator {
 		K[1] > -COLLISION_EPS && K[1] < 1.0+COLLISION_EPS && 
 		K[2] > -COLLISION_EPS && K[2] < 1.0+COLLISION_EPS ) {
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-		std::cout << "Found collision with triangle " << ptr+a << "\n";
-#endif
-
 		// Found intersection, set collision coordinates
 		for( size_t a = 0; a < PP::size(); a++ )
 		    status_x[a] = x1[a] + K[0]*(x2[a]-x1[a]);
@@ -443,9 +442,15 @@ template <class PP> class ParticleIterator {
 		uint32_t solid = get_solid( i[0], i[1], i[2] );
 		_stat.add_bound_collision( solid, particle.IQ() );
 
+		DEBUG_MESSAGE( "Solid collision detected" );
+		DEBUG_DEC_INDENT();
+
 		return( false );
 	    }
 	}
+
+	DEBUG_MESSAGE( "No collisions" );
+	DEBUG_DEC_INDENT();
 
 	return( true );
     }
@@ -461,11 +466,17 @@ template <class PP> class ParticleIterator {
     bool check_collision_solid( Particle<PP> &particle, const PP &x1, const PP &x2, 
 				PP &status_x ) {
 
+	DEBUG_MESSAGE( "Checking collisions with solids - inside check\n" );
+	DEBUG_INC_INDENT();
+
 	// If inside solid, bracket for collision point
 	Vec3D v2 = x2.location();
 	int32_t bound = _pidata._geom->inside( v2 );
-	if( bound < 7 )
-	    return( true ); // No collision happened.
+	if( bound < 7 ) {
+	    DEBUG_MESSAGE( "No collisions" );
+	    DEBUG_DEC_INDENT();
+	    return( true );
+	}
 	Vec3D vc;
 	Vec3D v1 = x1.location();
 	double K = _pidata._geom->bracket_surface( bound, v2, v1, vc );
@@ -489,7 +500,10 @@ template <class PP> class ParticleIterator {
 	// Update collision statistics for boundary
 	_stat.add_bound_collision( bound, particle.IQ() );
 
-	return( false ); // Collision happened.
+	DEBUG_MESSAGE( "Solid collision detected" );
+	DEBUG_DEC_INDENT();
+
+	return( false );
     }
 
     /*! \brief Check for particle collision with solid
@@ -514,12 +528,8 @@ template <class PP> class ParticleIterator {
      */
     void handle_mirror( size_t c, int i[3], size_t a, int border, PP &x2 ) {
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "    handle_mirror( c = " << c 
-		  << ", i = (" << i[0] << ", " << i[1] << ", " << i[2]
-		  << "), a = " << a << ", border = " << border 
-		  << ")\n";
-#endif
+	DEBUG_MESSAGE( "Mirror trajectory\n" );
+	DEBUG_INC_INDENT();
 
 	double xmirror;
 	if( border < 0 ) {
@@ -530,20 +540,16 @@ template <class PP> class ParticleIterator {
 	    i[a] = 2*_pidata._geom->size(a)-i[a]-3;
 	}
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "    xmirror = " << xmirror << "\n";
-	std::cout << "    i = (" << i[0] << ", " << i[1] << ", " << i[2] << ")\n";
-	std::cout << "    xi = " << _xi << "\n";
-#endif
+	DEBUG_MESSAGE( "xmirror = " << xmirror << "\n" );
+	DEBUG_MESSAGE( "i = (" << i[0] << ", " << i[1] << ", " << i[2] << ")\n" );
+	DEBUG_MESSAGE( "xi = " << _xi << "\n" );
 	
 	// Check if found edge at first encounter
 	bool caught_at_boundary = false;
 	if( _coldata[c]._dir == border*((int)a+1) && 
 	    ( i[a] == 0 || i[a] == (int)_pidata._geom->size(a)-2 ) ) {
 	    caught_at_boundary = true;
-#ifdef DEBUG_PARTICLE_ITERATOR
-	    std::cout << "   caught_at_boundary\n";
-#endif
+	    DEBUG_MESSAGE( "caught_at_boundary\n" );
 	}
 
 	// Mirror traj back to _xi
@@ -553,9 +559,7 @@ template <class PP> class ParticleIterator {
 	    for( int b = _traj.size()-1; b > 0; b-- ) {
 		if( _traj[b][0] >= _xi[0] ) {
 		    
-#ifdef DEBUG_PARTICLE_ITERATOR
-		    std::cout << "    mirroring traj[" << b << "] = " << _traj[b] << "\n";
-#endif
+		    DEBUG_MESSAGE( "mirroring traj[" << b << "] = " << _traj[b] << "\n" );
 		    _traj[b][2*a+1] = 2.0*xmirror - _traj[b][2*a+1];
 		    _traj[b][2*a+2] *= -1.0;
 		} else
@@ -581,14 +585,14 @@ template <class PP> class ParticleIterator {
 	// Coordinates changed, reset integrator
 	gsl_odeiv_step_reset( _step );
 	gsl_odeiv_evolve_reset( _evolve );
+
+	DEBUG_DEC_INDENT();
     }
 
 
     void handle_collision( Particle<PP> &particle, uint32_t bound, size_t c, PP &status_x ) {
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "    handle_collision()\n";
-#endif
+	DEBUG_MESSAGE( "Handle collision\n" );
 
 	//save_trajectory_point( _coldata[c]._x );
 	status_x = _coldata[c]._x;
@@ -627,27 +631,31 @@ template <class PP> class ParticleIterator {
      */
     bool handle_trajectory_advance( Particle<PP> &particle, size_t c, int i[3], PP &x2 ) {
 
+	bool surface_collision = false;
+	DEBUG_MESSAGE( "Handle trajectory advance\n" );
+	DEBUG_INC_INDENT();
+
 	// Check for collisions with solids and advance coordinates i.
 	if( PP::dim() == 2 ) {
 	    if( _coldata[c]._dir == -1 ) {
 		if( (is_solid(i[0],i[1]) || is_solid(i[0], i[1]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
-		    return( false );
+		    surface_collision = true;
 		i[0]--;
 	    } else if( _coldata[c]._dir == +1 ) {
 		if( (is_solid(i[0]+1,i[1]) || is_solid(i[0]+1,i[1]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
-		    return( false );
+		    surface_collision = true;
 		i[0]++;
 	    } else if( _coldata[c]._dir == -2 ) {
 		if( (is_solid(i[0],i[1]) || is_solid(i[0]+1,i[1])) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
-		    return( false );
+		    surface_collision = true;
 		i[1]--;
 	    } else {
 		if( (is_solid(i[0],  i[1]+1) || is_solid(i[0]+1,i[1]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
-		    return( false );
+		    surface_collision = true;
 		i[1]++;
 	    }
 	} else if( PP::dim() == 3 ) {
@@ -657,7 +665,7 @@ template <class PP> class ParticleIterator {
 		     is_solid(i[0],  i[1],  i[2]+1) ||
 		     is_solid(i[0],  i[1]+1,i[2]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
-		    return( false );
+		    surface_collision = true;
 		i[0]--;
 	    } else if( _coldata[c]._dir == +1 ) {
 		if( (is_solid(i[0]+1,i[1],  i[2]  ) || 
@@ -665,7 +673,7 @@ template <class PP> class ParticleIterator {
 		     is_solid(i[0]+1,i[1],  i[2]+1) ||
 		     is_solid(i[0]+1,i[1]+1,i[2]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
-		    return( false );
+		    surface_collision = true;
 		i[0]++;
 	    } else if( _coldata[c]._dir == -2 ) {
 		if( (is_solid(i[0],  i[1],i[2]  ) || 
@@ -673,7 +681,7 @@ template <class PP> class ParticleIterator {
 		     is_solid(i[0],  i[1],i[2]+1) ||
 		     is_solid(i[0]+1,i[1],i[2]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
-		    return( false );
+		    surface_collision = true;
 		i[1]--;
 	    } else if( _coldata[c]._dir == +2 ) {
 		if( (is_solid(i[0],  i[1]+1,i[2]  ) || 
@@ -681,7 +689,7 @@ template <class PP> class ParticleIterator {
 		     is_solid(i[0],  i[1]+1,i[2]+1) ||
 		     is_solid(i[0]+1,i[1]+1,i[2]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
-		    return( false );
+		    surface_collision = true;
 		i[1]++;
 	    } else if( _coldata[c]._dir == -3 ) {
 		if( (is_solid(i[0],  i[1],  i[2]) || 
@@ -689,7 +697,7 @@ template <class PP> class ParticleIterator {
 		     is_solid(i[0],  i[1]+1,i[2]) ||
 		     is_solid(i[0]+1,i[1]+1,i[2])) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
-		    return( false );
+		    surface_collision = true;
 		i[2]--;
 	    } else {
 		if( (is_solid(i[0],  i[1],  i[2]+1) || 
@@ -697,34 +705,46 @@ template <class PP> class ParticleIterator {
 		     is_solid(i[0],  i[1]+1,i[2]+1) ||
 		     is_solid(i[0]+1,i[1]+1,i[2]+1)) &&
 		    !check_collision( particle, _xi, _coldata[c]._x, x2, i ) )
-		    return( false );
+		    surface_collision = true;
 		i[2]++;
 	    }
 	} else {
 	    throw( Error( ERROR_LOCATION, "unsupported dimension number" ) );
 	}
 	
+	if( surface_collision ) {
+	    DEBUG_MESSAGE( "Surface collision!\n" );
+	    DEBUG_DEC_INDENT();
+	    return( false );
+	}
+
 	// Check for collisions/mirroring with simulation boundary. Here
 	// coordinates i are already advanced to next mesh.
 	for( size_t a = 0; a < PP::dim(); a++ ) {
 
 	    if( i[a] < 0 ) {
+		DEBUG_MESSAGE( "Boundary collision at boundary " << 2*a+0 << "\n" );
 		if( _mirror[2*a] )
 		    handle_mirror( c, i, a, -1, x2 );
 		else {
 		    handle_collision( particle, 1+2*a, c, x2 );
+		    DEBUG_DEC_INDENT();
 		    return( false );
 		}
 	    } else if( i[a] >= (int32_t)(_pidata._geom->size(a)-1) ) {
+		DEBUG_MESSAGE( "Boundary collision at boundary " << 2*a+1 << "\n" );
 		if( _mirror[2*a+1] )
 		    handle_mirror( c, i, a, +1, x2 );
 		else {
 		    handle_collision( particle, 2+2*a, c, x2 );
+		    DEBUG_DEC_INDENT();
 		    return( false );
 		}
 	    }
 	}
 
+	DEBUG_MESSAGE( "No collision.\n" );
+	DEBUG_DEC_INDENT();
 	return( true );
     }
 
@@ -736,7 +756,6 @@ template <class PP> class ParticleIterator {
     bool limit_trajectory_advance( const PP &x1, PP &x2 ) {
 
 	bool touched = false;
-
 	for( size_t a = 0; a < PP::dim(); a++ ) {
 
 	    double lim1 = _pidata._geom->origo(a) - 
@@ -745,23 +764,15 @@ template <class PP> class ParticleIterator {
 		2*(_pidata._geom->size(a)-1)*_pidata._geom->h();
 
 	    if( x2[2*a+1] < lim1 ) {
-		
 		double K = (lim1 - x1[2*a+1]) / (x2[2*a+1] - x1[2*a+1]);
 		x2 = x1 + K*(x2-x1);
 		touched = true;
-#ifdef DEBUG_PARTICLE_ITERATOR
-		std::cout << "Limiting step to:\n";
-		std::cout << "  x2: " << x2 << "\n";
-#endif
+		DEBUG_MESSAGE( "Limiting step to " << x2 << "\n" );
 	    } else if(x2[2*a+1] > lim2 ) {
-
 		double K = (lim2 - x1[2*a+1]) / (x2[2*a+1] - x1[2*a+1]);
 		x2 = x1 + K*(x2-x1);
 		touched = true;
-#ifdef DEBUG_PARTICLE_ITERATOR
-		std::cout << "Limiting step to:\n";
-		std::cout << "  x2: " << x2 << "\n";
-#endif
+		DEBUG_MESSAGE( "Limiting step to " << x2 << "\n" );
 	    }
 	}
 
@@ -780,9 +791,8 @@ template <class PP> class ParticleIterator {
 	    else
 		ColData<PP>::build_coldata_linear( _coldata, *_pidata._geom, x1, x2 );
 	} catch( std::bad_alloc ) {
-	    throw( ErrorNoMem( ERROR_LOCATION, "Out of memory building ColData" ) );
+	    throw( ErrorNoMem( ERROR_LOCATION, "out of memory building collision data" ) );
 	}
-
     }
 
 
@@ -808,11 +818,10 @@ template <class PP> class ParticleIterator {
     bool handle_trajectory( Particle<PP> &particle, const PP &x1, PP &x2, 
 			    bool force_linear, bool first_step ) {
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "Handle trajectory from x1 to x2:\n";
-	std::cout << "  x1: " << x1 << "\n";
-	std::cout << "  x2: " << x2 << "\n";
-#endif
+	DEBUG_MESSAGE( "Handle trajectory from x1 to x2:\n" <<
+		       "  x1 = " << x1 << "\n" << 
+		       "  x2 = " << x2 << "\n" );
+	DEBUG_INC_INDENT();
 
 	// Limit trajectory advance to double the simulation box
 	// If limitation done, force to linear interpolation
@@ -827,9 +836,8 @@ template <class PP> class ParticleIterator {
 
 	// No intersections, nothing to do
 	if( _coldata.size() == 0 ) {
-#ifdef DEBUG_PARTICLE_ITERATOR
-	    std::cout << "No coldata\n";
-#endif
+	    DEBUG_MESSAGE( "No coldata\n" );
+	    DEBUG_DEC_INDENT();
 	    return( true );
 	}
 
@@ -839,22 +847,20 @@ template <class PP> class ParticleIterator {
 	    i[cdir] = (int)floor( (x1[2*cdir+1]-_pidata._geom->origo(cdir))/_pidata._geom->h() );
 
 	// Process intersection points
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "Process coldata points:\n";
-#endif
+	DEBUG_MESSAGE( "Process coldata points:\n" );
+	DEBUG_INC_INDENT();
 	for( size_t a = 0; a < _coldata.size(); a++ ) {
 
 	    if( _save_points )
 		save_trajectory_point( _coldata[a]._x );
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	    std::cout << "  Coldata " << std::setw(4) << a << ": x = " 
-		      << _coldata[a]._x << ", i = (" 
-		      << std::setw(3) << i[0] << ", "
-		      << std::setw(3) << i[1] << ", "
-		      << std::setw(3) << i[2] << "), dir = "
-	    	      << std::setw(3) << _coldata[a]._dir << "\n";
-#endif
+	    DEBUG_MESSAGE( "Coldata " << a << "\n" <<
+			   "  x = " << _coldata[a]._x << "\n" <<
+			   "  i = (" << std::setw(3) << i[0] << ", "
+			   << std::setw(3) << i[1] << ", "
+			   << std::setw(3) << i[2] << ")\n" << 
+			   "  dir = " << _coldata[a]._dir << "\n" );
+
 	    // Update space charge for mesh volume i
 	    if( _scharge_dep == SCHARGE_DEPOSITION_LINEAR && _pidata._scharge ) {
 		_cdpast.push( _coldata[a]._x );
@@ -875,19 +881,13 @@ template <class PP> class ParticleIterator {
 	    if( _thand_cb )
 		(*_thand_cb)( &particle, &_coldata[a]._x, &x2 );
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	    if( particle.get_status() == PARTICLE_OUT ) {
-		std::cout << "  Particle out\n";
-		std::cout << "  x = " << x2 << "\n";
-	    } else if( particle.get_status() == PARTICLE_COLL ) {
-		std::cout << "  Particle collided\n";
-		std::cout << "  x = " << x2 << "\n";
-	    }
-#endif
 	    // Clear coldata and exit if particle collided.
 	    if( particle.get_status() != PARTICLE_OK ) {
 		save_trajectory_point( x2 );
 		_coldata.clear();
+		DEBUG_DEC_INDENT();
+		DEBUG_MESSAGE( "Interrupting coldata processing\n" );
+		DEBUG_DEC_INDENT();
 		return( false );
 	    }
 
@@ -895,10 +895,10 @@ template <class PP> class ParticleIterator {
 	    _xi = _coldata[a]._x;
 	}
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "Coldata done\n";
-#endif
 	_coldata.clear();
+	DEBUG_DEC_INDENT();
+	DEBUG_MESSAGE( "Coldata done\n" );
+	DEBUG_DEC_INDENT();
 	return( true );
     }
 
@@ -943,13 +943,11 @@ template <class PP> class ParticleIterator {
 	x3[4] *= -1.0;
 	x3[5] *= -1.0;
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "Particle mirror:\n";
-	std::cout << "  x1: " << x1 << "\n";
-	std::cout << "  x2: " << x2 << "\n";
-	std::cout << "  xc: " << xc << "\n";
-	std::cout << "  x3: " << x3 << "\n";
-#endif
+	DEBUG_MESSAGE( "Particle mirror:\n" <<
+		       "  x1: " << x1 << "\n" <<
+		       "  x2: " << x2 << "\n" << 
+		       "  xc: " << xc << "\n" << 
+		       "  x3: " << x3 << "\n" );
 	
 	// Handle step with linear interpolation to avoid going to r<=0
 	if( !handle_trajectory( particle, x2, x3, true, false ) )
@@ -987,20 +985,24 @@ template <class PP> class ParticleIterator {
      */
     bool check_particle_definition( PP &x ) {
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "Particle defined at:\n";
-	std::cout << "  x = " << x << "\n";
-#endif
+	DEBUG_MESSAGE( "Particle defined at x = " << x << "\n" );
+	DEBUG_INC_INDENT();
 
 	// Check for NaN
 	for( size_t a = 0; a < PP::size(); a++ ) {
-	    if( comp_isnan( x[a] ) )
+	    if( comp_isnan( x[a] ) ) {
+		DEBUG_MESSAGE( "Particle coordinate NaN\n" );
+		DEBUG_DEC_INDENT();
 		return( false );
+	    }
 	}
 
 	// Check if inside solids or outside simulation geometry box.
-	if( _pidata._geom->inside( x.location() ) )
+	if( _pidata._geom->inside( x.location() ) ) {
+	    DEBUG_MESSAGE( "Particle inside solid or outside simulation\n" );
+	    DEBUG_DEC_INDENT();
 	    return( false );
+	}
 
 	// Check if particle on simulation geometry border and directed outwards
 	/*
@@ -1009,8 +1011,8 @@ template <class PP> class ParticleIterator {
 		if( _mirror[2*a] ) {
 		    x[2*a+2] *= -1.0;
 #ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "Mirroring to:\n";
-	std::cout << "  x = " << x << "\n";
+	ibsimu.message(MSG_DEBUG_GENERAL,1) << "Mirroring to:\n";
+	ibsimu.message(MSG_DEBUG_GENERAL,1) << "  x = " << x << "\n";
 #endif
 		} else {
 		    return( false );
@@ -1020,8 +1022,8 @@ template <class PP> class ParticleIterator {
 		if( _mirror[2*a+1] ) {
 		    x[2*a+2] *= -1.0;
 #ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "Mirroring to:\n";
-	std::cout << "  x = " << x << "\n";
+	ibsimu.message(MSG_DEBUG_GENERAL,1) << "Mirroring to:\n";
+	ibsimu.message(MSG_DEBUG_GENERAL,1) << "  x = " << x << "\n";
 #endif
 		} else {
 		    return( false );
@@ -1030,10 +1032,12 @@ template <class PP> class ParticleIterator {
 	}
 
 #ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "Definition ok\n";
+	ibsimu.message(MSG_DEBUG_GENERAL,1) << "Definition ok\n";
 #endif
 
 	*/
+	DEBUG_MESSAGE( "Ok\n" );
+	DEBUG_DEC_INDENT();
 	return( true );
     }
     
@@ -1042,20 +1046,20 @@ template <class PP> class ParticleIterator {
 	double spd = 0.0, acc = 0.0;
 
 	for( size_t a = 0; a < (PP::size()-1)/2; a++ ) {
-	    //std::cout << "spd += " << dxdt[2*a]*dxdt[2*a] << "\n";
+	    //ibsimu.message(MSG_DEBUG_GENERAL,1) << "spd += " << dxdt[2*a]*dxdt[2*a] << "\n";
 	    spd += dxdt[2*a]*dxdt[2*a];
-	    //std::cout << "acc += " << dxdt[2*a+1]*dxdt[2*a+1] << "\n";
+	    //ibsimu.message(MSG_DEBUG_GENERAL,1) << "acc += " << dxdt[2*a+1]*dxdt[2*a+1] << "\n";
 	    acc += dxdt[2*a+1]*dxdt[2*a+1];
 	}
 	if( _pidata._geom->geom_mode() == MODE_CYL ) {
-	    //std::cout << "MODE_CYL\n";
-	    //std::cout << "spd += " << x[3]*x[3]*x[5]*x[5] << "\n";
+	    //ibsimu.message(MSG_DEBUG_GENERAL,1) << "MODE_CYL\n";
+	    //ibsimu.message(MSG_DEBUG_GENERAL,1) << "spd += " << x[3]*x[3]*x[5]*x[5] << "\n";
 	    spd += x[3]*x[3]*x[5]*x[5];
-	    //std::cout << "acc += " << x[3]*x[3]*dxdt[4]*dxdt[4] << "\n";
+	    //ibsimu.message(MSG_DEBUG_GENERAL,1) << "acc += " << x[3]*x[3]*dxdt[4]*dxdt[4] << "\n";
 	    acc += x[3]*x[3]*dxdt[4]*dxdt[4];
 	}
-	//std::cout << "spd = " << sqrt(spd) << "\n";
-	//std::cout << "acc = " << sqrt(acc) << "\n";
+	//ibsimu.message(MSG_DEBUG_GENERAL,1) << "spd = " << sqrt(spd) << "\n";
+	//ibsimu.message(MSG_DEBUG_GENERAL,1) << "acc = " << sqrt(acc) << "\n";
 	spd = _pidata._geom->h() / sqrt(spd);
 	acc = sqrt( 2.0*_pidata._geom->h() / sqrt(acc) );
 
@@ -1202,9 +1206,14 @@ public:
      */
     void operator()( Particle<PP> *particle, uint32_t pi ) {
 
+	DEBUG_MESSAGE( "Calculating particle " << pi << "\n" );
+	DEBUG_INC_INDENT();
+
 	// Check particle status
-	if( particle->get_status() != PARTICLE_OK )
+	if( particle->get_status() != PARTICLE_OK ) {
+	    DEBUG_DEC_INDENT();
 	    return;
+	}
 
 	// Copy starting point to x and 
 	PP x = particle->x();
@@ -1213,6 +1222,7 @@ public:
 	if( !check_particle_definition( x ) ) {
 	    particle->set_status( PARTICLE_BADDEF );
 	    _stat.inc_end_baddef();
+	    DEBUG_DEC_INDENT();
 	    return;
 	}
 	particle->x() = x;
@@ -1220,13 +1230,6 @@ public:
 	// Reset trajectory and save first trajectory point.
 	_traj.clear();
 	save_trajectory_point( x );
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << x[0] << " " 
-		  << x[1] << " " 
-		  << x[2] << " " 
-		  << x[3] << " " 
-		  << x[4] << "\n";
-#endif
 	_pidata._qm = particle->qm();	
 	_xi = x;
 	if( _scharge_dep == SCHARGE_DEPOSITION_LINEAR ) {
@@ -1239,19 +1242,17 @@ public:
 	gsl_odeiv_evolve_reset( _evolve );
 	
 	// Make initial guess for step size
-	//std::cout << "Guess dt ------------------------------------------------\n";
 	double dxdt[PP::size()-1];
 	PP::get_derivatives( 0.0, &x[1], dxdt, (void *)&_pidata );
 	double dt = calculate_dt( x, dxdt );
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "dxdt = ";
+	DEBUG_MESSAGE( "Starting values for iteration:\n" << 
+		       "  dxdt = " );
 	for( size_t a = 0; a < PP::size()-1; a++ )
-	    std::cout  << dxdt[a] << " ";
-	std::cout << "\n";
-	std::cout << "dt = " << dt << "\n";
-	std::cout << "*** Starting iteration\n";
-#endif
+	    DEBUG_MESSAGE( dxdt[a] << " " );
+	DEBUG_MESSAGE( "\n" <<
+		       "  dt = " << dt << "\n" );
+	DEBUG_MESSAGE( "Starting iteration\n" );
 	
 	// Iterate ODEs until maximum steps are done, time is used 
 	// or particle collides.
@@ -1262,21 +1263,17 @@ public:
 	    // Take a step.
 	    x2 = x;
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	    std::cout << "\n*** Step ***\n";
-	    std::cout << "  x  = " << x2 << "\n";
-	    std::cout << "  dt = " << dt << " (proposed)\n";
-#endif
-	    
+	    DEBUG_MESSAGE( "\nStep *** *** *** ****\n" <<
+			   "  x  = " << x2 << "\n" <<
+			   "  dt = " << dt << " (proposed)\n" );
+
 	    while( true ) {
 		int retval = gsl_odeiv_evolve_apply( _evolve, _control, _step, &_system, 
 						     &x2[0], _maxt, &dt, &x2[1] );
 		if( retval == IBSIMU_DERIV_ERROR ) {
-#ifdef DEBUG_PARTICLE_ITERATOR
-		    std::cout << "Step rejected\n";
-		    std::cout << "  x2 = " << x2 << "\n";
-		    std::cout << "  dt = " << dt << "\n";
-#endif
+		    DEBUG_MESSAGE( "Step rejected\n" <<
+				   "  x2 = " << x2 << "\n" <<
+				   "  dt = " << dt << "\n" );
 		    x2[0] = x[0]; // Reset time (this shouldn't be necessary - there 
 		                  // is a bug in GSL-1.12, report has been sent)
 		    dt *= 0.5;
@@ -1300,11 +1297,9 @@ public:
 	    // Increase step count.
 	    nstp++;
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	    std::cout << "Step accepted from x1 to x2:\n";
-	    std::cout << "  x1 = " << x << "\n";
-	    std::cout << "  x2 = " << x2 << "\n";
-#endif
+	    DEBUG_MESSAGE( "Step accepted from x1 to x2:\n" <<
+			   "  x1 = " << x << "\n" <<
+			   "  x2 = " << x2 << "\n" );
 
 	    // Handle collisions and space charge of step.
 	    if( !handle_trajectory( *particle, x, x2, false, nstp == 0 ) ) {
@@ -1326,9 +1321,7 @@ public:
 	    save_trajectory_point( x2 );
 	}
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "\n*** Done stepping ***\n";
-#endif
+	DEBUG_MESSAGE( "Done iterating\n" );
 
 	// Check if step count or time limited 
 	if( nstp == _maxsteps ) {
@@ -1352,6 +1345,8 @@ public:
 	// Call trajectory end callback
 	if( _tend_cb )
 	    (*_tend_cb)( particle, _pdb );
+
+	DEBUG_DEC_INDENT();
     }
 
 };

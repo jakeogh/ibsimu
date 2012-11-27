@@ -53,9 +53,6 @@
 #include "trajectorydiagnostics.hpp"
 
 
-//#define DEBUG_PARTICLE_ITERATOR 1
-
-
 class ParticleDataBaseImp {
 
 protected:
@@ -665,10 +662,6 @@ public:
 	    iterators[a]->set_surface_collision( _surface_collision );
 	}
 
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "Running iterators\n";
-#endif
-
 	// Run scheduler
 	_scheduler.run( iterators );
 
@@ -684,10 +677,6 @@ public:
 
 	// Finish scheduler
 	_scheduler.finish();
-
-#ifdef DEBUG_PARTICLE_ITERATOR
-	std::cout << "Finished iterators\n";
-#endif
 
 	// Print final statistics
 	if( ibsimu.output_is_cout() ) {
