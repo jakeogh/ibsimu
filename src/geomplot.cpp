@@ -48,7 +48,8 @@ GeomPlot::GeomPlot( Frame &frame, const Geometry &geom )
     : _frame(&frame), _geom(geom), _epot(NULL), _scharge(NULL), _tdens(NULL), _bfield(NULL),
       _efield(NULL), _pdb(NULL), _fieldgraph(NULL), _solidgraph(NULL), _eqpotgraph(NULL), 
       _particlegraph(NULL), _meshgraph(NULL), _view(VIEW_XY), _level(0),
-      _eqlines_auto(20), _particle_div(11), _scharge_field(false), _qm_discretation(true), 
+      _eqlines_auto(20), _particle_div(11), _particle_offset(0), 
+      _scharge_field(false), _qm_discretation(true), 
       _mesh(false), _cache(true)
 {
     // Set frame basic properties

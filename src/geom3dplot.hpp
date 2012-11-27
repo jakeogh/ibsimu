@@ -78,7 +78,8 @@ class Geom3DPlot {
     std::vector<Vec3D>      _csurface[6];  // Sequences of 3: x0,x1,x2
     std::vector<Vec3D>      _gsurface;     // Sequences of 4: norm,x0,x1,x2
 
-    uint32_t                _pdiv;
+    uint32_t                _particle_div;
+    uint32_t                _particle_offset;
     bool                    _bbox;
     uint32_t                _clevel[6];
 
@@ -156,13 +157,22 @@ public:
      */
     void reset_camera_and_rotation( void );
 
-    /*! \brief Set particle division for particle plotting.
+    /*! \brief Set particle divisor and offset.
+     *
+     *  Set \a particle_div to zero for no plotting, one for plotting
+     *  every particle, two for plotting every second particle, three
+     *  for plotting every third particle, etc. Defaults to
+     *  11. Plotter skips the first \a particle_offset particles.
      */
-    void set_particle_div( uint32_t pdiv );
+    void set_particle_div( uint32_t particle_div, uint32_t particle_offset = 0 );
     
-    /*! \brief Get particle division for particle plotting.
+    /*! \brief Get particle division.
      */
     uint32_t get_particle_div( void ) const;
+
+    /*! \brief Get particle offset.
+     */
+    uint32_t get_particle_offset( void ) const;
 
     /*! \brief Set if bounding box is plotted.
      */

@@ -542,8 +542,9 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 
     GtkWidget *vbox2 = gtk_vbox_new( FALSE, 0 );
 
-    GtkWidget *label = gtk_label_new( "Particlediv" );
-    GtkWidget *spinbutton_pdiv = gtk_spin_button_new_with_range( 0, 10000, 1.0 );
+    GtkWidget *label = gtk_label_new( "Trajectory division" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    GtkWidget *spinbutton_pdiv = gtk_spin_button_new_with_range( 0, 1000000, 1.0 );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     gtk_spin_button_set_value( GTK_SPIN_BUTTON(spinbutton_pdiv), _geom3dplot.get_particle_div() );
     GtkWidget *hbox = gtk_hbox_new( TRUE, 30 );
@@ -551,7 +552,18 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
     gtk_box_pack_start( GTK_BOX(hbox), spinbutton_pdiv, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
 
+    label = gtk_label_new( "Trajectory offset" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    GtkWidget *spinbutton_poffset = gtk_spin_button_new_with_range( 0, 1000000, 1.0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON(spinbutton_poffset), _geom3dplot.get_particle_offset() );
+    hbox = gtk_hbox_new( TRUE, 30 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), spinbutton_poffset, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+
     label = gtk_label_new( "BBox" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     GtkWidget *button_bbox = gtk_check_button_new_with_label( "on/off" );
     gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(button_bbox), _geom3dplot.get_bbox() );
     hbox = gtk_hbox_new( TRUE, 30 );
@@ -610,7 +622,9 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
     if( gtk_dialog_run( GTK_DIALOG(dialog) ) == GTK_RESPONSE_ACCEPT ) {
 
 	// Misc
-	_geom3dplot.set_particle_div( gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(spinbutton_pdiv) ) );
+	uint32_t particle_div = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(spinbutton_pdiv) );
+	uint32_t particle_offset = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(spinbutton_poffset) );
+	_geom3dplot.set_particle_div( particle_div, particle_offset );
 	_geom3dplot.set_bbox( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(button_bbox) ) );
 
 	// Cut levels

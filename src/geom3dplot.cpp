@@ -48,7 +48,7 @@
 
 Geom3DPlot::Geom3DPlot( const Geometry &geom,
 			const ParticleDataBase *pdb )
-    : _geom(geom), _pdb(pdb), _pdiv(100), _bbox(true)
+    : _geom(geom), _pdb(pdb), _particle_div(100), _particle_offset(0), _bbox(true)
 
 {
     _clevel[0] = 0;
@@ -136,15 +136,22 @@ void Geom3DPlot::get_view_look_at( Vec3D &camera,
 }
 
 
-void Geom3DPlot::set_particle_div( uint32_t pdiv )
+void Geom3DPlot::set_particle_div( uint32_t particle_div, uint32_t particle_offset )
 {
-    _pdiv = pdiv;
+    _particle_div = particle_div;
+    _particle_offset = particle_offset;
 }
     
 
 uint32_t Geom3DPlot::get_particle_div( void ) const
 {
-    return( _pdiv );
+    return( _particle_div );
+}
+
+
+uint32_t Geom3DPlot::get_particle_offset( void ) const
+{
+    return( _particle_offset );
 }
 
 
@@ -599,14 +606,14 @@ void Geom3DPlot::build_cut_planes( void )
 
 void Geom3DPlot::draw_beam( Renderer *r )
 {
-    if( !_pdb || _pdiv == 0 )
+    if( !_pdb || _particle_div == 0 )
 	return;
 
     r->set_color( Vec3D(1,0,0) );
     r->disable_lighting();
 
     // Loop through all particles
-    for( size_t a = 0; a < _pdb->size(); a += _pdiv ) {
+    for( size_t a = _particle_offset; a < _pdb->size(); a += _particle_div ) {
 
 	// pdiv plotting if one or less trajectory points
 	if( _pdb->traj_size( a ) <= 1 )
