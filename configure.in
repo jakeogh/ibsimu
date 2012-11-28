@@ -85,8 +85,11 @@ AS_IF([test "x$with_opengl" != xno],
          AC_DEFINE([OPENGL], [1], [Define to 1 if GtkGLExt/OpenGL dependent code is to be compiled.])
          LIBS="$LIBS $GTKGLEXT_LIBS"
          CPPFLAGS="$CPPFLAGS $GTKGLEXT_CFLAGS"
+         AC_SUBST(OPENGL_COND,[gtkglext-1.0])
        elif "x$with_opengl" != xcheck; then
          AC_MSG_ERROR([--with-opengl was given, but test for library gtkglext-1.0 failed])
+       else
+         AC_SUBST(OPENGL_COND,"")
        fi]
 )
 AM_CONDITIONAL([OPENGL], [test x$USEOPENGL = xyes])

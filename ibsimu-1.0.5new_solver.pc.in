@@ -6,7 +6,7 @@ includedir=@includedir@/ibsimu-1.0.5new_solver
 Name: libibsimu
 Description: Ion Beam Simulation Package
 Version: @VERSION@
-Requires: cairo gtk+-2.0 gsl gtkglext-1.0 @CSG_COND@ @UMFPACK_COND@
+Requires: cairo gtk+-2.0 gsl @OPENGL_COND@ @CSG_COND@ @UMFPACK_COND@
 Libs: -L${libdir} -libsimu-1.0.5new_solver @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ -lz -lGLU @LIBPNG_LIBS@ @PTHREAD_LIBS@ @PTHREAD_CFLAGS@ @rdynamic_flag@
 Libs.private: -lm
 Cflags: -I${includedir} @PTHREAD_CFLAGS@
