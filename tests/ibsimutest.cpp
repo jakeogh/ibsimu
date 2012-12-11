@@ -37,7 +37,7 @@ int main( int argc, char **argv )
 	else
 	    filename = bin + "_vout.txt";
 
-	ibsimu.set_message_output( filename );
+	//ibsimu.set_message_output( filename );
 	//ibsimu.set_message_threshold( MSG_DEBUG_GENERAL, 1 );
 	ibsimu.set_message_threshold( MSG_VERBOSE, 1 );
 	ibsimu.set_thread_count( 4 );

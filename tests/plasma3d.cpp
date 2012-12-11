@@ -67,9 +67,9 @@ void test( int argc, char **argv )
     geom.build_mesh();
     geom.build_surface();
 
-    EpotMGSolver solver( geom );
-    solver.set_levels( 4 );
-    //EpotBiCGSTABSolver solver( geom );
+    //EpotMGSolver solver( geom );
+    //solver.set_levels( 4 );
+    EpotBiCGSTABSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_initial_plasma( 5.0, &initp );
 
@@ -120,6 +120,11 @@ void test( int argc, char **argv )
 					      Vec3D(0,0,0),
 					      Vec3D(0,1,0),
 					      Vec3D(0,0,1), 0.001 );
+	/*
+	Particle3D pi = pdb.particle(428);
+	pdb.clear();
+	pdb.add_particle( pi );
+	*/
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
 	ParticleDiagPlotter pplotter( geom, pdb, AXIS_X, 0.0119, PARTICLE_DIAG_PLOT_SCATTER,
@@ -129,15 +134,23 @@ void test( int argc, char **argv )
 
     }
 
+    // Check for rogue particle
     std::vector<trajectory_diagnostic_e> diagnostics;
     diagnostics.push_back( DIAG_NO );
     TrajectoryDiagnosticData tdata;
     pdb.trajectories_at_plane( tdata, AXIS_Y, 0.004, diagnostics );
     for( uint32_t a = 0; a < tdata.traj_size(); a++ ) {
-	std::cout << tdata(a,0) << "\n";
+	std::cout << "Rogue particle: " << tdata(a,0) << "\n";
     }
 
-    Particle3D p = pdb.particle( 4695 );
+    // Check for particle going through the end plane
+    tdata.clear();
+    pdb.trajectories_at_plane( tdata, AXIS_X, 0.013, diagnostics );
+    for( uint32_t a = 0; a < tdata.traj_size(); a++ ) {
+	std::cout << "Particle through end plane: " << tdata(a,0) << "\n";
+    }
+
+    //Particle3D p = pdb.particle( 4695 );
     
 
     //pdb.debug_print( std::cout );

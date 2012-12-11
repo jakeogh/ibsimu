@@ -190,27 +190,6 @@ void EpotMGSolver::set_npost( uint32_t npost )
  */
 
 
-uint32_t EpotMGSolver::number_of_dimensions( void ) const
-{
-    switch( _geom.geom_mode() ) {
-    case MODE_1D:
-	return( 1 );
-	break;
-    case MODE_2D:
-	return( 2 );
-	break;
-    case MODE_CYL:
-	return( 2 );
-	break;
-    case MODE_3D:
-	return( 3 );
-	break;
-    }
-
-    throw( ErrorAssert( ERROR_LOCATION ) );
-}
-
-
 /* Create hierarchy of geometries and solvers.
  */
 void EpotMGSolver::prepare_mg_geom( void )
@@ -235,7 +214,7 @@ void EpotMGSolver::prepare_mg_geom( void )
 	} else {
 
 	    // Build mesh density	    
-	    for( uint32_t b = 0; b < number_of_dimensions(); b++ ) {
+	    for( uint32_t b = 0; b < _geom.dim(); b++ ) {
 		if( size[b] % 2 == 0 )
 		    throw( Error( ERROR_LOCATION, "Incorrect parity of mesh size " + 
 				  to_string(size[b]) + " in direction " + to_string(b) + 
@@ -267,6 +246,86 @@ void EpotMGSolver::prepare_mg_geom( void )
     ibsimu.flush();
 
     _geom_prepared = true;
+}
+
+
+double EpotMGSolver::near_solid_neumann_rhs_contribution( uint32_t i, uint32_t j, uint32_t k, 
+							  uint8_t bindex, const Vec3D &x ) const
+{
+    const uint8_t *nearsolid_ptr = _geom.nearsolid_ptr( _geom.mesh(i,j,k) & SMESH_NEAR_SOLID_INDEX_MASK );
+    uint8_t sflag = nearsolid_ptr[0];
+    uint8_t *ptr = (uint8_t *)&nearsolid_ptr[1];
+
+    double rhs = 0.0;
+
+    // Xmin direction
+    double alpha = 1.0;
+    if( sflag & 0x01 ) {
+	alpha = *ptr/255.0;
+	ptr++;
+    }
+
+    // Xmax direction
+    double beta = 1.0;
+    if( sflag & 0x02 ) {
+	beta = *ptr/255.0;
+	ptr++;
+    }
+
+    // Factors for X axis
+    if( bindex & EPOT_SOLVER_BXMIN )
+	rhs += 2.0*_geom.h()*_geom.get_boundary(1).value(x) / beta;
+    else if( bindex & EPOT_SOLVER_BXMAX )
+	rhs += 2.0*_geom.h()*_geom.get_boundary(2).value(x) / alpha;
+
+    // Ymin direction
+    alpha = 1.0;
+    if( sflag & 0x04 ) {
+	alpha = *ptr/255.0;
+	ptr++;
+    }
+
+    // Ymax direction
+    beta = 1.0;
+    if( sflag & 0x08 ) {
+	beta = *ptr/255.0;
+	ptr++;
+    }
+
+    // Factors for Y axis
+    if( _geom.geom_mode() == MODE_CYL ) {
+	// Cylindrical geometry
+	if( bindex & EPOT_SOLVER_BYMAX )
+	    rhs += (1.0)/(2.0*alpha)*(2.0/alpha+1.0/j)*
+		2.0*_geom.h()*_geom.get_boundary(4).value(x);
+    } else {
+	if( bindex & EPOT_SOLVER_BYMIN )
+	    rhs += 2.0*_geom.h()*_geom.get_boundary(3).value(x) / beta;
+	else if( bindex & EPOT_SOLVER_BYMAX )
+	    rhs += 2.0*_geom.h()*_geom.get_boundary(4).value(x) / alpha;
+    }
+
+    // Zmin direction
+    alpha = 1.0;
+    if( sflag & 0x10 ) {
+	alpha = *ptr/255.0;
+	ptr++;
+    }
+
+    // Zmax direction
+    beta = 1.0;
+    if( sflag & 0x20 ) {
+	beta = *ptr/255.0;
+	ptr++;
+    }
+
+    // Factors for Z axis
+    if( bindex & EPOT_SOLVER_BZMIN )
+	rhs += 2.0*_geom.h()*_geom.get_boundary(5).value(x) / beta;
+    else if( bindex & EPOT_SOLVER_BZMAX )
+	rhs += 2.0*_geom.h()*_geom.get_boundary(6).value(x) / alpha;
+
+    return( rhs );
 }
 
 
@@ -315,28 +374,40 @@ void EpotMGSolver::preprocess( MeshScalarField &epot, const MeshScalarField &sch
 
 		uint32_t mesh = _geomv[0]->mesh(i,j,k);
 		uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
-		if( node_id == SMESH_NODE_ID_NEAR_SOLID ||
-		    node_id == SMESH_NODE_ID_PURE_VACUUM ) {
-		
-		    // Ordinary vacuum/near solid
-		    (*_rhsv[0])(i,j,k) = -epot.h()*epot.h()*scharge(i,j,k)/EPSILON0;
+		uint8_t bindex = boundary_index_general(i,j,k);
+
+		if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
+
+		    (*_rhsv[0])(i,j,k) = -scharge(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+
+		    if( bindex )
+			(*_rhsv[0])(i,j,k) += near_solid_neumann_rhs_contribution( i, j, k, bindex, x );
 
 		} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
-		    
-		    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
-		    if( _geom.geom_mode() == MODE_CYL && boundary == 3 ) {
-		
-			// Symmetry axis (vacuum)
-			(*_rhsv[0])(i,j,k) = -epot.h()*epot.h()*scharge(i,j,k)/EPSILON0;
-			
+
+		    (*_rhsv[0])(i,j,k) = -scharge(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+
+		    if( bindex & EPOT_SOLVER_BXMIN )
+			(*_rhsv[0])(i,j,k) += 2.0*_geom.h()*_geom.get_boundary(1).value(x);
+		    else if( bindex & EPOT_SOLVER_BXMAX )
+			(*_rhsv[0])(i,j,k) += 2.0*_geom.h()*_geom.get_boundary(2).value(x);
+		    if( _geom.geom_mode() == MODE_CYL ) {
+			if( bindex & EPOT_SOLVER_BYMAX )
+			    (*_rhsv[0])(i,j,k) += (1.0+0.5/j)*2.0*_geom.h()*_geom.get_boundary(4).value(x);
 		    } else {
-			
-			// Ordinary Neumann node
-			if( _neumann_order == 2 )
-			    (*_rhsv[0])(i,j,k) = 2.0*epot.h()*_geom.get_boundary( boundary ).value( x );
-			else
-			    (*_rhsv[0])(i,j,k) = epot.h()*_geom.get_boundary( boundary ).value( x );
+			if( bindex & EPOT_SOLVER_BYMIN )
+			    (*_rhsv[0])(i,j,k) += 2.0*_geom.h()*_geom.get_boundary(3).value(x);
+			else if( bindex & EPOT_SOLVER_BYMAX )
+			    (*_rhsv[0])(i,j,k) += 2.0*_geom.h()*_geom.get_boundary(4).value(x);
 		    }
+		    if( bindex & EPOT_SOLVER_BZMIN )
+			(*_rhsv[0])(i,j,k) += 2.0*_geom.h()*_geom.get_boundary(5).value(x);
+		    else if( bindex & EPOT_SOLVER_BZMAX )
+			(*_rhsv[0])(i,j,k) += 2.0*_geom.h()*_geom.get_boundary(6).value(x);
+
+		} else if( node_id == SMESH_NODE_ID_PURE_VACUUM ) {
+
+		    (*_rhsv[0])(i,j,k) = -scharge(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 		}
 	    }
 	}

@@ -11,6 +11,7 @@
 #include <iomanip>
 #include "epot_bicgstabsolver.hpp"
 #include "epot_mgsolver.hpp"
+#include "epot_gssolver.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
@@ -49,8 +50,8 @@ double phi( double r )
 
 void test( int argc, char **argv )
 {
-    //Geometry geom( MODE_CYL, Int3D(5,41,1), Vec3D(0,0,0), 0.002 );
-    Geometry geom( MODE_CYL, Int3D(5,81,1), Vec3D(0,0,0), 0.001 );
+    //Geometry geom( MODE_CYL, Int3D(5,81,1), Vec3D(0,0,0), 0.001 );
+    Geometry geom( MODE_CYL, Int3D(33,81,1), Vec3D(0,0,0), 0.001 );
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
@@ -65,16 +66,15 @@ void test( int argc, char **argv )
 
     //EpotBiCGSTABSolver solver( geom );
     EpotMGSolver solver( geom );
-    solver.set_levels( 2 );
-    //solver.set_neumann_order( 1 );
+    solver.set_levels( 3 );
     //solver.set_mgcycmax( 1 );
     EpotField epot( geom );
     MeshScalarField scharge( geom );
     solver.solve( epot, scharge );
 
-    bool err = false;
     double maxerr = 0.0;
-    int loci, locj;
+    uint32_t loci = 0;
+    uint32_t locj = 0;
     ofstream ostr( "solvercyl_coax.dat" );
     ostr << "# "
          << setw(12) << "x (m)" << " " 
@@ -100,24 +100,21 @@ void test( int argc, char **argv )
     }
     ostr.close();
 
-    std::cout << "Maximum error = " << maxerr << "\n";
-    std::cout << " at (" 
-              << loci << ", " 
-              << locj << ")\n";
+    if( true ) {
+	GTKPlotter plotter( &argc, &argv );
+	plotter.set_geometry( &geom );
+	plotter.set_scharge( &scharge );
+	plotter.set_epot( &epot );
+	plotter.new_geometry_plot_window();
+	plotter.run();
+    }
 
-    GTKPlotter plotter( &argc, &argv );
-    plotter.set_geometry( &geom );
-    plotter.set_scharge( &scharge );
-    plotter.set_epot( &epot );
-    plotter.new_geometry_plot_window();
-    plotter.run();
-
-    if( err ) {
+    if( maxerr > 0.002 ) {
+	std::cout << "Maximum error = " << maxerr << "\n";
+	std::cout << " at (" 
+		  << loci << ", " 
+		  << locj << ")\n";
 	std::cout << "Error: solved potential differs from theory\n";
 	exit( 1 );
     }
 }
-
-
-
-

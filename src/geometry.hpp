@@ -124,15 +124,6 @@ public:
 };
 
 
-/*
-#define SMESH_NODE_ID_MASK             0xC0000000 // 1100...
-#define SMESH_NODE_ID_NEAR_SOLID       0x00000000 // 0000...
-#define SMESH_NODE_ID_PURE_VACUUM      0x40000000 // 0100...
-#define SMESH_NODE_ID_NEUMANN          0x80000000 // 1000...
-#define SMESH_NODE_ID_DIRICHLET        0xC0000000 // 1100...
-*/
-
-
 #define SMESH_NODE_ID_MASK             0xE0000000 // 111...
 
 #define SMESH_NODE_ID_PURE_VACUUM      0x00000000 // 000...
@@ -257,8 +248,6 @@ class Geometry : public Mesh
 
     static void *build_mesh_parallel_entry( void *data );
     void build_mesh_parallel( void );
-
-    void build_mesh_serial( void );
 
     static const int32_t mc_faces[15*256];
 

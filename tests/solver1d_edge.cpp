@@ -21,9 +21,9 @@
 
 #include <fstream>
 #include <iomanip>
-#include "bicgstab_solver.hpp"
-#include "epot_gssolver.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "geometry.hpp"
+#include "meshscalarfield.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
 #include "ibsimu.hpp"
@@ -72,11 +72,10 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
     geom.build_mesh();
 
-    EpotGSSolver solver( geom );
+    EpotBiCGSTABSolver solver( geom );
     MeshScalarField epot( geom );
     MeshScalarField scharge( geom );
 
-    solver.set_w( 1.0 );
     solver.solve( epot, scharge );
     
     bool err = false;

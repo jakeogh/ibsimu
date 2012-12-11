@@ -17,8 +17,8 @@
 
 #include <fstream>
 #include <iomanip>
-#include "bicgstab_solver.hpp"
-#include "epot_problem.hpp"
+#include "epot_bicgstabsolver.hpp"
+#include "meshscalarfield.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
@@ -39,31 +39,27 @@ void test( int argc, char **argv )
 {
     bool err = false;
 
-    Geometry g( MODE_1D, Int3D(11,1,1), Vec3D(0,0,0), 0.01 );
-    g.set_boundary( 1, Bound(BOUND_DIRICHLET, 0.0) );
-    g.set_boundary( 2, Bound(BOUND_DIRICHLET, 0.0) );
-    g.build_mesh();
+    Geometry geom( MODE_1D, Int3D(11,1,1), Vec3D(0,0,0), 0.01 );
+    geom.set_boundary( 1, Bound(BOUND_DIRICHLET, 0.0) );
+    geom.set_boundary( 2, Bound(BOUND_DIRICHLET, 0.0) );
+    geom.build_mesh();
 
-    EpotProblem p;
-    p.construct( g );
-
-    ScalarField epot( g );
-    ScalarField scharge( g );
-    for( int a = 0; a < g.size(0); a++ )
+    MeshScalarField epot( geom );
+    MeshScalarField scharge( geom );
+    for( uint32_t a = 0; a < geom.size(0); a++ )
 	scharge(a) = 1.0e-4;
 
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
+    EpotBiCGSTABSolver solver( geom );
+    solver.solve( epot, scharge );
 
     ofstream ostr( "solver1d_scharge.dat" );
     ostr << "# "
 	 << setw(12) << "x (m)" << " " 
 	 << setw(14) << "potential (V)" << "\n";
-    for( int a = 0; a < g.size(0); a++ ) {
-	if( fabs( epot(a) - phi(a*g.h()) ) > 1.0e-4  )
+    for( uint32_t a = 0; a < geom.size(0); a++ ) {
+	if( fabs( epot(a) - phi(a*geom.h()) ) > 1.0e-4  )
 	    err = true;
-	ostr << setw(14) << a*g.h() << " " 
+	ostr << setw(14) << a*geom.h() << " " 
 	     << setw(14) << epot(a) << "\n";
     }
     ostr << "\n\n";
