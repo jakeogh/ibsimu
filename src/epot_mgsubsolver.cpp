@@ -2,7 +2,7 @@
  *  \brief Multigrid solver for electric potential problem
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -947,7 +947,7 @@ double EpotMGSubSolver::gs_process_near_solid_cyl( const uint8_t *nearsolid_ptr,
 	epf += 4.0*(*_epot)(i,j+1);
     } else if( bindex & EPOT_SOLVER_BYMAX ) {
 	cof += 2.0/(alpha*alpha);
-	epf += 2.0/(alpha*alpha)*(*_epot)(i-1,j);	
+	epf += 2.0/(alpha*alpha)*(*_epot)(i,j-1);
     } else {
 	cof += 2.0/(alpha*beta);
 	epf += 1.0/(alpha+beta)*( (2.0/alpha-1.0/j)*(*_epot)(i,j-1) + (2.0/beta+1.0/j)*(*_epot)(i,j+1) );
@@ -1170,9 +1170,16 @@ double EpotMGSubSolver::defect_near_solid_cyl( const uint8_t *nearsolid_ptr,
 	ptr++;
     }
 
-    // Factors for X axis
-    cof += 2.0/(alpha*beta);
-    epf += 2.0/(alpha+beta)*( (*_epot)(i-1,j)/alpha + (*_epot)(i+1,j)/beta );
+    if( bindex & EPOT_SOLVER_BXMIN ) {
+	cof += 2.0/(beta*beta);
+	epf += 2.0/(beta*beta)*(*_epot)(i+1,j);
+    } else if( bindex & EPOT_SOLVER_BXMAX ) {
+	cof += 2.0/(alpha*alpha);
+	epf += 2.0/(alpha*alpha)*(*_epot)(i-1,j);
+    } else {
+	cof += 2.0/(alpha*beta);
+	epf += 2.0/(alpha+beta)*( (*_epot)(i-1,j)/alpha + (*_epot)(i+1,j)/beta );
+    }
 
     // Ymin direction
     alpha = 1.0;
@@ -1195,7 +1202,7 @@ double EpotMGSubSolver::defect_near_solid_cyl( const uint8_t *nearsolid_ptr,
 	epf += 4.0*(*_epot)(i,j+1);
     } else if( bindex & EPOT_SOLVER_BYMAX ) {
 	cof += 2.0/(alpha*alpha);
-	epf += 2.0/(alpha*alpha)*(*_epot)(i-1,j);	
+	epf += 2.0/(alpha*alpha)*(*_epot)(i,j-1);	
     } else {
 	cof += 2.0/(alpha*beta);
 	epf += 1.0/(alpha+beta)*( (2.0/alpha-1.0/j)*(*_epot)(i,j-1) + (2.0/beta+1.0/j)*(*_epot)(i,j+1) );

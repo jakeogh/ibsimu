@@ -64,9 +64,11 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
     geom.build_mesh();
 
-    //EpotBiCGSTABSolver solver( geom );
+    //EpotGSSolver solver( geom );
+    //solver.set_imax( 100000 );
+    //EpotBiCGSTABSolver solver( 
     EpotMGSolver solver( geom );
-    solver.set_levels( 3 );
+    solver.set_levels( 4 );
     //solver.set_mgcycmax( 1 );
     EpotField epot( geom );
     MeshScalarField scharge( geom );
@@ -100,7 +102,7 @@ void test( int argc, char **argv )
     }
     ostr.close();
 
-    if( true ) {
+    if( false ) {
 	GTKPlotter plotter( &argc, &argv );
 	plotter.set_geometry( &geom );
 	plotter.set_scharge( &scharge );
