@@ -101,7 +101,7 @@ class EpotMGSolver : public EpotSolver {
     void prolong_1d( MeshScalarField *out, const MeshScalarField *in );
     void prolong( MeshScalarField *out, const MeshScalarField *in );
 
-    void mg_recurse( uint32_t level );
+    void mg_recurse( uint32_t level, std::stringstream &ss );
 
     /*! \brief Reset solver/problem settings.
      */

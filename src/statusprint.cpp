@@ -54,8 +54,8 @@ StatusPrint::StatusPrint()
 
 StatusPrint::~StatusPrint()
 {
-    ibsimu.message( 1 ) << "\r";
-    ibsimu.flush();
+    //ibsimu.message( 1 ) << "\r";
+    //ibsimu.flush( false );
 
     //for( size_t i = 0; i < _width; i++ )
     //_os << "\b";
@@ -73,7 +73,7 @@ void StatusPrint::print( const std::string &str, bool force )
 	//_os << "\b";
 	//_os << str << std::flush;
 	ibsimu.message( 1 ) << "\r" << str;
-	ibsimu.flush();
+	ibsimu.flush( false );
     }
 }
 
