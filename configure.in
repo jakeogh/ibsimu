@@ -49,7 +49,7 @@ dnl pkgconfig
 dnl ---------------------------------
 
 PKG_PROG_PKG_CONFIG()
-if test "x$PKG_CONFIG" = x; then
+if test "x$PKG_CONFIG" = "x" ; then
    AC_MSG_ERROR([pkg-config >= $PKGCONFIG_REQUIRED required but not
 found (http://pkgconfig.freedesktop.org/)])
 fi
@@ -78,53 +78,69 @@ AC_ARG_WITH([opengl],
                   [enable opengl 3d geometry plotter @<:@default=check@:>@])],
                   [],
                   [with_opengl=check])
-AS_IF([test "x$with_opengl" != xno],
-      [if $PKG_CONFIG --exists gtkglext-1.0 ; then
-         PKG_CHECK_MODULES([GTKGLEXT], [gtkglext-1.0])
+AS_IF([test "x$with_opengl" != "xno"],
+      [PKG_CHECK_MODULES([GTKGLEXT], [gtkglext-1.0], [], [echo "Disabling functionality"])
+       if $PKG_CONFIG --exists gtkglext-1.0 ; then
          USEOPENGL="yes"
          AC_DEFINE([OPENGL], [1], [Define to 1 if GtkGLExt/OpenGL dependent code is to be compiled.])
          LIBS="$LIBS $GTKGLEXT_LIBS"
          CPPFLAGS="$CPPFLAGS $GTKGLEXT_CFLAGS"
          AC_SUBST(OPENGL_COND,[gtkglext-1.0])
-       elif "x$with_opengl" != xcheck; then
-         AC_MSG_ERROR([--with-opengl was given, but test for library gtkglext-1.0 failed])
+       elif test "x$with_opengl" != "xcheck" ; then
+         AC_MSG_ERROR([--with-opengl was given, but pkgconfig check for gtkglext-1.0 library failed])
        else
          AC_SUBST(OPENGL_COND,"")
        fi]
 )
 AM_CONDITIONAL([OPENGL], [test x$USEOPENGL = xyes])
 
+dnl UMFPACK
+dnl Check by default, can be disabled
+dnl ---------------------------------
 AC_ARG_WITH([umfpack],
   [AS_HELP_STRING([--with-umfpack],
-                  [enable optional support for umfpack solver])],
+                  [enable support for umfpack solver @<:@default=check@:>@])],
                   [],
-                  [with_umfpack=no])
-AM_CONDITIONAL([UMFPACK], [test x$with_umfpack != xno])
-if test x$with_umfpack != xno ; then
-  PKG_CHECK_MODULES([UMFPACK], [umfpack])
-  CPPFLAGS="$CPPFLAGS $UMFPACK_CFLAGS"
-  LIBS="$LIBS $UMFPACK_LIBS"
-  AC_SUBST(UMFPACK_COND,[umfpack])
- else
-  AC_SUBST(UMFPACK_COND,"")
-fi
+                  [with_umfpack=check])
+AS_IF([test "x$with_umfpack" != "xno"],
+      [PKG_CHECK_MODULES([UMFPACK], [umfpack], [], [echo "Disabling functionality"])
+       if $PKG_CONFIG --exists umfpack ; then
+         USEUMFPACK="yes"
+         AC_DEFINE([UMFPACK], [1], [Define to 1 if UMFPACK solver is to be compiled.])
+         LIBS="$LIBS $UMFPACK_LIBS"
+         CPPFLAGS="$CPPFLAGS $UMFPACK_CFLAGS"
+         AC_SUBST(UMFPACK_COND,[umfpack])
+       elif test "x$with_umfpack" != "xcheck" ; then
+         AC_MSG_ERROR([--with-umfpack was given, but pkgconfig check for umfpack library failed])
+       else
+         AC_SUBST(UMFPACK_COND,"")
+       fi]
+)
+AM_CONDITIONAL([UMFPACK], [test x$USEUMFPACK = xyes])
 
-
+dnl CSG
+dnl Check by default, can be disabled
+dnl ---------------------------------
 AC_ARG_WITH([csg],
   [AS_HELP_STRING([--with-csg],
-                  [enable optional support for csg solids])],
+                  [enable support for csg solid @<:@default=check@:>@])],
                   [],
-                  [with_csg=no])
-AM_CONDITIONAL([CSG], [test x$with_csg != xno])
-if test x$with_csg != xno ; then
-  PKG_CHECK_MODULES([CSG], [csg])
-  CPPFLAGS="$CPPFLAGS $CSG_CFLAGS"
-  LIBS="$LIBS $CSG_LIBS"
-  AC_SUBST(CSG_COND,[csg])
-else
-  AC_SUBST(CSG_COND,"")
-fi
-
+                  [with_csg=check])
+AS_IF([test "x$with_csg" != "xno"],
+      [PKG_CHECK_MODULES([CSG], [csg], [], [echo "Disabling functionality"])
+       if $PKG_CONFIG --exists csg ; then
+         USECSG="yes"
+         AC_DEFINE([CSG], [1], [Define to 1 if CSG solid is to be compiled.])
+         LIBS="$LIBS $CSG_LIBS"
+         CPPFLAGS="$CPPFLAGS $CSG_CFLAGS"
+         AC_SUBST(CSG_COND,[csg])
+       elif test "x$with_csg" != "xcheck" ; then
+         AC_MSG_ERROR([--with-csg was given, but pkgconfig check for csg library failed])
+       else
+         AC_SUBST(CSG_COND,"")
+       fi]
+)
+AM_CONDITIONAL([CSG], [test x$USECSG = xyes])
 
 dnl ---------------------------------
 dnl Check for libraries
@@ -260,4 +276,17 @@ dnl ---------------------------------
 AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile doc/Doxyfile doc/Doxyfile_web ibsimu-1.0.5new_solver.pc])
 AC_OUTPUT
 
-	
+echo ""
+echo "Optional compilation"
+echo "--------------------"
+echo ""
+AS_IF([test "x$USEOPENGL" = "xyes"],
+      [echo "OpenGL renderer = yes"],
+      [echo "OpenGL renderer = no"])
+AS_IF([test "x$USEUMFPACK" = "xyes"],
+      [echo "UMFPACK solver  = yes"],
+      [echo "UMFPACK solver  = no"])
+AS_IF([test "x$USECSG" = "xyes"],
+      [echo "CSG solid       = yes"],
+      [echo "CSG solid       = no"])
+echo ""
