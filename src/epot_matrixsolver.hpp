@@ -172,12 +172,16 @@ private:
 
     void set_link( uint32_t a, uint32_t b, double val );
     void add_vacuum_node( uint32_t i, uint32_t j, uint32_t k );
-    void add_near_solid_node_1d( uint32_t i );
-    void add_near_solid_node_2d( uint32_t i, uint32_t j );
-    void add_near_solid_node_cyl( uint32_t i, uint32_t j );
-    void add_near_solid_node_3d( uint32_t i, uint32_t j, uint32_t k );
-    void add_near_solid_node( uint32_t i, uint32_t j, uint32_t k );
-    void add_neumann_node( uint32_t i, uint32_t j, uint32_t k, const Vec3D &x, uint32_t boundary );
+    void add_near_solid_node_1d( uint32_t i, const Vec3D &x );
+    void add_near_solid_node_2d( uint32_t i, uint32_t j, const Vec3D &x );
+    void add_near_solid_node_cyl( uint32_t i, uint32_t j, const Vec3D &x );
+    void add_near_solid_node_3d( uint32_t i, uint32_t j, uint32_t k, const Vec3D &x );
+    void add_near_solid_node( uint32_t i, uint32_t j, uint32_t k, const Vec3D &x );
+    void add_neumann_node_1d( uint32_t i, const Vec3D &x );
+    void add_neumann_node_2d( uint32_t i, uint32_t j, const Vec3D &x );
+    void add_neumann_node_cyl( uint32_t i, uint32_t j, const Vec3D &x );
+    void add_neumann_node_3d( uint32_t i, uint32_t j, uint32_t k, const Vec3D &x );
+    void add_neumann_node( uint32_t i, uint32_t j, uint32_t k, const Vec3D &x );
 
 public:
 

@@ -7,8 +7,8 @@ set size 0.8,0.4
 
 set out "solvercyl_beam.ps"
 
-f(x) = (x < 0.05) ? ( (x < 0.01) ? (-2823522.6669*x*x + 1191.20915203) \
-: (-564.704533379*log(x) - 1691.70359567) ) : 0.0
 set xlabel "r (m)"
 set ylabel "Potential (V)"
-plot [0:0.06][-200:1200] f(x), "solvercyl_beam.dat" ind 1 w d 3
+plot [0:0.06][-200:1200] \
+"solvercyl_beam.dat" ind 0 w l ls 1, \
+"solvercyl_beam.dat" ind 0 w d ls 3

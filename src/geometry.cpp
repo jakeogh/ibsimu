@@ -944,47 +944,53 @@ void Geometry::build_mesh_parallel_prepare_3d( void )
 		    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
 		    build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, k );
 
+		} else if( i == 0 && get_boundary(1).type() == BOUND_DIRICHLET ) {
+		    // Xmin Dirichlet boundary
+		    mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 1;
+
+		} else if( i == _size[0]-1 && get_boundary(2).type() == BOUND_DIRICHLET ) {
+		    // Xmax Dirichlet boundary
+		    mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 2;
+
+		} else if( j == 0 && get_boundary(3).type() == BOUND_DIRICHLET ) {
+		    // Ymin Dirichlet boundary
+		    mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 3;
+
+		} else if( j == _size[1]-1 && get_boundary(4).type() == BOUND_DIRICHLET ) {
+		    // Ymax Dirichlet boundary
+		    mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 4;
+
+		} else if( k == 0 && get_boundary(5).type() == BOUND_DIRICHLET ) {
+		    // Zmin Dirichlet boundary
+		    mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 5;
+
+		} else if( k == _size[2]-1 && get_boundary(6).type() == BOUND_DIRICHLET ) {
+		    // Zmax Dirichlet boundary
+		    mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 6;
+
 		} else if( i == 0 ) {
-		    // Xmin boundary
-		    if( get_boundary(1).type() == BOUND_NEUMANN )
-			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 1;
-		    else
-			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 1;
+		    // Xmin Neumann boundary
+		    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 1;
 
 		} else if( i == _size[0]-1 ) {
-		    // Xmax boundary
-		    if( get_boundary(2).type() == BOUND_NEUMANN )
-			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 2;
-		    else
-			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 2;
-
+		    // Xmax Neumann boundary
+		    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 2;
+		    
 		} else if( j == 0 ) {
-		    // Ymin boundary
-		    if( get_boundary(3).type() == BOUND_NEUMANN )
-			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 3;
-		    else
-			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 3;
+		    // Ymin Neumann boundary
+		    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 3;
 
 		} else if( j == _size[1]-1 ) {
-		    // Ymax boundary
-		    if( get_boundary(4).type() == BOUND_NEUMANN )
-			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 4;
-		    else
-			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 4;
+		    // Ymax Neumann boundary
+		    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 4;
 
 		} else if( k == 0 ) {
-		    // Zmin boundary
-		    if( get_boundary(5).type() == BOUND_NEUMANN )
-			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 5;
-		    else
-			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 5;
+		    // Zmin Neumann boundary
+		    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 5;
 
 		} else if( k == _size[2]-1 ) {
-		    // Zmax boundary
-		    if( get_boundary(6).type() == BOUND_NEUMANN )
-			mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 6;
-		    else
-			mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | 6;
+		    // Zmax Neumann boundary
+		    mesh(i,j,k) = SMESH_NODE_ID_NEUMANN | 6;
 
 		} else {
 		    // Pure vacuum
@@ -1015,34 +1021,37 @@ void Geometry::build_mesh_parallel_prepare_2d( void )
 		mesh(i,j) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
 		build_mesh_parallel_prepare_near_solid( near_solid_index, i, j, 0 );
 
+	    } else if( i == 0 && get_boundary(1).type() == BOUND_DIRICHLET ) {
+		// Xmin Dirichlet boundary
+		mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 1;
+		
+	    } else if( i == _size[0]-1 && get_boundary(2).type() == BOUND_DIRICHLET ) {
+		// Xmax Dirichlet boundary
+		mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 2;
+		
+	    } else if( j == 0 && get_boundary(3).type() == BOUND_DIRICHLET ) {
+		// Ymin Dirichlet boundary
+		mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 3;
+		
+	    } else if( j == _size[1]-1 && get_boundary(4).type() == BOUND_DIRICHLET ) {
+		// Ymax Dirichlet boundary
+		mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 4;
+		
 	    } else if( i == 0 ) {
-		// Xmin boundary
-		if( get_boundary(1).type() == BOUND_NEUMANN )
-		    mesh(i,j) = SMESH_NODE_ID_NEUMANN | 1;
-		else
-		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 1;
-
+		// Xmin Neumann boundary
+		mesh(i,j) = SMESH_NODE_ID_NEUMANN | 1;
+		
 	    } else if( i == _size[0]-1 ) {
-		// Xmax boundary
-		if( get_boundary(2).type() == BOUND_NEUMANN )
-		    mesh(i,j) = SMESH_NODE_ID_NEUMANN | 2;
-		else
-		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 2;
+		// Xmax Neumann boundary
+		mesh(i,j) = SMESH_NODE_ID_NEUMANN | 2;
 		
 	    } else if( j == 0 ) {
-		// Ymin boundary
-		if( get_boundary(3).type() == BOUND_NEUMANN )
-		    mesh(i,j) = SMESH_NODE_ID_NEUMANN | 3;
-		else
-		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 3;
+		// Ymin Neumann boundary
+		mesh(i,j) = SMESH_NODE_ID_NEUMANN | 3;
 		
 	    } else if( j == _size[1]-1 ) {
-		// Ymax boundary
-		if( get_boundary(4).type() == BOUND_NEUMANN )
-		    mesh(i,j) = SMESH_NODE_ID_NEUMANN | 4;
-		else
-		    mesh(i,j) = SMESH_NODE_ID_DIRICHLET | 4;
-
+		// Ymax Neumann boundary
+		mesh(i,j) = SMESH_NODE_ID_NEUMANN | 4;
 		
 	    } else {
 		// Pure vacuum
@@ -1066,36 +1075,26 @@ void Geometry::build_mesh_parallel_prepare_1d( void )
 	if( mesh(i) != 0 )
 	    continue;
 	
-	if( i == 0 ) {
-	    // Xmin boundary
-	    if( get_boundary(1).type() == BOUND_NEUMANN ) {
-		if( is_near_solid(i,0,0) ) {
-		    mesh(i) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-		    build_mesh_parallel_prepare_near_solid( near_solid_index, i, 0, 0 );
-		} else {
-		    mesh(i) = SMESH_NODE_ID_NEUMANN | 1;
-		}
-	    } else {
-		mesh(i) = SMESH_NODE_ID_DIRICHLET | 1;
-	    }
-	    
-	} else if( i == _size[0]-1 ) {
-	    // Xmax boundary
-	    if( get_boundary(2).type() == BOUND_NEUMANN ) {
-		if( is_near_solid(i,0,0) ) {
-		    mesh(i) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-		    build_mesh_parallel_prepare_near_solid( near_solid_index, i, 0, 0 );
-		} else {
-		    mesh(i) = SMESH_NODE_ID_NEUMANN | 2;
-		}
-	    } else {
-		mesh(i) = SMESH_NODE_ID_DIRICHLET | 2;
-	    }
-
-	} else if( is_near_solid(i,0,0) ) {
+	if( is_near_solid(i,0,0) ) {
 	    // Near solid
 	    mesh(i) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
 	    build_mesh_parallel_prepare_near_solid( near_solid_index, i, 0, 0 );
+	    
+	} else if( i == 0 && get_boundary(1).type() == BOUND_DIRICHLET ) {
+	    // Xmin Dirichlet boundary
+	    mesh(i) = SMESH_NODE_ID_DIRICHLET | 1;
+	    
+	} else if( i == _size[0]-1 && get_boundary(2).type() == BOUND_DIRICHLET ) {
+	    // Xmax Dirichlet boundary
+	    mesh(i) = SMESH_NODE_ID_DIRICHLET | 2;
+	    
+	} else if( i == 0 ) {
+	    // Xmin Neumann boundary
+	    mesh(i) = SMESH_NODE_ID_NEUMANN | 1;
+	    
+	} else if( i == _size[0]-1 ) {
+	    // Xmax Neumann boundary
+	    mesh(i) = SMESH_NODE_ID_NEUMANN | 2;
 	    
 	} else {
 	    // Pure vacuum
@@ -1280,8 +1279,6 @@ void Geometry::build_mesh( void )
     ibsimu.inc_indent();
 
     _built = true;
-    
-    //build_mesh_serial();
     build_mesh_parallel();
 
     // Report node counts
@@ -2336,126 +2333,6 @@ int32_t Geometry::surface_trianglec( int32_t i, int32_t j, int32_t k ) const
 	offset += 3;
     }
     return( ti );
-}
-
-
-void Geometry::build_mesh_serial( void )
-{
-    // Mark solid (Dirichlet) nodes. Others left to zero.
-    for( int32_t k = 0; k < _size[2]; k++ ) {
-	double z = k*_h+_origo[2];
-	for( int32_t j = 0; j < _size[1]; j++ ) {
-	    double y = j*_h+_origo[1];
-	    for( int32_t i = 0; i < _size[0]; i++ ) {
-		double x = i*_h+_origo[0];
-		uint32_t nid = inside( Vec3D(x,y,z) );
-		if( nid )
-		    mesh(i,j,k) = SMESH_NODE_ID_DIRICHLET | nid;
-		else
-		    mesh(i,j,k) = 0;
-	    }
-	}
-    }
-
-    // Mark 0 nodes on boundaries as Dirichlet, Neumann boundaries or
-    // as near solid nodes. Here x overrides y, which overrides
-    // z. Order is important as near solid indexes are processed also
-    // by the solver preprocess/postprocess routines.
-    uint32_t nid;
-    uint32_t near_solid_index = 0;
-
-    // Mark xmin and xmax
-    for( uint32_t bound = 1; bound <= 2; bound++ ) {
-	int32_t i = 0;
-	if( bound == 2 ) i = _size[0]-1;
-	if( get_boundary(bound).type() == BOUND_NEUMANN )
-	    nid = SMESH_NODE_ID_NEUMANN | bound;
-	else
-	    nid = SMESH_NODE_ID_DIRICHLET | bound;
-	for( int32_t k = 0; k < _size[2]; k++ ) {
-	    for( int32_t j = 0; j < _size[1]; j++ ) {
-		if( mesh(i,j,k) == 0 ) {
-		    if( get_boundary(bound).type() == BOUND_NEUMANN && is_near_solid(i,j,k) ) {
-			// Mark node as near solid vacuum and build near solid data
-			mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-			add_near_solid_entry( near_solid_index, i, j, k );
-		    } else {
-			mesh(i,j,k) = nid;
-		    }
-		}
-	    }
-	}
-    }
-
-    if( _geom_mode == MODE_2D || _geom_mode == MODE_CYL ||
-	_geom_mode == MODE_3D ) {
-	// Ymin and Ymax
-	for( uint32_t bound = 3; bound <= 4; bound++ ) {
-	    int32_t j = 0;
-	    if( bound == 4 ) j = _size[1]-1;
-	    if( get_boundary(bound).type() == BOUND_NEUMANN )
-		nid = SMESH_NODE_ID_NEUMANN | bound;
-	    else
-		nid = SMESH_NODE_ID_DIRICHLET | bound;
-	    for( int32_t k = 0; k < _size[2]; k++ ) {
-		for( int32_t i = 0; i < _size[0]; i++ ) {
-		    if( mesh(i,j,k) == 0 ) {
-			if( get_boundary(bound).type() == BOUND_NEUMANN && is_near_solid(i,j,k) ) {
-			    // Mark node as near solid vacuum and build near solid data
-			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-			    add_near_solid_entry( near_solid_index, i, j, k );
-			} else {
-			    mesh(i,j,k) = nid;
-			}
-		    }
-		}
-	    }
-	}
-    }
-    if( _geom_mode == MODE_3D ) {
-	// Zmin and Zmax
-	for( uint32_t bound = 5; bound <= 6; bound++ ) {
-	    int32_t k = 0;
-	    if( bound == 6 ) k = _size[2]-1;
-	    if( get_boundary(bound).type() == BOUND_NEUMANN )
-		nid = SMESH_NODE_ID_NEUMANN | bound;
-	    else
-		nid = SMESH_NODE_ID_DIRICHLET | bound;
-	    for( int32_t j = 0; j < _size[1]; j++ ) {
-		for( int32_t i = 0; i < _size[0]; i++ ) {
-		    if( mesh(i,j,k) == 0 ) {
-			if( get_boundary(bound).type() == BOUND_NEUMANN && is_near_solid(i,j,k) ) {
-			    // Mark node as near solid vacuum and build near solid data
-			    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-			    add_near_solid_entry( near_solid_index, i, j, k );
-			} else {
-			    mesh(i,j,k) = nid;
-			}
-		    }
-		}
-	    }
-	}
-    }
-
-    // Mark 0 nodes next to solid nodes as near solid nodes and build
-    // nearsolid data array, rest of the 0 nodes are marked as pure
-    // vacuum. No conflict should occur because 0 node = pure vacuum.
-    for( int32_t k = 0; k < _size[2]; k++ ) {
-	for( int32_t j = 0; j < _size[1]; j++ ) {
-	    for( int32_t i = 0; i < _size[0]; i++ ) {
-		if( mesh(i,j,k) != 0 )
-		    continue;
-		if( is_near_solid(i,j,k) ) {
-		    // Mark node as near solid vacuum and build near solid data
-		    mesh(i,j,k) = SMESH_NODE_ID_NEAR_SOLID | near_solid_index;
-		    add_near_solid_entry( near_solid_index, i, j, k );
-		} else {
-		    // Pure vacuum
-		    mesh(i,j,k) = SMESH_NODE_ID_PURE_VACUUM;
-		}
-	    }
-	}
-    }
 }
 
 

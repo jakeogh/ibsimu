@@ -135,14 +135,14 @@ std::ostream &IBSimu::message( int32_t level )
 
 void IBSimu::inc_indent( void )
 {
-    flush();
+    flush( false );
     _indent++;
 }
 
 
 void IBSimu::dec_indent( void )
 {
-    flush();
+    flush( false );
     _indent--;
 }
 
@@ -223,8 +223,8 @@ void IBSimu::flush( bool finishlines )
     *_os << stmp;
     *_os << std::flush;
 
-    //if( lineunfinished && finishlines )
-    //*_os << "\n";
+    if( lineunfinished && finishlines )
+	*_os << "\n";
 
     _ss.str( "" );   
 }
@@ -244,7 +244,6 @@ size_t IBSimu::convert_stringstream_to_lines( const std::stringstream &ss,
 	    target += ' ';
 	lineunfinished = true;
     }
-
     
     size_t pos = 0;
     size_t linecount = 0;

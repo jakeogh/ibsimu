@@ -65,14 +65,10 @@ sclfield_SOURCES = sclfield.cpp
 secondary_electron2d_SOURCES = secondary_electron2d.cpp
 secondary_electron3d_SOURCES = secondary_electron3d.cpp
 solver1d_edge_SOURCES = solver1d_edge.cpp
-solver1d_hard_edge_SOURCES = solver1d_hard_edge.cpp
-solver1d_neumann_order_SOURCES = solver1d_neumann_order.cpp
 solver1d_neumann_SOURCES = solver1d_neumann.cpp
 solver1d_scharge_SOURCES = solver1d_scharge.cpp
-solver1d_solid_neumann_conflict_SOURCES = solver1d_solid_neumann_conflict.cpp
 solver2d_coax_SOURCES = solver2d_coax.cpp
 solver2d_cylindrical_beam_SOURCES = solver2d_cylindrical_beam.cpp
-solver2d_smooth_SOURCES = solver2d_smooth.cpp
 solver3d_sphere_SOURCES = solver3d_sphere.cpp
 solvercyl_beam_SOURCES = solvercyl_beam.cpp
 solvercyl_coax_SOURCES = solvercyl_coax.cpp
@@ -162,14 +158,10 @@ sclfield \
 secondary_electron2d \
 secondary_electron3d \
 solver1d_edge \
-solver1d_hard_edge \
 solver1d_neumann \
-solver1d_neumann_order \
 solver1d_scharge \
-solver1d_solid_neumann_conflict \
 solver2d_coax \
 solver2d_cylindrical_beam \
-solver2d_smooth \
 solver3d_sphere \
 solvercyl_beam \
 solvercyl_coax \
@@ -219,11 +211,8 @@ efield.gpl \
 matrixsolver.hb \
 particles_cyl.gpl \
 solver1d_edge.gpl \
-solver1d_hard_edge.gpl \
 solver1d_neumann.gpl \
-solver1d_neumann_order.gpl \
 solver1d_scharge.gpl \
-solver1d_solid_neumann_conflict.gpl \
 solver2d_coax.gpl \
 solver2d_cylindrical_beam.gpl \
 solvercyl_beam.gpl \

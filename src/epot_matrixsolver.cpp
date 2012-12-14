@@ -210,9 +210,10 @@ void EpotMatrixSolver::add_vacuum_node( uint32_t i, uint32_t j, uint32_t k )
 }
 
 
-void EpotMatrixSolver::add_near_solid_node_1d( uint32_t i )
+void EpotMatrixSolver::add_near_solid_node_1d( uint32_t i, const Vec3D &x )
 {
     uint32_t a = _n2d(i) & N2D_INDEX_MASK;
+    uint8_t bindex = boundary_index(i);
 
     const uint8_t *nearsolid_ptr = _geom.nearsolid_ptr( _geom.mesh(i) & SMESH_NEAR_SOLID_INDEX_MASK );
     uint8_t sflag = nearsolid_ptr[0];
@@ -233,19 +234,32 @@ void EpotMatrixSolver::add_near_solid_node_1d( uint32_t i )
     }
 
     // Factors for X axis
-    set_link( a, _n2d(i-1), 2.0/((alpha+beta)*alpha) );
-    set_link( a, _n2d(i), -2.0/(alpha*beta) );
-    set_link( a, _n2d(i+1), 2.0/((alpha+beta)*beta) );
+    if( bindex & EPOT_SOLVER_BXMIN ) {
+	set_link( a, _n2d(i), -2.0/(beta*beta) );
+	set_link( a, _n2d(i+1), 2.0/(beta*beta) );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(1).value(x) / beta;
+    } else if( bindex & EPOT_SOLVER_BXMAX ) {
+	set_link( a, _n2d(i), -2.0/(alpha*alpha) );
+	set_link( a, _n2d(i-1), 2.0/(alpha*alpha) );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(2).value(x) / alpha;
+    } else {
+	set_link( a, _n2d(i), -2.0/(alpha*beta) );
+	set_link( a, _n2d(i-1), 2.0/((alpha+beta)*alpha) );
+	set_link( a, _n2d(i+1), 2.0/((alpha+beta)*beta) );
+    }
 }
 
 
-void EpotMatrixSolver::add_near_solid_node_2d( uint32_t i, uint32_t j )
+void EpotMatrixSolver::add_near_solid_node_2d( uint32_t i, uint32_t j, const Vec3D &x )
 {
     uint32_t a = _n2d(i,j) & N2D_INDEX_MASK;
+    uint8_t bindex = boundary_index(i,j);
 
     const uint8_t *nearsolid_ptr = _geom.nearsolid_ptr( _geom.mesh(i,j) & SMESH_NEAR_SOLID_INDEX_MASK );
     uint8_t sflag = nearsolid_ptr[0];
     uint8_t *ptr = (uint8_t *)&nearsolid_ptr[1];
+
+    double cof = 0.0;
 
     // Xmin direction
     double alpha = 1.0;
@@ -262,9 +276,19 @@ void EpotMatrixSolver::add_near_solid_node_2d( uint32_t i, uint32_t j )
     }
 
     // Factors for X axis
-    double cof = 2.0/(alpha*beta);
-    set_link( a, _n2d(i-1,j), 2.0/((alpha+beta)*alpha) );
-    set_link( a, _n2d(i+1,j), 2.0/((alpha+beta)*beta) );
+    if( bindex & EPOT_SOLVER_BXMIN ) {
+	cof += 2.0/(beta*beta);
+	set_link( a, _n2d(i+1,j), 2.0/(beta*beta) );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(1).value(x) / beta;
+    } else if( bindex & EPOT_SOLVER_BXMAX ) {
+	cof += 2.0/(alpha*alpha);
+	set_link( a, _n2d(i-1,j), 2.0/(alpha*alpha) );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(2).value(x) / alpha;
+    } else {
+	cof += 2.0/(alpha*beta);
+	set_link( a, _n2d(i-1,j), 2.0/((alpha+beta)*alpha) );
+	set_link( a, _n2d(i+1,j), 2.0/((alpha+beta)*beta) );
+    }
 
     // Ymin direction
     alpha = 1.0;
@@ -281,22 +305,35 @@ void EpotMatrixSolver::add_near_solid_node_2d( uint32_t i, uint32_t j )
     }
 
     // Factors for Y axis
-    cof += 2.0/(alpha*beta);
-    set_link( a, _n2d(i,j-1), 2.0/((alpha+beta)*alpha) );
-    set_link( a, _n2d(i,j+1), 2.0/((alpha+beta)*beta) );
+    if( bindex & EPOT_SOLVER_BYMIN ) {
+	cof += 2.0/(beta*beta);
+	set_link( a, _n2d(i,j+1), 2.0/(beta*beta) );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(3).value(x) / beta;
+    } else if( bindex & EPOT_SOLVER_BYMAX ) {
+	cof += 2.0/(alpha*alpha);
+	set_link( a, _n2d(i,j-1), 2.0/(alpha*alpha) );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(4).value(x) / alpha;
+    } else {
+	cof += 2.0/(alpha*beta);
+	set_link( a, _n2d(i,j-1), 2.0/((alpha+beta)*alpha) );
+	set_link( a, _n2d(i,j+1), 2.0/((alpha+beta)*beta) );
+    }
 
     // Middle node
     set_link( a, _n2d(i,j), -cof );
 }
 
 
-void EpotMatrixSolver::add_near_solid_node_cyl( uint32_t i, uint32_t j )
+void EpotMatrixSolver::add_near_solid_node_cyl( uint32_t i, uint32_t j, const Vec3D &x )
 {
     uint32_t a = _n2d(i,j) & N2D_INDEX_MASK;
+    uint8_t bindex = boundary_index(i,j);
 
     const uint8_t *nearsolid_ptr = _geom.nearsolid_ptr( _geom.mesh(i,j) & SMESH_NEAR_SOLID_INDEX_MASK );
     uint8_t sflag = nearsolid_ptr[0];
     uint8_t *ptr = (uint8_t *)&nearsolid_ptr[1];
+
+    double cof = 0.0;
 
     // Xmin direction
     double alpha = 1.0;
@@ -313,9 +350,19 @@ void EpotMatrixSolver::add_near_solid_node_cyl( uint32_t i, uint32_t j )
     }
 
     // Factors for X axis
-    double cof = 2.0/(alpha*beta);
-    set_link( a, _n2d(i-1,j), 2.0/((alpha+beta)*alpha) );
-    set_link( a, _n2d(i+1,j), 2.0/((alpha+beta)*beta) );
+    if( bindex & EPOT_SOLVER_BXMIN ) {
+	cof += 2.0/(beta*beta);
+	set_link( a, _n2d(i+1,j), 2.0/(beta*beta) );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(1).value(x) / beta;
+    } else if( bindex & EPOT_SOLVER_BXMAX ) {
+	cof += 2.0/(alpha*alpha);
+	set_link( a, _n2d(i-1,j), 2.0/(alpha*alpha) );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(2).value(x) / alpha;
+    } else {
+	cof += 2.0/(alpha*beta);
+	set_link( a, _n2d(i-1,j), 2.0/((alpha+beta)*alpha) );
+	set_link( a, _n2d(i+1,j), 2.0/((alpha+beta)*beta) );
+    }
 
     // Ymin direction
     alpha = 1.0;
@@ -332,23 +379,37 @@ void EpotMatrixSolver::add_near_solid_node_cyl( uint32_t i, uint32_t j )
     }
 
     // Factors for Y axis
-    cof += 2.0/(alpha*beta);
-    set_link( a, _n2d(i,j-1), 1.0/(alpha+beta)*(2.0/alpha-1.0/j) );
-    set_link( a, _n2d(i,j+1), 1.0/(alpha+beta)*(2.0/beta+1.0/j) );
+    if( bindex & EPOT_SOLVER_BYMIN ) {
+	// On-axis
+	cof += 4.0;
+	set_link( a, _n2d(i,j+1), 4.0 );
+    } else if( bindex & EPOT_SOLVER_BYMAX ) {
+	cof += 2.0/(alpha*alpha);
+	set_link( a, _n2d(i,j-1), 2.0/(alpha*alpha) );
+	(*_fd_vec)(a) += (1.0)/(2.0*alpha)*(2.0/alpha+1.0/j)*
+	    2.0*_geom.h()*_geom.get_boundary(4).value(x) / alpha;
+    } else {
+	cof += 2.0/(alpha*beta);
+	set_link( a, _n2d(i,j-1), 1.0/(alpha+beta)*(2.0/alpha-1.0/j) );
+	set_link( a, _n2d(i,j+1), 1.0/(alpha+beta)*(2.0/beta+1.0/j) );
+    }
 
     // Middle node
     set_link( a, _n2d(i,j), -cof );
 }
 
 
-void EpotMatrixSolver::add_near_solid_node_3d( uint32_t i, uint32_t j, uint32_t k )
+void EpotMatrixSolver::add_near_solid_node_3d( uint32_t i, uint32_t j, uint32_t k, const Vec3D &x )
 {
     uint32_t a = _n2d(i,j,k) & N2D_INDEX_MASK;
+    uint8_t bindex = boundary_index(i,j,k);
 
     const uint8_t *nearsolid_ptr = _geom.nearsolid_ptr( _geom.mesh(i,j,k) & SMESH_NEAR_SOLID_INDEX_MASK );
     uint8_t sflag = nearsolid_ptr[0];
     uint8_t *ptr = (uint8_t *)&nearsolid_ptr[1];
 
+    double cof = 0.0;
+
     // Xmin direction
     double alpha = 1.0;
     if( sflag & 0x01 ) {
@@ -364,9 +425,19 @@ void EpotMatrixSolver::add_near_solid_node_3d( uint32_t i, uint32_t j, uint32_t 
     }
 
     // Factors for X axis
-    double cof = 2.0/(alpha*beta);
-    set_link( a, _n2d(i-1,j,k), 2.0/((alpha+beta)*alpha) );
-    set_link( a, _n2d(i+1,j,k), 2.0/((alpha+beta)*beta) );
+    if( bindex & EPOT_SOLVER_BXMIN ) {
+	cof += 2.0/(beta*beta);
+	set_link( a, _n2d(i+1,j,k), 2.0/(beta*beta) );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(1).value(x) / beta;
+    } else if( bindex & EPOT_SOLVER_BXMAX ) {
+	cof += 2.0/(alpha*alpha);
+	set_link( a, _n2d(i-1,j,k), 2.0/(alpha*alpha) );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(2).value(x) / alpha;
+    } else {
+	cof += 2.0/(alpha*beta);
+	set_link( a, _n2d(i-1,j,k), 2.0/((alpha+beta)*alpha) );
+	set_link( a, _n2d(i+1,j,k), 2.0/((alpha+beta)*beta) );
+    }
 
     // Ymin direction
     alpha = 1.0;
@@ -383,9 +454,19 @@ void EpotMatrixSolver::add_near_solid_node_3d( uint32_t i, uint32_t j, uint32_t 
     }
 
     // Factors for Y axis
-    cof += 2.0/(alpha*beta);
-    set_link( a, _n2d(i,j-1,k), 2.0/((alpha+beta)*alpha) );
-    set_link( a, _n2d(i,j+1,k), 2.0/((alpha+beta)*beta) );
+    if( bindex & EPOT_SOLVER_BYMIN ) {
+	cof += 2.0/(beta*beta);
+	set_link( a, _n2d(i,j+1,k), 2.0/(beta*beta) );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(3).value(x) / beta;
+    } else if( bindex & EPOT_SOLVER_BYMAX ) {
+	cof += 2.0/(alpha*alpha);
+	set_link( a, _n2d(i,j-1,k), 2.0/(alpha*alpha) );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(4).value(x) / alpha;
+    } else {
+	cof += 2.0/(alpha*beta);
+	set_link( a, _n2d(i,j-1,k), 2.0/((alpha+beta)*alpha) );
+	set_link( a, _n2d(i,j+1,k), 2.0/((alpha+beta)*beta) );
+    }
 
     // Zmin direction
     alpha = 1.0;
@@ -402,31 +483,41 @@ void EpotMatrixSolver::add_near_solid_node_3d( uint32_t i, uint32_t j, uint32_t 
     }
 
     // Factors for Z axis
-    cof += 2.0/(alpha*beta);
-    set_link( a, _n2d(i,j,k-1), 2.0/((alpha+beta)*alpha) );
-    set_link( a, _n2d(i,j,k+1), 2.0/((alpha+beta)*beta) );
+    if( bindex & EPOT_SOLVER_BZMIN ) {
+	cof += 2.0/(beta*beta);
+	set_link( a, _n2d(i,j,k+1), 2.0/(beta*beta) );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(5).value(x) / beta;
+    } else if( bindex & EPOT_SOLVER_BZMAX ) {
+	cof += 2.0/(alpha*alpha);
+	set_link( a, _n2d(i,j,k-1), 2.0/(alpha*alpha) );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(6).value(x) / alpha;
+    } else {
+	cof += 2.0/(alpha*beta);
+	set_link( a, _n2d(i,j,k-1), 2.0/((alpha+beta)*alpha) );
+	set_link( a, _n2d(i,j,k+1), 2.0/((alpha+beta)*beta) );
+    }
 
     // Middle node
     set_link( a, _n2d(i,j,k), -cof );
 }
 
 
-void EpotMatrixSolver::add_near_solid_node( uint32_t i, uint32_t j, uint32_t k )
+void EpotMatrixSolver::add_near_solid_node( uint32_t i, uint32_t j, uint32_t k, const Vec3D &x )
 {
     uint32_t a = _n2d(i,j,k) & N2D_INDEX_MASK;
 
     switch( _geom.geom_mode() ) {
     case MODE_1D:
-	add_near_solid_node_1d(i);
+	add_near_solid_node_1d(i,x);
 	break;
     case MODE_2D:
-	add_near_solid_node_2d(i,j);
+	add_near_solid_node_2d(i,j,x);
 	break;
     case MODE_CYL:
-	add_near_solid_node_cyl(i,j);
+	add_near_solid_node_cyl(i,j,x);
 	break;
     case MODE_3D:
-	add_near_solid_node_3d(i,j,k);
+	add_near_solid_node_3d(i,j,k,x);
 	break;
     }
 
@@ -447,104 +538,175 @@ void EpotMatrixSolver::add_near_solid_node( uint32_t i, uint32_t j, uint32_t k )
 }
 
 
-void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, 
-					 const Vec3D &x, uint32_t boundary )
+void EpotMatrixSolver::add_neumann_node_1d( uint32_t i, const Vec3D &x )
+{
+    uint32_t a = _n2d(i) & N2D_INDEX_MASK;
+    uint8_t bindex = boundary_index(i);
+
+    if( bindex & EPOT_SOLVER_BXMIN ) {
+	set_link( a, _n2d(i), -2.0 );
+	set_link( a, _n2d(i+1), 2.0 );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(1).value( x );
+    } else {
+	set_link( a, _n2d(i-1), 2.0 );
+	set_link( a, _n2d(i), -2.0 );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(2).value( x );
+    }
+}
+
+
+void EpotMatrixSolver::add_neumann_node_2d( uint32_t i, uint32_t j, const Vec3D &x )
+{
+    uint32_t a = _n2d(i,j) & N2D_INDEX_MASK;
+    uint8_t bindex = boundary_index(i,j);
+
+    if( bindex & EPOT_SOLVER_BXMIN ) {
+	set_link( a, _n2d(i+1,j), 2.0 );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(1).value( x );
+    } else if( bindex & EPOT_SOLVER_BXMAX ) {
+	set_link( a, _n2d(i-1,j), 2.0 );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(2).value( x );
+    } else {
+	set_link( a, _n2d(i-1,j), 1.0 );
+	set_link( a, _n2d(i+1,j), 1.0 );
+    }
+    
+    if( bindex & EPOT_SOLVER_BYMIN ) {
+	set_link( a, _n2d(i,j+1), 2.0 );
+	(*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary(3).value( x );
+    } else if( bindex & EPOT_SOLVER_BYMAX ) {
+	set_link( a, _n2d(i,j-1), 2.0 );
+	(*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary(4).value( x );
+    } else {
+	set_link( a, _n2d(i,j-1), 1.0 );
+	set_link( a, _n2d(i,j+1), 1.0 );
+    }
+
+    set_link( a, _n2d(i,j), -4.0 );
+}
+
+
+void EpotMatrixSolver::add_neumann_node_cyl( uint32_t i, uint32_t j, const Vec3D &x )
+{
+    uint32_t a = _n2d(i,j) & N2D_INDEX_MASK;
+    uint8_t bindex = boundary_index(i,j);
+
+    if( bindex & EPOT_SOLVER_BYMIN ) {
+	// On-axis
+	if( bindex & EPOT_SOLVER_BXMIN ) {
+	    set_link( a, _n2d(i+1,j), 2.0 );
+	    (*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(1).value( x );
+	} else if( bindex & EPOT_SOLVER_BXMAX ) {
+	    set_link( a, _n2d(i-1,j), 2.0 );
+	    (*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(2).value( x );
+	} else {
+	    set_link( a, _n2d(i-1,j), 1.0 );
+	    set_link( a, _n2d(i+1,j), 1.0 );
+	}
+	set_link( a, _n2d(i,j+1), 4.0 );
+	set_link( a, _n2d(i,j), -6.0 );
+    } else {
+	// Off-axis
+	if( bindex & EPOT_SOLVER_BXMIN ) {
+	    set_link( a, _n2d(i+1,j), 2.0 );
+	    (*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(1).value( x );
+	} else if( bindex & EPOT_SOLVER_BXMAX ) {
+	    set_link( a, _n2d(i-1,j), 2.0 );
+	    (*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(2).value( x );
+	} else {
+	    set_link( a, _n2d(i-1,j), 1.0 );
+	    set_link( a, _n2d(i+1,j), 1.0 );
+	}
+	
+	if( bindex & EPOT_SOLVER_BYMAX ) {
+	    set_link( a, _n2d(i,j-1), 2.0 );
+	    (*_fd_vec)(a) += (1.0+0.5/j)*2.0*_geom.h()*_geom.get_boundary(2).value( x );
+	} else {
+	    set_link( a, _n2d(i,j-1), 1.0-0.5/j );
+	    set_link( a, _n2d(i,j+1), 1.0+0.5/j );
+	}
+	
+	set_link( a, _n2d(i,j), -4.0 );
+    }
+}
+
+
+void EpotMatrixSolver::add_neumann_node_3d( uint32_t i, uint32_t j, uint32_t k, const Vec3D &x )
+{
+    uint32_t a = _n2d(i,j,k) & N2D_INDEX_MASK;
+    uint8_t bindex = boundary_index(i,j,k);
+
+    if( bindex & EPOT_SOLVER_BXMIN ) {
+	set_link( a, _n2d(i+1,j,k), 2.0 );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(1).value( x );
+    } else if( bindex & EPOT_SOLVER_BXMAX ) {
+	set_link( a,_n2d(i-1,j,k), 2.0 );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(2).value( x );
+    } else {
+	set_link( a, _n2d(i-1,j,k), 1.0 );
+	set_link( a, _n2d(i+1,j,k), 1.0 );
+    }
+
+    if( bindex & EPOT_SOLVER_BYMIN ) {
+	set_link( a, _n2d(i,j+1,k), 2.0 );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(3).value( x );
+    } else if( bindex & EPOT_SOLVER_BYMAX ) {
+	set_link( a, _n2d(i,j-1,k), 2.0 );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(4).value( x );
+    } else {
+	set_link( a, _n2d(i,j-1,k), 1.0 );
+	set_link( a, _n2d(i,j+1,k), 1.0 );
+    }
+    
+    if( bindex & EPOT_SOLVER_BZMIN ) {
+	set_link( a, _n2d(i,j,k+1), 2.0 );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(5).value( x );
+    } else if( bindex & EPOT_SOLVER_BZMAX ) {
+	set_link( a, _n2d(i,j,k-1), 2.0 );
+	(*_fd_vec)(a) += 2.0*_geom.h()*_geom.get_boundary(6).value( x );
+    } else {
+	set_link( a, _n2d(i,j,k-1), 1.0 );
+	set_link( a, _n2d(i,j,k+1), 1.0 );
+    }
+    
+    set_link( a, _n2d(i,j,k), -6.0 );
+}
+
+
+void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, const Vec3D &x )
 {
     uint32_t a = _n2d(i,j,k) & N2D_INDEX_MASK;
 
-    switch( boundary ) {
-    case 1:
-	if( _neumann_order == 2 ) {
-	    set_link( a, _n2d(i,j,k), 3.0 );
-            set_link( a, _n2d(i+1,j,k), -4.0 );
-            set_link( a, _n2d(i+2,j,k), 1.0 );
-	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).value( x );
-	} else {
-	    set_link( a, _n2d(i,j,k), 1.0 );
-            set_link( a, _n2d(i+1,j,k), -1.0 );
-	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).value( x );
-	}	
+    switch( _geom.geom_mode() ) {
+    case MODE_1D:
+	add_neumann_node_1d( i, x );
+        break;
+    case MODE_2D:
+	add_neumann_node_2d( i, j, x );
+        break;
+    case MODE_CYL:
+	add_neumann_node_cyl( i, j, x );
 	break;
-    case 2:
-	if( _neumann_order == 2 ) {
-	    set_link( a, _n2d(i-2,j,k), 1.0 );
-            set_link( a, _n2d(i-1,j,k), -4.0 );
-            set_link( a, _n2d(i,j,k), 3.0 );
-	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).value( x );
-	} else {
-	    set_link( a, _n2d(i-1,j,k), -1.0 );
-            set_link( a, _n2d(i,j,k), 1.0 );
-	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).value( x );
-	}
-	break;
-    case 3:
-	if( _geom.geom_mode() == MODE_CYL ) {
-	    set_link( a, _n2d(i-1,j,k), 1.0 );
-            set_link( a, _n2d(i,j,k), -6.0 );
-            set_link( a, _n2d(i+1,j,k), 1.0 );
-            set_link( a, _n2d(i,j+1,k), 4.0 );
-	    if( _plasma == PLASMA_PEXP ) {
-		double p = (*_sol)(a);
-		double rhst, drhst;
-		pexp_newton( rhst, drhst, p );
-		(*_fd_vec)(a) += rhst;
-		(*_d_vec)(a) = drhst;
-	    } else if( _plasma == PLASMA_NSIMP ) {
-		double p = (*_sol)(a);
-		double rhst, drhst;
-		nsimp_newton( rhst, drhst, p );
-		(*_fd_vec)(a) += rhst;
-		(*_d_vec)(a) = drhst;
-	    }
-	    (*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
-	} else if( _neumann_order == 2 ) {
-	    set_link( a, _n2d(i,j,k), 3.0 );
-            set_link( a, _n2d(i,j+1,k), -4.0 );
-            set_link( a, _n2d(i,j+2,k), 1.0 );
-	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).value( x );
-	} else {
-	    set_link( a, _n2d(i,j,k), 1.0 );
-            set_link( a, _n2d(i,j+1,k), -1.0 );
-	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).value( x );
-	}	
-	break;
-    case 4:
-	if( _neumann_order == 2 ) {
-	    set_link( a, _n2d(i,j-2,k), 1.0 );
-            set_link( a, _n2d(i,j-1,k), -4.0 );
-            set_link( a, _n2d(i,j,k), 3.0 );
-	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).value( x );
-	} else {
-	    set_link( a, _n2d(i,j-1,k), -1.0 );
-            set_link( a, _n2d(i,j,k), 1.0 );
-	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).value( x );
-	}
-	break;
-    case 5:
-	if( _neumann_order == 2 ) {
-	    set_link( a, _n2d(i,j,k), 3.0 );
-            set_link( a, _n2d(i,j,k+1), -4.0 );
-            set_link( a, _n2d(i,j,k+2), 1.0 );
-	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).value( x );
-	} else {
-	    set_link( a, _n2d(i,j,k), 1.0 );
-            set_link( a, _n2d(i,j,k+1), -1.0 );
-	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).value( x );
-	}	
-	break;
-    case 6:
-	if( _neumann_order == 2 ) {
-	    set_link( a, _n2d(i,j,k-2), 1.0 );
-            set_link( a, _n2d(i,j,k-1), -4.0 );
-            set_link( a, _n2d(i,j,k), 3.0 );
-	    (*_fd_vec)(a) += -2.0*_geom.h()*_geom.get_boundary( boundary ).value( x );
-	} else {
-	    set_link( a, _n2d(i,j,k-1), -1.0 );
-            set_link( a, _n2d(i,j,k), 1.0 );
-	    (*_fd_vec)(a) += -_geom.h()*_geom.get_boundary( boundary ).value( x );
-	}
-	break;
+    case MODE_3D:
+	add_neumann_node_3d( i, j, k, x );
+        break;
     }
+
+    if( _plasma == PLASMA_PEXP ) {
+	double p = (*_sol)(a);
+	double rhst, drhst;
+	pexp_newton( rhst, drhst, p );
+	(*_fd_vec)(a) += rhst;
+	(*_d_vec)(a) = drhst;
+    } else if( _plasma == PLASMA_NSIMP ) {
+	double p = (*_sol)(a);
+        double rhst, drhst;
+        nsimp_newton( rhst, drhst, p );
+	(*_fd_vec)(a) += rhst;
+	(*_d_vec)(a) = drhst;
+    }
+
+    (*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 }
 
 
@@ -653,10 +815,10 @@ void EpotMatrixSolver::build_mat_vec( void )
 		    add_vacuum_node( i, j, k );
 		} else if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
 		    //ibsimu.message( 1 ) << "Near solid\n";
-		    add_near_solid_node( i, j, k );
+		    add_near_solid_node( i, j, k, x );
 		} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
 		    //ibsimu.message( 1 ) << "Neumann\n";
-		    add_neumann_node( i, j, k, x, mesh & SMESH_BOUNDARY_NUMBER_MASK );
+		    add_neumann_node( i, j, k, x );
 		}
 	    }
         }

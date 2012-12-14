@@ -109,7 +109,7 @@ public:
 
     /*! \brief Returns number of dimensions in geometry.
      */
-    int32_t dim( void ) const;
+    uint32_t dim( void ) const;
 
     /*! \brief Returns size array of geometry.
      */
