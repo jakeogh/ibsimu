@@ -52,6 +52,8 @@
 #include "vec3d.hpp"
 
 
+/*! \brief Stereolithography CAD file class.
+ */
 class STLFile {
 
     class Triangle {
@@ -63,8 +65,6 @@ class STLFile {
 	void static read_binary_float_vector( Vec3D &x, std::ifstream &ifstr );
 	void static read_ascii_float_vector( Vec3D &x, const char *buf, 
 					     const std::string &filename, int linec );
-	static void bbox_ppoint( Vec3D &min, Vec3D &max, const Vec3D &p );
-
     public:
 
 	Triangle( std::ifstream &ifstr );
@@ -77,37 +77,17 @@ class STLFile {
 	    return( _p[i] );
 	}
 	
-	void update_bbox( Vec3D &min, Vec3D &max ) const;
 	void debug_print( std::ostream &os ) const;
     };
 
     std::string            _filename;
     bool                   _ascii;
     std::vector<Triangle>  _tri;       // Original triangles
-    std::vector<Vec3D>     _vertex;    // Vertices
-    std::vector<VTriangle> _vtri;      // Vertex made triangles
-
-    Vec3D                  _offset;    // Amount of offset on vertices
-    Vec3D                  _bbox[2];   // bbox: min, max
-
-    double                 _vertex_matching_eps;
-    double                 _signed_volume_eps;
-
-    std::vector<char>      _vpos;
-    std::vector<char>      _vneg;
+    VTriangleSurfaceSolid  _solid;
 
     void read_binary( std::ifstream &ifstr );
     void read_ascii( std::ifstream &ifstr );
     void build_vtriangle_data( void );
-    void check_vtriangle_data( void );
-    void offset_vtriangle_data( void );
-    int classify_original_tetrahedron( int ss, const Vec3D &p, 
-				       const Vec3D &q1, const Vec3D &q2, const Vec3D &q3 );
-    int signvol4( const Vec3D &q0, const Vec3D &q1, 
-		  const Vec3D &q2, const Vec3D &q3 );
-    int signvol3( const Vec3D &q1, const Vec3D &q2, const Vec3D &q3 );
-
-    void calculate_bbox( void );
 
 public:
 
@@ -137,34 +117,17 @@ public:
      */
     void save( const std::string &filename, bool ascii = true ) const;
 
-    /*! \brief Return number of vertices.
-     */
-    size_t vertexc( void );
-
-    /*! \brief Return vertex \a i coordinates.
-     */
-    Vec3D vertex( uint32_t i ) const;
-
-    /*! \brief Return number of triangles.
-     */
-    size_t trianglec( void );
-
-    /*! \brief Return vertex triangle \a i.
-     */
-    const VTriangle &vtriangle( uint32_t i ) const;
-
     /*! \brief Return if point \a x is inside solid.
-     *
-     *  Uses algorithm from R. Segura, F. R. Feito, J. Ruiz de Miras,
-     *  C. Ogayar and J. C. Torres, "An Efficient Point Classification
-     *  Algorithm for Triangle Meshes", Journal of Graphics, GPU, and
-     *  Game Tools 10, issue 3, 2005.
      */
-    bool inside( const Vec3D &x );
+    bool inside( const Vec3D &x ) {
+	return( _solid.inside( x ) );
+    }
 
-    /*! \brief Return bounding box of entity
+    /*! \brief Return bounding box in vectors \a min and \a max.
      */
-    void get_bbox( Vec3D &min, Vec3D &max ) const;
+    void get_bbox( Vec3D &min, Vec3D &max ) const {
+	_solid.get_bbox( min, max );
+    }
 
     /*! \brief Print debugging information to os.
      */

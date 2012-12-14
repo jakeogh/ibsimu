@@ -57,6 +57,7 @@
 
 
 //#define DEBUG_BRACKET_SURFACE 1
+//#define MC_DEBUG 1
 
 
 Bound::Bound( bound_e type, double value ) 
@@ -350,6 +351,21 @@ bool Geometry::inside( uint32_t n, const Vec3D &x ) const
 }
 
 
+uint32_t Geometry::mesh_check( int32_t i, int32_t j ) const
+{
+    if( i < 0 )
+	return( SMESH_NODE_ID_DIRICHLET | 1 );
+    else if( i >= _size[0] )
+	return( SMESH_NODE_ID_DIRICHLET | 2 );
+    if( j < 0 )
+	return( SMESH_NODE_ID_DIRICHLET | 3 );
+    else if( j >= _size[1] )
+	return( SMESH_NODE_ID_DIRICHLET | 4 );
+
+    return( _smesh[i + j*_size[0]] );
+}
+
+
 uint32_t Geometry::mesh_check( int32_t i, int32_t j, int32_t k ) const
 {
     if( i < 0 )
@@ -365,7 +381,7 @@ uint32_t Geometry::mesh_check( int32_t i, int32_t j, int32_t k ) const
     else if( k >= _size[2] )
 	return( SMESH_NODE_ID_DIRICHLET | 6 );
 
-    return( _smesh[i + j*_size[0] + k*_size[0]*_size[1]] );
+    return( _smesh[i + _size[0]*(j + k*_size[1])] );
 }
 
 
@@ -1591,9 +1607,6 @@ const int Geometry::mc_faces[15*256] = {
 #define MC_V8 128
 
 
-//#define MC_DEBUG 1
-
-
 uint8_t Geometry::mc_case( int32_t i, int32_t j, int32_t k ) const
 {
 #ifdef MC_DEBUG
@@ -1771,7 +1784,7 @@ Vec3D Geometry::mc_surface( int32_t i, int32_t j, int32_t k, uint8_t cn, int32_t
 }
 
 
-int32_t Geometry::mc_trianglec( uint8_t cn ) const
+uint32_t Geometry::mc_trianglec( uint8_t cn ) const
 {
     int32_t offset = 15*cn;
     int32_t ti;
@@ -1790,14 +1803,14 @@ int32_t Geometry::mc_add_vertex_try( const Vec3D &x, int32_t i, int32_t j, int32
 	return( -1 );
 
     uint8_t cn = mc_case( i, j, k );
-    int32_t tricount = mc_trianglec( cn );
-    int32_t triptr = surface_triangle_ptr( i, j, k );
+    uint32_t tricount = mc_trianglec( cn );
+    uint32_t triptr = surface_triangle_ptr( i, j, k );
 
-    for( int32_t a = 0; a < tricount; a++ ) {
-	const VTriangle &tri = _triangle[triptr+a];
-	for( int32_t b = 0; b < 3; b++ ) {
-	    const Vec3D &y = _vertex[tri[b]];
-	    if( norm2(x-y) < _h/512.0 )
+    for( uint32_t a = 0; a < tricount; a++ ) {
+	const VTriangle &tri = _surface.triangle(triptr+a);
+	for( uint32_t b = 0; b < 3; b++ ) {
+	    const Vec3D &y = _surface.vertex(tri[b]);
+	    if( ssqr(x-y) < _surface_eps )
 		return( tri[b] );
 	}
     }
@@ -1806,8 +1819,15 @@ int32_t Geometry::mc_add_vertex_try( const Vec3D &x, int32_t i, int32_t j, int32
 }
 
 
-int32_t Geometry::mc_add_vertex( const Vec3D &x, int32_t i, int32_t j, int32_t k )
+uint32_t Geometry::mc_add_vertex( const Vec3D &x, int32_t i, int32_t j, int32_t k, uint32_t firstv )
 {
+    // Check if vertex x exists in this cell
+    for( uint32_t a = firstv; a < _surface.vertexc(); a++ ) {
+	const Vec3D &y = _surface.vertex(a);
+	if( ssqr(x-y) < _surface_eps )
+	    return( a );
+    }
+
     // Try if vertex x exists in neighbours
     int32_t v;
     if( (v=mc_add_vertex_try( x, i-1, j, k )) != -1 )
@@ -1818,8 +1838,7 @@ int32_t Geometry::mc_add_vertex( const Vec3D &x, int32_t i, int32_t j, int32_t k
 	return( v );
 
     // New vertex
-    _vertex.push_back( x );
-    return( _vertex.size()-1 );
+    return( _surface.add_vertex_no_check( x ) );
 }
 
 
@@ -1841,6 +1860,7 @@ void Geometry::mc_triangulate( int32_t i, int32_t j, int32_t k )
 #endif
 
     // Go through (possible) five triangles
+    uint32_t firstv = _surface.vertexc();
     for( int ti = 0; ti < 5; ti++ ) {
 
 	// If all triangles processed
@@ -1848,16 +1868,15 @@ void Geometry::mc_triangulate( int32_t i, int32_t j, int32_t k )
 	    break;
 
 	// Add vertices
-	int32_t v[3];
+	uint32_t v[3];
 	for( int a = 0; a < 3; a++ ) {
 	    int32_t ei = mc_faces[offset+a];
 	    Vec3D x = mc_surface( i, j, k, cn, ei );
-	    v[a] = mc_add_vertex( x, i, j, k );
+	    v[a] = mc_add_vertex( x, i, j, k, firstv );
 	}
 	
 	// Add triangle
-	_triangle.push_back( VTriangle( v[0], v[1], v[2] ) );
-	
+	_surface.add_triangle( v );
 	offset += 3;
     }
 }
@@ -1875,13 +1894,15 @@ void Geometry::build_surface( void )
 	throw( Error( ERROR_LOCATION, "solid mesh not built" ) );
 
     // Clear old data
-    _vertex.clear();
-    _triangle.clear();
+    _surface.clear();
     _triptr.clear();
 
     // Reserve cube to triangle pointer array
     Int3D csize( _size[0]-1, _size[1]-1, _size[2]-1 );
     _triptr.reserve( csize[0]*csize[1]*csize[2] );
+
+    // Precalculate vertex matching tolerance
+    _surface_eps = (_h/512.0)*(_h/512.0);
 
     // Go though all cubes
     for( int32_t k = 0; k < csize[2]; k++ ) {
@@ -1889,7 +1910,7 @@ void Geometry::build_surface( void )
 	    for( int32_t i = 0; i < csize[0]; i++ ) {
 
 		// Set triangle pointer
-		_triptr.push_back( _triangle.size() );
+		_triptr.push_back( _surface.trianglec() );
 
 		// Construct triangulation for (i,j,k)
 		mc_triangulate( i, j, k );
@@ -1898,11 +1919,409 @@ void Geometry::build_surface( void )
     }
 
     t.stop();
-    ibsimu.message( 1 ) << _triangle.size() << " triangles\n";
-    ibsimu.message( 1 ) << _vertex.size() << " vertices\n";
+    ibsimu.message( 1 ) << _surface.trianglec() << " triangles\n";
+    ibsimu.message( 1 ) << _surface.vertexc() << " vertices\n";
     ibsimu.message( 1 ) << "Done.\n";
     ibsimu.message( 1 ) << "time used = " << t << "\n";
     ibsimu.dec_indent();
+}
+
+
+uint8_t Geometry::surface_cell_face_case_2d( const int32_t i[3], const int32_t vb[3] ) const
+{
+    int res = 0;
+    uint32_t node;
+    int32_t j[3] = { i[0], i[1], i[2] };
+
+    // Node 1 (x,y)
+    node = mesh( (j[2]*_size[1] + j[1])*_size[0] + j[0] );
+    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	res += 1;
+
+    // Node 2 (x+1,y)
+    j[vb[0]]++;
+    node = mesh( (j[2]*_size[1] + j[1])*_size[0] + j[0] );
+    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	res += 2;
+
+    // Node 3 (x+1,y+1)
+    j[vb[1]]++;
+    node = mesh( (j[2]*_size[1] + j[1])*_size[0] + j[0] );
+    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	res += 4;
+
+    // Node 4 (x,y+1)
+    j[vb[0]]--;
+    node = mesh( (j[2]*_size[1] + j[1])*_size[0] + j[0] );
+    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	res += 8;
+
+    return( res );
+}
+
+
+double Geometry::surface_cell_face_dist( const int32_t i[3], const int32_t vb[3], 
+					 int32_t dx, int32_t dy, 
+					 int32_t dir ) const
+{
+    int32_t j[3] = { i[0], i[1], i[2] };
+    j[vb[0]] += dx;
+    j[vb[1]] += dy;
+    return( solid_dist( j[0], j[1], j[2], dir )/255.0 );
+}
+
+
+uint32_t Geometry::surface_cell_face_add_vertex( VTriangleSurfaceSolid &solid,
+						 const int32_t i[3], const int32_t vb[3], 
+						 double dx, double dy ) const
+{
+    double u[3] = { i[0], i[1], i[2] };
+    u[vb[0]] += dx;
+    u[vb[1]] += dy;
+
+    Vec3D x( _origo[0]+_h*u[0], _origo[1]+_h*u[1], _origo[2]+_h*u[2] );
+    return( solid.add_vertex( x ) );
+}
+
+
+void Geometry::surface_cell_face_add_triangles( VTriangleSurfaceSolid &solid,
+						int32_t i0, int32_t i1, int32_t i2, 
+						int32_t vb0, int32_t vb1, int32_t vb2 ) const 
+{
+    int32_t i[3] = { i0, i1, i2 };
+    int32_t vb[3] = { vb0, vb1, vb2 };
+    surface_cell_face_add_triangles( solid, i, vb );
+}
+
+
+void Geometry::surface_cell_face_add_triangles( VTriangleSurfaceSolid &solid,
+					       const int32_t i[3], const int32_t vb[3] ) const
+{
+    uint8_t cn = surface_cell_face_case_2d( i, vb );
+    double dist;
+    double dist2;
+    uint32_t v[3];
+    switch( cn ) {
+    case 0:
+	break;
+    case 1:
+	dist = surface_cell_face_dist( i, vb, 1, 0, 2*vb[0] );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 1.0-dist, 0.0 );
+	dist = surface_cell_face_dist( i, vb, 0, 1, 2*vb[1] );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0-dist );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 0.0 );
+	solid.add_triangle( v );
+	break;
+    case 2:
+	dist = surface_cell_face_dist( i, vb, 0, 0, 2*vb[0]+1 );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, dist, 0.0 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 0.0 );
+	dist = surface_cell_face_dist( i, vb, 1, 1, 2*vb[1] );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0-dist );
+	solid.add_triangle( v );
+	break;
+    case 3:
+	dist = surface_cell_face_dist( i, vb, 0, 1, 2*vb[1] );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0-dist );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 0.0 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 0.0 );
+	solid.add_triangle( v );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0-dist );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 0.0 );
+	dist = surface_cell_face_dist( i, vb, 1, 1, 2*vb[1] );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0-dist );
+	solid.add_triangle( v );
+	break;
+    case 4:
+	dist = surface_cell_face_dist( i, vb, 0, 1, 2*vb[0]+1 );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, dist, 1.0 );
+	dist = surface_cell_face_dist( i, vb, 1, 0, 2*vb[1]+1 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 1.0, dist );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0 );
+	solid.add_triangle( v );
+	break;
+    case 5:
+	dist = surface_cell_face_dist( i, vb, 0, 1, 2*vb[1] );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0-dist );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 0.0 );
+	dist = surface_cell_face_dist( i, vb, 1, 0, 2*vb[0] );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0-dist, 0.0 );
+	solid.add_triangle( v );
+	dist = surface_cell_face_dist( i, vb, 0, 1, 2*vb[0]+1 );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, dist, 1.0 );
+	dist = surface_cell_face_dist( i, vb, 1, 0, 2*vb[1]+1 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 1.0, dist );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0 );
+	solid.add_triangle( v );
+	break;
+    case 6:
+	dist = surface_cell_face_dist( i, vb, 0, 1, 2*vb[0]+1 );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, dist, 1.0 );
+	dist = surface_cell_face_dist( i, vb, 0, 0, 2*vb[0]+1 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, dist, 0.0 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0 );
+	solid.add_triangle( v );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, dist, 0.0 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 0.0 );
+	solid.add_triangle( v );
+	break;
+    case 7:
+	dist = surface_cell_face_dist( i, vb, 0, 1, 2*vb[1] );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0-dist );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 0.0 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 0.0 );
+	solid.add_triangle( v );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 0.0 );
+	dist2 = surface_cell_face_dist( i, vb, 0, 1, 2*vb[1] );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, dist2, 1.0 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0-dist );
+	solid.add_triangle( v );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 0.0 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, dist2, 1.0 );
+	solid.add_triangle( v );
+	break;
+    case 8:
+	dist = surface_cell_face_dist( i, vb, 0, 0, 2*vb[1]+1 );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 0.0, dist );
+	dist = surface_cell_face_dist( i, vb, 1, 1, 2*vb[0] );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 1.0-dist, 1.0 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0 );
+	solid.add_triangle( v );
+	break;
+    case 9:
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 0.0 );
+	dist = surface_cell_face_dist( i, vb, 1, 1, 2*vb[0] );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0-dist, 1.0 );
+	solid.add_triangle( v );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 1.0-dist, 1.0 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 0.0 );
+	dist = surface_cell_face_dist( i, vb, 1, 0, 2*vb[0] );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0-dist, 0.0 );
+	solid.add_triangle( v );
+	break;
+    case 10:
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0 );
+	dist = surface_cell_face_dist( i, vb, 0, 0, 2*vb[1]+1 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 0.0, dist );
+	dist = surface_cell_face_dist( i, vb, 1, 1, 2*vb[0] );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0-dist, 1.0 );
+	solid.add_triangle( v );
+	dist = surface_cell_face_dist( i, vb, 0, 0, 2*vb[0]+1 );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, dist, 0.0 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 0.0 );
+	dist = surface_cell_face_dist( i, vb, 1, 1, 2*vb[1] );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0-dist );
+	solid.add_triangle( v );
+	break;
+    case 11:
+	dist = surface_cell_face_dist( i, vb, 1, 1, 2*vb[0] );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 1.0-dist, 1.0 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 0.0 );
+	solid.add_triangle( v );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 0.0 );
+	dist2 = surface_cell_face_dist( i, vb, 1, 1, 2*vb[1] );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0-dist2 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0-dist, 1.0 );
+	solid.add_triangle( v );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 0.0 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 0.0 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0-dist2 );
+	solid.add_triangle( v );
+	break;
+    case 12:
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0 );
+	dist = surface_cell_face_dist( i, vb, 0, 0, 2*vb[1]+1 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 0.0, dist );
+	dist = surface_cell_face_dist( i, vb, 1, 0, 2*vb[1]+1 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0, dist );
+	solid.add_triangle( v );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 1.0, dist );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0 );
+	solid.add_triangle( v );
+	break;
+    case 13:
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 0.0 );
+	dist = surface_cell_face_dist( i, vb, 1, 0, 2*vb[0] );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0-dist, 0.0 );
+	solid.add_triangle( v );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 1.0-dist, 0.0 );
+	dist2 = surface_cell_face_dist( i, vb, 1, 0, 2*vb[1]+1 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 1.0, dist2 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0 );
+	solid.add_triangle( v );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 1.0, dist2 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0 );
+	solid.add_triangle( v );
+	break;
+    case 14:
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0 );
+	dist = surface_cell_face_dist( i, vb, 0, 0, 2*vb[1]+1 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 0.0, dist );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0 );
+	solid.add_triangle( v );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 0.0, dist );
+	dist2 = surface_cell_face_dist( i, vb, 0, 0, 2*vb[0]+1 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, dist2, 0.0 );
+	solid.add_triangle( v );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, dist2, 0.0 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 0.0 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0 );
+	solid.add_triangle( v );
+	break;
+    case 15:
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 0.0 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 0.0 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0 );
+	solid.add_triangle( v );
+	v[0] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 1.0 );
+	v[1] = surface_cell_face_add_vertex( solid, i, vb, 0.0, 1.0 );
+	v[2] = surface_cell_face_add_vertex( solid, i, vb, 1.0, 0.0 );
+	solid.add_triangle( v );
+	break;
+    }
+}
+
+
+uint32_t Geometry::surface_inside( const Vec3D &x ) const
+{
+    // Grid cell
+    int32_t i[3];
+    for( int a = 0; a < 3; a++ ) {
+	i[a] = floor( (x[a]-_origo[a])*_div_h );
+	if( i[a] < 0 )
+	    return( 2*a+1 );
+	else if( i[a] >= _size[a]-1 )
+	    return( 2*a+2 );
+    }
+
+    //ibsimu.message(1) << "surface_inside()\n";
+    //ibsimu.message(1) << "x = " << x << "\n";
+    //ibsimu.message(1) << "(i,j,k) = (" << i[0] << ", " << i[1] << ", " << i[2] << ")\n";
+
+    // Check if point is trivially inside or outside according to
+    // solid mesh (case numbers 0 and 255).
+    uint8_t cn = mc_case( i[0], i[1], i[2] );
+    uint32_t ptr = (i[2]*_size[1] + i[1])*_size[0] + i[0];
+    uint32_t node = _smesh[ptr];
+
+    //ibsimu.message(1) << "cn = " << (int)cn << "\n";
+    
+    if( cn == 0 )
+	return( 0 );
+    else if( cn == 255 )
+	return( node & SMESH_BOUNDARY_NUMBER_MASK );
+
+    // Build triangulated boundary representation of the solid in the
+    // grid cell to resolve inclusion.
+    VTriangleSurfaceSolid solid;
+    double dx = _h/512.0;
+    solid.set_vertex_matching_eps( dx );
+    solid.set_signed_volume_eps( dx*dx*dx );
+
+    // Go through (possible) five triangles
+    int offset = 15*cn;
+    for( int ti = 0; ti < 5; ti++ ) {
+
+	// If all triangles processed
+	if( mc_faces[offset] == -1 )
+	    break;
+
+	// Add vertices
+	uint32_t v[3];
+	for( int a = 0; a < 3; a++ ) {
+	    int32_t ei = mc_faces[offset+a];
+	    v[2-a] = solid.add_vertex( mc_surface( i[0], i[1], i[2], cn, ei ) );
+	}
+	solid.add_triangle( v );
+
+	offset += 3;
+    }
+
+    // Add bounds of grid cell on six faces: -x, +x, -y, +y, -z, +z
+    surface_cell_face_add_triangles( solid, i[0],   i[1],   i[2],   2, 1, 0 );
+    surface_cell_face_add_triangles( solid, i[0]+1, i[1],   i[2],   1, 2, 0 );
+    surface_cell_face_add_triangles( solid, i[0],   i[1],   i[2],   0, 2, 1 );
+    surface_cell_face_add_triangles( solid, i[0],   i[1]+1, i[2],   2, 0, 1 );
+    surface_cell_face_add_triangles( solid, i[0],   i[1],   i[2],   1, 0, 2 );
+    surface_cell_face_add_triangles( solid, i[0],   i[1],   i[2]+1, 0, 1, 2 );
+
+    solid.prepare_for_inside();
+
+    //solid.check_data();
+    //solid.debug_print( ibsimu.message(1) );
+    
+    // Shouldn't test close to edges to avoid errors on faces inside
+    // solids. Isn't critical on faces at least partially outside.
+    Vec3D y = x;
+    double dd = _h/256;
+    for( int a = 0; a < 3; a++ ) {
+	double s = y[a]-(_origo[a]+_h*i[a]);
+	if( fabs(s) < dd ) {
+	    //ibsimu.message(1) << "close to face min, adjusting\n";
+	    y[a] += dd;
+	} else if( fabs(s-_h) < dd ) {
+	    //ibsimu.message(1) << "close to face max, adjusting\n";
+	    y[a] -= dd;
+	}
+    }
+
+    if( solid.inside( y ) ) {
+	//ibsimu.message(1) << "inside\n";
+	return( surface_inside_solid_number(i[0],i[1],i[2]) );
+    }
+
+    //ibsimu.message(1) << "not inside\n";
+    return( 0 );
+}
+
+
+uint32_t Geometry::surface_inside_solid_number( int32_t i, int32_t j,int32_t k ) const
+{
+    uint32_t ptr = (k*_size[1] + j)*_size[0] + i;
+    uint32_t node = _smesh[ptr];
+    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	return( node & SMESH_BOUNDARY_NUMBER_MASK );    
+    node = _smesh[ptr+1];
+    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	return( node & SMESH_BOUNDARY_NUMBER_MASK );
+    node = _smesh[ptr+_size[0]];
+    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	return( node & SMESH_BOUNDARY_NUMBER_MASK );
+    node = _smesh[ptr+_size[0]+1];
+    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	return( node & SMESH_BOUNDARY_NUMBER_MASK );
+
+    ptr += _size[1]*_size[0];
+    node = _smesh[ptr];
+    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	return( node & SMESH_BOUNDARY_NUMBER_MASK );    
+    node = _smesh[ptr+1];
+    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	return( node & SMESH_BOUNDARY_NUMBER_MASK );
+    node = _smesh[ptr+_size[0]];
+    if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
+	(node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
+	return( node & SMESH_BOUNDARY_NUMBER_MASK );
+    node = _smesh[ptr+_size[0]+1];
+    return( node & SMESH_BOUNDARY_NUMBER_MASK );
 }
 
 

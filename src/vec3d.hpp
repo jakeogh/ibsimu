@@ -2,7 +2,7 @@
  *  \brief Three dimensional vectors.
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -249,6 +249,10 @@ public:
      */
     friend double norm2( const Vec3D &vec );
 
+    /*! \brief Sum of squares or square of 2-norm of vector.
+     */
+    friend double ssqr( const Vec3D &vec );
+
     /*! \brief %Vector scaling.
      */
     friend Vec3D operator*( double x, const Vec3D &vec );
@@ -265,6 +269,11 @@ public:
 
 inline double norm2( const Vec3D &vec ) {
     return( vec.norm2() );
+}
+
+
+inline double ssqr( const Vec3D &vec ) {
+    return( vec.ssqr() );
 }
 
 

@@ -387,16 +387,34 @@ template <class PP> class ParticleIterator {
      *  triangles in grid cell i.
      */
     bool check_collision_surface( Particle<PP> &particle, const PP &x1, const PP &x2, 
-				  PP &status_x, const int i[3] ) {
+				  PP &status_x, const int32_t i[3] ) {
 
 	DEBUG_MESSAGE( "Checking collisions with solids - surface check\n" );
 	DEBUG_INC_INDENT();
 
+	if( i[0] < 0 )
+	    return( true );
+	else if( i[0] >= (int32_t)_pidata._geom->size(0)-1 )
+	    return( true );
+	else if( i[1] < 0 )
+	    return( true );
+	else if( i[1] >= (int32_t)_pidata._geom->size(1)-1 )
+	    return( true );
+	else if( i[2] < 0 )
+	    return( true );
+	else if( i[2] >= (int32_t)_pidata._geom->size(2)-1 )
+	    return( true );
+
 	Vec3D v1 = x1.location();
 	Vec3D v2 = x2.location();
-	
+
+	DEBUG_MESSAGE( "v1 = " << v1 << "\n" );
+	DEBUG_MESSAGE( "v2 = " << v2 << "\n" );
+
 	int32_t tric = _pidata._geom->surface_trianglec( i[0], i[1], i[2] );
 	int32_t ptr = _pidata._geom->surface_triangle_ptr( i[0], i[1], i[2] );
+
+	DEBUG_MESSAGE( "tric = " << tric << "\n" );
 
 	// Go through surface triangles at mesh cube i
 	for( int32_t a = 0; a < tric; a++ ) {
@@ -404,6 +422,10 @@ template <class PP> class ParticleIterator {
 	    const Vec3D &va = _pidata._geom->surface_vertex( tri[0] );
 	    const Vec3D &vb = _pidata._geom->surface_vertex( tri[1] );
 	    const Vec3D &vc = _pidata._geom->surface_vertex( tri[2] );
+
+	    DEBUG_MESSAGE( "tri[" << a << "][0] = " << va << "\n" );
+	    DEBUG_MESSAGE( "tri[" << a << "][1] = " << vb << "\n" );
+	    DEBUG_MESSAGE( "tri[" << a << "][2] = " << vc << "\n" );
 
 	    // Solve for intersection between trajectory segment and surface triangle
 	    // r1 + (r2-r1)*K[0] = ra + (rb-ra)*K[1] + (rc-ra)*K[2]
@@ -416,6 +438,7 @@ template <class PP> class ParticleIterator {
 	    Mat3D minv = m.inverse( mdet );
 	    Vec3D off( -v1[0]+va[0], -v1[1]+va[1], -v1[2]+va[2] );
 	    Vec3D K = minv*off;
+	    DEBUG_MESSAGE( "K = " << K << "\n" );
 
 	    // Check for intersection at valid ranges
 	    // Allow COLLISION_EPS amount of overlap, double inclusion is 
@@ -423,6 +446,8 @@ template <class PP> class ParticleIterator {
 	    if( K[0] > -COLLISION_EPS && K[0] < 1.0+COLLISION_EPS && 
 		K[1] > -COLLISION_EPS && K[1] < 1.0+COLLISION_EPS && 
 		K[2] > -COLLISION_EPS && K[2] < 1.0+COLLISION_EPS ) {
+
+		DEBUG_MESSAGE( "Intersection found\n" );
 
 		// Found intersection, set collision coordinates
 		for( size_t a = 0; a < PP::size(); a++ )
@@ -442,14 +467,14 @@ template <class PP> class ParticleIterator {
 		uint32_t solid = get_solid( i[0], i[1], i[2] );
 		_stat.add_bound_collision( solid, particle.IQ() );
 
-		DEBUG_MESSAGE( "Solid collision detected" );
+		DEBUG_MESSAGE( "Solid collision detected\n" );
 		DEBUG_DEC_INDENT();
 
 		return( false );
 	    }
 	}
 
-	DEBUG_MESSAGE( "No collisions" );
+	DEBUG_MESSAGE( "No collisions\n" );
 	DEBUG_DEC_INDENT();
 
 	return( true );
@@ -473,7 +498,7 @@ template <class PP> class ParticleIterator {
 	Vec3D v2 = x2.location();
 	int32_t bound = _pidata._geom->inside( v2 );
 	if( bound < 7 ) {
-	    DEBUG_MESSAGE( "No collisions" );
+	    DEBUG_MESSAGE( "No collisions\n" );
 	    DEBUG_DEC_INDENT();
 	    return( true );
 	}
@@ -500,7 +525,7 @@ template <class PP> class ParticleIterator {
 	// Update collision statistics for boundary
 	_stat.add_bound_collision( bound, particle.IQ() );
 
-	DEBUG_MESSAGE( "Solid collision detected" );
+	DEBUG_MESSAGE( "Solid collision detected\n" );
 	DEBUG_DEC_INDENT();
 
 	return( false );
@@ -604,7 +629,7 @@ template <class PP> class ParticleIterator {
     /*! \brief Return if node (i,j) is a solid node
      */
     bool is_solid( int i, int j ) {
-	uint32_t node = _pidata._geom->mesh( i, j );
+	uint32_t node = _pidata._geom->mesh_check( i, j );
 	if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
 	    (node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
 	    return( true );
@@ -614,7 +639,7 @@ template <class PP> class ParticleIterator {
     /*! \brief Return if node (i,j,k) is a solid node
      */
     bool is_solid( int i, int j, int k ) {
-	uint32_t node = _pidata._geom->mesh( i, j, k );
+	uint32_t node = _pidata._geom->mesh_check( i, j, k );
 	if( (node & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET &&
 	    (node & SMESH_BOUNDARY_NUMBER_MASK) >= 7 )
 	    return( true );
@@ -844,7 +869,7 @@ template <class PP> class ParticleIterator {
 	// Starting mesh index
 	int i[3] = {0, 0, 0};
 	for( size_t cdir = 0; cdir < PP::dim(); cdir++ )
-	    i[cdir] = (int)floor( (x1[2*cdir+1]-_pidata._geom->origo(cdir))/_pidata._geom->h() );
+	    i[cdir] = (int)floor( (x1[2*cdir+1]-_pidata._geom->origo(cdir))*_pidata._geom->div_h() );
 
 	// Process intersection points
 	DEBUG_MESSAGE( "Process coldata points:\n" );
@@ -998,10 +1023,18 @@ template <class PP> class ParticleIterator {
 	}
 
 	// Check if inside solids or outside simulation geometry box.
-	if( _pidata._geom->inside( x.location() ) ) {
-	    DEBUG_MESSAGE( "Particle inside solid or outside simulation\n" );
-	    DEBUG_DEC_INDENT();
-	    return( false );
+	if( _surface_collision ) {
+	    if( _pidata._geom->surface_inside( x.location() ) ) {
+		DEBUG_MESSAGE( "Particle inside solid or outside simulation\n" );
+		DEBUG_DEC_INDENT();
+		return( false );
+	    }
+	} else { 
+	    if( _pidata._geom->inside( x.location() ) ) {
+		DEBUG_MESSAGE( "Particle inside solid or outside simulation\n" );
+		DEBUG_DEC_INDENT();
+		return( false );
+	    }
 	}
 
 	// Check if particle on simulation geometry border and directed outwards

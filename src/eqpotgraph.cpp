@@ -307,23 +307,3 @@ void EqPotGraph::get_bbox( double bbox[4] )
     bbox[2] = _geom.max( _vb[0] );
     bbox[3] = _geom.max( _vb[1] );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
