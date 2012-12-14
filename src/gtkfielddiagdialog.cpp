@@ -403,7 +403,7 @@ void GTKFieldDiagDialog::run( void )
     gtk_box_pack_start( GTK_BOX(hbox), radio_g2_scharge, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
-    // Bfield components
+    // Bfield components available
     bool bfield_fout[3] = {false, false, false};
     if( _plotter->get_bfield() ) {
 	const VectorField *bfield = _plotter->get_bfield();
@@ -413,6 +413,9 @@ void GTKFieldDiagDialog::run( void )
 	    meshbfield->get_defined_components( bfield_fout );
 	else if( multimeshbfield != NULL )
 	    multimeshbfield->get_defined_components( bfield_fout );
+	else {
+	    bfield_fout[0] = bfield_fout[1] = bfield_fout[2] = true;
+	}
     }
 
     // B
