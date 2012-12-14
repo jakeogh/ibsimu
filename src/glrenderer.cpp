@@ -42,7 +42,6 @@
 
 
 #include <GL/gl.h>
-#include <GL/glu.h>
 #include "glrenderer.hpp"
 #include "ibsimu.hpp"
 
