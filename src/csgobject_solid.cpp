@@ -43,6 +43,7 @@
 #include <iostream>
 #include "csgobject_solid.hpp"
 #include "error.hpp"
+#include "ibsimu.hpp"
 
 
 CSGObjectSolid::CSGObjectSolid( std::istream &s )
