@@ -108,7 +108,7 @@ Mesh::Mesh( std::istream &is )
 }
 
 
-int32_t Mesh::dim( void ) const
+uint32_t Mesh::dim( void ) const
 {
     switch( _geom_mode ) {
     case MODE_1D:

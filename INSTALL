@@ -31,10 +31,14 @@ The very latest source code, known as the "development version" is
 available through the source repository accessible with source code
 management tool git. For the first time, you can fetch the code with:
 
-git clone git://ibsimu.git.sourceforge.net/gitroot/ibsimu/ibsimu
+tvkalvas@PHYS78 ~/src
+$ git clone git://ibsimu.git.sourceforge.net/gitroot/ibsimu/ibsimu
 
 This will create the directory "ibsimu", which contains the code and
 it's code repository. After that you can just do the following:
+
+tvkalvas@PHYS78 ~/src
+$ cd ibsimu
 
 tvkalvas@PHYS78 ~/src/ibsimu
 $ git pull
@@ -51,7 +55,7 @@ $ make
 tvkalvas@PHYS78 ~/src/ibsimu
 $ make install
 
-to update ibsimu.
+to update ibsimu at any time to the most recent version.
 
 Please note that the code obtained with git might not be
 compilable. If it is not, you can try to use an older version of the
@@ -66,6 +70,17 @@ with the version number and the date of last modification. For
 example:
 
 Ion Beam Simulator 1.0.5dev (4b805c4, Fri Oct 7 16:00:31 2011 +0300)
+
+Currently (from summer 2012 onwards) there are big changes going on
+with IBSimu and most of the development is being done on a different
+branch called "new_solver".  After cloning the repository you can
+change to the new_solver branch with
+
+tvkalvas@PHYS78 ~/src/ibsimu
+$ git checkout new_solver
+
+After the next release (version 1.0.6) the new_solver branch will
+merge with master branch again.
 
 A web interface for ibsimu git repository is available at
 
@@ -261,7 +276,7 @@ This is everything you have to have to be able to start compiling
 IBSimu. You might want to install Constructive Solid Geometry library
 CSG and SuiteSparse libraries from the IBSimu website for additional
 features, but I won't cover those in this document. Read the README
-files which come with the packages for information.  
+files which come with the packages for information.
 
 
 Compilation
@@ -281,11 +296,16 @@ $ cd libibsimu-1.0.2
 tvkalvas@PHYS78 ~/src/libibsimu-1.0.2
 $ ./configure --prefix=/home/tvkalvas
 
-The configuration script has several options that you can tune to
-select optional features, for example --with-umfpack to compile the
-UMFPACK solver, --with-csg to compile CSG solids,
---disable-sigsegv_stack to disable stack printing on segmentation
-faults, etc. After successful configuration you can compile, run the
+The configuration script works mostly automatically, but it also has
+several options that you can tune to de-select some optional features,
+for example --without-opengl to compile without OpenGL renderer
+(requires GtkGLExt), --without-umfpack to compile without the UMFPACK
+solver (requires SuiteSparse) and --without-csg to compile without CSG
+solids (requires Constructive Solid Geometry library). The
+requirements for these three options are automatically detected. You
+can also do --disable-sigsegv_stack to disable stack printing on
+segmentation faults, etc. This is necessary on non-x86
+computers. After successful configuration you can compile, run the
 checks and install:
 
 tvkalvas@PHYS78 ~/src/libibsimu-1.0.2
@@ -340,4 +360,4 @@ Please read more instructions from the tutorial.
 
 
 
--- Taneli Kalvas <taneli.kalvas@jyu.fi>, 10 Nov 2011
+-- Taneli Kalvas <taneli.kalvas@jyu.fi>, 12 Dec 2012

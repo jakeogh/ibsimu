@@ -50,8 +50,6 @@ epot_mgsolver.cpp \
 epot_mgsolver.hpp \
 epot_mgsubsolver.cpp \
 epot_mgsubsolver.hpp \
-epot_rbgssolver.cpp \
-epot_rbgssolver.hpp \
 epot_solver.cpp \
 epot_solver.hpp \
 eqpotgraph.cpp \
@@ -278,7 +276,6 @@ epot_gssolver.hpp \
 epot_matrixsolver.hpp \
 epot_mgsolver.hpp \
 epot_mgsubsolver.hpp \
-epot_rbgssolver.hpp \
 epot_solver.hpp \
 eqpotgraph.hpp \
 error.hpp \

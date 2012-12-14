@@ -2,7 +2,7 @@
  *  \brief Multigrid solver for electric potential problem
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -75,9 +75,10 @@ class EpotMGSolver : public EpotSolver {
     
     void print_field( const MeshScalarField *F );
 
-    uint32_t number_of_dimensions( void ) const;
     void prepare_mg_geom( void );
 
+    double near_solid_neumann_rhs_contribution( uint32_t i, uint32_t j, uint32_t k, 
+						uint8_t bindex, const Vec3D &x ) const;
     void preprocess( MeshScalarField &epot, const MeshScalarField &scharge );
     void postprocess( void );
 
@@ -100,7 +101,7 @@ class EpotMGSolver : public EpotSolver {
     void prolong_1d( MeshScalarField *out, const MeshScalarField *in );
     void prolong( MeshScalarField *out, const MeshScalarField *in );
 
-    void mg_recurse( uint32_t level );
+    void mg_recurse( uint32_t level, std::stringstream &ss );
 
     /*! \brief Reset solver/problem settings.
      */

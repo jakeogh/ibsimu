@@ -21,9 +21,9 @@
 
 #include <fstream>
 #include <iomanip>
-#include "bicgstab_solver.hpp"
-#include "epot_problem.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "geometry.hpp"
+#include "meshscalarfield.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
 #include "ibsimu.hpp"
@@ -50,49 +50,50 @@ double phi2( double x )
 
 void test( int argc, char **argv )
 {
-    bool err = false;
+    bool err1 = false;
+    bool err2 = false;
 
-    Geometry g( MODE_1D, Int3D(11,1,1), Vec3D(0,0,0), 0.01 );
-    g.set_boundary( 1, Bound(BOUND_DIRICHLET,  0.0) );
-    g.set_boundary( 2, Bound(BOUND_NEUMANN,   10.0) );
-    g.build_mesh();
+    Geometry geom( MODE_1D, Int3D(11,1,1), Vec3D(0,0,0), 0.01 );
+    geom.set_boundary( 1, Bound(BOUND_DIRICHLET,  0.0) );
+    geom.set_boundary( 2, Bound(BOUND_NEUMANN,   10.0) );
+    geom.build_mesh();
 
-    EpotProblem p;
-    p.construct( g );
+    MeshScalarField epot( geom );
+    MeshScalarField scharge( geom );
 
-    ScalarField epot( g );
-    ScalarField scharge( g );
-
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
+    EpotBiCGSTABSolver solver( geom );
+    solver.solve( epot, scharge );
 
     ofstream ostr( "solver1d_neumann.dat" );
     ostr << "# "
 	 << setw(12) << "x (m)" << " " 
 	 << setw(14) << "potential (V)" << "\n";
-    for( int a = 0; a < g.size(0); a++ ) {
-	if( fabs( epot(a) - phi1(a*g.h()) ) > 1.0e-4  )
-	    err = true;
-	ostr << setw(14) << a*g.h() << " " 
+    for( uint32_t a = 0; a < geom.size(0); a++ ) {
+	if( fabs( epot(a) - phi1(a*geom.h()) ) > 1.0e-4  )
+	    err1 = true;
+	ostr << setw(14) << a*geom.h() << " " 
 	     << setw(14) << epot(a) << "\n";
     }
     ostr << "\n\n";
+
+    geom.set_boundary( 1, Bound(BOUND_NEUMANN,   10.0) );
+    geom.set_boundary( 2, Bound(BOUND_DIRICHLET,  0.0) );
+    geom.build_mesh();
+    solver.solve( epot, scharge );
+
+    for( uint32_t a = 0; a < geom.size(0); a++ ) {
+	if( fabs( epot(a) - phi2(a*geom.h()) ) > 1.0e-4  )
+	    err2 = true;
+	ostr << setw(14) << a*geom.h() << " " 
+	     << setw(14) << epot(a) << "\n";
+    }
     ostr.close();
 
-    g.set_boundary( 1, Bound(BOUND_NEUMANN,   10.0) );
-    g.set_boundary( 2, Bound(BOUND_DIRICHLET,  0.0) );
-    g.build_mesh();
-    p.construct( g );
-    p.solve( epot, scharge );
-
-    for( int a = 0; a < g.size(0); a++ ) {
-	if( fabs( epot(a) - phi2(a*g.h()) ) > 1.0e-4  )
-	    err = true;
-    }
-
-    if( err ) {
-	std::cout << "Error: solved potential differs from theory\n";
+    if( err1 ) {
+	std::cout << "Error: solved potential differs from theory in case 1\n";
+	exit( 1 );
+    } else if( err2 ) {
+	std::cout << "Error: solved potential differs from theory in case 2\n";
 	exit( 1 );
     }
 }

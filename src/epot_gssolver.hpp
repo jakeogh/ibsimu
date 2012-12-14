@@ -2,7 +2,7 @@
  *  \brief Gauss-Seidel solver for electric potential problem
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -63,33 +63,35 @@ class EpotGSSolver : public EpotSolver {
     
     double gs_loop_3d( void ) const;
     double gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, 
-				     uint32_t a, uint32_t dj, uint32_t dk ) const;
+				     uint32_t a, uint32_t dj, uint32_t dk, uint8_t bindex ) const;
     double gs_process_pure_vacuum_3d( uint32_t a, uint32_t dj, uint32_t dk ) const;
-    double gs_process_neumann_3d( uint32_t boundary, uint32_t a,
-				  uint32_t dj, uint32_t dk ) const;
+    double gs_process_neumann_3d( uint32_t a, uint32_t dj, uint32_t dk, uint8_t bindex ) const;
 
 
     double gs_loop_cyl( void ) const;
     double gs_process_near_solid_cyl( const uint8_t *nearsolid_ptr, 
-				     uint32_t i, uint32_t j ) const;
+				      uint32_t i, uint32_t j, uint8_t bindex ) const;
     double gs_process_pure_vacuum_cyl( uint32_t i, uint32_t j ) const;
-    double gs_process_neumann_cyl( uint32_t boundary, uint32_t a, uint32_t dj ) const;
+    double gs_process_neumann_cyl( uint32_t i, uint32_t j, uint8_t bindex ) const;
 
 
     double gs_loop_2d( void ) const;
     double gs_process_near_solid_2d( const uint8_t *nearsolid_ptr, 
-				     uint32_t a, uint32_t dj ) const;
+				     uint32_t a, uint32_t dj,
+				     uint8_t bindex ) const;
     double gs_process_pure_vacuum_2d( uint32_t a, uint32_t dj ) const;
-    double gs_process_neumann_2d( uint32_t boundary, uint32_t a, uint32_t dj ) const;
+    double gs_process_neumann_2d( uint32_t a, uint32_t dj, uint8_t bindex ) const;
 
 
     double gs_loop_1d( void ) const;
     double gs_process_near_solid_1d( const uint8_t *nearsolid_ptr, 
-				     uint32_t i ) const;
+				     uint32_t i, uint8_t bindex ) const;
     double gs_process_pure_vacuum_1d( uint32_t i ) const;
-    double gs_process_neumann_1d( uint32_t boundary, uint32_t i ) const;
+    double gs_process_neumann_1d( uint32_t i, uint8_t bindex ) const;
 
 
+    double near_solid_neumann_rhs_contribution( uint32_t i, uint32_t j, uint32_t k, 
+						uint8_t bindex, const Vec3D &x ) const;
     void preprocess( const MeshScalarField &scharge );
     void postprocess( void );
 

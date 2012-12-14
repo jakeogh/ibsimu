@@ -9,8 +9,8 @@
 #include <fstream>
 #include <iomanip>
 #include "geomplotter.hpp"
-#include "bicgstab_solver.hpp"
-#include "epot_problem.hpp"
+#include "epot_bicgstabsolver.hpp"
+#include "meshscalarfield.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
@@ -50,13 +50,10 @@ void test( int argc, char **argv )
     geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
     geom.build_mesh();
 
-    EpotProblem p;
-    p.construct( geom );
-
-    ScalarField epot( geom );
-    ScalarField scharge( geom );
-    for( int a = 0; a < geom.size(0); a++ ) {
-	for( int b = 0; b < geom.size(1); b++ ) {
+    MeshScalarField epot( geom );
+    MeshScalarField scharge( geom );
+    for( uint32_t a = 0; a < geom.size(0); a++ ) {
+	for( uint32_t b = 0; b < geom.size(1); b++ ) {
 	    double x = a*geom.h();
 	    double y = b*geom.h();
 	    if( sqrt(x*x + y*y) < 0.01 )
@@ -64,9 +61,8 @@ void test( int argc, char **argv )
 	}
     }
 
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
+    EpotBiCGSTABSolver solver( geom );
+    solver.solve( epot, scharge );
 
     bool err = false;
     ofstream ostr( "solver2d_cylindrical_beam.dat" );
@@ -76,8 +72,8 @@ void test( int argc, char **argv )
 	 << setw(14) << "r (m)" << " " 
 	 << setw(14) << "potential (V)" << " "
 	 << setw(14) << "theory (V)" << "\n";
-    for( int a = 0; a < geom.size(0); a++ ) {
-	for( int b = 0; b < geom.size(1); b++ ) {
+    for( uint32_t a = 0; a < geom.size(0); a++ ) {
+	for( uint32_t b = 0; b < geom.size(1); b++ ) {
 	    double x = a*geom.h();
 	    double y = b*geom.h();
 	    double r = sqrt(x*x + y*y);

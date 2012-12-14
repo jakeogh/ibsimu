@@ -124,6 +124,15 @@ enum plasma_mode_e {
     PLASMA_NSIMP
 };
 
+
+#define EPOT_SOLVER_BXMIN 1
+#define EPOT_SOLVER_BXMAX 2
+#define EPOT_SOLVER_BYMIN 4
+#define EPOT_SOLVER_BYMAX 8
+#define EPOT_SOLVER_BZMIN 16
+#define EPOT_SOLVER_BZMAX 32
+
+
 #define PLASMA_INITIAL PLASMA_PEXP_INITIAL
 
 /*! \brief Class for constructing the linear/nonlinear problem for the
@@ -233,11 +242,49 @@ protected:
     std::vector<double> _plE;              /*!< \brief Plasma parameter for negative ion extraction. 
 					    *    1/Ti */
     
-    std::vector<uint32_t> _nsind;          /*!< \brief Stored near solid indexes for Neumann conversion nodes. */
-
 
     void pexp_newton( double &rhs, double &drhs, double epot ) const;
     void nsimp_newton( double &rhs, double &drhs, double epot ) const;
+
+    /*! \brief Return bitmask indicating to which boundaries the node belongs to
+     *
+     *  1D version. The node i is checked. The return value has bits set
+     *  accoding to, which boundaries the node belongs to. The lowest
+     *  bit is xmin, second of xmax, third is ymin, fourth is ymax,
+     *  fifth is zmin, sixth is zmax. If the node isn't a boundary
+     *  node, a 0 is returned.
+     */
+    uint8_t boundary_index( uint32_t i ) const;
+
+    /*! \brief Return bitmask indicating to which boundaries the node belongs to
+     *
+     *  2D version. The node (i,j) is checked. The return value has bits set
+     *  accoding to, which boundaries the node belongs to. The lowest
+     *  bit is xmin, second of xmax, third is ymin, fourth is ymax,
+     *  fifth is zmin, sixth is zmax. If the node isn't a boundary
+     *  node, a 0 is returned.
+     */
+    uint8_t boundary_index( uint32_t i, uint32_t j ) const;
+
+    /*! \brief Return bitmask indicating to which boundaries the node belongs to
+     *
+     *  3D version. The node (i,j,k) is checked. The return value has bits set
+     *  accoding to, which boundaries the node belongs to. The lowest
+     *  bit is xmin, second of xmax, third is ymin, fourth is ymax,
+     *  fifth is zmin, sixth is zmax. If the node isn't a boundary
+     *  node, a 0 is returned.
+     */
+    uint8_t boundary_index( uint32_t i, uint32_t j, uint32_t k ) const;
+
+    /*! \brief Return bitmask indicating to which boundaries the node belongs to
+     *
+     *  Version applicable to all dimensions. The node (i,j,k) is
+     *  checked. The return value has bits set accoding to, which
+     *  boundaries the node belongs to. The lowest bit is xmin, second
+     *  of xmax, third is ymin, fourth is ymax, fifth is zmin, sixth
+     *  is zmax. If the node isn't a boundary node, a 0 is returned.
+     */
+    uint8_t boundary_index_general( uint32_t i, uint32_t j, uint32_t k ) const;
 
     /*! \brief Do preprocessing action before solving.
      *

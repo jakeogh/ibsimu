@@ -8,6 +8,8 @@
 #include <fstream>
 #include <iomanip>
 #include "epot_bicgstabsolver.hpp"
+#include "epot_gssolver.hpp"
+#include "epot_mgsolver.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
@@ -40,16 +42,19 @@ double phi( double r )
 
 void test( int argc, char **argv )
 {
-    bool err = false;
-
     Geometry geom( MODE_CYL, Int3D(5,1001,1), Vec3D(0,0,0), 5.0e-5 );
+    //Geometry geom( MODE_CYL, Int3D(33,1001,1), Vec3D(0,0,0), 5.0e-5 );
     geom.set_boundary( 1, Bound(BOUND_NEUMANN,   0.0) );
     geom.set_boundary( 2, Bound(BOUND_NEUMANN,   0.0) );
     geom.set_boundary( 3, Bound(BOUND_NEUMANN,   0.0) );
     geom.set_boundary( 4, Bound(BOUND_DIRICHLET, 0.0) );
     geom.build_mesh();
 
-    EpotBiCGSTABSolver solver( geom );
+    //EpotBiCGSTABSolver solver( geom );
+    //EpotGSSolver solver( geom );
+    //solver.set_imax( 1000000 );
+    EpotMGSolver solver( geom );
+    solver.set_levels( 4 );
     EpotField epot( geom );
     MeshScalarField scharge( geom );
     for( unsigned int a = 0; a < geom.size(0); a++ ) {
@@ -63,13 +68,14 @@ void test( int argc, char **argv )
 
     solver.solve( epot, scharge );
 
+    bool err = false;
     ofstream ostr( "solvercyl_beam.dat" );
     ostr << "# "
 	 << setw(12) << "r (m)" << " " 
 	 << setw(14) << "potential (V)" << " "
 	 << setw(14) << "theory (V)" << "\n";
-    for( unsigned int a = 0; a < geom.size(0); a++ ) {
-	for( unsigned int b = 0; b < geom.size(1); b++ ) {
+    for( uint32_t a = 0; a < geom.size(0); a++ ) {
+	for( uint32_t b = 0; b < geom.size(1); b++ ) {
 	    //double x = a*geom.h();
 	    double r = b*geom.h();
 	    if( r < 0.05 && fabs( (epot(a,b) - phi(r))/phi(r) ) > 0.05 &&

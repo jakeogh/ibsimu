@@ -10,8 +10,8 @@
 #include <fstream>
 #include <iomanip>
 #include "geomplotter.hpp"
-#include "bicgstab_solver.hpp"
-#include "epot_problem.hpp"
+#include "epot_bicgstabsolver.hpp"
+#include "meshscalarfield.hpp"
 #include "geometry.hpp"
 #include "meshvectorfield.hpp"
 #include "func_solid.hpp"
@@ -35,22 +35,17 @@ void test( int argc, char **argv )
     geom.set_boundary( 3, Bound(BOUND_NEUMANN,  0.0) );
     geom.set_boundary( 4, Bound(BOUND_DIRICHLET,  0.0) );
     geom.build_mesh();
+    
+    EpotField epot( geom );
+    MeshScalarField scharge( geom );
 
-    EpotProblem p;
-    p.construct( geom );
+    EpotBiCGSTABSolver solver( geom );
+    solver.solve( epot, scharge );
 
-    ScalarField epot( geom );
-    ScalarField scharge( geom );
-
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
-
-    EpotEfield efield( geom, epot );
+    EpotEfield efield( epot );
     MeshVectorField bfield;
 
     ParticleDataBaseCyl pdb;
-    pdb.set_thread_count( 1 );
     bool pmirror[6] = { false, false, true, false, false, false };
     pdb.set_mirror( pmirror );
     // Neon (m=20) 6+ beam of J = 45 A/m2 with r = 9 mm and R = 3 keV.
@@ -60,7 +55,7 @@ void test( int argc, char **argv )
 				 0.0, 0.0, 
 				 0.0, 0.009 );
     pdb.iterate_trajectories( scharge, efield, bfield, geom );
-    p.solve( epot, scharge );
+    solver.solve( epot, scharge );
 
     // Write calculated space charge and epot to file
     ofstream ostr( "beamcyl_map.dat" );
@@ -70,8 +65,8 @@ void test( int argc, char **argv )
          << setw(14) << "potential (V)" << " "
          << setw(14) << "scharge (C/m3)" << "\n";
     bool err = false;
-    for( int j = 0; j < geom.size(1); j++ ) {
-	for( int i = 0; i < geom.size(0); i++ ) {
+    for( uint32_t j = 0; j < geom.size(1); j++ ) {
+	for( uint32_t i = 0; i < geom.size(0); i++ ) {
 	    Vec3D x( geom.h()*i, geom.h()*j, 0.0  );
 	    if( j == 0 && fabs(scharge(x)-2.64497329883e-4) > 1e-8 )
 		err = true;

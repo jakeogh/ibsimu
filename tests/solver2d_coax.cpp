@@ -70,16 +70,17 @@ bool solid2( double x, double y, double z )
 
 double phi( double r )
 {
+    if( r < r1 )
+	return( V1 );
+    else if( r > r2 )
+	return( V2 );
     return( A*log(r)+B );
 }
 
 
 void test( int argc, char **argv )
 {
-    //Geometry geom( MODE_2D, Int3D(21,21,1), Vec3D(-0.08,-0.08,0), 0.008 );
-    Geometry geom( MODE_2D, Int3D(15,15,1), Vec3D(-0.08,-0.08,0), 0.16/14.0 );
-    //Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(0,0,0), 0.008 );
-    //Geometry geom( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.002 );
+    Geometry geom( MODE_2D, Int3D(41,41,1), Vec3D(0,0,0), 0.002 );
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
@@ -91,9 +92,8 @@ void test( int argc, char **argv )
     geom.set_boundary( 7, Bound(BOUND_DIRICHLET,  0.0) );
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, 10.0) );
     geom.build_mesh();
-    geom.debug_print( std::cout );
 
-    EpotGSSolver solver( geom );
+    EpotBiCGSTABSolver solver( geom );
     EpotField epot( geom );
     MeshScalarField scharge( geom );
     solver.solve( epot, scharge );
@@ -111,7 +111,7 @@ void test( int argc, char **argv )
 	    double x = a*geom.h();
 	    double y = b*geom.h();
 	    double r = sqrt(x*x + y*y);
-	    if( r > 0.02 && r < 0.07 && fabs( epot(a,b) - phi(r) ) > 0.15  )
+	    if( r > r1 && r < r2 && fabs( epot(a,b) - phi(r) ) > 0.15  )
 		err = true;
 	    ostr << setw(14) << x << " " 
 		 << setw(14) << y << " " 
@@ -123,11 +123,13 @@ void test( int argc, char **argv )
 
     ostr.close();
 
-    GTKPlotter plotter( &argc, &argv );
-    plotter.set_geometry( &geom );
-    plotter.set_epot( &epot );
-    plotter.new_geometry_plot_window();
-    plotter.run();
+    if( false ) {
+	GTKPlotter plotter( &argc, &argv );
+	plotter.set_geometry( &geom );
+	plotter.set_epot( &epot );
+	plotter.new_geometry_plot_window();
+	plotter.run();
+    }
 
     if( err )
 	throw( ErrorTest( ERROR_LOCATION, "Error: solved potential differs from theory" ) );

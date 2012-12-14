@@ -45,6 +45,7 @@
 #include "ibsimu.hpp"
 #include "constants.hpp"
 #include "compmath.hpp"
+#include "statusprint.hpp"
 
 
 //#define DEBUG_MGSOLVER 1
@@ -190,27 +191,6 @@ void EpotMGSolver::set_npost( uint32_t npost )
  */
 
 
-uint32_t EpotMGSolver::number_of_dimensions( void ) const
-{
-    switch( _geom.geom_mode() ) {
-    case MODE_1D:
-	return( 1 );
-	break;
-    case MODE_2D:
-	return( 2 );
-	break;
-    case MODE_CYL:
-	return( 2 );
-	break;
-    case MODE_3D:
-	return( 3 );
-	break;
-    }
-
-    throw( ErrorAssert( ERROR_LOCATION ) );
-}
-
-
 /* Create hierarchy of geometries and solvers.
  */
 void EpotMGSolver::prepare_mg_geom( void )
@@ -223,6 +203,7 @@ void EpotMGSolver::prepare_mg_geom( void )
     double h = _geom.h();
 
     ibsimu.inc_indent();
+    ibsimu.set_message_threshold( MSG_VERBOSE, ibsimu.get_message_threshold( MSG_VERBOSE ) - 1 );
     for( uint32_t a = 0; a < _levels; a++ ) {
 
 	if( a == 0 ) {
@@ -235,7 +216,7 @@ void EpotMGSolver::prepare_mg_geom( void )
 	} else {
 
 	    // Build mesh density	    
-	    for( uint32_t b = 0; b < number_of_dimensions(); b++ ) {
+	    for( uint32_t b = 0; b < _geom.dim(); b++ ) {
 		if( size[b] % 2 == 0 )
 		    throw( Error( ERROR_LOCATION, "Incorrect parity of mesh size " + 
 				  to_string(size[b]) + " in direction " + to_string(b) + 
@@ -262,6 +243,7 @@ void EpotMGSolver::prepare_mg_geom( void )
 	    _epotsolverv.push_back( mgss );
 	}
     }
+    ibsimu.set_message_threshold( MSG_VERBOSE, ibsimu.get_message_threshold( MSG_VERBOSE ) + 1 );
     ibsimu.dec_indent();
     ibsimu.message( 1 ) << "Done\n";
     ibsimu.flush();
@@ -270,9 +252,89 @@ void EpotMGSolver::prepare_mg_geom( void )
 }
 
 
+double EpotMGSolver::near_solid_neumann_rhs_contribution( uint32_t i, uint32_t j, uint32_t k, 
+							  uint8_t bindex, const Vec3D &x ) const
+{
+    const uint8_t *nearsolid_ptr = _geom.nearsolid_ptr( _geom.mesh(i,j,k) & SMESH_NEAR_SOLID_INDEX_MASK );
+    uint8_t sflag = nearsolid_ptr[0];
+    uint8_t *ptr = (uint8_t *)&nearsolid_ptr[1];
+
+    double rhs = 0.0;
+
+    // Xmin direction
+    double alpha = 1.0;
+    if( sflag & 0x01 ) {
+	alpha = *ptr/255.0;
+	ptr++;
+    }
+
+    // Xmax direction
+    double beta = 1.0;
+    if( sflag & 0x02 ) {
+	beta = *ptr/255.0;
+	ptr++;
+    }
+
+    // Factors for X axis
+    if( bindex & EPOT_SOLVER_BXMIN )
+	rhs += 2.0*_geom.h()*_geom.get_boundary(1).value(x) / beta;
+    else if( bindex & EPOT_SOLVER_BXMAX )
+	rhs += 2.0*_geom.h()*_geom.get_boundary(2).value(x) / alpha;
+
+    // Ymin direction
+    alpha = 1.0;
+    if( sflag & 0x04 ) {
+	alpha = *ptr/255.0;
+	ptr++;
+    }
+
+    // Ymax direction
+    beta = 1.0;
+    if( sflag & 0x08 ) {
+	beta = *ptr/255.0;
+	ptr++;
+    }
+
+    // Factors for Y axis
+    if( _geom.geom_mode() == MODE_CYL ) {
+	// Cylindrical geometry
+	if( bindex & EPOT_SOLVER_BYMAX )
+	    rhs += (1.0)/(2.0*alpha)*(2.0/alpha+1.0/j)*
+		2.0*_geom.h()*_geom.get_boundary(4).value(x);
+    } else {
+	if( bindex & EPOT_SOLVER_BYMIN )
+	    rhs += 2.0*_geom.h()*_geom.get_boundary(3).value(x) / beta;
+	else if( bindex & EPOT_SOLVER_BYMAX )
+	    rhs += 2.0*_geom.h()*_geom.get_boundary(4).value(x) / alpha;
+    }
+
+    // Zmin direction
+    alpha = 1.0;
+    if( sflag & 0x10 ) {
+	alpha = *ptr/255.0;
+	ptr++;
+    }
+
+    // Zmax direction
+    beta = 1.0;
+    if( sflag & 0x20 ) {
+	beta = *ptr/255.0;
+	ptr++;
+    }
+
+    // Factors for Z axis
+    if( bindex & EPOT_SOLVER_BZMIN )
+	rhs += 2.0*_geom.h()*_geom.get_boundary(5).value(x) / beta;
+    else if( bindex & EPOT_SOLVER_BZMAX )
+	rhs += 2.0*_geom.h()*_geom.get_boundary(6).value(x) / alpha;
+
+    return( rhs );
+}
+
+
 void EpotMGSolver::preprocess( MeshScalarField &epot, const MeshScalarField &scharge )
 {
-    ibsimu.message( 1 ) << "  Preprocessing\n";
+    ibsimu.message( 1 ) << "Preprocessing\n";
 
     // Run preprocess geometry for all EpotSolvers, allocate rhs and epot fields 
     // and one working field
@@ -315,28 +377,40 @@ void EpotMGSolver::preprocess( MeshScalarField &epot, const MeshScalarField &sch
 
 		uint32_t mesh = _geomv[0]->mesh(i,j,k);
 		uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
-		if( node_id == SMESH_NODE_ID_NEAR_SOLID ||
-		    node_id == SMESH_NODE_ID_PURE_VACUUM ) {
-		
-		    // Ordinary vacuum/near solid
-		    (*_rhsv[0])(i,j,k) = -epot.h()*epot.h()*scharge(i,j,k)/EPSILON0;
+		uint8_t bindex = boundary_index_general(i,j,k);
+
+		if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
+
+		    (*_rhsv[0])(i,j,k) = -scharge(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+
+		    if( bindex )
+			(*_rhsv[0])(i,j,k) += near_solid_neumann_rhs_contribution( i, j, k, bindex, x );
 
 		} else if( node_id == SMESH_NODE_ID_NEUMANN ) {
-		    
-		    uint32_t boundary = mesh & SMESH_BOUNDARY_NUMBER_MASK;
-		    if( _geom.geom_mode() == MODE_CYL && boundary == 3 ) {
-		
-			// Symmetry axis (vacuum)
-			(*_rhsv[0])(i,j,k) = -epot.h()*epot.h()*scharge(i,j,k)/EPSILON0;
-			
+
+		    (*_rhsv[0])(i,j,k) = -scharge(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+
+		    if( bindex & EPOT_SOLVER_BXMIN )
+			(*_rhsv[0])(i,j,k) += 2.0*_geom.h()*_geom.get_boundary(1).value(x);
+		    else if( bindex & EPOT_SOLVER_BXMAX )
+			(*_rhsv[0])(i,j,k) += 2.0*_geom.h()*_geom.get_boundary(2).value(x);
+		    if( _geom.geom_mode() == MODE_CYL ) {
+			if( bindex & EPOT_SOLVER_BYMAX )
+			    (*_rhsv[0])(i,j,k) += (1.0+0.5/j)*2.0*_geom.h()*_geom.get_boundary(4).value(x);
 		    } else {
-			
-			// Ordinary Neumann node
-			if( _neumann_order == 2 )
-			    (*_rhsv[0])(i,j,k) = 2.0*epot.h()*_geom.get_boundary( boundary ).value( x );
-			else
-			    (*_rhsv[0])(i,j,k) = epot.h()*_geom.get_boundary( boundary ).value( x );
+			if( bindex & EPOT_SOLVER_BYMIN )
+			    (*_rhsv[0])(i,j,k) += 2.0*_geom.h()*_geom.get_boundary(3).value(x);
+			else if( bindex & EPOT_SOLVER_BYMAX )
+			    (*_rhsv[0])(i,j,k) += 2.0*_geom.h()*_geom.get_boundary(4).value(x);
 		    }
+		    if( bindex & EPOT_SOLVER_BZMIN )
+			(*_rhsv[0])(i,j,k) += 2.0*_geom.h()*_geom.get_boundary(5).value(x);
+		    else if( bindex & EPOT_SOLVER_BZMAX )
+			(*_rhsv[0])(i,j,k) += 2.0*_geom.h()*_geom.get_boundary(6).value(x);
+
+		} else if( node_id == SMESH_NODE_ID_PURE_VACUUM ) {
+
+		    (*_rhsv[0])(i,j,k) = -scharge(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 		}
 	    }
 	}
@@ -346,7 +420,7 @@ void EpotMGSolver::preprocess( MeshScalarField &epot, const MeshScalarField &sch
 
 void EpotMGSolver::postprocess( void )
 {
-    ibsimu.message( 1 ) << "  Postprocessing\n";
+    ibsimu.message( 1 ) << "Postprocessing\n";
 
     for( uint32_t a = 0; a < _levels; a++ ) {
 
@@ -1301,7 +1375,7 @@ void EpotMGSolver::correct( const Geometry *geom, MeshScalarField *sol, const Me
 }
 
 
-void EpotMGSolver::mg_recurse( uint32_t level )
+void EpotMGSolver::mg_recurse( uint32_t level, std::stringstream &ss )
 {
     ibsimu.inc_indent();
 
@@ -1312,7 +1386,7 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 
     if( level == _levels-1 ) {
  
-	ibsimu.message( 1 ) << "Roughest level solution\n";
+	ibsimu.message( 2 ) << "Roughest level solution\n";
 	
 	// Last level, solve the roughest problem until convergence
 	uint32_t a = 0;
@@ -1324,15 +1398,18 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 	}
 
 #ifdef DEBUG_MGSOLVER
-	ibsimu.message( 1 ) << "epot (level = " << level << ") accurate solve:\n";
+	ibsimu.message( 2 ) << "epot (level = " << level << ") accurate solve:\n";
 	print_field( _epotv[level] );
 #endif
 
-	ibsimu.message( 1 ) << a << " iterations done\n";
-	ibsimu.message( 1 ) << _res << " accuracy reached\n";
-	if( a >= _imax ) {
-	    ibsimu.message( 1 ) << "maximum number of iterations done\n";
-	}
+	if( ibsimu.get_message_threshold( MSG_VERBOSE ) > 1 ) {
+	    ibsimu.message( 2 ) << a << " iterations done\n";
+	    ibsimu.message( 2 ) << _res << " accuracy reached\n";
+	    if( a >= _imax ) {
+		ibsimu.message( 2 ) << "maximum number of iterations done\n";
+	    }
+	} else
+	    ss << "rough " << a << " " << _res << ", ";
 
 	ibsimu.dec_indent();
 	return;
@@ -1342,12 +1419,12 @@ void EpotMGSolver::mg_recurse( uint32_t level )
     for( uint32_t gcyc = 0; gcyc < _gamma; gcyc++ ) {
 
 	if( _gamma > 1 )
-	    ibsimu.message( 1 ) << "Doing gamma cycle " << gcyc+1 << "/" << _gamma << " at level " << level << "\n";
+	    ibsimu.message( 2 ) << "Doing gamma cycle " << gcyc+1 << "/" << _gamma << " at level " << level << "\n";
 	else
-	    ibsimu.message( 1 ) << "Doing cycle at level " << level << "\n";
+	    ibsimu.message( 2 ) << "Doing cycle at level " << level << "\n";
 
 #ifdef DEBUG_MGSOLVER
-	ibsimu.message( 1 ) << "epot (level = " << level << "):\n";
+	ibsimu.message( 2 ) << "epot (level = " << level << "):\n";
 	print_field( _epotv[level] );
 #endif
 
@@ -1356,83 +1433,83 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 	    _epotsolverv[level]->mg_smooth( _epotv[level], _rhsv[level] );
 
 #ifdef DEBUG_MGSOLVER
-	ibsimu.message( 1 ) << "epot (level = " << level << ") pre smoothed:\n";
+	ibsimu.message( 2 ) << "epot (level = " << level << ") pre smoothed:\n";
 	print_field( _epotv[level] );
 #endif
 
 	// Defect
-	//ibsimu.message( 1 ) << "  Calculating defect for level " << level << "\n";
+	//ibsimu.message( 2 ) << "  Calculating defect for level " << level << "\n";
 	_epotsolverv[level]->defect( _workv[level], _epotv[level], _rhsv[level] );
 
 #ifdef DEBUG_MGSOLVER
-	ibsimu.message( 1 ) << "defect (level = " << level << "):\n";
+	ibsimu.message( 2 ) << "defect (level = " << level << "):\n";
 	print_field( _workv[level] );
 #endif
 
 	if( linear() ) {
 
-	    //ibsimu.message( 1 ) << "  Restricing defect from level " << level << " to level " << level+1 << "\n";
+	    //ibsimu.message( 2 ) << "  Restricing defect from level " << level << " to level " << level+1 << "\n";
 	    restrict( _rhsv[level+1], _workv[level], true );
 
 	    (*_rhsv[level+1]) *= -1.0;
 
 #ifdef DEBUG_MGSOLVER
-	    ibsimu.message( 1 ) << "defect (level = " << level+1 << "):\n";
+	    ibsimu.message( 2 ) << "defect (level = " << level+1 << "):\n";
 	    print_field( _rhsv[level+1] );
 #endif
 
 	} else {
 
 	    // Restrict defect
-	    //ibsimu.message( 1 ) << "  Restricing defect from level " << level << " to level " << level+1 << "\n";
+	    //ibsimu.message( 2 ) << "  Restricing defect from level " << level << " to level " << level+1 << "\n";
 	    restrict( _workv[level+1], _workv[level], true );
 
 #ifdef DEBUG_MGSOLVER
-	    ibsimu.message( 1 ) << "defect (level = " << level+1 << "):\n";
+	    ibsimu.message( 2 ) << "defect (level = " << level+1 << "):\n";
 	    print_field( _workv[level+1] );
 #endif
 
 	    // Restrict solution approximation
-	    //ibsimu.message( 1 ) << "  Restricing solution from level " << level << " to level " << level+1 << "\n";
+	    //ibsimu.message( 2 ) << "  Restricing solution from level " << level << " to level " << level+1 << "\n";
 	    restrict( _epotv[level+1], _epotv[level], false );
 
 	    // Store solution
 	    (*_work2v[level+1]) = (*_epotv[level+1]);
 
 #ifdef DEBUG_MGSOLVER
-	    ibsimu.message( 1 ) << "solution (level = " << level+1 << "):\n";
+	    ibsimu.message( 2 ) << "solution (level = " << level+1 << "):\n";
 	    print_field( _epotv[level+1] );
 #endif
 
 	    // Calculate defect
-	    //ibsimu.message( 1 ) << "  Calculating right hand side for level " << level+1 << "\n";
+	    //ibsimu.message( 2 ) << "  Calculating right hand side for level " << level+1 << "\n";
 	    _epotsolverv[level+1]->defect( _rhsv[level+1], _epotv[level+1], _workv[level+1] );
 
 #ifdef DEBUG_MGSOLVER
-	    ibsimu.message( 1 ) << "rhs (level = " << level+1 << "):\n";
+	    ibsimu.message( 2 ) << "rhs (level = " << level+1 << "):\n";
 	    print_field( _rhsv[level+1] );
 #endif
 	}
 
 	// Recurse to next level to solve for correction V (epot)
 	// A*V=-D
-	mg_recurse( level+1 );
+	mg_recurse( level+1, ss );
 	
 	if( linear() ) {
 
 #ifdef DEBUG_MGSOLVER
-	    ibsimu.message( 1 ) << "correction (level = " << level+1 << "):\n";
+	    ibsimu.message( 2 ) << "correction (level = " << level+1 << "):\n";
 	    print_field( _epotv[level+1] );
 #endif
 
 	    // Prolong correction (epot) to work field
-	    //ibsimu.message( 1 ) << "  Prolonging correction from level " << level+1 << " to level " << level << "\n";
+	    //ibsimu.message( 2 ) << "  Prolonging correction from level " << level+1 << " to level " << level << "\n";
 	    prolong( _workv[level], _epotv[level+1] );
 	    
 	} else {
 
 #ifdef DEBUG_MGSOLVER
-	    ibsimu.message( 1 ) << "refined solution (level = " << level+1 << "):\n";
+	    ibsimu.message( 2 ) << "refined solution (level = " << level+1 << "):\n";
 	    print_field( _epotv[level+1] );
 #endif
 
@@ -1441,25 +1518,25 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 	    (*_workv[level+1]) -= (*_work2v[level+1]);
 
 #ifdef DEBUG_MGSOLVER
-	    ibsimu.message( 1 ) << "correction (level = " << level+1 << "):\n";
+	    ibsimu.message( 2 ) << "correction (level = " << level+1 << "):\n";
 	    print_field( _workv[level+1] );
 #endif
 
-	    //ibsimu.message( 1 ) << "  Prolonging correction from level " << level+1 << " to level " << level << "\n";
+	    //ibsimu.message( 2 ) << "  Prolonging correction from level " << level+1 << " to level " << level << "\n";
 	    prolong( _workv[level], _workv[level+1] );
 	}
 
 #ifdef DEBUG_MGSOLVER
-	ibsimu.message( 1 ) << "correction (level = " << level << "):\n";
+	ibsimu.message( 2 ) << "correction (level = " << level << "):\n";
 	print_field( _workv[level] );
 #endif
 
 	// Make correction Xnew=X+V
-	//ibsimu.message( 1 ) << "  Calculating correction for level " << level << "\n";
+	//ibsimu.message( 2 ) << "  Calculating correction for level " << level << "\n";
 	correct( _geomv[level], _epotv[level], _workv[level] );
 
 #ifdef DEBUG_MGSOLVER
-	ibsimu.message( 1 ) << "epot (level = " << level << "):\n";
+	ibsimu.message( 2 ) << "epot (level = " << level << "):\n";
 	print_field( _epotv[level] );
 #endif
 
@@ -1468,11 +1545,14 @@ void EpotMGSolver::mg_recurse( uint32_t level )
 	    _res = _res_coef * _epotsolverv[level]->mg_smooth( _epotv[level], _rhsv[level] );
 
 #ifdef DEBUG_MGSOLVER
-	ibsimu.message( 1 ) << "epot (level = " << level << ") post smoothed:\n";
+	ibsimu.message( 2 ) << "epot (level = " << level << ") post smoothed:\n";
 	print_field( _epotv[level] );
 #endif
 
-	ibsimu.message( 1 ) << _res << " accuracy reached\n";
+	if( ibsimu.get_message_threshold( MSG_VERBOSE ) > 1 )
+	    ibsimu.message( 2 ) << _res << " accuracy reached\n";
+	else if( level == 0 )
+	    ss << "fine " << _res << "    ";
      }
 
     ibsimu.dec_indent();
@@ -1515,14 +1595,28 @@ void EpotMGSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
     //ibsimu.message( 1 ) << "rhs (level = " << 0 << "):\n";
     //print_field( _rhsv[0] );
 
+    // Status print
+    StatusPrint sp;
+    std::stringstream ss;
+
     // Call iterator mgcyc times
     uint32_t a;
+    ibsimu.message( 1 ) << "Taking multigrid cycles\n";
     for( a = 0; a < _mgcycmax; a++ ) {
-	ibsimu.message( 1 ) << "Cycle " << a+1 << "\n";
-	mg_recurse( 0 );
+	if( ibsimu.get_message_threshold( MSG_VERBOSE ) > 1 )
+	    ibsimu.message( 2 ) << "Cycle " << a+1 << "\n";
+
+	ss.str( "" );
+	ss << std::setw(5) << a+1 << ", ";
+	mg_recurse( 0, ss );
+	if( ibsimu.get_message_threshold( MSG_VERBOSE ) == 1 )
+	    sp.print( ss.str(), true );
 	if( _res < _mgeps )
 	    break;
     }
+    if( ibsimu.get_message_threshold( MSG_VERBOSE ) == 1 )
+	ibsimu.message( 1 ) << "\n";
+    ibsimu.message( 1 ) << "Done\n";
     _mgcyc = a;
 
     if( a == _mgcycmax )
