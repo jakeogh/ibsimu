@@ -196,9 +196,9 @@ class Geometry : public Mesh
     pthread_cond_t             _cond;      /*!< \brief Condition for parallel mesh build. */
     uint32_t                   _done;      /*!< \brief State variable for parallel mesh build. */
 
-    std::vector<Vec3D>         _vertex;    /*!< \brief List of vertices for surface triangles. */
-    std::vector<VTriangle>     _triangle;  /*!< \brief List of surface triangles. */
-    std::vector<int32_t>       _triptr;    /*!< \brief Pointer from mesh cube to first triangle. */
+    double                     _surface_eps; /*!< \brief Vertec matching tolerance. */
+    VTriangleSurface           _surface;   /*!< \brief Triangulated surface. */
+    std::vector<int32_t>       _triptr;    /*!< \brief Pointer from mesh cell to first triangle. */
     
     /*! \brief Check if node is solid (n>=7).
      *
@@ -253,10 +253,24 @@ class Geometry : public Mesh
 
     Vec3D mc_surface( int32_t i, int32_t j, int32_t k, uint8_t cn, int32_t ei ) const;
     uint8_t mc_case( int32_t i, int32_t j, int32_t k ) const;
-    int32_t mc_trianglec( uint8_t cn ) const;
+    uint32_t mc_trianglec( uint8_t cn ) const;
     int32_t mc_add_vertex_try( const Vec3D &x, int32_t i, int32_t j, int32_t k ) const;
-    int32_t mc_add_vertex( const Vec3D &x, int32_t i, int32_t j, int32_t k );
+    uint32_t mc_add_vertex( const Vec3D &x, int32_t i, int32_t j, int32_t k, uint32_t firstv );
     void mc_triangulate( int32_t i, int32_t j, int32_t k );
+
+    uint8_t surface_cell_face_case_2d( const int32_t i[3], const int32_t vb[3] ) const;
+    double surface_cell_face_dist( const int32_t i[3], const int32_t vb[3], 
+				   int32_t dx, int32_t dy, 
+				   int32_t dir ) const;
+    uint32_t surface_cell_face_add_vertex( VTriangleSurfaceSolid &solid,
+					   const int32_t i[3], const int32_t vb[3], 
+					   double dx, double dy ) const;
+    void surface_cell_face_add_triangles( VTriangleSurfaceSolid &solid,
+					  int32_t i0, int32_t i1, int32_t i2, 
+					  int32_t vb0, int32_t vb1, int32_t vb2 ) const;
+    void surface_cell_face_add_triangles( VTriangleSurfaceSolid &solid,
+					  const int32_t i[3], const int32_t vb[3] ) const;
+    uint32_t surface_inside_solid_number( int32_t i, int32_t j,int32_t k ) const;
 
 public:
 
@@ -327,15 +341,21 @@ public:
      */
     std::vector<Bound> get_boundaries() const;
 
-    /*! \brief Returns 0 if point \a x is vacuum or the number of
+    /*! \brief Return if point is inside solids.
+     *
+     *  Returns 0 if point \a x is in vacuum or the number of
      *  solid of \a x is inside a defined solid. Returns a number from
      *  1 to 6 if point \a x is outside the defined geometry. If the
      *  point is inside several defined solids, the solid with the
      *  highest solid number is returned.
+     *
+     *  Uses solid data.
      */
     uint32_t inside( const Vec3D &x ) const;
 
     /*! \brief Returns true if point \a x is inside solid \a n.
+     *
+     *  Uses solid data.
      */
     bool inside( uint32_t n, const Vec3D &x ) const;
 
@@ -347,12 +367,15 @@ public:
      *  the solid. Function saves the coordinates of the surface to
      *  xsurf and returns parametrical distance (value from 0 to 1)
      *  from xin.
+     *
+     *  Uses solid data.
      */
     double bracket_surface( uint32_t n, const Vec3D &xin, const Vec3D &xout, Vec3D &xsurf ) const;
 
     /*! \brief Find surface outward normal at location \a x.
      *
      *  Returns zero vector on failure.
+     *  Uses solid data.
      */
     Vec3D surface_normal( const Vec3D &x ) const;
 
@@ -360,12 +383,8 @@ public:
      */
     bool built( void ) const { return( _built ); }
 
-    /*! \brief Is the solid surface representation built?
-     */
-    bool surface_built( void ) const { return( _triptr.size() ); }
-
-    /*! \brief Builds (or rebuilds) the solid mesh from solid
-     *  definitions.
+    /*! \brief Builds (or rebuilds) the solid mesh and near solid data
+     *  from solid definitions.
      */
     void build_mesh( void );
 
@@ -403,35 +422,41 @@ public:
 
     /*! \brief Returns number from solid mesh array.
      *
-     *  Returns number from solid mesh array at \a i, \a j, \a
-     *  k or Dirichlet boundary number (1-6) if point is outside mesh.
+     *  For 2D geometries. Returns number from solid mesh array at \a
+     *  (i,j) or Dirichlet boundary number (1-4) if point is outside
+     *  mesh.
+     */
+    uint32_t mesh_check( int32_t i, int32_t j ) const;
+
+    /*! \brief Returns number from solid mesh array.
+     *
+     *  Returns number from solid mesh array at \a (i,j,k) or
+     *  Dirichlet boundary number (1-6) if point is outside mesh.
      */
     uint32_t mesh_check( int32_t i, int32_t j, int32_t k ) const;
 
     /*! \brief Returns true if node is a potential near solid point.
      *
      *  Returns true if any of the neighbouring points is a solid
-     *  point (Dirichlet with solid number >= 7).
+     *  point (Dirichlet with solid number >= 7). The state of node \a
+     *  (i,j,k) is not checked.
      */
     bool is_near_solid( int32_t i, int32_t j, int32_t k ) const;
 
-    /*! \brief Returns a const pointer to start of near solid data for
-     *  node (\a i, \a j, \a k). The first byte contains the bit flags
-     *  for the existance of neighbouring solids. From bit 0 to bit 5
-     *  the boolean flags are for directions: xmin, xmax, ymin, ymax,
-     *  zmin, zmax. The next bytes contain the parametric distances of
-     *  the solid surfaces from the node in each direction. Only the
-     *  directions with set bit flag are saved to data. The distances
-     *  are saved in the same order as the flags (from xmin to
-     *  zmax). The distance information is an unsigned 8-bit integer
-     *  (0 to 255), where 0 means distance 0.0 and 255 means 1.0.
+    /*! \brief Returns a const pointer to start of near-solid data for
+     *  near-solid node \a index. 
+     *
+     *  The first byte contains the bit
+     *  flags for the existance of neighbouring solids. From bit 0 to
+     *  bit 5 the boolean flags are for directions: xmin, xmax, ymin,
+     *  ymax, zmin, zmax. The next bytes contain the parametric
+     *  distances of the solid surfaces from the node in each
+     *  direction. Only the directions with set bit flag are saved to
+     *  data. The distances are saved in the same order as the flags
+     *  (from xmin to zmax). The distance information is an unsigned
+     *  8-bit integer (0 to 255), where 0 means distance 0.0 and 255
+     *  means 1.0.
      */
-    /*
-    const uint8_t *nearsolid_ptr( int32_t i, int32_t j, int32_t k ) const {
-	return( &_nearsolid[_smesh[i + j*_size[0] + k*_size[0]*_size[1]] & 
-			    SMESH_NEAR_SOLID_INDEX_MASK] );
-    }
-    */
     const uint8_t *nearsolid_ptr( int32_t index ) const {
 	return( &_nearsolid[index] );
     }
@@ -459,33 +484,52 @@ public:
      */
     void build_surface( void );
     
+    /*! \brief Is the solid surface representation built?
+     */
+    bool surface_built( void ) const { return( _triptr.size() ); }
+
+    /*! \brief Finds if point is inside surface triangulation.
+     *
+     *  Returns 0 if point \a x is in vacuum or the number of
+     *  solid of \a x is inside a defined solid. Returns a number from
+     *  1 to 6 if point \a x is outside the defined geometry. Uses 
+     *  solid mesh and surface triangulation data.
+     *
+     *  The surface triangulation does not separate solids which are
+     *  touching (no vacuum node in between). Therefore in these cases
+     *  this function can not separate these solids with accuracy
+     *  higher than one grid cell. The vacuum to solid separation
+     *  always has the maximum resolution.
+     */
+    uint32_t surface_inside( const Vec3D &x ) const;
+
     /*! \brief Return total surface vertex count.
      */
     int32_t surface_vertexc( void ) const {
-	return( _vertex.size() );
+	return( _surface.vertexc() );
     }
 
     /*! \brief Return total surface triangle count.
      */
     int32_t surface_trianglec( void ) const {
-	return( _triangle.size() );
+	return( _surface.trianglec() );
     }
 
     /*! \brief Return reference to surface vertex \a a.
      */
     const Vec3D &surface_vertex( int32_t a ) const {
-	return( _vertex[a] );
+	return( _surface.vertex(a) );
     }
 
     /*! \brief Return reference to surface triangle \a a.
      */
     const VTriangle &surface_triangle( int32_t a ) const {
-	return( _triangle[a] );
+	return( _surface.triangle(a) );
     }
 
     /*! \brief Return index of surface triangle at mesh cube \a (i,j,k).
      */
-    int32_t surface_triangle_ptr( int32_t i, int32_t j, int32_t k ) const {
+    uint32_t surface_triangle_ptr( int32_t i, int32_t j, int32_t k ) const {
 	return( _triptr[(k*(_size[1]-1) + j)*(_size[0]-1) + i] );
     }
 
@@ -496,14 +540,16 @@ public:
     /*! \brief Saves data to a new file \a filename.
      *
      *  If \a save_solids is true, also the solid definitions are
-     *  saved. Not all solid types are saveable.
+     *  saved. Not all solid types are saveable. A warning is printed
+     *  if trying to save such a solid.
      */
     void save( const std::string &filename, bool save_solids = false ) const;
 
     /*! \brief Saves data to stream \a os.
      *
      *  If \a save_solids is true, also the solid definitions are
-     *  saved. Not all solid types are saveable.
+     *  saved. Not all solid types are saveable. A warning is printed
+     *  if trying to save such a solid.
      */
     void save( std::ostream &os, bool save_solids = false ) const;
 

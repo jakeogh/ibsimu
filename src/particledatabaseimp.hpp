@@ -620,6 +620,14 @@ public:
 	Timer t;
 	ibsimu.message( 1 ) << "Calculating particle trajectories\n";
 	ibsimu.inc_indent();
+	if( _surface_collision )
+	    ibsimu.message( 1 ) << "Using surface collision model\n";
+	else
+	    ibsimu.message( 1 ) << "Using solid collision model\n";
+	if( _relativistic )
+	    ibsimu.message( 1 ) << "Using relativistic iterator\n";
+	else
+	    ibsimu.message( 1 ) << "Using non-relativistic iterator\n";
 	_iteration++;
 
 	StatusPrint sp;
