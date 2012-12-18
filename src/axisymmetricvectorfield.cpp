@@ -45,8 +45,8 @@
 
 
 AxisymmetricVectorField::AxisymmetricVectorField( geom_mode_e geom_mode, 
-						  std::vector<double> z,
-						  std::vector<double> Bz )
+						  const std::vector<double> &z,
+						  const std::vector<double> &Bz )
 {
     if( geom_mode != MODE_3D && geom_mode != MODE_CYL )
 	throw( Error( ERROR_LOCATION, "unsupported geometry mode" ) );
@@ -59,24 +59,57 @@ AxisymmetricVectorField::AxisymmetricVectorField( geom_mode_e geom_mode,
 }
 
 
+AxisymmetricVectorField::AxisymmetricVectorField( geom_mode_e geom_mode, 
+						  double origo, double h,
+						  const std::vector<double> &Bz )
+{
+    if( Bz.size() < 7 )
+	throw( Error( ERROR_LOCATION, "not enough nodes" ) );
+    if( geom_mode != MODE_3D && geom_mode != MODE_CYL )
+	throw( Error( ERROR_LOCATION, "unsupported geometry mode" ) );
+    _geom_mode = geom_mode;
+    _spline = NULL;
+    _accel = NULL;
+    _origo = origo;
+    _h = h;
+    _Bz = Bz;
+}
+
+
 AxisymmetricVectorField::AxisymmetricVectorField( const AxisymmetricVectorField &f )
 {
     _geom_mode = f._geom_mode;
-    _spline = gsl_spline_alloc( gsl_interp_cspline, f._spline->size );
-    _accel = gsl_interp_accel_alloc();
-    gsl_spline_init( _spline, f._spline->x, f._spline->y, f._spline->size );
+    if( f._spline ) {
+	_spline = gsl_spline_alloc( gsl_interp_cspline, f._spline->size );
+	_accel = gsl_interp_accel_alloc();
+	gsl_spline_init( _spline, f._spline->x, f._spline->y, f._spline->size );
+    } else {
+	_origo = f._origo;
+	_h = f._h;
+	_Bz = f._Bz;
+    }
 }
 
 
 AxisymmetricVectorField &AxisymmetricVectorField::operator=( const AxisymmetricVectorField &f )
 {
-    gsl_spline_free( _spline );
-    gsl_interp_accel_free( _accel );
+    if( _spline ) {
+	gsl_spline_free( _spline );
+	gsl_interp_accel_free( _accel );
+    } else {
+	_Bz.clear();
+    }
 
     _geom_mode = f._geom_mode;
-    _spline = gsl_spline_alloc( gsl_interp_cspline, f._spline->size );
-    _accel = gsl_interp_accel_alloc();
-    gsl_spline_init( _spline, f._spline->x, f._spline->y, f._spline->size );
+    if( f._spline ) {
+	_spline = gsl_spline_alloc( gsl_interp_cspline, f._spline->size );
+	_accel = gsl_interp_accel_alloc();
+	gsl_spline_init( _spline, f._spline->x, f._spline->y, f._spline->size );
+    } else {
+	_origo = f._origo;
+	_h = f._h;
+	_Bz = f._Bz;
+    }
     return( *this );
 }
 
@@ -88,35 +121,92 @@ AxisymmetricVectorField::~AxisymmetricVectorField()
 }
 
 
-const Vec3D AxisymmetricVectorField::operator()( const Vec3D &x ) const
+const Vec3D AxisymmetricVectorField::eval_spline( double z, double r ) const
 {
-    Vec3D B;
+    if( z < _spline->x[0] || z > _spline->x[_spline->size-1] )
+	return( 0.0 );
+    double Bz0  = gsl_spline_eval( _spline, z, _accel );
+    double Bzp  = gsl_spline_eval_deriv( _spline, z, _accel );
+    double Bzpp = gsl_spline_eval_deriv2( _spline, z, _accel );
+    
+    double Bz = Bz0 - r*r*Bzpp/4.0;
+    double Br = -r*Bzp/2.0;
+    return( Vec3D( Bz, Br, 0.0 ) );
+}
 
-    if( _geom_mode == MODE_3D ) {
-	if( x[2] < _spline->x[0] || x[2] > _spline->x[_spline->size-1] )
-	    return( 0.0 );
-	double Bz0  = gsl_spline_eval( _spline, x[2], _accel );
-	double Bzp  = gsl_spline_eval_deriv( _spline, x[2], _accel );
-	double Bzpp = gsl_spline_eval_deriv2( _spline, x[2], _accel );
 
-	double rr = x[0]*x[0] + x[1]*x[1];
-	double Bz = Bz0 - rr*Bzpp/4.0;
-	double Br = -sqrt(rr)*Bzp/2.0;
-	double theta = atan2( x[1], x[0] );
-	B = Vec3D( Br*cos(theta), Br*sin(theta), Bz );
-    } else /* _geom_mode == MODE_CYL */ {
-	if( x[0] < _spline->x[0] || x[0] > _spline->x[_spline->size-1] )
-	    return( 0.0 );
-	double Bz0  = gsl_spline_eval( _spline, x[0], _accel );
-	double Bzp  = gsl_spline_eval_deriv( _spline, x[0], _accel );
-	double Bzpp = gsl_spline_eval_deriv2( _spline, x[0], _accel );
+void AxisymmetricVectorField::get_fdm_derivatives( double Bder[7], double z ) const
+{
+    int32_t i = floor( (z-_origo)/_h );
+    if( i < 3 )
+	i = 3;
+    else if( i > _Bz.size()-5 )
+	i = _Bz.size()-5;
+    double s = (z-(_origo+_h*i))/_h;
+    double is = 1.0-s;
+    double Bz[7];
 
-	double Bz = Bz0 - x[1]*x[1]*Bzpp/4.0;
-	double Br = -x[1]*Bzp/2.0;
-	B = Vec3D( Bz, Br, 0.0 );
+    // Calculate function values at z, z+/-h, z+/-2h and z+/-3h
+    for( int32_t a = 0; a <= 6; a++ ) {
+	int32_t j = i+a-3;
+	Bz[a] = is*_Bz[j] + s*_Bz[j+1];
     }
 
-    return( B );
+    // Calculate derivatives
+    Bder[0] = Bz[3];
+
+    Bder[1] = (-Bz[0] + 9.0*Bz[1] - 45.0*Bz[2] + 45.0*Bz[4] - 9.0*Bz[5] + Bz[6]) / (60.0*_h);
+
+    double h = _h*_h;
+    Bder[2] = (2.0*Bz[0] - 27.0*Bz[1] + 270.0*Bz[2] - 490.0*Bz[3] + 270.0*Bz[4] - 27.0*Bz[5] + 2.0*Bz[6]) / (180.0*h);
+
+    h *= _h;
+    Bder[3] = (Bz[0] - 8.0*Bz[1] + 13.0*Bz[2] - 13.0*Bz[4] + 8.0*Bz[5] - Bz[6]) / (8.0*h);
+
+    h *= _h;
+    Bder[4] = (-Bz[0] + 12.0*Bz[1] - 39.0*Bz[2] + 56.0*Bz[3] - 39.0*Bz[4] + 12.0*Bz[5] - Bz[6]) / (6.0*h);
+
+    h *= _h;
+    Bder[5] = (-Bz[0] + 4.0*Bz[1] - 5.0*Bz[2] + 5.0*Bz[4] - 4.0*Bz[5] + Bz[6]) / (2.0*h);
+
+    h *= _h;
+    Bder[6] = (Bz[0] - 6.0*Bz[1] + 15.0*Bz[2] - 20.0*Bz[3] + 15.0*Bz[4] - 6.0*Bz[5] + Bz[6]) / h;
+}
+
+
+const Vec3D AxisymmetricVectorField::eval_fdm( double z, double r ) const
+{
+    double Bder[7];
+    double r2 = r*r;
+    double r3 = r2*r;
+    double r4 = r2*r2;
+    double r5 = r4*r;
+    double r6 = r3*r3;
+    get_fdm_derivatives( Bder, z );
+
+    double Bz = Bder[0] - r2*Bder[2]/4.0 + r4*Bder[4]/64.0 - r6*Bder[6]/2304.0;
+    double Br = -r*Bder[1]/2.0 + r3*Bder[3]/16.0 - r5*Bder[5]/384.0;
+
+    return( Vec3D( Bz, Br, 0.0 ) );
+}
+
+
+const Vec3D AxisymmetricVectorField::operator()( const Vec3D &x ) const
+{
+    if( _geom_mode == MODE_3D ) {
+	Vec3D B;
+	if( _spline )
+	    B = eval_spline( x[2], x[0]*x[0] + x[1]*x[1] );
+	else
+	    B = eval_fdm( x[2], x[0]*x[0] + x[1]*x[1] );
+	double theta = atan2( x[1], x[0] );
+	return( Vec3D( B[1]*cos(theta), B[1]*sin(theta), B[0] ) );
+    } else {
+	if( _spline )
+	    return( eval_spline( x[0], x[1] ) );
+	else
+	    return( eval_fdm( x[0], x[1] ) );
+    }
 }
 
 

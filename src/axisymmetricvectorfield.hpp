@@ -65,9 +65,18 @@
  */
 class AxisymmetricVectorField : public VectorField {
 
-    geom_mode_e       _geom_mode;
-    gsl_spline       *_spline;        /*!< \brief Spline used to interpolate on-axis data */
-    gsl_interp_accel *_accel;         /*!< \brief Interpolation accelerator */
+    geom_mode_e         _geom_mode;
+    gsl_spline         *_spline;        /*!< \brief Spline used to interpolate on-axis data */
+    gsl_interp_accel   *_accel;         /*!< \brief Interpolation accelerator */
+
+    double              _origo;
+    double              _h;
+    std::vector<double> _Bz;
+
+    void get_fdm_derivatives( double Bder[6], double z ) const;
+
+    const Vec3D eval_spline( double z, double r ) const;
+    const Vec3D eval_fdm( double z, double r ) const;
 
 public:
 
@@ -78,14 +87,42 @@ public:
      *  MODE_CYL the symmetry axis is x. If geom_mode is MODE_3D, the
      *  symmetry axis is z. Other geometry modes are not supported.
      *
+     *  The magnetic field is constructed using cubic spline
+     *  interpolation of user given data on axis and the expansion of the
+     *  field off-axis with
+     *  \f{eqnarray*} B_z(r,z) &=& B_z(0,z) - \frac{r^2}{4} B_z''(0,z) \\
+                      B_r(r,z) &=& -\frac{r}{2} B_z'(0,z),
+     *  \f}
+     *  where the third and higher derivatives have been truncated.
+     *
      *  The magnetic field outside the defined z is zero. No
      *  extrapolation is done.
      */
     AxisymmetricVectorField( geom_mode_e geom_mode, 
-			     std::vector<double> z, 
-			     std::vector<double> Bz );
+			     const std::vector<double> &z, 
+			     const std::vector<double> &Bz );
 
-    /*! \brief Copy constructor. */
+    /*! \brief Constructor.
+     *
+     *  Constructor for axisymmetric magnetic field based on an array
+     *  of magnetic field data on the symmetry axis. If geom_mode is
+     *  MODE_CYL the symmetry axis is x. If geom_mode is MODE_3D, the
+     *  symmetry axis is z. Other geometry modes are not supported.
+     *
+     *  The magnetic field is constructed using linear interpolation
+     *  and finite difference derivatives up to 6th order for the Bz
+     *  data on axis and the expansion of the field off-axis with
+     *  \f{eqnarray*} B_z(r,z) &=& B_z(0,z) - \frac{r^2}{4} B_z''(0,z) + \frac{r^4}{64} B_z^(iv)(0,z) - \frac{r^6}{2304} B_z^(vi)(0,z) \\
+                      B_r(r,z) &=& -\frac{r}{2} B_z'(0,z) + \frac{r^3}{16} - \frac{r^5}{384}, \f}
+     *
+     *  The magnetic field outside the defined z is extrapolated.
+     */
+    AxisymmetricVectorField( geom_mode_e geom_mode, 
+			     double origo, double h,
+			     const std::vector<double> &Bz );
+
+    /*! \brief Copy constructor. 
+     */
     AxisymmetricVectorField( const AxisymmetricVectorField &f );
 
     /*! \brief Virtual destructor.
