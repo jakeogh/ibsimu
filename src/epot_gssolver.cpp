@@ -290,11 +290,11 @@ double EpotGSSolver::gs_process_neumann_3d( uint32_t a, uint32_t dj, uint32_t dk
 double EpotGSSolver::gs_loop_3d( void ) const
 {
     // Go through all nodes
-    double maxerr = 0.0;
     const double w2 = 1.0-_w;
     const uint32_t dj = _geom.size(0);
     const uint32_t dk = _geom.size(0)*_geom.size(1);
 
+    double res = 0.0;
     for( uint32_t k = 0; k < _geom.size(2); k++ ) {
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	    uint32_t a = k*dk+j*dj;
@@ -319,13 +319,12 @@ double EpotGSSolver::gs_loop_3d( void ) const
 		}
 		Vnew = _w*Vnew + w2*Vold;
 		(*_epot)(a) = Vnew;
-		double err = fabs( Vnew - Vold );
-		if( err > maxerr )
-		    maxerr = err;
-		if( comp_isinf(err) ) {
+		double dx = Vnew - Vold;
+		res += dx*dx;
+		if( comp_isinf(dx) ) {
 		    throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) + 
 				  ", " + to_string(j) + ", " + to_string(k) ) );
-		} else if( comp_isnan(err) ) {
+		} else if( comp_isnan(dx) ) {
 		    throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) + 
 				  ", " + to_string(j) + ", " + to_string(k) ) );
 		}
@@ -333,7 +332,7 @@ double EpotGSSolver::gs_loop_3d( void ) const
 	}
     }
 
-    return( maxerr );
+    return( 6.0*sqrt(res) );
 }
 
 
@@ -493,10 +492,10 @@ double EpotGSSolver::gs_process_neumann_cyl( uint32_t i, uint32_t j, uint8_t bin
 double EpotGSSolver::gs_loop_cyl( void ) const
 {
     // Go through all nodes
-    double maxerr = 0.0;
     const double w2 = 1.0-_w;
     const uint32_t dj = _geom.size(0);
 
+    double res = 0.0;
     for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	uint32_t a = j*dj;
 	for( uint32_t i = 0; i < _geom.size(0); i++, a++ ) {
@@ -520,19 +519,19 @@ double EpotGSSolver::gs_loop_cyl( void ) const
 	    }
 	    Vnew = _w*Vnew + w2*Vold;
 	    (*_epot)(a) = Vnew;
-	    double err = fabs( Vnew - Vold );
-	    if( err > maxerr )
-		maxerr = err;
-	    if( comp_isinf(err) ) {
+	    double dx = Vnew - Vold;
+	    res += dx*dx;
+	    if( comp_isinf(dx) ) {
 		throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) + 
 			      ", " + to_string(j) ) );
-	    } else if( comp_isnan(err) ) {
+	    } else if( comp_isnan(dx) ) {
 		throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) + 
 			      ", " + to_string(j) ) );
 	    }
 	}
     }
-    return( maxerr );
+
+    return( 4.0*sqrt(res) );
 }
 
 
@@ -687,10 +686,10 @@ double EpotGSSolver::gs_process_neumann_2d( uint32_t a, uint32_t dj, uint8_t bin
 double EpotGSSolver::gs_loop_2d( void ) const
 {
     // Go through all nodes
-    double maxerr = 0.0;
     const double w2 = 1.0-_w;
     const uint32_t dj = _geom.size(0);
 
+    double res = 0.0;
     for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	uint32_t a = j*dj;
 	for( uint32_t i = 0; i < _geom.size(0); i++, a++ ) {
@@ -714,19 +713,19 @@ double EpotGSSolver::gs_loop_2d( void ) const
 	    }
 	    Vnew = _w*Vnew + w2*Vold;
 	    (*_epot)(a) = Vnew;
-	    double err = fabs( Vnew - Vold );
-	    if( err > maxerr )
-		maxerr = err;
-	    if( comp_isinf(err) ) {
+	    double dx = Vnew - Vold;
+	    res += dx*dx;
+	    if( comp_isinf(dx) ) {
 		throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) + 
 			      ", " + to_string(j) ) );
-	    } else if( comp_isnan(err) ) {
+	    } else if( comp_isnan(dx) ) {
 		throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) + 
 			      ", " + to_string(j) ) );
 	    }
 	}
     }
-    return( maxerr );
+
+    return( 4.0*sqrt(res) );
 }
 
 
@@ -831,8 +830,9 @@ double EpotGSSolver::gs_process_neumann_1d( uint32_t i, uint8_t bindex ) const
 double EpotGSSolver::gs_loop_1d( void ) const
 {
     // Go through all nodes
-    double maxerr = 0.0;
     double w2 = 1.0-_w;
+
+    double res = 0.0;
     for( uint32_t i = 0; i < _geom.size(0); i++ ) {
 	    
 	double Vold = (*_epot)(i);
@@ -854,17 +854,16 @@ double EpotGSSolver::gs_loop_1d( void ) const
 	}
 	Vnew = _w*Vnew + w2*Vold;
 	(*_epot)(i) = Vnew;
-	double err = fabs( Vnew - Vold );
-	if( err > maxerr )
-	    maxerr = err;
-	if( comp_isinf(err) ) {
+	double dx = Vnew - Vold;
+	res += dx*dx;
+	if( comp_isinf(dx) ) {
 	    throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) ) );
-	} else if( comp_isnan(err) ) {
+	} else if( comp_isnan(dx) ) {
 	    throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) ) );
 	}
     }
 
-    return( maxerr );
+    return( 2.0*sqrt(res) );
 }
 
 
@@ -1044,13 +1043,13 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
     _iter = 0;
     while( _iter < _imax ) {
 	if( _geom.geom_mode() == MODE_3D )
-	    _res = _res_coef * gs_loop_3d();
+	    _res = gs_loop_3d();
 	else if( _geom.geom_mode() == MODE_2D )
-	    _res = _res_coef * gs_loop_2d();
+	    _res = gs_loop_2d();
 	else if( _geom.geom_mode() == MODE_CYL )
-	    _res = _res_coef * gs_loop_cyl();
+	    _res = gs_loop_cyl();
 	else if( _geom.geom_mode() == MODE_1D )
-	    _res = _res_coef * gs_loop_1d();
+	    _res = gs_loop_1d();
 	else
 	    throw( ErrorUnimplemented( ERROR_LOCATION ) );
 
@@ -1083,8 +1082,6 @@ void EpotGSSolver::save( std::ostream &s ) const
 {
     throw( ErrorUnimplemented( ERROR_LOCATION ) );
 }
-
-
 
 
 void EpotGSSolver::debug_print( std::ostream &os ) const 

@@ -79,9 +79,9 @@ public:
     /*! \brief Constructor.
      */
     EpotBiCGSTABSolver( Geometry &geom,
-			double eps = 1.0e-4, 
+			double eps = 1.0e-6, 
 			uint32_t imax = 10000,
-			double newton_Reps = 1.0e-4, 
+			double newton_Reps = 1.0e-6, 
 			double newton_dXeps = 1.0e-6, 
 			uint32_t newton_imax = 10,
 			bool gnewton = false );
@@ -135,6 +135,8 @@ public:
     void set_newton_step_eps( double newton_dXeps );
 
     /*! \brief Get estimate of residual error.
+     *
+     *  Returns scaled 2-norm residual \f$ ||(A*x-b)|| / ||b|| \f$.
      */
     double get_residual( void ) const;
 

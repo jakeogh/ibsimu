@@ -184,6 +184,8 @@ public:
     void set_npost( uint32_t npost );
 
     /*! \brief Get estimate of residual error.
+     *
+     *  Returns \f$ ||A|| ||\Delta x|| \f$ from the finest level.
      */
     double get_residual( void ) const;
 

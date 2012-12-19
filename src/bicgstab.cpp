@@ -2,7 +2,7 @@
  *  \brief Stabilized Biconjugate Gradient solver
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -132,14 +132,20 @@ void bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
 	    std::stringstream ss;
 	    ss << "  " << std::setw(5) << i << " " << std::scientific << std::setw(20) << resid;
 	    sp.print( ss.str() );
-	    //std::cout << "KALA\n";
 	}
     }
 
     if( i > imax ) {
 	eps = resid;
-	imax = i;
+	imax = i-1;
     }
+
+    if( ibsimu.get_message_threshold(MSG_VERBOSE) && ibsimu.output_is_cout() ) {
+	std::stringstream ss;
+	ss << "  " << std::setw(5) << imax << " " << std::scientific << std::setw(20) << resid;
+	sp.print( ss.str(), true );
+    }
+    ibsimu.message( 1 ) << "\n";
     
     return;
 }

@@ -1391,7 +1391,7 @@ void EpotMGSolver::mg_recurse( uint32_t level, std::stringstream &ss )
 	// Last level, solve the roughest problem until convergence
 	uint32_t a = 0;
 	while( a < _imax ) {
-	    _res = _res_coef * _epotsolverv[level]->mg_solve( _epotv[level], _rhsv[level], _w );
+	    _res = _epotsolverv[level]->mg_solve( _epotv[level], _rhsv[level], _w );
 	    a++;
 	    if( _res < _eps )
 		break;
@@ -1542,7 +1542,7 @@ void EpotMGSolver::mg_recurse( uint32_t level, std::stringstream &ss )
 
 	// Post smoothing
 	for( uint32_t a = 0; a < _npost; a++ )
-	    _res = _res_coef * _epotsolverv[level]->mg_smooth( _epotv[level], _rhsv[level] );
+	    _res = _epotsolverv[level]->mg_smooth( _epotv[level], _rhsv[level] );
 
 #ifdef DEBUG_MGSOLVER
 	ibsimu.message( 2 ) << "epot (level = " << level << ") post smoothed:\n";

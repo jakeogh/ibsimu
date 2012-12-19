@@ -185,10 +185,10 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 	_pc->construct( *A );
 
         imax = _imax;
-        eps = _eps / _res_coef;
+        eps = _eps;
         bicgstab( *A, *B, X, *_pc, imax, eps );
 	_iter = imax;
-	_res = _res_coef * eps;
+	_res = eps;
 
 	if( _iter == _imax )
 	    ibsimu.message( 1 ) << "Maximum number of iteration rounds done.\n";
@@ -238,7 +238,7 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
                 // Calculate dX = J^{-1}*R
 		_pc->construct( *J );
                 imax = _imax - imax_sum;
-                eps = _eps / _res_coef;
+                eps = _eps ;
                 dX.clear();
                 bicgstab( *J, *R, dX, *_pc, imax, eps );
                 imax_sum += imax;
@@ -298,7 +298,7 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 		_pc->construct( *J );
 
 		imax = _imax - imax_sum;
-		eps = _eps / _res_coef;
+		eps = _eps;
 		dX.clear();
 		bicgstab( *J, *R, dX, *_pc, imax, eps );
 		imax_sum += imax;
@@ -314,7 +314,7 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 				    << std::setw(5) << a << " " 
 				    << std::setw(8) << imax << " " 
 				    << std::setw(14) << accX << " " 
-				    << std::setw(14) << _res_coef * accR << "\n";
+				    << std::setw(14) << accR << "\n";
 		ibsimu.flush();
 		
 		if( accR < _newton_Reps || accX < _newton_dXeps || imax_sum >= _imax )
@@ -323,7 +323,7 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
         }
 
 	_iter = imax_sum;
-	_res = _res_coef * accR;
+	_res = accR;
 
 	if( accR < _newton_Reps || accX < _newton_dXeps )
 	    ibsimu.message( 1 ) << "Newton-Raphson converged\n";

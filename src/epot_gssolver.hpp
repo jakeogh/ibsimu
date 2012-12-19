@@ -130,6 +130,8 @@ public:
     void set_w( double w );
 
     /*! \brief Get estimate of residual error.
+     *
+     *  Returns \f$ ||A|| ||\Delta x|| \f$.
      */
     double get_residual( void ) const;
 
