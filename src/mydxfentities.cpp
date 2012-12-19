@@ -54,6 +54,7 @@
 #include "mydxfinsert.hpp"
 #include "polysolver.hpp"
 #include "error.hpp"
+#include "ibsimu.hpp"
 
 
 
@@ -594,7 +595,7 @@ MyDXFEntitySelection *MyDXFEntities::selection_path_loop( MyDXFEntitySelection *
 	    std::cout << "  No matching entity found, removing last of stack\n";
 #endif
 	    if( _dxf->wlevel() ) {
-		std::cout << "No match at " << end << ", removing entity\n";
+		ibsimu.message(1) << "No match at " << end << ", removing entity\n";
 	    }
 
 	    // No matching entity found. Remove last entity of stack
