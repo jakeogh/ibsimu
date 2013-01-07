@@ -186,10 +186,11 @@ void EpotBiCGSTABSolver::bicgstab( const Matrix &mat, const Vector &rhs, Vector 
     if( mat.rows() != rhs.size() )
 	throw( ErrorDim( ERROR_LOCATION, "matrix dimension does not match vector" ) );
 
-    double resid, omega = 0, alpha = 0, beta, rho_1, rho_2 = 0;
+    double omega = 0, alpha = 0, beta, rho_1, rho_2 = 0;
     Vector p, phat, s, shat, t, v;
     double maxsize = _geom.size().max();
     double errscale = maxsize*maxsize;
+    ibsimu.message(1) << "errscale = " << errscale << "\n";
     double norm_rhs = norm2(rhs);
     if( sol.size() != mat.columns() ) {
 	sol.resize( mat.columns() );
@@ -216,7 +217,7 @@ void EpotBiCGSTABSolver::bicgstab( const Matrix &mat, const Vector &rhs, Vector 
     }
 
     uint32_t i = 0; // Local iteration counter
-    while( _iter <= _imax ) {
+    while( _iter < _imax ) {
 	rho_1 = dot_prod( rtilde, r );
 	if( rho_1 == 0 )
 	    break;
@@ -247,12 +248,11 @@ void EpotBiCGSTABSolver::bicgstab( const Matrix &mat, const Vector &rhs, Vector 
 	_err = errscale*_res;
 	if( _err < _eps )
 	    break;
-	if( comp_isnan( resid ) || omega == 0 )
+	if( comp_isnan(_res) || omega == 0 )
 	    throw( Error( ERROR_LOCATION, "convergence failure" ) );
 
 	i++;
 	_iter++;
-	_res = resid;
 	_err = errscale*_res;
 	if( ibsimu.get_message_threshold(MSG_VERBOSE) && ibsimu.output_is_cout() ) {
 	    std::stringstream ss;
