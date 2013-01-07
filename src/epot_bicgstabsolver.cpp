@@ -2,7 +2,7 @@
  *  \brief BiCGSTAB matrix solver for electric potential problem
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -42,24 +42,26 @@
 
 
 #include <limits>
-#include "bicgstab.hpp"
+#include "compmath.hpp"
 #include "hbio.hpp"
 #include "ilu0_precond.hpp"
 #include "epot_bicgstabsolver.hpp"
+#include "statusprint.hpp"
 #include "ibsimu.hpp"
 
 
 EpotBiCGSTABSolver::EpotBiCGSTABSolver( Geometry &geom, 
 					double eps, 
 					uint32_t imax,
-					double newton_Reps, 
-					double newton_dXeps, 
+					double newton_r_eps, 
+					double newton_step_eps, 
 					uint32_t newton_imax,
 					bool gnewton )
-    : EpotMatrixSolver(geom), _eps(eps), _imax(imax), _iter(0), _res(0.0), _gnewton(gnewton),
-      _newton_Reps(newton_Reps), _newton_dXeps(newton_dXeps), _newton_imax(newton_imax)
+    : EpotMatrixSolver(geom), _eps(eps), _imax(imax), _iter(0), 
+      _res(0.0), _err(0.0), _gnewton(gnewton), _newton_r_eps(newton_r_eps), 
+      _newton_step_eps(newton_step_eps), _newton_imax(newton_imax)
 {
-    if( eps <= 0.0 || newton_Reps <= 0.0 || newton_dXeps <= 0.0 )
+    if( eps <= 0.0 || newton_r_eps <= 0.0 || newton_step_eps <= 0.0 )
         throw( ErrorDim( ERROR_LOCATION, "invalid accuracy request" ) );
 
     _pc = new ILU0_Precond;
@@ -122,31 +124,49 @@ void EpotBiCGSTABSolver::set_newton_imax( uint32_t newton_imax )
 }
 
 
-void EpotBiCGSTABSolver::set_newton_residual_eps( double newton_Reps ) 
+void EpotBiCGSTABSolver::set_newton_residual_eps( double newton_r_eps ) 
 {
-    if( newton_Reps <= 0.0 )
+    if( newton_r_eps <= 0.0 )
         throw( ErrorDim( ERROR_LOCATION, "invalid accuracy request" ) );
-    _newton_Reps = newton_Reps;
+    _newton_r_eps = newton_r_eps;
 }
 
 
-void EpotBiCGSTABSolver::set_newton_step_eps( double newton_dXeps ) 
+void EpotBiCGSTABSolver::set_newton_step_eps( double newton_step_eps ) 
 {
-    if( newton_dXeps <= 0.0 )
+    if( newton_step_eps <= 0.0 )
         throw( ErrorDim( ERROR_LOCATION, "invalid accuracy request" ) );
-    _newton_dXeps = newton_dXeps;
+    _newton_step_eps = newton_step_eps;
 }
 
 
-double EpotBiCGSTABSolver::get_residual( void ) const
+double EpotBiCGSTABSolver::get_scaled_residual( void ) const
 {
     return( _res );
+}
+
+
+double EpotBiCGSTABSolver::get_error_estimate( void ) const
+{
+    return( _err );
 }
 
 
 uint32_t EpotBiCGSTABSolver::get_iter( void ) const
 {
     return( _iter );
+}
+
+
+double EpotBiCGSTABSolver::get_newton_residual( void ) const
+{
+    return( _newton_res );
+}
+
+
+double EpotBiCGSTABSolver::get_newton_step( void ) const
+{
+    return( _newton_step );
 }
 
 
@@ -157,11 +177,102 @@ void EpotBiCGSTABSolver::reset_problem( void )
 }
 
 
+void EpotBiCGSTABSolver::bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
+				   const Precond &pc )
+{
+    // Checks
+    if( mat.columns() != mat.rows() )
+	throw( ErrorDim( ERROR_LOCATION, "matrix not square" ) );
+    if( mat.rows() != rhs.size() )
+	throw( ErrorDim( ERROR_LOCATION, "matrix dimension does not match vector" ) );
+
+    double resid, omega = 0, alpha = 0, beta, rho_1, rho_2 = 0;
+    Vector p, phat, s, shat, t, v;
+    double maxsize = _geom.size().max();
+    double errscale = maxsize*maxsize;
+    double norm_rhs = norm2(rhs);
+    if( sol.size() != mat.columns() ) {
+	sol.resize( mat.columns() );
+	sol.clear();
+    }
+
+    Vector r = mat * sol;
+    r = rhs - r;
+    Vector rtilde = r;
+
+    if( norm_rhs == 0.0 )
+	norm_rhs = 1;
+  
+    _res = norm2(r) / norm_rhs;
+    _err = errscale*_res;
+    if( _err <= _eps )
+	return;
+
+    StatusPrint sp;
+    if( ibsimu.get_message_threshold(MSG_VERBOSE) && ibsimu.output_is_cout() ) {
+	std::stringstream ss;
+	ss << "  " << std::setw(5) << 0 << " " << std::scientific << std::setw(20) << _err;
+	sp.print( ss.str() );
+    }
+
+    uint32_t i = 0; // Local iteration counter
+    while( _iter <= _imax ) {
+	rho_1 = dot_prod( rtilde, r );
+	if( rho_1 == 0 )
+	    break;
+	if( i == 0 )
+	    p = r;
+	else {
+	    beta = (rho_1/rho_2) * (alpha/omega);
+	    p = r + beta * (p - omega * v);
+	}
+	pc.solve( phat, p );
+	v = mat * phat;
+	alpha = rho_1 / dot_prod( rtilde, v );
+	s = r - alpha * v;
+	_res = norm2(s)/norm_rhs;
+	_err = errscale*_res;
+	if( _err < _eps ) {
+	    sol += alpha * phat;
+	    break;
+	}
+	pc.solve( shat, s );
+	t = mat * shat;
+	omega = dot_prod( t, s ) / dot_prod( t, t );
+	sol += alpha * phat + omega * shat;
+	r = s - omega * t;
+
+	rho_2 = rho_1;
+	_res = norm2(r) / norm_rhs;
+	_err = errscale*_res;
+	if( _err < _eps )
+	    break;
+	if( comp_isnan( resid ) || omega == 0 )
+	    throw( Error( ERROR_LOCATION, "convergence failure" ) );
+
+	i++;
+	_iter++;
+	_res = resid;
+	_err = errscale*_res;
+	if( ibsimu.get_message_threshold(MSG_VERBOSE) && ibsimu.output_is_cout() ) {
+	    std::stringstream ss;
+	    ss << "  " << std::setw(5) << i << " " << std::scientific << std::setw(20) << _err;
+	    sp.print( ss.str() );
+	}
+    }
+    // Force print last
+    if( ibsimu.get_message_threshold(MSG_VERBOSE) && ibsimu.output_is_cout() ) {
+	std::stringstream ss;
+	ss << "  " << std::setw(5) << i << " " << std::scientific << std::setw(20) << _err;
+	sp.print( ss.str(), true );
+    }
+    
+    return;
+}
+
+
 void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField &scharge )
 {
-    uint32_t imax;
-    double eps;
-
     // Preprocess and set starting guess
     preprocess( epot, scharge );
     Vector X;
@@ -184,27 +295,27 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 	    _pc->prepare( *A );
 	_pc->construct( *A );
 
-        imax = _imax;
-        eps = _eps;
-        bicgstab( *A, *B, X, *_pc, imax, eps );
-	_iter = imax;
-	_res = eps;
+	_iter = 0;
+        bicgstab( *A, *B, X, *_pc );
+	ibsimu.message( 1 ) << "\n";
 
 	if( _iter == _imax )
 	    ibsimu.message( 1 ) << "Maximum number of iteration rounds done.\n";
-	ibsimu.message( 1 ) << "residual error = " << _res << "\n";
+	ibsimu.message( 1 ) << "error estimate = " << _err << "\n";
 	ibsimu.message( 1 ) << "iterations = " << _iter << "\n";
 	ibsimu.flush();
 
     } else {
 
 	int32_t a;
-	uint32_t imax_sum = 0;
+	uint32_t iter_old = 0;
         const CRowMatrix *J;
         const Vector *R;
-        double accR = 0.0, accX = 0.0;
         Vector dX;
 
+	_newton_res = 0.0;
+	_newton_step = 0.0;
+	_iter = 0;
 	if( _gnewton ) {
 
 	    ibsimu.message( 1 ) << "Using Globally convergent Newton-Raphson BiCGSTAB-" 
@@ -212,11 +323,10 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 				<< " imax = " << _imax
 				<< ", eps = " << _eps
 				<< ", newton_imax = " << _newton_imax
-				<< ", newton_reps = " << _newton_Reps
-				<< ", newton_dxeps = " << _newton_dXeps
+				<< ", newton_r_eps = " << _newton_r_eps
+				<< ", newton_step_eps = " << _newton_step_eps
 				<< " )\n";
-	    ibsimu.message( 1 ) << "  " 
-				<< std::setw(5)  << "Round" << " " 
+	    ibsimu.message( 1 ) << std::setw(5)  << "Round" << " " 
 				<< std::setw(8)  << "Iter" << " " 
 				<< std::setw(14) << "Step size" << " " 
 				<< std::setw(14) << "Step fac" << " " 
@@ -237,11 +347,9 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 
                 // Calculate dX = J^{-1}*R
 		_pc->construct( *J );
-                imax = _imax - imax_sum;
-                eps = _eps ;
                 dX.clear();
-                bicgstab( *J, *R, dX, *_pc, imax, eps );
-                imax_sum += imax;
+		iter_old = _iter;
+                bicgstab( *J, *R, dX, *_pc );
 
                 // Search for acceptable step for which residual decreases
                 double t = 2.0;
@@ -258,18 +366,18 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
                 }
 
                 // Check for convergence
-                accR = max_abs( *R );
-                accX = t*max_abs( dX );
+                _newton_res = max_abs( *R );
+                _newton_step = t*max_abs( dX );
 
-		ibsimu.message( 1 ) << "  " 
+		ibsimu.message( 1 ) << "\r  " 
 				    << std::setw(5)  << a << " " 
-				    << std::setw(8)  << imax << " " 
-				    << std::setw(14) << accX << " " 
+				    << std::setw(8)  << _iter-iter_old << " " 
+				    << std::setw(14) << _newton_step << " " 
 				    << std::setw(14) << t << " " 
-				    << std::setw(14) << accR << "\n";
+				    << std::setw(14) << _newton_res << "\n";
 		ibsimu.flush();
                 
-                if( accR < _newton_Reps || (t == 1.0 && accX < _newton_dXeps) || imax_sum >= _imax )
+                if( _newton_res < _newton_r_eps || (t == 1.0 && _newton_step < _newton_step_eps) || _iter >= _imax )
                     break;
             }
 
@@ -279,11 +387,10 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 				<< " imax = " << _imax
 				<< ", eps = " << _eps
 				<< ", newton_imax = " << _newton_imax
-				<< ", newton_reps = " << _newton_Reps
-				<< ", newton_dxeps = " << _newton_dXeps
+				<< ", newton_r_eps = " << _newton_r_eps
+				<< ", newton_step_eps = " << _newton_step_eps
 				<< " )\n";
-	    ibsimu.message( 1 ) << "  " 
-				<< std::setw(5)  << "Round" << " " 
+	    ibsimu.message( 1 ) << std::setw(5)  << "Round" << " " 
 				<< std::setw(8)  << "Iter" << " " 
 				<< std::setw(14) << "Step size" << " " 
 				<< std::setw(14) << "Residual" << "\n";
@@ -297,42 +404,36 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 		    _pc->prepare( *J );
 		_pc->construct( *J );
 
-		imax = _imax - imax_sum;
-		eps = _eps;
 		dX.clear();
-		bicgstab( *J, *R, dX, *_pc, imax, eps );
-		imax_sum += imax;
-		
+		iter_old = _iter;
+		bicgstab( *J, *R, dX, *_pc );
+
 		// Take step
 		X -= dX;
 
 		// Check for convergence
-		accR = max_abs( *R );
-		accX = max_abs( dX );
+		_newton_res = max_abs( *R );
+		_newton_step = max_abs( dX );
 
-		ibsimu.message( 1 ) << "  " 
+		ibsimu.message( 1 ) << "\r  " 
 				    << std::setw(5) << a << " " 
-				    << std::setw(8) << imax << " " 
-				    << std::setw(14) << accX << " " 
-				    << std::setw(14) << accR << "\n";
+				    << std::setw(8) << _iter-iter_old << " " 
+				    << std::setw(14) << _newton_step << " " 
+				    << std::setw(14) << _newton_res << "\n";
 		ibsimu.flush();
 		
-		if( accR < _newton_Reps || accX < _newton_dXeps || imax_sum >= _imax )
+		if( _newton_res < _newton_r_eps || _newton_step < _newton_step_eps || _iter >= _imax )
 		    break;
 	    }
         }
 
-	_iter = imax_sum;
-	_res = accR;
-
-	if( accR < _newton_Reps || accX < _newton_dXeps )
+	if( _newton_res < _newton_r_eps || _newton_step < _newton_step_eps )
 	    ibsimu.message( 1 ) << "Newton-Raphson converged\n";
-	else if( imax_sum >= _imax )
+	else if( _iter >= _imax )
 	    ibsimu.message( 1 ) << "Maximum number of BiCGSTAB iterations\n";
 	else
 	    ibsimu.message( 1 ) << "Maximum number of Newton-Raphson iterations\n";
 	
-	ibsimu.message( 1 ) << "residual error = " << _res << "\n";
 	ibsimu.message( 1 ) << "total iterations = " << _iter << "\n";
 
     }

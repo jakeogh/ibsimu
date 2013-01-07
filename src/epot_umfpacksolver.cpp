@@ -2,7 +2,7 @@
  *  \brief UMFPACK matrix solver for electric potential problem
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -42,16 +42,18 @@
 
 
 #include <umfpack.h>
+#include <limits>
 #include "epot_umfpacksolver.hpp"
 #include "ibsimu.hpp"
 
 
 EpotUMFPACKSolver::EpotUMFPACKSolver( Geometry &geom, 
-				      double newton_Reps, 
-				      double newton_dXeps, 
-				      uint32_t newton_imax )
-    : EpotMatrixSolver(geom), _numeric(0), _newton_Reps(newton_Reps), 
-      _newton_dXeps(newton_dXeps), _newton_imax(newton_imax)
+				      double newton_r_eps, 
+				      double newton_step_eps, 
+				      uint32_t newton_imax,
+				      bool gnewton )
+    : EpotMatrixSolver(geom), _numeric(0), _gnewton(gnewton), _newton_r_eps(newton_r_eps), 
+      _newton_step_eps(newton_step_eps), _newton_imax(newton_imax)
 {
 
 }
@@ -84,15 +86,33 @@ void EpotUMFPACKSolver::set_newton_imax( uint32_t newton_imax )
 }
 
 
-void EpotUMFPACKSolver::set_newton_residual_eps( double newton_Reps ) 
+void EpotUMFPACKSolver::set_newton_residual_eps( double newton_r_eps ) 
 {
-    _newton_Reps = newton_Reps;
+    _newton_r_eps = newton_r_eps;
 }
 
 
-void EpotUMFPACKSolver::set_newton_step_eps( double newton_dXeps ) 
+void EpotUMFPACKSolver::set_newton_step_eps( double newton_step_eps ) 
 {
-    _newton_dXeps = newton_dXeps;
+    _newton_step_eps = newton_step_eps;
+}
+
+
+void EpotUMFPACKSolver::set_gnewton( bool enable )
+{
+    _gnewton = enable;
+}
+
+
+double EpotUMFPACKSolver::get_newton_residual( void ) const
+{
+    return( _newton_res );
+}
+
+
+double EpotUMFPACKSolver::get_newton_step( void ) const
+{
+    return( _newton_step );
 }
 
 
@@ -181,17 +201,15 @@ void EpotUMFPACKSolver::umfpack_solve( const CColMatrix &mat, const Vector &rhs,
 
 void EpotUMFPACKSolver::subsolve( MeshScalarField &epot, const MeshScalarField &scharge )
 {
-    if( linear() )
-	ibsimu.message(1) << "  Using UMFPACK solver\n";
-    else
-	ibsimu.message(1) << "  Using Newton-Raphson UMFPACK solver\n";
-
     // Preprocess and set starting guess
     preprocess( epot, scharge );
     Vector X;
     set_initial_guess( epot, X );
 
     if( linear() ) {
+
+	ibsimu.message(1) << "Using UMFPACK solver\n";
+	ibsimu.flush();
 
 	// Fetch matrix form of problem
 	const CRowMatrix *A;
@@ -206,38 +224,102 @@ void EpotUMFPACKSolver::subsolve( MeshScalarField &epot, const MeshScalarField &
 	int32_t a;
         const CRowMatrix *J;
         const Vector *R;
-        double accR = 0.0, accX = 0.0;
         Vector dX;
 
-	ibsimu.message(1) << "    " 
-			  << std::setw(5) << "Iter" << " " 
-			  << std::setw(14) << "Step size" << " " 
-			  << std::setw(14) << "Residual" << "\n";
+	_newton_res = 0.0;
+	_newton_step = 0.0;
+	if( _gnewton ) {
 
-        for( a = 0; a < (int)_newton_imax; a++ ) {
-            // Calculate dX = J^{-1}*R
+	    ibsimu.message(1) << "Using Globally convergent Newton-Raphson UMFPACK solver("
+			      << ", newton_imax = " << _newton_imax
+			      << ", newton_r_eps = " << _newton_r_eps
+			      << ", newton_step_eps = " << _newton_step_eps
+			      << " )\n";
+	    ibsimu.message(1) << std::setw(5)  << "Round" << " " 
+			      << std::setw(14) << "Step size" << " " 
+			      << std::setw(14) << "Step fac" << " " 
+			      << std::setw(14) << "Residual" << "\n";
+	    ibsimu.flush();
+	    
+	    // Globally convergent Newton-Raphson
+            Vector Xold( X.size() );
+
+            // First jacobian and residual
             get_resjac( &J, &R, X );
-            CColMatrix Jcol( *J );
-            dX.clear();
-            umfpack_solve( Jcol, *R, dX, true );
+            double f = ssqr( *R );
 
-            // Take step
-            X -= dX;
+	    for( a = 0; a < (int)_newton_imax; a++ ) {
 
-            // Check for convergence
-            accR = max_abs( *R );
-            accX = max_abs( dX );
+		// Calculate dX = J^{-1}*R
+                dX.clear();
+		CColMatrix Jcol( *J );
+		umfpack_solve( Jcol, *R, dX, true );
 
-	    ibsimu.message(1) << "    " 
-			      << std::setw(5) << a << " " 
-			      << std::setw(14) << accX << " " 
-			      << std::setw(14) << accR << "\n";
+		// Search for acceptable step for which residual decreases
+                double t = 2.0;
+                double fold = f;
+                Xold = X;
+                while( f >= fold ) {
 
-            if( accR < _newton_Reps || accX < _newton_dXeps )
-                break;
-        }
+                    t *= 0.5;
+                    X = Xold - t*dX;
+                    get_resjac( &J, &R, X );
+                    f = ssqr( *R );
+                    if( t <= std::numeric_limits<double>::epsilon() )
+                        break;
+                }
+		
+		// Check for convergence
+		_newton_res = max_abs( *R );
+		_newton_step = max_abs( dX );
+		
+		ibsimu.message(1) << std::setw(5) << a << " " 
+				  << std::setw(14) << _newton_step << " " 
+				  << std::setw(14) << t << " " 
+				  << std::setw(14) << _newton_res << "\n";
+		ibsimu.flush();
 
-	if( accR < _newton_Reps || accX < _newton_dXeps )
+		if( _newton_res < _newton_r_eps || _newton_step < _newton_step_eps )
+		    break;
+	    }
+
+	} else {
+
+	    ibsimu.message(1) << "Using Newton-Raphson UMFPACK solver("
+			      << ", newton_imax = " << _newton_imax
+			      << ", newton_r_eps = " << _newton_r_eps
+			      << ", newton_step_eps = " << _newton_step_eps
+			      << " )\n";
+	    ibsimu.message(1) << std::setw(5)  << "Round" << " " 
+			      << std::setw(14) << "Step size" << " " 
+			      << std::setw(14) << "Residual" << "\n";
+	    ibsimu.flush();
+	    
+	    for( a = 0; a < (int)_newton_imax; a++ ) {
+		// Calculate dX = J^{-1}*R
+		get_resjac( &J, &R, X );
+		CColMatrix Jcol( *J );
+		dX.clear();
+		umfpack_solve( Jcol, *R, dX, true );
+		
+		// Take step
+		X -= dX;
+		
+		// Check for convergence
+		_newton_res = max_abs( *R );
+		_newton_step = max_abs( dX );
+		
+		ibsimu.message(1) << std::setw(5) << a << " " 
+				  << std::setw(14) << _newton_step << " " 
+				  << std::setw(14) << _newton_res << "\n";
+		ibsimu.flush();
+
+		if( _newton_res < _newton_r_eps || _newton_step < _newton_step_eps )
+		    break;
+	    }
+	}
+
+	if( _newton_res < _newton_r_eps || _newton_step < _newton_step_eps )
 	    ibsimu.message(1) << "  Newton-Raphson converged\n";
 	else
 	    ibsimu.message(1) << "  Maximum number of Newton-Raphson iterations\n";
@@ -254,7 +336,7 @@ void EpotUMFPACKSolver::debug_print( std::ostream &os ) const
     EpotMatrixSolver::debug_print( os );
     os << "**EpotUMFPACKSolver\n";
 
-    os << "newton_Reps = " << _newton_Reps << "\n";
-    os << "newton_dXeps = " << _newton_dXeps << "\n";
+    os << "newton_Reps = " << _newton_r_eps << "\n";
+    os << "newton_dXeps = " << _newton_step_eps << "\n";
     os << "newton_imax = " << _newton_imax << "\n";
 }

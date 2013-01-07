@@ -2,7 +2,7 @@
  *  \brief Gauss-Seidel solver for electric potential problem
  */
 
-/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -50,7 +50,7 @@
 
 EpotGSSolver::EpotGSSolver( Geometry &geom )
     : EpotSolver( geom ), _epot(NULL), _rhs(NULL), _iter(0), _imax(10000), 
-      _eps(1.0e-4), _res(0.0), _w(1.66)
+      _eps(1.0e-4), _step(0.0), _err(0.0), _w(1.66)
 {
     
 }
@@ -75,9 +75,15 @@ void EpotGSSolver::set_eps( double eps )
 }
 
 
-double EpotGSSolver::get_residual( void ) const
+double EpotGSSolver::get_potential_change_norm( void ) const
 {
-    return( _res );
+    return( _step );
+}
+
+
+double EpotGSSolver::get_error_estimate( void ) const
+{
+    return( _err );
 }
 
 
@@ -332,7 +338,7 @@ double EpotGSSolver::gs_loop_3d( void ) const
 	}
     }
 
-    return( 6.0*sqrt(res) );
+    return( sqrt(res) );
 }
 
 
@@ -531,7 +537,7 @@ double EpotGSSolver::gs_loop_cyl( void ) const
 	}
     }
 
-    return( 4.0*sqrt(res) );
+    return( sqrt(res) );
 }
 
 
@@ -725,7 +731,7 @@ double EpotGSSolver::gs_loop_2d( void ) const
 	}
     }
 
-    return( 4.0*sqrt(res) );
+    return( sqrt(res) );
 }
 
 
@@ -863,7 +869,7 @@ double EpotGSSolver::gs_loop_1d( void ) const
 	}
     }
 
-    return( 2.0*sqrt(res) );
+    return( sqrt(res) );
 }
 
 
@@ -1034,6 +1040,11 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
     std::stringstream ss;
     ss << std::setw(5) << 0 << " " << std::scientific << std::setw(20) << 0;
     sp.print( ss.str() );
+    
+    double maxsize = _geom.size().max();
+    double errscale = 1.0e-3*maxsize;
+    if( _geom.geom_mode() == MODE_3D )
+	errscale = 1.0e-3*sqrt(maxsize);
 
     // Set epot pointer and preprocess
     _epot = &epot;
@@ -1043,24 +1054,26 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
     _iter = 0;
     while( _iter < _imax ) {
 	if( _geom.geom_mode() == MODE_3D )
-	    _res = gs_loop_3d();
+	    _step = gs_loop_3d();
 	else if( _geom.geom_mode() == MODE_2D )
-	    _res = gs_loop_2d();
+	    _step = gs_loop_2d();
 	else if( _geom.geom_mode() == MODE_CYL )
-	    _res = gs_loop_cyl();
+	    _step = gs_loop_cyl();
 	else if( _geom.geom_mode() == MODE_1D )
-	    _res = gs_loop_1d();
+	    _step = gs_loop_1d();
 	else
 	    throw( ErrorUnimplemented( ERROR_LOCATION ) );
 
+	_err = errscale*_step;
+
 	std::stringstream ss;
-	ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
+	ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _err;
 	sp.print( ss.str() );
 
 	_iter++;
-	if( _res < _eps )
+	if( _err < _eps )
 	    break;
-	if( comp_isinf(_res) || comp_isnan(_res) )
+	if( comp_isinf(_err) || comp_isnan(_err) )
 	    break;
     }
 
@@ -1068,12 +1081,12 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
     postprocess();
 
     std::stringstream ss2;
-    ss2 << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
+    ss2 << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _err;
     sp.print( ss2.str(), true );
     ibsimu.message( 1 ) << "\n";
     if( _iter == _imax )
 	ibsimu.message( 1 ) << "Maximum number of iteration rounds done.\n";
-    ibsimu.message( 1 ) << "residual error = " << _res << "\n";
+    ibsimu.message( 1 ) << "error estimate = " << _err << "\n";
     ibsimu.message( 1 ) << "iterations = " << _iter << "\n";
 }
 

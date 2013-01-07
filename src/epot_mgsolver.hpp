@@ -2,7 +2,7 @@
  *  \brief Multigrid solver for electric potential problem
  */
 
-/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -67,7 +67,8 @@ class EpotMGSolver : public EpotSolver {
     uint32_t         _mgcyc;          /*!< \brief Number of multigrid cycles taken. */
     double           _mgeps;          /*!< \brief Acceptable residual error from last multigrid cycle. */
     uint32_t         _gamma;          /*!< \brief Multigrid cycle coefficient, 1 for V-cycles, 2 for W-cycles. */
-    double           _res;            /*!< \brief Residual error from top level. */
+    double           _step;           /*!< \brief Potential change norm from top level. */
+    double           _err;            /*!< \brief Error estimate from top level. */
     double           _eps;            /*!< \brief Acceptable error for coarsest level. */
     double           _w;              /*!< \brief Over-relaxation factor for coarsest level. */
     uint32_t         _imax;           /*!< \brief Maximum number of rounds for coarsest level. */
@@ -127,7 +128,7 @@ public:
 
     /*! \brief Sets the accuracy request for coarsest level SOR solver.
      *
-     *  Defaults to 1e-12.
+     *  Defaults to 1e-10.
      */
     void set_eps( double eps );
 
@@ -159,7 +160,7 @@ public:
 
     /*! \brief Sets the accuracy request for finest level.
      *
-     *  Defaults to 1.0e-6. Multigrid cycles are done until the
+     *  Defaults to 1.0e-4. Multigrid cycles are done until the
      *  residual error is less than \a mgeps or \a mgcyc cycles have
      *  been made.
      */
@@ -183,11 +184,18 @@ public:
      */
     void set_npost( uint32_t npost );
 
-    /*! \brief Get estimate of residual error.
+    /*! \brief Get potential change norm.
      *
-     *  Returns \f$ ||A|| ||\Delta x|| \f$ from the finest level.
+     *  Returns 2-norm \f$ ||\Delta x|| \f$.
      */
-    double get_residual( void ) const;
+    double get_potential_change_norm( void ) const;
+
+    /*! \brief Get estimate of relative solution error.
+     *
+     *  Returns 2-norm \f$ 1e-3 \max(I,J,K) ||\Delta x|| \f$ in 2D and
+     *  \f$ 1e-3 sqrt{\max(I,J,K)} ||\Delta x|| \f$ in 3D.
+     */
+    double get_error_estimate( void ) const;
 
     /*! \brief Get number of multigrid cycles done.
      */

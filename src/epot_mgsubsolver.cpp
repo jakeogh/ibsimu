@@ -2,7 +2,7 @@
  *  \brief Multigrid solver for electric potential problem
  */
 
-/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -54,6 +54,18 @@
 EpotMGSubSolver::EpotMGSubSolver( const EpotSolver &epsolver, Geometry &geom )
     : EpotSolver( epsolver, geom )
 {
+}
+
+
+double EpotMGSubSolver::error_scale( void ) const
+{
+    if( _geom.geom_mode() == MODE_3D ) {
+	double maxsize = _geom.size().max();
+	return( 1.0e-3*sqrt(maxsize) );
+    }
+
+    double maxsize = _geom.size().max();
+    return( 1.0e-3*maxsize );
 }
 
 

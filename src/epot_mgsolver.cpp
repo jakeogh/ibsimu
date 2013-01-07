@@ -2,7 +2,7 @@
  *  \brief Multigrid solver for electric potential problem
  */
 
-/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -58,8 +58,8 @@
 
 EpotMGSolver::EpotMGSolver( Geometry &geom )
     : EpotSolver( geom ), _geom_prepared(false), _levels(1), _npre(5), 
-      _npost(5), _mgcycmax(100), _mgcyc(0), _mgeps(1.0e-6), _gamma(1), _res(0.0), 
-      _eps(1.0e-12), _w(1.7), _imax(10000)
+      _npost(5), _mgcycmax(100), _mgcyc(0), _mgeps(1.0e-4), _gamma(1), _step(0.0), 
+      _err(0.0), _eps(1.0e-10), _w(1.7), _imax(10000)
 {
 
 }
@@ -106,7 +106,8 @@ void EpotMGSolver::reset_problem( void )
     _workv.clear();
     _work2v.clear();
 
-    _res = 0.0;
+    _step = 0.0;
+    _err = 0.0;
     _geom_prepared = false;
 }
 
@@ -129,9 +130,15 @@ void EpotMGSolver::set_imax( uint32_t imax )
 }
 
 
-double EpotMGSolver::get_residual( void ) const
+double EpotMGSolver::get_potential_change_norm( void ) const
 {
-    return( _res );
+    return( _step );
+}
+
+
+double EpotMGSolver::get_error_estimate( void ) const
+{
+    return( _err );
 }
 
 
@@ -1391,9 +1398,10 @@ void EpotMGSolver::mg_recurse( uint32_t level, std::stringstream &ss )
 	// Last level, solve the roughest problem until convergence
 	uint32_t a = 0;
 	while( a < _imax ) {
-	    _res = _epotsolverv[level]->mg_solve( _epotv[level], _rhsv[level], _w );
+	    _step = _epotsolverv[level]->mg_solve( _epotv[level], _rhsv[level], _w );
+	    _err = _epotsolverv[level]->error_scale()*_step;
 	    a++;
-	    if( _res < _eps )
+	    if( _err < _eps )
 		break;
 	}
 
@@ -1404,12 +1412,12 @@ void EpotMGSolver::mg_recurse( uint32_t level, std::stringstream &ss )
 
 	if( ibsimu.get_message_threshold( MSG_VERBOSE ) > 1 ) {
 	    ibsimu.message( 2 ) << a << " iterations done\n";
-	    ibsimu.message( 2 ) << _res << " accuracy reached\n";
+	    ibsimu.message( 2 ) << _err << " accuracy reached\n";
 	    if( a >= _imax ) {
 		ibsimu.message( 2 ) << "maximum number of iterations done\n";
 	    }
 	} else
-	    ss << "rough " << a << " " << _res << ", ";
+	    ss << "rough " << a << " " << _err << ", ";
 
 	ibsimu.dec_indent();
 	return;
@@ -1542,7 +1550,8 @@ void EpotMGSolver::mg_recurse( uint32_t level, std::stringstream &ss )
 
 	// Post smoothing
 	for( uint32_t a = 0; a < _npost; a++ )
-	    _res = _epotsolverv[level]->mg_smooth( _epotv[level], _rhsv[level] );
+	    _step = _epotsolverv[level]->mg_smooth( _epotv[level], _rhsv[level] );
+	_err = _epotsolverv[level]->error_scale()*_step;
 
 #ifdef DEBUG_MGSOLVER
 	ibsimu.message( 2 ) << "epot (level = " << level << ") post smoothed:\n";
@@ -1550,9 +1559,9 @@ void EpotMGSolver::mg_recurse( uint32_t level, std::stringstream &ss )
 #endif
 
 	if( ibsimu.get_message_threshold( MSG_VERBOSE ) > 1 )
-	    ibsimu.message( 2 ) << _res << " accuracy reached\n";
+	    ibsimu.message( 2 ) << _err << " accuracy reached\n";
 	else if( level == 0 )
-	    ss << "fine " << _res << "    ";
+	    ss << "fine " << _err << "    ";
      }
 
     ibsimu.dec_indent();
@@ -1611,7 +1620,7 @@ void EpotMGSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 	mg_recurse( 0, ss );
 	if( ibsimu.get_message_threshold( MSG_VERBOSE ) == 1 )
 	    sp.print( ss.str(), true );
-	if( _res < _mgeps )
+	if( _err < _mgeps )
 	    break;
     }
     if( ibsimu.get_message_threshold( MSG_VERBOSE ) == 1 )
@@ -1646,7 +1655,8 @@ void EpotMGSolver::debug_print( std::ostream &os ) const
     os << "mgcyc = " << _mgcyc << "\n";
     os << "mgeps = " << _mgeps << "\n";
     os << "gamma = " << _gamma << "\n";
-    os << "res = " << _res << "\n";
+    os << "step = " << _step << "\n";
+    os << "err = " << _err << "\n";
     os << "eps = " << _eps << "\n";
 }
 

@@ -2,7 +2,7 @@
  *  \brief BiCGSTAB matrix solver for electric potential problem
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -53,18 +53,22 @@
  */
 class EpotBiCGSTABSolver : public EpotMatrixSolver {
 
-    double    _eps;          /*!< \brief Accuracy request. */
-    uint32_t  _imax;         /*!< \brief Maximum iteration count. */
+    double    _eps;             /*!< \brief Accuracy request. */
+    uint32_t  _imax;            /*!< \brief Maximum iterations allowed. */
 
-    uint32_t  _iter;         /*!< \brief Number of iteration rounds done. */
-    double    _res;          /*!< \brief Residual error. */
+    uint32_t  _iter;            /*!< \brief Number of iteration rounds done. */
+    double    _res;             /*!< \brief Scaled residual error. */
+    double    _err;             /*!< \brief Error estimate. */
 
-    bool      _gnewton;      /*!< \brief Globally convergent version of Newton-Raphson. */
-    double    _newton_Reps;  /*!< \brief Accuracy request for Newton-Raphson residual. */
-    double    _newton_dXeps; /*!< \brief Accuracy request for Newton-Raphson step. */
-    uint32_t  _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
+    double    _newton_res;      /*!< \brief Newton residual error. */
+    double    _newton_step;     /*!< \brief Newton step size. */
 
-    Precond  *_pc;           /*!< \brief Preconditioner. */
+    bool      _gnewton;         /*!< \brief Globally convergent version of Newton-Raphson. */
+    double    _newton_r_eps  ;  /*!< \brief Accuracy request for Newton-Raphson residual. */
+    double    _newton_step_eps; /*!< \brief Accuracy request for Newton-Raphson step. */
+    uint32_t  _newton_imax;     /*!< \brief Maximum number of Newton-Raphson iterations. */
+
+    Precond  *_pc;              /*!< \brief Preconditioner. */
 
     /*! \brief Reset solver/problem settings.
      */
@@ -74,17 +78,20 @@ class EpotBiCGSTABSolver : public EpotMatrixSolver {
      */
     virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge );
 
+    void bicgstab( const Matrix &mat, const Vector &rhs, Vector &sol,
+		   const Precond &pc );
+
 public:
 
     /*! \brief Constructor.
      */
     EpotBiCGSTABSolver( Geometry &geom,
-			double eps = 1.0e-6, 
+			double eps = 1.0e-4, 
 			uint32_t imax = 10000,
-			double newton_Reps = 1.0e-6, 
-			double newton_dXeps = 1.0e-6, 
+			double newton_r_eps = 1.0e-6, 
+			double newton_step_eps = 1.0e-6, 
 			uint32_t newton_imax = 10,
-			bool gnewton = false );
+			bool gnewton = true );
 
     /*! \brief Destructor.
      */
@@ -100,7 +107,7 @@ public:
 
     /*! \brief Enable/disable globally convergent Newton-Raphson.
      *
-     *  Disabled by default.
+     *  Enabled by default.
      */
     void set_gnewton( bool enable );
 
@@ -124,21 +131,38 @@ public:
 
     /*! \brief Sets the accuracy request for Newton-Raphson residual.
      *
-     *  Defaults to 1.0e-4.
+     *  Defaults to 1.0e-6.
      */
-    void set_newton_residual_eps( double newton_Reps );
+    void set_newton_residual_eps( double newton_r_eps );
+
+    /*! \brief Get last Newton-Raphson residual.
+     */
+    double get_newton_residual( void ) const;
 
     /*! \brief Sets the accuracy request for Newton-Raphson step size.
      *
      *  Defaults to 1.0e-6.
      */
-    void set_newton_step_eps( double newton_dXeps );
+    void set_newton_step_eps( double newton_step_eps );
 
-    /*! \brief Get estimate of residual error.
+    /*! \brief Get last Newton-Raphson step size.
+     */
+    double get_newton_step( void ) const;
+
+    /*! \brief Get scaled residual error.
      *
      *  Returns scaled 2-norm residual \f$ ||(A*x-b)|| / ||b|| \f$.
+     *  Only available for linear solutions.
      */
-    double get_residual( void ) const;
+    double get_scaled_residual( void ) const;
+
+    /*! \brief Get estimate of relative solution error.
+     *
+     *  Returns scaled 2-norm residual \f$ \max(I,J,K)^{-2} ||(A*x-b)|| / ||b|| \f$, 
+     *  which is an estimator for
+     *  \f$ ||x-x^*|| / ||x^*|| \f$. Only available for linear solutions.
+     */
+    double get_error_estimate( void ) const;
 
     /*! \brief Get number of iteration rounds done with last solve().
      */

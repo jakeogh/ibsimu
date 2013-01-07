@@ -2,7 +2,7 @@
  *  \brief Gauss-Seidel solver for electric potential problem
  */
 
-/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -57,7 +57,8 @@ class EpotGSSolver : public EpotSolver {
     uint32_t         _iter;           /*!< \brief Number of iteration rounds done. */
     uint32_t         _imax;           /*!< \brief Maximum number of iteration rounds. */
     double           _eps;            /*!< \brief Accuracy request. */
-    double           _res;            /*!< \brief Residual error. */
+    double           _step;           /*!< \brief Potential change norm. */
+    double           _err;            /*!< \brief Error estimate. */
     double           _w;              /*!< \brief Relaxation coefficient. */
 
     
@@ -118,22 +119,35 @@ public:
     virtual ~EpotGSSolver() {}
 
     /*! \brief Sets the accuracy request.
+     *
+     *  Defaults to 1.0e-4.
      */
     void set_eps( double eps );
 
     /*! \brief Sets maximum iteration count.
+     *
+     *  Defaults to 10000.
      */
     void set_imax( uint32_t imax );
 
     /*! \brief Sets relaxation parameter.
+     *
+     *  Defaults to 1.66.
      */
     void set_w( double w );
 
-    /*! \brief Get estimate of residual error.
+    /*! \brief Get potential change norm.
      *
-     *  Returns \f$ ||A|| ||\Delta x|| \f$.
+     *  Returns 2-norm \f$ ||\Delta x|| \f$.
      */
-    double get_residual( void ) const;
+    double get_potential_change_norm( void ) const;
+
+    /*! \brief Get estimate of relative solution error.
+     *
+     *  Returns 2-norm \f$ 1e-3 \max(I,J,K) ||\Delta x|| \f$ in 2D and
+     *  \f$ 1e-3 sqrt{\max(I,J,K)} ||\Delta x|| \f$ in 3D.
+     */
+    double get_error_estimate( void ) const;
 
     /*! \brief Get number of iteration rounds done with last solve().
      */
