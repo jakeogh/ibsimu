@@ -2,7 +2,7 @@
  *  \brief Diagonal preconditioner
  */
 
-/* Copyright (c) 2005-2009,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -89,6 +89,6 @@ void Diag_Precond::solve( Vector &x, const Vector &b ) const
     x.resize( diag.size() );
 
     for( int i = 0; i < diag.size(); i++ )
-	x[i] = b[i]/diag[i];
+	x[i] = b[i]*diag[i];
 }
 
