@@ -2,7 +2,7 @@
  *  \brief Dialog for exporting field diagnostic data
  */
 
-/* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010,2012-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -65,6 +65,20 @@ void GTKFieldDiagExportDialog::run( void )
 						    GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
 						    NULL );
 
+#ifdef HAVE_UNISTD_H
+    size_t size = 1024;
+    char *buf;
+    while( 1 ) {
+        buf = new char[size];
+        char *ret = getcwd( buf, size );
+        if( ret )
+            break;
+        delete [] buf;
+    }
+    GFile *gfile = g_file_new_for_path( buf );
+    gtk_file_chooser_set_current_folder_file( GTK_FILE_CHOOSER(dialog), gfile, NULL );
+    g_object_unref( gfile );
+#endif
    gtk_file_chooser_set_current_name( GTK_FILE_CHOOSER(dialog), "field.txt" );
    gtk_file_chooser_set_show_hidden( GTK_FILE_CHOOSER(dialog), TRUE );
    gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(dialog), TRUE );
