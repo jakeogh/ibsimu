@@ -2,7 +2,7 @@
  *  \brief Gauss-Seidel solver for electric potential problem
  */
 
-/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -50,7 +50,7 @@
 
 EpotGSSolver::EpotGSSolver( Geometry &geom )
     : EpotSolver( geom ), _epot(NULL), _rhs(NULL), _iter(0), _imax(10000), 
-      _eps(1.0e-4), _res(0.0), _w(1.66)
+      _eps(1.0e-4), _step(0.0), _err(0.0), _w(1.66)
 {
     
 }
@@ -75,9 +75,15 @@ void EpotGSSolver::set_eps( double eps )
 }
 
 
-double EpotGSSolver::get_residual( void ) const
+double EpotGSSolver::get_potential_change_norm( void ) const
 {
-    return( _res );
+    return( _step );
+}
+
+
+double EpotGSSolver::get_error_estimate( void ) const
+{
+    return( _err );
 }
 
 
@@ -290,11 +296,11 @@ double EpotGSSolver::gs_process_neumann_3d( uint32_t a, uint32_t dj, uint32_t dk
 double EpotGSSolver::gs_loop_3d( void ) const
 {
     // Go through all nodes
-    double maxerr = 0.0;
     const double w2 = 1.0-_w;
     const uint32_t dj = _geom.size(0);
     const uint32_t dk = _geom.size(0)*_geom.size(1);
 
+    double res = 0.0;
     for( uint32_t k = 0; k < _geom.size(2); k++ ) {
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	    uint32_t a = k*dk+j*dj;
@@ -319,13 +325,12 @@ double EpotGSSolver::gs_loop_3d( void ) const
 		}
 		Vnew = _w*Vnew + w2*Vold;
 		(*_epot)(a) = Vnew;
-		double err = fabs( Vnew - Vold );
-		if( err > maxerr )
-		    maxerr = err;
-		if( comp_isinf(err) ) {
+		double dx = Vnew - Vold;
+		res += dx*dx;
+		if( comp_isinf(dx) ) {
 		    throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) + 
 				  ", " + to_string(j) + ", " + to_string(k) ) );
-		} else if( comp_isnan(err) ) {
+		} else if( comp_isnan(dx) ) {
 		    throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) + 
 				  ", " + to_string(j) + ", " + to_string(k) ) );
 		}
@@ -333,7 +338,7 @@ double EpotGSSolver::gs_loop_3d( void ) const
 	}
     }
 
-    return( maxerr );
+    return( sqrt(res) );
 }
 
 
@@ -493,10 +498,10 @@ double EpotGSSolver::gs_process_neumann_cyl( uint32_t i, uint32_t j, uint8_t bin
 double EpotGSSolver::gs_loop_cyl( void ) const
 {
     // Go through all nodes
-    double maxerr = 0.0;
     const double w2 = 1.0-_w;
     const uint32_t dj = _geom.size(0);
 
+    double res = 0.0;
     for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	uint32_t a = j*dj;
 	for( uint32_t i = 0; i < _geom.size(0); i++, a++ ) {
@@ -520,19 +525,19 @@ double EpotGSSolver::gs_loop_cyl( void ) const
 	    }
 	    Vnew = _w*Vnew + w2*Vold;
 	    (*_epot)(a) = Vnew;
-	    double err = fabs( Vnew - Vold );
-	    if( err > maxerr )
-		maxerr = err;
-	    if( comp_isinf(err) ) {
+	    double dx = Vnew - Vold;
+	    res += dx*dx;
+	    if( comp_isinf(dx) ) {
 		throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) + 
 			      ", " + to_string(j) ) );
-	    } else if( comp_isnan(err) ) {
+	    } else if( comp_isnan(dx) ) {
 		throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) + 
 			      ", " + to_string(j) ) );
 	    }
 	}
     }
-    return( maxerr );
+
+    return( sqrt(res) );
 }
 
 
@@ -687,10 +692,10 @@ double EpotGSSolver::gs_process_neumann_2d( uint32_t a, uint32_t dj, uint8_t bin
 double EpotGSSolver::gs_loop_2d( void ) const
 {
     // Go through all nodes
-    double maxerr = 0.0;
     const double w2 = 1.0-_w;
     const uint32_t dj = _geom.size(0);
 
+    double res = 0.0;
     for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	uint32_t a = j*dj;
 	for( uint32_t i = 0; i < _geom.size(0); i++, a++ ) {
@@ -714,19 +719,19 @@ double EpotGSSolver::gs_loop_2d( void ) const
 	    }
 	    Vnew = _w*Vnew + w2*Vold;
 	    (*_epot)(a) = Vnew;
-	    double err = fabs( Vnew - Vold );
-	    if( err > maxerr )
-		maxerr = err;
-	    if( comp_isinf(err) ) {
+	    double dx = Vnew - Vold;
+	    res += dx*dx;
+	    if( comp_isinf(dx) ) {
 		throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) + 
 			      ", " + to_string(j) ) );
-	    } else if( comp_isnan(err) ) {
+	    } else if( comp_isnan(dx) ) {
 		throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) + 
 			      ", " + to_string(j) ) );
 	    }
 	}
     }
-    return( maxerr );
+
+    return( sqrt(res) );
 }
 
 
@@ -831,8 +836,9 @@ double EpotGSSolver::gs_process_neumann_1d( uint32_t i, uint8_t bindex ) const
 double EpotGSSolver::gs_loop_1d( void ) const
 {
     // Go through all nodes
-    double maxerr = 0.0;
     double w2 = 1.0-_w;
+
+    double res = 0.0;
     for( uint32_t i = 0; i < _geom.size(0); i++ ) {
 	    
 	double Vold = (*_epot)(i);
@@ -854,17 +860,16 @@ double EpotGSSolver::gs_loop_1d( void ) const
 	}
 	Vnew = _w*Vnew + w2*Vold;
 	(*_epot)(i) = Vnew;
-	double err = fabs( Vnew - Vold );
-	if( err > maxerr )
-	    maxerr = err;
-	if( comp_isinf(err) ) {
+	double dx = Vnew - Vold;
+	res += dx*dx;
+	if( comp_isinf(dx) ) {
 	    throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) ) );
-	} else if( comp_isnan(err) ) {
+	} else if( comp_isnan(dx) ) {
 	    throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) ) );
 	}
     }
 
-    return( maxerr );
+    return( sqrt(res) );
 }
 
 
@@ -1023,6 +1028,29 @@ void EpotGSSolver::postprocess( void )
 }
 
 
+double EpotGSSolver::error_scale( void )
+{
+    double maxsize = _geom.size().max();
+    if( _geom.geom_mode() == MODE_3D ) {
+	// Coefficients from a fit to spherical condenser 
+        // test data with 200x200x200 resolution
+	const double a =  0.0642162;
+	const double b = -0.0821098;
+	const double c =  0.0377858;
+	const double d = -0.00640262;
+	return( (a + _w*(b + _w*(c + _w*d) ) ) * sqrt(maxsize) );
+    } else {
+	// Coefficients from a fit to cylindrical condenser 
+        // test data with 400x400 resolution
+	const double a =  0.0473260;
+	const double b = -0.0611217;
+	const double c =  0.0284808;
+	const double d = -0.00488292;
+	return( (a + _w*(b + _w*(c + _w*d) ) ) * maxsize );
+    }
+}
+
+
 void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &scharge )
 {
     //StatusPrint sp( ibsimu.message( 1 ) );
@@ -1035,6 +1063,8 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
     std::stringstream ss;
     ss << std::setw(5) << 0 << " " << std::scientific << std::setw(20) << 0;
     sp.print( ss.str() );
+    
+    double errscale = error_scale();
 
     // Set epot pointer and preprocess
     _epot = &epot;
@@ -1044,24 +1074,26 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
     _iter = 0;
     while( _iter < _imax ) {
 	if( _geom.geom_mode() == MODE_3D )
-	    _res = _res_coef * gs_loop_3d();
+	    _step = gs_loop_3d();
 	else if( _geom.geom_mode() == MODE_2D )
-	    _res = _res_coef * gs_loop_2d();
+	    _step = gs_loop_2d();
 	else if( _geom.geom_mode() == MODE_CYL )
-	    _res = _res_coef * gs_loop_cyl();
+	    _step = gs_loop_cyl();
 	else if( _geom.geom_mode() == MODE_1D )
-	    _res = _res_coef * gs_loop_1d();
+	    _step = gs_loop_1d();
 	else
 	    throw( ErrorUnimplemented( ERROR_LOCATION ) );
 
+	_err = errscale*_step;
+
 	std::stringstream ss;
-	ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
+	ss << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _err;
 	sp.print( ss.str() );
 
 	_iter++;
-	if( _res < _eps )
+	if( _err < _eps )
 	    break;
-	if( comp_isinf(_res) || comp_isnan(_res) )
+	if( comp_isinf(_err) || comp_isnan(_err) )
 	    break;
     }
 
@@ -1069,12 +1101,12 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
     postprocess();
 
     std::stringstream ss2;
-    ss2 << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _res;
+    ss2 << "  " << std::setw(5) << _iter << " " << std::scientific << std::setw(20) << _err;
     sp.print( ss2.str(), true );
     ibsimu.message( 1 ) << "\n";
     if( _iter == _imax )
 	ibsimu.message( 1 ) << "Maximum number of iteration rounds done.\n";
-    ibsimu.message( 1 ) << "residual error = " << _res << "\n";
+    ibsimu.message( 1 ) << "error estimate = " << _err << "\n";
     ibsimu.message( 1 ) << "iterations = " << _iter << "\n";
 }
 
@@ -1083,8 +1115,6 @@ void EpotGSSolver::save( std::ostream &s ) const
 {
     throw( ErrorUnimplemented( ERROR_LOCATION ) );
 }
-
-
 
 
 void EpotGSSolver::debug_print( std::ostream &os ) const 

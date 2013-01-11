@@ -8,8 +8,6 @@ AM_CPPFLAGS = -Wall
 libibsimu_1_0_5new_solver_la_SOURCES = \
 axisymmetricvectorfield.cpp \
 axisymmetricvectorfield.hpp \
-bicgstab.cpp \
-bicgstab.hpp \
 callback.hpp \
 ccolmatrix.cpp \
 ccolmatrix.hpp \
@@ -252,7 +250,6 @@ xygraph.hpp
 libibsimu_1_0_5new_solver_la_includedir=$(includedir)/ibsimu-1.0.5new_solver
 libibsimu_1_0_5new_solver_la_include_HEADERS = \
 axisymmetricvectorfield.hpp \
-bicgstab.hpp \
 callback.hpp \
 ccolmatrix.hpp \
 cfifo.hpp \

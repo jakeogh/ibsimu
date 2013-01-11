@@ -2,7 +2,7 @@
  *  \brief Poisson equation problem for solving electric potential.
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -210,7 +210,6 @@ protected:
 
     Geometry           &_geom;             /*!< \brief Geometry reference. */
 
-    double              _res_coef;         /*!< \brief Residual multiplication coefficient. */
     uint32_t            _neumann_order;    /*!< \brief Neumann boundary order (1 or 2). */
 
     plasma_mode_e       _plasma;           /*!< \brief Plasma simulation mode. */

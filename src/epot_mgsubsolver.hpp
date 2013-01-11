@@ -2,7 +2,7 @@
  *  \brief Multigrid solver for electric potential problem
  */
 
-/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -141,8 +141,16 @@ public:
      */
     double mg_solve( MeshScalarField *epot, const MeshScalarField *rhs, double w );
 
+    /*! \brief Return error scaling factor.
+     */
+    double error_scale( double w ) const;
+
+    /*! \brief Preprocess.
+     */
     void preprocess( MeshScalarField &epot );
 
+    /*! \brief Postprocess.
+     */
     void postprocess( void );
 
     /*! \brief Print debugging information to os.

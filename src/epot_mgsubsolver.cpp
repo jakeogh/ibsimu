@@ -2,7 +2,7 @@
  *  \brief Multigrid solver for electric potential problem
  */
 
-/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -54,6 +54,29 @@
 EpotMGSubSolver::EpotMGSubSolver( const EpotSolver &epsolver, Geometry &geom )
     : EpotSolver( epsolver, geom )
 {
+}
+
+
+double EpotMGSubSolver::error_scale( double w ) const
+{
+    double maxsize = _geom.size().max();
+    if( _geom.geom_mode() == MODE_3D ) {
+	// Coefficients from a fit to spherical condenser 
+        // test data with 200x200x200 resolution
+	const double a =  0.0642162;
+	const double b = -0.0821098;
+	const double c =  0.0377858;
+	const double d = -0.00640262;
+	return( (a + w*(b + w*(c + w*d) ) ) * sqrt(maxsize) );
+    } else {
+	// Coefficients from a fit to cylindrical condenser 
+        // test data with 400x400 resolution
+	const double a =  0.0473260;
+	const double b = -0.0611217;
+	const double c =  0.0284808;
+	const double d = -0.00488292;
+	return( (a + w*(b + w*(c + w*d) ) ) * maxsize );
+    }
 }
 
 
@@ -251,9 +274,8 @@ double EpotMGSubSolver::gs_process_neumann_1d( uint32_t a, uint8_t bindex ) cons
 
 double EpotMGSubSolver::rbgs_loop_1d( void ) const
 {
-    double maxerr = 0.0;
-
     // Go through internal nodes once using Red-Black ordering
+    double res = 0.0;
     for( uint32_t rb = 0; rb < 2; rb++ ) {
 	    
 	uint32_t i = 0;
@@ -282,26 +304,24 @@ double EpotMGSubSolver::rbgs_loop_1d( void ) const
 		continue;
 	    }
 	    (*_epot)(i) = Vnew;
-	    double err = fabs( Vnew - Vold );
-	    if( err > maxerr )
-		maxerr = err;
-	    if( comp_isinf(err) ) {
+	    double dx = Vnew - Vold;
+	    res += dx*dx;
+	    if( comp_isinf(dx) ) {
 		throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) ) );
-	    } else if( comp_isnan(err) ) {
+	    } else if( comp_isnan(dx) ) {
 		throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) ) );
 	    }
 	}
     }
 
-    return( maxerr );
+    return( 2.0*sqrt(res) );
 }
 
 
 double EpotMGSubSolver::sor_loop_1d( double w ) const
 {
-    double maxerr = 0.0;
     const double w2 = 1.0-w;
-
+    double res = 0.0;
     for( uint32_t i = 0; i < _geom.size(0); i++ ) {
 	    
 	double Vold = (*_epot)(i);
@@ -323,17 +343,16 @@ double EpotMGSubSolver::sor_loop_1d( double w ) const
 	}
 	Vnew = w*Vnew + w2*Vold;
 	(*_epot)(i) = Vnew;
-	double err = fabs( Vnew - Vold );
-	if( err > maxerr )
-	    maxerr = err;
-	if( comp_isinf(err) ) {
+	double dx = Vnew - Vold;
+	res += dx*dx;
+	if( comp_isinf(dx) ) {
 	    throw( Error( ERROR_LOCATION, "Potential inf at location = " + to_string(i) ) );
-	} else if( comp_isnan(err) ) {
+	} else if( comp_isnan(dx) ) {
 	    throw( Error( ERROR_LOCATION, "Potential NaN at location = " + to_string(i) ) );
 	}
     }
 
-    return( maxerr );
+    return( 2.0*sqrt(res) );
 }
 
 
@@ -609,9 +628,8 @@ double EpotMGSubSolver::gs_process_neumann_2d( uint32_t a, uint32_t dj, uint8_t 
 
 double EpotMGSubSolver::rbgs_loop_2d( void ) const
 {
-    double maxerr = 0.0;
-
     // Go through all nodes once using Red-Black ordering
+    double res = 0.0;
     for( uint32_t rb = 0; rb < 2; rb++ ) {
 	const uint32_t dj = _geom.size(0);
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
@@ -643,13 +661,12 @@ double EpotMGSubSolver::rbgs_loop_2d( void ) const
 		    continue;
 		}
 		(*_epot)(a) = Vnew;
-		double err = fabs( Vnew - Vold );
-		if( err > maxerr )
-		    maxerr = err;
-		if( comp_isinf(err) ) {
+		double dx = Vnew - Vold;
+		res += dx*dx;
+		if( comp_isinf(dx) ) {
 		    throw( Error( ERROR_LOCATION, "Potential inf at location = (" + to_string(i) + 
 				  ", " + to_string(j) + ")" ) );
-		} else if( comp_isnan(err) ) {
+		} else if( comp_isnan(dx) ) {
 		    throw( Error( ERROR_LOCATION, "Potential NaN at location = (" + to_string(i) + 
 				  ", " + to_string(j) + ")" ) );
 		}
@@ -657,17 +674,16 @@ double EpotMGSubSolver::rbgs_loop_2d( void ) const
 	}
     }
 
-    // Return largest change in any node
-    return( maxerr );
+    return( 4.0*sqrt(res) );
 }
 
 
 double EpotMGSubSolver::sor_loop_2d( double w ) const
 {
-    double maxerr = 0.0;
     const double w2 = 1.0-w;
     const uint32_t dj = _geom.size(0);
 
+    double res = 0.0;
     for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	for( uint32_t i = 0; i < _geom.size(0); i++ ) {
 
@@ -691,21 +707,19 @@ double EpotMGSubSolver::sor_loop_2d( double w ) const
 	    }
 	    Vnew = w*Vnew + w2*Vold;
 	    (*_epot)(a) = Vnew;
-	    double err = fabs( Vnew - Vold );
-	    if( err > maxerr )
-		maxerr = err;
-	    if( comp_isinf(err) ) {
+	    double dx = Vnew - Vold;
+	    res += dx*dx;
+	    if( comp_isinf(dx) ) {
 		throw( Error( ERROR_LOCATION, "Potential inf at location = (" + to_string(i) + 
 			      ", " + to_string(j) + ")" ) );
-	    } else if( comp_isnan(err) ) {
+	    } else if( comp_isnan(dx) ) {
 		throw( Error( ERROR_LOCATION, "Potential NaN at location = (" + to_string(i) + 
 			      ", " + to_string(j) + ")" ) );
 	    }
 	}
     }
 
-    // Return largest change in any node
-    return( maxerr );
+    return( 4.0*sqrt(res) );
 }
 
 
@@ -1042,10 +1056,10 @@ double EpotMGSubSolver::gs_process_neumann_cyl( uint32_t i, uint32_t j, uint8_t 
 
 double EpotMGSubSolver::rbgs_loop_cyl( void ) const
 {
-    double maxerr = 0.0;
     const uint32_t dj = _geom.size(0);
 
     // Go through all nodes once using Red-Black ordering
+    double res = 0.0;
     for( uint32_t rb = 0; rb < 2; rb++ ) {
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	    
@@ -1076,13 +1090,12 @@ double EpotMGSubSolver::rbgs_loop_cyl( void ) const
 		    continue;
 		}
 		(*_epot)(a) = Vnew;
-		double err = fabs( Vnew - Vold );
-		if( err > maxerr )
-		    maxerr = err;
-		if( comp_isinf(err) ) {
+		double dx = Vnew - Vold;
+		res += dx*dx;
+		if( comp_isinf(dx) ) {
 		    throw( Error( ERROR_LOCATION, "Potential inf at location = (" + to_string(i) + 
 				  ", " + to_string(j) + ")" ) );
-		} else if( comp_isnan(err) ) {
+		} else if( comp_isnan(dx) ) {
 		    throw( Error( ERROR_LOCATION, "Potential NaN at location = (" + to_string(i) + 
 				  ", " + to_string(j) + ")" ) );
 		}
@@ -1090,17 +1103,16 @@ double EpotMGSubSolver::rbgs_loop_cyl( void ) const
 	}
     }
 
-    // Return largest change in any node
-    return( maxerr );
+    return( 4.0*sqrt(res) );
 }
 
 
 double EpotMGSubSolver::sor_loop_cyl( double w ) const
 {
-    double maxerr = 0.0;
     const double w2 = 1.0-w;
     const uint32_t dj = _geom.size(0);
 
+    double res = 0.0;
     for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	for( uint32_t i = 0; i < _geom.size(0); i++ ) {
 
@@ -1124,21 +1136,19 @@ double EpotMGSubSolver::sor_loop_cyl( double w ) const
 	    }
 	    Vnew = w*Vnew + w2*Vold;
 	    (*_epot)(a) = Vnew;
-	    double err = fabs( Vnew - Vold );
-	    if( err > maxerr )
-		maxerr = err;
-	    if( comp_isinf(err) ) {
+	    double dx = Vnew - Vold;
+	    res += dx*dx;
+	    if( comp_isinf(dx) ) {
 		throw( Error( ERROR_LOCATION, "Potential inf at location = (" + to_string(i) + 
 			      ", " + to_string(j) + ")" ) );
-	    } else if( comp_isnan(err) ) {
+	    } else if( comp_isnan(dx) ) {
 		throw( Error( ERROR_LOCATION, "Potential NaN at location = (" + to_string(i) + 
 			      ", " + to_string(j) + ")" ) );
 	    }
 	}
     }
 
-    // Return largest change in any node
-    return( maxerr );
+    return( 4.0*sqrt(res) );
 }
 
 
@@ -1512,11 +1522,11 @@ double EpotMGSubSolver::gs_process_neumann_3d( uint32_t a, uint32_t dj, uint32_t
 
 double EpotMGSubSolver::rbgs_loop_3d( void ) const
 {
-    double maxerr = 0.0;
     const uint32_t dj = _geom.size(0);
     const uint32_t dk = _geom.size(0)*_geom.size(1);
 
     // Go through all nodes once using Red-Black ordering
+    double res = 0.0;
     for( uint32_t rb = 0; rb < 2; rb++ ) {
 	for( uint32_t k = 0; k < _geom.size(2); k++ ) {
 	    for( uint32_t j = 0; j < _geom.size(1); j++ ) {
@@ -1548,13 +1558,12 @@ double EpotMGSubSolver::rbgs_loop_3d( void ) const
 			continue;
 		    }
 		    (*_epot)(a) = Vnew;
-		    double err = fabs( Vnew - Vold );
-		    if( err > maxerr )
-			maxerr = err;
-		    if( comp_isinf(err) ) {
+		    double dx = Vnew - Vold;
+		    res += dx*dx;
+		    if( comp_isinf(dx) ) {
 			throw( Error( ERROR_LOCATION, "Potential inf at location = (" + to_string(i) + 
 				      ", " + to_string(j) + ", " + to_string(k) + ")" ) );
-		    } else if( comp_isnan(err) ) {
+		    } else if( comp_isnan(dx) ) {
 			throw( Error( ERROR_LOCATION, "Potential NaN at location = (" + to_string(i) + 
 				      ", " + to_string(j) + ", " + to_string(k) + ")" ) );
 		    }
@@ -1563,18 +1572,17 @@ double EpotMGSubSolver::rbgs_loop_3d( void ) const
 	}
     }
 
-    // Return largest change in any node
-    return( maxerr );
+    return( 6.0*sqrt(res) );
 }
 
 
 double EpotMGSubSolver::sor_loop_3d( double w ) const
 {
-    double maxerr = 0.0;
     const double w2 = 1.0-w;
     const uint32_t dj = _geom.size(0);
     const uint32_t dk = _geom.size(0)*_geom.size(1);
 
+    double res = 0.0;
     for( uint32_t k = 0; k < _geom.size(2); k++ ) {
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
@@ -1599,13 +1607,12 @@ double EpotMGSubSolver::sor_loop_3d( double w ) const
 		}
 		Vnew = w*Vnew + w2*Vold;
 		(*_epot)(a) = Vnew;
-		double err = fabs( Vnew - Vold );
-		if( err > maxerr )
-		    maxerr = err;
-		if( comp_isinf(err) ) {
+		double dx = Vnew - Vold;
+		res += dx*dx;
+		if( comp_isinf(dx) ) {
 		    throw( Error( ERROR_LOCATION, "Potential inf at location = (" + to_string(i) + 
 				  ", " + to_string(j) + ", " + to_string(k) + ")" ) );
-		} else if( comp_isnan(err) ) {
+		} else if( comp_isnan(dx) ) {
 		    throw( Error( ERROR_LOCATION, "Potential NaN at location = (" + to_string(i) + 
 				  ", " + to_string(j) + ", " + to_string(k) + ")" ) );
 		}
@@ -1613,8 +1620,7 @@ double EpotMGSubSolver::sor_loop_3d( double w ) const
 	}
     }
 
-    // Return largest change in any node
-    return( maxerr );
+    return( 6.0*sqrt(res) );
 }
 
 

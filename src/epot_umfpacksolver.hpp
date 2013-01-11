@@ -2,7 +2,7 @@
  *  \brief UMFPACK matrix solver for electric potential problem
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -53,11 +53,16 @@
  */
 class EpotUMFPACKSolver : public EpotMatrixSolver {
 
-    void    *_numeric;      /*!< \brief Numeric data for LU decomposition. */
+    void     *_numeric;         /*!< \brief Numeric data for LU decomposition. */
 
-    double   _newton_Reps;  /*!< \brief Accuracy request for Newton-Raphson residual. */
-    double   _newton_dXeps; /*!< \brief Accuracy request for Newton-Raphson step. */
-    uint32_t _newton_imax;  /*!< \brief Maximum number of Newton-Raphson iterations. */
+    double    _newton_res;      /*!< \brief Newton residual error. */
+    double    _newton_step;     /*!< \brief Newton step size. */
+
+    bool      _gnewton;         /*!< \brief Globally convergent version of Newton-Raphson. */
+    double    _newton_r_eps;    /*!< \brief Accuracy request for Newton-Raphson residual. */
+    double    _newton_step_eps; /*!< \brief Accuracy request for Newton-Raphson step. */
+    uint32_t  _newton_imax;     /*!< \brief Maximum number of Newton-Raphson iterations. */
+
 
     /*! \brief Reset solver/problem settings.
      */
@@ -78,9 +83,10 @@ public:
     /*! \brief Constructor.
      */
     EpotUMFPACKSolver( Geometry &geom, 
-		       double newton_Reps = 1.0e-5, 
-		       double newton_dXeps = 1.0e-6, 
-		       uint32_t newton_imax = 10 );
+		       double newton_r_eps = 1.0e-5, 
+		       double newton_step_eps = 1.0e-6, 
+		       uint32_t newton_imax = 10,
+		       bool gnewton = true );
 
     /*! \brief Construct from file.
      */
@@ -94,13 +100,27 @@ public:
      */
     void set_newton_imax( uint32_t newton_imax );
 
+    /*! \brief Enable/disable globally convergent Newton-Raphson.
+     *
+     *  Enabled by default.
+     */
+    void set_gnewton( bool enable );
+
     /*! \brief Sets the accuracy request for Newton-Raphson residual.
      */
-    void set_newton_residual_eps( double newton_Reps );
+    void set_newton_residual_eps( double newton_r_eps );
+
+    /*! \brief Get last Newton-Raphson residual.
+     */
+    double get_newton_residual( void ) const;
 
     /*! \brief Sets the accuracy request for Newton-Raphson step size.
      */
-    void set_newton_step_eps( double newton_dXeps );
+    void set_newton_step_eps( double newton_step_eps );
+
+    /*! \brief Get last Newton-Raphson step size.
+     */
+    double get_newton_step( void ) const;
 
     /*! \brief Print debugging information to os.
      */
