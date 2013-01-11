@@ -57,15 +57,26 @@ EpotMGSubSolver::EpotMGSubSolver( const EpotSolver &epsolver, Geometry &geom )
 }
 
 
-double EpotMGSubSolver::error_scale( void ) const
+double EpotMGSubSolver::error_scale( double w ) const
 {
-    if( _geom.geom_mode() == MODE_3D ) {
-	double maxsize = _geom.size().max();
-	return( 1.0e-3*sqrt(maxsize) );
-    }
-
     double maxsize = _geom.size().max();
-    return( 1.0e-3*maxsize );
+    if( _geom.geom_mode() == MODE_3D ) {
+	// Coefficients from a fit to spherical condenser 
+        // test data with 200x200x200 resolution
+	const double a =  0.0642162;
+	const double b = -0.0821098;
+	const double c =  0.0377858;
+	const double d = -0.00640262;
+	return( (a + w*(b + w*(c + w*d) ) ) * sqrt(maxsize) );
+    } else {
+	// Coefficients from a fit to cylindrical condenser 
+        // test data with 400x400 resolution
+	const double a =  0.0473260;
+	const double b = -0.0611217;
+	const double c =  0.0284808;
+	const double d = -0.00488292;
+	return( (a + w*(b + w*(c + w*d) ) ) * maxsize );
+    }
 }
 
 

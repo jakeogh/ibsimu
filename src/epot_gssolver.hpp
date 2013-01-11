@@ -96,6 +96,13 @@ class EpotGSSolver : public EpotSolver {
     void preprocess( const MeshScalarField &scharge );
     void postprocess( void );
 
+    /*! \brief Return scaling coefficient.
+     *
+     *  Returns an estimate for converting potential change norm to
+     *  relative error estimate norm.
+     */
+    double error_scale( void );
+
     /*! \brief Reset solver/problem settings.
      */
     virtual void reset_problem( void );

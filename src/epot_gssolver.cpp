@@ -1028,6 +1028,29 @@ void EpotGSSolver::postprocess( void )
 }
 
 
+double EpotGSSolver::error_scale( void )
+{
+    double maxsize = _geom.size().max();
+    if( _geom.geom_mode() == MODE_3D ) {
+	// Coefficients from a fit to spherical condenser 
+        // test data with 200x200x200 resolution
+	const double a =  0.0642162;
+	const double b = -0.0821098;
+	const double c =  0.0377858;
+	const double d = -0.00640262;
+	return( (a + _w*(b + _w*(c + _w*d) ) ) * sqrt(maxsize) );
+    } else {
+	// Coefficients from a fit to cylindrical condenser 
+        // test data with 400x400 resolution
+	const double a =  0.0473260;
+	const double b = -0.0611217;
+	const double c =  0.0284808;
+	const double d = -0.00488292;
+	return( (a + _w*(b + _w*(c + _w*d) ) ) * maxsize );
+    }
+}
+
+
 void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &scharge )
 {
     //StatusPrint sp( ibsimu.message( 1 ) );
@@ -1041,10 +1064,7 @@ void EpotGSSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
     ss << std::setw(5) << 0 << " " << std::scientific << std::setw(20) << 0;
     sp.print( ss.str() );
     
-    double maxsize = _geom.size().max();
-    double errscale = 1.0e-3*maxsize;
-    if( _geom.geom_mode() == MODE_3D )
-	errscale = 1.0e-3*sqrt(maxsize);
+    double errscale = error_scale();
 
     // Set epot pointer and preprocess
     _epot = &epot;

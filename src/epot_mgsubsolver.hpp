@@ -143,7 +143,7 @@ public:
 
     /*! \brief Return error scaling factor.
      */
-    double error_scale( void ) const;
+    double error_scale( double w ) const;
 
     /*! \brief Preprocess.
      */
