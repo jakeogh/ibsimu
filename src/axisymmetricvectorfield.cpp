@@ -196,9 +196,9 @@ const Vec3D AxisymmetricVectorField::operator()( const Vec3D &x ) const
     if( _geom_mode == MODE_3D ) {
 	Vec3D B;
 	if( _spline )
-	    B = eval_spline( x[2], x[0]*x[0] + x[1]*x[1] );
+	    B = eval_spline( x[2], sqrt(x[0]*x[0] + x[1]*x[1]) );
 	else
-	    B = eval_fdm( x[2], x[0]*x[0] + x[1]*x[1] );
+	    B = eval_fdm( x[2], sqrt(x[0]*x[0] + x[1]*x[1]) );
 	double theta = atan2( x[1], x[0] );
 	return( Vec3D( B[1]*cos(theta), B[1]*sin(theta), B[0] ) );
     } else {
