@@ -190,7 +190,6 @@ void EpotBiCGSTABSolver::bicgstab( const Matrix &mat, const Vector &rhs, Vector 
     Vector p, phat, s, shat, t, v;
     double maxsize = _geom.size().max();
     double errscale = maxsize*maxsize;
-    ibsimu.message(1) << "errscale = " << errscale << "\n";
     double norm_rhs = norm2(rhs);
     if( sol.size() != mat.columns() ) {
 	sol.resize( mat.columns() );

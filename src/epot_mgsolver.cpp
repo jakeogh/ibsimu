@@ -1551,7 +1551,7 @@ void EpotMGSolver::mg_recurse( uint32_t level, std::stringstream &ss )
 	// Post smoothing
 	for( uint32_t a = 0; a < _npost; a++ )
 	    _step = _epotsolverv[level]->mg_smooth( _epotv[level], _rhsv[level] );
-	_err = _epotsolverv[level]->error_scale( 1.0 ) * _step;
+	_err = _epotsolverv[level]->error_scale_mg() * _step;
 
 #ifdef DEBUG_MGSOLVER
 	ibsimu.message( 2 ) << "epot (level = " << level << ") post smoothed:\n";

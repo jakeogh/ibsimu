@@ -141,9 +141,13 @@ public:
      */
     double mg_solve( MeshScalarField *epot, const MeshScalarField *rhs, double w );
 
-    /*! \brief Return error scaling factor.
+    /*! \brief Return error scaling factor for SOR solver with over-relaxation factor w.
      */
     double error_scale( double w ) const;
+
+    /*! \brief Return error scaling factor for MG smoother.
+     */
+    double error_scale_mg( void ) const;
 
     /*! \brief Preprocess.
      */
