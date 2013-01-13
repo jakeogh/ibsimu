@@ -2,7 +2,7 @@
  *  \brief Electric potential base electric field.
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -181,9 +181,41 @@ void EpotEfield::precalc_2d( void )
 		uint8_t dist = solid_dist( node2, 0 );
 		_F[0][i+j*n] = 255.0*( _epot(i,j) - _epot(i+1,j) ) / (dist*h);
 		
+	    } else if( node1id == SMESH_NODE_ID_DIRICHLET && 
+		       (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 &&
+		       node2id == SMESH_NODE_ID_DIRICHLET && 
+		       (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+		
+		// Inside solid, search for near solid in x-direction
+		uint32_t node0 = _geom->mesh_check(i-1,j);
+		uint32_t node0id = node0 & SMESH_NODE_ID_MASK;
+		uint32_t node3 = _geom->mesh_check(i+2,j);
+		uint32_t node3id = node3 & SMESH_NODE_ID_MASK;
+		if( node0id == SMESH_NODE_ID_NEAR_SOLID &&
+		    node3id == SMESH_NODE_ID_NEAR_SOLID ) {
+
+		    _F[0][i+j*n] = 0.0;
+
+		} else if( node0id == SMESH_NODE_ID_NEAR_SOLID ) {
+		    
+		    // Between near solid node and solid node
+		    uint8_t dist = solid_dist( node0, 1 );
+		    _F[0][i+j*n] = 255.0*( _epot(i-1,j) - _epot(i,j) ) / (dist*h);
+
+		} else if( node3id == SMESH_NODE_ID_NEAR_SOLID ) {
+		    
+		    // Between near solid node and solid node
+		    uint8_t dist = solid_dist( node3, 0 );
+		    _F[0][i+j*n] = 255.0*( _epot(i+1,j) - _epot(i+2,j) ) / (dist*h);
+
+		} else {
+		    
+		    _F[0][i+j*n] = 0.0;
+		}
+
 	    } else {
 		
-		// Free space or inside solid
+		// Vacuum
 		_F[0][i+j*n] = (_epot(i,j) - _epot(i+1,j)) / h;
 	    }
 	}
@@ -214,9 +246,41 @@ void EpotEfield::precalc_2d( void )
 		uint8_t dist = solid_dist( node2, 2 );
 		_F[1][i+j*_epot.size(0)] = 255.0*( _epot(i,j) - _epot(i,j+1) ) / (dist*h);
 		
+	    } else if( node1id == SMESH_NODE_ID_DIRICHLET && 
+		       (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 &&
+		       node2id == SMESH_NODE_ID_DIRICHLET && 
+		       (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+		
+		// Inside solid, search for near solid in y-direction
+		uint32_t node0 = _geom->mesh_check(i,j-1);
+		uint32_t node0id = node0 & SMESH_NODE_ID_MASK;
+		uint32_t node3 = _geom->mesh_check(i,j+2);
+		uint32_t node3id = node3 & SMESH_NODE_ID_MASK;
+		if( node0id == SMESH_NODE_ID_NEAR_SOLID &&
+		    node3id == SMESH_NODE_ID_NEAR_SOLID ) {
+
+		    _F[1][i+j*_epot.size(0)] = 0.0;
+
+		} else if( node0id == SMESH_NODE_ID_NEAR_SOLID ) {
+		    
+		    // Between near solid node and solid node
+		    uint8_t dist = solid_dist( node0, 3 );
+		    _F[1][i+j*_epot.size(0)] = 255.0*( _epot(i,j-1) - _epot(i,j) ) / (dist*h);
+
+		} else if( node3id == SMESH_NODE_ID_NEAR_SOLID ) {
+		    
+		    // Between near solid node and solid node
+		    uint8_t dist = solid_dist( node3, 2 );
+		    _F[1][i+j*_epot.size(0)] = 255.0*( _epot(i,j+1) - _epot(i,j+2) ) / (dist*h);
+
+		} else {
+		    
+		    _F[1][i+j*_epot.size(0)] = 0.0;
+		}
+
 	    } else {
 		
-		// Free space or inside solid
+		// Free space
 		_F[1][i+j*_epot.size(0)] = (_epot(i,j) - _epot(i,j+1)) / h;
 	    }
 	}
