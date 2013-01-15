@@ -2,7 +2,7 @@
  *  \brief Space charge deposition functions
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -64,34 +64,35 @@ void scharge_finalize_pic( MeshScalarField &scharge );
  *  particle trajectory in 2d simulation.
  *
  *  Adds contribution to space charge density map \a scharge from a
- *  particle carrying current per length \a IQ travelling from \a x1
- *  to \a x2. Charge density is added to the mesh assuming that it is
- *  localized at the midpoint of \a x1 and \a x2. This function is
- *  supposed to be used so that \a x1 and \a x2 are at the mesh
- *  intersection points, through which particle trajectory has passed.
+ *  particle carrying current per length \a I travelling from \a x1 to
+ *  \a x2. Charge density is added to the mesh assuming that it is
+ *  localized at the point where particle was at time
+ *  0.5*(t1+t2). This function is supposed to be used so that \a x1
+ *  and \a x2 are at the mesh intersection points, through which
+ *  particle trajectory has passed.
  */
 void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t *mutex, 
-				      double IQ, const ParticleP2D &x1, const ParticleP2D &x2 );
+				      double I, const ParticleP2D &x1, const ParticleP2D &x2 );
 
 
 /*! \brief Function for adding charge to space charge density map from
  *  particle trajectory in cylindrically symmetric simulation.
  *
- *  Same as for scharge_add_from_trajectory(). Now IQ is real current
+ *  Same as for scharge_add_from_trajectory(). Now I is real current
  *  (A).
  */
 void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t *mutex, 
-				      double IQ, const ParticlePCyl &x1, const ParticlePCyl &x2 );
+				      double I, const ParticlePCyl &x1, const ParticlePCyl &x2 );
 
 
 /*! \brief Function for adding charge to space charge density map from
  *  particle trajectory in 3d simulation.
  *
- *  Same as for scharge_add_from_trajectory(). Now IQ is real current
+ *  Same as for scharge_add_from_trajectory(). Now I is real current
  *  (A).
  */
 void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t *mutex, 
-				      double IQ, const ParticleP3D &x1, const ParticleP3D &x2 );
+				      double I, const ParticleP3D &x1, const ParticleP3D &x2 );
 
 
 

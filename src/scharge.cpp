@@ -2,7 +2,7 @@
  *  \brief Space charge deposition functions
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -42,11 +42,23 @@
 
 #include <limits>
 
+#include "trajectory.hpp"
 #include "scharge.hpp"
 #include "ibsimu.hpp"
 
 
 //#define DEBUG_SCHARGE 1
+
+
+#ifdef DEBUG_SCHARGE
+#define DEBUG_MESSAGE(x) ibsimu.message(MSG_DEBUG_GENERAL,1) << x
+#define DEBUG_INC_INDENT() ibsimu.inc_indent()
+#define DEBUG_DEC_INDENT() ibsimu.dec_indent()
+#else
+#define DEBUG_MESSAGE(x) do {} while(0)
+#define DEBUG_INC_INDENT() do {} while(0)
+#define DEBUG_DEC_INDENT() do {} while(0)
+#endif
 
 
 void scharge_finalize_pic( MeshScalarField &scharge )
@@ -157,28 +169,30 @@ void scharge_finalize_linear( MeshScalarField &scharge )
 
 	
 void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t *mutex, 
-				      double IQ, const ParticleP2D &x1, const ParticleP2D &x2 )
+				      double I, const ParticleP2D &x1, const ParticleP2D &x2 )
 {
+    TrajectoryRep1D traj[2];
     double x[2];
+    double v[2];
     double t[2];
     int32_t i[2];
 
-#ifdef DEBUG_SCHARGE
-    std::cout << "Calculating space charge\n";
-    std::cout << "x1 = " << x1 << "\n";
-    std::cout << "x2 = " << x2 << "\n";
-#endif
+    DEBUG_MESSAGE( "Calculating space charge\n" );
+    DEBUG_INC_INDENT();
+    DEBUG_MESSAGE( "x1 = " << x1 << "\n" );
+    DEBUG_MESSAGE( "x2 = " << x2 << "\n" );
+
+    double dt = x2[0]-x1[0];
     for( size_t a = 0; a < 2; a++ ) {
-	x[a] = 0.5*( x1[2*a+1] + x2[2*a+1] );
-	i[a] = (int)floor( ( x[a]-scharge.origo(a) ) * scharge.div_h() );
+	traj[a].construct( dt, x1[2*a+1], x1[2*a+2], x2[2*a+1], x2[2*a+2] );
+	traj[a].coord( x[a], v[a], 0.5 );
+	i[a] = (int32_t)floor( ( x[a]-scharge.origo(a) ) * scharge.div_h() );
 	t[a] = ( x[a]-(i[a]*scharge.h()+scharge.origo(a)) ) * scharge.div_h();
-	
-#ifdef DEBUG_SCHARGE
-	std::cout << "a = " << a << "\n";
-	std::cout << "x = " << x[a] << "\n";
-	std::cout << "i = " << i[a] << "\n";
-	std::cout << "t = " << t[a] << "\n";
-#endif
+
+	DEBUG_MESSAGE( "a = " << a << "\n" );
+	DEBUG_MESSAGE( "x = " << x[a] << "\n" );
+	DEBUG_MESSAGE( "i = " << i[a] << "\n" );
+	DEBUG_MESSAGE( "t = " << t[a] << "\n" );
 
 	// Add charge to boundaries when over simulation area
 	if( i[a] < 0 ) {
@@ -190,12 +204,7 @@ void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t 
 	}
     }
 
-    double Q = IQ*(x2[0]-x1[0]); // Q = I*dt
-#ifdef DEBUG_SCHARGE
-    std::cout << "IQ = " << IQ << "\n";
-    std::cout << "dt = " << (x2[0]-x1[0]) << "\n";
-    std::cout << "Q = " << Q << "\n\n";
-#endif
+    double Q = I*dt;
     int p = scharge.size(0)*i[1] + i[0];
     pthread_mutex_lock( mutex );
     scharge( p )                   += (1.0-t[0])*(1.0-t[1])*Q;
@@ -203,24 +212,32 @@ void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t 
     scharge( p+1 )                 += t[0]*(1.0-t[1])*Q;
     scharge( p+1+scharge.size(0) ) += t[0]*t[1]*Q;
     pthread_mutex_unlock( mutex );
+
+    DEBUG_DEC_INDENT();
 }
 
 
 void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t *mutex, 
-				      double IQ, const ParticlePCyl &x1, const ParticlePCyl &x2 )
+				      double I, const ParticlePCyl &x1, const ParticlePCyl &x2 )
 {
+    TrajectoryRep1D traj[2];
     double x[2];
+    double v[2];
     double t[2];
     int32_t i[2];
 
+    double dt = x2[0]-x1[0];
+
     // x-direction
-    x[0] = 0.5*( x1[1] + x2[1] );
-    i[0] = (int)floor( ( x[0]-scharge.origo(0) ) * scharge.div_h() );
+    traj[0].construct( dt, x1[1], x1[2], x2[1], x2[2] );
+    traj[0].coord( x[0], v[0], 0.5 );
+    i[0] = (int32_t)floor( ( x[0]-scharge.origo(0) ) * scharge.div_h() );
     t[0] = ( x[0]-(i[0]*scharge.h()+scharge.origo(0)) ) * scharge.div_h();
 
     // r-direction
-    x[1] = 0.5*( x1[3] + x2[3] );
-    i[1] = (int)floor( ( x[1]-scharge.origo(1) ) * scharge.div_h() );
+    traj[1].construct( dt, x1[3], x1[4], x2[3], x2[4] );
+    traj[1].coord( x[1], v[1], 0.5 );
+    i[1] = (int32_t)floor( ( x[1]-scharge.origo(1) ) * scharge.div_h() );
     double rj1 = i[1]*scharge.h()+scharge.origo(1);
     double rj2 = rj1+scharge.h();
     rj1 = rj1*rj1;
@@ -238,7 +255,7 @@ void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t 
 	}
     }
 
-    double Q = IQ*(x2[0]-x1[0]); // Q = I*dt
+    double Q = I*dt;
     int p = scharge.size(0)*i[1] + i[0];
     pthread_mutex_lock( mutex );
     scharge( p )                   += (1.0-t[0])*(1.0-t[1])*Q;
@@ -250,15 +267,19 @@ void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t 
 
 
 void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t *mutex, 
-				      double IQ, const ParticleP3D &x1, const ParticleP3D &x2 )
+				      double I, const ParticleP3D &x1, const ParticleP3D &x2 )
 {
+    TrajectoryRep1D traj[3];
     double x[3];
+    double v[3];
     double t[3];
     int32_t i[3];
 
+    double dt = x2[0]-x1[0];
     for( size_t a = 0; a < 3; a++ ) {
-	x[a] = 0.5*( x1[2*a+1] + x2[2*a+1] );
-	i[a] = (int)floor( ( x[a]-scharge.origo(a) ) * scharge.div_h() );
+	traj[a].construct( dt, x1[2*a+1], x1[2*a+2], x2[2*a+1], x2[2*a+2] );
+	traj[a].coord( x[a], v[a], 0.5 );
+	i[a] = (int32_t)floor( ( x[a]-scharge.origo(a) ) * scharge.div_h() );
 	t[a] = ( x[a]-(i[a]*scharge.h()+scharge.origo(a)) ) * scharge.div_h();
 
 	// Add charge to boundaries when over simulation area
@@ -271,7 +292,7 @@ void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t 
 	}
     }
 
-    double Q = IQ*(x2[0]-x1[0]); // Q = I*dt
+    double Q = I*dt;
     int p = scharge.size(0)*scharge.size(1)*i[2] + scharge.size(0)*i[1] + i[0];
 
     pthread_mutex_lock( mutex );
@@ -438,7 +459,7 @@ void scharge_add_from_trajectory_linear( MeshScalarField &scharge, pthread_mutex
 	std::cout << "d_closest = " << d_closest << "\n";
 	std::cout << "p_closest = " << p_closest << "\n";
 #endif
-	// Use closest point to calculate rho*h=IQ/v
+	// Use closest point to calculate rho*h=I/v
 	if( d_closest > scharge.h() )
 	    continue;
 	double v = sqrt( p_closest[2]*p_closest[2] + p_closest[4]*p_closest[4] );
