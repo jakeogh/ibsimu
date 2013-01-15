@@ -2,7 +2,7 @@
  *  \brief %Particle and particle point objects
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -55,14 +55,20 @@ int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void 
 {
     Vec3D E, B, xc( x[0], x[2], 0.0 );
     ParticleIteratorData *pidata = (ParticleIteratorData *)data;
+
+    // Prevent sampling field data outside simulation box, allow h tolerance
+    for( uint32_t a = 0; a < 2; a++ ) {
+	if( xc[a] < pidata->_geom->origo(a)-pidata->_geom->h() )
+	    return( IBSIMU_DERIV_ERROR );
+	else if( xc[a] > pidata->_geom->max(a)+pidata->_geom->h() )
+	    return( IBSIMU_DERIV_ERROR );
+    }
     
     if( pidata->_efield )
 	E = (*pidata->_efield)( xc );
     if( pidata->_bfield )
 	B = (*pidata->_bfield)( xc );
-#ifdef DEBUG_PARTICLE_DERIVATIVES
-    std::cout << "E=(" << E << ") at x=(" << xc << ")\n";
-#endif
+
     /* Positions: dx/dt = vx, dy/dt = vy */
     dxdt[0] = x[1];
     dxdt[2] = x[3];
@@ -84,12 +90,6 @@ int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void 
 	dxdt[1] = pidata->_qm * (E[0] + x[3]*B[2]);
 	dxdt[3] = pidata->_qm * (E[1] - x[1]*B[2]);
     }
-
-    //std::cout << "dxdt=(" 
-    //<< dxdt[0] << " "
-    //<< dxdt[1] << " "
-    //<< dxdt[2] << " "
-    //<< dxdt[3] << ")\n";
 	
     return( GSL_SUCCESS );
 }
@@ -106,26 +106,17 @@ int ParticleP2D::trajectory_intersections_at_plane( std::vector<ParticleP2D> &in
     trep[0].construct( dt, x1[1], x1[2], x2[1], x2[2] );
     trep[1].construct( dt, x1[3], x1[4], x2[3], x2[4] );
 
-    //std::cout << "trep[0]:\n";
-    //trep[0].debug_print();
-    //std::cout << "trep[1]:\n";
-    //trep[1].debug_print();
-
     // Solve for intersections
     double K[3];
-    //std::cout << "Solving for trep[" << crd << "] = " << val << ":\n";
     int nroots = trep[crd].solve( K, val, extrapolate );
-    //std::cout << "found " << nroots << " roots: ";
 
     // Save intersection points
     double x[2], v[2];
     for( int b = 0; b < nroots; b++ ) {
-	//std::cout << K[b] << " ";
 	trep[0].coord( x[0], v[0], K[b] );
 	trep[1].coord( x[1], v[1], K[b] );
 	intsc.push_back( ParticleP2D( x1[0]+dt*K[b], x[0], v[0], x[1], v[1] ) );
     }
-    //std::cout << "\n";
 
     return( nroots );
 }
@@ -136,22 +127,16 @@ int ParticlePCyl::get_derivatives( double t, const double *x, double *dxdt, void
     Vec3D E, B, xc( x[0], x[2], 0.0 );
     ParticleIteratorData *pidata = (ParticleIteratorData *)data;
 
-#ifdef DEBUG_PARTICLE_DERIVATIVES
-    std::cout << "Particle get_derivatives query\n";
-    std::cout << "  t    = " << t << "\n";    
-    std::cout << "  x    = " << std::setw(12) << x[0] << " " 
-	      << std::setw(12) << x[1] << " " 
-	      << std::setw(12) << x[2] << " " 
-	      << std::setw(12) << x[3] << " " 
-	      << std::setw(12) << x[4] << "\n";
-#endif
-
-    if( x[2] <= 0.0 ) {
-#ifdef DEBUG_PARTICLE_DERIVATIVES
-	std::cout << "  Breaking iteration step\n";
-#endif
+    // Prevent sampling field data outside simulation box, allow h
+    // tolerance except at r=0 boundary
+    if( xc[0] < pidata->_geom->origo(0)-pidata->_geom->h() )
 	return( IBSIMU_DERIV_ERROR );
-    }
+    else if( xc[0] > pidata->_geom->max(0)+pidata->_geom->h() )
+	return( IBSIMU_DERIV_ERROR );
+    else if( xc[1] <= 0.0 )
+	return( IBSIMU_DERIV_ERROR );
+    else if( xc[1] > pidata->_geom->max(1)+pidata->_geom->h() )
+	return( IBSIMU_DERIV_ERROR );
     
     if( pidata->_efield )
 	E = (*pidata->_efield)( xc );
@@ -163,11 +148,6 @@ int ParticlePCyl::get_derivatives( double t, const double *x, double *dxdt, void
 	}
     }
 
-#ifdef DEBUG_PARTICLE_DERIVATIVES
-    std::cout << "  E    = " << E << "\n";
-    std::cout << "  B    = " << B << "\n";
-#endif
-    
     /* Positions: dx/dt = vx, dr/dt = vr */
     dxdt[0] = x[1];
     dxdt[2] = x[3];
@@ -188,15 +168,6 @@ int ParticlePCyl::get_derivatives( double t, const double *x, double *dxdt, void
 	    dxdt[4] = (pidata->_qm * (x[1]*B[1] - x[3]*B[0]) - 2.0*x[3]*x[4]) / x[2];
     }
     
-#ifdef DEBUG_PARTICLE_DERIVATIVES
-    std::cout << "  dxdt = " 
-	      << std::setw(12) << dxdt[0] << " "
-	      << std::setw(12) << dxdt[1] << " "
-	      << std::setw(12) << dxdt[2] << " "
-	      << std::setw(12) << dxdt[3] << " "
-	      << std::setw(12) << dxdt[4] << "\n";
-#endif
-
     return( GSL_SUCCESS );
 }
 
@@ -233,18 +204,14 @@ int ParticleP3D::get_derivatives( double t, const double *x, double *dxdt, void 
     Vec3D E, B, xc( x[0], x[2], x[4] );
     ParticleIteratorData *pidata = (ParticleIteratorData *)data;
 
-#ifdef DEBUG_PARTICLE_DERIVATIVES
-    std::cout << "Particle get_derivatives query\n";
-    std::cout << "  t    = " << t << "\n";    
-    std::cout << "  x    = " 
-	      << std::setw(12) << x[0] << " " 
-	      << std::setw(12) << x[1] << " " 
-	      << std::setw(12) << x[2] << " " 
-	      << std::setw(12) << x[3] << " " 
-	      << std::setw(12) << x[4] << " "
-	      << std::setw(12) << x[5] << "\n";
-#endif
-
+    // Prevent sampling field data outside simulation box, allow h tolerance
+    for( uint32_t a = 0; a < 3; a++ ) {
+	if( xc[a] < pidata->_geom->origo(a)-pidata->_geom->h() )
+	    return( IBSIMU_DERIV_ERROR );
+	else if( xc[a] > pidata->_geom->max(a)+pidata->_geom->h() )
+	    return( IBSIMU_DERIV_ERROR );
+    }
+    
     if( pidata->_efield )
 	E = (*pidata->_efield)( xc );
     if( pidata->_bfield ) {
@@ -254,12 +221,6 @@ int ParticleP3D::get_derivatives( double t, const double *x, double *dxdt, void 
 	    B *= factor;
 	}
     }
-
-#ifdef DEBUG_PARTICLE_DERIVATIVES
-    std::cout << "  E    = " << E << "\n";
-    std::cout << "  B    = " << B << "\n";
-    std::cout << "  qm   = " << pidata->_qm << "\n";    
-#endif
 
     /* Positions: dx/dt = vx, dy/dt = vy, dz/dt = vz */
     dxdt[0] = x[1];
@@ -290,15 +251,6 @@ int ParticleP3D::get_derivatives( double t, const double *x, double *dxdt, void 
 	dxdt[3] = pidata->_qm * (E[1] + x[5]*B[0] - x[1]*B[2]);
 	dxdt[5] = pidata->_qm * (E[2] + x[1]*B[1] - x[3]*B[0]);
     }
-
-#ifdef DEBUG_PARTICLE_DERIVATIVES
-    std::cout << "  dxdt = " 
-	      << dxdt[0] << " "
-	      << dxdt[1] << " "
-	      << dxdt[2] << " "
-	      << dxdt[3] << " "
-	      << dxdt[4] << "\n";
-#endif
 
     return( GSL_SUCCESS );
 }
