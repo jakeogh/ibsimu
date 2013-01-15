@@ -2,7 +2,7 @@
  *  \brief Trajectory interpolation solver
  */
 
-/* Copyright (c) 2005-2009,2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -42,6 +42,10 @@
 
 #ifndef TRAJECTORY_HPP
 #define TRAJECTORY_HPP 1
+
+
+#include <iostream>
+#include <stdint.h>
 
 
 enum trajectory_rep_e {
@@ -110,6 +114,12 @@ public:
      *  1+1.0e-6 if extrapolate is more than 0.
      */
     int solve( double K[3], double x, int extrapolate = 0 );
+
+    /*! \brief Returns order of polynomial used.
+     *
+     *  Returns order 0-3.
+     */
+    uint32_t get_representation_order( void ) const;
 
     /*! \brief Print debugging information to os.
      */

@@ -2,7 +2,7 @@
  *  \brief Trajectory interpolation solver
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -319,6 +319,21 @@ int TrajectoryRep1D::solve( double K[3], double x, int extrapolate )
     };
 
     return( 0 );
+}
+
+
+uint32_t TrajectoryRep1D::get_representation_order( void ) const
+{
+    if( _rep == TRAJ_EMPTY )
+	return( 0 );
+    else if( _rep == TRAJ_LINEAR )
+	return( 1 );
+    else if( _rep == TRAJ_QUADRATIC )
+	return( 2 );
+    else if( _rep == TRAJ_CUBIC )
+	return( 3 );
+    
+    return( (uint32_t)(-1) );
 }
 
 
