@@ -2,7 +2,7 @@
  *  \brief %Particle iterator
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -146,9 +146,9 @@ public:
                 a2 = a1;
                 a1 = a;
             }
-	    
+
             for( int b = a1+1; b <= a2; b++ ) {
-        
+
                 // Save intersection coordinates
                 double K = (b*mesh.h() + mesh.origo(a) - x1[2*a+1]) / 
                     (x2[2*a+1] - x1[2*a+1]);
@@ -193,6 +193,8 @@ public:
 	    traj[a].construct( x2[0]-x1[0], 
 			       x1[2*a+1], x1[2*a+2], 
 			       x2[2*a+1], x2[2*a+2] );
+	    DEBUG_MESSAGE( "Trajectory polynomial " << a << " order = " 
+			   << traj[a].get_representation_order() << "\n" );
 	}
 
 	// Solve trajectory intersections
