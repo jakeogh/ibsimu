@@ -138,9 +138,43 @@ void EpotEfield::precalc_1d( void )
 	    uint8_t dist = solid_dist( node2, 0 );
 	    _F[0][i] = 255.0*( _epot(i) - _epot(i+1) ) / (dist*h);
 
+	} else if( node1id == SMESH_NODE_ID_DIRICHLET && 
+		   (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 &&
+		   node2id == SMESH_NODE_ID_DIRICHLET && 
+		   (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+	    
+	    // Inside solid, search for near solid in x-direction
+	    uint32_t node0 = _geom->mesh_check(i-1);
+	    uint32_t node0id = node0 & SMESH_NODE_ID_MASK;
+	    uint32_t node3 = _geom->mesh_check(i+2);
+	    uint32_t node3id = node3 & SMESH_NODE_ID_MASK;
+	    if( node0id == SMESH_NODE_ID_NEAR_SOLID &&
+		node3id == SMESH_NODE_ID_NEAR_SOLID ) {
+		
+		// No surface nearby
+		_F[0][i] = 0.0;
+		
+	    } else if( node0id == SMESH_NODE_ID_NEAR_SOLID ) {
+		
+		// Between near solid node and solid node
+		uint8_t dist = solid_dist( node0, 1 );
+		_F[0][i] = 255.0*( _epot(i-1) - _epot(i) ) / (dist*h);
+		
+	    } else if( node3id == SMESH_NODE_ID_NEAR_SOLID ) {
+		
+		// Between near solid node and solid node
+		uint8_t dist = solid_dist( node3, 0 );
+		_F[0][i] = 255.0*( _epot(i+1) - _epot(i+2) ) / (dist*h);
+		
+	    } else {
+		
+		// Ambiguous case, surface in both directions
+		_F[0][i] = 0.0;
+	    }
+	    
 	} else {
-
-	    // Free space or inside solid
+	    
+	    // Free space
 	    _F[0][i] = (_epot(i) - _epot(i+1)) / h;
 
 	}
@@ -194,6 +228,7 @@ void EpotEfield::precalc_2d( void )
 		if( node0id == SMESH_NODE_ID_NEAR_SOLID &&
 		    node3id == SMESH_NODE_ID_NEAR_SOLID ) {
 
+		    // No surface nearby
 		    _F[0][i+j*n] = 0.0;
 
 		} else if( node0id == SMESH_NODE_ID_NEAR_SOLID ) {
@@ -210,12 +245,13 @@ void EpotEfield::precalc_2d( void )
 
 		} else {
 		    
+		    // Ambiguous case, surface in both directions
 		    _F[0][i+j*n] = 0.0;
 		}
 
 	    } else {
 		
-		// Vacuum
+		// Free space
 		_F[0][i+j*n] = (_epot(i,j) - _epot(i+1,j)) / h;
 	    }
 	}
@@ -259,6 +295,7 @@ void EpotEfield::precalc_2d( void )
 		if( node0id == SMESH_NODE_ID_NEAR_SOLID &&
 		    node3id == SMESH_NODE_ID_NEAR_SOLID ) {
 
+		    // No surface nearby
 		    _F[1][i+j*_epot.size(0)] = 0.0;
 
 		} else if( node0id == SMESH_NODE_ID_NEAR_SOLID ) {
@@ -275,6 +312,7 @@ void EpotEfield::precalc_2d( void )
 
 		} else {
 		    
+		    // Ambiguous case, surface in both directions
 		    _F[1][i+j*_epot.size(0)] = 0.0;
 		}
 
@@ -326,11 +364,44 @@ void EpotEfield::precalc_3d( void )
 		    _F[0][i+(j+k*_epot.size(1))*n] = 
 			255.0*( _epot(i,j,k) - _epot(i+1,j,k) ) / (dist*h);
 		    
+		}  else if( node1id == SMESH_NODE_ID_DIRICHLET && 
+			    (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 &&
+			    node2id == SMESH_NODE_ID_DIRICHLET && 
+			    (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+		
+		    // Inside solid, search for near solid in x-direction
+		    uint32_t node0 = _geom->mesh_check(i-1,j,k);
+		    uint32_t node0id = node0 & SMESH_NODE_ID_MASK;
+		    uint32_t node3 = _geom->mesh_check(i+2,j,k);
+		    uint32_t node3id = node3 & SMESH_NODE_ID_MASK;
+		    if( node0id == SMESH_NODE_ID_NEAR_SOLID &&
+			node3id == SMESH_NODE_ID_NEAR_SOLID ) {
+			
+			// No surface nearby
+			_F[0][i+(j+k*_epot.size(1))*n] = 0.0;
+			
+		    } else if( node0id == SMESH_NODE_ID_NEAR_SOLID ) {
+			
+			// Between near solid node and solid node
+			uint8_t dist = solid_dist( node0, 1 );
+			_F[0][i+(j+k*_epot.size(1))*n] = 255.0*( _epot(i-1,j,k) - _epot(i,j,k) ) / (dist*h);
+			
+		    } else if( node3id == SMESH_NODE_ID_NEAR_SOLID ) {
+			
+			// Between near solid node and solid node
+			uint8_t dist = solid_dist( node3, 0 );
+			_F[0][i+(j+k*_epot.size(1))*n] = 255.0*( _epot(i+1,j,k) - _epot(i+2,j,k) ) / (dist*h);
+			
+		    } else {
+			
+			// Ambiguous case, surface in both directions
+			_F[0][i+(j+k*_epot.size(1))*n] = 0.0;
+		    }
+		    
 		} else {
 		    
-		    // Free space or inside solid
-		    _F[0][i+(j+k*_epot.size(1))*n] = 
-			(_epot(i,j,k) - _epot(i+1,j,k)) / h;
+		    // Free space
+		    _F[0][i+(j+k*_epot.size(1))*n] = (_epot(i,j,k) - _epot(i+1,j,k)) / h;
 		}
 	    }
 	}
@@ -352,8 +423,7 @@ void EpotEfield::precalc_3d( void )
 		
 		    // Between near solid node and solid node
 		    uint8_t dist = solid_dist( node1, 3 );
-		    _F[1][i+(j+k*m)*_epot.size(0)] = 
-			255.0*( _epot(i,j,k) - _epot(i,j+1,k) ) / (dist*h);
+		    _F[1][i+(j+k*m)*_epot.size(0)] = 255.0*( _epot(i,j,k) - _epot(i,j+1,k) ) / (dist*h);
 
 		} else if( node2id == SMESH_NODE_ID_NEAR_SOLID &&
 			   node1id == SMESH_NODE_ID_DIRICHLET && 
@@ -364,11 +434,44 @@ void EpotEfield::precalc_3d( void )
 		    _F[1][i+(j+k*m)*_epot.size(0)] = 
 			255.0*( _epot(i,j,k) - _epot(i,j+1,k) ) / (dist*h);
 		
+		} else if( node1id == SMESH_NODE_ID_DIRICHLET && 
+			   (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 &&
+			   node2id == SMESH_NODE_ID_DIRICHLET && 
+			   (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+		
+		    // Inside solid, search for near solid in y-direction
+		    uint32_t node0 = _geom->mesh_check(i,j-1,k);
+		    uint32_t node0id = node0 & SMESH_NODE_ID_MASK;
+		    uint32_t node3 = _geom->mesh_check(i,j+2,k);
+		    uint32_t node3id = node3 & SMESH_NODE_ID_MASK;
+		    if( node0id == SMESH_NODE_ID_NEAR_SOLID &&
+			node3id == SMESH_NODE_ID_NEAR_SOLID ) {
+			
+			// No surface nearby
+			_F[1][i+(j+k*m)*_epot.size(0)] = 0.0;
+			
+		    } else if( node0id == SMESH_NODE_ID_NEAR_SOLID ) {
+			
+			// Between near solid node and solid node
+			uint8_t dist = solid_dist( node0, 3 );
+			_F[1][i+(j+k*m)*_epot.size(0)] = 255.0*( _epot(i,j-1,k) - _epot(i,j,k) ) / (dist*h);
+			
+		    } else if( node3id == SMESH_NODE_ID_NEAR_SOLID ) {
+			
+			// Between near solid node and solid node
+			uint8_t dist = solid_dist( node3, 2 );
+			_F[1][i+(j+k*m)*_epot.size(0)] = 255.0*( _epot(i,j+1,k) - _epot(i,j+2,k) ) / (dist*h);
+			
+		    } else {
+			
+			// Ambiguous case, surface in both directions
+			_F[1][i+(j+k*m)*_epot.size(0)] = 0.0;
+		    }
+		    
 		} else {
 		    
-		    // Free space or inside solid
-		    _F[1][i+(j+k*m)*_epot.size(0)] = 
-			(_epot(i,j,k) - _epot(i,j+1,k)) / h;
+		    // Free space
+		    _F[1][i+(j+k*m)*_epot.size(0)] = (_epot(i,j,k) - _epot(i,j+1,k)) / h;
 		}
 	    }
 	}
@@ -399,14 +502,46 @@ void EpotEfield::precalc_3d( void )
 		
 		    // Between near solid node and solid node
 		    uint8_t dist = solid_dist( node2, 4 );
-		    _F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 
-			255.0*( _epot(i,j,k) - _epot(i,j,k+1) ) / (dist*h);
+		    _F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 255.0*( _epot(i,j,k) - _epot(i,j,k+1) ) / (dist*h);
 		
+		} else if( node1id == SMESH_NODE_ID_DIRICHLET && 
+			   (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 &&
+			   node2id == SMESH_NODE_ID_DIRICHLET && 
+			   (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
+		
+		    // Inside solid, search for near solid in z-direction
+		    uint32_t node0 = _geom->mesh_check(i,j,k-1);
+		    uint32_t node0id = node0 & SMESH_NODE_ID_MASK;
+		    uint32_t node3 = _geom->mesh_check(i,j,k+2);
+		    uint32_t node3id = node3 & SMESH_NODE_ID_MASK;
+		    if( node0id == SMESH_NODE_ID_NEAR_SOLID &&
+			node3id == SMESH_NODE_ID_NEAR_SOLID ) {
+			
+			// No surface nearby
+			_F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 0.0;
+			
+		    } else if( node0id == SMESH_NODE_ID_NEAR_SOLID ) {
+			
+			// Between near solid node and solid node
+			uint8_t dist = solid_dist( node0, 5 );
+			_F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 255.0*( _epot(i,j,k-1) - _epot(i,j,k) ) / (dist*h);
+			
+		    } else if( node3id == SMESH_NODE_ID_NEAR_SOLID ) {
+			
+			// Between near solid node and solid node
+			uint8_t dist = solid_dist( node3, 4 );
+			_F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 255.0*( _epot(i,j,k+1) - _epot(i,j,k+2) ) / (dist*h);
+			
+		    } else {
+			
+			// Ambiguous case, surface in both directions
+			_F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 0.0;
+		    }
+		    
 		} else {
 		    
-		    // Free space or inside solid
-		    _F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 
-			(_epot(i,j,k) - _epot(i,j,k+1)) / h;
+		    // Free space
+		    _F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = (_epot(i,j,k) - _epot(i,j,k+1)) / h;
 		}
 	    }
 	}

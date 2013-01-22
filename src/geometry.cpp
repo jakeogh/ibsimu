@@ -2,7 +2,7 @@
  *  \brief %Geometry definition.
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -348,6 +348,17 @@ bool Geometry::inside( uint32_t n, const Vec3D &x ) const
 	throw( Error( ERROR_LOCATION, "illegal solid number n=" + to_string(n) ) );
 
     return( _sdata[n-7]->inside( x ) );
+}
+
+
+uint32_t Geometry::mesh_check( int32_t i ) const
+{
+    if( i < 0 )
+	return( SMESH_NODE_ID_DIRICHLET | 1 );
+    else if( i >= _size[0] )
+	return( SMESH_NODE_ID_DIRICHLET | 2 );
+
+    return( _smesh[i] );
 }
 
 

@@ -2,7 +2,7 @@
  *  \brief %Geometry definition
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -419,6 +419,14 @@ public:
     uint32_t &mesh( int32_t i, int32_t j, int32_t k ) {
 	return( _smesh[i + j*_size[0] + k*_size[0]*_size[1]] );
     }
+
+    /*! \brief Returns number from solid mesh array.
+     *
+     *  For 1D geometries. Returns number from solid mesh array at \a
+     *  i or Dirichlet boundary number (1 or 2) if point is outside
+     *  mesh.
+     */
+    uint32_t mesh_check( int32_t i ) const;
 
     /*! \brief Returns number from solid mesh array.
      *
