@@ -2,7 +2,7 @@
  *  \brief %Particle databases
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -525,6 +525,15 @@ void ParticleDataBaseCyl::add_2d_beam_with_velocity( uint32_t N, double J, doubl
 						     double x1, double y1, double x2, double y2 )
 {
     _imp->add_2d_beam_with_velocity( N, J, q, m, v, dvp, dvt, x1, y1, x2, y2 );
+}
+
+
+void ParticleDataBaseCyl::add_2d_beam_with_total_energy( uint32_t N, double J, double q, double m, 
+							 double Etot, const ScalarField &epot, 
+							 double Tp, double Tt, 
+							 double x1, double y1, double x2, double y2 )
+{
+    _imp->add_2d_beam_with_total_energy( N, J, q, m, Etot, epot, Tp, Tt, x1, y1, x2, y2 );
 }
 
 

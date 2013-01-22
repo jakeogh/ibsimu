@@ -2,7 +2,7 @@
  *  \brief Particle database implementation
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -828,6 +828,11 @@ public:
     const ParticleDataBaseCylImp &operator=( const ParticleDataBaseCylImp &pdb );
 
     virtual void build_trajectory_density_field( MeshScalarField &tdens ) const;
+
+    void add_2d_beam_with_total_energy( uint32_t N, double J, double q, double m, 
+					double Etot, const ScalarField &epot, 
+					double Tp, double Tt, 
+					double x1, double y1, double x2, double y2 );
 
     void add_2d_beam_with_energy( uint32_t N, double J, double q, double m, 
 				  double E, double Tp, double Tt, 

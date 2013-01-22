@@ -2,7 +2,7 @@
  *  \brief %Particle databases
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -813,6 +813,30 @@ public:
     void add_2d_beam_with_energy( uint32_t N, double J, double q, double m, 
 				  double E, double Tp, double Tt, 
 				  double x1, double y1, double x2, double y2 );
+
+    /*! \brief Add a 2d beam with total energy
+     *
+     *  Adds a beam consisting of \a N particles. The beam current
+     *  density is \a J (A/m^2), charge of beam particle is \a q (in
+     *  multiples of e), mass is \a m (u). The beam is defined on a
+     *  line from (\a x1, \a y1) to (\a x2, \a y2). The beam
+     *  propagates into a direction 90 degrees clockwise from the
+     *  direction of vector pointing from (\a x1, \a y1) to (\a x2, \a
+     *  y2) with a mean total energy \a Etot (eV). The total energy is
+     *  calculated as Etot = 0.5mv^2 + qU. The electric potential U is
+     *  evaluated from \a epot. The beam also has parallel temperature
+     *  \a Tp (eV) and transverse temperature \a Tt (eV).
+     *
+     *  The particle speeds of the beam in direction \a i are sampled
+     *  from a gaussian distribution with standard deviation dv_i =
+     *  sqrt(T_i*e/m), where \a T_i is the beam temperature in
+     *  direction \a (eV), \a e is electron charge (C) and m is the
+     *  mass of the ion (kg).
+     */
+    void add_2d_beam_with_total_energy( uint32_t N, double J, double q, double m, 
+					double Etot, const ScalarField &epot, 
+					double Tp, double Tt, 
+					double x1, double y1, double x2, double y2 );
 
     /*! \brief Add a 2d beam with velocities.
      *
