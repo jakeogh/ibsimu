@@ -879,6 +879,11 @@ public:
 
     virtual void build_trajectory_density_field( MeshScalarField &tdens ) const;
 
+    void add_cylindrical_beam_with_total_energy( uint32_t N, double J, double q, double m, 
+						 double Etot, const ScalarField &epot, 
+						 double Tp, double Tt, Vec3D c, 
+						 Vec3D dir1, Vec3D dir2, double r );
+
     void add_cylindrical_beam_with_energy( uint32_t N, double J, double q, double m, 	
 					   double E, double Tp, double Tt, Vec3D c, 
 					   Vec3D dir1, Vec3D dir2, double r );

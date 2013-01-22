@@ -999,6 +999,34 @@ public:
  * Particle beam definition               *
  * ************************************** */
 
+
+    /*! \brief Add a cylindrical beam with energies.
+     *
+     *  Adds a beam consisting of \a N particles. The beam current
+     *  density is \a J (A/m^2), charge of beam particles is \a q (in
+     *  multiples of e), mass is \a m (u). The beam starting surface
+     *  is a disc of radius \a r centered at \a c. The normal
+     *  direction of the disc is \a dir3 = \a dir1 x \a dir2. The
+     *  first tangent direction is \a dir1 and the second is \a dir1 x
+     *  \a dir3. If you want beam to go to positive x-direction, \a
+     *  dir1 could be (0,1,0) and \a dir2 (0,0,1) for example.  The
+     *  beam total energy \a Etot (eV) is defined in the normal
+     *  direction. The total energy is calculated as Etot = 0.5mv^2 +
+     *  qU. Temperatures are defined in normal (parallel) direction
+     *  and transverse direction as \a Tp (eV) and \a Tt (eV),
+     *  respectively.
+     *
+     *  The particle speeds of the beam in direction \a i are sampled
+     *  from a gaussian distribution with standard deviation dv_i =
+     *  sqrt(T_i*e/m), where \a T_i is the beam temperature in
+     *  direction \a (eV), \a e is electron charge (C) and m is the
+     *  mass of the ion (kg).
+     */
+    void add_cylindrical_beam_with_total_energy( uint32_t N, double J, double q, double m, 
+						 double Etot, const ScalarField &epot, 
+						 double Tp, double Tt, Vec3D c, 
+						 Vec3D dir1, Vec3D dir2, double r );
+
     /*! \brief Add a cylindrical beam with energies.
      *
      *  Adds a beam consisting of \a N particles. The beam current

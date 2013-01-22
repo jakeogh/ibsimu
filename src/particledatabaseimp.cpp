@@ -888,10 +888,10 @@ void ParticleDataBaseCylImp::add_2d_beam_with_total_energy( uint32_t N, double J
     for( uint32_t a = 0; a < N; a++ ) {
 	x[1] = x1 + (x2-x1)*(a+0.5)/((double)N);
 	x[3] = y1 + (y2-y1)*(a+0.5)/((double)N);
-	Vec3D loc = x.location();
 
 	qrng.get( vt );
 	double pveld = dvp*vt[1];
+	Vec3D loc( x[1], x[3], 0.0 );
 	double U = epot( loc );
         double pvel = sqrt( 2.0*(Etot-q*U)/m + pveld*pveld );
 	x[2] = transverse[0]*dvt*vt[0] + parallel[0]*pvel;
@@ -1305,6 +1305,89 @@ void ParticleDataBase3DImp::add_cylindrical_beam_with_energy( uint32_t N, double
 
 	add_particle( Particle3D( IQ, q, m, x ) );
 	Isum += IQ;
+	a++;
+    }
+
+    ibsimu.message( 1 ) << "  Total beam current " << Isum << " A\n";
+}
+
+
+void ParticleDataBase3DImp::add_cylindrical_beam_with_total_energy( uint32_t N, double J, double q, double m, 
+								    double Etot, const ScalarField &epot, 
+								    double Tp, double Tt, Vec3D c,
+								    Vec3D dir1, Vec3D dir2, double r )
+{
+    ibsimu.message( 1 ) << "Defining a cylindrical beam\n";
+
+    _particles.reserve( _particles.size()+N );
+
+    // Convert input parameters
+    m *= MASS_U;
+    q *= CHARGE_E;
+    Etot *= CHARGE_E;
+    Tp *= CHARGE_E;
+    Tt *= CHARGE_E;
+    double dvp = sqrt(Tp/m);
+    double dvt = sqrt(Tt/m);
+
+    // Random number generator for two positions and three velocities (gaussian)
+    QRandom qrng( 5 );
+    qrng.set_transformation( 2, Gaussian_Transformation() );
+    qrng.set_transformation( 3, Gaussian_Transformation() );
+    qrng.set_transformation( 4, Gaussian_Transformation() );
+    double qx[5];
+    double px[6];
+
+    double I = M_PI*r*r*J/N;
+
+    // Calculate and check base vectors
+    Vec3D dir3 = cross( dir1, dir2 );
+    dir2 = cross( dir1, dir3 );
+    dir1.normalize();
+    dir2.normalize();
+    dir3.normalize();
+    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] )
+	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
+
+    // Prepare particle
+    ParticleP3D x;
+    x[0] = 0.0;
+
+    double Isum = 0.0;
+    uint32_t a = 0;
+    while( a < N ) {
+
+	qrng.get( qx );
+
+	// Position in natural (dir1,dir2,dir3) coordinates
+	px[0] = -r + 2.0*r*qx[0];
+	px[1] = -r + 2.0*r*qx[1];
+	px[2] = 0.0;
+
+	// Reject points outside radius r circle
+ 	if( px[0]*px[0] + px[1]*px[1] > r*r )
+	    continue;
+
+	// Map location to world coordinates
+	x[1] = dir1[0]*px[0] + dir2[0]*px[1] + dir3[0]*px[2] + c[0];
+	x[3] = dir1[1]*px[0] + dir2[1]*px[1] + dir3[1]*px[2] + c[1];
+	x[5] = dir1[2]*px[0] + dir2[2]*px[1] + dir3[2]*px[2] + c[2];
+
+	// Velocities in natural (dir1,dir2,dir3) coordinates
+	px[3] = dvt*qx[2];
+	px[4] = dvt*qx[3];
+	double pveld = dvp*qx[4];
+	Vec3D loc( x[1], x[3], x[5] );
+	double U = epot( loc );
+        px[5] = sqrt( 2.0*(Etot-q*U)/m + pveld*pveld );
+
+	// Map velocity to world coordinates
+	x[4] = dir1[1]*px[3] + dir2[1]*px[4] + dir3[1]*px[5];
+	x[2] = dir1[0]*px[3] + dir2[0]*px[4] + dir3[0]*px[5];
+	x[6] = dir1[2]*px[3] + dir2[2]*px[4] + dir3[2]*px[5];
+
+	add_particle( Particle3D( I, q, m, x ) );
+	Isum += I;
 	a++;
     }
 

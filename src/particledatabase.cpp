@@ -677,6 +677,14 @@ void ParticleDataBase3D::add_cylindrical_beam_with_velocity( uint32_t N, double 
 }
 
 
+void ParticleDataBase3D::add_cylindrical_beam_with_total_energy( uint32_t N, double J, double q, double m, 
+								 double Etot, const ScalarField &epot, 
+								 double Tp, double Tt, Vec3D c, 
+								 Vec3D dir1, Vec3D dir2, double r )
+{
+    _imp->add_cylindrical_beam_with_total_energy( N, J, q, m, Etot, epot, Tp, Tt, c, dir1, dir2, r );
+}
+
 void ParticleDataBase3D::add_cylindrical_beam_with_energy( uint32_t N, double J, double q, double m, 
 							   double E, double Tp, double Tt, Vec3D c,
 							   Vec3D dir1, Vec3D dir2, double r )
