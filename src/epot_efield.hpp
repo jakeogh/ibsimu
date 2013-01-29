@@ -101,14 +101,14 @@ public:
      *  each boundary. This is done by setting the desired properties
      *  to the \a extrpl array. The interpolation function can use an
      *  extrapolation of the last three electric potential values for
-     *  calculation of electric field (EFIELD_EXTRAPOLATE) or it can
+     *  calculation of electric field (FIELD_EXTRAPOLATE) or it can
      *  return the mirror of the electric field across the mesh
-     *  boundary like f(x)=f(-x) (EFIELD_MIRROR), or it can return the
+     *  boundary like f(x)=f(-x) (FIELD_MIRROR), or it can return the
      *  mirror of the electric field across the mesh boundary like
-     *  f_x(x,y,z)=-f_x(-x,y,z) (EFIELD_ANTIMIRROR), or it can return
+     *  f_x(x,y,z)=-f_x(-x,y,z) (FIELD_ANTIMIRROR), or it can return
      *  a zero electric field outside the mesh.
      *
-     *  The use of EFIELD_MIRROR in case of symmetric cases, where
+     *  The use of FIELD_ANTIMIRROR in case of symmetric cases, where
      *  beam is traversing next to the geometry boundary, is necessary
      *  to get physical results.
      *

@@ -77,6 +77,7 @@ EpotEfield::~EpotEfield()
 void EpotEfield::set_extrapolation( field_extrpl_e extrpl[6] ) 
 {
     memcpy( _extrpl, extrpl, 6*sizeof(field_extrpl_e) );
+    precalc();
 }
 
 
@@ -111,15 +112,15 @@ uint8_t EpotEfield::solid_dist( uint32_t node, uint32_t dir ) const
 void EpotEfield::precalc_1d( void )
 {
     double h = _epot.h();
-    uint32_t n = _epot.size(0)-1;
+    uint32_t n = _epot.size(0)+1;
 
     _F[0] = new double[n];
 
-    for( uint32_t i = 0; i < n; i++ ) {
+    for( uint32_t i = 1; i < n-1; i++ ) {
 	
-	uint32_t node1 = _geom->mesh(i);
+	uint32_t node1 = _geom->mesh(i-1);
 	uint32_t node1id = node1 & SMESH_NODE_ID_MASK;
-	uint32_t node2 = _geom->mesh(i+1);
+	uint32_t node2 = _geom->mesh(i);
 	uint32_t node2id = node2 & SMESH_NODE_ID_MASK;
 
 	if( node1id == SMESH_NODE_ID_NEAR_SOLID &&
@@ -128,7 +129,7 @@ void EpotEfield::precalc_1d( void )
 
 	    // Between near solid node and solid node
 	    uint8_t dist = solid_dist( node1, 1 );
-	    _F[0][i] = 255.0*( _epot(i) - _epot(i+1) ) / (dist*h);
+	    _F[0][i] = 255.0*( _epot(i-1) - _epot(i) ) / (dist*h);
 
 	} else if( node2id == SMESH_NODE_ID_NEAR_SOLID &&
 		   node1id == SMESH_NODE_ID_DIRICHLET && 
@@ -136,7 +137,7 @@ void EpotEfield::precalc_1d( void )
 
 	    // Between near solid node and solid node
 	    uint8_t dist = solid_dist( node2, 0 );
-	    _F[0][i] = 255.0*( _epot(i) - _epot(i+1) ) / (dist*h);
+	    _F[0][i] = 255.0*( _epot(i-1) - _epot(i) ) / (dist*h);
 
 	} else if( node1id == SMESH_NODE_ID_DIRICHLET && 
 		   (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 &&
@@ -144,9 +145,9 @@ void EpotEfield::precalc_1d( void )
 		   (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
 	    
 	    // Inside solid, search for near solid in x-direction
-	    uint32_t node0 = _geom->mesh_check(i-1);
+	    uint32_t node0 = _geom->mesh_check(i-2);
 	    uint32_t node0id = node0 & SMESH_NODE_ID_MASK;
-	    uint32_t node3 = _geom->mesh_check(i+2);
+	    uint32_t node3 = _geom->mesh_check(i+1);
 	    uint32_t node3id = node3 & SMESH_NODE_ID_MASK;
 	    if( node0id == SMESH_NODE_ID_NEAR_SOLID &&
 		node3id == SMESH_NODE_ID_NEAR_SOLID ) {
@@ -158,13 +159,13 @@ void EpotEfield::precalc_1d( void )
 		
 		// Between near solid node and solid node
 		uint8_t dist = solid_dist( node0, 1 );
-		_F[0][i] = 255.0*( _epot(i-1) - _epot(i) ) / (dist*h);
+		_F[0][i] = 255.0*( _epot(i-2) - _epot(i-1) ) / (dist*h);
 		
 	    } else if( node3id == SMESH_NODE_ID_NEAR_SOLID ) {
 		
 		// Between near solid node and solid node
 		uint8_t dist = solid_dist( node3, 0 );
-		_F[0][i] = 255.0*( _epot(i+1) - _epot(i+2) ) / (dist*h);
+		_F[0][i] = 255.0*( _epot(i) - _epot(i+1) ) / (dist*h);
 		
 	    } else {
 		
@@ -175,28 +176,42 @@ void EpotEfield::precalc_1d( void )
 	} else {
 	    
 	    // Free space
-	    _F[0][i] = (_epot(i) - _epot(i+1)) / h;
+	    _F[0][i] = (_epot(i-1) - _epot(i)) / h;
 
 	}
     }
+
+    // If ANTIMIRROR extrapolation, force E-field interpolation to
+    // zero when approaching boundary, otherwise extrapolate from last
+    // two nodes.
+    if( _extrpl[0] == FIELD_ANTIMIRROR )
+	_F[0][0] = -_F[0][1];
+    else
+	_F[0][0] = 2.0*_F[0][1]-_F[0][2];
+
+    if( _extrpl[1] == FIELD_ANTIMIRROR )
+	_F[0][n-1] = -_F[0][n-2];
+    else
+	_F[0][n-1] = 2.0*_F[0][n-2]-_F[0][n-3];
 }
+
 
 void EpotEfield::precalc_2d( void )
 {
     double h = _epot.h();
-    uint32_t n = _epot.size(0)-1;
-    uint32_t m = _epot.size(1)-1;
+    uint32_t n = _epot.size(0)+1;
+    uint32_t m = _epot.size(1)+1;
 
-    _F[0] = new double[n*(m+1)];
-    _F[1] = new double[(n+1)*m];
+    _F[0] = new double[n*(m-1)];
+    _F[1] = new double[(n-1)*m];
 
     // Do Ex-field
-    for( uint32_t j = 0; j < m+1; j++ ) {
-	for( uint32_t i = 0; i < n; i++ ) {
+    for( uint32_t j = 0; j < m-1; j++ ) {
+	for( uint32_t i = 1; i < n-1; i++ ) {
 	
-	    uint32_t node1 = _geom->mesh(i,j);
+	    uint32_t node1 = _geom->mesh(i-1,j);
 	    uint32_t node1id = node1 & SMESH_NODE_ID_MASK;
-	    uint32_t node2 = _geom->mesh(i+1,j);
+	    uint32_t node2 = _geom->mesh(i,j);
 	    uint32_t node2id = node2 & SMESH_NODE_ID_MASK;
 		
 	    if( node1id == SMESH_NODE_ID_NEAR_SOLID &&
@@ -205,7 +220,7 @@ void EpotEfield::precalc_2d( void )
 		
 		// Between near solid node and solid node
 		uint8_t dist = solid_dist( node1, 1 );
-		_F[0][i+j*n] = 255.0*( _epot(i,j) - _epot(i+1,j) ) / (dist*h);
+		_F[0][i+j*n] = 255.0*( _epot(i-1,j) - _epot(i,j) ) / (dist*h);
 		
 	    } else if( node2id == SMESH_NODE_ID_NEAR_SOLID &&
 		       node1id == SMESH_NODE_ID_DIRICHLET && 
@@ -213,7 +228,7 @@ void EpotEfield::precalc_2d( void )
 		
 		// Between near solid node and solid node
 		uint8_t dist = solid_dist( node2, 0 );
-		_F[0][i+j*n] = 255.0*( _epot(i,j) - _epot(i+1,j) ) / (dist*h);
+		_F[0][i+j*n] = 255.0*( _epot(i-1,j) - _epot(i,j) ) / (dist*h);
 		
 	    } else if( node1id == SMESH_NODE_ID_DIRICHLET && 
 		       (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 &&
@@ -221,9 +236,9 @@ void EpotEfield::precalc_2d( void )
 		       (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
 		
 		// Inside solid, search for near solid in x-direction
-		uint32_t node0 = _geom->mesh_check(i-1,j);
+		uint32_t node0 = _geom->mesh_check(i-2,j);
 		uint32_t node0id = node0 & SMESH_NODE_ID_MASK;
-		uint32_t node3 = _geom->mesh_check(i+2,j);
+		uint32_t node3 = _geom->mesh_check(i+1,j);
 		uint32_t node3id = node3 & SMESH_NODE_ID_MASK;
 		if( node0id == SMESH_NODE_ID_NEAR_SOLID &&
 		    node3id == SMESH_NODE_ID_NEAR_SOLID ) {
@@ -235,13 +250,13 @@ void EpotEfield::precalc_2d( void )
 		    
 		    // Between near solid node and solid node
 		    uint8_t dist = solid_dist( node0, 1 );
-		    _F[0][i+j*n] = 255.0*( _epot(i-1,j) - _epot(i,j) ) / (dist*h);
+		    _F[0][i+j*n] = 255.0*( _epot(i-2,j) - _epot(i-1,j) ) / (dist*h);
 
 		} else if( node3id == SMESH_NODE_ID_NEAR_SOLID ) {
 		    
 		    // Between near solid node and solid node
 		    uint8_t dist = solid_dist( node3, 0 );
-		    _F[0][i+j*n] = 255.0*( _epot(i+1,j) - _epot(i+2,j) ) / (dist*h);
+		    _F[0][i+j*n] = 255.0*( _epot(i,j) - _epot(i+1,j) ) / (dist*h);
 
 		} else {
 		    
@@ -252,18 +267,31 @@ void EpotEfield::precalc_2d( void )
 	    } else {
 		
 		// Free space
-		_F[0][i+j*n] = (_epot(i,j) - _epot(i+1,j)) / h;
+		_F[0][i+j*n] = (_epot(i-1,j) - _epot(i,j)) / h;
 	    }
 	}
+	
+	// If ANTIMIRROR extrapolation, force E-field interpolation to
+	// zero when approaching boundary, otherwise extrapolate from last
+	// two nodes.
+	if( _extrpl[0] == FIELD_ANTIMIRROR )
+	    _F[0][0+j*n] = -_F[0][1+j*n];
+	else
+	    _F[0][0+j*n] = 2.0*_F[0][1+j*n]-_F[0][2+j*n];
+	
+	if( _extrpl[1] == FIELD_ANTIMIRROR )
+	    _F[0][n-1+j*n] = -_F[0][n-2+j*n];
+	else
+	    _F[0][n-1+j*n] = 2.0*_F[0][n-2+j*n]-_F[0][n-3+j*n];
     }
 
     // Do Ey-field
-    for( uint32_t i = 0; i < n+1; i++ ) {
-	for( uint32_t j = 0; j < m; j++ ) {
+    for( uint32_t i = 0; i < n-1; i++ ) {
+	for( uint32_t j = 1; j < m-1; j++ ) {
 	
-	    uint32_t node1 = _geom->mesh(i,j);
+	    uint32_t node1 = _geom->mesh(i,j-1);
 	    uint32_t node1id = node1 & SMESH_NODE_ID_MASK;
-	    uint32_t node2 = _geom->mesh(i,j+1);
+	    uint32_t node2 = _geom->mesh(i,j);
 	    uint32_t node2id = node2 & SMESH_NODE_ID_MASK;
 
 	    if( node1id == SMESH_NODE_ID_NEAR_SOLID &&
@@ -272,7 +300,7 @@ void EpotEfield::precalc_2d( void )
 		
 		// Between near solid node and solid node
 		uint8_t dist = solid_dist( node1, 3 );
-		_F[1][i+j*_epot.size(0)] = 255.0*( _epot(i,j) - _epot(i,j+1) ) / (dist*h);
+		_F[1][i+j*_epot.size(0)] = 255.0*( _epot(i,j-1) - _epot(i,j) ) / (dist*h);
 
 	    } else if( node2id == SMESH_NODE_ID_NEAR_SOLID &&
 		       node1id == SMESH_NODE_ID_DIRICHLET && 
@@ -280,7 +308,7 @@ void EpotEfield::precalc_2d( void )
 		
 		// Between near solid node and solid node
 		uint8_t dist = solid_dist( node2, 2 );
-		_F[1][i+j*_epot.size(0)] = 255.0*( _epot(i,j) - _epot(i,j+1) ) / (dist*h);
+		_F[1][i+j*_epot.size(0)] = 255.0*( _epot(i,j-1) - _epot(i,j) ) / (dist*h);
 		
 	    } else if( node1id == SMESH_NODE_ID_DIRICHLET && 
 		       (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 &&
@@ -288,9 +316,9 @@ void EpotEfield::precalc_2d( void )
 		       (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
 		
 		// Inside solid, search for near solid in y-direction
-		uint32_t node0 = _geom->mesh_check(i,j-1);
+		uint32_t node0 = _geom->mesh_check(i,j-2);
 		uint32_t node0id = node0 & SMESH_NODE_ID_MASK;
-		uint32_t node3 = _geom->mesh_check(i,j+2);
+		uint32_t node3 = _geom->mesh_check(i,j+1);
 		uint32_t node3id = node3 & SMESH_NODE_ID_MASK;
 		if( node0id == SMESH_NODE_ID_NEAR_SOLID &&
 		    node3id == SMESH_NODE_ID_NEAR_SOLID ) {
@@ -302,13 +330,13 @@ void EpotEfield::precalc_2d( void )
 		    
 		    // Between near solid node and solid node
 		    uint8_t dist = solid_dist( node0, 3 );
-		    _F[1][i+j*_epot.size(0)] = 255.0*( _epot(i,j-1) - _epot(i,j) ) / (dist*h);
+		    _F[1][i+j*_epot.size(0)] = 255.0*( _epot(i,j-2) - _epot(i,j-1) ) / (dist*h);
 
 		} else if( node3id == SMESH_NODE_ID_NEAR_SOLID ) {
 		    
 		    // Between near solid node and solid node
 		    uint8_t dist = solid_dist( node3, 2 );
-		    _F[1][i+j*_epot.size(0)] = 255.0*( _epot(i,j+1) - _epot(i,j+2) ) / (dist*h);
+		    _F[1][i+j*_epot.size(0)] = 255.0*( _epot(i,j) - _epot(i,j+1) ) / (dist*h);
 
 		} else {
 		    
@@ -319,31 +347,45 @@ void EpotEfield::precalc_2d( void )
 	    } else {
 		
 		// Free space
-		_F[1][i+j*_epot.size(0)] = (_epot(i,j) - _epot(i,j+1)) / h;
+		_F[1][i+j*_epot.size(0)] = (_epot(i,j-1) - _epot(i,j)) / h;
 	    }
 	}
+
+	// If ANTIMIRROR extrapolation, force E-field interpolation to
+	// zero when approaching boundary, otherwise extrapolate from last
+	// two nodes.
+	if( _extrpl[2] == FIELD_ANTIMIRROR )
+	    _F[1][i] = -_F[1][i+_epot.size(0)];
+	else
+	    _F[1][i] = 2.0*_F[1][i+_epot.size(0)]-_F[1][i+2*_epot.size(0)];
+	
+	if( _extrpl[3] == FIELD_ANTIMIRROR )
+	    _F[1][i+(m-1)*_epot.size(0)] = -_F[1][i+(m-2)*_epot.size(0)];
+	else
+	    _F[1][i+(m-1)*_epot.size(0)] = 2.0*_F[1][i+(m-2)*_epot.size(0)]-_F[1][i+(m-3)*_epot.size(0)];
     }
 }
+
 
 void EpotEfield::precalc_3d( void )
 {
     double h = _epot.h();
-    uint32_t n = _epot.size(0)-1;
-    uint32_t m = _epot.size(1)-1;
-    uint32_t o = _epot.size(2)-1;
+    uint32_t n = _epot.size(0)+1;
+    uint32_t m = _epot.size(1)+1;
+    uint32_t o = _epot.size(2)+1;
 
-    _F[0] = new double[n*(m+1)*(o+1)];
-    _F[1] = new double[(n+1)*m*(o+1)];
-    _F[2] = new double[(n+1)*(m+1)*o];
+    _F[0] = new double[n*(m-1)*(o-1)];
+    _F[1] = new double[(n-1)*m*(o-1)];
+    _F[2] = new double[(n-1)*(m-1)*o];
 
     // Do Ex-field
-    for( uint32_t k = 0; k < o+1; k++ ) {
-	for( uint32_t j = 0; j < m+1; j++ ) {
-	    for( uint32_t i = 0; i < n; i++ ) {
+    for( uint32_t k = 0; k < o-1; k++ ) {
+	for( uint32_t j = 0; j < m-1; j++ ) {
+	    for( uint32_t i = 1; i < n-1; i++ ) {
 	
-		uint32_t node1 = _geom->mesh(i,j,k);
+		uint32_t node1 = _geom->mesh(i-1,j,k);
 		uint32_t node1id = node1 & SMESH_NODE_ID_MASK;
-		uint32_t node2 = _geom->mesh(i+1,j,k);
+		uint32_t node2 = _geom->mesh(i,j,k);
 		uint32_t node2id = node2 & SMESH_NODE_ID_MASK;
 
 		if( node1id == SMESH_NODE_ID_NEAR_SOLID &&
@@ -353,7 +395,7 @@ void EpotEfield::precalc_3d( void )
 		    // Between near solid node and solid node
 		    uint8_t dist = solid_dist( node1, 1 );
 		    _F[0][i+(j+k*_epot.size(1))*n] = 
-			255.0*( _epot(i,j,k) - _epot(i+1,j,k) ) / (dist*h);
+			255.0*( _epot(i-1,j,k) - _epot(i,j,k) ) / (dist*h);
 		    
 		} else if( node2id == SMESH_NODE_ID_NEAR_SOLID &&
 			   node1id == SMESH_NODE_ID_DIRICHLET && 
@@ -362,7 +404,7 @@ void EpotEfield::precalc_3d( void )
 		    // Between near solid node and solid node
 		    uint8_t dist = solid_dist( node2, 0 );
 		    _F[0][i+(j+k*_epot.size(1))*n] = 
-			255.0*( _epot(i,j,k) - _epot(i+1,j,k) ) / (dist*h);
+			255.0*( _epot(i-1,j,k) - _epot(i,j,k) ) / (dist*h);
 		    
 		}  else if( node1id == SMESH_NODE_ID_DIRICHLET && 
 			    (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 &&
@@ -370,9 +412,9 @@ void EpotEfield::precalc_3d( void )
 			    (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
 		
 		    // Inside solid, search for near solid in x-direction
-		    uint32_t node0 = _geom->mesh_check(i-1,j,k);
+		    uint32_t node0 = _geom->mesh_check(i-2,j,k);
 		    uint32_t node0id = node0 & SMESH_NODE_ID_MASK;
-		    uint32_t node3 = _geom->mesh_check(i+2,j,k);
+		    uint32_t node3 = _geom->mesh_check(i+1,j,k);
 		    uint32_t node3id = node3 & SMESH_NODE_ID_MASK;
 		    if( node0id == SMESH_NODE_ID_NEAR_SOLID &&
 			node3id == SMESH_NODE_ID_NEAR_SOLID ) {
@@ -384,13 +426,13 @@ void EpotEfield::precalc_3d( void )
 			
 			// Between near solid node and solid node
 			uint8_t dist = solid_dist( node0, 1 );
-			_F[0][i+(j+k*_epot.size(1))*n] = 255.0*( _epot(i-1,j,k) - _epot(i,j,k) ) / (dist*h);
+			_F[0][i+(j+k*_epot.size(1))*n] = 255.0*( _epot(i-2,j,k) - _epot(i-1,j,k) ) / (dist*h);
 			
 		    } else if( node3id == SMESH_NODE_ID_NEAR_SOLID ) {
 			
 			// Between near solid node and solid node
 			uint8_t dist = solid_dist( node3, 0 );
-			_F[0][i+(j+k*_epot.size(1))*n] = 255.0*( _epot(i+1,j,k) - _epot(i+2,j,k) ) / (dist*h);
+			_F[0][i+(j+k*_epot.size(1))*n] = 255.0*( _epot(i,j,k) - _epot(i+1,j,k) ) / (dist*h);
 			
 		    } else {
 			
@@ -401,20 +443,34 @@ void EpotEfield::precalc_3d( void )
 		} else {
 		    
 		    // Free space
-		    _F[0][i+(j+k*_epot.size(1))*n] = (_epot(i,j,k) - _epot(i+1,j,k)) / h;
+		    _F[0][i+(j+k*_epot.size(1))*n] = (_epot(i-1,j,k) - _epot(i,j,k)) / h;
 		}
 	    }
+
+	    // If ANTIMIRROR extrapolation, force E-field interpolation to
+	    // zero when approaching boundary, otherwise extrapolate from last
+	    // two nodes.
+	    if( _extrpl[0] == FIELD_ANTIMIRROR )
+		_F[0][0+(j+k*_epot.size(1))*n] = -_F[0][1+(j+k*_epot.size(1))*n];
+	    else
+		_F[0][0+(j+k*_epot.size(1))*n] = 2.0*_F[0][1+(j+k*_epot.size(1))*n]-_F[0][2+(j+k*_epot.size(1))*n];
+	    
+	    if( _extrpl[1] == FIELD_ANTIMIRROR )
+		_F[0][n-1+(j+k*_epot.size(1))*n] = -_F[0][n-2+(j+k*_epot.size(1))*n];
+	    else
+		_F[0][n-1+(j+k*_epot.size(1))*n] = 2.0*_F[0][n-2+(j+k*_epot.size(1))*n]-_F[0][n-3+(j+k*_epot.size(1))*n];
+
 	}
     }
 
     // Do Ey-field
-    for( uint32_t k = 0; k < o+1; k++ ) {
-	for( uint32_t i = 0; i < n+1; i++ ) {
-	    for( uint32_t j = 0; j < m; j++ ) {
+    for( uint32_t k = 0; k < o-1; k++ ) {
+	for( uint32_t i = 0; i < n-1; i++ ) {
+	    for( uint32_t j = 1; j < m-1; j++ ) {
 	
-		uint32_t node1 = _geom->mesh(i,j,k);
+		uint32_t node1 = _geom->mesh(i,j-1,k);
 		uint32_t node1id = node1 & SMESH_NODE_ID_MASK;
-		uint32_t node2 = _geom->mesh(i,j+1,k);
+		uint32_t node2 = _geom->mesh(i,j,k);
 		uint32_t node2id = node2 & SMESH_NODE_ID_MASK;
 
 		if( node1id == SMESH_NODE_ID_NEAR_SOLID &&
@@ -423,7 +479,7 @@ void EpotEfield::precalc_3d( void )
 		
 		    // Between near solid node and solid node
 		    uint8_t dist = solid_dist( node1, 3 );
-		    _F[1][i+(j+k*m)*_epot.size(0)] = 255.0*( _epot(i,j,k) - _epot(i,j+1,k) ) / (dist*h);
+		    _F[1][i+(j+k*m)*_epot.size(0)] = 255.0*( _epot(i,j-1,k) - _epot(i,j,k) ) / (dist*h);
 
 		} else if( node2id == SMESH_NODE_ID_NEAR_SOLID &&
 			   node1id == SMESH_NODE_ID_DIRICHLET && 
@@ -432,7 +488,7 @@ void EpotEfield::precalc_3d( void )
 		    // Between near solid node and solid node
 		    uint8_t dist = solid_dist( node2, 2 );
 		    _F[1][i+(j+k*m)*_epot.size(0)] = 
-			255.0*( _epot(i,j,k) - _epot(i,j+1,k) ) / (dist*h);
+			255.0*( _epot(i,j-1,k) - _epot(i,j,k) ) / (dist*h);
 		
 		} else if( node1id == SMESH_NODE_ID_DIRICHLET && 
 			   (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 &&
@@ -440,9 +496,9 @@ void EpotEfield::precalc_3d( void )
 			   (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
 		
 		    // Inside solid, search for near solid in y-direction
-		    uint32_t node0 = _geom->mesh_check(i,j-1,k);
+		    uint32_t node0 = _geom->mesh_check(i,j-2,k);
 		    uint32_t node0id = node0 & SMESH_NODE_ID_MASK;
-		    uint32_t node3 = _geom->mesh_check(i,j+2,k);
+		    uint32_t node3 = _geom->mesh_check(i,j+1,k);
 		    uint32_t node3id = node3 & SMESH_NODE_ID_MASK;
 		    if( node0id == SMESH_NODE_ID_NEAR_SOLID &&
 			node3id == SMESH_NODE_ID_NEAR_SOLID ) {
@@ -454,13 +510,13 @@ void EpotEfield::precalc_3d( void )
 			
 			// Between near solid node and solid node
 			uint8_t dist = solid_dist( node0, 3 );
-			_F[1][i+(j+k*m)*_epot.size(0)] = 255.0*( _epot(i,j-1,k) - _epot(i,j,k) ) / (dist*h);
+			_F[1][i+(j+k*m)*_epot.size(0)] = 255.0*( _epot(i,j-2,k) - _epot(i,j-1,k) ) / (dist*h);
 			
 		    } else if( node3id == SMESH_NODE_ID_NEAR_SOLID ) {
 			
 			// Between near solid node and solid node
 			uint8_t dist = solid_dist( node3, 2 );
-			_F[1][i+(j+k*m)*_epot.size(0)] = 255.0*( _epot(i,j+1,k) - _epot(i,j+2,k) ) / (dist*h);
+			_F[1][i+(j+k*m)*_epot.size(0)] = 255.0*( _epot(i,j,k) - _epot(i,j+1,k) ) / (dist*h);
 			
 		    } else {
 			
@@ -471,20 +527,33 @@ void EpotEfield::precalc_3d( void )
 		} else {
 		    
 		    // Free space
-		    _F[1][i+(j+k*m)*_epot.size(0)] = (_epot(i,j,k) - _epot(i,j+1,k)) / h;
+		    _F[1][i+(j+k*m)*_epot.size(0)] = (_epot(i,j-1,k) - _epot(i,j,k)) / h;
 		}
 	    }
+
+	    // If ANTIMIRROR extrapolation, force E-field interpolation to
+	    // zero when approaching boundary, otherwise extrapolate from last
+	    // two nodes.
+	    if( _extrpl[2] == FIELD_ANTIMIRROR )
+		_F[1][i+(k*m)*_epot.size(0)] = -_F[1][i+(1+k*m)*_epot.size(0)];
+	    else
+		_F[1][i+(k*m)*_epot.size(0)] = 2.0*_F[1][i+(1+k*m)*_epot.size(0)]-_F[1][i+(2+k*m)*_epot.size(0)];
+	    
+	    if( _extrpl[3] == FIELD_ANTIMIRROR )
+		_F[1][i+(m-1+k*m)*_epot.size(0)] = -_F[1][i+(m-2+k*m)*_epot.size(0)];
+	    else
+		_F[1][i+(m-1+k*m)*_epot.size(0)] = 2.0*_F[1][i+(m-2+k*m)*_epot.size(0)]-_F[1][i+(m-3+k*m)*_epot.size(0)];
 	}
     }
 
     // Do Ez-field
-    for( uint32_t i = 0; i < n+1; i++ ) {
-	for( uint32_t j = 0; j < m+1; j++ ) {
-	    for( uint32_t k = 0; k < o; k++ ) {
+    for( uint32_t i = 0; i < n-1; i++ ) {
+	for( uint32_t j = 0; j < m-1; j++ ) {
+	    for( uint32_t k = 1; k < o-1; k++ ) {
 	
-		uint32_t node1 = _geom->mesh(i,j,k);
+		uint32_t node1 = _geom->mesh(i,j,k-1);
 		uint32_t node1id = node1 & SMESH_NODE_ID_MASK;
-		uint32_t node2 = _geom->mesh(i,j,k+1);
+		uint32_t node2 = _geom->mesh(i,j,k);
 		uint32_t node2id = node2 & SMESH_NODE_ID_MASK;
 
 		if( node1id == SMESH_NODE_ID_NEAR_SOLID &&
@@ -493,8 +562,7 @@ void EpotEfield::precalc_3d( void )
 		
 		    // Between near solid node and solid node
 		    uint8_t dist = solid_dist( node1, 5 );
-		    _F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 
-			255.0*( _epot(i,j,k) - _epot(i,j,k+1) ) / (dist*h);
+		    _F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 255.0*( _epot(i,j,k-1) - _epot(i,j,k) ) / (dist*h);
 
 		} else if( node2id == SMESH_NODE_ID_NEAR_SOLID &&
 			   node1id == SMESH_NODE_ID_DIRICHLET && 
@@ -502,7 +570,7 @@ void EpotEfield::precalc_3d( void )
 		
 		    // Between near solid node and solid node
 		    uint8_t dist = solid_dist( node2, 4 );
-		    _F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 255.0*( _epot(i,j,k) - _epot(i,j,k+1) ) / (dist*h);
+		    _F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 255.0*( _epot(i,j,k-1) - _epot(i,j,k) ) / (dist*h);
 		
 		} else if( node1id == SMESH_NODE_ID_DIRICHLET && 
 			   (node1 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 &&
@@ -510,9 +578,9 @@ void EpotEfield::precalc_3d( void )
 			   (node2 & SMESH_BOUNDARY_NUMBER_MASK) >= 7 ) {
 		
 		    // Inside solid, search for near solid in z-direction
-		    uint32_t node0 = _geom->mesh_check(i,j,k-1);
+		    uint32_t node0 = _geom->mesh_check(i,j,k-2);
 		    uint32_t node0id = node0 & SMESH_NODE_ID_MASK;
-		    uint32_t node3 = _geom->mesh_check(i,j,k+2);
+		    uint32_t node3 = _geom->mesh_check(i,j,k+1);
 		    uint32_t node3id = node3 & SMESH_NODE_ID_MASK;
 		    if( node0id == SMESH_NODE_ID_NEAR_SOLID &&
 			node3id == SMESH_NODE_ID_NEAR_SOLID ) {
@@ -524,13 +592,13 @@ void EpotEfield::precalc_3d( void )
 			
 			// Between near solid node and solid node
 			uint8_t dist = solid_dist( node0, 5 );
-			_F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 255.0*( _epot(i,j,k-1) - _epot(i,j,k) ) / (dist*h);
+			_F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 255.0*( _epot(i,j,k-2) - _epot(i,j,k-1) ) / (dist*h);
 			
 		    } else if( node3id == SMESH_NODE_ID_NEAR_SOLID ) {
 			
 			// Between near solid node and solid node
 			uint8_t dist = solid_dist( node3, 4 );
-			_F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 255.0*( _epot(i,j,k+1) - _epot(i,j,k+2) ) / (dist*h);
+			_F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = 255.0*( _epot(i,j,k) - _epot(i,j,k+1) ) / (dist*h);
 			
 		    } else {
 			
@@ -541,9 +609,25 @@ void EpotEfield::precalc_3d( void )
 		} else {
 		    
 		    // Free space
-		    _F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = (_epot(i,j,k) - _epot(i,j,k+1)) / h;
+		    _F[2][i+(j+k*_epot.size(1))*_epot.size(0)] = (_epot(i,j,k-1) - _epot(i,j,k)) / h;
 		}
 	    }
+
+	    // If ANTIMIRROR extrapolation, force E-field interpolation to
+	    // zero when approaching boundary, otherwise extrapolate from last
+	    // two nodes.
+	    if( _extrpl[4] == FIELD_ANTIMIRROR )
+		_F[2][i+j*_epot.size(0)] = -_F[2][i+(j+_epot.size(1))*_epot.size(0)];
+	    else
+		_F[2][i+j*_epot.size(0)] = 2.0*_F[2][i+(j+_epot.size(1))*_epot.size(0)]-
+		    _F[2][i+(j+2*_epot.size(1))*_epot.size(0)];
+	    
+	    if( _extrpl[5] == FIELD_ANTIMIRROR )
+		_F[2][i+(j+(o-1)*_epot.size(1))*_epot.size(0)] = -_F[2][i+(j+(o-2)*_epot.size(1))*_epot.size(0)];
+	    else
+		_F[2][i+(j+(o-1)*_epot.size(1))*_epot.size(0)] = 2.0*_F[2][i+(j+(o-2)*_epot.size(1))*_epot.size(0)]-
+		    _F[2][i+(j+(o-3)*_epot.size(1))*_epot.size(0)];
+
 	}
     }
 }
@@ -679,13 +763,13 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 	    }
 	}
 
-	int32_t i = (int32_t)floor( (X[0]-_geom->origo(0))*_geom->div_h() - 0.5 );
+	int32_t i = (int32_t)floor( (X[0]-_geom->origo(0))*_geom->div_h() + 0.5 );
 	if( i < 0 )
 	    i = 0;
-	else if( i >= (int32_t)_geom->size(0)-2 )
-	    i = _geom->size(0)-3;
+	else if( i >= (int32_t)_geom->size(0) )
+	    i = _geom->size(0)-1;
 
-	double t = _geom->div_h()*( X[0]-((i+0.5)*_geom->h()+_geom->origo(0)) );
+	double t = _geom->div_h()*( X[0]-((i-0.5)*_geom->h()+_geom->origo(0)) );
 
 	R[0] = sign[0]*( (1.0-t)*_F[0][i] + t*_F[0][i+1] );
 	break;
@@ -734,21 +818,21 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 
 	// Ex
 	if( true ) {
-	    int32_t i = (int32_t)floor( (X[0]-_geom->origo(0))*_geom->div_h() - 0.5 );
+	    int32_t i = (int32_t)floor( (X[0]-_geom->origo(0))*_geom->div_h() + 0.5 );
 	    int32_t j = (int32_t)floor( (X[1]-_geom->origo(1))*_geom->div_h() );
 	    if( i < 0 )
 		i = 0;
-	    else if( i >= (int32_t)_geom->size(0)-2 )
-		i = _geom->size(0)-3;
+	    else if( i >= (int32_t)_geom->size(0) )
+		i = _geom->size(0)-1;
 	    if( j < 0 )
 		j = 0;
 	    else if( j >= (int32_t)_geom->size(1)-1 )
 		j = _geom->size(1)-2;
 	    
-	    double t = _geom->div_h()*( X[0]-((i+0.5)*_geom->h()+_geom->origo(0)) );
+	    double t = _geom->div_h()*( X[0]-((i-0.5)*_geom->h()+_geom->origo(0)) );
 	    double u = _geom->div_h()*( X[1]-(j*_geom->h()+_geom->origo(1)) );
 	    
-	    size_t b = _geom->size(0)-1;
+	    size_t b = _geom->size(0)+1;
 	    size_t c = i+j*b;
 	    R[0] = sign[0]*( (1.0-u)*(1.0-t)*_F[0][c]   + 
 		             (1.0-u)*     t *_F[0][c+1] +
@@ -759,19 +843,19 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 	// Ey
 	if( true ) {
 	    int32_t i = (int32_t)floor( (X[0]-_geom->origo(0))*_geom->div_h() );
-	    int32_t j = (int32_t)floor( (X[1]-_geom->origo(1))*_geom->div_h() - 0.5 );
+	    int32_t j = (int32_t)floor( (X[1]-_geom->origo(1))*_geom->div_h() + 0.5 );
 	    if( i < 0 )
 		i = 0;
 	    else if( i >= (int32_t)_geom->size(0)-1 )
 		i = _geom->size(0)-2;
 	    if( j < 0 )
 		j = 0;
-	    else if( j >= (int32_t)_geom->size(1)-2 )
-		j = _geom->size(1)-3;
+	    else if( j >= (int32_t)_geom->size(1) )
+		j = _geom->size(1)-1;
 	    
 	    double t = _geom->div_h()*( X[0]-(i*_geom->h()+_geom->origo(0)) );
-	    double u = _geom->div_h()*( X[1]-((j+0.5)*_geom->h()+_geom->origo(1)) );
-	    
+	    double u = _geom->div_h()*( X[1]-((j-0.5)*_geom->h()+_geom->origo(1)) );
+
 	    size_t b = _geom->size(0);
 	    size_t c = i+j*b;
 	    R[1] = sign[1]*( (1.0-u)*(1.0-t)*_F[1][c]   + 
@@ -826,13 +910,13 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 
 	// Ex
 	if( true ) {
-	    int32_t i = (int32_t)floor( (X[0]-_geom->origo(0))*_geom->div_h() - 0.5 );
+	    int32_t i = (int32_t)floor( (X[0]-_geom->origo(0))*_geom->div_h() + 0.5 );
 	    int32_t j = (int32_t)floor( (X[1]-_geom->origo(1))*_geom->div_h() );
 	    int32_t k = (int32_t)floor( (X[2]-_geom->origo(2))*_geom->div_h() );
 	    if( i < 0 )
 		i = 0;
-	    else if( i >= (int32_t)_geom->size(0)-2 )
-		i = _geom->size(0)-3;
+	    else if( i >= (int32_t)_geom->size(0) )
+		i = _geom->size(0)-1;
 	    if( j < 0 )
 		j = 0;
 	    else if( j >= (int32_t)_geom->size(1)-1 )
@@ -842,11 +926,11 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 	    else if( k >= (int32_t)_geom->size(2)-1 )
 		k = _geom->size(2)-2;
 	    
-	    double t = _geom->div_h()*( X[0]-((i+0.5)*_geom->h()+_geom->origo(0)) );
+	    double t = _geom->div_h()*( X[0]-((i-0.5)*_geom->h()+_geom->origo(0)) );
 	    double u = _geom->div_h()*( X[1]-(j*_geom->h()+_geom->origo(1)) );
 	    double v = _geom->div_h()*( X[2]-(k*_geom->h()+_geom->origo(2)) );
 	    
-	    size_t a = _geom->size(0)-1;
+	    size_t a = _geom->size(0)+1;
 	    size_t b = a*_geom->size(1);
 	    size_t c = i+j*a+k*b;
 	    R[0] = sign[0]*( (1.0-v)*(1.0-u)*(1.0-t)*_F[0][c]   + 
@@ -862,7 +946,7 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 	// Ey
 	if( true ) {
 	    int32_t i = (int32_t)floor( (X[0]-_geom->origo(0))*_geom->div_h() );
-	    int32_t j = (int32_t)floor( (X[1]-_geom->origo(1))*_geom->div_h() - 0.5 );
+	    int32_t j = (int32_t)floor( (X[1]-_geom->origo(1))*_geom->div_h() + 0.5 );
 	    int32_t k = (int32_t)floor( (X[2]-_geom->origo(2))*_geom->div_h() );
 	    if( i < 0 )
 		i = 0;
@@ -870,19 +954,19 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 		i = _geom->size(0)-2;
 	    if( j < 0 )
 		j = 0;
-	    else if( j >= (int32_t)_geom->size(1)-2 )
-		j = _geom->size(1)-3;
+	    else if( j >= (int32_t)_geom->size(1) )
+		j = _geom->size(1)-1;
 	    if( k < 0 )
 		k = 0;
 	    else if( k >= (int32_t)_geom->size(2)-1 )
 		k = _geom->size(2)-2;
 	    
 	    double t = _geom->div_h()*( X[0]-(i*_geom->h()+_geom->origo(0)) );
-	    double u = _geom->div_h()*( X[1]-((j+0.5)*_geom->h()+_geom->origo(1)) );
+	    double u = _geom->div_h()*( X[1]-((j-0.5)*_geom->h()+_geom->origo(1)) );
 	    double v = _geom->div_h()*( X[2]-(k*_geom->h()+_geom->origo(2)) );
 
 	    size_t a = _geom->size(0);
-	    size_t b = a*(_geom->size(1)-1);
+	    size_t b = a*(_geom->size(1)+1);
 	    size_t c = i+j*a+k*b;
 	    R[1] = sign[1]*( (1.0-v)*(1.0-u)*(1.0-t)*_F[1][c]   + 
 		             (1.0-v)*(1.0-u)*     t *_F[1][c+1] +
@@ -898,7 +982,7 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 	if( true ) {
 	    int32_t i = (int32_t)floor( (X[0]-_geom->origo(0))*_geom->div_h() );
 	    int32_t j = (int32_t)floor( (X[1]-_geom->origo(1))*_geom->div_h() );
-	    int32_t k = (int32_t)floor( (X[2]-_geom->origo(2))*_geom->div_h() - 0.5 );
+	    int32_t k = (int32_t)floor( (X[2]-_geom->origo(2))*_geom->div_h() + 0.5 );
 	    if( i < 0 )
 		i = 0;
 	    else if( i >= (int32_t)_geom->size(0)-1 )
@@ -909,12 +993,12 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 		j = _geom->size(1)-2;
 	    if( k < 0 )
 		k = 0;
-	    else if( k >= (int32_t)_geom->size(2)-2 )
-		k = _geom->size(2)-3;
+	    else if( k >= (int32_t)_geom->size(2) )
+		k = _geom->size(2)-1;
 	    
 	    double t = _geom->div_h()*( X[0]-(i*_geom->h()+_geom->origo(0)) );
 	    double u = _geom->div_h()*( X[1]-(j*_geom->h()+_geom->origo(1)) );
-	    double v = _geom->div_h()*( X[2]-((k+0.5)*_geom->h()+_geom->origo(2)) );
+	    double v = _geom->div_h()*( X[2]-((k-0.5)*_geom->h()+_geom->origo(2)) );
 
 	    size_t a = _geom->size(0);
 	    size_t b = a*_geom->size(1);
