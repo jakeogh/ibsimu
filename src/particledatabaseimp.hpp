@@ -76,10 +76,10 @@ protected:
     bool                       _relativistic; /*!< \brief Relativistic particle iteration. */
     bool                       _surface_collision; /*!< \brief Surface collision model. */
 
-    const CallbackFunctorD_V        *_bsup_cb;       /*!< \brief Location dependent magnetic field suppression. */
-    const TrajectoryHandlerCallback *_thand_cb;      /*!< \brief Trajectory handler callback. */
-    const TrajectoryEndCallback     *_tend_cb;       /*!< \brief Trajectory collision callback. */
-    ParticleDataBase                *_pdb;           /*!< \brief Particle database pointer. */
+    const CallbackFunctorD_V  *_bsup_cb;      /*!< \brief Location dependent magnetic field suppression. */
+    TrajectoryHandlerCallback *_thand_cb;     /*!< \brief Trajectory handler callback. */
+    TrajectoryEndCallback     *_tend_cb;      /*!< \brief Trajectory collision callback. */
+    ParticleDataBase          *_pdb;          /*!< \brief Particle database pointer. */
 
     ParticleDataBaseImp( ParticleDataBase *pdb );
 
@@ -105,9 +105,9 @@ public:
 
     void set_bfield_suppression( const CallbackFunctorD_V *functor );
 
-    void set_trajectory_handler_callback( const TrajectoryHandlerCallback *thand_cb );
+    void set_trajectory_handler_callback( TrajectoryHandlerCallback *thand_cb );
 
-    void set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb );
+    void set_trajectory_end_callback( TrajectoryEndCallback *tend_cb );
 
     void set_relativistic( bool enable );
 

@@ -277,39 +277,39 @@ public:
  */
 template <class PP> class ParticleIterator {
 
-    gsl_odeiv_system           _system;      /**< \brief GSL ODE integrator system. */
-    gsl_odeiv_step            *_step;        /**< \brief GSL ODE integrator stepper. */
-    gsl_odeiv_control         *_control;     /**< \brief GSL ODE integrator constrol. */
-    gsl_odeiv_evolve          *_evolve;      /**< \brief GSL ODE integrator integrator. */
+    gsl_odeiv_system           _system;        /**< \brief GSL ODE integrator system. */
+    gsl_odeiv_step            *_step;          /**< \brief GSL ODE integrator stepper. */
+    gsl_odeiv_control         *_control;       /**< \brief GSL ODE integrator constrol. */
+    gsl_odeiv_evolve          *_evolve;        /**< \brief GSL ODE integrator integrator. */
 
-    particle_iterator_type_e   _type;        /**< \brief Iteratory type. */
+    particle_iterator_type_e   _type;          /**< \brief Iteratory type. */
 
-    trajectory_interpolation_e _intrp;       /*!< \brief Interpolation type. */
-    scharge_deposition_e       _scharge_dep; /*!< \brief Space charge deposition type. */
-    double                     _epsabs;      /*!< \brief Absolute error limit. */
-    double                     _epsrel;      /*!< \brief Relative error limit. */
-    uint32_t                   _maxsteps;    /*!< \brief Maximum number of simulation steps for particle. */
-    double                     _maxt;        /*!< \brief Maximum particle lifetime. */
-    bool                       _save_points; /*!< \brief Save all points? */
-    uint32_t                   _trajdiv;     /*!< \brief Divisor for saved trajectories,
-					      * if 3, every third trajectory is saved. */
-    bool                       _mirror[6];   /*!< \brief Is particle mirrored on boundary? */
+    trajectory_interpolation_e _intrp;         /*!< \brief Interpolation type. */
+    scharge_deposition_e       _scharge_dep;   /*!< \brief Space charge deposition type. */
+    double                     _epsabs;        /*!< \brief Absolute error limit. */
+    double                     _epsrel;        /*!< \brief Relative error limit. */
+    uint32_t                   _maxsteps;      /*!< \brief Maximum number of simulation steps for particle. */
+    double                     _maxt;          /*!< \brief Maximum particle lifetime. */
+    bool                       _save_points;   /*!< \brief Save all points? */
+    uint32_t                   _trajdiv;       /*!< \brief Divisor for saved trajectories,
+					        * if 3, every third trajectory is saved. */
+    bool                       _mirror[6];     /*!< \brief Is particle mirrored on boundary? */
     bool                       _surface_collision;
 
-    ParticleIteratorData       _pidata;      /*!< \brief User data provided to PP::get_derivatives(). */
-    const TrajectoryHandlerCallback *_thand_cb; /*!< \brief Trajectory handler callback. */
-    const TrajectoryEndCallback     *_tend_cb;  /*!< \brief Trajectory end callback. */
-    const TrajectoryEndCallback     *_bsup_cb;  /*!< \brief B-field plasma suppression callback. */
-    ParticleDataBase          *_pdb;            /*!< \brief Particle database pointer for adding secondary particles. */
-    pthread_mutex_t           *_scharge_mutex;  /*!< \brief Space charge mutex. */
+    ParticleIteratorData       _pidata;        /*!< \brief User data provided to PP::get_derivatives(). */
+    TrajectoryHandlerCallback *_thand_cb;      /*!< \brief Trajectory handler callback. */
+    TrajectoryEndCallback     *_tend_cb;       /*!< \brief Trajectory end callback. */
+    const TrajectoryEndCallback *_bsup_cb;     /*!< \brief B-field plasma suppression callback. */
+    ParticleDataBase          *_pdb;           /*!< \brief Particle database pointer for adding secondary particles. */
+    pthread_mutex_t           *_scharge_mutex; /*!< \brief Space charge mutex. */
 
-    PP                         _xi;          /*!< \brief Previous mesh intersection coordinates 
-					      *   or starting point. */
-    std::vector<PP>            _traj;        /*!< \brief %Particle trajectory data for current trajectory. */
-    std::vector<ColData<PP> >  _coldata;     /*!< \brief %Mesh intersection coordinate data. */
-    CFiFo<PP,4>                _cdpast;      /*!< \brief Past three intersection coords. */
+    PP                         _xi;            /*!< \brief Previous mesh intersection coordinates 
+					        *   or starting point. */
+    std::vector<PP>            _traj;          /*!< \brief %Particle trajectory data for current trajectory. */
+    std::vector<ColData<PP> >  _coldata;       /*!< \brief %Mesh intersection coordinate data. */
+    CFiFo<PP,4>                _cdpast;        /*!< \brief Past three intersection coords. */
 
-    ParticleStatistics         _stat;        /*!< \brief Particle statistics. */
+    ParticleStatistics         _stat;          /*!< \brief Particle statistics. */
 
 
     /*! \brief Save trajectory point \a x.
@@ -1199,14 +1199,14 @@ public:
 
     /*! \brief Set trajectory handler callback. 
      */
-    void set_trajectory_handler_callback( const TrajectoryHandlerCallback *thand_cb ) {
+    void set_trajectory_handler_callback( TrajectoryHandlerCallback *thand_cb ) {
 	_thand_cb = thand_cb;
     }
 
 
     /*! \brief Set trajectory end callback. 
      */
-    void set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb, ParticleDataBase *pdb ) {
+    void set_trajectory_end_callback( TrajectoryEndCallback *tend_cb, ParticleDataBase *pdb ) {
 	_tend_cb = tend_cb;
 	_pdb = pdb;
     }

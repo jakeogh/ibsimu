@@ -133,13 +133,13 @@ void ParticleDataBaseImp::set_bfield_suppression( const CallbackFunctorD_V *bsup
 }
 
 
-void ParticleDataBaseImp::set_trajectory_handler_callback( const TrajectoryHandlerCallback *thand_cb )
+void ParticleDataBaseImp::set_trajectory_handler_callback( TrajectoryHandlerCallback *thand_cb )
 {
     _thand_cb = thand_cb;
 }
 
 
-void ParticleDataBaseImp::set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb )
+void ParticleDataBaseImp::set_trajectory_end_callback( TrajectoryEndCallback *tend_cb )
 {
     _tend_cb = tend_cb;
 }

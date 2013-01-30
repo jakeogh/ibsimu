@@ -62,7 +62,7 @@ public:
      */
     virtual ~TrajectoryHandlerCallback() {}
 
-    virtual void operator()( ParticleBase *particle, ParticlePBase *xcur, ParticlePBase *xend ) const = 0;
+    virtual void operator()( ParticleBase *particle, ParticlePBase *xcur, ParticlePBase *xend ) = 0;
 
 };
 
@@ -78,7 +78,7 @@ public:
 
     /*! \brief Operator called when particle calculation ends.
      */
-    virtual void operator()( ParticleBase *particle, class ParticleDataBase *pdb ) const = 0;
+    virtual void operator()( ParticleBase *particle, class ParticleDataBase *pdb ) = 0;
 
 };
 
@@ -94,7 +94,7 @@ public:
  */
 class PPlasmaBfieldSuppression : public CallbackFunctorD_V {
 
-    double             _phi;    /*!< \brief Limit for potential. */
+    double                 _phi;    /*!< \brief Limit for potential. */
     const MeshScalarField &_epot;   /*!< \brief Electric potential field. */
     
 public:
@@ -234,11 +234,11 @@ public:
 
     /*! \brief Set trajectory handler callback. 
      */
-    void set_trajectory_handler_callback( const TrajectoryHandlerCallback *thand_cb );
+    void set_trajectory_handler_callback( TrajectoryHandlerCallback *thand_cb );
 
     /*! \brief Set trajectory end callback. 
      */
-    void set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb );
+    void set_trajectory_end_callback( TrajectoryEndCallback *tend_cb );
 
     /*! \brief Set relativistic particle iteration.
      */

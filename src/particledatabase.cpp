@@ -87,13 +87,13 @@ void ParticleDataBase::set_bfield_suppression( const CallbackFunctorD_V *functor
 }
 
 
-void ParticleDataBase::set_trajectory_handler_callback( const TrajectoryHandlerCallback *thand_cb )
+void ParticleDataBase::set_trajectory_handler_callback( TrajectoryHandlerCallback *thand_cb )
 {
     _imp->set_trajectory_handler_callback( thand_cb );
 }
 
 
-void ParticleDataBase::set_trajectory_end_callback( const TrajectoryEndCallback *tend_cb )
+void ParticleDataBase::set_trajectory_end_callback( TrajectoryEndCallback *tend_cb )
 {
     _imp->set_trajectory_end_callback( tend_cb );
 }
