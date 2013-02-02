@@ -2,7 +2,7 @@
  *  \brief Poisson equation problem for solving electric potential.
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -44,6 +44,7 @@
 #include "timer.hpp"
 #include "ibsimu.hpp"
 #include "error.hpp"
+#include "compmath.hpp"
 #include "constants.hpp"
 
 
@@ -56,7 +57,8 @@
 EpotSolver::EpotSolver( Geometry &geom ) 
     : _geom(geom), _neumann_order(2), _plasma(PLASMA_NONE), 
       _rhoe(0.0), _Te(0.0), _Up(0.0), 
-      _force_pot(0.0), _force_pot_func(0), _init_plasma_func(0)
+      _force_pot(0.0), _force_pot_func(0), _force_pot_func2(0), 
+      _init_plasma_func(0)
 {
 
 }
@@ -67,6 +69,7 @@ EpotSolver::EpotSolver( const EpotSolver &epsolver, Geometry &geom )
       _rhoe(epsolver._rhoe), _Te(epsolver._Te), _Up(epsolver._Up),
       _rhoi(epsolver._rhoi), _Ei(epsolver._Ei), 
       _force_pot(epsolver._force_pot), _force_pot_func(epsolver._force_pot_func),
+      _force_pot_func2(epsolver._force_pot_func2),
       _init_plasma_func(epsolver._init_plasma_func)
 {
 
@@ -96,6 +99,7 @@ void EpotSolver::set_parameters( const EpotSolver &epsolver )
     _Ei = epsolver._Ei;
     _force_pot = epsolver._force_pot;
     _force_pot_func = epsolver._force_pot_func;
+    _force_pot_func2 = epsolver._force_pot_func2;
     _init_plasma_func = epsolver._init_plasma_func;
 }
 
@@ -114,6 +118,12 @@ void EpotSolver::set_forced_potential_volume( double force_pot,
 {
     _force_pot = force_pot;
     _force_pot_func = force_pot_func;
+}
+
+
+void EpotSolver::set_forced_potential_volume( CallbackFunctorD_V *force_pot_func )
+{
+    _force_pot_func2 = force_pot_func;
 }
 
 
@@ -255,7 +265,15 @@ void EpotSolver::preprocess( MeshScalarField &epot )
 		    node_id == SMESH_NODE_ID_PURE_VACUUM ) {
 
 		    // Vacuum
-		    if( _force_pot_func && (*_force_pot_func)( x ) ) {
+		    double val;
+		    if( _force_pot_func2 && 
+			comp_isfinite( (val = (*_force_pot_func2)( x ))) ) {
+
+			// Mark as fixed vacuum
+			_geom.mesh(i,j,k) |= SMESH_NODE_FIXED;
+			epot(i,j,k) = val;
+
+		    } else if( _force_pot_func && (*_force_pot_func)( x ) ) {
 
 			// Mark as fixed vacuum
 			_geom.mesh(i,j,k) |= SMESH_NODE_FIXED;

@@ -2,7 +2,7 @@
  *  \brief Compatibility math
  */
 
-/* Copyright (c) 2010,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010,2012,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -44,6 +44,7 @@
 #define COMPMATH_HPP 1
 
 
+int comp_isfinite( double x );
 int comp_isinf( double x );
 int comp_isnan( double x );
 double comp_sign( double x );

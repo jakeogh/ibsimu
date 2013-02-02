@@ -2,7 +2,7 @@
  *  \brief Poisson equation problem for solving electric potential.
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -224,8 +224,9 @@ protected:
 					    *   first fast protons, then thermal ions */
 
     double              _force_pot;        /*!< \brief Potential to be forced. */
-    CallbackFunctorB_V *_force_pot_func;   /*!< \brief Force area potential function. */
-    CallbackFunctorB_V *_init_plasma_func; /*!< \brief Initial plasma area function. */
+    CallbackFunctorB_V *_force_pot_func;   /*!< \brief Force region potential function. */
+    CallbackFunctorD_V *_force_pot_func2;  /*!< \brief Force region potential function. */
+    CallbackFunctorB_V *_init_plasma_func; /*!< \brief Initial plasma region function. */
 
     double              _plA;              /*!< \brief Plasma parameter.
 				            *   For positive ion extraction: rho_th * h^2 / epsilon_0,
@@ -354,9 +355,21 @@ public:
      *  force_pot_func. This function is designed to be used with
      *  negative ion plasma extraction to stabilize plasma close
      *  non-physical boundaries.
+     *
+     *  This function may be removed in future.
      */
     void set_forced_potential_volume( double force_pot, 
 				      CallbackFunctorB_V *force_pot_func );
+
+    /*! \brief Define forced potential volume.
+     *
+     *  The \a force_pot_func functor will be called for every vacuum
+     *  grid node at preprocessing stage of solve. If it returns a
+     *  finite value, the node will be forced to the potential defined
+     *  by the returned value. Otherwise the node will be treated as a
+     *  regular vacuum node.
+     */
+    void set_forced_potential_volume( CallbackFunctorD_V *force_pot_func );
 
     /*! \brief Define initial plasma to the problem.
      *

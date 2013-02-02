@@ -2,7 +2,7 @@
  *  \brief Compatibility math
  */
 
-/* Copyright (c) 2010,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010,2012,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -42,6 +42,16 @@
 
 
 #include "compmath.hpp"
+
+
+int comp_isfinite( double x )
+{
+    if( (x - x) != 0.0 )
+	return( 0 );
+    else
+	return( 1 );
+}
+
 
 int comp_isinf( double x )
 {
