@@ -63,15 +63,17 @@ class EpotMGSolver : public EpotSolver {
     uint32_t         _levels;         /*!< \brief Multigrid levels. */
     uint32_t         _npre;           /*!< \brief Pre cycle smoother rounds. */
     uint32_t         _npost;          /*!< \brief Post cycle smoother rounds. */
-    uint32_t         _mgcycmax;       /*!< \brief Maximum number of multigrid cycles. */
-    uint32_t         _mgcyc;          /*!< \brief Number of multigrid cycles taken. */
-    double           _mgeps;          /*!< \brief Acceptable residual error from last multigrid cycle. */
+    uint32_t         _mgcycmax;       /*!< \brief Maximum number of MG cycles. */
+    uint32_t         _mgcyc;          /*!< \brief Number of MG cycles taken. */
+    double           _mgeps;          /*!< \brief Acceptable residual error from last MG cycle. */
+    double           _mgerr;          /*!< \brief Error estimate from top level. */
     uint32_t         _gamma;          /*!< \brief Multigrid cycle coefficient, 1 for V-cycles, 2 for W-cycles. */
     double           _step;           /*!< \brief Potential change norm from top level. */
-    double           _err;            /*!< \brief Error estimate from top level. */
-    double           _eps;            /*!< \brief Acceptable error for coarsest level. */
+    double           _coarse_eps;     /*!< \brief Acceptable error for coarsest level. */
+    double           _coarse_err;     /*!< \brief Acceptable error for coarsest level. */
     double           _w;              /*!< \brief Over-relaxation factor for coarsest level. */
     uint32_t         _imax;           /*!< \brief Maximum number of rounds for coarsest level. */
+    uint32_t         _coarse_steps;   /*!< \brief Total number of rounds for coarsest level in last MG cycle. */
     
     
     void print_field( const MeshScalarField *F );
@@ -94,6 +96,11 @@ class EpotMGSolver : public EpotSolver {
     void restrict_cyl( MeshScalarField *out, const MeshScalarField *in, bool defect );
     void restrict_2d( MeshScalarField *out, const MeshScalarField *in, bool defect );
     void restrict_1d( MeshScalarField *out, const MeshScalarField *in, bool defect );
+
+    /*! \brief Restrict field.
+     *
+     *  If restricting defect field it is known that odd points have zero defect.
+     */
     void restrict( MeshScalarField *out, const MeshScalarField *in, bool defect );
 
     void prolong_3d( MeshScalarField *out, const MeshScalarField *in );
@@ -102,7 +109,7 @@ class EpotMGSolver : public EpotSolver {
     void prolong_1d( MeshScalarField *out, const MeshScalarField *in );
     void prolong( MeshScalarField *out, const MeshScalarField *in );
 
-    void mg_recurse( uint32_t level, std::stringstream &ss );
+    void mg_recurse( uint32_t level );
 
     /*! \brief Reset solver/problem settings.
      */
@@ -192,8 +199,9 @@ public:
 
     /*! \brief Get estimate of relative solution error.
      *
-     *  Returns 2-norm \f$ 1e-3 \max(I,J,K) ||\Delta x|| \f$ in 2D and
-     *  \f$ 1e-3 sqrt{\max(I,J,K)} ||\Delta x|| \f$ in 3D.
+     *  Returns 2-norm \f$ G(w) \max(I,J,K) ||\Delta x|| \f$ in 2D and
+     *  \f$ F(w) sqrt{\max(I,J,K)} ||\Delta x|| \f$ in 3D, where G and
+     *  F and third order polynomial fits to data from test problems.
      */
     double get_error_estimate( void ) const;
 

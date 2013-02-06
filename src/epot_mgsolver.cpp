@@ -58,8 +58,9 @@
 
 EpotMGSolver::EpotMGSolver( Geometry &geom )
     : EpotSolver( geom ), _geom_prepared(false), _levels(1), _npre(5), 
-      _npost(5), _mgcycmax(100), _mgcyc(0), _mgeps(1.0e-4), _gamma(1), _step(0.0), 
-      _err(0.0), _eps(1.0e-10), _w(1.7), _imax(10000)
+      _npost(5), _mgcycmax(100), _mgcyc(0), _mgeps(1.0e-4), _mgerr(0.0),
+      _gamma(1), _step(0.0), _coarse_eps(1.0e-10), _coarse_err(0.0), 
+      _w(1.7), _imax(10000), _coarse_steps(0)
 {
 
 }
@@ -107,14 +108,16 @@ void EpotMGSolver::reset_problem( void )
     _work2v.clear();
 
     _step = 0.0;
-    _err = 0.0;
+    _mgerr = 0.0;
+    _coarse_err = 0.0;
+    _coarse_steps = 0;
     _geom_prepared = false;
 }
 
 
 void EpotMGSolver::set_eps( double eps )
 {
-    _eps = eps;
+    _coarse_eps = eps;
 }
 
 
@@ -138,7 +141,7 @@ double EpotMGSolver::get_potential_change_norm( void ) const
 
 double EpotMGSolver::get_error_estimate( void ) const
 {
-    return( _err );
+    return( _mgerr );
 }
 
 
@@ -462,51 +465,71 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 		int32_t ii = 2*i;
 		int32_t jj = 2*j;
 		int32_t kk = 2*k;
-		double D = 
-		    1.0/64.0*(*in)( ii-1, jj-1, kk-1 ) + 
-		    1.0/32.0*(*in)( ii,   jj-1, kk-1 ) + 
-		    1.0/64.0*(*in)( ii+1, jj-1, kk-1 ) + 
-		    
-		    1.0/32.0*(*in)( ii-1, jj,   kk-1 ) + 
-		    1.0/16.0*(*in)( ii,   jj,   kk-1 ) + 
-		    1.0/32.0*(*in)( ii+1, jj,   kk-1 ) + 
-		    
-		    1.0/64.0*(*in)( ii-1, jj+1, kk-1 ) + 
-		    1.0/32.0*(*in)( ii,   jj+1, kk-1 ) + 
-		    1.0/64.0*(*in)( ii+1, jj+1, kk-1 ) + 
 
-		    //
-		    
-		    1.0/32.0*(*in)( ii-1, jj-1, kk   ) + 
-		    1.0/16.0*(*in)( ii,   jj-1, kk   ) + 
-		    1.0/32.0*(*in)( ii+1, jj-1, kk   ) + 
-		    
-		    1.0/16.0*(*in)( ii-1, jj,   kk   ) + 
-		    1.0/8.0 *(*in)( ii,   jj,   kk   ) + 
-		    1.0/16.0*(*in)( ii+1, jj,   kk   ) + 
-		    
-		    1.0/32.0*(*in)( ii-1, jj+1, kk   ) + 
-		    1.0/16.0*(*in)( ii,   jj+1, kk   ) + 
-		    1.0/32.0*(*in)( ii+1, jj+1, kk   ) + 
+		// RBGS smoother does even pass last. Even nodes have
+		// zero defect.
+		if( defect ) {
+		    double D = 
+			1.0/16.0*(*in)( ii-1, jj-1, kk-1 ) + 
+			1.0/16.0*(*in)( ii-1, jj-1, kk+1 ) + 
+			1.0/4.0 *(*in)( ii-1, jj,   kk   ) + 
+			1.0/16.0*(*in)( ii-1, jj+1, kk-1 ) + 
+			1.0/16.0*(*in)( ii-1, jj+1, kk+1 ) + 
 
-		    //
+			1.0/4.0 *(*in)( ii,   jj-1, kk   ) + 
+			1.0/4.0 *(*in)( ii,   jj,   kk-1 ) + 
+			1.0/4.0 *(*in)( ii,   jj,   kk+1 ) + 
+			1.0/4.0 *(*in)( ii,   jj+1, kk   ) + 
 
-		    1.0/64.0*(*in)( ii-1, jj-1, kk+1 ) + 
-		    1.0/32.0*(*in)( ii,   jj-1, kk+1 ) + 
-		    1.0/64.0*(*in)( ii+1, jj-1, kk+1 ) + 
-		    
-		    1.0/32.0*(*in)( ii-1, jj,   kk+1 ) + 
-		    1.0/16.0*(*in)( ii,   jj,   kk+1 ) + 
-		    1.0/32.0*(*in)( ii+1, jj,   kk+1 ) + 
-		    
-		    1.0/64.0*(*in)( ii-1, jj+1, kk+1 ) + 
-		    1.0/32.0*(*in)( ii,   jj+1, kk+1 ) + 
-		    1.0/64.0*(*in)( ii+1, jj+1, kk+1 );
-		
-		if( defect )
-		    (*out)(i,j,k) = 4.0*D;
-		else
+			1.0/16.0*(*in)( ii+1, jj-1, kk-1 ) + 
+			1.0/16.0*(*in)( ii+1, jj-1, kk+1 ) + 
+			1.0/4.0 *(*in)( ii+1, jj,   kk   ) + 
+			1.0/16.0*(*in)( ii+1, jj+1, kk-1 ) + 
+			1.0/16.0*(*in)( ii+1, jj+1, kk+1 );
 		    (*out)(i,j,k) = D;
+		} else {
+		    double D = 
+			1.0/64.0*(*in)( ii-1, jj-1, kk-1 ) + 
+			1.0/32.0*(*in)( ii,   jj-1, kk-1 ) + 
+			1.0/64.0*(*in)( ii+1, jj-1, kk-1 ) + 
+		    
+			1.0/32.0*(*in)( ii-1, jj,   kk-1 ) + 
+			1.0/16.0*(*in)( ii,   jj,   kk-1 ) + 
+			1.0/32.0*(*in)( ii+1, jj,   kk-1 ) + 
+		    
+			1.0/64.0*(*in)( ii-1, jj+1, kk-1 ) + 
+			1.0/32.0*(*in)( ii,   jj+1, kk-1 ) + 
+			1.0/64.0*(*in)( ii+1, jj+1, kk-1 ) + 
+
+			//
+		    
+			1.0/32.0*(*in)( ii-1, jj-1, kk   ) + 
+			1.0/16.0*(*in)( ii,   jj-1, kk   ) + 
+			1.0/32.0*(*in)( ii+1, jj-1, kk   ) + 
+		    
+			1.0/16.0*(*in)( ii-1, jj,   kk   ) + 
+			1.0/8.0 *(*in)( ii,   jj,   kk   ) + 
+			1.0/16.0*(*in)( ii+1, jj,   kk   ) + 
+		    
+			1.0/32.0*(*in)( ii-1, jj+1, kk   ) + 
+			1.0/16.0*(*in)( ii,   jj+1, kk   ) + 
+			1.0/32.0*(*in)( ii+1, jj+1, kk   ) + 
+
+			//
+
+			1.0/64.0*(*in)( ii-1, jj-1, kk+1 ) + 
+			1.0/32.0*(*in)( ii,   jj-1, kk+1 ) + 
+			1.0/64.0*(*in)( ii+1, jj-1, kk+1 ) + 
+		    
+			1.0/32.0*(*in)( ii-1, jj,   kk+1 ) + 
+			1.0/16.0*(*in)( ii,   jj,   kk+1 ) + 
+			1.0/32.0*(*in)( ii+1, jj,   kk+1 ) + 
+		    
+			1.0/64.0*(*in)( ii-1, jj+1, kk+1 ) + 
+			1.0/32.0*(*in)( ii,   jj+1, kk+1 ) + 
+			1.0/64.0*(*in)( ii+1, jj+1, kk+1 );
+		    (*out)(i,j,k) = D;
+		}
 	    }
 	}
     }
@@ -909,23 +932,31 @@ void EpotMGSolver::restrict_cyl( MeshScalarField *out, const MeshScalarField *in
 
 	    int32_t ii = 2*i;
 	    int32_t jj = 2*j;
-	    double D = 
-		1.0/16.0*(*in)( ii-1, jj-1 ) + 
-		1.0/8.0 *(*in)( ii-1, jj   ) + 
-		1.0/16.0*(*in)( ii-1, jj+1 ) + 
 
-		1.0/8.0 *(*in)( ii,   jj-1 ) + 
-		1.0/4.0 *(*in)( ii,   jj   ) + 
-		1.0/8.0 *(*in)( ii,   jj+1 ) + 
-
-		1.0/16.0*(*in)( ii+1, jj-1 ) + 
-		1.0/8.0 *(*in)( ii+1, jj   ) + 
-		1.0/16.0*(*in)( ii+1, jj+1 );
-
-	    if( defect )
-		(*out)(i,j) = 4.0*D;
-	    else
+	    // RBGS smoother does even pass last. Even nodes have
+	    // zero defect.
+	    if( defect ) {
+		double D = 
+		    1.0/2.0 *(*in)( ii-1, jj   ) + 
+		    1.0/2.0 *(*in)( ii,   jj-1 ) + 
+		    1.0/2.0 *(*in)( ii,   jj+1 ) + 
+		    1.0/2.0 *(*in)( ii+1, jj   );
 		(*out)(i,j) = D;
+	    } else {
+		double D = 
+		    1.0/16.0*(*in)( ii-1, jj-1 ) + 
+		    1.0/8.0 *(*in)( ii-1, jj   ) + 
+		    1.0/16.0*(*in)( ii-1, jj+1 ) + 
+		    
+		    1.0/8.0 *(*in)( ii,   jj-1 ) + 
+		    1.0/4.0 *(*in)( ii,   jj   ) + 
+		    1.0/8.0 *(*in)( ii,   jj+1 ) + 
+		    
+		    1.0/16.0*(*in)( ii+1, jj-1 ) + 
+		    1.0/8.0 *(*in)( ii+1, jj   ) + 
+		    1.0/16.0*(*in)( ii+1, jj+1 );
+		(*out)(i,j) = D;
+	    }
 	}
     }
 
@@ -1019,23 +1050,31 @@ void EpotMGSolver::restrict_2d( MeshScalarField *out, const MeshScalarField *in,
 
 	    int32_t ii = 2*i;
 	    int32_t jj = 2*j;
-	    double D = 
-		1.0/16.0*(*in)( ii-1, jj-1 ) + 
-		1.0/8.0 *(*in)( ii-1, jj   ) + 
-		1.0/16.0*(*in)( ii-1, jj+1 ) + 
 
-		1.0/8.0 *(*in)( ii,   jj-1 ) + 
-		1.0/4.0 *(*in)( ii,   jj   ) + 
-		1.0/8.0 *(*in)( ii,   jj+1 ) + 
-
-		1.0/16.0*(*in)( ii+1, jj-1 ) + 
-		1.0/8.0 *(*in)( ii+1, jj   ) + 
-		1.0/16.0*(*in)( ii+1, jj+1 );
-
-	    if( defect )
-		(*out)(i,j) = 4.0*D;
-	    else
+	    // RBGS smoother does even pass last. Even nodes have
+	    // zero defect.
+	    if( defect ) {
+		double D = 
+		    1.0/2.0 *(*in)( ii-1, jj   ) + 
+		    1.0/2.0 *(*in)( ii,   jj-1 ) + 
+		    1.0/2.0 *(*in)( ii,   jj+1 ) + 
+		    1.0/2.0 *(*in)( ii+1, jj   );
 		(*out)(i,j) = D;
+	    } else {
+		double D = 
+		    1.0/16.0*(*in)( ii-1, jj-1 ) + 
+		    1.0/8.0 *(*in)( ii-1, jj   ) + 
+		    1.0/16.0*(*in)( ii-1, jj+1 ) + 
+		    
+		    1.0/8.0 *(*in)( ii,   jj-1 ) + 
+		    1.0/4.0 *(*in)( ii,   jj   ) + 
+		    1.0/8.0 *(*in)( ii,   jj+1 ) + 
+		    
+		    1.0/16.0*(*in)( ii+1, jj-1 ) + 
+		    1.0/8.0 *(*in)( ii+1, jj   ) + 
+		    1.0/16.0*(*in)( ii+1, jj+1 );
+		(*out)(i,j) = D;
+	    }
 	}
     }
 
@@ -1126,15 +1165,21 @@ void EpotMGSolver::restrict_1d( MeshScalarField *out, const MeshScalarField *in,
     for( int32_t i = 1; i < s; i++ ) {
 
 	int32_t ii = 2*i;
-	double D = 
-	    1.0/4.0*(*in)( ii-1 ) + 
-	    1.0/2.0*(*in)( ii   ) + 
-	    1.0/4.0*(*in)( ii+1 );
-	
-	if( defect )
-	    (*out)(i) = 4.0*D;
-	else
+
+	// RBGS smoother does even pass last. Even nodes have
+	// zero defect.
+	if( defect ) {
+	    double D = 
+		(*in)( ii-1 ) + 
+		(*in)( ii+1 );
 	    (*out)(i) = D;
+	} else {
+	    double D = 
+		1.0/4.0*(*in)( ii-1 ) + 
+		1.0/2.0*(*in)( ii   ) + 
+		1.0/4.0*(*in)( ii+1 );
+	    (*out)(i) = D;
+	}
     }
 
     // Boundary nodes completely separated
@@ -1196,45 +1241,23 @@ void EpotMGSolver::prolong_3d( MeshScalarField *out, const MeshScalarField *in )
 		int32_t kk = 2*k;
 		double C = (*in)(i,j,k);
 
-		prolong_add_3d( out, ii-1, jj-1, kk-1, 1.0/8.0*C );
-		prolong_add_3d( out, ii  , jj-1, kk-1, 1.0/4.0*C );
-		prolong_add_3d( out, ii+1, jj-1, kk-1, 1.0/8.0*C );
-
-		prolong_add_3d( out, ii-1, jj,   kk-1, 1.0/4.0*C );
-		prolong_add_3d( out, ii,   jj,   kk-1, 1.0/2.0*C );
-		prolong_add_3d( out, ii+1, jj,   kk-1, 1.0/4.0*C );
-
-		prolong_add_3d( out, ii-1, jj+1, kk-1, 1.0/8.0*C );
-		prolong_add_3d( out, ii,   jj+1, kk-1, 1.0/4.0*C );
-		prolong_add_3d( out, ii+1, jj+1, kk-1, 1.0/8.0*C );
-
-		//
-
+		// No need to prolong correction to odd points. Odd
+		// field will be overwritten by first RBGS loop.
 		prolong_add_3d( out, ii-1, jj-1, kk,   1.0/4.0*C );
-		prolong_add_3d( out, ii  , jj-1, kk,   1.0/2.0*C );
-		prolong_add_3d( out, ii+1, jj-1, kk,   1.0/4.0*C );
-
-		prolong_add_3d( out, ii-1, jj,   kk,   1.0/2.0*C );
-		prolong_add_3d( out, ii,   jj,   kk,   1.0*C );
-		prolong_add_3d( out, ii+1, jj,   kk,   1.0/2.0*C );
-
-		prolong_add_3d( out, ii-1, jj+1, kk,   1.0/4.0*C );
-		prolong_add_3d( out, ii,   jj+1, kk,   1.0/2.0*C );
-		prolong_add_3d( out, ii+1, jj+1, kk,   1.0/4.0*C );
-		
-		//
-
-		prolong_add_3d( out, ii-1, jj-1, kk+1, 1.0/8.0*C );
-		prolong_add_3d( out, ii  , jj-1, kk+1, 1.0/4.0*C );
-		prolong_add_3d( out, ii+1, jj-1, kk+1, 1.0/8.0*C );
-
+		prolong_add_3d( out, ii-1, jj,   kk-1, 1.0/4.0*C );
 		prolong_add_3d( out, ii-1, jj,   kk+1, 1.0/4.0*C );
-		prolong_add_3d( out, ii,   jj,   kk+1, 1.0/2.0*C );
-		prolong_add_3d( out, ii+1, jj,   kk+1, 1.0/4.0*C );
+		prolong_add_3d( out, ii-1, jj+1, kk,   1.0/4.0*C );
 
-		prolong_add_3d( out, ii-1, jj+1, kk+1, 1.0/8.0*C );
+		prolong_add_3d( out, ii,   jj-1, kk-1, 1.0/4.0*C );
+		prolong_add_3d( out, ii,   jj-1, kk+1, 1.0/4.0*C );
+		prolong_add_3d( out, ii,   jj,   kk,   1.0*C );
+		prolong_add_3d( out, ii,   jj+1, kk-1, 1.0/4.0*C );
 		prolong_add_3d( out, ii,   jj+1, kk+1, 1.0/4.0*C );
-		prolong_add_3d( out, ii+1, jj+1, kk+1, 1.0/8.0*C );
+
+		prolong_add_3d( out, ii+1, jj-1, kk,   1.0/4.0*C );
+		prolong_add_3d( out, ii+1, jj,   kk-1, 1.0/4.0*C );
+		prolong_add_3d( out, ii+1, jj,   kk+1, 1.0/4.0*C );
+		prolong_add_3d( out, ii+1, jj+1, kk,   1.0/4.0*C );
 	    }
 	}
     }    
@@ -1263,16 +1286,19 @@ void EpotMGSolver::prolong_cyl( MeshScalarField *out, const MeshScalarField *in 
 	    int32_t ii = 2*i;
 	    int32_t jj = 2*j;
 	    double C = (*in)(i,j);
+
+	    // No need to prolong correction to odd points. Odd
+	    // field will be overwritten by first RBGS loop.
 	    prolong_add_cyl( out, ii-1, jj-1, 1.0/4.0*C );
-	    prolong_add_cyl( out, ii-1, jj,   1.0/2.0*C );
+	    //prolong_add_cyl( out, ii-1, jj,   1.0/2.0*C );
 	    prolong_add_cyl( out, ii-1, jj+1, 1.0/4.0*C );
 
-	    prolong_add_cyl( out, ii,   jj-1, 1.0/2.0*C );
+	    //prolong_add_cyl( out, ii,   jj-1, 1.0/2.0*C );
 	    prolong_add_cyl( out, ii,   jj,   1.0*C );
-	    prolong_add_cyl( out, ii,   jj+1, 1.0/2.0*C );
+	    //prolong_add_cyl( out, ii,   jj+1, 1.0/2.0*C );
 
 	    prolong_add_cyl( out, ii+1, jj-1, 1.0/4.0*C );
-	    prolong_add_cyl( out, ii+1, jj,   1.0/2.0*C );
+	    //prolong_add_cyl( out, ii+1, jj,   1.0/2.0*C );
 	    prolong_add_cyl( out, ii+1, jj+1, 1.0/4.0*C );
 	}
     }    
@@ -1301,16 +1327,19 @@ void EpotMGSolver::prolong_2d( MeshScalarField *out, const MeshScalarField *in )
 	    int32_t ii = 2*i;
 	    int32_t jj = 2*j;
 	    double C = (*in)(i,j);
+
+	    // No need to prolong correction to odd points. Odd
+	    // field will be overwritten by first RBGS loop.
 	    prolong_add_2d( out, ii-1, jj-1, 1.0/4.0*C );
-	    prolong_add_2d( out, ii-1, jj,   1.0/2.0*C );
+	    //prolong_add_2d( out, ii-1, jj,   1.0/2.0*C );
 	    prolong_add_2d( out, ii-1, jj+1, 1.0/4.0*C );
 
-	    prolong_add_2d( out, ii,   jj-1, 1.0/2.0*C );
+	    //prolong_add_2d( out, ii,   jj-1, 1.0/2.0*C );
 	    prolong_add_2d( out, ii,   jj,   1.0*C );
-	    prolong_add_2d( out, ii,   jj+1, 1.0/2.0*C );
+	    //prolong_add_2d( out, ii,   jj+1, 1.0/2.0*C );
 
 	    prolong_add_2d( out, ii+1, jj-1, 1.0/4.0*C );
-	    prolong_add_2d( out, ii+1, jj,   1.0/2.0*C );
+	    //prolong_add_2d( out, ii+1, jj,   1.0/2.0*C );
 	    prolong_add_2d( out, ii+1, jj+1, 1.0/4.0*C );
 	}
     }    
@@ -1335,9 +1364,12 @@ void EpotMGSolver::prolong_1d( MeshScalarField *out, const MeshScalarField *in )
 	
 	int32_t ii = 2*i;
 	double C = (*in)(i);
-	prolong_add_1d( out, ii-1, 1.0/2.0*C );
+
+	// No need to prolong correction to odd points. Odd
+	// field will be overwritten by first RBGS loop.
+	//prolong_add_1d( out, ii-1, 1.0/2.0*C );
 	prolong_add_1d( out, ii,       1.0*C );
-	prolong_add_1d( out, ii+1, 1.0/2.0*C );
+	//prolong_add_1d( out, ii+1, 1.0/2.0*C );
     }    
 }
 
@@ -1366,13 +1398,14 @@ void EpotMGSolver::prolong( MeshScalarField *out, const MeshScalarField *in )
 // Make correction Xnew=X+V
 void EpotMGSolver::correct( const Geometry *geom, MeshScalarField *sol, const MeshScalarField *corr )
 {
-    // Loop through all nodes, only correct non-fixed nodes
+    // Loop through all nodes, only correct non-fixed even points.
+    // Odd field will be overwritten by first RBGS loop.
     int32_t s = geom->size(0);
     int32_t t = geom->size(1);
     int32_t u = geom->size(2);
     for( int32_t k = 0; k < u; k++ ) {
 	for( int32_t j = 0; j < t; j++ ) {
-	    for( int32_t i = 0; i < s; i++ ) {
+	    for( int32_t i = (k+j) % 2; i < s; i+=2 ) {
 
 		if( !(geom->mesh(i,j,k) & SMESH_NODE_FIXED) )
 		    (*sol)(i,j,k) += (*corr)(i,j,k);
@@ -1382,7 +1415,7 @@ void EpotMGSolver::correct( const Geometry *geom, MeshScalarField *sol, const Me
 }
 
 
-void EpotMGSolver::mg_recurse( uint32_t level, std::stringstream &ss )
+void EpotMGSolver::mg_recurse( uint32_t level )
 {
     ibsimu.inc_indent();
 
@@ -1399,25 +1432,20 @@ void EpotMGSolver::mg_recurse( uint32_t level, std::stringstream &ss )
 	uint32_t a = 0;
 	while( a < _imax ) {
 	    _step = _epotsolverv[level]->mg_solve( _epotv[level], _rhsv[level], _w );
-	    _err = _epotsolverv[level]->error_scale( _w ) * _step;
+	    _coarse_err = _epotsolverv[level]->error_scale( _w ) * _step;
 	    a++;
-	    if( _err < _eps )
+	    if( _coarse_err < _coarse_eps )
 		break;
 	}
-
-#ifdef DEBUG_MGSOLVER
-	ibsimu.message( 2 ) << "epot (level = " << level << ") accurate solve:\n";
-	print_field( _epotv[level] );
-#endif
+	_coarse_steps += a;
 
 	if( ibsimu.get_message_threshold( MSG_VERBOSE ) > 1 ) {
 	    ibsimu.message( 2 ) << a << " iterations done\n";
-	    ibsimu.message( 2 ) << _err << " accuracy reached\n";
+	    ibsimu.message( 2 ) << _coarse_err << " accuracy reached\n";
 	    if( a >= _imax ) {
 		ibsimu.message( 2 ) << "maximum number of iterations done\n";
 	    }
-	} else
-	    ss << "rough " << a << " " << _err << ", ";
+	}
 
 	ibsimu.dec_indent();
 	return;
@@ -1427,141 +1455,62 @@ void EpotMGSolver::mg_recurse( uint32_t level, std::stringstream &ss )
     for( uint32_t gcyc = 0; gcyc < _gamma; gcyc++ ) {
 
 	if( _gamma > 1 )
-	    ibsimu.message( 2 ) << "Doing gamma cycle " << gcyc+1 << "/" << _gamma << " at level " << level << "\n";
+	    ibsimu.message( 2 ) << "Doing gamma cycle " << gcyc+1 << "/" 
+				<< _gamma << " at level " << level << "\n";
 	else
 	    ibsimu.message( 2 ) << "Doing cycle at level " << level << "\n";
-
-#ifdef DEBUG_MGSOLVER
-	ibsimu.message( 2 ) << "epot (level = " << level << "):\n";
-	print_field( _epotv[level] );
-#endif
 
 	// Pre smoothing
 	for( uint32_t a = 0; a < _npre; a++ )
 	    _epotsolverv[level]->mg_smooth( _epotv[level], _rhsv[level] );
 
-#ifdef DEBUG_MGSOLVER
-	ibsimu.message( 2 ) << "epot (level = " << level << ") pre smoothed:\n";
-	print_field( _epotv[level] );
-#endif
-
 	// Defect
-	//ibsimu.message( 2 ) << "  Calculating defect for level " << level << "\n";
-	_epotsolverv[level]->defect( _workv[level], _epotv[level], _rhsv[level] );
-
-#ifdef DEBUG_MGSOLVER
-	ibsimu.message( 2 ) << "defect (level = " << level << "):\n";
-	print_field( _workv[level] );
-#endif
+	_epotsolverv[level]->defect( _workv[level], _epotv[level], _rhsv[level], true );
 
 	if( linear() ) {
 
-	    //ibsimu.message( 2 ) << "  Restricing defect from level " << level << " to level " << level+1 << "\n";
 	    restrict( _rhsv[level+1], _workv[level], true );
-
 	    (*_rhsv[level+1]) *= -1.0;
-
-#ifdef DEBUG_MGSOLVER
-	    ibsimu.message( 2 ) << "defect (level = " << level+1 << "):\n";
-	    print_field( _rhsv[level+1] );
-#endif
 
 	} else {
 
-	    // Restrict defect
-	    //ibsimu.message( 2 ) << "  Restricing defect from level " << level << " to level " << level+1 << "\n";
 	    restrict( _workv[level+1], _workv[level], true );
-
-#ifdef DEBUG_MGSOLVER
-	    ibsimu.message( 2 ) << "defect (level = " << level+1 << "):\n";
-	    print_field( _workv[level+1] );
-#endif
-
-	    // Restrict solution approximation
-	    //ibsimu.message( 2 ) << "  Restricing solution from level " << level << " to level " << level+1 << "\n";
 	    restrict( _epotv[level+1], _epotv[level], false );
 
 	    // Store solution
 	    (*_work2v[level+1]) = (*_epotv[level+1]);
 
-#ifdef DEBUG_MGSOLVER
-	    ibsimu.message( 2 ) << "solution (level = " << level+1 << "):\n";
-	    print_field( _epotv[level+1] );
-#endif
-
 	    // Calculate defect
-	    //ibsimu.message( 2 ) << "  Calculating right hand side for level " << level+1 << "\n";
-	    _epotsolverv[level+1]->defect( _rhsv[level+1], _epotv[level+1], _workv[level+1] );
-
-#ifdef DEBUG_MGSOLVER
-	    ibsimu.message( 2 ) << "rhs (level = " << level+1 << "):\n";
-	    print_field( _rhsv[level+1] );
-#endif
+	    _epotsolverv[level+1]->defect( _rhsv[level+1], _epotv[level+1], _workv[level+1], false );
 	}
 
 	// Recurse to next level to solve for correction V (epot)
 	// A*V=-D
-	mg_recurse( level+1, ss );
+	mg_recurse( level+1 );
 	
 	if( linear() ) {
 
-#ifdef DEBUG_MGSOLVER
-	    ibsimu.message( 2 ) << "correction (level = " << level+1 << "):\n";
-	    print_field( _epotv[level+1] );
-#endif
-
 	    // Prolong correction (epot) to work field
-	    //ibsimu.message( 2 ) << "  Prolonging correction from level " << level+1 << " to level " << level << "\n";
 	    prolong( _workv[level], _epotv[level+1] );
 	    
 	} else {
 
-#ifdef DEBUG_MGSOLVER
-	    ibsimu.message( 2 ) << "refined solution (level = " << level+1 << "):\n";
-	    print_field( _epotv[level+1] );
-#endif
-
 	    // Compute correction
 	    (*_workv[level+1]) = (*_epotv[level+1]);
 	    (*_workv[level+1]) -= (*_work2v[level+1]);
-
-#ifdef DEBUG_MGSOLVER
-	    ibsimu.message( 2 ) << "correction (level = " << level+1 << "):\n";
-	    print_field( _workv[level+1] );
-#endif
-
-	    //ibsimu.message( 2 ) << "  Prolonging correction from level " << level+1 << " to level " << level << "\n";
 	    prolong( _workv[level], _workv[level+1] );
 	}
 
-#ifdef DEBUG_MGSOLVER
-	ibsimu.message( 2 ) << "correction (level = " << level << "):\n";
-	print_field( _workv[level] );
-#endif
-
 	// Make correction Xnew=X+V
-	//ibsimu.message( 2 ) << "  Calculating correction for level " << level << "\n";
 	correct( _geomv[level], _epotv[level], _workv[level] );
-
-#ifdef DEBUG_MGSOLVER
-	ibsimu.message( 2 ) << "epot (level = " << level << "):\n";
-	print_field( _epotv[level] );
-#endif
 
 	// Post smoothing
 	for( uint32_t a = 0; a < _npost; a++ )
 	    _step = _epotsolverv[level]->mg_smooth( _epotv[level], _rhsv[level] );
-	_err = _epotsolverv[level]->error_scale_mg() * _step;
-
-#ifdef DEBUG_MGSOLVER
-	ibsimu.message( 2 ) << "epot (level = " << level << ") post smoothed:\n";
-	print_field( _epotv[level] );
-#endif
+	_mgerr = _epotsolverv[level]->error_scale_mg() * _step;
 
 	if( ibsimu.get_message_threshold( MSG_VERBOSE ) > 1 )
-	    ibsimu.message( 2 ) << _err << " accuracy reached\n";
-	else if( level == 0 )
-	    ss << "fine " << _err << "    ";
+	    ibsimu.message( 2 ) << _mgerr << " accuracy reached\n";
      }
 
     ibsimu.dec_indent();
@@ -1589,7 +1538,7 @@ void EpotMGSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 			<< ", mgeps = " << _mgeps
 			<< ", gamma = " << _gamma
 			<< ", w = " << _w
-			<< ", eps = " << _eps
+			<< ", coarse_eps = " << _coarse_eps
 			<< ", imax = " << _imax
 			<< ")\n";
     if( linear() )
@@ -1601,12 +1550,8 @@ void EpotMGSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 	prepare_mg_geom();
     preprocess( epot, scharge );
 
-    //ibsimu.message( 1 ) << "rhs (level = " << 0 << "):\n";
-    //print_field( _rhsv[0] );
-
     // Status print
     StatusPrint sp;
-    std::stringstream ss;
 
     // Call iterator mgcyc times
     uint32_t a;
@@ -1615,17 +1560,22 @@ void EpotMGSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 	if( ibsimu.get_message_threshold( MSG_VERBOSE ) > 1 )
 	    ibsimu.message( 2 ) << "Cycle " << a+1 << "\n";
 
-	ss.str( "" );
-	ss << std::setw(5) << a+1 << ", ";
-	mg_recurse( 0, ss );
-	if( ibsimu.get_message_threshold( MSG_VERBOSE ) == 1 )
+	_coarse_steps = 0;
+	mg_recurse( 0 );
+
+	// Print statistics
+	if( ibsimu.get_message_threshold( MSG_VERBOSE ) == 1 ) {
+	    std::stringstream ss;
+	    ss << std::setw(5) << a+1 << ", "
+	       << "rough " << _coarse_steps << " " << _coarse_err << ", "
+	       << "fine " << _mgerr << "      ";
 	    sp.print( ss.str(), true );
-	if( _err < _mgeps )
+	}
+
+	if( _mgerr < _mgeps )
 	    break;
     }
-    if( ibsimu.get_message_threshold( MSG_VERBOSE ) == 1 )
-	ibsimu.message( 1 ) << "\n";
-    ibsimu.message( 1 ) << "Done\n";
+    ibsimu.message( 1 ) << "\nDone\n";
     _mgcyc = a;
 
     if( a == _mgcycmax )
@@ -1649,14 +1599,20 @@ void EpotMGSolver::debug_print( std::ostream &os ) const
 {
     EpotSolver::debug_print( os );
     os << "**EpotMGSolver\n";
+    os << "geom_prepared = " << _geom_prepared << "\n";
     os << "levels = " << _levels << "\n";
     os << "npre = " << _npre << "\n";
     os << "npost = " << _npost << "\n";
+    os << "mgcycmax = " << _mgcycmax << "\n";
     os << "mgcyc = " << _mgcyc << "\n";
     os << "mgeps = " << _mgeps << "\n";
+    os << "mgerr = " << _mgerr << "\n";
     os << "gamma = " << _gamma << "\n";
     os << "step = " << _step << "\n";
-    os << "err = " << _err << "\n";
-    os << "eps = " << _eps << "\n";
+    os << "coarse_eps = " << _coarse_eps << "\n";
+    os << "coarse_err = " << _coarse_err << "\n";
+    os << "w = " << _w << "\n";
+    os << "imax = " << _imax << "\n";
+    os << "coarse_steps = " << _coarse_steps << "\n";
 }
 

@@ -151,7 +151,8 @@ double EpotMGSubSolver::mg_solve( MeshScalarField *epot, const MeshScalarField *
 }
 
 
-void EpotMGSubSolver::defect( MeshScalarField *defect, MeshScalarField *epot, const MeshScalarField *rhs )
+void EpotMGSubSolver::defect( MeshScalarField *defect, MeshScalarField *epot, const MeshScalarField *rhs,
+			      bool after_smooth )
 {
     _defect = defect;
     _epot   = epot;
@@ -168,7 +169,7 @@ void EpotMGSubSolver::defect( MeshScalarField *defect, MeshScalarField *epot, co
 	defect_cyl();
 	break;
     case MODE_3D:
-	defect_3d();
+	defect_3d( after_smooth );
 	break;
     default:
 	break;
@@ -297,8 +298,9 @@ double EpotMGSubSolver::rbgs_loop_1d( void ) const
     double res = 0.0;
     for( uint32_t rb = 0; rb < 2; rb++ ) {
 	    
+	// Odd first, even second
 	uint32_t i = 0;
-	if( rb == 0 )
+	if( rb != 0 )
 	    i = 0;
 	else
 	    i = 1;
@@ -653,8 +655,9 @@ double EpotMGSubSolver::rbgs_loop_2d( void ) const
 	const uint32_t dj = _geom.size(0);
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	    
+	    // Odd first, even second
 	    uint32_t i = j % 2;
-	    if( i == rb )
+	    if( i != rb )
 		i = 0;
 	    else
 		i = 1;
@@ -1082,8 +1085,9 @@ double EpotMGSubSolver::rbgs_loop_cyl( void ) const
     for( uint32_t rb = 0; rb < 2; rb++ ) {
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	    
+	    // Odd first, even second
 	    uint32_t i = j % 2;
-	    if( i == rb )
+	    if( i != rb )
 		i = 0;
 	    else
 		i = 1;
@@ -1550,8 +1554,9 @@ double EpotMGSubSolver::rbgs_loop_3d( void ) const
 	for( uint32_t k = 0; k < _geom.size(2); k++ ) {
 	    for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	    
+		// Odd first, even second
 		uint32_t i = (k+j) % 2;
-		if( i == rb )
+		if( i != rb )
 		    i = 0;
 		else
 		    i = 1;
@@ -1834,7 +1839,7 @@ double EpotMGSubSolver::defect_neumann_3d( uint32_t a, uint32_t dj,
 }
 
 
-void EpotMGSubSolver::defect_3d( void ) const
+void EpotMGSubSolver::defect_3d( bool after_smooth ) const
 {
     // Go through all nodes
     const uint32_t dj = _geom.size(0);
@@ -1842,8 +1847,15 @@ void EpotMGSubSolver::defect_3d( void ) const
     for( uint32_t k = 0; k < _geom.size(2); k++ ) {
 	for( uint32_t j = 0; j < _geom.size(1); j++ ) {
 	    for( uint32_t i = 0; i < _geom.size(0); i++ ) {
-
+		
 		uint32_t a = k*dk+j*dj+i;
+		// RBGS smoother does even pass last. Even nodes have
+		// zero defect.
+		if( after_smooth && (i+k+j) % 2 == 0 ) {
+		    (*_defect)(a) = 0.0;
+		    continue;
+		}
+
 		uint32_t mesh = _geom.mesh(a);
 		uint32_t node_id = mesh & SMESH_NODE_ID_MASK;
 		uint8_t bindex = boundary_index(i,j,k);

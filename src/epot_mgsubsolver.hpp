@@ -110,7 +110,7 @@ class EpotMGSubSolver : public EpotSolver {
     double gs_process_pure_vacuum_3d( uint32_t a, uint32_t dj, uint32_t dk ) const;
     double gs_process_neumann_3d( uint32_t a, uint32_t dj, uint32_t dk, uint8_t bindex ) const;
 
-    void   defect_3d( void ) const;
+    void   defect_3d( bool after_smooth ) const;
     double defect_near_solid_3d( const uint8_t *nearsolid_ptr, 
 				 uint32_t a, uint32_t dj, uint32_t dk, uint8_t bindex ) const;
     double defect_pure_vacuum_3d( uint32_t a, uint32_t dj, uint32_t dk ) const;
@@ -130,8 +130,12 @@ public:
     virtual ~EpotMGSubSolver() {}
 
     /*! \brief Calculate defect
+     *
+     *  If calculating defect after RBGS smooth, the odd points are
+     *  known to have zero defect.
      */
-    void defect( MeshScalarField *defect, MeshScalarField *epot, const MeshScalarField *rhs );
+    void defect( MeshScalarField *defect, MeshScalarField *epot, const MeshScalarField *rhs,
+		 bool after_smooth );
 
     /*! \brief Do a smoothing round with Red-Black Gauss-Seidel.
      */
