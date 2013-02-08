@@ -59,7 +59,8 @@ EpotBiCGSTABSolver::EpotBiCGSTABSolver( Geometry &geom,
 					bool gnewton )
     : EpotMatrixSolver(geom), _eps(eps), _imax(imax), _iter(0), 
       _res(0.0), _err(0.0), _gnewton(gnewton), _newton_r_eps(newton_r_eps), 
-      _newton_step_eps(newton_step_eps), _newton_imax(newton_imax)
+      _newton_step_eps(newton_step_eps), _newton_imax(newton_imax),
+      _epot(0), _callback(0)
 {
     if( eps <= 0.0 || newton_r_eps <= 0.0 || newton_step_eps <= 0.0 )
         throw( ErrorDim( ERROR_LOCATION, "invalid accuracy request" ) );
@@ -258,6 +259,11 @@ void EpotBiCGSTABSolver::bicgstab( const Matrix &mat, const Vector &rhs, Vector 
 	    ss << "  " << std::setw(5) << i << " " << std::scientific << std::setw(20) << _err;
 	    sp.print( ss.str() );
 	}
+
+	if( _callback ) {
+	    set_solution( *_epot, sol );
+	    _callback();
+	}
     }
     // Force print last
     if( ibsimu.get_message_threshold(MSG_VERBOSE) && ibsimu.output_is_cout() ) {
@@ -272,6 +278,8 @@ void EpotBiCGSTABSolver::bicgstab( const Matrix &mat, const Vector &rhs, Vector 
 
 void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField &scharge )
 {
+    _epot = &epot;
+
     // Preprocess and set starting guess
     preprocess( epot, scharge );
     Vector X;
@@ -440,6 +448,12 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
     // Postprocess and set solution
     set_solution( epot, X );
     postprocess();
+}
+
+
+void EpotBiCGSTABSolver::set_analysis_callback( void (*func)(void) )
+{
+    _callback = func;
 }
 
     

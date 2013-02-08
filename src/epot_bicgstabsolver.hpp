@@ -70,6 +70,9 @@ class EpotBiCGSTABSolver : public EpotMatrixSolver {
 
     Precond  *_pc;              /*!< \brief Preconditioner. */
 
+    MeshScalarField *_epot;     /*!< \brief Electric potential output. */
+    void    (*_callback)(void); /*!< \brief Aanalysis callback. */
+
     /*! \brief Reset solver/problem settings.
      */
     virtual void reset_problem( void );
@@ -168,6 +171,13 @@ public:
      */
     uint32_t get_iter( void ) const;
 
+    /*! \brief Set analysis callback.
+     *
+     *  If callback is set to non-NULL, the electric potential is
+     *  constructed at each iteration and callback function is called.
+     */
+    void set_analysis_callback( void (*func)(void) );
+    
     /*! \brief Print debugging information to os.
      */
     virtual void debug_print( std::ostream &os ) const;
