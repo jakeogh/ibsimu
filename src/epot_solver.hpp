@@ -210,8 +210,6 @@ protected:
 
     Geometry           &_geom;             /*!< \brief Geometry reference. */
 
-    uint32_t            _neumann_order;    /*!< \brief Neumann boundary order (1 or 2). */
-
     plasma_mode_e       _plasma;           /*!< \brief Plasma simulation mode. */
 
     double              _rhoe;             /*!< \brief Electron charge density (C/m3), < 0. */
@@ -341,12 +339,6 @@ public:
     /*! \brief Copy parameters from solver \a epsolver.
      */
     void set_parameters( const EpotSolver &epsolver );
-
-    /*! \brief Set Neumann boundary order.
-     *
-     *  Valid values are 1 and 2 (default).
-     */
-    void set_neumann_order( uint32_t order );
 
     /*! \brief Define forced potential volume.
      *

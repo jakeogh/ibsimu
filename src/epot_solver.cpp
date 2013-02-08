@@ -55,7 +55,7 @@
 
 
 EpotSolver::EpotSolver( Geometry &geom ) 
-    : _geom(geom), _neumann_order(2), _plasma(PLASMA_NONE), 
+    : _geom(geom), _plasma(PLASMA_NONE), 
       _rhoe(0.0), _Te(0.0), _Up(0.0), 
       _force_pot(0.0), _force_pot_func(0), _force_pot_func2(0), 
       _init_plasma_func(0)
@@ -65,7 +65,7 @@ EpotSolver::EpotSolver( Geometry &geom )
 
 
 EpotSolver::EpotSolver( const EpotSolver &epsolver, Geometry &geom )
-    : _geom(geom), _neumann_order(epsolver._neumann_order), _plasma(epsolver._plasma),
+    : _geom(geom), _plasma(epsolver._plasma),
       _rhoe(epsolver._rhoe), _Te(epsolver._Te), _Up(epsolver._Up),
       _rhoi(epsolver._rhoi), _Ei(epsolver._Ei), 
       _force_pot(epsolver._force_pot), _force_pot_func(epsolver._force_pot_func),
@@ -90,7 +90,6 @@ EpotSolver::EpotSolver( Geometry &geom, std::istream &s )
 
 void EpotSolver::set_parameters( const EpotSolver &epsolver )
 {
-    _neumann_order = epsolver._neumann_order;
     _plasma = epsolver._plasma;
     _rhoe = epsolver._rhoe;
     _Te = epsolver._Te;
@@ -101,15 +100,6 @@ void EpotSolver::set_parameters( const EpotSolver &epsolver )
     _force_pot_func = epsolver._force_pot_func;
     _force_pot_func2 = epsolver._force_pot_func2;
     _init_plasma_func = epsolver._init_plasma_func;
-}
-
-
-void EpotSolver::set_neumann_order( uint32_t order )
-{
-    if( order < 1 || order > 2 )
-	throw( Error( ERROR_LOCATION, "illegal neumann order" ) );
-    _neumann_order = order;
-    reset_problem();
 }
 
 
@@ -570,7 +560,6 @@ const Geometry &EpotSolver::geometry( void ) const
 void EpotSolver::debug_print( std::ostream &os ) const 
 {
     os << "**EpotSolver\n";
-    os << "neumann_order = " << _neumann_order << "\n";
     os << "plasma = " << _plasma << "\n";
     os << "rhoe = " << _rhoe << "\n";
     os << "Tc = " << _Te << "\n";

@@ -534,10 +534,6 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	}
     }
 
-    double cof = 1.0;
-    if( _neumann_order == 1 && defect )
-	cof = 2.0;
-
     // FACES
 
     // i=0 boundary nodes of level+1
@@ -561,7 +557,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/8.0 *(*in)( ii,   jj,   kk+1 ) + 
 	    1.0/16.0*(*in)( ii,   jj+1, kk+1 );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
 	}
     }
 
@@ -586,7 +582,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/8.0 *(*in)( ii,   jj,   kk+1 ) + 
 	    1.0/16.0*(*in)( ii,   jj+1, kk+1 );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
 	}
     }
 
@@ -611,7 +607,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/8.0 *(*in)( ii,   jj,   kk+1 ) + 
 	    1.0/16.0*(*in)( ii+1, jj,   kk+1 );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
 	}
     }
 
@@ -636,7 +632,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/8.0 *(*in)( ii,   jj,   kk+1 ) + 
 	    1.0/16.0*(*in)( ii+1, jj,   kk+1 );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
 	}
     }
 
@@ -661,7 +657,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/8.0 *(*in)( ii,   jj+1, kk   ) + 
 	    1.0/16.0*(*in)( ii+1, jj+1, kk   );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
 	}
     }
 
@@ -686,7 +682,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/8.0 *(*in)( ii,   jj+1, kk   ) + 
 	    1.0/16.0*(*in)( ii+1, jj+1, kk   );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
 	}
     }
 
@@ -705,7 +701,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
 	    1.0/4.0*(*in)( ii,   jj,   kk+1 );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
     }
 
     // i = 0, j = t
@@ -721,7 +717,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
 	    1.0/4.0*(*in)( ii,   jj,   kk+1 );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
     }
 
     // i = s, j = 0
@@ -737,7 +733,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
 	    1.0/4.0*(*in)( ii,   jj,   kk+1 );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
     }
 
     // i = s, j = t
@@ -753,7 +749,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
 	    1.0/4.0*(*in)( ii,   jj,   kk+1 );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
     }
 
     // i = 0, k = 0
@@ -769,7 +765,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
 	    1.0/4.0*(*in)( ii,   jj+1, kk   );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
     }
 
     // i = 0, k = u
@@ -785,7 +781,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
 	    1.0/4.0*(*in)( ii,   jj+1, kk   );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
     }
 
     // i = s, k = 0
@@ -801,7 +797,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
 	    1.0/4.0*(*in)( ii,   jj+1, kk   );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
     }
 
     // i = s, k = u
@@ -817,7 +813,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
 	    1.0/4.0*(*in)( ii,   jj+1, kk   );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
     }
 
     // j = 0, k = 0
@@ -833,7 +829,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
 	    1.0/4.0*(*in)( ii+1, jj,   kk   );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
     }
 
     // j = 0, k = u
@@ -849,7 +845,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
 	    1.0/4.0*(*in)( ii+1, jj,   kk   );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
     }
 
     // j = t, k = 0
@@ -865,7 +861,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
 	    1.0/4.0*(*in)( ii+1, jj,   kk   );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
     }
 
     // j = t, k = u
@@ -881,7 +877,7 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii,   jj,   kk   ) + 
 	    1.0/4.0*(*in)( ii+1, jj,   kk   );
 	
-	(*out)(i,j,k) = cof*D;
+	(*out)(i,j,k) = D;
     }
 
     // CORNERS
@@ -890,35 +886,35 @@ void EpotMGSolver::restrict_3d( MeshScalarField *out, const MeshScalarField *in,
     int32_t j = 0;
     int32_t k = 0;
     double D = (*in)( 2*i, 2*j, 2*k );
-    (*out)(i,j,k) = cof*D;
+    (*out)(i,j,k) = D;
 
     i = s;
     D = (*in)( 2*i, 2*j, 2*k );
-    (*out)(i,j,k) = cof*D;
+    (*out)(i,j,k) = D;
 
     j = t;
     D = (*in)( 2*i, 2*j, 2*k );
-    (*out)(i,j,k) = cof*D;
+    (*out)(i,j,k) = D;
 
     i = 0;
     D = (*in)( 2*i, 2*j, 2*k );
-    (*out)(i,j,k) = cof*D;
+    (*out)(i,j,k) = D;
 
     k = u;
     D = (*in)( 2*i, 2*j, 2*k );
-    (*out)(i,j,k) = cof*D;
+    (*out)(i,j,k) = D;
 
     i = s;
     D = (*in)( 2*i, 2*j, 2*k );
-    (*out)(i,j,k) = cof*D;
+    (*out)(i,j,k) = D;
 
     j = 0;
     D = (*in)( 2*i, 2*j, 2*k );
-    (*out)(i,j,k) = cof*D;
+    (*out)(i,j,k) = D;
 
     i = 0;
     D = (*in)( 2*i, 2*j, 2*k );
-    (*out)(i,j,k) = cof*D;
+    (*out)(i,j,k) = D;
 }
 
 
@@ -960,10 +956,6 @@ void EpotMGSolver::restrict_cyl( MeshScalarField *out, const MeshScalarField *in
 	}
     }
 
-    double cof = 1.0;
-    if( _neumann_order == 1 && defect )
-	cof = 2.0;
-
     // i=0 boundary nodes of level+1
     for( int32_t j = 1; j < t; j++ ) {
 
@@ -975,7 +967,7 @@ void EpotMGSolver::restrict_cyl( MeshScalarField *out, const MeshScalarField *in
 	    1.0/2.0*(*in)( ii, jj   ) + 
 	    1.0/4.0*(*in)( ii, jj+1 );
 	
-	(*out)(i,j) = cof*D;
+	(*out)(i,j) = D;
     }
 
     // i=size(0)-1 boundary nodes of level+1
@@ -989,7 +981,7 @@ void EpotMGSolver::restrict_cyl( MeshScalarField *out, const MeshScalarField *in
 	    1.0/2.0*(*in)( ii, jj   ) + 
 	    1.0/4.0*(*in)( ii, jj+1 );
 	
-	(*out)(i,j) = cof*D;
+	(*out)(i,j) = D;
     }
 
     // j=0 boundary nodes of level+1 (axis)
@@ -1003,7 +995,7 @@ void EpotMGSolver::restrict_cyl( MeshScalarField *out, const MeshScalarField *in
 	    1.0/2.0*(*in)( ii,   jj ) + 
 	    1.0/4.0*(*in)( ii+1, jj );
 	
-	(*out)(i,j) = cof*D;
+	(*out)(i,j) = D;
     }
 
     // j=size(1)-1 boundary nodes of level+1
@@ -1017,26 +1009,26 @@ void EpotMGSolver::restrict_cyl( MeshScalarField *out, const MeshScalarField *in
 	    1.0/2.0*(*in)( ii,   jj ) + 
 	    1.0/4.0*(*in)( ii+1, jj );
 	
-	(*out)(i,j) = cof*D;
+	(*out)(i,j) = D;
     }
 
     // And corners
     int32_t i = 0;
     int32_t j = 0;
     double D = (*in)( 2*i, 2*j );
-    (*out)(i,j) = cof*D;
+    (*out)(i,j) = D;
 
     i = s;
     D = (*in)( 2*i, 2*j );
-    (*out)(i,j) = cof*D;
+    (*out)(i,j) = D;
 
     j = t;
     D = (*in)( 2*i, 2*j );
-    (*out)(i,j) = cof*D;
+    (*out)(i,j) = D;
 
     i = 0;
     D = (*in)( 2*i, 2*j );
-    (*out)(i,j) = cof*D;
+    (*out)(i,j) = D;
 }
 
 
@@ -1078,10 +1070,6 @@ void EpotMGSolver::restrict_2d( MeshScalarField *out, const MeshScalarField *in,
 	}
     }
 
-    double cof = 1.0;
-    if( _neumann_order == 1 && defect )
-	cof = 2.0;
-
     // i=0 boundary nodes of level+1
     for( int32_t j = 1; j < t; j++ ) {
 
@@ -1093,7 +1081,7 @@ void EpotMGSolver::restrict_2d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii, jj   ) + 
 	    1.0/4.0*(*in)( ii, jj+1 );
 	
-	(*out)(i,j) = cof*D;
+	(*out)(i,j) = D;
     }
 
     // i=size(0)-1 boundary nodes of level+1
@@ -1107,7 +1095,7 @@ void EpotMGSolver::restrict_2d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii, jj   ) + 
 	    1.0/4.0*(*in)( ii, jj+1 );
 	
-	(*out)(i,j) = cof*D;
+	(*out)(i,j) = D;
     }
 
     // j=0 boundary nodes of level+1
@@ -1121,7 +1109,7 @@ void EpotMGSolver::restrict_2d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii,   jj ) + 
 	    1.0/4.0*(*in)( ii+1, jj );
 	
-	(*out)(i,j) = cof*D;
+	(*out)(i,j) = D;
     }
 
     // j=size(1)-1 boundary nodes of level+1
@@ -1135,26 +1123,26 @@ void EpotMGSolver::restrict_2d( MeshScalarField *out, const MeshScalarField *in,
 	    1.0/2.0*(*in)( ii,   jj ) + 
 	    1.0/4.0*(*in)( ii+1, jj );
 	
-	(*out)(i,j) = cof*D;
+	(*out)(i,j) = D;
     }
 
     // And corners
     int32_t i = 0;
     int32_t j = 0;
     double D = (*in)( 2*i, 2*j );
-    (*out)(i,j) = cof*D;
+    (*out)(i,j) = D;
 
     i = s;
     D = (*in)( 2*i, 2*j );
-    (*out)(i,j) = cof*D;
+    (*out)(i,j) = D;
 
     j = t;
     D = (*in)( 2*i, 2*j );
-    (*out)(i,j) = cof*D;
+    (*out)(i,j) = D;
 
     i = 0;
     D = (*in)( 2*i, 2*j );
-    (*out)(i,j) = cof*D;
+    (*out)(i,j) = D;
 }
 
 
@@ -1183,13 +1171,8 @@ void EpotMGSolver::restrict_1d( MeshScalarField *out, const MeshScalarField *in,
     }
 
     // Boundary nodes completely separated
-    if( _neumann_order == 1 && defect ) {
-	(*out)(0) = 2.0*(*in)(0);
-	(*out)(s) = 2.0*(*in)(2*s);
-    } else {
-	(*out)(0) = (*in)(0);
-	(*out)(s) = (*in)(2*s);
-    }
+    (*out)(0) = (*in)(0);
+    (*out)(s) = (*in)(2*s);
 }
 
 
