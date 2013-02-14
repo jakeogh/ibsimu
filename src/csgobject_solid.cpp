@@ -41,6 +41,7 @@
  */
 
 #include <iostream>
+#include <stdint.h>
 #include "csgobject_solid.hpp"
 #include "error.hpp"
 #include "ibsimu.hpp"
