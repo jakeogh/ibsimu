@@ -517,6 +517,10 @@ void EpotSolver::solve( MeshScalarField &epot, const ScalarField &__scharge )
     ibsimu.message( 1 ) << "Solving problem\n";
     ibsimu.inc_indent();
 
+    // Check if geometry is built
+    if( !_geom.built() )
+	throw( Error( ERROR_LOCATION, "geomerty not built" ) );
+
     // Set scharge to be used by solver
     bool scharge_internal = false;
     const MeshScalarField *scharge = dynamic_cast<const MeshScalarField *>( &__scharge );

@@ -90,7 +90,7 @@ void Bound::set_value( double value )
 double Bound::value( void ) const
 {
     if( _functor )
-	throw( Error( ERROR_LOCATION, "non-constant boundary value" ) );	
+	throw( Error( ERROR_LOCATION, "non-constant boundary value" ) );
     return( _value );
 }
 
