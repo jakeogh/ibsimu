@@ -279,6 +279,7 @@ void scharge_add_from_trajectory_pic( MeshScalarField &scharge, pthread_mutex_t 
     for( size_t a = 0; a < 3; a++ ) {
 	traj[a].construct( dt, x1[2*a+1], x1[2*a+2], x2[2*a+1], x2[2*a+2] );
 	traj[a].coord( x[a], v[a], 0.5 );
+	//x[a] = 0.5*(x1[2*a+1]+x2[2*a+1]);
 	i[a] = (int32_t)floor( ( x[a]-scharge.origo(a) ) * scharge.div_h() );
 	t[a] = ( x[a]-(i[a]*scharge.h()+scharge.origo(a)) ) * scharge.div_h();
 
