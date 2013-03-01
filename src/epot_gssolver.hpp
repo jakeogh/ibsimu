@@ -60,8 +60,14 @@ class EpotGSSolver : public EpotSolver {
     double           _step;           /*!< \brief Potential change norm. */
     double           _err;            /*!< \brief Error estimate. */
     double           _w;              /*!< \brief Relaxation coefficient. */
-
+    double           _local_Ulim;     /*!< \brief Potential limit for plasma calculation in local solver. */
+    uint32_t         _local_imax;     /*!< \brief Maximum iterations for plasma calculation in local solver. */
+    double           _local_eps;      /*!< \brief Convergence limit for plasma calculation in local solver. */
     
+    double solve_pexp_potential( double epf, double cof, double rhs, double p ) const;
+    double solve_nsimp_potential( double epf, double cof, double rhs, double p ) const;
+    void prepare_local_gnewton_settings( void );
+
     double gs_loop_3d( void ) const;
     double gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, 
 				     uint32_t a, uint32_t dj, uint32_t dk, uint8_t bindex ) const;

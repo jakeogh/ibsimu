@@ -153,7 +153,7 @@ void ParticleDiagPlot::build_data( void )
     if( _free_plane ) {
 	const ParticleDataBase3D *pdb3d = dynamic_cast<const ParticleDataBase3D *>( &_pdb );
 	if( pdb3d == NULL )
-	    throw( Error( ERROR_LOCATION, "particle database not 3d and trying to use free plane diagnostic" ) );	
+	    throw( Error( ERROR_LOCATION, "particle database not 3d and trying to use free plane diagnostic" ) );
 	pdb3d->trajectories_at_free_plane( *_tdata, _c, _o, _p, diagnostics );
     } else {
 	_pdb.trajectories_at_plane( *_tdata, _axis, _level, diagnostics );

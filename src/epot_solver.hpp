@@ -241,7 +241,22 @@ protected:
 					    *    1/Ti */
     
 
+    /*! \brief Return non-linear right-hand-side and it's derivative
+        for vacuum node in positive ion plasma.
+     *
+     *  Returns the non-linear part of the right-hand-side and it's
+     *  derivative resulting from the compensating space charge in
+     *  positive ion extraction case.
+     */
     void pexp_newton( double &rhs, double &drhs, double epot ) const;
+
+    /*! \brief Return non-linear right-hand-side and it's derivative
+        for vacuum node in negative ion plasma.
+     *
+     *  Returns the non-linear part of the right-hand-side and it's
+     *  derivative resulting from the compensating space charge in
+     *  negative ion extraction case.
+     */
     void nsimp_newton( double &rhs, double &drhs, double epot ) const;
 
     /*! \brief Return bitmask indicating to which boundaries the node belongs to

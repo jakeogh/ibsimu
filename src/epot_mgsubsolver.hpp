@@ -58,8 +58,15 @@ class EpotMGSubSolver : public EpotSolver {
     MeshScalarField        *_epot;
     const MeshScalarField  *_rhs;
 
+    double                  _Ulim;
+    uint32_t                _imax;
+    double                  _eps;
+
     virtual void reset_problem( void ) {}
     virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge ) {}
+
+    double solve_nsimp_potential( double epf, double cof, double rhs, double p ) const;
+    double solve_pexp_potential( double epf, double cof, double rhs, double p ) const;
 
     // 1D
     double rbgs_loop_1d( void ) const;
@@ -123,7 +130,8 @@ public:
      *  Construct subsolver for geometry \a geom. Use parameters from
      *  main level potential solver \a epsolver.
      */
-    EpotMGSubSolver( const EpotSolver &epsolver, Geometry &geom );
+    EpotMGSubSolver( const EpotSolver &epsolver, Geometry &geom,
+		     double Ulim, uint32_t imax, double eps );
 
     /*! \brief Destructor.
      */

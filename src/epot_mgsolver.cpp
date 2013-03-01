@@ -60,7 +60,8 @@ EpotMGSolver::EpotMGSolver( Geometry &geom )
     : EpotSolver( geom ), _geom_prepared(false), _levels(1), _npre(5), 
       _npost(5), _mgcycmax(100), _mgcyc(0), _mgeps(1.0e-4), _mgerr(0.0),
       _gamma(1), _step(0.0), _coarse_eps(1.0e-10), _coarse_err(0.0), 
-      _w(1.7), _imax(10000), _coarse_steps(0)
+      _w(1.7), _imax(10000), _coarse_steps(0), 
+      _local_Ulim(0.0), _local_imax(1.0), _local_eps(1.0e-6)
 {
 
 }
@@ -220,7 +221,8 @@ void EpotMGSolver::prepare_mg_geom( void )
 
 	    // First (finest) level
 	    _geomv.push_back( &_geom );
-	    EpotMGSubSolver *mgss = new EpotMGSubSolver( *this, _geom );
+	    EpotMGSubSolver *mgss = new EpotMGSubSolver( *this, _geom, 
+							 _local_Ulim, _local_imax, _local_eps );
 	    _epotsolverv.push_back( mgss );
 
 	} else {
@@ -249,7 +251,8 @@ void EpotMGSolver::prepare_mg_geom( void )
 	    _geomv.push_back( geom );
 
 	    // Make sub-solver copying parameters from this
-	    EpotMGSubSolver *mgss = new EpotMGSubSolver( *this, *_geomv.back() );
+	    EpotMGSubSolver *mgss = new EpotMGSubSolver( *this, *_geomv.back(), 
+							 _local_Ulim, _local_imax, _local_eps );
 	    _epotsolverv.push_back( mgss );
 	}
     }
@@ -1509,6 +1512,25 @@ void EpotMGSolver::print_field( const MeshScalarField *F )
 }
 
 
+void EpotMGSolver::prepare_local_gnewton_settings( void )
+{
+    if( _plasma == PLASMA_PEXP ) {
+	// Limit calculation to 10 times electron temp from plasma potential
+	_local_Ulim = _Up - 10.0*_Te;
+	ibsimu.message( 1 ) << "Limiting plasma calculation to U > " << _local_Ulim << " V\n";
+    } else if( _plasma == PLASMA_NSIMP ) {
+	_local_Ulim = 0.0;
+	for( uint32_t a = 0; a < _Ei.size(); a++ ) {
+	    if( _Ei[a] > _local_Ulim )
+		_local_Ulim = _Ei[a];
+	}
+	// Limit calculation to 10 times maximum energy
+	_local_Ulim = 10.0*_local_Ulim; 
+	ibsimu.message( 1 ) << "Limiting plasma calculation to U < " << _local_Ulim << " V\n";
+    }
+}
+
+
 void EpotMGSolver::subsolve( MeshScalarField &epot, const MeshScalarField &scharge )
 {
     //ibsimu.message( 1 ) << "\n";
@@ -1526,8 +1548,10 @@ void EpotMGSolver::subsolve( MeshScalarField &epot, const MeshScalarField &schar
 			<< ")\n";
     if( linear() )
 	ibsimu.message( 1 ) << "Linear problem\n";
-    else
+    else {
 	ibsimu.message( 1 ) << "Nonlinear problem\n";
+	prepare_local_gnewton_settings();
+    }
 
     if( !_geom_prepared )
 	prepare_mg_geom();

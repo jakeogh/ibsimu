@@ -74,8 +74,11 @@ class EpotMGSolver : public EpotSolver {
     double           _w;              /*!< \brief Over-relaxation factor for coarsest level. */
     uint32_t         _imax;           /*!< \brief Maximum number of rounds for coarsest level. */
     uint32_t         _coarse_steps;   /*!< \brief Total number of rounds for coarsest level in last MG cycle. */
-    
-    
+    double           _local_Ulim;     /*!< \brief Potential limit for plasma calculation in local solver. */
+    uint32_t         _local_imax;     /*!< \brief Maximum iterations for plasma calculation in local solver. */
+    double           _local_eps;      /*!< \brief Convergence limit for plasma calculation in local solver. */
+
+    void prepare_local_gnewton_settings( void );
     void print_field( const MeshScalarField *F );
 
     void prepare_mg_geom( void );
