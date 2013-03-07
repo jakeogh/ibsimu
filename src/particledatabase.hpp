@@ -63,7 +63,6 @@ public:
     virtual ~TrajectoryHandlerCallback() {}
 
     virtual void operator()( ParticleBase *particle, ParticlePBase *xcur, ParticlePBase *xend ) = 0;
-
 };
 
 
@@ -79,7 +78,25 @@ public:
     /*! \brief Operator called when particle calculation ends.
      */
     virtual void operator()( ParticleBase *particle, class ParticleDataBase *pdb ) = 0;
+};
 
+
+/*! \brief Trajectory surface collision callback.
+ */
+class TrajectorySurfaceCollisionCallback {
+public:
+
+    /*! \brief Virtual destructor.
+     */
+    virtual ~TrajectorySurfaceCollisionCallback() {}
+
+    /*! \brief Operator called when particle collides with surface.
+     *
+     *  Only with triangulated surfaces. The colliding \a particle,
+     *  collision location \a x and triangle index \a tri are given as
+     *  parameters in the call.
+     */
+    virtual void operator()( ParticleBase *particle, ParticlePBase *x, uint32_t tri ) = 0;
 };
 
 
@@ -239,6 +256,10 @@ public:
     /*! \brief Set trajectory end callback. 
      */
     void set_trajectory_end_callback( TrajectoryEndCallback *tend_cb );
+
+    /*! \brief Set trajectory surface collision callback. 
+     */
+    void set_trajectory_surface_collision_callback( TrajectorySurfaceCollisionCallback *tsur_cb );
 
     /*! \brief Set relativistic particle iteration.
      */

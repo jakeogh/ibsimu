@@ -99,6 +99,12 @@ void ParticleDataBase::set_trajectory_end_callback( TrajectoryEndCallback *tend_
 }
 
 
+void ParticleDataBase::set_trajectory_surface_collision_callback( TrajectorySurfaceCollisionCallback *tsur_cb )
+{
+    _imp->set_trajectory_surface_collision_callback( tsur_cb );
+}
+
+
 void ParticleDataBase::set_relativistic( bool enable )
 {
     _imp->set_relativistic( enable );

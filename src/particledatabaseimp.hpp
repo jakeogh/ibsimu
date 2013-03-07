@@ -79,6 +79,7 @@ protected:
     const CallbackFunctorD_V  *_bsup_cb;      /*!< \brief Location dependent magnetic field suppression. */
     TrajectoryHandlerCallback *_thand_cb;     /*!< \brief Trajectory handler callback. */
     TrajectoryEndCallback     *_tend_cb;      /*!< \brief Trajectory collision callback. */
+    TrajectorySurfaceCollisionCallback *_tsur_cb;    /*!< \brief Trajectory surface collision callback. */
     ParticleDataBase          *_pdb;          /*!< \brief Particle database pointer. */
 
     ParticleDataBaseImp( ParticleDataBase *pdb );
@@ -108,6 +109,8 @@ public:
     void set_trajectory_handler_callback( TrajectoryHandlerCallback *thand_cb );
 
     void set_trajectory_end_callback( TrajectoryEndCallback *tend_cb );
+
+    void set_trajectory_surface_collision_callback( TrajectorySurfaceCollisionCallback *tsur_cb );
 
     void set_relativistic( bool enable );
 
@@ -144,7 +147,7 @@ public:
     double get_rhosum( void ) const;
 
     void set_rhosum( double rhosum );
-
+    
     const ParticleStatistics &get_statistics( void ) const;
 
     virtual geom_mode_e geom_mode() const = 0;
@@ -665,6 +668,7 @@ public:
 							   &scharge_mutex, &efield, &bfield, &geom ) );
 	    iterators[a]->set_trajectory_handler_callback( _thand_cb );
 	    iterators[a]->set_trajectory_end_callback( _tend_cb, _pdb );
+	    iterators[a]->set_trajectory_surface_collision_callback( _tsur_cb );
 	    iterators[a]->set_bfield_suppression_callback( _bsup_cb );
 	    iterators[a]->set_relativistic( _relativistic );
 	    iterators[a]->set_surface_collision( _surface_collision );

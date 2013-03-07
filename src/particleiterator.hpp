@@ -299,6 +299,7 @@ template <class PP> class ParticleIterator {
     ParticleIteratorData       _pidata;        /*!< \brief User data provided to PP::get_derivatives(). */
     TrajectoryHandlerCallback *_thand_cb;      /*!< \brief Trajectory handler callback. */
     TrajectoryEndCallback     *_tend_cb;       /*!< \brief Trajectory end callback. */
+    TrajectorySurfaceCollisionCallback *_tsur_cb;   /*!< \brief Trajectory surface collision callback. */
     const TrajectoryEndCallback *_bsup_cb;     /*!< \brief B-field plasma suppression callback. */
     ParticleDataBase          *_pdb;           /*!< \brief Particle database pointer for adding secondary particles. */
     pthread_mutex_t           *_scharge_mutex; /*!< \brief Space charge mutex. */
@@ -452,13 +453,13 @@ template <class PP> class ParticleIterator {
 		DEBUG_MESSAGE( "Intersection found\n" );
 
 		// Found intersection, set collision coordinates
-		for( size_t a = 0; a < PP::size(); a++ )
-		    status_x[a] = x1[a] + K[0]*(x2[a]-x1[a]);
+		for( uint32_t b = 0; b < PP::size(); b++ )
+		    status_x[b] = x1[b] + K[0]*(x2[b]-x1[b]);
 
 		// Remove all points from trajectory after time status_x[0].
 		// Does this ever happen???
-		for( size_t a = _traj.size()-1; a > 0; a-- ) {
-		    if( _traj[a][0] > status_x[0] )
+		for( int32_t b = _traj.size()-1; b > 0; b-- ) {
+		    if( _traj[b][0] > status_x[0] )
 			_traj.pop_back();
 		    else
 			break;
@@ -468,6 +469,9 @@ template <class PP> class ParticleIterator {
 		particle.set_status( PARTICLE_COLL );
 		uint32_t solid = get_solid( i[0], i[1], i[2] );
 		_stat.add_bound_collision( solid, particle.IQ() );
+
+		if( _tsur_cb )
+		    (*_tsur_cb)( &particle, &status_x, ptr+a );
 
 		DEBUG_MESSAGE( "Solid collision detected\n" );
 		DEBUG_DEC_INDENT();
@@ -1140,7 +1144,7 @@ public:
 	: _type(type), _intrp(intrp), _scharge_dep(scharge_dep), _epsabs(epsabs), _epsrel(epsrel), 
 	  _maxsteps(maxsteps), _maxt(maxt), _save_points(save_points), _trajdiv(trajdiv), 
 	  _surface_collision(false), _pidata(scharge,efield,bfield,geom), 
-	  _thand_cb(0), _tend_cb(0), _bsup_cb(0), _pdb(0), _scharge_mutex(scharge_mutex), 
+	  _thand_cb(0), _tend_cb(0), _tsur_cb(0), _bsup_cb(0), _pdb(0), _scharge_mutex(scharge_mutex), 
 	  _stat(geom->number_of_boundaries()) {
 	
 	// Initialize mirroring
@@ -1209,6 +1213,13 @@ public:
     void set_trajectory_end_callback( TrajectoryEndCallback *tend_cb, ParticleDataBase *pdb ) {
 	_tend_cb = tend_cb;
 	_pdb = pdb;
+    }
+
+
+    /*! \brief Set trajectory surface collision callback. 
+     */
+    void set_trajectory_surface_collision_callback( TrajectorySurfaceCollisionCallback *tsur_cb ) {
+	_tsur_cb = tsur_cb;
     }
 
 

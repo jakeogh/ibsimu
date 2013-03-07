@@ -60,7 +60,7 @@ ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb )
       _scharge_dep(SCHARGE_DEPOSITION_PIC), _maxsteps(1000), 
       _maxt(1e-3), _save_points(false), _trajdiv(1), _rhosum(0.0), _iteration(0), 
       _relativistic(false), _surface_collision(false),
-      _bsup_cb(NULL), _thand_cb(NULL), _tend_cb(NULL),
+      _bsup_cb(NULL), _thand_cb(NULL), _tend_cb(NULL), _tsur_cb(NULL),
       _pdb(pdb)
 {
     for( size_t a = 0; a < 6; a++ )
@@ -142,6 +142,12 @@ void ParticleDataBaseImp::set_trajectory_handler_callback( TrajectoryHandlerCall
 void ParticleDataBaseImp::set_trajectory_end_callback( TrajectoryEndCallback *tend_cb )
 {
     _tend_cb = tend_cb;
+}
+
+
+void ParticleDataBaseImp::set_trajectory_surface_collision_callback( TrajectorySurfaceCollisionCallback *tsur_cb )
+{
+    _tsur_cb = tsur_cb;
 }
 
 
