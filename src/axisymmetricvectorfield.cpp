@@ -2,7 +2,7 @@
  *  \brief Axisymmetric magnetic field
  */
 
-/* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -140,7 +140,7 @@ void AxisymmetricVectorField::get_fdm_derivatives( double Bder[7], double z ) co
     int32_t i = floor( (z-_origo)/_h );
     if( i < 3 )
 	i = 3;
-    else if( i > _Bz.size()-5 )
+    else if( i > (int32_t)_Bz.size()-5 )
 	i = _Bz.size()-5;
     double s = (z-(_origo+_h*i))/_h;
     double is = 1.0-s;
