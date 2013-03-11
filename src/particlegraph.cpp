@@ -2,7 +2,7 @@
  *  \brief %Graph for particle plots
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -61,16 +61,16 @@ ParticleGraph::ParticleGraph( const Geometry &geom, const ParticleDataBase &pdb,
     _coord = new double[2*_coordsize];
 
     // Add default colors
-    _color.push_back( Color( 1.0, 0.2, 0.2 ) ); // Red
+    _color.push_back( Vec3D( 1.0, 0.2, 0.2 ) ); // Red
 
-    _color.push_back( Color( 1.0, 1.0, 0.2 ) ); // Yellow
-    _color.push_back( Color( 1.0, 0.2, 1.0 ) ); // Magenta
-    _color.push_back( Color( 0.2, 1.0, 1.0 ) ); // Cyan
+    _color.push_back( Vec3D( 1.0, 1.0, 0.2 ) ); // Yellow
+    _color.push_back( Vec3D( 1.0, 0.2, 1.0 ) ); // Magenta
+    _color.push_back( Vec3D( 0.2, 1.0, 1.0 ) ); // Cyan
 
-    _color.push_back( Color( 1.0, 0.5, 0.2 ) ); // Orange
-    _color.push_back( Color( 0.5, 0.2, 1.0 ) ); // Purple
-    _color.push_back( Color( 0.2, 1.0, 0.5 ) ); // Bluish green
-    _color.push_back( Color( 1.0, 0.2, 0.5 ) ); // Pink
+    _color.push_back( Vec3D( 1.0, 0.5, 0.2 ) ); // Orange
+    _color.push_back( Vec3D( 0.5, 0.2, 1.0 ) ); // Purple
+    _color.push_back( Vec3D( 0.2, 1.0, 0.5 ) ); // Bluish green
+    _color.push_back( Vec3D( 1.0, 0.2, 0.5 ) ); // Pink
 }
 
 
@@ -294,7 +294,7 @@ void ParticleGraph::get_bbox( double bbox[4] )
 }
 
 
-void ParticleGraph::add_color( const Color &color )
+void ParticleGraph::add_color( const Vec3D &color )
 {
     _color.push_back( color );
 }

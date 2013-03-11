@@ -2,7 +2,7 @@
  *  \brief %Field diagnostic plotter.
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -378,9 +378,9 @@ void FieldDiagPlot::build_plot( void )
 	_graph[a]->set_line_style( XYGRAPH_LINE_SOLID );
 	_graph[a]->set_point_style( XYGRAPH_POINT_DISABLE, true, 0.0 );
 	if( a == 0 )
-	    _graph[a]->set_color( Color(1,0,0) );
+	    _graph[a]->set_color( Vec3D(1,0,0) );
 	else
-	    _graph[a]->set_color( Color(0,0,1) );
+	    _graph[a]->set_color( Vec3D(0,0,1) );
 
 	_legend[a] = new LegendEntry( *_graph[a], diagnostic_label( _diag[a] ) );
 	

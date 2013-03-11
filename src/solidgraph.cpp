@@ -401,7 +401,7 @@ void SolidGraph::build_solid( uint32_t N, char *done, uint32_t sizex, uint32_t s
 
 
 SolidGraph::SolidGraph( const Geometry &geom ) 
-    : Graph3D(geom), _geom(geom), _color(Color(0.2,0.2,1.0)), _cache(true)
+    : Graph3D(geom), _geom(geom), _color(Vec3D(0.2,0.2,1.0)), _cache(true)
 {
 }
 
@@ -503,7 +503,7 @@ void SolidGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
     _olevel = _level;
 
     // Set drawing properties
-    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], _color[3] );
+    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], 1.0 );
     cairo_set_line_width( cairo, 1.0 );
 
     // Set clipping ranges

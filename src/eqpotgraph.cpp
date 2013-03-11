@@ -2,7 +2,7 @@
  *  \brief %Graph for plotting equipotential lines
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -46,7 +46,7 @@
 
 
 EqPotGraph::EqPotGraph( const MeshScalarField &epot, const Geometry &geom )
-    : Graph3D(geom), _color(Color(0.2,1,0.2)), _epot(epot), _geom(geom), 
+    : Graph3D(geom), _color(Vec3D(0.2,1,0.2)), _epot(epot), _geom(geom), 
       _data_built(false), _cache(true)
 {
 }
@@ -274,7 +274,7 @@ void EqPotGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
     _olevel = _level;
 
     // Set drawing properties
-    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], _color[3] );
+    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], 1.0 );
     cairo_set_line_width( cairo, 1.0 );
     LineClip lc( cairo );
 

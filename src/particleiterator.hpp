@@ -426,6 +426,7 @@ template <class PP> class ParticleIterator {
 	    const Vec3D &vb = _pidata._geom->surface_vertex( tri[1] );
 	    const Vec3D &vc = _pidata._geom->surface_vertex( tri[2] );
 
+	    DEBUG_MESSAGE( "a = " << a << "\n" );
 	    DEBUG_MESSAGE( "tri[" << a << "][0] = " << va << "\n" );
 	    DEBUG_MESSAGE( "tri[" << a << "][1] = " << vb << "\n" );
 	    DEBUG_MESSAGE( "tri[" << a << "][2] = " << vc << "\n" );
@@ -441,6 +442,7 @@ template <class PP> class ParticleIterator {
 	    Mat3D minv = m.inverse( mdet );
 	    Vec3D off( -v1[0]+va[0], -v1[1]+va[1], -v1[2]+va[2] );
 	    Vec3D K = minv*off;
+	    double K3 = K[1]+K[2];
 	    DEBUG_MESSAGE( "K = " << K << "\n" );
 
 	    // Check for intersection at valid ranges
@@ -448,7 +450,8 @@ template <class PP> class ParticleIterator {
 	    // not an issue here, missing an intersection is a problem.
 	    if( K[0] > -COLLISION_EPS && K[0] < 1.0+COLLISION_EPS && 
 		K[1] > -COLLISION_EPS && K[1] < 1.0+COLLISION_EPS && 
-		K[2] > -COLLISION_EPS && K[2] < 1.0+COLLISION_EPS ) {
+		K[2] > -COLLISION_EPS && K[2] < 1.0+COLLISION_EPS && 
+		K3 > -COLLISION_EPS && K3 < 1.0+COLLISION_EPS ) {
 
 		DEBUG_MESSAGE( "Intersection found\n" );
 
@@ -471,7 +474,7 @@ template <class PP> class ParticleIterator {
 		_stat.add_bound_collision( solid, particle.IQ() );
 
 		if( _tsur_cb )
-		    (*_tsur_cb)( &particle, &status_x, ptr+a );
+		    (*_tsur_cb)( &particle, &status_x, ptr+a, K[1], K[2] );
 
 		DEBUG_MESSAGE( "Solid collision detected\n" );
 		DEBUG_DEC_INDENT();

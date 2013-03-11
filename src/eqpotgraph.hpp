@@ -2,7 +2,7 @@
  *  \brief %Graph for plotting equipotential lines
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -48,7 +48,7 @@
 #include "geometry.hpp"
 #include "meshscalarfield.hpp"
 #include "graph3d.hpp"
-#include "color.hpp"
+#include "vec3d.hpp"
 
 
 /*! \brief Equipotential line plot.
@@ -78,7 +78,7 @@ class EqPotGraph : public Graph3D {
 	EqPotLines( double pot ) : pot(pot) {}
     };
 
-    Color                               _color;
+    Vec3D                               _color;
     const MeshScalarField              &_epot;
     const Geometry                     &_geom;
     bool                                _data_built;

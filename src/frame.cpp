@@ -2,7 +2,7 @@
  *  \brief %Frame for plots
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -60,7 +60,7 @@
 
 Frame::Frame()
     : _offx(0), _offy(0), _width(640), _height(480), 
-      _fontsize(12.0), _titlespace(10.0), _cmlspace(10.0), _bg(Color(1,1,1)), _fg(Color(0,0,0)),
+      _fontsize(12.0), _titlespace(10.0), _cmlspace(10.0), _bg(Vec3D(1,1,1)), _fg(Vec3D(0,0,0)),
       _legend_enable(true), _legend_pos(LEGEND_POS_TOP_RIGHT), _cm_legend(NULL),
       _cml_enable(true), _fixedaspect(PLOT_FIXED_ASPECT_DISABLED), _automargin(true)
 {

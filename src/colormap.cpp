@@ -326,7 +326,7 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 	    if( comp_isinf( val ) || comp_isnan( val ) )
 		continue;
 
-	    Color c = _palette( val );
+	    Vec3D c = _palette( val );
 	    buf[j*stride+4*i+0] = (unsigned char)(255*c[2]);  // Blue
 	    buf[j*stride+4*i+1] = (unsigned char)(255*c[1]);  // Green
 	    buf[j*stride+4*i+2] = (unsigned char)(255*c[0]);  // Red

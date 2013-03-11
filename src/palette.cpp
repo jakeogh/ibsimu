@@ -2,7 +2,7 @@
  *  \brief Palette for colormaps
  */
 
-/* Copyright (c) 2005-2009,2011,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -48,7 +48,7 @@
 
 
 
-Palette::Entry::Entry( const Color &color, double val )
+Palette::Entry::Entry( const Vec3D &color, double val )
 {
     _color = color;
     _val = val;
@@ -68,8 +68,8 @@ bool Palette::Entry::operator<( const Entry &e ) const
 Palette::Palette()
     : _steps(0)
 {
-    _entries.push_back( Entry( Color( 1.0, 1.0, 1.0 ), 0.0 ) );
-    _entries.push_back( Entry( Color( 0.0, 0.0, 0.0 ), 1.0 ) );
+    _entries.push_back( Entry( Vec3D( 1.0, 1.0, 1.0 ), 0.0 ) );
+    _entries.push_back( Entry( Vec3D( 0.0, 0.0, 0.0 ), 1.0 ) );
 }
 
 
@@ -113,7 +113,7 @@ void Palette::clear( void )
 }
 
 
-void Palette::push_back( const Color &color, double val )
+void Palette::push_back( const Vec3D &color, double val )
 {
     // Add new entry
     _entries.push_back( Entry( color, val ) );
@@ -159,11 +159,11 @@ void Palette::normalize( void )
 }
 
 
-Color Palette::operator()( double x ) const
+Vec3D Palette::operator()( double x ) const
 {
     // If undefined
     if( _entries.size() == 0 )
-	return( Color( 0, 0, 0 ) );
+	return( Vec3D( 0, 0, 0 ) );
     else if( _entries.size() == 1 )
 	return( _entries[0]._color );
 
@@ -193,7 +193,7 @@ Color Palette::operator()( double x ) const
     
     // Interpolate
     double t = (x-_entries[a-1]._val) / (_entries[a]._val-_entries[a-1]._val);
-    Color c = _entries[a-1]._color + 
+    Vec3D c = _entries[a-1]._color + 
 	t*(_entries[a]._color-_entries[a-1]._color);
 
     return( c );

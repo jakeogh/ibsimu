@@ -47,10 +47,7 @@
 Renderer::Renderer() 
  : _light_diffuse_color(1.0,1.0,1.0), 
    _light_location(1.0,1.0,1.0),
-   _light_ambient_color(1.0,1.0,1.0),
-   _material_diffuse_color(0.8,0.0,0.0), 
-   _material_ambient_color(0.2,0.0,0.0),
-   _color(0.0,0.0,0.0)
+   _light_ambient_color(1.0,1.0,1.0)
 {
 
 }
@@ -77,24 +74,6 @@ void Renderer::set_light_location( Vec3D location )
 void Renderer::set_light_ambient_color( Vec3D color )
 {
     _light_ambient_color = color;
-}
-
-
-void Renderer::set_material_diffuse_color( Vec3D color )
-{
-    _material_diffuse_color = color;
-}
-
-
-void Renderer::set_material_ambient_color( Vec3D color )
-{
-    _material_ambient_color = color;
-}
-
-
-void Renderer::set_color( Vec3D color )
-{
-    _color = color;
 }
 
 

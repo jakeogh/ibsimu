@@ -437,25 +437,25 @@ void ParticleDiagPlot::build_plot( void )
 	palette.clear();
 	if( zmin == 0.0 && zmax >= 0.0 ) {
 	    // Palette for positive beam
-	    palette.push_back( Color(1,1,1), 0 );
-	    palette.push_back( Color(1,1,0), 1 );
-	    palette.push_back( Color(1,0,0), 2 );
-	    palette.push_back( Color(0,0,0), 3 );
+	    palette.push_back( Vec3D(1,1,1), 0 );
+	    palette.push_back( Vec3D(1,1,0), 1 );
+	    palette.push_back( Vec3D(1,0,0), 2 );
+	    palette.push_back( Vec3D(0,0,0), 3 );
 	} else if( zmax == 0.0 && zmin <= 0.0 ) {
 	    // Palette for negative beam
-	    palette.push_back( Color(1,1,1), 3 );
-	    palette.push_back( Color(1,1,0), 2 );
-	    palette.push_back( Color(1,0,0), 1 );
-	    palette.push_back( Color(0,0,0), 0 );
+	    palette.push_back( Vec3D(1,1,1), 3 );
+	    palette.push_back( Vec3D(1,1,0), 2 );
+	    palette.push_back( Vec3D(1,0,0), 1 );
+	    palette.push_back( Vec3D(0,0,0), 0 );
 	} else {
 	    // Palette for positive and negative beam
-	    palette.push_back( Color(0,0,0), zmin );
-	    palette.push_back( Color(0,0,1), 0.67*zmin );
-	    palette.push_back( Color(0,1,1), 0.33*zmin );
-	    palette.push_back( Color(1,1,1), 0 );
-	    palette.push_back( Color(1,1,0), 0.33*zmax );
-	    palette.push_back( Color(1,0,0), 0.67*zmax );
-	    palette.push_back( Color(0,0,0), zmax );
+	    palette.push_back( Vec3D(0,0,0), zmin );
+	    palette.push_back( Vec3D(0,0,1), 0.67*zmin );
+	    palette.push_back( Vec3D(0,1,1), 0.33*zmin );
+	    palette.push_back( Vec3D(1,1,1), 0 );
+	    palette.push_back( Vec3D(1,1,0), 0.33*zmax );
+	    palette.push_back( Vec3D(1,0,0), 0.67*zmax );
+	    palette.push_back( Vec3D(0,0,0), zmax );
 	}
 	palette.normalize();
 
@@ -479,7 +479,7 @@ void ParticleDiagPlot::build_plot( void )
 	    xdata.push_back( histo1d->coord(a) );
 
 	_datagraph = new XYGraph( xdata, histo1d->get_data() );
-	_datagraph->set_color( Color(1,0,0) );
+	_datagraph->set_color( Vec3D(1,0,0) );
 	_datagraph->set_line_style( XYGRAPH_LINE_SOLID );
 	_datagraph->set_point_style( XYGRAPH_POINT_DISABLE );
 	_datagraph->set_histogram( _histogram_style );
@@ -511,7 +511,7 @@ void ParticleDiagPlot::build_plot( void )
 
 	// Add ellipse xy graph
 	_ellipse = new XYGraph( xd, yd );
-	_ellipse->set_color( Color(0,0,0) );
+	_ellipse->set_color( Vec3D(0,0,0) );
 	_ellipse->set_line_style( XYGRAPH_LINE_SOLID );
 	_ellipse->set_point_style( XYGRAPH_POINT_DISABLE );
 	_frame.add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _ellipse );

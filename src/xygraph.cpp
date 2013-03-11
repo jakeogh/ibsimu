@@ -2,7 +2,7 @@
  *  \brief XY-graph
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -48,7 +48,7 @@
 
 
 XYGraph::XYGraph()
-    : _linewidth(1.0), _color(Color(1,0,0)), _linestyle(XYGRAPH_LINE_DISABLE), 
+    : _linewidth(1.0), _color(Vec3D(1,0,0)), _linestyle(XYGRAPH_LINE_DISABLE), 
       _pointstyle(XYGRAPH_POINT_CIRCLE),
       _point_filled(true), _point_scale(3.0),
       _histogram(false), _extend_histogram(false)
@@ -58,7 +58,7 @@ XYGraph::XYGraph()
 
 XYGraph::XYGraph( const std::vector<double> &xdata, 
 		  const std::vector<double> &ydata )
-    : _linewidth(1.0), _color(Color(1,0,0)), _linestyle(XYGRAPH_LINE_DISABLE), 
+    : _linewidth(1.0), _color(Vec3D(1,0,0)), _linestyle(XYGRAPH_LINE_DISABLE), 
       _pointstyle(XYGRAPH_POINT_CIRCLE),
       _point_filled(true), _point_scale(3.0), 
       _histogram(false), _extend_histogram(false),
@@ -231,7 +231,7 @@ void XYGraph::set_data( const std::vector<double> &xdata,
 }
 
 
-void XYGraph::set_color( const Color &color )
+void XYGraph::set_color( const Vec3D &color )
 {
     _color = color;
 }

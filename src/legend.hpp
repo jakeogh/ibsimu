@@ -2,7 +2,7 @@
  *  \brief Plot legends
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -48,7 +48,7 @@
 #include <string>
 #include "graph.hpp"
 #include "label.hpp"
-#include "color.hpp"
+#include "vec3d.hpp"
 #include "colormap.hpp"
 
 
@@ -235,7 +235,7 @@ class ColormapLegend : public Legend {
     double      _height;     /*!< \brief Height of legend box. */
 
     double      _fontsize;   /*!< \brief Font size for labels. */
-    Color       _color;
+    Vec3D       _color;
 
     double      _ticlen_in;
     double      _ticlen_out;
@@ -276,7 +276,7 @@ public:
 
     /*! \brief Set ruler color.
      */
-    void set_color( const Color &color );
+    void set_color( const Vec3D &color );
 
     /*! \brief Set height of legend.
      */

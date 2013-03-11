@@ -2,7 +2,7 @@
  *  \brief %Graph for particle plots
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -46,7 +46,7 @@
 
 #include <cairo.h>
 #include <vector>
-#include "color.hpp"
+#include "vec3d.hpp"
 #include "graph3d.hpp"
 #include "coordmapper.hpp"
 #include "geometry.hpp"
@@ -72,7 +72,7 @@ class ParticleGraph : public Graph3D {
     uint32_t                _particle_div;    /*!< \brief Particle plot divisor. */
     uint32_t                _particle_offset; /*!< \brief Particle plot offset. */
 
-    std::vector<Color>      _color;           /*!< \brief Colors for trajectories. */
+    std::vector<Vec3D>      _color;           /*!< \brief Colors for trajectories. */
 
     double                  _ox[5];           /*!< \brief Workspace for particleplot_draw_curve() */
     size_t                  _coordsize;       /*!< \brief Size of array _coord divided by two */
@@ -143,7 +143,7 @@ public:
 
     /*! \brief Add a color to the list of trajectory colors.
      */
-    void add_color( const Color &color );
+    void add_color( const Vec3D &color );
 
     /*! \brief Clear the list of trajectory colors.
      */

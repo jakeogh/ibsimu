@@ -2,7 +2,7 @@
  *  \brief Plot legends
  */
 
-/* Copyright (c) 2005-2009,2011-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -163,7 +163,7 @@ void MultiEntryLegend::set_font_size( double fontsize )
 
 
 ColormapLegend::ColormapLegend( Colormap &colormap ) 
-    : _height(0.0), _fontsize(12.0), _color((Color(0,0,0))),
+    : _height(0.0), _fontsize(12.0), _color((Vec3D(0,0,0))),
       _ticlen_in(5.0), _ticlen_out(5.0),
       _ticspace(5.0), _colormap(colormap) 
 {
@@ -244,7 +244,7 @@ void ColormapLegend::plot_colormap_palette_to_image_surface( cairo_surface_t *su
     for( int j = plim[1]; j <= plim[3]; j++ ) {
 
 	// Transform j to color
-	Color c = palette( (double)(j-plim[3]) / (double)(plim[1]-plim[3]) );
+	Vec3D c = palette( (double)(j-plim[3]) / (double)(plim[1]-plim[3]) );
 	
 	for( int i = plim[0]; i <= plim[2]; i++ ) {
 

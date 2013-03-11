@@ -93,10 +93,16 @@ public:
     /*! \brief Operator called when particle collides with surface.
      *
      *  Only with triangulated surfaces. The colliding \a particle,
-     *  collision location \a x and triangle index \a tri are given as
-     *  parameters in the call.
+     *  collision location \a x, triangle index \a tri and the
+     *  parametric location \a (s,t) are given as parameters in the
+     *  call.
+     *
+     *  The coordinate \a s is the parametric distance from vertex 0
+     *  to vertex 1 and coordinate \a t is the parametric distance
+     *  from vertex 0 to vertex 2 inside the triangle.
      */
-    virtual void operator()( ParticleBase *particle, ParticlePBase *x, uint32_t tri ) = 0;
+    virtual void operator()( ParticleBase *particle, ParticlePBase *x, uint32_t tri, 
+			     double s, double t ) = 0;
 };
 
 

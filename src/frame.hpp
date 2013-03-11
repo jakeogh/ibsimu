@@ -2,7 +2,7 @@
  *  \brief %Frame for plots
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,7 +47,7 @@
 #include <string>
 #include <vector>
 #include <cairo.h>
-#include "color.hpp"
+#include "vec3d.hpp"
 #include "ruler.hpp"
 #include "coordmapper.hpp"
 #include "graph.hpp"
@@ -134,8 +134,8 @@ class Frame {
     double              _fontsize;      /*!< \brief Font size for labels. */
     double              _titlespace;    /*!< \brief Space from frame title to next item down. */
     double              _cmlspace;      /*!< \brief Space from colormap legend to next item on the left. */
-    Color               _bg;            /*!< \brief Background color. */
-    Color               _fg;            /*!< \brief Frame color. */
+    Vec3D               _bg;            /*!< \brief Background color. */
+    Vec3D               _fg;            /*!< \brief Frame color. */
 
     std::vector<DObj>   _dobj;          /*!< \brief Graphs to plot in the frame. */
 
@@ -209,13 +209,13 @@ public:
 
     /*! \brief Set background color.
      */
-    void set_background( Color &bg ) {
+    void set_background( Vec3D &bg ) {
 	_bg = bg;
     }    
 
     /*! \brief Set foreground color.
      */
-    void set_foreground( Color &fg ) {
+    void set_foreground( Vec3D &fg ) {
 	_fg = fg;
     }
 

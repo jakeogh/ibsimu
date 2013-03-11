@@ -2,7 +2,7 @@
  *  \brief %Graph for plotting solids
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,7 +47,7 @@
 #include <vector>
 #include "geometry.hpp"
 #include "graph3d.hpp"
-#include "color.hpp"
+#include "vec3d.hpp"
 #include "lineclip.hpp"
 
 
@@ -83,7 +83,7 @@ class SolidGraph : public Graph3D {
 
     const Geometry                      &_geom;
 
-    Color                                _color;
+    Vec3D                                _color;
     std::vector<SolidPoints *>           _solid;
 
     view_e                               _oview;

@@ -2,7 +2,7 @@
  *  \brief %Palette for colormaps
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,7 +45,7 @@
 
 
 #include <vector>
-#include "color.hpp"
+#include "vec3d.hpp"
 
 
 /*! \brief Class for palette definition.
@@ -66,10 +66,10 @@ public:
      *  defining palettes.
      */
    struct Entry {
-	Color  _color; /*!< \brief Entry colors */
+	Vec3D  _color; /*!< \brief Entry colors */
 	double _val;   /*!< \brief Entry values. */
 
-	Entry( const Color &color, double val );
+	Entry( const Vec3D &color, double val );
 
 	bool operator<( const Entry &e ) const;
     };
@@ -104,7 +104,7 @@ public:
      *  palette is enabled, the palette shades will be limited and
      *  hard limits will be shown on palette sweeps.
      */
-    Color operator()( double x ) const;
+    Vec3D operator()( double x ) const;
 
     /*! \brief Clear current palette.
      *
@@ -119,7 +119,7 @@ public:
      *  normalized in range. This has to be manually done by calling
      *  normalize() after adding palette entries.
      */
-    void push_back( const Color &color, double val );
+    void push_back( const Vec3D &color, double val );
 
     /*! \brief Normalize palette entries.
      *

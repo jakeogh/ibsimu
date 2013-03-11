@@ -2,7 +2,7 @@
  *  \brief Plot labels
  */
 
-/* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010,2012,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -51,7 +51,7 @@
 
 Label::Label()
     : _size(12.0), _family("Times"), _slant(CAIRO_FONT_SLANT_NORMAL), 
-      _weight(CAIRO_FONT_WEIGHT_NORMAL), _color(Color(0,0,0)), 
+      _weight(CAIRO_FONT_WEIGHT_NORMAL), _color(Vec3D(0,0,0)), 
       _xalign(0.0), _yalign(0.0), _yzeroext(false), _rotation(0.0), 
       _xlocation(0.0), _ylocation(0.0)
 {
@@ -71,7 +71,7 @@ Label::Label( const Label &label )
 
 Label::Label( const std::string &text )
     : _text(text), _size(12.0), _family("Times"), _slant(CAIRO_FONT_SLANT_NORMAL), 
-      _weight(CAIRO_FONT_WEIGHT_NORMAL), _color(Color(0,0,0)), 
+      _weight(CAIRO_FONT_WEIGHT_NORMAL), _color(Vec3D(0,0,0)), 
       _xalign(0.0), _yalign(0.0), _yzeroext(false), _rotation(0.0), 
       _xlocation(0.0), _ylocation(0.0)
 {
@@ -134,7 +134,7 @@ void Label::set_font_weight( cairo_font_weight_t weight )
 }
 
 
-void Label::set_color( const Color &color )
+void Label::set_color( const Vec3D &color )
 {
     _color = color;
 }
@@ -301,7 +301,7 @@ void Label::draw( cairo_t *cairo )
 	return;
 
     // Color
-    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], _color[3] );
+    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], 1.0 );
 
     // Font size
     cairo_set_font_size( cairo, _size );

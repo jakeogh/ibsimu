@@ -2,7 +2,7 @@
  *  \brief Rulers for plot frames
  */
 
-/* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010,2012,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -49,7 +49,7 @@
 
 
 Ruler::Ruler()
-    : _color((Color(0,0,0))), _ticlen_in(5.0), _ticlen_out(5.0), _labelspace(5.0),
+    : _color((Vec3D(0,0,0))), _ticlen_in(5.0), _ticlen_out(5.0), _labelspace(5.0),
       _fontsize(12.0), _label_enabled(true), _indir(true), _cind(0)
 {
     _range[0] = 0.0;
@@ -66,7 +66,7 @@ Ruler::Ruler()
 
 
 Ruler::Ruler( int cind )
-    : _color((Color(0,0,0))), _ticlen_in(5.0), _ticlen_out(5.0), _labelspace(5.0),
+    : _color((Vec3D(0,0,0))), _ticlen_in(5.0), _ticlen_out(5.0), _labelspace(5.0),
       _fontsize(12.0), _label_enabled(true), _indir(true), _cind(cind)
 {
     _range[0] = 0.0;
@@ -167,7 +167,7 @@ void Ruler::set_font_size( double size )
 }
 
 
-void Ruler::set_color( const Color &color )
+void Ruler::set_color( const Vec3D &color )
 {
     _color = color;
 }
@@ -579,7 +579,7 @@ void Ruler::draw( cairo_t *cairo, Coordmapper1D &cm, bool recalculate )
 	calculate( cairo, cm, true );
 
     // Set cairo parameters
-    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], _color[3] );
+    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], 1.0 );
     cairo_set_line_width( cairo, 1.0 );
 
     // Draw baseline

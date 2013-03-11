@@ -2,7 +2,7 @@
  *  \brief Rulers for plot frames
  */
 
-/* Copyright (c) 2005-2009 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -49,7 +49,7 @@
 #include <string>
 #include <stdio.h>
 #include <iostream>
-#include "color.hpp"
+#include "vec3d.hpp"
 #include "label.hpp"
 #include "coordmapper.hpp"
 
@@ -72,7 +72,7 @@ class Ruler {
 	Tic( double x, const std::string &label ) : _x(x), _label(label) {}
     };
 
-    Color                    _color;        /*!< \brief Ruler color. */
+    Vec3D                    _color;        /*!< \brief Ruler color. */
     double                   _ticlen_in;    /*!< \brief Tic length in. */
     double                   _ticlen_out;   /*!< \brief Tic length out. */
     double                   _labelspace;   /*!< \brief Space from tic to ticlabel. */
@@ -129,7 +129,7 @@ public:
 
     /*! \brief Set ruler color.
      */
-    void set_color( const Color &color );
+    void set_color( const Vec3D &color );
 
     /*! \brief Set tic lengths
      */

@@ -2,7 +2,7 @@
  *  \brief XY-graph
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -46,7 +46,7 @@
 
 #include <cairo.h>
 #include <vector>
-#include "color.hpp"
+#include "vec3d.hpp"
 #include "graph.hpp"
 #include "coordmapper.hpp"
 
@@ -71,7 +71,7 @@ enum point_style_e {
 class XYGraph : public Graph {
 
     double                 _linewidth;
-    Color                  _color; 
+    Vec3D                  _color; 
     line_style_e           _linestyle;
     point_style_e          _pointstyle;
     bool                   _point_filled;
@@ -143,7 +143,7 @@ public:
      *
      *  Defaults to red (1,0,0).
      */
-    void set_color( const Color &color );
+    void set_color( const Vec3D &color );
 
     /*! \brief Set line style.
      *

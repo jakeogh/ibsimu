@@ -2,7 +2,7 @@
  *  \brief 3D renderer base class
  */
 
-/* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -61,11 +61,6 @@ protected:
     Vec3D            _light_location;
     Vec3D            _light_ambient_color;
 
-    Vec3D            _material_diffuse_color;
-    Vec3D            _material_ambient_color;
-
-    Vec3D            _color;
-
     Transformation   _model;
     Transformation   _view;
     Transformation   _projection;
@@ -80,10 +75,9 @@ public:
     void set_light_location( Vec3D location );
     void set_light_ambient_color( Vec3D color );
 
-    void set_material_diffuse_color( Vec3D color );
-    void set_material_ambient_color( Vec3D color );
-    void set_color( Vec3D color );
-
+    virtual void set_material_diffuse_color( Vec3D color ) = 0;
+    virtual void set_material_ambient_color( Vec3D color ) = 0;
+    virtual void set_color( Vec3D color ) = 0;
 
     void set_model_transformation( const Transformation &model );
     void set_projection_frustum( double left, double right,
@@ -105,10 +99,14 @@ public:
     virtual void enable_view_settings( void ) = 0;
 
 
-    virtual void flat_triangle( const Vec3D &x0, 
-				const Vec3D &x1, 
+    virtual void flat_triangle( const Vec3D &x0,
+				const Vec3D &x1,
 				const Vec3D &x2,
 				const Vec3D &n ) = 0;
+    virtual void shaded_triangle( const Vec3D &x0, const Vec3D &c0,
+				  const Vec3D &x1, const Vec3D &c1,
+				  const Vec3D &x2, const Vec3D &c2,
+				  const Vec3D &n ) = 0;
     virtual void line( const Vec3D &x0,
 		       const Vec3D &x1 ) = 0;
 };

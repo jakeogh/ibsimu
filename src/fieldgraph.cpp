@@ -2,7 +2,7 @@
  *  \brief %Graph for plotting fields
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -91,25 +91,25 @@ void FieldGraph::set_field( field_type_e field_type, const ScalarField *field )
     double zspan = _zmax - _zmin;
     if( _zmin >= -1.0e-6*zspan && _zmax >= 0.0 ) {
 	// Red palette
-	pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
-	pentry.push_back( Palette::Entry( Color(1,1,0), 1 ) );
-	pentry.push_back( Palette::Entry( Color(1,0,0), 2 ) );
-	pentry.push_back( Palette::Entry( Color(0,0,0), 3 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,1,1), 0 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,1,0), 1 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,0,0), 2 ) );
+	pentry.push_back( Palette::Entry( Vec3D(0,0,0), 3 ) );
     } else if( _zmax <= 1.0e-6*zspan && _zmin <= 0.0 ) {
 	// Red palette
-	pentry.push_back( Palette::Entry( Color(1,1,1), 3 ) );
-	pentry.push_back( Palette::Entry( Color(1,1,0), 2 ) );
-	pentry.push_back( Palette::Entry( Color(1,0,0), 1 ) );
-	pentry.push_back( Palette::Entry( Color(0,0,0), 0 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,1,1), 3 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,1,0), 2 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,0,0), 1 ) );
+	pentry.push_back( Palette::Entry( Vec3D(0,0,0), 0 ) );
     } else {
 	// Mixed palette, forcing zero at white
-	pentry.push_back( Palette::Entry( Color(0,0,0), _zmin ) );
-	pentry.push_back( Palette::Entry( Color(0,0,1), 0.67*_zmin ) );
-	pentry.push_back( Palette::Entry( Color(0,1,1), 0.33*_zmin ) );
-	pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
-	pentry.push_back( Palette::Entry( Color(1,1,0), 0.33*_zmax ) );
-	pentry.push_back( Palette::Entry( Color(1,0,0), 0.67*_zmax ) );
-	pentry.push_back( Palette::Entry( Color(0,0,0), _zmax ) );
+	pentry.push_back( Palette::Entry( Vec3D(0,0,0), _zmin ) );
+	pentry.push_back( Palette::Entry( Vec3D(0,0,1), 0.67*_zmin ) );
+	pentry.push_back( Palette::Entry( Vec3D(0,1,1), 0.33*_zmin ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,1,1), 0 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,1,0), 0.33*_zmax ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,0,0), 0.67*_zmax ) );
+	pentry.push_back( Palette::Entry( Vec3D(0,0,0), _zmax ) );
     }
     Palette p( pentry );
     set_palette( p );
@@ -197,13 +197,13 @@ void FieldGraph::set_field( field_type_e field_type, const VectorField *field )
 
     // Set default colormap palette
     std::vector<Palette::Entry> pentry;
-    pentry.push_back( Palette::Entry( Color(0,0,0), -1.00 ) );
-    pentry.push_back( Palette::Entry( Color(0,0,1), -0.67 ) );
-    pentry.push_back( Palette::Entry( Color(0,1,1), -0.33 ) );
-    pentry.push_back( Palette::Entry( Color(1,1,1),  0.00 ) );
-    pentry.push_back( Palette::Entry( Color(1,1,0),  0.33 ) );
-    pentry.push_back( Palette::Entry( Color(1,0,0),  0.67 ) );
-    pentry.push_back( Palette::Entry( Color(0,0,0),  1.00 ) );
+    pentry.push_back( Palette::Entry( Vec3D(0,0,0), -1.00 ) );
+    pentry.push_back( Palette::Entry( Vec3D(0,0,1), -0.67 ) );
+    pentry.push_back( Palette::Entry( Vec3D(0,1,1), -0.33 ) );
+    pentry.push_back( Palette::Entry( Vec3D(1,1,1),  0.00 ) );
+    pentry.push_back( Palette::Entry( Vec3D(1,1,0),  0.33 ) );
+    pentry.push_back( Palette::Entry( Vec3D(1,0,0),  0.67 ) );
+    pentry.push_back( Palette::Entry( Vec3D(0,0,0),  1.00 ) );
     Palette p( pentry );
     set_palette( p );
     Colormap::set_zrange( _zmin, _zmax );
@@ -415,31 +415,31 @@ void FieldGraph::build_plot( void )
     double zspan = _zmax - _zmin;
     if( _zmin >= -1.0e-6*zspan && _zmax >= 0.0 ) {
 	// "Positive" palette
-	pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
-	pentry.push_back( Palette::Entry( Color(1,1,0), 1 ) );
-	pentry.push_back( Palette::Entry( Color(1,0,0), 2 ) );
-	pentry.push_back( Palette::Entry( Color(0,0,0), 3 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,1,1), 0 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,1,0), 1 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,0,0), 2 ) );
+	pentry.push_back( Palette::Entry( Vec3D(0,0,0), 3 ) );
     } else if( _zmax <= 1.0e-6*zspan && _zmin <= 0.0 ) {
 	// "Negative" palette
-	pentry.push_back( Palette::Entry( Color(1,1,1), 3 ) );
-	pentry.push_back( Palette::Entry( Color(1,1,0), 2 ) );
-	pentry.push_back( Palette::Entry( Color(1,0,0), 1 ) );
-	pentry.push_back( Palette::Entry( Color(0,0,0), 0 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,1,1), 3 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,1,0), 2 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,0,0), 1 ) );
+	pentry.push_back( Palette::Entry( Vec3D(0,0,0), 0 ) );
     } else {
 	// "Mixed" palette - red palette for now
-	pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
-	pentry.push_back( Palette::Entry( Color(1,1,0), 1 ) );
-	pentry.push_back( Palette::Entry( Color(1,0,0), 2 ) );
-	pentry.push_back( Palette::Entry( Color(0,0,0), 3 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,1,1), 0 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,1,0), 1 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,0,0), 2 ) );
+	pentry.push_back( Palette::Entry( Vec3D(0,0,0), 3 ) );
 	/*
 	  // Does not work in practice
-	pentry.push_back( Palette::Entry( Color(0,0,0), _zmin ) );
-	pentry.push_back( Palette::Entry( Color(0,0,1), 0.67*_zmin ) );
-	pentry.push_back( Palette::Entry( Color(0,1,1), 0.33*_zmin ) );
-	pentry.push_back( Palette::Entry( Color(1,1,1), 0 ) );
-	pentry.push_back( Palette::Entry( Color(1,1,0), 0.33*_zmax ) );
-	pentry.push_back( Palette::Entry( Color(1,0,0), 0.67*_zmax ) );
-	pentry.push_back( Palette::Entry( Color(0,0,0), _zmax ) );
+	pentry.push_back( Palette::Entry( Vec3D(0,0,0), _zmin ) );
+	pentry.push_back( Palette::Entry( Vec3D(0,0,1), 0.67*_zmin ) );
+	pentry.push_back( Palette::Entry( Vec3D(0,1,1), 0.33*_zmin ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,1,1), 0 ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,1,0), 0.33*_zmax ) );
+	pentry.push_back( Palette::Entry( Vec3D(1,0,0), 0.67*_zmax ) );
+	pentry.push_back( Palette::Entry( Vec3D(0,0,0), _zmax ) );
 	*/
     }
 

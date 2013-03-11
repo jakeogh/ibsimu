@@ -2,7 +2,7 @@
  *  \brief Plot labels
  */
 
-/* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010,2012,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -46,8 +46,7 @@
 
 #include <string>
 #include <cairo.h>
-
-#include "color.hpp"
+#include "vec3d.hpp"
 
 
 /*! \brief Class for labels in plots.
@@ -68,7 +67,7 @@ class Label
 				      *
 				      * Either CAIRO_FONT_WEIGHT_NORMAL or CAIRO_FONT_WEIGHT_BOLD.
 				      */
-    Color                _color;     /*!< \brief Text color. */
+    Vec3D                _color;     /*!< \brief Text color. */
 
     double               _xalign;    /*!< \brief Alignment of label in x-direction. */
     double               _yalign;    /*!< \brief Alignment of label in y-direction. */
@@ -117,7 +116,7 @@ public:
 
     /*! \brief Set label color.
      */
-    void set_color( const Color &color );
+    void set_color( const Vec3D &color );
 
     /*! \brief Set label location.
      */
