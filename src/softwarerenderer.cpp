@@ -2,7 +2,7 @@
  *  \brief Software 3D renderer
  */
 
-/* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -48,7 +48,10 @@
 
 SoftwareRenderer::SoftwareRenderer( GtkWidget *darea )
     : _darea(darea), _surface(NULL), 
-      _buf(NULL), _zbuf(NULL)
+      _buf(NULL), _zbuf(NULL),
+      _material_diffuse_color(0.8,0.0,0.0), 
+      _material_ambient_color(0.2,0.0,0.0),
+      _color(0.0,0.0,0.0)
 {
     ibsimu.message( 1 ) << "Using SoftwareRenderer\n";
     ibsimu.flush();
@@ -57,7 +60,10 @@ SoftwareRenderer::SoftwareRenderer( GtkWidget *darea )
 
 SoftwareRenderer::SoftwareRenderer( cairo_surface_t *surface )
     : _darea(NULL), _surface(surface), 
-      _buf(NULL), _zbuf(NULL)
+      _buf(NULL), _zbuf(NULL),
+      _material_diffuse_color(0.8,0.0,0.0), 
+      _material_ambient_color(0.2,0.0,0.0),
+      _color(0.0,0.0,0.0)
 {
 
 }
@@ -369,6 +375,24 @@ void SoftwareRenderer::end_rendering( void )
 }
 
 
+void SoftwareRenderer::set_material_diffuse_color( Vec3D color )
+{
+    _material_diffuse_color = color;
+}
+
+
+void SoftwareRenderer::set_material_ambient_color( Vec3D color )
+{
+    _material_ambient_color = color;
+}
+
+
+void SoftwareRenderer::set_color( Vec3D color )
+{
+    _color = color;
+}
+
+
 void SoftwareRenderer::disable_lighting( void )
 {
 
@@ -414,6 +438,15 @@ void SoftwareRenderer::flat_triangle( const Vec3D &x0,
 		      0.5*_width*(y1[0]+1.0), 0.5*_height*(1.0-y1[1]), y1[2],
 		      0.5*_width*(y2[0]+1.0), 0.5*_height*(1.0-y2[1]), y2[2],
 		      color );
+}
+
+
+void SoftwareRenderer::shaded_triangle( const Vec3D &x0, const Vec3D &c0,
+					const Vec3D &x1, const Vec3D &c1,
+					const Vec3D &x2, const Vec3D &c2,
+					const Vec3D &n )
+{
+    throw( ErrorUnimplemented( ERROR_LOCATION ) );
 }
 
 

@@ -2,7 +2,7 @@
  *  \brief GTK based plotters.
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -65,18 +65,19 @@
  */
 class GTKPlotter {
 
-    static bool              _gtk_initialized;
-    static bool              _opengl;
+    static bool                _gtk_initialized;
+    static bool                _opengl;
 
-    std::vector<GTKWindow *> _windows;
-    
-    const Geometry          *_geom;
-    const EpotField         *_epot;
-    const EpotEfield        *_efield;
-    const MeshScalarField   *_scharge;
-    const MeshScalarField   *_tdens;
-    const VectorField       *_bfield;
-    const ParticleDataBase  *_pdb;
+    std::vector<GTKWindow *>   _windows;
+
+    const std::vector<double> *_sdata;
+    const Geometry            *_geom;
+    const EpotField           *_epot;
+    const EpotEfield          *_efield;
+    const MeshScalarField     *_scharge;
+    const MeshScalarField     *_tdens;
+    const VectorField         *_bfield;
+    const ParticleDataBase    *_pdb;
 
 public:
 
@@ -93,6 +94,10 @@ public:
      *  Returns when all gtk windows are closed.
      */
     void run();
+
+    /*! \brief Get pointer to surface data.
+     */
+    const std::vector<double> *get_surface_triangle_data( void ) const;
 
     /*! \brief Get pointer to geometry.
      */
@@ -121,6 +126,10 @@ public:
     /*! \brief Get pointer to particle database.
      */
     const ParticleDataBase *get_particledatabase( void ) const;
+
+    /*! \brief Set surface data.
+     */
+    void set_surface_triangle_data( const std::vector<double> *data );
 
     /*! \brief Set pointer to geometry.
      */

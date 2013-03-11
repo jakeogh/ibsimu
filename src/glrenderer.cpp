@@ -2,7 +2,7 @@
  *  \brief OpenGL 3D renderer
  */
 
-/* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,7 +47,10 @@
 
 
 GLRenderer::GLRenderer( GtkWidget *darea )
-    : _darea(darea)
+    : _darea(darea),
+      _material_diffuse_color(0.8,0.0,0.0), 
+      _material_ambient_color(0.2,0.0,0.0),
+      _color(0.0,0.0,0.0)
 {
     GdkGLConfigMode mode = (GdkGLConfigMode)( GDK_GL_MODE_RGBA |
 					      GDK_GL_MODE_DEPTH |
@@ -133,6 +136,29 @@ void GLRenderer::enable_view_settings( void )
 }
 
 
+void GLRenderer::set_material_diffuse_color( Vec3D color )
+{
+    _material_diffuse_color = color;
+    float c4[4] = { _material_diffuse_color[0], _material_diffuse_color[1], _material_diffuse_color[2], 1.0 };
+    glMaterialfv( GL_FRONT, GL_DIFFUSE, c4 );
+}
+
+
+void GLRenderer::set_material_ambient_color( Vec3D color )
+{
+    _material_ambient_color = color;
+    float c3[4] = { _material_ambient_color[0], _material_ambient_color[1], _material_ambient_color[2], 1.0 };
+    glMaterialfv( GL_FRONT, GL_AMBIENT, c3 );
+}
+
+
+void GLRenderer::set_color( Vec3D color )
+{
+    _color = color;
+    glColor3dv( &_color[0] );
+}
+
+
 void GLRenderer::disable_lighting( void )
 {
     glDisable( GL_LIGHTING );
@@ -156,6 +182,36 @@ void GLRenderer::flat_triangle( const Vec3D &x0,
     glVertex3dv( &x0[0] );
     glVertex3dv( &x1[0] );
     glVertex3dv( &x2[0] );
+    glEnd();
+}
+
+
+void GLRenderer::shaded_triangle( const Vec3D &x0, const Vec3D &c0,
+				  const Vec3D &x1, const Vec3D &c1,
+				  const Vec3D &x2, const Vec3D &c2,
+				  const Vec3D &n )
+{
+    glBegin( GL_TRIANGLES );
+    glNormal3dv( &n[0] );
+
+    float a0[4] = { 0.2*c0[0], 0.2*c0[1], 0.2*c0[2], 1.0 };
+    glMaterialfv( GL_FRONT, GL_AMBIENT, a0 );
+    float d0[4] = { 0.8*c0[0], 0.8*c0[1], 0.8*c0[2], 1.0 };
+    glMaterialfv( GL_FRONT, GL_DIFFUSE, d0 );
+    glVertex3dv( &x0[0] );
+
+    float a1[4] = { 0.2*c1[0], 0.2*c1[1], 0.2*c1[2], 1.0 };
+    glMaterialfv( GL_FRONT, GL_AMBIENT, a1 );
+    float d1[4] = { 0.8*c1[0], 0.8*c1[1], 0.8*c1[2], 1.0 };
+    glMaterialfv( GL_FRONT, GL_DIFFUSE, d1 );
+    glVertex3dv( &x1[0] );
+
+    float a2[4] = { 0.2*c2[0], 0.2*c2[1], 0.2*c2[2], 1.0 };
+    glMaterialfv( GL_FRONT, GL_AMBIENT, a2 );
+    float d2[4] = { 0.8*c2[0], 0.8*c2[1], 0.8*c2[2], 1.0 };
+    glMaterialfv( GL_FRONT, GL_DIFFUSE, d2 );
+    glVertex3dv( &x2[0] );
+
     glEnd();
 }
 

@@ -2,7 +2,7 @@
  *  \brief %Geometry 3d plotter
  */
 
-/* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -41,8 +41,10 @@
  */
 
 
+#include <limits>
 #include "geom3dplot.hpp"
 #include "renderer.hpp"
+#include "ibsimu.hpp"
 
 
 
@@ -136,6 +138,51 @@ void Geom3DPlot::get_view_look_at( Vec3D &camera,
 }
 
 
+void Geom3DPlot::set_surface_triangle_color_range( double min, double max )
+{
+    _sdata_range[0] = min;
+    _sdata_range[1] = max;
+}
+
+
+void Geom3DPlot::get_surface_triangle_color_range( double &min, double &max ) const
+{
+    min = _sdata_range[0];
+    max = _sdata_range[1];
+}
+
+
+void Geom3DPlot::set_surface_triangle_data( const std::vector<double> *data )
+{
+    if( data == NULL ) {
+	_sdata.clear();
+	return;
+    }
+    _sdata = *data;
+
+    // Autorange
+    _sdata_range[0] = std::numeric_limits<double>::infinity();
+    _sdata_range[1] = -std::numeric_limits<double>::infinity();
+    for( uint32_t a = 0; a < _sdata.size(); a++ ) {
+	if( _sdata[a] < _sdata_range[0] )
+	    _sdata_range[0] = _sdata[a];
+	if( _sdata[a] > _sdata_range[1] )
+	    _sdata_range[1] = _sdata[a];
+    }
+    ibsimu.message(1) << "Surface data from " << _sdata_range[0] << " to " 
+		      << _sdata_range[1] << "\n";
+
+    _sdata_palette.clear();
+    _sdata_palette.push_back( Vec3D(0,0,1), 0 );
+    _sdata_palette.push_back( Vec3D(1,1,0), 1 );
+    _sdata_palette.push_back( Vec3D(1,0,0), 2 );
+    _sdata_palette.push_back( Vec3D(0,0,0), 3 );
+    _sdata_palette.normalize();
+
+    rebuild_model();
+}
+
+
 void Geom3DPlot::set_particle_div( uint32_t particle_div, uint32_t particle_offset )
 {
     _particle_div = particle_div;
@@ -189,13 +236,18 @@ void Geom3DPlot::build_geometry_surface( void )
 {
     // Reserve space
     _gsurface.reserve( 4*_geom.surface_trianglec() );
+    if( _sdata.size() != 0 ) {
+	if( _sdata.size() != _geom.surface_vertexc() )
+	    throw( Error( ERROR_LOCATION, "surface data count does not match vertex count" ) );
+	_gcolor.reserve( _geom.surface_vertexc() );    
+    }
 
     // Go through all mesh cubes inside cut levels
     for( uint32_t k = _clevel[4]; k < _clevel[5]; k++ ) {
 	for( uint32_t j = _clevel[2]; j < _clevel[3]; j++ ) {
 	    for( uint32_t i = _clevel[0]; i < _clevel[1]; i++ ) {
 
-		// Copy surface triangles in cube
+		// Copy surface triangles inside the cube
 		int32_t ptr = _geom.surface_triangle_ptr( i, j, k );
 		int32_t tric = _geom.surface_trianglec( i, j, k );
 		for( int32_t a = 0; a < tric; a++ ) {
@@ -209,10 +261,23 @@ void Geom3DPlot::build_geometry_surface( void )
 		    _gsurface.push_back( _scale*(x0-_center) );
 		    _gsurface.push_back( _scale*(x1-_center) );
 		    _gsurface.push_back( _scale*(x2-_center) );
+		    if( _sdata.size() != 0 ) {
+			_gcolor.push_back( sdata_palette( _sdata[tri[0]] ) );
+			_gcolor.push_back( sdata_palette( _sdata[tri[1]] ) );
+			_gcolor.push_back( sdata_palette( _sdata[tri[2]] ) );
+		    }
 		}
 	    }
 	}
     }
+}
+
+
+Vec3D Geom3DPlot::sdata_palette( double sval ) const
+{
+    double vscaled = (sval-_sdata_range[0]) / 
+	(_sdata_range[1]-_sdata_range[0]);
+    return( _sdata_palette(vscaled) );
 }
 
 
@@ -289,8 +354,21 @@ void Geom3DPlot::draw_bbox( Renderer *r )
 
 void Geom3DPlot::draw_model( Renderer *r )
 {
-    for( size_t a = 0; a < _gsurface.size(); a+=4 )
-	r->flat_triangle( _gsurface[a+1], _gsurface[a+2], _gsurface[a+3], _gsurface[a+0] );
+    if( _sdata.size() != 0 ) {
+	for( size_t a = 0, b = 0; a < _gsurface.size(); a+=4, b+=3 ) {
+	    //r->set_material_ambient_color( 0.2*_gcolor[a] );
+	    //r->set_material_diffuse_color( 0.8*_gcolor[a] );
+	    //r->flat_triangle( _gsurface[b+1], _gsurface[b+2], _gsurface[b+3], _gsurface[b+0] );
+	    r->shaded_triangle( _gsurface[a+1], _gcolor[b+0],
+				_gsurface[a+2], _gcolor[b+1],
+				_gsurface[a+3], _gcolor[b+2],
+				_gsurface[a+0] );
+	}
+    } else {
+	for( size_t a = 0; a < _gsurface.size(); a+=4 ) {
+	    r->flat_triangle( _gsurface[a+1], _gsurface[a+2], _gsurface[a+3], _gsurface[a+0] );
+	}
+    }
 }
 
 
@@ -637,6 +715,7 @@ void Geom3DPlot::draw_beam( Renderer *r )
 void Geom3DPlot::clear_surface_data( void )
 {
     _gsurface.clear();
+    _gcolor.clear();
     for( int a = 0; a < 6; a++ )
 	_csurface[a].clear();
 }

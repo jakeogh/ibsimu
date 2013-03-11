@@ -2,7 +2,7 @@
  *  \brief Software 3D renderer
  */
 
-/* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -68,13 +68,16 @@ class SoftwareRenderer : public Renderer {
 
     double          *_zbuf;
 
+    Vec3D            _material_diffuse_color;
+    Vec3D            _material_ambient_color;
+    Vec3D            _color;
+
     Transformation   _modelview;
     Transformation   _totalmatrix;
     Transformation   _normalmatrix;
 
     void swap( int &x0, int &y0, double &z0, 
 	       int &x1, int &y1, double &z1 );
-
 
     void set_pixel( int i, int j, const Vec3D &color );
     void clear( const Vec3D &color );
@@ -100,22 +103,26 @@ public:
      */
     virtual ~SoftwareRenderer();
 
-
     virtual void start_rendering( void );
     virtual void end_rendering( void );
 
+    virtual void set_material_diffuse_color( Vec3D color );
+    virtual void set_material_ambient_color( Vec3D color );
+    virtual void set_color( Vec3D color );
 
     virtual void disable_lighting( void );
     virtual void enable_lighting( void );
 
-
     virtual void enable_view_settings( void );
-
 
     virtual void flat_triangle( const Vec3D &x0, 
 				const Vec3D &x1, 
 				const Vec3D &x2,
 				const Vec3D &n );
+    virtual void shaded_triangle( const Vec3D &x0, const Vec3D &c0,
+				  const Vec3D &x1, const Vec3D &c1,
+				  const Vec3D &x2, const Vec3D &c2,
+				  const Vec3D &n );
     virtual void line( const Vec3D &x0,
 		       const Vec3D &x1 );
 };

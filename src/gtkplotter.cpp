@@ -2,7 +2,7 @@
  *  \brief GTK based plotters.
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -62,7 +62,7 @@ bool GTKPlotter::_opengl = false;
 
 
 GTKPlotter::GTKPlotter( int *argc, char ***argv )
-    : _geom(NULL), _epot(NULL), _efield(NULL), _scharge(NULL), _tdens(NULL), 
+    : _sdata(NULL), _geom(NULL), _epot(NULL), _efield(NULL), _scharge(NULL), _tdens(NULL), 
       _bfield(NULL), _pdb(NULL)
 {
     if( !_gtk_initialized ) {
@@ -124,7 +124,7 @@ GTKWindow *GTKPlotter::new_geometry_plot_window( void )
 
 GTKWindow *GTKPlotter::new_geometry_3d_plot_window( void )
 {
-    GTKWindow *window = new GTKGeom3DWindow( *this, *_geom, _pdb );
+    GTKWindow *window = new GTKGeom3DWindow( *this, *_geom, _pdb, _sdata );
     _windows.push_back( window );
 
     return( window );
@@ -177,6 +177,12 @@ void GTKPlotter::delete_window( GTKWindow *window )
 }
 
 
+const std::vector<double> *GTKPlotter::get_surface_triangle_data( void ) const
+{
+    return( _sdata );
+}
+
+
 const Geometry *GTKPlotter::get_geometry( void ) const
 {
     return( _geom );
@@ -216,6 +222,12 @@ const VectorField *GTKPlotter::get_bfield( void ) const
 const ParticleDataBase *GTKPlotter::get_particledatabase( void ) const
 {
     return( _pdb );
+}
+
+
+void GTKPlotter::set_surface_triangle_data( const std::vector<double> *data )
+{
+    _sdata = data;
 }
 
 

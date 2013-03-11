@@ -2,7 +2,7 @@
  *  \brief %Geometry 3d plotter
  */
 
-/* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -51,6 +51,7 @@
 #include "particledatabase.hpp"
 #include "transformation.hpp"
 #include "vec3d.hpp"
+#include "palette.hpp"
 
 
 /*! \brief %Geometry 3D plotter.
@@ -59,6 +60,10 @@ class Geom3DPlot {
 
     const Geometry         &_geom;
     const ParticleDataBase *_pdb;
+
+    std::vector<double>     _sdata;
+    double                  _sdata_range[2];
+    Palette                 _sdata_palette;
 
     size_t                  _width;
     size_t                  _height;
@@ -77,6 +82,7 @@ class Geom3DPlot {
 
     std::vector<Vec3D>      _csurface[6];  // Sequences of 3: x0,x1,x2
     std::vector<Vec3D>      _gsurface;     // Sequences of 4: norm,x0,x1,x2
+    std::vector<Vec3D>      _gcolor;       // Surface color
 
     uint32_t                _particle_div;
     uint32_t                _particle_offset;
@@ -89,6 +95,7 @@ class Geom3DPlot {
     void build_cut_plane( int32_t p, const int32_t vb[3], int32_t level );
     void build_cut_planes( void );
     void build_geometry_surface( void );
+    Vec3D sdata_palette( double sval ) const;
     void clear_surface_data( void );
 
     void draw_cut_planes( class Renderer *r );
@@ -156,6 +163,20 @@ public:
     /*! \brief Reset camera settings and modelling transformation to default.
      */
     void reset_camera_and_rotation( void );
+
+    /*! \brief Set surface triangle data ranges.
+     *
+     *  Defaults to automatic scaling.
+     */
+    void set_surface_triangle_color_range( double min, double max );
+
+    /*! \brief Get surface triangle data ranges.
+     */
+    void get_surface_triangle_color_range( double &min, double &max ) const;
+
+    /*! \brief Set surface triangle data for rendering.
+     */
+    void set_surface_triangle_data( const std::vector<double> *data );
 
     /*! \brief Set particle divisor and offset.
      *

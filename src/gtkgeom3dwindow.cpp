@@ -2,7 +2,7 @@
  *  \brief %Geometry view window for 3d
  */
 
-/* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -64,12 +64,15 @@
 
 GTKGeom3DWindow::GTKGeom3DWindow( GTKPlotter &plotter,
 				  const Geometry &geom,
-				  const ParticleDataBase *pdb )
+				  const ParticleDataBase *pdb,
+				  const std::vector<double> *sdata )
     : _plotter(plotter), _geom3dplot(geom,pdb), _geom(geom), _width(640), _height(480)
 {
     if( !geom.surface_built() ) {
 	throw( Error( ERROR_LOCATION, "geometry surface not built" ) );	
     }
+
+    _geom3dplot.set_surface_triangle_data( sdata );
 
     init_window();
     init_renderer();
@@ -135,7 +138,7 @@ void GTKGeom3DWindow::init_window( void )
 		      G_CALLBACK(menuitem_hardcopy_signal),
 		      (gpointer)this );
     gtk_box_pack_start( GTK_BOX(vbox), _menubar, FALSE, TRUE, 0 );
-
+    
     // Add Edit/Configure menu
     GtkWidget *menu_edit, *item_edit, *item_preferences;
     menu_edit = gtk_menu_new();
@@ -615,6 +618,38 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 
     // ****************************************************************************
 
+    vbox2 = gtk_vbox_new( FALSE, 0 );
+
+    char st[128];
+    double range_min, range_max;
+    _geom3dplot.get_surface_triangle_color_range( range_min, range_max );
+
+    label = gtk_label_new( "Range min" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    GtkWidget *range_min_entry = gtk_entry_new();
+    snprintf( st, 128, "%g", range_min );
+    gtk_entry_set_text( GTK_ENTRY(range_min_entry), st );
+    hbox = gtk_hbox_new( TRUE, 30 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), range_min_entry, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+
+    label = gtk_label_new( "Range max" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    GtkWidget *range_max_entry = gtk_entry_new();
+    snprintf( st, 128, "%g", range_max );
+    gtk_entry_set_text( GTK_ENTRY(range_max_entry), st );
+    hbox = gtk_hbox_new( TRUE, 30 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), range_max_entry, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+
+    // Notebook page
+    label = gtk_label_new( "Surface data" );
+    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox2, label );
+
+    // ****************************************************************************
+
     // Pack notebook
     gtk_box_pack_start( GTK_BOX(vbox), notebook, FALSE, TRUE, 0 );
 
@@ -630,6 +665,11 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 	// Cut levels
 	for( int a = 0; a < 6; a++ )
 	    _geom3dplot.set_clevel( a, gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(spinbutton[a]) ) );
+
+	// Surface data ranges
+	range_min = atof( gtk_entry_get_text( GTK_ENTRY(range_min_entry) ) );
+	range_max = atof( gtk_entry_get_text( GTK_ENTRY(range_max_entry) ) );
+	_geom3dplot.set_surface_triangle_color_range( range_min, range_max );
 
 	// Rebuild model and refresh output
 	_geom3dplot.rebuild_model();

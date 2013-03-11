@@ -145,7 +145,8 @@ public:
      */
     GTKGeom3DWindow( GTKPlotter &plotter,
 		     const Geometry &geom,
-		     const ParticleDataBase *pdb );
+		     const ParticleDataBase *pdb,
+		     const std::vector<double> *sdata );
 
     /*! \brief Destructor.
      */

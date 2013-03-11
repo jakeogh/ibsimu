@@ -513,13 +513,13 @@ public:
 
     /*! \brief Return total surface vertex count.
      */
-    int32_t surface_vertexc( void ) const {
+    uint32_t surface_vertexc( void ) const {
 	return( _surface.vertexc() );
     }
 
     /*! \brief Return total surface triangle count.
      */
-    int32_t surface_trianglec( void ) const {
+    uint32_t surface_trianglec( void ) const {
 	return( _surface.trianglec() );
     }
 
