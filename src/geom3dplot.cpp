@@ -50,7 +50,8 @@
 
 Geom3DPlot::Geom3DPlot( const Geometry &geom,
 			const ParticleDataBase *pdb )
-    : _geom(geom), _pdb(pdb), _particle_div(100), _particle_offset(0), _bbox(true)
+    : _geom(geom), _pdb(pdb), _sdata_enable(false),
+      _particle_div(100), _particle_offset(0), _bbox(true)
 
 {
     _clevel[0] = 0;
@@ -59,6 +60,10 @@ Geom3DPlot::Geom3DPlot( const Geometry &geom,
     _clevel[3] = _geom.size(1)-1;
     _clevel[4] = 0;
     _clevel[5] = _geom.size(2)-1;
+
+    // Default to plotting of all solids enabled
+    for( uint32_t a = 0; a < geom.number_of_solids(); a++ )
+	_senable.push_back( true );
 
     reset_camera_and_rotation();
     rebuild_model();
@@ -232,22 +237,108 @@ uint32_t Geom3DPlot::get_clevel( uint32_t direction ) const
 }
 
 
+void Geom3DPlot::set_solid_plot( uint32_t a, bool enable )
+{
+    if( a < 7 )
+	throw( ErrorRange( ERROR_LOCATION, "invalid solid number" ) );
+    _senable[a-7] = enable;
+}
+
+
+bool Geom3DPlot::get_solid_plot( uint32_t a ) const
+{
+    if( a < 7 )
+	throw( ErrorRange( ERROR_LOCATION, "invalid solid number" ) );
+    return( _senable[a-7] );
+}
+
+
+void Geom3DPlot::set_surface_triangle_data_plot( bool enable )
+{
+    _sdata_enable = enable;
+}
+
+
+bool Geom3DPlot::get_surface_triangle_data_plot( void ) const
+{
+    return( _sdata_enable );
+}
+
+
+bool Geom3DPlot::node_disabled( uint32_t i, uint32_t j, uint32_t k ) const
+{
+    uint32_t smesh = _geom.mesh( i, j, k );
+    if( (smesh & SMESH_NODE_ID_MASK) != SMESH_NODE_ID_DIRICHLET ||
+	(smesh & SMESH_BOUNDARY_NUMBER_MASK) < 7 )
+	return( false );
+    uint32_t solid = smesh & SMESH_BOUNDARY_NUMBER_MASK;
+    return( !_senable[solid-7] );
+}
+
+
+// Check if any of the cell nodes belongs to disabled solids
+bool Geom3DPlot::cell_disabled( uint32_t i, uint32_t j, uint32_t k ) const
+{
+    if( node_disabled( i,   j,   k   ) ||
+	node_disabled( i+1, j,   k   ) ||
+	node_disabled( i,   j+1, k   ) ||
+	node_disabled( i+1, j+1, k   ) ||
+	node_disabled( i,   j,   k+1 ) ||
+	node_disabled( i+1, j,   k+1 ) ||
+	node_disabled( i,   j+1, k+1 ) ||
+	node_disabled( i+1, j+1, k+1 ) )
+	return( true );
+    return( false );
+}
+
+
+bool Geom3DPlot::face_disabled( const int i[3], const int vb[3] ) const
+{
+    int32_t j[3] = { i[0], i[1], i[2] };
+
+    // Node 1 (x,y)
+    if( node_disabled( j[0], j[1], j[2] ) )
+	return( true );
+
+    // Node 2 (x+1,y)
+    j[vb[0]]++;
+    if( node_disabled( j[0], j[1], j[2] ) )
+	return( true );
+
+    // Node 3 (x+1,y+1)
+    j[vb[1]]++;
+    if( node_disabled( j[0], j[1], j[2] ) )
+	return( true );
+
+    // Node 4 (x,y+1)
+    j[vb[0]]--;
+    if( node_disabled( j[0], j[1], j[2] ) )
+	return( true );
+
+    return( false );
+}
+
+
 void Geom3DPlot::build_geometry_surface( void )
 {
     // Reserve space
     _gsurface.reserve( 4*_geom.surface_trianglec() );
-    if( _sdata.size() != 0 ) {
+    if( _sdata.size() != 0 && _sdata_enable ) {
 	if( _sdata.size() != _geom.surface_vertexc() )
 	    throw( Error( ERROR_LOCATION, "surface data count does not match vertex count" ) );
 	_gcolor.reserve( _geom.surface_vertexc() );    
     }
 
-    // Go through all mesh cubes inside cut levels
+    // Go through all grid cells inside cut levels
     for( uint32_t k = _clevel[4]; k < _clevel[5]; k++ ) {
 	for( uint32_t j = _clevel[2]; j < _clevel[3]; j++ ) {
 	    for( uint32_t i = _clevel[0]; i < _clevel[1]; i++ ) {
 
-		// Copy surface triangles inside the cube
+		// Skip grid cell if it contains solid nodes, which are not enabled
+		if( cell_disabled( i, j, k ) )
+		    continue;
+
+		// Copy surface triangles inside the cell
 		int32_t ptr = _geom.surface_triangle_ptr( i, j, k );
 		int32_t tric = _geom.surface_trianglec( i, j, k );
 		for( int32_t a = 0; a < tric; a++ ) {
@@ -261,7 +352,7 @@ void Geom3DPlot::build_geometry_surface( void )
 		    _gsurface.push_back( _scale*(x0-_center) );
 		    _gsurface.push_back( _scale*(x1-_center) );
 		    _gsurface.push_back( _scale*(x2-_center) );
-		    if( _sdata.size() != 0 ) {
+		    if( _sdata.size() != 0 && _sdata_enable ) {
 			_gcolor.push_back( sdata_palette( _sdata[tri[0]] ) );
 			_gcolor.push_back( sdata_palette( _sdata[tri[1]] ) );
 			_gcolor.push_back( sdata_palette( _sdata[tri[2]] ) );
@@ -354,7 +445,7 @@ void Geom3DPlot::draw_bbox( Renderer *r )
 
 void Geom3DPlot::draw_model( Renderer *r )
 {
-    if( _sdata.size() != 0 ) {
+    if( _sdata.size() != 0 && _sdata_enable ) {
 	for( size_t a = 0, b = 0; a < _gsurface.size(); a+=4, b+=3 ) {
 	    //r->set_material_ambient_color( 0.2*_gcolor[a] );
 	    //r->set_material_diffuse_color( 0.8*_gcolor[a] );
@@ -462,6 +553,9 @@ void Geom3DPlot::build_cut_plane( int32_t p, int32_t const vb[3], int32_t level 
 
 	for( int32_t x = minx; x < maxx; x++ ) {
 	    i[vb[0]] = x;
+
+	    if( face_disabled( i, vb ) )
+		continue;
 
 	    // Construct case number
 	    int32_t cn = case2d( i, vb );

@@ -60,7 +60,8 @@ class Geom3DPlot {
 
     const Geometry         &_geom;
     const ParticleDataBase *_pdb;
-
+ 
+    bool                    _sdata_enable;
     std::vector<double>     _sdata;
     double                  _sdata_range[2];
     Palette                 _sdata_palette;
@@ -80,6 +81,7 @@ class Geom3DPlot {
     Vec3D                   _center;
     double                  _scale;
 
+    std::vector<bool>       _senable;  // Enable/disable surface plotting, starts from 7
     std::vector<Vec3D>      _csurface[6];  // Sequences of 3: x0,x1,x2
     std::vector<Vec3D>      _gsurface;     // Sequences of 4: norm,x0,x1,x2
     std::vector<Vec3D>      _gcolor;       // Surface color
@@ -97,6 +99,10 @@ class Geom3DPlot {
     void build_geometry_surface( void );
     Vec3D sdata_palette( double sval ) const;
     void clear_surface_data( void );
+
+    bool node_disabled( uint32_t i, uint32_t j, uint32_t k ) const;
+    bool cell_disabled( uint32_t i, uint32_t j, uint32_t k ) const;
+    bool face_disabled( const int i[3], const int vb[3] ) const;
 
     void draw_cut_planes( class Renderer *r );
     void draw_model( class Renderer *r );
@@ -178,6 +184,16 @@ public:
      */
     void set_surface_triangle_data( const std::vector<double> *data );
 
+    /*! \brief Set if surface data is to be plotted.
+     *
+     *  Defaults to false.
+     */
+    void set_surface_triangle_data_plot( bool enable );
+
+    /*! \brief Get if surface data is plotted.
+     */
+    bool get_surface_triangle_data_plot( void ) const;
+
     /*! \brief Set particle divisor and offset.
      *
      *  Set \a particle_div to zero for no plotting, one for plotting
@@ -216,6 +232,18 @@ public:
      *  ymax, direction 4 is zmin and direction 5 is zmax.
      */
     uint32_t get_clevel( uint32_t direction ) const;
+
+    /*! \brief Set if solid \a a is to be plotted.
+     *
+     *  Solid number \a a >= 7.
+     */
+    void set_solid_plot( uint32_t a, bool enable );
+
+    /*! \brief Get if solid \a a  is plotted.
+     *
+     *  Solid number \a a >= 7.
+     */
+    bool get_solid_plot( uint32_t a ) const;
 
     /*! \brief Draw 3D geometry using renderer \a r.
      */

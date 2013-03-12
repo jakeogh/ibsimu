@@ -620,6 +620,29 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 
     vbox2 = gtk_vbox_new( FALSE, 0 );
 
+    // Cut levels
+    GtkWidget *solid_enable_check_button[_geom.number_of_solids()];
+    for( uint32_t a = 0; a < _geom.number_of_solids(); a++ ) {
+	hbox = gtk_hbox_new( TRUE, 30 );
+	std::string ss = "Solid " + to_string(a);
+	label = gtk_label_new( ss.c_str() );
+	solid_enable_check_button[a] = gtk_check_button_new_with_label( "on/off" );
+	gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+	bool en = _geom3dplot.get_solid_plot( a+7 );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(solid_enable_check_button[a]), en );
+	gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+	gtk_box_pack_start( GTK_BOX(hbox), solid_enable_check_button[a], FALSE, TRUE, 0 );
+	gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+    }
+
+    // Notebook page
+    label = gtk_label_new( "Solid plotting" );
+    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox2, label );
+
+    // ****************************************************************************
+
+    vbox2 = gtk_vbox_new( FALSE, 0 );
+
     char st[128];
     double range_min, range_max;
     _geom3dplot.get_surface_triangle_color_range( range_min, range_max );
@@ -644,6 +667,16 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
     gtk_box_pack_start( GTK_BOX(hbox), range_max_entry, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
 
+    label = gtk_label_new( "Surface data plotting" );
+    GtkWidget *sdata_enable_check_button = gtk_check_button_new_with_label( "on/off" );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    bool en = _geom3dplot.get_surface_triangle_data_plot();
+    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(sdata_enable_check_button), en );
+    hbox = gtk_hbox_new( TRUE, 30 );
+    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(hbox), sdata_enable_check_button, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+
     // Notebook page
     label = gtk_label_new( "Surface data" );
     gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox2, label );
@@ -666,10 +699,19 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 	for( int a = 0; a < 6; a++ )
 	    _geom3dplot.set_clevel( a, gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(spinbutton[a]) ) );
 
-	// Surface data ranges
+	// Surface enable
+	for( uint32_t a = 0; a < _geom.number_of_solids(); a++ ) {
+	    bool en = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(solid_enable_check_button[a]) );
+	    _geom3dplot.set_solid_plot( a+7, en );
+	}
+
+	// Surface data enable and ranges
+	bool en = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(sdata_enable_check_button) );
+	_geom3dplot.set_surface_triangle_data_plot( en );
 	range_min = atof( gtk_entry_get_text( GTK_ENTRY(range_min_entry) ) );
 	range_max = atof( gtk_entry_get_text( GTK_ENTRY(range_max_entry) ) );
 	_geom3dplot.set_surface_triangle_color_range( range_min, range_max );
+
 
 	// Rebuild model and refresh output
 	_geom3dplot.rebuild_model();
