@@ -2,7 +2,7 @@
  *  \brief Vertex-based triangle representation
  */
 
-/* Copyright (c) 2011-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -213,14 +213,11 @@ class VTriangleSurfaceSolid : public VTriangleSurface {
     Vec3D                      _offset;    /*!< \brief Offset applied on vertices. */
     Vec3D                      _bbox[2];   /*!< \brief Bounding box min, max. */
 
-    std::vector<bool>          _vpos;
-    std::vector<bool>          _vneg;
-
     int signvol4( const Vec3D &q0, const Vec3D &q1, 
-		  const Vec3D &q2, const Vec3D &q3 );
-    int signvol3( const Vec3D &q1, const Vec3D &q2, const Vec3D &q3 );
+		  const Vec3D &q2, const Vec3D &q3 ) const;
+    int signvol3( const Vec3D &q1, const Vec3D &q2, const Vec3D &q3 ) const;
     int classify_original_tetrahedron( int ss, const Vec3D &p, 
-				       const Vec3D &q1, const Vec3D &q2, const Vec3D &q3 );
+				       const Vec3D &q1, const Vec3D &q2, const Vec3D &q3 ) const;
 
     void update_bbox( Vec3D &min, Vec3D &max, const Vec3D x ) const;
 
@@ -259,7 +256,8 @@ public:
      *  and a boundary box test is performed to avoid forbidden tests.
      *
      *  The bounding box and offset are computed with this function
-     *  after constructing the surface data. Call exactly once.
+     *  after constructing the surface data. Call exactly once after
+     *  defining solid.
      */
     void prepare_for_inside();
 
@@ -273,7 +271,7 @@ public:
      *  The prepare_for_inside() function must be called before using
      *  this function.
      */
-    bool inside( const Vec3D &x );
+    bool inside( const Vec3D &x ) const;
 
     /*! \brief Return bounding box in vectors \a min and \a max.
      *

@@ -2,7 +2,7 @@
  *  \brief %Solid definition using Stereolithography CAD format
  */
 
-/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -100,6 +100,8 @@ bool STLSolid::inside( const Vec3D &x ) const
 
 void STLSolid::add_stl_file( class STLFile *stl )
 {
+    if( stl == NULL )
+	throw( Error( ERROR_LOCATION, "NULL stl file" ) );
     _stl.push_back( stl );    
 }
 

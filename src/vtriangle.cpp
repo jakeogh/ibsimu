@@ -2,7 +2,7 @@
  *  \brief Vertex-based triangle representation
  */
 
-/* Copyright (c) 2011-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -197,7 +197,7 @@ VTriangleSurfaceSolid::~VTriangleSurfaceSolid()
 
 
 int VTriangleSurfaceSolid::signvol4( const Vec3D &q0, const Vec3D &q1, 
-				     const Vec3D &q2, const Vec3D &q3 )
+				     const Vec3D &q2, const Vec3D &q3 ) const
 {
     double x = q0[0]*(-q1[1]*q2[2] + q1[1]*q3[2] + q2[1]*q1[2] - 
 		       q2[1]*q3[2] - q3[1]*q1[2] + q3[1]*q2[2] ) +
@@ -216,7 +216,7 @@ int VTriangleSurfaceSolid::signvol4( const Vec3D &q0, const Vec3D &q1,
 }
 
 
-int VTriangleSurfaceSolid::signvol3( const Vec3D &q1, const Vec3D &q2, const Vec3D &q3 )
+int VTriangleSurfaceSolid::signvol3( const Vec3D &q1, const Vec3D &q2, const Vec3D &q3 ) const
 {
     double x = q1[0]*( q2[1]*q3[2] - q3[1]*q2[2] ) -
 	       q1[1]*( q2[0]*q3[2] - q3[0]*q2[2] ) +
@@ -234,7 +234,7 @@ int VTriangleSurfaceSolid::signvol3( const Vec3D &q1, const Vec3D &q2, const Vec
  * The sense of tetrahedron (o,q1,q2,q3) is ss.
  */
 int VTriangleSurfaceSolid::classify_original_tetrahedron( int ss, const Vec3D &p, 
-							  const Vec3D &q1, const Vec3D &q2, const Vec3D &q3 )
+							  const Vec3D &q1, const Vec3D &q2, const Vec3D &q3 ) const
 {
     int s0, s1, s2, s3;
 
@@ -279,7 +279,7 @@ int VTriangleSurfaceSolid::classify_original_tetrahedron( int ss, const Vec3D &p
 }
 
 
-bool VTriangleSurfaceSolid::inside( const Vec3D &p )
+bool VTriangleSurfaceSolid::inside( const Vec3D &p ) const
 {
     // Fast test if outside bbox
     for( uint32_t a = 0; a < 3; a++ ) {
@@ -292,9 +292,9 @@ bool VTriangleSurfaceSolid::inside( const Vec3D &p )
     // Offset point
     Vec3D x = p+_offset;
 
-    // Clear positive and negative vertex arrays
-    _vpos.assign( _vertex.size(), false );
-    _vneg.assign( _vertex.size(), false );
+    // Cleared positive and negative vertex arrays
+    std::vector<bool> vpos( _vertex.size(), false );
+    std::vector<bool> vneg( _vertex.size(), false );
 
     int incl = 0;
     for( uint32_t a = 0; a < _triangle.size(); a++ ) {
@@ -311,11 +311,11 @@ bool VTriangleSurfaceSolid::inside( const Vec3D &p )
 	} else if( stat == VTRI_FACE ) {
 	    incl += ss;
 	} else if( stat != VTRI_OUTSIDE ) {
-	    if( ss > 0 && !_vpos[_triangle[a][stat]] ) {
-		_vpos[_triangle[a][stat]] = true;
+	    if( ss > 0 && !vpos[_triangle[a][stat]] ) {
+		vpos[_triangle[a][stat]] = true;
 		incl += 2*ss;
-	    } else if( ss < 0 && !_vneg[_triangle[a][stat]] ) {
-		_vneg[_triangle[a][stat]] = true;
+	    } else if( ss < 0 && !vneg[_triangle[a][stat]] ) {
+		vneg[_triangle[a][stat]] = true;
 		incl += 2*ss;
 	    }
 	}
@@ -428,8 +428,8 @@ void VTriangleSurfaceSolid::check_data( void ) const
 void VTriangleSurfaceSolid::clear( void )
 {
     VTriangleSurface::clear();
-    _vpos.clear();
-    _vneg.clear();
+    //_vpos.clear();
+    //_vneg.clear();
 }
 
 
