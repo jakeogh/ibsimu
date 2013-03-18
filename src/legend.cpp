@@ -313,7 +313,7 @@ void ColormapLegend::plot( cairo_t *cairo, double x, double y )
 
     // Draw box and tics
     cairo_save( cairo );
-    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], _color[3] );
+    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], 1.0 );
     cairo_set_line_width( cairo, 1.0 );
 
     cairo_rectangle( cairo, x + _ticlen_out, y, 
