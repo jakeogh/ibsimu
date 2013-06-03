@@ -71,7 +71,7 @@ enum point_style_e {
 class XYGraph : public Graph {
 
     double                 _linewidth;
-    Vec3D                  _color; 
+    Vec3D                  _color;
     line_style_e           _linestyle;
     point_style_e          _pointstyle;
     bool                   _point_filled;
