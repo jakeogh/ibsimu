@@ -250,6 +250,12 @@ dnl AC_CHECK_LIB([gslcblas],[cblas_dgemm])
 dnl AC_CHECK_LIB([gsl],[gsl_blas_dgemm])
 
 dnl -------------
+dnl getcwd
+
+AC_CHECK_HEADERS([unistd.h])
+AC_CHECK_FUNCS([getcwd])
+
+dnl -------------
 dnl siginfo_t
 
 AC_CHECK_TYPES([siginfo_t], [], [], [[#include <signal.h>]])
