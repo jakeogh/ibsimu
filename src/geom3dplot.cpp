@@ -95,19 +95,19 @@ Transformation Geom3DPlot::get_model_transformation( void ) const
 }
 
 
-void Geom3DPlot::set_projection_frustum( double near, double far, double zoom )
+void Geom3DPlot::set_projection_frustum( double xnear, double xfar, double zoom )
 {
-    _near = near;
-    _far = far;
+    _near = xnear;
+    _far  = xfar;
     _zoom = zoom;
 }
 
 
-void Geom3DPlot::get_projection_frustum( double &near, double &far, double &zoom ) const
+void Geom3DPlot::get_projection_frustum( double &xnear, double &xfar, double &zoom ) const
 {
-    near = _near;
-    far = _far;
-    zoom = _zoom;
+    xnear = _near;
+    xfar  = _far;
+    zoom  = _zoom;
 }
 
 

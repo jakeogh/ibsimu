@@ -2,7 +2,7 @@
  *  \brief Trajectory diagnostics
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,6 +47,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
+#include "compmath.hpp"
 #include "trajectorydiagnostics.hpp"
 #include "ibsimu.hpp"
 #include "error.hpp"
@@ -394,9 +395,9 @@ EmittanceConv::EmittanceConv( uint32_t n, uint32_t m,
 	if( r[a] > rmax )
 	    rmax = r[a];
     }
-    if( isnan(range[0]) )
+    if( comp_isnan(range[0]) )
 	range[0] = -rmax;
-    if( isnan(range[2]) )
+    if( comp_isnan(range[2]) )
 	range[2] = rmax;
 
     // xpmax
@@ -406,9 +407,9 @@ EmittanceConv::EmittanceConv( uint32_t n, uint32_t m,
 	if( xpm > _xpmax )
 	    _xpmax = xpm;
     }
-    if( isnan(range[1]) )
+    if( comp_isnan(range[1]) )
 	range[1] = -_xpmax;
-    if( isnan(range[3]) )
+    if( comp_isnan(range[3]) )
 	range[3] = _xpmax;
 
     // Make grid

@@ -134,11 +134,11 @@ public:
 
     /*! \brief Set camera projection.
      */
-    void set_projection_frustum( double near, double far, double zoom );
+    void set_projection_frustum( double xnear, double xfar, double zoom );
     
     /*! \brief Get camera projection.
      */
-    void get_projection_frustum( double &near, double &far, double &zoom ) const ;
+    void get_projection_frustum( double &xnear, double &xfar, double &zoom ) const ;
 
     /*! \brief Set camera zoom
      */

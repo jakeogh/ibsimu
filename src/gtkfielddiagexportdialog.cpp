@@ -40,6 +40,11 @@
  * permit others to do so.
  */
 
+#include "config.h"
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include "gtkfielddiagexportdialog.hpp"
 
 
@@ -65,7 +70,7 @@ void GTKFieldDiagExportDialog::run( void )
 						    GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
 						    NULL );
 
-#ifdef HAVE_UNISTD_H
+#ifdef HAVE_GETCWD
     size_t size = 1024;
     char *buf;
     while( 1 ) {
