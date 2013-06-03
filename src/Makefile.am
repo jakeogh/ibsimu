@@ -111,6 +111,8 @@ histogram.hpp \
 ibsimu.cpp \
 ibsimu.hpp \
 icon_field_diag.hpp \
+icon_geom2d.hpp \
+icon_geom3d.hpp \
 icon_hardcopy.hpp \
 icon_move.hpp \
 icon_particle_diag.hpp \
