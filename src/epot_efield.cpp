@@ -701,14 +701,14 @@ void EpotEfield::debug_print( std::ostream &os ) const
 	}
 	os << "(";
 	if( nodecount < 10 ) {
-	    uint a;
+	    uint32_t a;
 	    for( a = 0; a < nodecount-1; a++ )
 		os << _F[b][a] << ", ";
 	    if( a < nodecount )
 		os << _F[b][a] << ")\n";
 	} else {
 	    // Print only 10 first nodes
-	    for( uint a = 0; a < 10; a++ )
+	    for( uint32_t a = 0; a < 10; a++ )
 		os << _F[b][a] << ", ";
 	    os << "... )\n";
 	}
