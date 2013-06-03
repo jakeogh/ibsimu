@@ -361,8 +361,8 @@ void GTKGeom3DWindow::move( int action, double x, double y )
 
 void GTKGeom3DWindow::zoom_out( double x, double y )
 {
-    double near, far, zoom;
-    _geom3dplot.get_projection_frustum( near, far, zoom );
+    double xnear, xfar, zoom;
+    _geom3dplot.get_projection_frustum( xnear, xfar, zoom );
     Vec3D target, camera, up;
     _geom3dplot.get_view_look_at( camera, target, up );
 
@@ -375,12 +375,12 @@ void GTKGeom3DWindow::zoom_out( double x, double y )
     double v = (bottom + (top-bottom)*(1.0-y/_height));
     Vec3D viewdir = target-camera;
     viewdir.normalize();
-    viewdir *= near;
+    viewdir *= xnear;
     Vec3D rightdir = cross(viewdir,up);
     Vec3D real_up = cross(rightdir,viewdir);
     rightdir.normalize();
     real_up.normalize();
-    target = camera + near*viewdir + u*rightdir + v*real_up;
+    target = camera + xnear*viewdir + u*rightdir + v*real_up;
     zoom *= fac;
 
     _geom3dplot.set_projection_zoom( zoom );
@@ -391,8 +391,8 @@ void GTKGeom3DWindow::zoom_out( double x, double y )
 
 void GTKGeom3DWindow::zoom_in( double x, double y )
 {
-    double near, far, zoom;
-    _geom3dplot.get_projection_frustum( near, far, zoom );
+    double xnear, xfar, zoom;
+    _geom3dplot.get_projection_frustum( xnear, xfar, zoom );
     Vec3D target, camera, up;
     _geom3dplot.get_view_look_at( camera, target, up );
 
@@ -405,12 +405,12 @@ void GTKGeom3DWindow::zoom_in( double x, double y )
     double v = (bottom + (top-bottom)*(1.0-y/_height));
     Vec3D viewdir = target-camera;
     viewdir.normalize();
-    viewdir *= near;
+    viewdir *= xnear;
     Vec3D rightdir = cross(viewdir,up);
     Vec3D real_up = cross(rightdir,viewdir);
     rightdir.normalize();
     real_up.normalize();
-    target = camera + near*viewdir + u*rightdir + v*real_up;
+    target = camera + xnear*viewdir + u*rightdir + v*real_up;
     zoom *= fac;
 
     _geom3dplot.set_projection_zoom( zoom );
