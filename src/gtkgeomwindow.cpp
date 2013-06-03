@@ -2,7 +2,7 @@
  *  \brief %Geometry view window
  */
 
-/* Copyright (c) 2005-2009, 2011-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009, 2011-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -220,8 +220,8 @@ void GTKGeomWindow::field_diag( int action, double x, double y )
     } else if( action == 2 ) {
 	// Done, start field diagnostics dialog
 	Coordmapper cm = _frame.get_coordmapper( PLOT_AXIS_X1, PLOT_AXIS_Y1 );
-	double x1[2] = {_start[0], _start[1]};
-	double x2[2] = {_end[0], _end[1]};
+	double x1[2] = {(double)_start[0], (double)_start[1]};
+	double x2[2] = {(double)_end[0], (double)_end[1]};
 	cm.inv_transform( x1[0], x1[1] );
 	cm.inv_transform( x2[0], x2[1] );
 	double p1[3];
@@ -296,7 +296,7 @@ void GTKGeomWindow::particle_diag( int action, double x, double y )
 	int crd;
 	double val;
 	Coordmapper cm = _frame.get_coordmapper( PLOT_AXIS_X1, PLOT_AXIS_Y1 );
-	double c[2] = {_start[0], _start[1]};
+	double c[2] = {(double)_start[0], (double)_start[1]};
 	cm.inv_transform( c[0], c[1] );
 	if( width > height ) {
 	    crd = _geomplot.vb(1);
