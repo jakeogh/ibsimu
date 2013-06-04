@@ -10,7 +10,7 @@
 #include <fstream>
 #include <iomanip>
 #include "epot_gssolver.hpp"
-#include "epot_umfpacksolver.hpp"
+//#include "epot_umfpacksolver.hpp"
 #include "epot_bicgstabsolver.hpp"
 #include "epot_mgsolver.hpp"
 #include "particledatabase.hpp"
@@ -60,11 +60,10 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, -8.0e3) );
     geom.build_mesh();
     
+    EpotBiCGSTABSolver solver( geom );
     //EpotUMFPACKSolver solver( geom );
-    //EpotBiCGSTABSolver solver( geom );
-    EpotMGSolver solver( geom );
-    solver.set_levels( 3 );
-    solver.set_neumann_order( 2 );
+    //EpotMGSolver solver( geom );
+    //solver.set_levels( 3 );
     //solver.set_mgcycmax( 1 );
     //EpotGSSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
@@ -91,7 +90,7 @@ void test( int argc, char **argv )
     conv.add_scharge( scharge );
     conv.add_emittance( 0, emit );
 
-    for( size_t i = 0; i < 1; i++ ) {
+    for( size_t i = 0; i < 3; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
@@ -194,6 +193,8 @@ void test( int argc, char **argv )
     pplotter4.set_size( 800, 600 );
     pplotter4.plot_png( "plasmacyl_emit4.png" );
 
+    */
+
     MeshScalarField tdens( geom );
     pdb.build_trajectory_density_field( tdens );
 
@@ -214,6 +215,5 @@ void test( int argc, char **argv )
     gplotter.set_fieldgraph_plot( FIELD_TRAJDENS );
     gplotter.fieldgraph()->set_zscale( ZSCALE_RELLOG );
     gplotter.plot_png( "plasmacyl.png" );
-    */
 }
 
