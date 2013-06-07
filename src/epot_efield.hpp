@@ -2,7 +2,7 @@
  *  \brief Electric potential base electric field.
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -50,7 +50,7 @@
 #include "types.hpp"
 
 
-/*! \brief %Vector field based on on-line interpolation of electric
+/*! \brief %Vector field based on interpolation of electric
  *  potential.
  *
  *  %EpotEfield contains pointers to Geometry and to MeshScalarField
@@ -79,6 +79,10 @@ class EpotEfield : public VectorField {
 
     uint8_t solid_dist( uint32_t node, uint32_t dir ) const;
 
+    void copy_1d( const EpotEfield &efield );
+    void copy_2d( const EpotEfield &efield );
+    void copy_3d( const EpotEfield &efield );
+
     void precalc_1d( void );
     void precalc_2d( void );
     void precalc_3d( void );
@@ -89,6 +93,10 @@ public:
     /*! \brief Constructor.
      */
     EpotEfield( const EpotField &epot );
+
+    /*! \brief Copy constructor.
+     */
+    EpotEfield( const EpotEfield &efield );
 
     /*! \brief Destructor.
      */

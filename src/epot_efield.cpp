@@ -65,6 +65,68 @@ EpotEfield::EpotEfield( const EpotField &epot )
 }    
 
 
+void EpotEfield::copy_1d( const EpotEfield &efield )
+{
+    uint32_t n = _epot.size(0)+1;
+
+    _F[0] = new double[n];
+    _F[1] = NULL;
+    _F[2] = NULL;
+
+    memcpy( _F[0], efield._F[0], n*sizeof(double) );
+}
+
+
+void EpotEfield::copy_2d( const EpotEfield &efield )
+{
+    uint32_t n = _epot.size(0)+1;
+    uint32_t m = _epot.size(1)+1;
+
+    _F[0] = new double[n*(m-1)];
+    _F[1] = new double[(n-1)*m];
+    _F[2] = NULL;
+
+    memcpy( _F[0], efield._F[0], n*(m-1)*sizeof(double) );
+    memcpy( _F[1], efield._F[1], (n-1)*m*sizeof(double) );
+}
+
+
+void EpotEfield::copy_3d( const EpotEfield &efield )
+{
+    uint32_t n = _epot.size(0)+1;
+    uint32_t m = _epot.size(1)+1;
+    uint32_t o = _epot.size(2)+1;
+
+    _F[0] = new double[n*(m-1)*(o-1)];
+    _F[1] = new double[(n-1)*m*(o-1)];
+    _F[2] = new double[(n-1)*(m-1)*o];
+
+    memcpy( _F[0], efield._F[0], n*(m-1)*(o-1)*sizeof(double) );
+    memcpy( _F[1], efield._F[1], (n-1)*m*(o-1)*sizeof(double) );
+    memcpy( _F[2], efield._F[2], (n-1)*(m-1)*o*sizeof(double) );
+}
+
+
+EpotEfield::EpotEfield( const EpotEfield &efield )
+    : _epot(efield._epot), _geom(efield._geom)
+{
+    memcpy( _extrpl, efield._extrpl, 6*sizeof(field_extrpl_e) );
+
+    switch( _epot.geom_mode() ) {
+    case MODE_1D:
+	copy_1d( efield );
+	break;
+    case MODE_2D:
+    case MODE_CYL:
+	copy_2d( efield );
+	break;
+    case MODE_3D:
+	copy_3d( efield );
+	break;
+    }
+}
+
+
 EpotEfield::~EpotEfield()
 {
     for( size_t i = 0; i < 3; i++ ) {
