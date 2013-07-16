@@ -95,12 +95,10 @@ void test( int argc, char **argv )
     conv.add_scharge( scharge );
     conv.add_emittance( 0, emit );
 	
-    for( size_t i = 0; i < 1; i++ ) {
+    for( size_t i = 0; i < 3; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
-	    //solver.set_w( 1.0 );
-	    //solver.set_imax( 1000 );
 	    solver.set_pexp_plasma( -rhoe, 5.0, 5.0 );
 	}
 
@@ -108,23 +106,11 @@ void test( int argc, char **argv )
 	efield.recalculate();
 
 	pdb.clear();
-	/*
-	pdb.add_particle( Particle3D( 1.0, 1.0, 1.0, 
-				      ParticleP3D( 0.0,
-						   0.0, 1e6,
-						   4.0e-4, 0.0,
-						   4.0e-4, 0.0) ) );
-	*/
 	pdb.add_cylindrical_beam_with_energy( 5000, 600.0, 1.0, 1.0, 
 					      5.0, 0.0, 0.5, 
 					      Vec3D(0,0,0),
 					      Vec3D(0,1,0),
 					      Vec3D(0,0,1), 0.001 );
-	/*
-	Particle3D pi = pdb.particle(428);
-	pdb.clear();
-	pdb.add_particle( pi );
-	*/
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
 	ParticleDiagPlotter pplotter( geom, pdb, AXIS_X, 0.0119, PARTICLE_DIAG_PLOT_SCATTER,
@@ -134,28 +120,7 @@ void test( int argc, char **argv )
 
     }
 
-    // Check for rogue particle
-    std::vector<trajectory_diagnostic_e> diagnostics;
-    diagnostics.push_back( DIAG_NO );
-    TrajectoryDiagnosticData tdata;
-    pdb.trajectories_at_plane( tdata, AXIS_Y, 0.004, diagnostics );
-    for( uint32_t a = 0; a < tdata.traj_size(); a++ ) {
-	std::cout << "Rogue particle: " << tdata(a,0) << "\n";
-    }
-
-    // Check for particle going through the end plane
-    tdata.clear();
-    pdb.trajectories_at_plane( tdata, AXIS_X, 0.013, diagnostics );
-    for( uint32_t a = 0; a < tdata.traj_size(); a++ ) {
-	std::cout << "Particle through end plane: " << tdata(a,0) << "\n";
-    }
-
-    //Particle3D p = pdb.particle( 4695 );
-    
-
-    //pdb.debug_print( std::cout );
-    
-    if( true ) {
+    if( false ) {
 	MeshScalarField tdens( geom );
 	pdb.build_trajectory_density_field( tdens );
 	GTKPlotter plotter( &argc, &argv );
