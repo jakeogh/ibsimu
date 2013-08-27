@@ -321,7 +321,9 @@ Bound Geometry::get_boundary( uint32_t n ) const
 uint32_t Geometry::inside( const Vec3D &x ) const
 {
     for( ssize_t a = _sdata.size()-1; a >= 0 ; a-- ) {
-	if( _sdata[a] && _sdata[a]->inside( x ) )
+	if( !_sdata[a] )
+	    throw( Error( ERROR_LOCATION, "solid " + to_string(a) + " not defined" ) );
+	else if( _sdata[a]->inside( x ) )
 	    return( a+7 );
     }
     double eps = 1.0e-6*h();
@@ -1289,6 +1291,12 @@ void Geometry::build_mesh( void )
     ibsimu.message( 1 ) << "Building mesh\n";
     ibsimu.inc_indent();
 
+    // Check the solid definitions
+    for( ssize_t a = _sdata.size()-1; a >= 0 ; a-- ) {
+	if( !_sdata[a] )
+	    throw( Error( ERROR_LOCATION, "solid " + to_string(a) + " not defined" ) );
+    }
+
     _built = true;
     build_mesh_parallel();
 
@@ -1302,7 +1310,7 @@ void Geometry::build_mesh( void )
     int nsolid[_n];
     for( uint32_t a = 0; a < _n; a++ )
 	nsolid[a] = 0;
-    
+
     for( uint32_t a = 0; a < ncount; a++ ) {
 	
 	switch( mesh(a) & SMESH_NODE_ID_MASK ) {
