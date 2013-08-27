@@ -2,7 +2,7 @@
  *  \brief %Particle diagnostic plot
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -53,7 +53,7 @@ ParticleDiagPlot::ParticleDiagPlot( Frame &frame, const Geometry &geom, const Pa
 				    trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy )
     : _frame(frame), _geom(geom), _pdb(pdb), _free_plane(false), _axis(axis), _level(level), 
       _type(type), _diagx(diagx), _diagy(diagy), _diagz(DIAG_NONE),
-      _pdb_it_no(-1), _update(true), _tdata(NULL), _histo(NULL), _emit(NULL),
+      _pdb_it_no(-1), _update(true), _Isum(0.0), _tdata(NULL), _histo(NULL), _emit(NULL),
       _datagraph(NULL), _ellipse(NULL), _ellipse_enable(true), _colormap(NULL), 
       _histogram_n(50), _histogram_m(50), _histogram_accumulation(HISTOGRAM_ACCUMULATION_CLOSEST),
       _histogram_style(true), _interpolation(INTERPOLATION_CLOSEST), _dot_size(1.0)
@@ -68,7 +68,7 @@ ParticleDiagPlot::ParticleDiagPlot( Frame &frame, const Geometry &geom, const Pa
 				    trajectory_diagnostic_e diagx, trajectory_diagnostic_e diagy )
     : _frame(frame), _geom(geom), _pdb(pdb), _free_plane(true), _axis(AXIS_X), _level(0.0), 
       _c(c), _o(o), _p(p), _type(type), _diagx(diagx), _diagy(diagy), _diagz(DIAG_NONE),
-      _pdb_it_no(-1), _update(true), _tdata(NULL), _histo(NULL), _emit(NULL),
+      _pdb_it_no(-1), _update(true), _Isum(0.0), _tdata(NULL), _histo(NULL), _emit(NULL),
       _datagraph(NULL), _ellipse(NULL), _ellipse_enable(true), _colormap(NULL),
       _histogram_n(50), _histogram_m(50),  _histogram_accumulation(HISTOGRAM_ACCUMULATION_CLOSEST),
       _histogram_style(true), _interpolation(INTERPOLATION_CLOSEST), _dot_size(1.0)
@@ -158,6 +158,12 @@ void ParticleDiagPlot::build_data( void )
     } else {
 	_pdb.trajectories_at_plane( *_tdata, _axis, _level, diagnostics );
     }
+
+    // Get Isum
+    _Isum = 0.0;
+    uint32_t last = diagnostics.size()-1;
+    for( uint32_t a = 0; a < _tdata->traj_size(); a++ )
+	_Isum += (*_tdata)(a,last);
 
     // Do data mirroring. Limited to only one mirroring per
     // axis-direction, lower end dominates if both edges have

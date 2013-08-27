@@ -2,7 +2,7 @@
  *  \brief %Particle diagnostic plot
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -100,6 +100,7 @@ class ParticleDiagPlot {
 
     int                        _pdb_it_no;
     bool                       _update;
+    double                     _Isum;
     TrajectoryDiagnosticData  *_tdata;  /*!< \brief Trajectory data (scatter) */
     Histogram                 *_histo;  /*!< \brief Histogram data */
     Emittance                 *_emit;   /*!< \brief Emittance data */
@@ -309,6 +310,14 @@ public:
      */
     const Histogram *get_histogram( void ) {
 	return( _histo );
+    }
+
+    /*! \brief Return total current in diagnostic.
+     *
+     *  No mirroring applied to returned current.
+     */
+    double get_isum( void ) {
+	return( _Isum );
     }
 
     /*! \brief Calculate Emittance fit.
