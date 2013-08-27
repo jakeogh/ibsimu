@@ -58,9 +58,11 @@ EpotBiCGSTABSolver::EpotBiCGSTABSolver( Geometry &geom,
 					uint32_t newton_imax,
 					bool gnewton )
     : EpotMatrixSolver(geom), _eps(eps), _imax(imax), _iter(0), 
-      _res(0.0), _err(0.0), _gnewton(gnewton), _newton_r_eps(newton_r_eps), 
+      _res(0.0), _err(0.0), _newton_res(0.0), _newton_res_norm(0.0), 
+      _newton_step(0.0), _newton_step_norm(0.0), 
+      _gnewton(gnewton), _newton_r_eps(newton_r_eps), 
       _newton_step_eps(newton_step_eps), _newton_imax(newton_imax),
-      _epot(0), _callback(0)
+      _epot(0), _callback(0), _callback_nonlinear(0)
 {
     if( eps <= 0.0 || newton_r_eps <= 0.0 || newton_step_eps <= 0.0 )
         throw( ErrorDim( ERROR_LOCATION, "invalid accuracy request" ) );
@@ -149,7 +151,12 @@ double EpotBiCGSTABSolver::get_scaled_residual( void ) const
 
 double EpotBiCGSTABSolver::get_error_estimate( void ) const
 {
-    return( _err );
+    if( linear() )
+	return( _err );
+    else {
+	double maxsize = _geom.size().max();
+	return( maxsize * _newton_res / 1e7 );
+    }
 }
 
 
@@ -165,9 +172,21 @@ double EpotBiCGSTABSolver::get_newton_residual( void ) const
 }
 
 
+double EpotBiCGSTABSolver::get_newton_residual_norm( void ) const
+{
+    return( _newton_res_norm );
+}
+
+
 double EpotBiCGSTABSolver::get_newton_step( void ) const
 {
     return( _newton_step );
+}
+
+
+double EpotBiCGSTABSolver::get_newton_step_norm( void ) const
+{
+    return( _newton_step_norm );
 }
 
 
@@ -253,7 +272,6 @@ void EpotBiCGSTABSolver::bicgstab( const Matrix &mat, const Vector &rhs, Vector 
 
 	i++;
 	_iter++;
-	_err = errscale*_res;
 	if( ibsimu.get_message_threshold(MSG_VERBOSE) && ibsimu.output_is_cout() ) {
 	    std::stringstream ss;
 	    ss << "  " << std::setw(5) << i << " " << std::scientific << std::setw(20) << _err;
@@ -374,7 +392,9 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 
                 // Check for convergence
                 _newton_res = max_abs( *R );
+                _newton_res_norm = norm2( *R );
                 _newton_step = t*max_abs( dX );
+                _newton_step_norm = t*norm2( dX );
 
 		ibsimu.message( 1 ) << "\r  " 
 				    << std::setw(5)  << a << " " 
@@ -384,6 +404,11 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 				    << std::setw(14) << _newton_res << "\n";
 		ibsimu.flush();
                 
+		if( _callback_nonlinear ) {
+		    set_solution( *_epot, X );
+		    _callback_nonlinear();
+		}
+
                 if( _newton_res < _newton_r_eps || (t == 1.0 && _newton_step < _newton_step_eps) || _iter >= _imax )
                     break;
             }
@@ -420,7 +445,9 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 
 		// Check for convergence
 		_newton_res = max_abs( *R );
+                _newton_res_norm = norm2( *R );
 		_newton_step = max_abs( dX );
+                _newton_step_norm = norm2( dX );
 
 		ibsimu.message( 1 ) << "\r  " 
 				    << std::setw(5) << a << " " 
@@ -429,6 +456,11 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 				    << std::setw(14) << _newton_res << "\n";
 		ibsimu.flush();
 		
+		if( _callback_nonlinear ) {
+		    set_solution( *_epot, X );
+		    _callback_nonlinear();
+		}
+
 		if( _newton_res < _newton_r_eps || _newton_step < _newton_step_eps || _iter >= _imax )
 		    break;
 	    }
@@ -454,6 +486,12 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 void EpotBiCGSTABSolver::set_analysis_callback( void (*func)(void) )
 {
     _callback = func;
+}
+
+    
+void EpotBiCGSTABSolver::set_analysis_callback_nonlinear( void (*func)(void) )
+{
+    _callback_nonlinear = func;
 }
 
     

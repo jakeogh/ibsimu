@@ -60,18 +60,21 @@ class EpotBiCGSTABSolver : public EpotMatrixSolver {
     double    _res;             /*!< \brief Scaled residual error. */
     double    _err;             /*!< \brief Error estimate. */
 
-    double    _newton_res;      /*!< \brief Newton residual error. */
-    double    _newton_step;     /*!< \brief Newton step size. */
+    double    _newton_res;      /*!< \brief Newton residual error max. */
+    double    _newton_res_norm; /*!< \brief Newton residual error norm2. */
+    double    _newton_step;     /*!< \brief Newton step size max. */
+    double    _newton_step_norm;/*!< \brief Newton step size norm2. */
 
     bool      _gnewton;         /*!< \brief Globally convergent version of Newton-Raphson. */
-    double    _newton_r_eps  ;  /*!< \brief Accuracy request for Newton-Raphson residual. */
+    double    _newton_r_eps;    /*!< \brief Accuracy request for Newton-Raphson residual. */
     double    _newton_step_eps; /*!< \brief Accuracy request for Newton-Raphson step. */
     uint32_t  _newton_imax;     /*!< \brief Maximum number of Newton-Raphson iterations. */
 
     Precond  *_pc;              /*!< \brief Preconditioner. */
 
     MeshScalarField *_epot;     /*!< \brief Electric potential output. */
-    void    (*_callback)(void); /*!< \brief Aanalysis callback. */
+    void    (*_callback)(void); /*!< \brief Analysis callback. */
+    void    (*_callback_nonlinear)(void); /*!< \brief Analysis callback. */
 
     /*! \brief Reset solver/problem settings.
      */
@@ -142,6 +145,10 @@ public:
      */
     double get_newton_residual( void ) const;
 
+    /*! \brief Get last Newton-Raphson residual norm.
+     */
+    double get_newton_residual_norm( void ) const;
+
     /*! \brief Sets the accuracy request for Newton-Raphson step size.
      *
      *  Defaults to 1.0e-6.
@@ -152,6 +159,10 @@ public:
      */
     double get_newton_step( void ) const;
 
+    /*! \brief Get last Newton-Raphson step size norm.
+     */
+    double get_newton_step_norm( void ) const;
+
     /*! \brief Get scaled residual error.
      *
      *  Returns scaled 2-norm residual \f$ ||(A*x-b)|| / ||b|| \f$.
@@ -161,9 +172,10 @@ public:
 
     /*! \brief Get estimate of relative solution error.
      *
-     *  Returns scaled 2-norm residual \f$ \max(I,J,K)^{-2} ||(A*x-b)|| / ||b|| \f$, 
-     *  which is an estimator for
-     *  \f$ ||x-x^*|| / ||x^*|| \f$. Only available for linear solutions.
+     *  Returns an estimate for \f$ ||x-x^*|| / ||x^*|| \f$.  For
+     *  linear solutions this is the scaled 2-norm residual 
+     *  \f$ \max(I,J,K)^{-2} ||(A*x-b)|| / ||b|| \f$ and for nonlinear
+     *  problem it is \f$ \max(I,J,K) ||R|| / 10^7 \f$. 
      */
     double get_error_estimate( void ) const;
 
@@ -177,6 +189,13 @@ public:
      *  constructed at each iteration and callback function is called.
      */
     void set_analysis_callback( void (*func)(void) );
+    
+    /*! \brief Set analysis callback for nonlinear iteration.
+     *
+     *  If callback is set to non-NULL, the electric potential is
+     *  constructed at each newton step and callback function is called.
+     */
+    void set_analysis_callback_nonlinear( void (*func)(void) );
     
     /*! \brief Print debugging information to os.
      */
