@@ -46,8 +46,9 @@ bool solid2( double x, double y, double z )
 void test( int argc, char **argv )
 {
     //Geometry geom( MODE_2D, Int3D(121,71,1), Vec3D(0,0,0), 1e-4 );
-    Geometry geom( MODE_2D, Int3D(241,141,1), Vec3D(0,0,0), 5e-5 );
-    //Geometry geom( MODE_2D, Int3D(1201,701,1), Vec3D(0,0,0), 1e-5 );
+    //Geometry geom( MODE_2D, Int3D(241,141,1), Vec3D(0,0,0), 5e-5 );
+    //Geometry geom( MODE_2D, Int3D(1201,705,1), Vec3D(0,0,0), 1e-5 );
+    Geometry geom( MODE_2D, Int3D(76,45,1), Vec3D(0,0,0), 1.6e-4 );
 
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
@@ -62,11 +63,11 @@ void test( int argc, char **argv )
     geom.build_mesh();
     
     //EpotMGSolver solver( geom );
-    //solver.set_mgcycmax( 2 );
+    //solver.set_mgcycmax( 10 );
     //solver.set_levels( 4 );
     //EpotUMFPACKSolver solver( geom );
-    //EpotGSSolver solver( geom );
-    EpotBiCGSTABSolver solver( geom );
+    EpotGSSolver solver( geom );
+    //EpotBiCGSTABSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_initial_plasma( 5.0, &initp );
 
@@ -90,7 +91,7 @@ void test( int argc, char **argv )
     Emittance emit;
     conv.add_emittance( 0, emit );
 
-    for( size_t i = 0; i < 2; i++ ) {
+    for( size_t i = 0; i < 5; i++ ) {
 
 	if( i == 1 ) {
 	    double rhoe = pdb.get_rhosum();
@@ -117,7 +118,7 @@ void test( int argc, char **argv )
 	conv.evaluate_iteration();
     }
 
-    if( false ) {
+    if( true ) {
 	MeshScalarField tdens( geom );
 	pdb.build_trajectory_density_field( tdens );
 	GTKPlotter plotter( &argc, &argv );

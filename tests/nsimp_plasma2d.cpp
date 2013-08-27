@@ -14,6 +14,7 @@
 #include "epot_bicgstabsolver.hpp"
 #include "epot_umfpacksolver.hpp"
 #include "epot_gssolver.hpp"
+#include "epot_mgsolver.hpp"
 #include "particledatabase.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
@@ -46,15 +47,11 @@ bool solid2( double x, double y, double z )
 }
 
 
-bool initial_plasma( double x, double y, double z )
-{
-    return( x <= 0.00055 );
-}
-
-
 void test( int argc, char **argv )
 {
-    Geometry geom( MODE_2D, Int3D(151,101,1), Vec3D(-0.001,0,0), 0.0002 );
+    //Geometry geom( MODE_2D, Int3D(151,101,1), Vec3D(-0.001,0,0), 0.0002 );
+    Geometry geom( MODE_2D, Int3D(289,193,1), Vec3D(-0.001,0,0), 0.0001 );
+
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
@@ -67,8 +64,11 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, +6.0e3) );
     geom.build_mesh();
 
+    EpotMGSolver solver( geom );
+    solver.set_mgcycmax( 10 );
+    solver.set_levels( 4 );
     //EpotGSSolver solver( geom );
-    EpotUMFPACKSolver solver( geom );
+    //EpotUMFPACKSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_nsimp_initial_plasma( &initp );
 
@@ -86,7 +86,7 @@ void test( int argc, char **argv )
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
 
-    for( size_t i = 0; i < 8; i++ ) {
+    for( size_t i = 0; i < 2; i++ ) {
 
 	if( i == 1 ) {
 	    // 50%/50%
@@ -134,7 +134,7 @@ void test( int argc, char **argv )
 				     -0.001, 0.005 );
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
 
-	if( true ) {
+	if( false ) {
 	    MeshScalarField tdens( geom );
 	    pdb.build_trajectory_density_field( tdens );
 	    GTKPlotter plotter( &argc, &argv );
@@ -163,7 +163,7 @@ void test( int argc, char **argv )
 	plotter.run();
     }
 
-    GeomPlotter gplotter( &geom );
+    GeomPlotter gplotter( geom );
     gplotter.set_size( 1024, 768 );
     gplotter.set_epot( &epot );
     std::vector<double> eqlines;
