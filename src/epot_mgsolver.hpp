@@ -154,6 +154,12 @@ public:
      */
     void set_imax( uint32_t imax );
 
+    /*! \brief Sets maximum number of local iterations to take for nonlinear problems.
+     *
+     *  Defaults to 1.
+     */
+    void set_local_imax( uint32_t local_imax );
+
     /*! \brief Sets multigrid levels.
      *
      *  Defaults to 1.

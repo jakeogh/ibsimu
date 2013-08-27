@@ -61,7 +61,7 @@ EpotMGSolver::EpotMGSolver( Geometry &geom )
       _npost(5), _mgcycmax(100), _mgcyc(0), _mgeps(1.0e-4), _mgerr(0.0),
       _gamma(1), _step(0.0), _coarse_eps(1.0e-10), _coarse_err(0.0), 
       _w(1.7), _imax(10000), _coarse_steps(0), 
-      _local_Ulim(0.0), _local_imax(1.0), _local_eps(1.0e-6)
+      _local_Ulim(0.0), _local_imax(1), _local_eps(1.0e-6)
 {
 
 }
@@ -131,6 +131,12 @@ void EpotMGSolver::set_w( double w )
 void EpotMGSolver::set_imax( uint32_t imax )
 {
     _imax = imax;
+}
+
+
+void EpotMGSolver::set_local_imax( uint32_t local_imax )
+{
+    _local_imax = local_imax;
 }
 
 
