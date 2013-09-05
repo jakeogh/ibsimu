@@ -14,3 +14,7 @@ the axis causes problems. Even no fields \phi=const. causes the problem.
  - Possibly fixed 6 Oct 2009
 
 Opening an empty field from file -> check streams
+
+Diagnostics using free_plane at an arbitrary angle will give incorrect
+output when mirroring is done.
+ - 5 Sep 2013
