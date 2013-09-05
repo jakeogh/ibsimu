@@ -57,6 +57,7 @@ class ParticleDataBaseImp {
 
 protected:
 
+    const Geometry             &_geom;
     double                     _epsabs;       /*!< \brief Absolute error limit for calculation. */
     double                     _epsrel;       /*!< \brief Relative error limit for calculation. */
     trajectory_interpolation_e _intrp;        /*!< \brief Trajectory interpolation type. */
@@ -82,9 +83,9 @@ protected:
     TrajectorySurfaceCollisionCallback *_tsur_cb;    /*!< \brief Trajectory surface collision callback. */
     ParticleDataBase          *_pdb;          /*!< \brief Particle database pointer. */
 
-    ParticleDataBaseImp( ParticleDataBase *pdb );
+    ParticleDataBaseImp( ParticleDataBase *pdb, const Geometry &geom );
 
-    ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s );
+    ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s, const Geometry &geom );
 
     ParticleDataBaseImp( const ParticleDataBaseImp &pdb );
 
@@ -176,10 +177,10 @@ public:
     virtual void build_trajectory_density_field( MeshScalarField &tdens ) const = 0;
 
     virtual void iterate_trajectories( MeshScalarField &scharge, const VectorField &efield, 
-				       const VectorField &bfield, const Geometry &geom ) = 0;
+				       const VectorField &bfield ) = 0;
 
     virtual void step_particles( MeshScalarField &scharge, const VectorField &efield, 
-				 const VectorField &bfield, const Geometry &geom, double dt ) = 0;
+				 const VectorField &bfield, double dt ) = 0;
 
     void debug_print( std::ostream &os ) const;
 };
@@ -287,13 +288,13 @@ protected:
 
     /*! \brief Constructor, using API pdb
      */
-    ParticleDataBasePPImp( ParticleDataBase *pdb )
-	: ParticleDataBaseImp(pdb), _scheduler(_particles) {}
+    ParticleDataBasePPImp( ParticleDataBase *pdb, const Geometry &geom )
+	: ParticleDataBaseImp(pdb,geom), _scheduler(_particles) {}
 
     /*! \brief Constructor from stream, using API pdb
      */
-    ParticleDataBasePPImp( ParticleDataBase *pdb, std::istream &s ) 
-	: ParticleDataBaseImp(pdb,s), _scheduler(_particles) {
+    ParticleDataBasePPImp( ParticleDataBase *pdb, std::istream &s, const Geometry &geom ) 
+	: ParticleDataBaseImp(pdb,s,geom), _scheduler(_particles) {
 
 	uint32_t N = read_int32( s );
 	_particles.reserve( N );
@@ -618,7 +619,7 @@ public:
     }
 
     virtual void iterate_trajectories( MeshScalarField &scharge, const VectorField &efield, 
-				       const VectorField &bfield, const Geometry &geom ) {
+				       const VectorField &bfield ) {
 
 	Timer t;
 	ibsimu.message( 1 ) << "Calculating particle trajectories\n";
@@ -641,14 +642,14 @@ public:
 	}
 
 	// Check geometry mode
-	if( geom.geom_mode() != PP::geom_mode() )
+	if( _geom.geom_mode() != PP::geom_mode() )
 	    throw( Error( ERROR_LOCATION, "Differing geometry modes" ) );
 
 	// Clear space charge
 	scharge.clear();
 
 	// Reset statistics
-	_stat.reset( geom.number_of_boundaries() );
+	_stat.reset( _geom.number_of_boundaries() );
 
 	// Check number of particles
 	if( _particles.size() == 0 ) {
@@ -665,7 +666,7 @@ public:
 	    iterators.push_back( new ParticleIterator<PP>( PARTICLE_ITERATOR_ADAPTIVE, _epsabs, _epsrel, 
 							   _intrp, _scharge_dep, _maxsteps, _maxt, 
 							   _save_points, _trajdiv, _mirror, &scharge, 
-							   &scharge_mutex, &efield, &bfield, &geom ) );
+							   &scharge_mutex, &efield, &bfield, &_geom ) );
 	    iterators[a]->set_trajectory_handler_callback( _thand_cb );
 	    iterators[a]->set_trajectory_end_callback( _tend_cb, _pdb );
 	    iterators[a]->set_trajectory_surface_collision_callback( _tsur_cb );
@@ -736,7 +737,7 @@ public:
     }
 
     virtual void step_particles( MeshScalarField &scharge, const VectorField &efield, 
-				 const VectorField &bfield, const Geometry &geom, double dt ) {
+				 const VectorField &bfield, double dt ) {
 
 	throw( ErrorUnimplemented( ERROR_LOCATION ) );
     }
@@ -775,11 +776,11 @@ class ParticleDataBase2DImp : public ParticleDataBasePPImp<ParticleP2D> {
 
 public:
 
-    ParticleDataBase2DImp( ParticleDataBase *pdb );
+    ParticleDataBase2DImp( ParticleDataBase *pdb, const Geometry &geom );
 
     ParticleDataBase2DImp( const ParticleDataBase2DImp &pdb );
 
-    ParticleDataBase2DImp( ParticleDataBase *pdb, std::istream &s );
+    ParticleDataBase2DImp( ParticleDataBase *pdb, std::istream &s, const Geometry &geom );
 
     virtual ~ParticleDataBase2DImp();
 
@@ -821,11 +822,11 @@ class ParticleDataBaseCylImp : public ParticleDataBasePPImp<ParticlePCyl> {
 
 public:
 
-    ParticleDataBaseCylImp( ParticleDataBase *pdb );
+    ParticleDataBaseCylImp( ParticleDataBase *pdb, const Geometry &geom );
 
     ParticleDataBaseCylImp( const ParticleDataBaseCylImp &pdb );
     
-    ParticleDataBaseCylImp( ParticleDataBase *pdb, std::istream &s );
+    ParticleDataBaseCylImp( ParticleDataBase *pdb, std::istream &s, const Geometry &geom );
 
     virtual ~ParticleDataBaseCylImp();
 
@@ -869,13 +870,15 @@ class ParticleDataBase3DImp : public ParticleDataBasePPImp<ParticleP3D> {
     void add_tdens_from_segment( MeshScalarField &tdens, double IQ,
 				 ParticleP3D &x1, ParticleP3D &x2 ) const;
 
+    bool free_plane_mirror_enabled( uint32_t axism ) const;
+    ParticleP3D free_plane_mirror( const ParticleP3D &p, uint32_t axism ) const;
 public:
 
-    ParticleDataBase3DImp( ParticleDataBase *pdb );
+    ParticleDataBase3DImp( ParticleDataBase *pdb, const Geometry &geom );
 
     ParticleDataBase3DImp( const ParticleDataBase3DImp &pdb );
 
-    ParticleDataBase3DImp( ParticleDataBase *pdb, std::istream &s );
+    ParticleDataBase3DImp( ParticleDataBase *pdb, std::istream &s, const Geometry &geom );
 
     virtual ~ParticleDataBase3DImp();
 

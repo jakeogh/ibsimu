@@ -289,16 +289,16 @@ void ParticleDataBase::build_trajectory_density_field( MeshScalarField &tdens ) 
 
 
 void ParticleDataBase::iterate_trajectories( MeshScalarField &scharge, const VectorField &efield, 
-					     const VectorField &bfield, const Geometry &geom )
+					     const VectorField &bfield )
 {
-    _imp->iterate_trajectories( scharge, efield, bfield, geom );
+    _imp->iterate_trajectories( scharge, efield, bfield );
 }
 
 
 void ParticleDataBase::step_particles( MeshScalarField &scharge, const VectorField &efield, 
-				       const VectorField &bfield, const Geometry &geom, double dt )
+				       const VectorField &bfield, double dt )
 {
-    _imp->step_particles( scharge, efield, bfield, geom, dt );
+    _imp->step_particles( scharge, efield, bfield, dt );
 }
 
 
@@ -308,9 +308,9 @@ void ParticleDataBase::step_particles( MeshScalarField &scharge, const VectorFie
  * ******************************************************************************************* */
 
 
-ParticleDataBase2D::ParticleDataBase2D()
+ParticleDataBase2D::ParticleDataBase2D( const Geometry &geom )
 {
-    _imp = new ParticleDataBase2DImp( this );
+    _imp = new ParticleDataBase2DImp( this, geom );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
 
@@ -322,12 +322,12 @@ ParticleDataBase2D::ParticleDataBase2D( const ParticleDataBase2D &pdb )
 }
 
 
-ParticleDataBase2D::ParticleDataBase2D( std::istream &s )
+ParticleDataBase2D::ParticleDataBase2D( std::istream &s, const Geometry &geom )
 {
     int32_t fileid = read_int32( s );
     if( fileid != FILEID_PARTICLEDB2D )
 	throw( Error( ERROR_LOCATION, "unknown input reading ParticleDataBase2D from stream" ) );
-    _imp = new ParticleDataBase2DImp( this, s );
+    _imp = new ParticleDataBase2DImp( this, s, geom );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
 
@@ -448,9 +448,9 @@ void ParticleDataBase2D::debug_print( std::ostream &os ) const
  * ******************************************************************************************* */
 
 
-ParticleDataBaseCyl::ParticleDataBaseCyl()
+ParticleDataBaseCyl::ParticleDataBaseCyl( const Geometry &geom )
 {
-    _imp = new ParticleDataBaseCylImp( this );
+    _imp = new ParticleDataBaseCylImp( this, geom );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
 
@@ -462,12 +462,12 @@ ParticleDataBaseCyl::ParticleDataBaseCyl( const ParticleDataBaseCyl &pdb )
 }
 
 
-ParticleDataBaseCyl::ParticleDataBaseCyl( std::istream &s )
+ParticleDataBaseCyl::ParticleDataBaseCyl( std::istream &s, const Geometry &geom )
 {
     int32_t fileid = read_int32( s );
     if( fileid != FILEID_PARTICLEDBCYL )
 	throw( Error( ERROR_LOCATION, "unknown input reading ParticleDataBaseCyl from stream" ) );
-    _imp = new ParticleDataBaseCylImp( this, s );
+    _imp = new ParticleDataBaseCylImp( this, s, geom );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
 
@@ -597,9 +597,9 @@ void ParticleDataBaseCyl::debug_print( std::ostream &os ) const
  * ******************************************************************************************* */
 
 
-ParticleDataBase3D::ParticleDataBase3D()
+ParticleDataBase3D::ParticleDataBase3D( const Geometry &geom )
 {
-    _imp = new ParticleDataBase3DImp( this );
+    _imp = new ParticleDataBase3DImp( this, geom );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
 
@@ -611,12 +611,12 @@ ParticleDataBase3D::ParticleDataBase3D( const ParticleDataBase3D &pdb )
 }
 
 
-ParticleDataBase3D::ParticleDataBase3D( std::istream &s )
+ParticleDataBase3D::ParticleDataBase3D( std::istream &s, const Geometry &geom )
 {
     int32_t fileid = read_int32( s );
     if( fileid != FILEID_PARTICLEDB3D )
 	throw( Error( ERROR_LOCATION, "unknown input reading ParticleDataBase3D from stream" ) );
-    _imp = new ParticleDataBase3DImp( this, s );
+    _imp = new ParticleDataBase3DImp( this, s, geom );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
 

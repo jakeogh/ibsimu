@@ -219,5 +219,6 @@ solvercyl_beam.gpl \
 solvercyl_coax.gpl \
 vecfield_filedef.in
 
-CLEANFILES = *~ *.png *.eps *.svg *.pdf *.ps *.dat *_vout.txt beam3d.path libibsimutest.la export_path_manager.txt
+CLEANFILES = *~ *.png *.eps *.svg *.pdf *.ps *.dat *_vout.txt beam3d.path libibsimutest.la \
+export_path_manager1.txt export_path_manager2.txt 
 

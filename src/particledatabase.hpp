@@ -497,7 +497,7 @@ public:
      *  resolution, but magnetic field is relatively smooth.
      */
     void iterate_trajectories( MeshScalarField &scharge, const VectorField &efield, 
-			       const VectorField &bfield, const Geometry &geom );
+			       const VectorField &bfield );
 
     /*! \brief Step particles forward by time step dt.
      *
@@ -506,7 +506,7 @@ public:
      *  \a geom.
      */
     void step_particles( MeshScalarField &scharge, const VectorField &efield, 
-			 const VectorField &bfield, const Geometry &geom, double dt );
+			 const VectorField &bfield, double dt );
 
 /* ************************************** *
  * Debugging, plotting and saving         *
@@ -549,7 +549,7 @@ public:
 
     /*! \brief Constructor.
      */
-    ParticleDataBase2D();
+    ParticleDataBase2D( const Geometry &geom );
 
     /*! \brief Copy constructor.
      */
@@ -557,7 +557,7 @@ public:
 
     /*! \brief Constructor for loading particle statistics from a file.
      */
-    ParticleDataBase2D( std::istream &s );
+    ParticleDataBase2D( std::istream &s, const Geometry &geom );
 
     /*! \brief Destructor.
      */
@@ -746,7 +746,7 @@ public:
 
     /*! \brief Constructor.
      */
-    ParticleDataBaseCyl();
+    ParticleDataBaseCyl( const Geometry &geom );
 
     /*! \brief Copy constructor.
      */
@@ -754,7 +754,7 @@ public:
 
     /*! \brief Constructor for loading particle statistics from a file.
      */
-    ParticleDataBaseCyl( std::istream &s );
+    ParticleDataBaseCyl( std::istream &s, const Geometry &geom );
 
     /*! \brief Destructor.
      */
@@ -954,7 +954,7 @@ public:
 
     /*! \brief Constructor.
      */
-    ParticleDataBase3D();
+    ParticleDataBase3D( const Geometry &geom );
 
     /*! \brief Copy constructor.
      */
@@ -962,7 +962,7 @@ public:
 
     /*! \brief Constructor for loading particle statistics from a file.
      */
-    ParticleDataBase3D( std::istream &s );
+    ParticleDataBase3D( std::istream &s, const Geometry &geom );
 
     /*! \brief Destructor.
      */
@@ -1245,14 +1245,16 @@ public:
      *  The particle properties on the diagnostics plane are written
      *  to file \a filename in the format required by the Path Manager
      *  program. Reference particle for the output has energy \a ref_E
-     *  (in eV), charge state \a ref_q and mass \a ref_m (in atomic
-     *  mass units).
+     *  (in eV), charge state \a ref_q (in electron charges) and mass
+     *  \a ref_m (in atomic mass units).
      *
      *  The file contains a header with information about the
      *  reference particle. After the header, the file has a line for
      *  each particle, which contain the following columns: \a x, \a
      *  x', \a y, \a y', \a phase, \a (p_z-p_ref)/p_ref, \a 0-flag, \a
-     *  q, \a m.
+     *  q, \a m. The particles are mirrored according the particle
+     *  database mirroring settings. The phase is randomized for each
+     *  particle.
      */
     void export_path_manager_data( std::string filename, 
 				   double ref_E, double ref_q, double ref_m, 

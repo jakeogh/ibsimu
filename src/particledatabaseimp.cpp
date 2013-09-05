@@ -55,8 +55,8 @@
  * ******************************************************************************************* */
 
 
-ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb )
-    : _epsabs(1e-6), _epsrel(1e-6), _intrp(TRAJECTORY_INTERPOLATION_POLYNOMIAL), 
+ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb, const Geometry &geom )
+    : _geom(geom), _epsabs(1e-6), _epsrel(1e-6), _intrp(TRAJECTORY_INTERPOLATION_POLYNOMIAL), 
       _scharge_dep(SCHARGE_DEPOSITION_PIC), _maxsteps(1000), 
       _maxt(1e-3), _save_points(false), _trajdiv(1), _rhosum(0.0), _iteration(0), 
       _relativistic(false), _surface_collision(false),
@@ -68,8 +68,8 @@ ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb )
 }
 
 
-ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s )
-    : _pdb(pdb)
+ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s, const Geometry &geom )
+    : _geom(geom), _pdb(pdb)
 {
     ibsimu.message( 1 ) << "Constructing ParticleDataBase from stream\n";
     ibsimu.inc_indent();
@@ -91,6 +91,13 @@ ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s
 
 
 ParticleDataBaseImp::ParticleDataBaseImp( const ParticleDataBaseImp &pdb )
+    : _geom(pdb._geom), _epsabs(pdb._epsabs), _epsrel(pdb._epsrel), _intrp(pdb._intrp), 
+      _scharge_dep(pdb._scharge_dep), _maxsteps(pdb._maxsteps), _maxt(pdb._maxt), 
+      _save_points(pdb._save_points), _trajdiv(pdb._trajdiv), _rhosum(pdb._rhosum), 
+      _stat(pdb._stat), _iteration(0), _relativistic(pdb._relativistic), 
+      _surface_collision(pdb._surface_collision), _bsup_cb(pdb._bsup_cb), 
+      _thand_cb(pdb._thand_cb), _tend_cb(pdb._tend_cb), _tsur_cb(pdb._tsur_cb),
+      _pdb(pdb._pdb)
 {
 
 }
@@ -332,8 +339,8 @@ void ParticleDataBaseImp::debug_print( std::ostream &os ) const
  * ******************************************************************************************* */
 
 
-ParticleDataBase2DImp::ParticleDataBase2DImp( ParticleDataBase *pdb )
-    : ParticleDataBasePPImp<ParticleP2D>(pdb)
+ParticleDataBase2DImp::ParticleDataBase2DImp( ParticleDataBase *pdb, const Geometry &geom )
+    : ParticleDataBasePPImp<ParticleP2D>(pdb,geom)
 {
     
 }
@@ -346,8 +353,8 @@ ParticleDataBase2DImp::ParticleDataBase2DImp( const ParticleDataBase2DImp &pdb )
 }
 
 
-ParticleDataBase2DImp::ParticleDataBase2DImp( ParticleDataBase *pdb, std::istream &s )
-    : ParticleDataBasePPImp<ParticleP2D>(pdb,s)
+ParticleDataBase2DImp::ParticleDataBase2DImp( ParticleDataBase *pdb, std::istream &s, const Geometry &geom )
+    : ParticleDataBasePPImp<ParticleP2D>(pdb,s,geom)
 {
 }
 
@@ -656,8 +663,8 @@ void ParticleDataBase2DImp::debug_print( std::ostream &os ) const
  * ******************************************************************************************* */
 
 
-ParticleDataBaseCylImp::ParticleDataBaseCylImp( ParticleDataBase *pdb )
-    : ParticleDataBasePPImp<ParticlePCyl>(pdb)
+ParticleDataBaseCylImp::ParticleDataBaseCylImp( ParticleDataBase *pdb, const Geometry &geom )
+    : ParticleDataBasePPImp<ParticlePCyl>(pdb,geom)
 {
     
 }
@@ -670,8 +677,8 @@ ParticleDataBaseCylImp::ParticleDataBaseCylImp( const ParticleDataBaseCylImp &pd
 }
 
 
-ParticleDataBaseCylImp::ParticleDataBaseCylImp( ParticleDataBase *pdb, std::istream &s )
-    : ParticleDataBasePPImp<ParticlePCyl>(pdb,s)
+ParticleDataBaseCylImp::ParticleDataBaseCylImp( ParticleDataBase *pdb, std::istream &s, const Geometry &geom )
+    : ParticleDataBasePPImp<ParticlePCyl>(pdb,s,geom)
 {
 }
 
@@ -1136,8 +1143,8 @@ void ParticleDataBaseCylImp::debug_print( std::ostream &os ) const
  * ******************************************************************************************* */
 
 
-ParticleDataBase3DImp::ParticleDataBase3DImp( ParticleDataBase *pdb )
-    : ParticleDataBasePPImp<ParticleP3D>(pdb)
+ParticleDataBase3DImp::ParticleDataBase3DImp( ParticleDataBase *pdb, const Geometry &geom )
+    : ParticleDataBasePPImp<ParticleP3D>(pdb,geom)
 {
     
 }
@@ -1150,8 +1157,8 @@ ParticleDataBase3DImp::ParticleDataBase3DImp( const ParticleDataBase3DImp &pdb )
 }
 
 
-ParticleDataBase3DImp::ParticleDataBase3DImp( ParticleDataBase *pdb, std::istream &s )
-    : ParticleDataBasePPImp<ParticleP3D>(pdb,s)
+ParticleDataBase3DImp::ParticleDataBase3DImp( ParticleDataBase *pdb, std::istream &s, const Geometry &geom )
+    : ParticleDataBasePPImp<ParticleP3D>(pdb,s,geom)
 {
 }
 
@@ -1991,6 +1998,196 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
 }
 
 
+/* Returns if axism type mirroring is enabled. The index axism
+ * indicates mirroring across the planes in the list
+ * (-,x,y,z,xy,xz,yz,xyz), starting from zero (no mirroring).
+ */
+bool ParticleDataBase3DImp::free_plane_mirror_enabled( uint32_t axism ) const
+{
+    switch( axism ) {
+    case 1: // x
+	return( _mirror[0] || _mirror[1] );
+	break;
+    case 2: // y
+	return( _mirror[2] || _mirror[3] );
+	break;
+    case 3: // z
+	return( _mirror[4] || _mirror[5] );
+	break;
+    case 4: // xy
+	return( (_mirror[0] || _mirror[1]) && (_mirror[2] || _mirror[3]) );
+	break;
+    case 5: // xz
+	return( (_mirror[0] || _mirror[1]) && (_mirror[4] || _mirror[5]) );
+	break;
+    case 6: // yz
+	return( (_mirror[2] || _mirror[3]) && (_mirror[4] || _mirror[5]) );
+	break;
+    case 7: // xyz
+	return( (_mirror[0] || _mirror[1]) && (_mirror[2] || _mirror[3]) && (_mirror[4] || _mirror[5]) );
+	break;
+    }
+
+    // case 0: -
+    return( true );
+}
+
+
+ParticleP3D ParticleDataBase3DImp::free_plane_mirror( const ParticleP3D &p, uint32_t axism ) const
+{
+    switch( axism ) {
+    case 0: // -
+	return( p );
+    case 1: // x
+	if( _mirror[0] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.origo(0)-p[1], -p[2], 
+				 p[3], p[4], 
+				 p[5], p[6] ) );
+	else if( _mirror[1] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.max(0)-p[1], -p[2], 
+				 p[3], p[4], 
+				 p[5], p[6] ) );
+	break;
+    case 2: // y
+	if( _mirror[2] )
+	    return( ParticleP3D( p[0], 
+				 p[1], p[2], 
+				 2.0*_geom.origo(1)-p[3], -p[4], 
+				 p[5], p[6] ) );
+	else if( _mirror[3] )
+	    return( ParticleP3D( p[0], 
+				 p[1], p[2], 
+				 2.0*_geom.max(1)-p[3], -p[4], 
+				 p[5], p[6] ) );
+	break;
+    case 3: // z
+	if( _mirror[2] )
+	    return( ParticleP3D( p[0], 
+				 p[1], p[2], 
+				 p[3], p[4], 
+				 2.0*_geom.origo(2)-p[5], -p[6] ) );
+	else if( _mirror[3] )
+	    return( ParticleP3D( p[0], 
+				 p[1], p[2], 
+				 p[3], p[4], 
+				 2.0*_geom.max(2)-p[5], -p[6] ) );
+	break;
+    case 4: // xy
+	if( _mirror[0] && _mirror[2] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.origo(0)-p[1], -p[2], 
+				 2.0*_geom.origo(1)-p[3], -p[4], 
+				 p[5], p[6] ) );
+	else if( _mirror[0] && _mirror[3] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.origo(0)-p[1], -p[2], 
+				 2.0*_geom.max(1)-p[3], -p[4], 
+				 p[5], p[6] ) );
+	else if( _mirror[1] && _mirror[2] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.max(0)-p[1], -p[2], 
+				 2.0*_geom.origo(1)-p[3], -p[4], 
+				 p[5], p[6] ) );
+	else if( _mirror[1] && _mirror[3] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.max(0)-p[1], -p[2], 
+				 2.0*_geom.max(1)-p[3], -p[4], 
+				 p[5], p[6] ) );
+	break;
+    case 5: // xz
+	if( _mirror[0] && _mirror[4] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.origo(0)-p[1], -p[2], 
+				 p[3], p[4], 
+				 2.0*_geom.origo(2)-p[5], -p[6] ) );
+	else if( _mirror[0] && _mirror[5] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.origo(0)-p[1], -p[2], 
+				 p[3], p[4], 
+				 2.0*_geom.max(2)-p[5], -p[6] ) );
+	else if( _mirror[1] && _mirror[4] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.max(0)-p[1], -p[2], 
+				 p[3], p[4], 
+				 2.0*_geom.origo(2)-p[5], -p[6] ) );
+	else if( _mirror[1] && _mirror[5] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.max(0)-p[1], -p[2], 
+				 p[3], p[4], 
+				 2.0*_geom.max(2)-p[5], -p[6] ) );
+	break;
+    case 6: // yz
+	if( _mirror[2] && _mirror[4] )
+	    return( ParticleP3D( p[0], 
+				 p[1], p[2], 
+				 2.0*_geom.origo(1)-p[3], -p[4], 
+				 2.0*_geom.origo(2)-p[5], -p[6] ) );
+	else if( _mirror[2] && _mirror[5] )
+	    return( ParticleP3D( p[0], 
+				 p[1], p[2], 
+				 2.0*_geom.origo(1)-p[3], -p[4], 
+				 2.0*_geom.max(2)-p[5], -p[6] ) );
+	else if( _mirror[3] && _mirror[4] )
+	    return( ParticleP3D( p[0], 
+				 p[1], p[2], 
+				 2.0*_geom.max(1)-p[3], -p[4], 
+				 2.0*_geom.origo(2)-p[5], -p[6] ) );
+	else if( _mirror[3] && _mirror[5] )
+	    return( ParticleP3D( p[0], 
+				 p[1], p[2], 
+				 2.0*_geom.max(1)-p[3], -p[4], 
+				 2.0*_geom.max(2)-p[5], -p[6] ) );
+	break;
+    case 7: // xyz
+	if( _mirror[0] && _mirror[2] && _mirror[4] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.origo(0)-p[1], -p[2], 
+				 2.0*_geom.origo(1)-p[3], -p[4], 
+				 2.0*_geom.origo(2)-p[5], -p[6] ) );
+	else if( _mirror[0] && _mirror[2] && _mirror[5] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.origo(0)-p[1], -p[2], 
+				 2.0*_geom.origo(1)-p[3], -p[4], 
+				 2.0*_geom.max(2)-p[5], -p[6] ) );
+	else if( _mirror[0] && _mirror[3] && _mirror[4] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.origo(0)-p[1], -p[2], 
+				 2.0*_geom.max(1)-p[3], -p[4], 
+				 2.0*_geom.origo(2)-p[5], -p[6] ) );
+	else if( _mirror[0] && _mirror[3] && _mirror[5] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.origo(0)-p[1], -p[2], 
+				 2.0*_geom.max(1)-p[3], -p[4], 
+				 2.0*_geom.max(2)-p[5], -p[6] ) );
+	else if( _mirror[1] && _mirror[2] && _mirror[4] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.max(0)-p[1], -p[2], 
+				 2.0*_geom.origo(1)-p[3], -p[4], 
+				 2.0*_geom.origo(2)-p[5], -p[6] ) );
+	else if( _mirror[1] && _mirror[2] && _mirror[5] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.max(0)-p[1], -p[2], 
+				 2.0*_geom.origo(1)-p[3], -p[4], 
+				 2.0*_geom.max(2)-p[5], -p[6] ) );
+	else if( _mirror[1] && _mirror[3] && _mirror[4] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.max(0)-p[1], -p[2], 
+				 2.0*_geom.max(1)-p[3], -p[4], 
+				 2.0*_geom.origo(2)-p[5], -p[6] ) );
+	else if( _mirror[1] && _mirror[3] && _mirror[5] )
+	    return( ParticleP3D( p[0], 
+				 2.0*_geom.max(0)-p[1], -p[2], 
+				 2.0*_geom.max(1)-p[3], -p[4], 
+				 2.0*_geom.max(2)-p[5], -p[6] ) );
+	break;
+    }
+    
+    throw( ErrorAssert( ERROR_LOCATION ) );
+}
+
+
 void ParticleDataBase3DImp::export_path_manager_data( std::string filename, 
 						      double ref_E, double ref_q, double ref_m, 
 						      Vec3D c, Vec3D o, Vec3D p ) const
@@ -2036,75 +2233,82 @@ void ParticleDataBase3DImp::export_path_manager_data( std::string filename,
     bool IQ_warning = false;
     double Isum = 0.0;
     for( size_t a = 0; a < _particles.size(); a++ ) {
+
+	double pq = _particles[a]->q();
+	double pm = _particles[a]->m();
 	size_t N = _particles[a]->traj_size();
 	if( N < 2 )
 	    continue;
-	ParticleP3D x1 = _particles[a]->traj(0);
-	for( size_t b = 1; b < N; b++ ) {
-	    ParticleP3D x2 = _particles[a]->traj(b);
 
-	    // Solve trajectory crossing point using linear interpolation of position
-	    // K[0]: parametric distance from x1 to x2
- 	    // K[1]: distance in direction o
-	    // K[2]: distance in direction p
-	    Vec3D K;
-	    try {
-		Mat3D m( x2[1]-x1[1], -o[0], -p[0],
-			 x2[3]-x1[3], -o[1], -p[1],
-			 x2[5]-x1[5], -o[2], -p[2] );
-		Mat3D minv = m.inverse();
-		Vec3D off( c[0]-x1[1], c[1]-x1[3], c[2]-x1[5] );
-		K = minv*off;
-	    } catch(...) {
+	// Mirroring of trajectory (-,x,y,z,xy,xz,yz,xyz)
+	for( uint32_t axism = 0; axism < 8; axism++ ) {
+	    if( !free_plane_mirror_enabled( axism ) )
 		continue;
-	    }
-	    
-	    if( K[0] >= 0.0 && K[0] < 1.0 ) {
-		// Crossing found between x1 and x2, accumulate total current
-		Isum += _particles[a]->IQ();
 
-		// Position and velocity in xyz coordinates
-		double t = K[0];
-		double nt = 1.0-K[0];
-		Vec3D pos( nt*x1[1]+t*x2[1], nt*x1[3]+t*x2[3], nt*x1[5]+t*x2[5] );
-		Vec3D vel( nt*x1[2]+t*x2[2], nt*x1[4]+t*x2[4], nt*x1[6]+t*x2[6] );
+	    ParticleP3D x1 = free_plane_mirror( _particles[a]->traj(0), axism );
+	    for( size_t b = 1; b < N; b++ ) {
+		ParticleP3D x2 = free_plane_mirror( _particles[a]->traj(b), axism );
 
-		// Position and velocity in opq coordinates
-		Vec3D pos_opq( K[1], K[2], 0.0 );
-		Vec3D vel_opq( vel*o, vel*p, vel*q );
-
-		// Check IQ fixed
-		if( first ) {
-		    IQ_first = _particles[a]->IQ();
-		} else if( IQ_first == 0.0 ) {
-		    if( !IQ_warning && _particles[a]->IQ() != 0.0 ) {
-			ibsimu.message( 1 ) << "  WARNING: Trajectory current is not constant.\n";
-			IQ_warning = true;
+		// Solve trajectory crossing point using linear interpolation of position
+		// K[0]: parametric distance from x1 to x2
+		// K[1]: distance in direction o
+		// K[2]: distance in direction p
+		Vec3D K;
+		try {
+		    Mat3D m( x2[1]-x1[1], -o[0], -p[0],
+			     x2[3]-x1[3], -o[1], -p[1],
+			     x2[5]-x1[5], -o[2], -p[2] );
+		    Mat3D minv = m.inverse();
+		    Vec3D off( c[0]-x1[1], c[1]-x1[3], c[2]-x1[5] );
+		    K = minv*off;
+		} catch(...) {
+		    continue;
+		}
+		
+		if( K[0] >= 0.0 && K[0] < 1.0 ) {
+		    // Crossing found between x1 and x2, accumulate total current
+		    Isum += _particles[a]->IQ();
+		    
+		    // Position and velocity in xyz coordinates
+		    double t = K[0];
+		    double nt = 1.0-K[0];
+		    Vec3D pos( nt*x1[1]+t*x2[1], nt*x1[3]+t*x2[3], nt*x1[5]+t*x2[5] );
+		    Vec3D vel( nt*x1[2]+t*x2[2], nt*x1[4]+t*x2[4], nt*x1[6]+t*x2[6] );
+		    
+		    // Position and velocity in opq coordinates
+		    Vec3D pos_opq( K[1], K[2], 0.0 );
+		    Vec3D vel_opq( vel*o, vel*p, vel*q );
+		    
+		    // Check IQ fixed
+		    if( first ) {
+			IQ_first = _particles[a]->IQ();
+		    } else if( IQ_first == 0.0 ) {
+			if( !IQ_warning && _particles[a]->IQ() != 0.0 ) {
+			    ibsimu.message( 1 ) << "  WARNING: Trajectory current is not constant.\n";
+			    IQ_warning = true;
+			}
+		    } else {
+			if( !IQ_warning && fabs( ( IQ_first - _particles[a]->IQ() ) / IQ_first ) > 1.0e-6 ) {
+			    ibsimu.message( 1 ) << "  WARNING: Trajectory current is not constant.\n";
+			    IQ_warning = true;
+			}
 		    }
-		} else {
-		    if( !IQ_warning && fabs( ( IQ_first - _particles[a]->IQ() ) / IQ_first ) > 1.0e-6 ) {
-			ibsimu.message( 1 ) << "  WARNING: Trajectory current is not constant.\n";
-			IQ_warning = true;
-		    }
+
+		    // Save point
+		    data[0].push_back( pos_opq[0] );                  // x (m)
+		    data[1].push_back( vel_opq[0]/vel_opq[2] );       // x' (rad)
+		    data[2].push_back( pos_opq[1] );                  // y (m)
+		    data[3].push_back( vel_opq[1]/vel_opq[2] );       // y' (rad)
+		    data[4].push_back( (pm*vel_opq[2]-ref_p)/ref_p ); // (p_z-p_ref)/p_ref
+		    data[5].push_back( pq/CHARGE_E );                 // q (in e)
+		    data[6].push_back( pm*m_to_gevc2 );               // m (in GeV/c2)
+		    
+		    first = false;
 		}
 
-		// Save point
-		double pq = _particles[a]->q();
-		double pm = _particles[a]->m();
-
-		data[0].push_back( pos_opq[0] );                  // x (m)
-		data[1].push_back( vel_opq[0]/vel_opq[2] );       // x' (rad)
-		data[2].push_back( pos_opq[1] );                  // y (m)
-		data[3].push_back( vel_opq[1]/vel_opq[2] );       // y' (rad)
-		data[4].push_back( (pm*vel_opq[2]-ref_p)/ref_p ); // (p_z-p_ref)/p_ref
-		data[5].push_back( pq/CHARGE_E );                 // q (in e)
-		data[6].push_back( pm*m_to_gevc2 );               // m (in GeV/c2)
-
-		first = false;
+		// Next trajectory step
+		x1 = x2;
 	    }
-
-	    // Next trajectory step
-	    x1 = x2;
 	}
     }
 
