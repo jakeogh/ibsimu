@@ -55,7 +55,7 @@ void test( int argc, char **argv )
 	ydata2.push_back( -2.0*a*a+30.0 );
     }
     XYGraph g2( xdata2, ydata2 ); 
-    g2.set_color( Color(0,0,1) );
+    g2.set_color( Vec3D(0,0,1) );
     g2.set_line_style( XYGRAPH_LINE_SOLID );
     g2.set_point_style( XYGRAPH_POINT_BOX, true, 5.0 );
     LegendEntry l2( g2, "XYGraph boxes" );

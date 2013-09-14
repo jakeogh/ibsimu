@@ -162,7 +162,7 @@ void XYGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4]
     size_t N = _xdata.size() < _ydata.size() ? _xdata.size() : _ydata.size();
 
     cairo_set_line_width( cairo, _linewidth );
-    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], 1.0 );
+    cairo_set_source_rgb( cairo, _color[0], _color[1], _color[2] );
 
     if( _histogram )
 	plot_histogram_lines( cairo, cm, range, N );
@@ -186,7 +186,7 @@ void XYGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4]
 void XYGraph::plot_sample( cairo_t *cairo, double x, double y, double width, double height )
 {
     cairo_set_line_width( cairo, _linewidth );
-    cairo_set_source_rgba( cairo, _color[0], _color[1], _color[2], 1.0 );
+    cairo_set_source_rgb( cairo, _color[0], _color[1], _color[2] );
 
     if( _linestyle == XYGRAPH_LINE_SOLID ) {
 

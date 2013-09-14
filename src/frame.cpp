@@ -816,7 +816,7 @@ void Frame::draw( cairo_t *cairo )
 
     // Draw background
     cairo_rectangle( cairo, _offx, _offy, _width, _height );
-    cairo_set_source_rgba( cairo, _bg[0], _bg[1], _bg[2], 1.0 );
+    cairo_set_source_rgb( cairo, _bg[0], _bg[1], _bg[2] );
     cairo_fill( cairo );
 
     // Get drawable bounding boxes and set ruler ranges
