@@ -2,7 +2,7 @@
  *  \brief Window for GTK plots with frames
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -111,9 +111,9 @@ class GTKFrameWindow : public GTKWindow {
     static gboolean darea_configure_signal( GtkWidget *widget, 
 					    GdkEventConfigure *event, 
 					    gpointer object );
-    static gboolean darea_expose_signal( GtkWidget *widget, 
-					 GdkEventExpose *event, 
-					 gpointer object );
+    static gboolean darea_draw_signal( GtkWidget *widget, 
+				       cairo_t *cairo,
+				       gpointer object );
     static gboolean darea_button_signal( GtkWidget *widget, 
 					 GdkEventButton *event,
 					 gpointer object );
@@ -156,6 +156,7 @@ protected:
      */
     virtual std::string track_text( double x, double y );
 
+    void draw( cairo_t *cairo );
     void expose( int x, int y, int width, int height );
 
 public:

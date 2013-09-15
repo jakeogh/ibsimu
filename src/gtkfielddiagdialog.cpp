@@ -2,7 +2,7 @@
  *  \brief Dialog for constructing field diagnostic windows
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -76,307 +76,288 @@ void GTKFieldDiagDialog::run( void )
                                                      GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
                                                      GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
                                                      NULL );
-    GtkWidget *vbox = GTK_DIALOG(dialog)->vbox;
+    gtk_window_set_resizable( GTK_WINDOW(dialog), FALSE );
+    GtkWidget *mainbox = gtk_dialog_get_content_area( GTK_DIALOG(dialog) );
 
     // ****************************************************************************
 
-    GtkWidget *hbox = gtk_hbox_new( TRUE, 30 );
+    GtkWidget *grid = gtk_grid_new();
 
     // Labels
     GtkWidget *label = gtk_label_new( "" );
     gtk_label_set_markup( GTK_LABEL(label), "<span weight=\"bold\">Start</span>" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, 0, 2, 1 );
     label = gtk_label_new( "" );
     gtk_label_set_markup( GTK_LABEL(label), "<span weight=\"bold\">End</span>" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 2, 0, 2, 1 );
 
     // x1
-    hbox = gtk_hbox_new( TRUE, 30 );
-    GtkWidget *hbox2 = gtk_hbox_new( FALSE, 0 );
     label = gtk_label_new( "x1" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
-    GtkWidget *entry_x1 = gtk_entry_new_with_max_length( 30 );
-    //std::string s = to_string(_x1[0]);
-    //gtk_entry_set_text( GTK_ENTRY(entry_x1), s.c_str() );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, 1, 1, 1 );
+    GtkWidget *entry_x1 = gtk_entry_new();
+    gtk_entry_set_max_length( GTK_ENTRY(entry_x1), 30 );
+    gtk_widget_set_margin_left( entry_x1, 5 );
+    gtk_widget_set_margin_right( entry_x1, 5 );
     char s[128];
     snprintf( s, 128, "%g", _x1[0] );
     gtk_entry_set_text( GTK_ENTRY(entry_x1), s );
-    gtk_box_pack_start( GTK_BOX(hbox2), entry_x1, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), entry_x1, 1, 1, 1, 1 );
 
     // x2
-    hbox2 = gtk_hbox_new( FALSE, 0 );
     label = gtk_label_new( "x2" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
-    GtkWidget *entry_x2 = gtk_entry_new_with_max_length( 30 );
-    //s = to_string(_x2[0]);
-    //gtk_entry_set_text( GTK_ENTRY(entry_x2), s.c_str() );
+    gtk_grid_attach( GTK_GRID(grid), label, 2, 1, 1, 1 );
+    GtkWidget *entry_x2 = gtk_entry_new();
+    gtk_entry_set_max_length( GTK_ENTRY(entry_x2), 30 );
+    gtk_widget_set_margin_left( entry_x2, 5 );
     snprintf( s, 128, "%g", _x2[0] );
     gtk_entry_set_text( GTK_ENTRY(entry_x2), s );
-    gtk_box_pack_start( GTK_BOX(hbox2), entry_x2, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
-
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), entry_x2, 3, 1, 1, 1 );
 
     // y1
-    hbox = gtk_hbox_new( TRUE, 30 );
-    hbox2 = gtk_hbox_new( FALSE, 0 );
     if( _geom->geom_mode() == MODE_CYL )
 	label = gtk_label_new( "r1" );
     else
 	label = gtk_label_new( "y1" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
-    GtkWidget *entry_y1 = gtk_entry_new_with_max_length( 30 );
-    //s = to_string(_x1[1]);
-    //gtk_entry_set_text( GTK_ENTRY(entry_y1), s.c_str() );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, 2, 1, 1 );
+    GtkWidget *entry_y1 = gtk_entry_new();
+    gtk_entry_set_max_length( GTK_ENTRY(entry_y1), 30 );
+    gtk_widget_set_margin_left( entry_y1, 5 );
+    gtk_widget_set_margin_right( entry_y1, 5 );
     snprintf( s, 128, "%g", _x1[1] );
     gtk_entry_set_text( GTK_ENTRY(entry_y1), s );
-    gtk_box_pack_start( GTK_BOX(hbox2), entry_y1, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), entry_y1, 1, 2, 1, 1 );
 
     // y2
-    hbox2 = gtk_hbox_new( FALSE, 0 );
     if( _geom->geom_mode() == MODE_CYL )
 	label = gtk_label_new( "r2" );
     else
 	label = gtk_label_new( "y2" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
-    GtkWidget *entry_y2 = gtk_entry_new_with_max_length( 30 );
-    //s = to_string(_x2[1]);
-    //gtk_entry_set_text( GTK_ENTRY(entry_y2), s.c_str() );
+    gtk_grid_attach( GTK_GRID(grid), label, 2, 2, 1, 1 );
+    GtkWidget *entry_y2 = gtk_entry_new();
+    gtk_entry_set_max_length( GTK_ENTRY(entry_y2), 30 );
+    gtk_widget_set_margin_left( entry_y2, 5 );
     snprintf( s, 128, "%g", _x2[1] );
     gtk_entry_set_text( GTK_ENTRY(entry_y2), s );
-    gtk_box_pack_start( GTK_BOX(hbox2), entry_y2, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
-
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), entry_y2, 3, 2, 1, 1 );
 
     // z1
-    hbox = gtk_hbox_new( TRUE, 30 );
-    hbox2 = gtk_hbox_new( FALSE, 0 );
     label = gtk_label_new( "z1" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
-    GtkWidget *entry_z1 = gtk_entry_new_with_max_length( 30 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, 3, 1, 1 );
+    GtkWidget *entry_z1 = gtk_entry_new();
+    gtk_entry_set_max_length( GTK_ENTRY(entry_z1), 30 );
+    gtk_widget_set_margin_left( entry_z1, 5 );
+    gtk_widget_set_margin_right( entry_z1, 5 );
     if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
 	gtk_widget_set_sensitive( entry_z1, FALSE );
-    //s = to_string(_x1[2]);
-    //gtk_entry_set_text( GTK_ENTRY(entry_z1), s.c_str() );
     snprintf( s, 128, "%g", _x1[2] );
     gtk_entry_set_text( GTK_ENTRY(entry_z1), s );
-    gtk_box_pack_start( GTK_BOX(hbox2), entry_z1, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), entry_z1, 1, 3, 1, 1 );
 
     // z2
-    hbox2 = gtk_hbox_new( FALSE, 0 );
     label = gtk_label_new( "z2" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    gtk_box_pack_start( GTK_BOX(hbox2), label, FALSE, TRUE, 0 );
-    GtkWidget *entry_z2 = gtk_entry_new_with_max_length( 30 );
+    gtk_grid_attach( GTK_GRID(grid), label, 2, 3, 1, 1 );
+    GtkWidget *entry_z2 = gtk_entry_new();
+    gtk_entry_set_max_length( GTK_ENTRY(entry_z2), 30 );
+    gtk_widget_set_margin_left( entry_z2, 5 );
     if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
 	gtk_widget_set_sensitive( entry_z2, FALSE );
-    //s = to_string(_x2[2]);
-    //gtk_entry_set_text( GTK_ENTRY(entry_z2), s.c_str() );
     snprintf( s, 128, "%g", _x2[2] );
     gtk_entry_set_text( GTK_ENTRY(entry_z2), s );
-    gtk_box_pack_start( GTK_BOX(hbox2), entry_z2, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), hbox2, FALSE, TRUE, 0 );
-
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), entry_z2, 3, 3, 1, 1 );
 
     // N
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Samples" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    GtkObject *n_adj = gtk_adjustment_new( 100, 0, 10000, 10, 100, 0 );
-    GtkWidget *n_spin = gtk_spin_button_new( GTK_ADJUSTMENT(n_adj), 10, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), n_spin, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, 4, 2, 1 );
+    GtkAdjustment *n_adj = gtk_adjustment_new( 100, 0, 10000, 10, 100, 0 );
+    GtkWidget *n_spin = gtk_spin_button_new( n_adj, 10, 0 );
+    gtk_grid_attach( GTK_GRID(grid), n_spin, 2, 4, 2, 1 );
+
+    gtk_box_pack_start( GTK_BOX(mainbox), grid, FALSE, TRUE, 0 );
+
+    // ****************************************************************************
+
+    // Rest of the dialog is in one grid with three columns
+    grid = gtk_grid_new();
+    gtk_grid_set_column_homogeneous( GTK_GRID(grid), TRUE );
+    gtk_widget_set_hexpand( grid, TRUE );
+    uint32_t yl = 0;
 
     // ****************************************************************************
 
     // Separator
-    GtkWidget *separator = gtk_hseparator_new();
-    GtkWidget *alignment = gtk_alignment_new( 0.5, 0.5, 1.0, 1.0 );
-    gtk_alignment_set_padding( GTK_ALIGNMENT(alignment), 5, 5, 0, 0 );
-    gtk_container_add( GTK_CONTAINER(alignment), separator );
-    gtk_box_pack_start( GTK_BOX(vbox), alignment, FALSE, TRUE, 0 );
+    GtkWidget *separator = gtk_separator_new( GTK_ORIENTATION_HORIZONTAL );
+    gtk_widget_set_margin_left( separator, 5 );
+    gtk_widget_set_margin_right( separator, 5 );
+    gtk_widget_set_margin_top( separator, 5 );
+    gtk_widget_set_margin_bottom( separator, 5 );
+    gtk_grid_attach( GTK_GRID(grid), separator, 0, yl, 3, 1 );
+    yl++;
 
     // ****************************************************************************
-
     // Axis selection titles
-    hbox = gtk_hbox_new( TRUE, 30 );
-    label = gtk_label_new( "" );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+
     label = gtk_label_new( "Axis x1" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 1, yl, 1, 1 );
     label = gtk_label_new( "Axis x2" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
-    
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 2, yl, 1, 1 );
+    yl++;
+
     // Distance
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Distance" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_axis1_dist = gtk_radio_button_new_from_widget( NULL );
     GtkWidget *radio_axis2_dist = gtk_radio_button_new_from_widget( NULL );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_axis1_dist, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_axis2_dist, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), radio_axis1_dist, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_axis2_dist, 2, yl, 1, 1 );
+    yl++;
 
     // X
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "X" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_axis1_x = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis1_dist) );
     GtkWidget *radio_axis2_x = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis2_dist) );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_axis1_x, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_axis2_x, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), radio_axis1_x, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_axis2_x, 2, yl, 1, 1 );
+    yl++;
 
     // Y
-    hbox = gtk_hbox_new( TRUE, 30 );
     if(_geom->geom_mode() == MODE_CYL )
 	label = gtk_label_new( "R" );
     else
 	label = gtk_label_new( "Y" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_axis1_y = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis1_dist) );
     GtkWidget *radio_axis2_y = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis2_dist) );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_axis1_y, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_axis2_y, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), radio_axis1_y, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_axis2_y, 2, yl, 1, 1 );
+    yl++;
 
     // Z
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Z" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_axis1_z = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis1_dist) );
     GtkWidget *radio_axis2_z = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis2_dist) );
     if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL ) {
 	gtk_widget_set_sensitive( radio_axis1_z, FALSE );
 	gtk_widget_set_sensitive( radio_axis2_z, FALSE );
     }
-    gtk_box_pack_start( GTK_BOX(hbox), radio_axis1_z, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_axis2_z, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );    
+    gtk_grid_attach( GTK_GRID(grid), radio_axis1_z, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_axis2_z, 2, yl, 1, 1 );
+    yl++;
 
     // None
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "None" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_axis1_none = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis1_dist) );
     GtkWidget *radio_axis2_none = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis2_dist) );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_axis1_none, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_axis2_none, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );    
+    gtk_grid_attach( GTK_GRID(grid), radio_axis1_none, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_axis2_none, 2, yl, 1, 1 );
+    yl++;
 
     // ****************************************************************************
 
     // Separator
-    separator = gtk_hseparator_new();
-    alignment = gtk_alignment_new( 0.5, 0.5, 1.0, 1.0 );
-    gtk_alignment_set_padding( GTK_ALIGNMENT(alignment), 5, 5, 0, 0 );
-    gtk_container_add( GTK_CONTAINER(alignment), separator );
-    gtk_box_pack_start( GTK_BOX(vbox), alignment, FALSE, TRUE, 0 );
+    separator = gtk_separator_new( GTK_ORIENTATION_HORIZONTAL );
+    gtk_widget_set_margin_left( separator, 5 );
+    gtk_widget_set_margin_right( separator, 5 );
+    gtk_widget_set_margin_top( separator, 5 );
+    gtk_widget_set_margin_bottom( separator, 5 );
+    gtk_grid_attach( GTK_GRID(grid), separator, 0, yl, 3, 1 );
+    yl++;
 
     // ****************************************************************************
 
     // Field selection titles
-    hbox = gtk_hbox_new( TRUE, 30 );
-    label = gtk_label_new( "" );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
     label = gtk_label_new( "Graph 1" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_widget_set_margin_left( label, 5 );
+    gtk_widget_set_margin_right( label, 5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 1, yl, 1, 1 );
     label = gtk_label_new( "Graph 2" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
-    
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_widget_set_margin_left( label, 5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 2, yl, 1, 1 );
+    yl++;
+
     // Epot
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Electric potential" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_epot = gtk_radio_button_new_from_widget( NULL );
     GtkWidget *radio_g2_epot = gtk_radio_button_new_from_widget( NULL );
     if( !_plotter->get_epot() ) {
 	gtk_widget_set_sensitive( radio_g1_epot, FALSE );
 	gtk_widget_set_sensitive( radio_g2_epot, FALSE );
     }
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_epot, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_epot, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g1_epot, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g2_epot, 2, yl, 1, 1 );
+    yl++;
 
     // E
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "|E|" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_e = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_e = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
     if( !_plotter->get_efield() ) {
 	gtk_widget_set_sensitive( radio_g1_e, FALSE );
 	gtk_widget_set_sensitive( radio_g2_e, FALSE );
     }
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_e, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_e, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
-
+    gtk_grid_attach( GTK_GRID(grid), radio_g1_e, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g2_e, 2, yl, 1, 1 );
+    yl++;
+    
     // Ex
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Ex" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_ex = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_ex = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
     if( !_plotter->get_efield() ) {
 	gtk_widget_set_sensitive( radio_g1_ex, FALSE );
 	gtk_widget_set_sensitive( radio_g2_ex, FALSE );
     }
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_ex, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_ex, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g1_ex, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g2_ex, 2, yl, 1, 1 );
+    yl++;
 
     // Ey
-    hbox = gtk_hbox_new( TRUE, 30 );
     if( _geom->geom_mode() == MODE_CYL )
 	label = gtk_label_new( "Er" );
     else
 	label = gtk_label_new( "Ey" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_ey = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_ey = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
     if( !_plotter->get_efield() ) {
 	gtk_widget_set_sensitive( radio_g1_ey, FALSE );
 	gtk_widget_set_sensitive( radio_g2_ey, FALSE );
     }
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_ey, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_ey, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g1_ey, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g2_ey, 2, yl, 1, 1 );
+    yl++;
 
     // Ez
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Ez" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_ez = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_ez = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
     if( !_plotter->get_epot() || _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL ||
@@ -384,24 +365,23 @@ void GTKFieldDiagDialog::run( void )
 	gtk_widget_set_sensitive( radio_g1_ez, FALSE );
 	gtk_widget_set_sensitive( radio_g2_ez, FALSE );
     }
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_ez, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_ez, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
-
+    gtk_grid_attach( GTK_GRID(grid), radio_g1_ez, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g2_ez, 2, yl, 1, 1 );
+    yl++;
+    
     // Space charge
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Space charge" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_scharge = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_scharge = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
     if( !_plotter->get_scharge() ) {
 	gtk_widget_set_sensitive( radio_g1_scharge, FALSE );
 	gtk_widget_set_sensitive( radio_g2_scharge, FALSE );
     }
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_scharge, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_scharge, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g1_scharge, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g2_scharge, 2, yl, 1, 1 );
+    yl++;
 
     // Bfield components available
     bool bfield_fout[3] = {false, false, false};
@@ -419,81 +399,96 @@ void GTKFieldDiagDialog::run( void )
     }
 
     // B
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "|B|" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_b = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     if( !_plotter->get_bfield() )
 	gtk_widget_set_sensitive( radio_g1_b, FALSE );
     GtkWidget *radio_g2_b = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
     if( !_plotter->get_bfield() )
 	gtk_widget_set_sensitive( radio_g2_b, FALSE );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_b, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_b, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g1_b, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g2_b, 2, yl, 1, 1 );
+    yl++;
 
     // Bx
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Bx" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_bx = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     if( !bfield_fout[0] )
 	gtk_widget_set_sensitive( radio_g1_bx, FALSE );
     GtkWidget *radio_g2_bx = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
     if( !bfield_fout[0] )
 	gtk_widget_set_sensitive( radio_g2_bx, FALSE );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_bx, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_bx, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g1_bx, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g2_bx, 2, yl, 1, 1 );
+    yl++;
 
     // By
-    hbox = gtk_hbox_new( TRUE, 30 );
     if( _geom->geom_mode() == MODE_CYL )
 	label = gtk_label_new( "Br" );
     else
 	label = gtk_label_new( "By" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_by = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     if( !bfield_fout[1] )
 	gtk_widget_set_sensitive( radio_g1_by, FALSE );
     GtkWidget *radio_g2_by = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
     if( !bfield_fout[1] )
 	gtk_widget_set_sensitive( radio_g2_by, FALSE );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_by, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_by, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g1_by, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g2_by, 2, yl, 1, 1 );
+    yl++;
 
     // Bz
-    hbox = gtk_hbox_new( TRUE, 30 );
     if( _geom->geom_mode() == MODE_CYL )
 	label = gtk_label_new( "Btheta" );
     else
 	label = gtk_label_new( "Bz" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_bz = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     if( !bfield_fout[2] )
 	gtk_widget_set_sensitive( radio_g1_bz, FALSE );
     GtkWidget *radio_g2_bz = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
     if( !bfield_fout[2] )
 	gtk_widget_set_sensitive( radio_g2_bz, FALSE );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_bz, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_bz, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g1_bz, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g2_bz, 2, yl, 1, 1 );
+    yl++;
 
     // None
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "None" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_none = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_none = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g1_none, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), radio_g2_none, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    if( !_plotter->get_epot() ) {
+	// Default to none if epot not available
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(radio_g1_none), TRUE );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(radio_g2_none), TRUE );
+    }
+    gtk_grid_attach( GTK_GRID(grid), radio_g1_none, 1, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), radio_g2_none, 2, yl, 1, 1 );
+    yl++;
+
+    // ****************************************************************************
+
+    // Separator
+    separator = gtk_separator_new( GTK_ORIENTATION_HORIZONTAL );
+    gtk_widget_set_margin_left( separator, 5 );
+    gtk_widget_set_margin_right( separator, 5 );
+    gtk_widget_set_margin_top( separator, 5 );
+    gtk_widget_set_margin_bottom( separator, 5 );
+    gtk_grid_attach( GTK_GRID(grid), separator, 0, yl, 3, 1 );
+    yl++;
+
+    // ****************************************************************************
+
+    gtk_box_pack_start( GTK_BOX(mainbox), grid, TRUE, TRUE, 0 );
 
     // ****************************************************************************
 

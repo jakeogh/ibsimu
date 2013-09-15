@@ -8,6 +8,7 @@
 #include <iostream>
 #include <iomanip>
 #include "epot_gssolver.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
 #include "epot_field.hpp"
@@ -44,7 +45,8 @@ bool solid3( double x, double y, double z )
 void test( int argc, char **argv )
 {
     // 12x5 cm geometry with 0.05 cm mesh size
-    Geometry geom( MODE_2D, Int3D(241,101,1), Vec3D(0,0,0), 0.0005 );
+    //Geometry geom( MODE_2D, Int3D(241,101,1), Vec3D(0,0,0), 0.0005 );
+    Geometry geom( MODE_2D, Int3D(121,51,1), Vec3D(0,0,0), 0.001 );
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
     Solid *s2 = new FuncSolid( solid2 );
@@ -60,7 +62,8 @@ void test( int argc, char **argv )
     geom.set_boundary( 9, Bound(BOUND_DIRICHLET,  -1.0e3) );
     geom.build_mesh();
 
-    EpotGSSolver solver( geom );
+    //EpotGSSolver solver( geom );
+    EpotBiCGSTABSolver solver( geom );
     EpotField epot( geom );
     MeshScalarField scharge( geom );
     MeshVectorField bfield;
@@ -84,8 +87,9 @@ void test( int argc, char **argv )
 				     0.0, 0.0, 
 				     0.0, 0.012 );
 	pdb.iterate_trajectories( scharge, efield, bfield, geom );
+    }
 
-	/*
+    if( true ) {
 	GTKPlotter plotter( &argc, &argv );
 	plotter.set_geometry( &geom );
 	plotter.set_epot( &epot );
@@ -94,7 +98,6 @@ void test( int argc, char **argv )
 	plotter.set_particledatabase( &pdb );
 	plotter.new_geometry_plot_window();
 	plotter.run();
-	*/
     }
 
     GeomPlotter geomplotter( geom );

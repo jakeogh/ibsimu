@@ -41,15 +41,15 @@ void test( int argc, char **argv )
     EpotEfield efield( epot );
     MeshVectorField bfield;
 
-    ParticleDataBase2D pdb;
+    ParticleDataBase2D pdb( geom );
     pdb.set_thread_count( 1 );
-    bool pmirror[6] = { false, false, false, false, false, false };
+    bool pmirror[6] = { false, false, true, false, false, false };
     pdb.set_mirror( pmirror );
     pdb.add_2d_beam_with_energy( 100, 50.0, 1.0, 1.0, 
 				 3.0e3, 0.0, 0.0, 
 				 0.0, 0.0, 
 				 0.0, 0.009 );
-    pdb.iterate_trajectories( scharge, efield, bfield, geom );
+    pdb.iterate_trajectories( scharge, efield, bfield );
     solver.solve( epot, scharge );
 
     // Write calculated space charge and epot to file
@@ -89,7 +89,7 @@ void test( int argc, char **argv )
     ostr.close();
     ostr2.close();
 
-    if( false ) {
+    if( true ) {
 	GTKPlotter plotter( &argc, &argv );
 	plotter.set_geometry( &geom );
 	plotter.set_epot( &epot );

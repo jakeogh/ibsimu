@@ -32,13 +32,19 @@ available through the source repository accessible with source code
 management tool git. For the first time, you can fetch the code with:
 
 tvkalvas@PHYS78 ~/src
-$ git clone git://ibsimu.git.sourceforge.net/gitroot/ibsimu/ibsimu
+$ git clone git://git.code.sf.net/p/ibsimu/code
 
-This will create the directory "ibsimu", which contains the code and
-it's code repository. After that you can just do the following:
+This will create the directory "code", which contains the code and
+it's code repository. The directory name doesn't make sense, so change
+that to ibsimu:
+
+tvkalvas@PHYS78 ~/src
+$ mv code ibsimu
 
 tvkalvas@PHYS78 ~/src
 $ cd ibsimu
+
+In the code directory you can do the following:
 
 tvkalvas@PHYS78 ~/src/ibsimu
 $ git pull
@@ -48,6 +54,9 @@ $ ./reconf
 
 tvkalvas@PHYS78 ~/src/ibsimu
 $ ./configure
+
+tvkalvas@PHYS78 ~/src/ibsimu
+$ make clean
 
 tvkalvas@PHYS78 ~/src/ibsimu
 $ make 
@@ -188,7 +197,8 @@ Dependencies
 In addition to the tools you will also need some libraries that
 provide the background functionality for graphics, mathematics and
 some other background features in IBSimu. In linux you just use the
-package manager again and install the software. You need:
+package manager again and install the software. You need development
+(often packages named *-dev) packages for:
 
 FontConfig: A library for finding system fonts.
 
@@ -204,24 +214,34 @@ POSIX threads: Multithreading library standard. Several
 implementations exist. Y our linux should already have an
 implementation.
 
-GNU Scientific Library: Mathematics library. This is probably the only
-library which is not installed by default.
+GNU Scientific Library: Mathematics library.
 
-GTK+ 2.0: The GNOME Toolkit. Windowing library. This library has
-several dependencies on its own.
+Optional software you might want:
+
+GTK+ 3.0: The GNOME Toolkit. Windowing library. Used for interactive
+graphics. This library has several dependencies on its own.
+
+Gtkglext-3.0: OpenGL library for GTK+ 3.0. Used for 3D rendering on
+interactive window. Fallback software rendering exists.
+
+UMFPACK/Suitesparse: Matrix factorization/solver library.
+
+CSG: Constructive solid geometry library by the author. One way for
+building 3D geometries.
 
 For windows you can get most of these libraries and the dependencies
-of GTK+ bundled in one package at
-http://www.gtk.org/download/win32.php. Download the newest stable
-release "all-in-one bundle". At the time of writing the newest version
-was 2.22. Uncompress the package contents into a temporary location
+of GTK+ bundled in one package at http://www.gtk.org/ in
+"Download". Download the newest stable release "all-in-one bundle". At
+the time of writing (16 Sep 2013) the newest version was 2.22, which
+is not compatible with IBSimu. IBSimu needs version 3.X. If that is
+available, uncompress the package contents into a temporary location
 and copy the contents into C:\MSYS\1.0\ in such a way that the
 contents of the bin directory in the gtk package will go into
 C:\MSYS\1.0\bin, lib into C:\MSYS\1.0\lib, et cetera. This needs to be
 done as the Administrator.
 
 The only libraries which are not in the bundle are the POSIX threads
-and the GNU Scientific Library.
+and the GNU Scientific Library and the other optional dependencies.
 
 For POSIX Threads you can find a windows implementation at
 http://sourceware.org/pthreads-win32/. Download the most recent
@@ -288,12 +308,12 @@ src directory, which is then uncompressed and configured. This has to
 be done manually also in linux:
 
 tvkalvas@PHYS78 ~/src
-$ tar zxvf libibsimu-1.0.2.tar.gz
+$ tar zxvf libibsimu-1.0.5.tar.gz
 
 tvkalvas@PHYS78 ~/src
-$ cd libibsimu-1.0.2
+$ cd libibsimu-1.0.5
 
-tvkalvas@PHYS78 ~/src/libibsimu-1.0.2
+tvkalvas@PHYS78 ~/src/libibsimu-1.0.5
 $ ./configure --prefix=/home/tvkalvas
 
 The configuration script works mostly automatically, but it also has
@@ -308,13 +328,13 @@ segmentation faults, etc. This is necessary on non-x86
 computers. After successful configuration you can compile, run the
 checks and install:
 
-tvkalvas@PHYS78 ~/src/libibsimu-1.0.2
+tvkalvas@PHYS78 ~/src/libibsimu-1.0.5
 $ make
 
-tvkalvas@PHYS78 ~/src/libibsimu-1.0.2
+tvkalvas@PHYS78 ~/src/libibsimu-1.0.5
 $ make check
 
-tvkalvas@PHYS78 ~/src/libibsimu-1.0.2
+tvkalvas@PHYS78 ~/src/libibsimu-1.0.5
 $ make install
 
 That finishes the installation.
@@ -327,7 +347,7 @@ As a first test for the library, a quick test of using the library
 should be done. You should make a new directory for your simulations
 and a directory for this first test within:
 
-tvkalvas@PHYS78 ~/src/libibsimu-1.0.2
+tvkalvas@PHYS78 ~/src/libibsimu-1.0.5
 $ cd
 
 tvkalvas@PHYS78 ~
@@ -360,4 +380,4 @@ Please read more instructions from the tutorial.
 
 
 
--- Taneli Kalvas <taneli.kalvas@jyu.fi>, 12 Dec 2012
+-- Taneli Kalvas <taneli.kalvas@jyu.fi>, 15 Sep 2013

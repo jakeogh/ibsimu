@@ -64,8 +64,8 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       &plotter,
 			      const VectorField      *bfield,
 			      const ParticleDataBase *pdb )
   : GTKFrameWindow(plotter), _geomplot(_frame,geom), 
-    _geom(geom), _epot(epot), _efield(efield), _scharge(scharge), _tdens(tdens), _bfield(bfield), _pdb(pdb),
-    _tool(TOOL_UNKNOWN), _prefdata(NULL)
+    _geom(geom), _epot(epot), _efield(efield), _scharge(scharge), _tdens(tdens), 
+    _bfield(bfield), _pdb(pdb), _tool(TOOL_UNKNOWN), _prefdata(NULL)
 {
     //std::cout << "GTKGeomWindow constructor\n";
 
@@ -132,21 +132,30 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       &plotter,
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
 
     // Creating view combobox and level spinbutton
-    _combobox = gtk_combo_box_new_text();
+    //_combobox = gtk_combo_box_new_text();
+    _combobox = gtk_combo_box_text_new();
     if( geom.geom_mode() == MODE_3D ) {
+	gtk_combo_box_text_append( GTK_COMBO_BOX_TEXT(_combobox), NULL, "XY" );
+	gtk_combo_box_text_append( GTK_COMBO_BOX_TEXT(_combobox), NULL, "XZ" );
+        gtk_combo_box_text_append( GTK_COMBO_BOX_TEXT(_combobox), NULL, "YX" );
+        gtk_combo_box_text_append( GTK_COMBO_BOX_TEXT(_combobox), NULL, "YZ" );
+        gtk_combo_box_text_append( GTK_COMBO_BOX_TEXT(_combobox), NULL, "ZX" );
+        gtk_combo_box_text_append( GTK_COMBO_BOX_TEXT(_combobox), NULL, "ZY" );
+	/*
 	gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "XY" );
 	gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "XZ" );
         gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "YX" );
         gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "YZ" );
         gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "ZX" );
         gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "ZY" );
+	*/
 	gtk_combo_box_set_active( GTK_COMBO_BOX(_combobox), 0 );
 	_spinbutton = gtk_spin_button_new_with_range( 0, geom.size(2)-1, 1 );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON(_spinbutton), geom.size(2)/2 );
 	_geomplot.set_view( VIEW_XY, geom.size(2)/2 );
     } else {
-	gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "XY" );
-	gtk_combo_box_append_text( GTK_COMBO_BOX(_combobox), "YX" );
+	gtk_combo_box_text_append( GTK_COMBO_BOX_TEXT(_combobox), NULL, "XY" );
+	gtk_combo_box_text_append( GTK_COMBO_BOX_TEXT(_combobox), NULL, "YX" );
         gtk_combo_box_set_active( GTK_COMBO_BOX(_combobox), 0 );
         _spinbutton = gtk_spin_button_new_with_range( 0, 0, 1 );
         gtk_spin_button_set_value( GTK_SPIN_BUTTON(_spinbutton), 0 );
@@ -203,19 +212,20 @@ void GTKGeomWindow::field_diag( int action, double x, double y )
 	y0 = _start[1] < _end[1] ? _start[1] : _end[1];
 	width = abs( _start[0] - _end[0] );
 	height = abs( _start[1] - _end[1] );
-	expose( x0, y0, width+1, height+1 );
+	expose( x0-1, y0-1, width+3, height+3 );
     }
 
     if( action == 1 ) {
 	// Draw new line
 	_end[0] = (int)floor(x+0.5);
 	_end[1] = (int)floor(y+0.5);
-	GdkColor  color;
-	GdkGC    *gc;
-	color.red = color.green = color.blue = 0;
-	gc = gdk_gc_new( _darea->window );
-	gdk_gc_set_rgb_fg_color( gc, &color );
-	gdk_draw_line( _darea->window, gc, _start[0], _start[1], _end[0], _end[1] );
+	cairo_t *cairo = gdk_cairo_create( gtk_widget_get_window( _darea ) );
+	cairo_move_to( cairo, _start[0], _start[1] );
+	cairo_line_to( cairo, _end[0], _end[1] );
+	cairo_set_source_rgb( cairo, 0, 0, 0 );
+	cairo_set_line_width( cairo, 1.0 );
+	cairo_stroke( cairo );
+	cairo_destroy( cairo );
 
     } else if( action == 2 ) {
 	// Done, start field diagnostics dialog
@@ -253,9 +263,9 @@ void GTKGeomWindow::particle_diag( int action, double x, double y )
 	width = abs( _start[0] - _end[0] );
 	height = abs( _start[1] - _end[1] );
 	if( width > height )
-	    expose( x0, _start[1], width+1, 1 );
+	    expose( x0-1, _start[1]-1, width+3, 3 );
 	else
-	    expose( _start[0], y0, 1, height+1 );
+	    expose( _start[0]-1, y0-1, 3, height+3 );
     }
 
     if( action == 1 ) {
@@ -266,17 +276,18 @@ void GTKGeomWindow::particle_diag( int action, double x, double y )
 	y0 = _start[1] < _end[1] ? _start[1] : _end[1];
 	width = abs( _start[0] - _end[0] );
 	height = abs( _start[1] - _end[1] );
-	GdkColor  color;
-	GdkGC    *gc;
-	color.red = color.green = color.blue = 0;
-	gc = gdk_gc_new( _darea->window );
-	gdk_gc_set_rgb_fg_color( gc, &color );
-	if( width > height )
-	    gdk_draw_line( _darea->window, gc, _start[0], _start[1], 
-			   _end[0], _start[1] );
-	else
-	    gdk_draw_line( _darea->window, gc, _start[0], _start[1], 
-			   _start[0], _end[1] );
+	cairo_t *cairo = gdk_cairo_create( gtk_widget_get_window( _darea ) );
+	if( width > height ) {
+	    cairo_move_to( cairo, _start[0], _start[1] );
+	    cairo_line_to( cairo, _end[0], _start[1] );
+	} else {
+	    cairo_move_to( cairo, _start[0], _start[1] );
+	    cairo_line_to( cairo, _start[0], _end[1] );
+	}
+	cairo_set_source_rgb( cairo, 0, 0, 0 );
+	cairo_set_line_width( cairo, 1.0 );
+	cairo_stroke( cairo );
+	cairo_destroy( cairo );
     }
 
     if( action == 2 ) {
@@ -458,8 +469,6 @@ std::string GTKGeomWindow::track_text( double x, double y )
 
 void GTKGeomWindow::field_activate( void )
 {
-    //std::cout << "Field_toggled\n";
-
     field_type_e field_type = FIELD_NONE;
     if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_prefdata->field_none_radio) ) )
 	field_type = FIELD_NONE;
@@ -520,10 +529,17 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
 	delete _prefdata;
     _prefdata = new PreferencesData;
 
-    GtkWidget *vbox = gtk_vbox_new( FALSE, 0 );
+    // ****************************************************************************
+    // Geometry notebook
+
+    GtkWidget *grid = gtk_grid_new();
+    gtk_grid_set_column_homogeneous( GTK_GRID(grid), TRUE );
+    gtk_widget_set_hexpand( grid, TRUE );
+    uint32_t yl = 0;
+
+    // ****************************************************************************
 
     // Manual eqlines
-    GtkWidget *hbox = gtk_hbox_new( TRUE, 30 );
     GtkWidget *label = gtk_label_new( "Manual eqlines" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     _prefdata->manual_eqlines_entry = gtk_entry_new();
@@ -537,168 +553,147 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
 	    s += " ";
     }
     gtk_entry_set_text( GTK_ENTRY(_prefdata->manual_eqlines_entry), s.c_str() );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->manual_eqlines_entry, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->manual_eqlines_entry, 1, yl, 1, 1 );
+    yl++;
 
     // Automatic eqlines
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Automatic eqlines" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     size_t eqlines_auto = _geomplot.get_eqlines_auto();
-    GtkObject *automatic_eqlines_adj = gtk_adjustment_new( eqlines_auto, 0, 1000, 1, 10, 0 );
-    _prefdata->automatic_eqlines_spin = gtk_spin_button_new( GTK_ADJUSTMENT(automatic_eqlines_adj), 1, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->automatic_eqlines_spin, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    GtkAdjustment *automatic_eqlines_adj = gtk_adjustment_new( eqlines_auto, 0, 1000, 1, 10, 0 );
+    _prefdata->automatic_eqlines_spin = gtk_spin_button_new( automatic_eqlines_adj, 1, 0 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->automatic_eqlines_spin, 1, yl, 1, 1 );
+    yl++;
 
     // Particle division
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Trajectory division" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     size_t particle_div = _geomplot.get_particle_div();
-    GtkObject *particle_div_adj = gtk_adjustment_new( particle_div, 0, 1000000, 1, 10, 0 );
-    _prefdata->particle_div_spin = gtk_spin_button_new( GTK_ADJUSTMENT(particle_div_adj), 1, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->particle_div_spin, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    GtkAdjustment *particle_div_adj = gtk_adjustment_new( particle_div, 0, 1000000, 1, 10, 0 );
+    _prefdata->particle_div_spin = gtk_spin_button_new( particle_div_adj, 1, 0 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->particle_div_spin, 1, yl, 1, 1 );
+    yl++;
 
     // Particle division, offset
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Trajectory offset" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     size_t particle_offset = _geomplot.get_particle_offset();
-    GtkObject *particle_offset_adj = gtk_adjustment_new( particle_offset, 0, 1000000, 1, 10, 0 );
-    _prefdata->particle_offset_spin = gtk_spin_button_new( GTK_ADJUSTMENT(particle_offset_adj), 1, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->particle_offset_spin, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    GtkAdjustment *particle_offset_adj = gtk_adjustment_new( particle_offset, 0, 1000000, 1, 10, 0 );
+    _prefdata->particle_offset_spin = gtk_spin_button_new( particle_offset_adj, 1, 0 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->particle_offset_spin, 1, yl, 1, 1 );
+    yl++;
 
     // QM discretation
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Q/M discretation" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     _prefdata->qmdiscretation_check = gtk_check_button_new_with_label( "on/off" );
     bool qm_discretation = _geomplot.get_qm_discretation();
     gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->qmdiscretation_check), qm_discretation );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->qmdiscretation_check, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->qmdiscretation_check, 1, yl, 1, 1 );
+    yl++;
 
     // Mesh
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Mesh" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     _prefdata->meshen_check = gtk_check_button_new_with_label( "on/off" );
     bool mesh = _geomplot.get_mesh();
     gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->meshen_check), mesh );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->meshen_check, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->meshen_check, 1, yl, 1, 1 );
+    yl++;
 
     // Add notebook page
     label = gtk_label_new( "Geometry" );
-    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox, label );
+    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), grid, label );
 
+    // ****************************************************************************
+    // FieldGraph notebook, 4x4 grid
 
-    // ************************************************* 
-    // FieldGraph notebook
+    grid = gtk_grid_new();
+    gtk_grid_set_column_homogeneous( GTK_GRID(grid), TRUE );
+    gtk_widget_set_hexpand( grid, TRUE );
+    yl = 0;
 
-    vbox = gtk_vbox_new( FALSE, 0 );
-
-    // Field type selection radiobuttons
-    GtkWidget *table = gtk_table_new( 3, 4, TRUE );
+    // ****************************************************************************
 
     // Field selection
     label = gtk_label_new( "Field selection" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0.0, 0.0 );
-    gtk_box_pack_start( GTK_BOX(vbox), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0.0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 4, 1 );
+    yl++;
 
-    // First table row
+    // First grid row
     _prefdata->field_none_radio = gtk_radio_button_new_with_label_from_widget( NULL, 
-									   "None" );
-    gtk_table_attach_defaults( GTK_TABLE(table),
-			       _prefdata->field_none_radio,
-			       0, 1, 0, 1 );
+									       "None" );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->field_none_radio, 0, yl, 1, 1 );
     _prefdata->field_J_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->field_none_radio), 
-									"J" );
+									    "J" );
     if( !_tdens )
 	gtk_widget_set_sensitive( _prefdata->field_J_radio, false );
-    gtk_table_attach_defaults( GTK_TABLE(table),
-			       _prefdata->field_J_radio,
-			       1, 2, 0, 1 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->field_J_radio, 1, yl, 1, 1 );
     _prefdata->field_rho_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->field_none_radio), 
-									  "rho" );
+									      "rho" );
     if( !_scharge )
 	gtk_widget_set_sensitive( _prefdata->field_rho_radio, false );
-    gtk_table_attach_defaults( GTK_TABLE(table),
-			       _prefdata->field_rho_radio,
-			       2, 3, 0, 1 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->field_rho_radio, 2, yl, 1, 1 );
     _prefdata->field_phi_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->field_none_radio), 
-									  "phi" );
+									      "phi" );
     if( !_epot )
 	gtk_widget_set_sensitive( _prefdata->field_phi_radio, false );
-    gtk_table_attach_defaults( GTK_TABLE(table),
-			       _prefdata->field_phi_radio,
-			       3, 4, 0, 1 );
-    // Second table row
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->field_phi_radio, 3, yl, 1, 1 );
+    yl++;
+
+    // Second grid row
     _prefdata->field_E_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->field_none_radio), 
-									"|E|" );
+									    "|E|" );
     if( !_epot )
 	gtk_widget_set_sensitive( _prefdata->field_E_radio, false );
-    gtk_table_attach_defaults( GTK_TABLE(table),
-			       _prefdata->field_E_radio,
-			       0, 1, 1, 2 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->field_E_radio, 0, yl, 1, 1 );
     _prefdata->field_Ex_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->field_none_radio), 
-									 "Ex" );
+									     "Ex" );
     if( !_epot )
 	gtk_widget_set_sensitive( _prefdata->field_Ex_radio, false );
-    gtk_table_attach_defaults( GTK_TABLE(table),
-			       _prefdata->field_Ex_radio,
-			       1, 2, 1, 2 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->field_Ex_radio, 1, yl, 1, 1 );
     _prefdata->field_Ey_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->field_none_radio), 
-									 "Ey" );
+									     "Ey" );
     if( !_epot )
 	gtk_widget_set_sensitive( _prefdata->field_Ey_radio, false );
-    gtk_table_attach_defaults( GTK_TABLE(table),
-			       _prefdata->field_Ey_radio,
-			       2, 3, 1, 2 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->field_Ey_radio, 2, yl, 1, 1 );
     _prefdata->field_Ez_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->field_none_radio), 
-									 "Ez" );
+									     "Ez" );
     if( !_epot )
 	gtk_widget_set_sensitive( _prefdata->field_Ez_radio, false );
-    gtk_table_attach_defaults( GTK_TABLE(table),
-			       _prefdata->field_Ez_radio,
-			       3, 4, 1, 2 );
-    // Third table row
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->field_Ez_radio, 3, yl, 1, 1 );
+    yl++;
+
+    // Third grid row
     _prefdata->field_B_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->field_none_radio), 
-									"|B|" );
+									    "|B|" );
     if( !_bfield )
 	gtk_widget_set_sensitive( _prefdata->field_B_radio, false );
-    gtk_table_attach_defaults( GTK_TABLE(table),
-			       _prefdata->field_B_radio,
-			       0, 1, 2, 3 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->field_B_radio, 0, yl, 1, 1 );
     _prefdata->field_Bx_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->field_none_radio), 
-									 "Bx" );
+									     "Bx" );
     if( !_bfield )
 	gtk_widget_set_sensitive( _prefdata->field_Bx_radio, false );
-    gtk_table_attach_defaults( GTK_TABLE(table),
-			       _prefdata->field_Bx_radio,
-			       1, 2, 2, 3 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->field_Bx_radio, 1, yl, 1, 1 );
     _prefdata->field_By_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->field_none_radio), 
-									 "By" );
+									     "By" );
     if( !_bfield )
 	gtk_widget_set_sensitive( _prefdata->field_By_radio, false );
-    gtk_table_attach_defaults( GTK_TABLE(table),
-			       _prefdata->field_By_radio,
-			       2, 3, 2, 3 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->field_By_radio, 2, yl, 1, 1 );
     _prefdata->field_Bz_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->field_none_radio), 
-									 "Bz" );
+									     "Bz" );
     if( !_bfield )
 	gtk_widget_set_sensitive( _prefdata->field_Bz_radio, false );
-    gtk_table_attach_defaults( GTK_TABLE(table),
-			       _prefdata->field_Bz_radio,
-			       3, 4, 2, 3 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->field_Bz_radio, 3, yl, 1, 1 );
+    yl++;
+
     field_type_e ftype = FIELD_NONE;
     if( _geomplot.fieldgraph() )
 	ftype = _geomplot.fieldgraph()->field_type();
@@ -764,25 +759,25 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
 		      G_CALLBACK(field_toggled), (gpointer)this );
     g_signal_connect( _prefdata->field_Bz_radio, "toggled",
 		      G_CALLBACK(field_toggled), (gpointer)this );
-    gtk_box_pack_start( GTK_BOX(vbox), table, FALSE, TRUE, 0 );
-
 
     // Zscaling
     zscale_e zscale = _geomplot.fieldgraph()->get_zscale();
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Zscale" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0.0, 0.0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0.0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 2, 1 );
 
-    GtkWidget *vbox2 = gtk_vbox_new( FALSE, 0 );
     _prefdata->zscale_lin_radio = gtk_radio_button_new_with_label_from_widget( NULL, 
 									   "Linear" );
-    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->zscale_lin_radio, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->zscale_lin_radio, 2, yl, 2, 1 );
+    yl++;
     _prefdata->zscale_log_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->zscale_lin_radio), 
 									   "Logarithmic" );
-    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->zscale_log_radio, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->zscale_log_radio, 2, yl, 2, 1 );
+    yl++;
     _prefdata->zscale_rellog_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->zscale_lin_radio), 
 									      "Relative log" );
-    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->zscale_rellog_radio, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->zscale_rellog_radio, 2, yl, 2, 1 );
+    yl++;
 
     if( zscale == ZSCALE_LINEAR )
 	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->zscale_lin_radio), true );
@@ -791,27 +786,24 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     else
 	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->zscale_rellog_radio), true );
 
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), vbox2, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
-
-
     // Interpolation type
     interpolation_e interp = _geomplot.fieldgraph()->get_interpolation();    
-        hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Interpolation" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0.0, 0.0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0.0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 2, 1 );
 
-    vbox2 = gtk_vbox_new( FALSE, 0 );
     _prefdata->int_closest_radio = gtk_radio_button_new_with_label_from_widget( NULL, 
 									    "Closest" );
-    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->int_closest_radio, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->int_closest_radio, 2, yl, 2, 1 );
+    yl++;
     _prefdata->int_bilinear_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->int_closest_radio), 
 									     "Bilinear" );
-    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->int_bilinear_radio, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->int_bilinear_radio, 2, yl, 2, 1 );
+    yl++;
     _prefdata->int_bicubic_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->int_closest_radio), 
 									    "Bicubic" );
-    gtk_box_pack_start( GTK_BOX(vbox2), _prefdata->int_bicubic_radio, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->int_bicubic_radio, 2, yl, 2, 1 );
+    yl++;
 
     if( interp == INTERPOLATION_CLOSEST )
 	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->int_closest_radio), true );
@@ -820,63 +812,51 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     else
 	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->int_bicubic_radio), true );
 
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), vbox2, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
-
-
     // Ranges
     double zmin, zmax;
     _geomplot.fieldgraph()->get_zrange( zmin, zmax );
 
     // Range zmin
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Range zmin" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 2, 1 );
     _prefdata->zmin_entry = gtk_entry_new();
     //s = to_string( zmin );
     //gtk_entry_set_text( GTK_ENTRY(_prefdata->zmin_entry), s.c_str() );
     char st[128];
     snprintf( st, 128, "%g", zmin );
     gtk_entry_set_text( GTK_ENTRY(_prefdata->zmin_entry), st );
-
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->zmin_entry, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->zmin_entry, 2, yl, 2, 1 );
+    yl++;
 
     // Range zmax
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Range zmax" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 2, 1 );
     _prefdata->zmax_entry = gtk_entry_new();
     //s = to_string( zmax );
     //gtk_entry_set_text( GTK_ENTRY(_prefdata->zmax_entry), s.c_str() );
     snprintf( st, 128, "%g", zmax );
     gtk_entry_set_text( GTK_ENTRY(_prefdata->zmax_entry), st );
-
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->zmax_entry, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->zmax_entry, 2, yl, 2, 1 );
+    yl++;
 
     // Palette steps
     int steps = _geomplot.fieldgraph()->palette().get_steps();
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Palette steps" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 2, 1 );
     _prefdata->palette_steps_entry = gtk_entry_new();
-    //s = to_string( steps );
-    //gtk_entry_set_text( GTK_ENTRY(_prefdata->palette_steps_entry), s.c_str() );
     snprintf( st, 128, "%d", steps );
     gtk_entry_set_text( GTK_ENTRY(_prefdata->palette_steps_entry), st );
+    gtk_grid_attach( GTK_GRID(grid), _prefdata->palette_steps_entry, 2, yl, 2, 1 );
+    yl++;
 
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), _prefdata->palette_steps_entry, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
-    
+    // ****************************************************************************
 
     // Add notebook page
     label = gtk_label_new( "FieldGraph" );
-    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox, label );
+    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), grid, label );
 
     return( NULL );
 }

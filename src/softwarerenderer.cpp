@@ -325,8 +325,8 @@ void SoftwareRenderer::start_rendering( void )
 {
     if( _darea ) {
 	// Make image surface for rendering
-	_width = _darea->allocation.width;
-	_height = _darea->allocation.height;
+	_width = gtk_widget_get_allocated_width( _darea );
+	_height = gtk_widget_get_allocated_height( _darea );
 	_surface = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, _width, _height );
     } else {
 	_width = cairo_image_surface_get_width( _surface );
@@ -353,7 +353,7 @@ void SoftwareRenderer::end_rendering( void )
     if( _darea ) {
 	// Copy image surface to window
 	cairo_t *cairo;
-	cairo = gdk_cairo_create( _darea->window );
+	cairo = gdk_cairo_create( gtk_widget_get_window( _darea ) );
 	cairo_set_source_surface( cairo, _surface, 0, 0 );
 	cairo_pattern_set_filter( cairo_get_source(cairo), CAIRO_FILTER_FAST );
 	cairo_rectangle( cairo, 0, 0, _width, _height );

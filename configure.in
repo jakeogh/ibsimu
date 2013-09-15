@@ -71,7 +71,31 @@ AS_IF([test "x$enable_sigsegv_stack" != "xno"], [
   CPPFLAGS="$CPPFLAGS -DSIGSEGV_STACK"
 ])
 
-dnl OpenGL/GdkGLExt
+dnl Gtk
+dnl Check by default, can be disabled
+dnl ---------------------------------
+AC_ARG_WITH([gtk3],
+  [AS_HELP_STRING([--with-gtk3],
+                  [enable interactive gtk plotter @<:@default=check@:>@])],
+                  [],
+                  [with_gtk3=check])
+AS_IF([test "x$with_gtk3" != "xno"],
+      [PKG_CHECK_MODULES([GTK3], [gtk+-3.0], [], [echo "Disabling functionality"])
+       if $PKG_CONFIG --exists gtk+-3.0 ; then
+         USEGTK3="yes"
+         AC_DEFINE([GTK3], [1], [Define to 1 if Gtk3 dependent code is to be compiled.])
+         LIBS="$LIBS $GTK3_LIBS"
+         CPPFLAGS="$CPPFLAGS $GTK3_CFLAGS"
+         AC_SUBST(GTK3_COND,[gtk+-3.0])
+       elif test "x$with_gtk3" != "xcheck" ; then
+         AC_MSG_ERROR([--with-gtk3 was given, but pkgconfig check for gtk+-3.0 library failed])
+       else
+         AC_SUBST(GTK3_COND,"")
+       fi]
+)
+AM_CONDITIONAL([GTK3], [test x$USEGTK3 = xyes])
+
+dnl OpenGL/GtkGLExt
 dnl Check by default, can be disabled
 dnl ---------------------------------
 AC_ARG_WITH([opengl],
@@ -80,15 +104,15 @@ AC_ARG_WITH([opengl],
                   [],
                   [with_opengl=check])
 AS_IF([test "x$with_opengl" != "xno"],
-      [PKG_CHECK_MODULES([GTKGLEXT], [gtkglext-1.0], [], [echo "Disabling functionality"])
-       if $PKG_CONFIG --exists gtkglext-1.0 ; then
+      [PKG_CHECK_MODULES([GTKGLEXT], [gtkglext-3.0], [], [echo "Using software rendering"])
+       if $PKG_CONFIG --exists gtkglext-3.0 ; then
          USEOPENGL="yes"
          AC_DEFINE([OPENGL], [1], [Define to 1 if GtkGLExt/OpenGL dependent code is to be compiled.])
          LIBS="$LIBS $GTKGLEXT_LIBS"
          CPPFLAGS="$CPPFLAGS $GTKGLEXT_CFLAGS"
-         AC_SUBST(OPENGL_COND,[gtkglext-1.0])
+         AC_SUBST(OPENGL_COND,[gtkglext-3.0])
        elif test "x$with_opengl" != "xcheck" ; then
-         AC_MSG_ERROR([--with-opengl was given, but pkgconfig check for gtkglext-1.0 library failed])
+         AC_MSG_ERROR([--with-opengl was given, but pkgconfig check for gtkglext-3.0 library failed])
        else
          AC_SUBST(OPENGL_COND,"")
        fi]
@@ -155,20 +179,12 @@ CPPFLAGS="$CFLAGS $CPPFLAGS"
 LIBS="$LIBS $LIBM"
 
 dnl -------------
-dnl gtk+-2.0
+dnl gtk+-3.0
 
-if $PKG_CONFIG --exists gtk+-2.0 ; then
-  PKG_CHECK_MODULES([GTK], [gtk+-2.0 >= 0.0.1])
-else
-  AC_MSG_ERROR([required library gtk+-2.0 not found])
-fi
+dnl AM_PATH_GTK_3_0([3.6.0])
+
 LIBS="$LIBS $GTK_LIBS"
 CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"
-
-
-dnl -------------
-dnl gtkglext-1.0
-
 
 
 dnl -------------
@@ -287,6 +303,9 @@ echo ""
 echo "Optional compilation"
 echo "--------------------"
 echo ""
+AS_IF([test "x$USEGTK3" = "xyes"],
+      [echo "Gtk plotter     = yes"],
+      [echo "Gtk plotter     = no"])
 AS_IF([test "x$USEOPENGL" = "xyes"],
       [echo "OpenGL renderer = yes"],
       [echo "OpenGL renderer = no"])

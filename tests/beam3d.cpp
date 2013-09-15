@@ -73,7 +73,7 @@ void test( int argc, char **argv )
     EpotEfield efield( epot );
     MeshVectorField bfield;
 
-    ParticleDataBase3D pdb;
+    ParticleDataBase3D pdb( geom );
     pdb.set_thread_count( 4 );
     bool pmirror[6] = { false, false, false, false, false, false };
     pdb.set_mirror( pmirror );
@@ -89,7 +89,7 @@ void test( int argc, char **argv )
 					      Vec3D(0,1,0), // dir1
 					      Vec3D(0,0,1), // dir2
 					      0.005 );      // radius
-	pdb.iterate_trajectories( scharge, efield, bfield, geom );
+	pdb.iterate_trajectories( scharge, efield, bfield );
     }
 
     if( true ) {
@@ -125,7 +125,8 @@ void test( int argc, char **argv )
     diag.push_back( DIAG_XP );
     pdb.trajectories_at_plane( tdata, AXIS_X, 0.1, diag );
     //if( tdata.traj_size() != 4000 ) 
-    //throw( ErrorTest( ERROR_LOCATION, "incorrect number of particles caught: " + to_string(tdata.traj_size()) + " != 4000" ) );
+    //throw( ErrorTest( ERROR_LOCATION, "incorrect number of particles caught: " + 
+    //to_string(tdata.traj_size()) + " != 4000" ) );
 
     pdb.export_path_manager_data( "beam3d.path",
  				  4.0e3, 1.0, 1.0,

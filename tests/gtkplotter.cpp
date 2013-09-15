@@ -30,11 +30,9 @@ void test( int argc, char **argv )
     geom.set_boundary( 1, Bound(BOUND_DIRICHLET, 20.0) );
     geom.build_mesh();
 
-    /*
     // Shouldn't run interactive programs from tests
     GTKPlotter plotter( &argc, &argv );
     plotter.set_geometry( &geom );
     plotter.new_geometry_plot_window();
     plotter.run();
-    */
 }
