@@ -2,7 +2,7 @@
  *  \brief Dialog window for producing hard copies
  */
 
-/* Copyright (c) 2005-2009,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -316,10 +316,8 @@ void GTKHardcopy::run( void )
     gtk_expander_set_expanded( GTK_EXPANDER(_expander), FALSE );
     gtk_container_add( GTK_CONTAINER(_expander), treeview );
 
-
     // Spinbutton for resolution
-    GtkWidget *hbox;
-    hbox = gtk_hbox_new( FALSE, 2 );
+    GtkWidget *hbox = gtk_box_new( GTK_ORIENTATION_HORIZONTAL, 2 );
     GtkWidget *resolabel = gtk_label_new( "Image resolution:" );
     _spinx = gtk_spin_button_new_with_range( 1, 10000, 1 );
     gtk_spin_button_set_value( GTK_SPIN_BUTTON(_spinx), _width );
@@ -338,8 +336,7 @@ void GTKHardcopy::run( void )
     gtk_box_pack_start( GTK_BOX(hbox), _spiny, FALSE, TRUE, 0 );
 
     // Pack Extra widgets for file chooser in a vbox
-    GtkWidget *vbox;
-    vbox = gtk_vbox_new( FALSE, 2 );
+    GtkWidget *vbox = gtk_box_new( GTK_ORIENTATION_VERTICAL, 2 );
     gtk_box_pack_start( GTK_BOX(vbox), _expander, FALSE, TRUE, 0 );
     gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
 
