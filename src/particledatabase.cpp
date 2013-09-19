@@ -325,8 +325,13 @@ ParticleDataBase2D::ParticleDataBase2D( const ParticleDataBase2D &pdb )
 ParticleDataBase2D::ParticleDataBase2D( std::istream &s, const Geometry &geom )
 {
     int32_t fileid = read_int32( s );
-    if( fileid != FILEID_PARTICLEDB2D )
-	throw( Error( ERROR_LOCATION, "unknown input reading ParticleDataBase2D from stream" ) );
+    if( fileid != FILEID_PARTICLEDB2D ) {
+	if( fileid == FILEID_PARTICLEDB3D || fileid == FILEID_PARTICLEDBCYL )
+	    throw( Error( ERROR_LOCATION, "unknown input reading ParticleDataBase2D from stream\n"
+			  "incorrect geometry type" ) );
+	else
+	    throw( Error( ERROR_LOCATION, "unknown input reading ParticleDataBase2D from stream" ) );
+    }
     _imp = new ParticleDataBase2DImp( this, s, geom );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
@@ -465,8 +470,13 @@ ParticleDataBaseCyl::ParticleDataBaseCyl( const ParticleDataBaseCyl &pdb )
 ParticleDataBaseCyl::ParticleDataBaseCyl( std::istream &s, const Geometry &geom )
 {
     int32_t fileid = read_int32( s );
-    if( fileid != FILEID_PARTICLEDBCYL )
-	throw( Error( ERROR_LOCATION, "unknown input reading ParticleDataBaseCyl from stream" ) );
+    if( fileid != FILEID_PARTICLEDBCYL ) {
+	if( fileid == FILEID_PARTICLEDB2D || fileid == FILEID_PARTICLEDB3D )
+	    throw( Error( ERROR_LOCATION, "unknown input reading ParticleDataBaseCyl from stream\n"
+			  "incorrect geometry type" ) );
+	else
+	    throw( Error( ERROR_LOCATION, "unknown input reading ParticleDataBaseCyl from stream" ) );
+    }
     _imp = new ParticleDataBaseCylImp( this, s, geom );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }
@@ -614,8 +624,13 @@ ParticleDataBase3D::ParticleDataBase3D( const ParticleDataBase3D &pdb )
 ParticleDataBase3D::ParticleDataBase3D( std::istream &s, const Geometry &geom )
 {
     int32_t fileid = read_int32( s );
-    if( fileid != FILEID_PARTICLEDB3D )
-	throw( Error( ERROR_LOCATION, "unknown input reading ParticleDataBase3D from stream" ) );
+    if( fileid != FILEID_PARTICLEDB3D ) {
+	if( fileid == FILEID_PARTICLEDB2D || fileid == FILEID_PARTICLEDBCYL )
+	    throw( Error( ERROR_LOCATION, "unknown input reading ParticleDataBase3D from stream\n"
+			  "incorrect geometry type" ) );
+	else
+	    throw( Error( ERROR_LOCATION, "unknown input reading ParticleDataBase3D from stream" ) );
+    }
     _imp = new ParticleDataBase3DImp( this, s, geom );
     set_implementation_pointer( (ParticleDataBaseImp *)_imp );
 }

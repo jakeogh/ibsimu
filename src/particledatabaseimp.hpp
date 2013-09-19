@@ -289,7 +289,10 @@ protected:
     /*! \brief Constructor, using API pdb
      */
     ParticleDataBasePPImp( ParticleDataBase *pdb, const Geometry &geom )
-	: ParticleDataBaseImp(pdb,geom), _scheduler(_particles) {}
+	: ParticleDataBaseImp(pdb,geom), _scheduler(_particles) {
+	if( _geom.geom_mode() != PP::geom_mode() )
+	    throw( Error( ERROR_LOCATION, "Differing geometry modes" ) );
+    }
 
     /*! \brief Constructor from stream, using API pdb
      */
@@ -297,6 +300,7 @@ protected:
 	: ParticleDataBaseImp(pdb,s,geom), _scheduler(_particles) {
 
 	uint32_t N = read_int32( s );
+	ibsimu.message( 1 ) << "Reading " << N << " particles.\n";
 	_particles.reserve( N );
 	for( uint32_t a = 0; a < N; a++ )
 	    _particles.push_back( new Particle<PP>( s ) );
