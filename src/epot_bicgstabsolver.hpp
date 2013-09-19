@@ -66,8 +66,7 @@ class EpotBiCGSTABSolver : public EpotMatrixSolver {
     double    _newton_step_norm;/*!< \brief Newton step size norm2. */
 
     bool      _gnewton;         /*!< \brief Globally convergent version of Newton-Raphson. */
-    double    _newton_r_eps;    /*!< \brief Accuracy request for Newton-Raphson residual. */
-    double    _newton_step_eps; /*!< \brief Accuracy request for Newton-Raphson step. */
+    double    _newton_eps;      /*!< \brief Accuracy request for Newton-Raphson. */
     uint32_t  _newton_imax;     /*!< \brief Maximum number of Newton-Raphson iterations. */
 
     Precond  *_pc;              /*!< \brief Preconditioner. */
@@ -94,8 +93,7 @@ public:
     EpotBiCGSTABSolver( Geometry &geom,
 			double eps = 1.0e-4, 
 			uint32_t imax = 10000,
-			double newton_r_eps = 1.0e-6, 
-			double newton_step_eps = 1.0e-6, 
+			double newton_eps = 1.0e-4, 
 			uint32_t newton_imax = 10,
 			bool gnewton = true );
 
@@ -135,11 +133,11 @@ public:
      */
     void set_newton_imax( uint32_t newton_imax );
 
-    /*! \brief Sets the accuracy request for Newton-Raphson residual.
+    /*! \brief Sets the accuracy request for Newton-Raphson.
      *
-     *  Defaults to 1.0e-6.
+     *  Based on error estimator. Defaults to 1.0e-4;
      */
-    void set_newton_residual_eps( double newton_r_eps );
+    void set_newton_eps( double eps );
 
     /*! \brief Get last Newton-Raphson residual.
      */
@@ -148,12 +146,6 @@ public:
     /*! \brief Get last Newton-Raphson residual norm.
      */
     double get_newton_residual_norm( void ) const;
-
-    /*! \brief Sets the accuracy request for Newton-Raphson step size.
-     *
-     *  Defaults to 1.0e-6.
-     */
-    void set_newton_step_eps( double newton_step_eps );
 
     /*! \brief Get last Newton-Raphson step size.
      */
