@@ -50,6 +50,10 @@
 
 // Atomic mass unit (kg)
 #define MASS_U        1.66053873e-27
+// Electron mass (kg)
+#define MASS_E        9.10938291e-31
+// Proton mass (kg)
+#define MASS_P        1.67262178e-27
 
 // Elementary charge (C)
 #define CHARGE_E      1.602176462e-19
