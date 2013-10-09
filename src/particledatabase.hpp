@@ -791,6 +791,32 @@ public:
 
     using ParticleDataBase::trajectories_at_plane;
 
+    /*! \brief Export particle data as Path Manager data
+     *
+     *  Makes trajectory diagnostics on a plane x = \a val. Each
+     *  particle in cylindrical symmetry simulations corresponds to a
+     *  ring in 3D and has a different current (according to starting
+     *  radius). In Path Manager particles have equal currents.
+     *  Therefore the particles... are converted in a complicated way.
+     *
+     *  The particle properties on the diagnostics plane are written
+     *  to file \a filename in the format required by the Path Manager
+     *  program. Reference particle for the output has energy \a ref_E
+     *  (in eV), charge state \a ref_q (in electron charges) and mass
+     *  \a ref_m (in atomic mass units).
+     *
+     *  The file contains a header with information about the
+     *  reference particle. After the header, the file has a line for
+     *  each particle, which contain the following columns: \a x, \a
+     *  x', \a y, \a y', \a phase, \a (p_z-p_ref)/p_ref, \a 0-flag, \a
+     *  q, \a m. The particles are mirrored according the particle
+     *  database mirroring settings. The phase is randomized for each
+     *  particle between 0 and 2 pi corresponding to continuous beam.
+     */
+    void export_path_manager_data( const std::string &filename, 
+				   double ref_E, double ref_q, double ref_m, 
+				   double val, uint32_t Np ) const;
+
 /* ************************************** *
  * Particle definition                    *
  * ************************************** */
@@ -814,7 +840,7 @@ public:
      */
     void add_particle( const ParticleCyl &p );
 
-/* ************************************** *
+ /* ************************************** *
  * Particle beam definition               *
  * ************************************** */
 
@@ -1254,9 +1280,9 @@ public:
      *  x', \a y, \a y', \a phase, \a (p_z-p_ref)/p_ref, \a 0-flag, \a
      *  q, \a m. The particles are mirrored according the particle
      *  database mirroring settings. The phase is randomized for each
-     *  particle.
+     *  particle between 0 and 2 pi corresponding to continuous beam.
      */
-    void export_path_manager_data( std::string filename, 
+    void export_path_manager_data( const std::string &filename, 
 				   double ref_E, double ref_q, double ref_m, 
 				   const Vec3D &c, const Vec3D &o, const Vec3D &p ) const;
 

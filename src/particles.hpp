@@ -268,7 +268,7 @@ inline ParticleP2D operator*( double x, const ParticleP2D &pp )
 
 /*! \brief %Particle point class for cylindrical coordinates.
  *
- *  A collection of particle coordinates (t,x,vx,y,vy,w) to
+ *  A collection of particle coordinates (t,x,vx,r,vr,w) to
  *  describe time, location and velocity in cylindrical coordinates.
  */
 class ParticlePCyl : public ParticlePBase 

@@ -1125,6 +1125,144 @@ void ParticleDataBaseCylImp::add_2d_gaussian_beam_with_emittance( uint32_t N, do
 }
 
 
+// Find gap where x is between cum[b] and cum[b+1] by forking
+uint32_t ParticleDataBaseCylImp::bisect_cumulative_array( const std::vector<double> &cum, double x )
+{
+    uint32_t b;
+    uint32_t lowi = 0; 
+    if( cum.size() <= 1 )
+	return( 0 );
+    uint32_t highi = cum.size()-1;
+
+    while( 1 ) {
+
+	// Fork
+	b = (lowi+highi)/2;
+	double val = cum[b];
+
+	// Update limits
+	if( x < val )
+	    highi = b;
+	else
+	    lowi = b;
+
+	// Test for convergence
+	if( lowi+1 == highi )
+	    return( lowi );
+    }
+}
+
+
+void ParticleDataBaseCylImp::export_path_manager_data( const std::string &filename, 
+						       double ref_E, double ref_q, double ref_m, 
+						       double val, uint32_t Np ) const
+{
+    // Calculate reference particle
+    ref_m *= MASS_U;
+    double ref_v = sqrt(2.0*ref_E*CHARGE_E/ref_m);
+    double ref_p = ref_m*ref_v;
+    const double m_to_gevc2 = SPEED_C2/CHARGE_E/1.0e9;
+    const double p_to_gevc = SPEED_C/CHARGE_E/1.0e9;
+
+    ibsimu.message( 1 ) << "Making trajectory diagnostics at plane for Path Manager output\n" 
+			<< "  ref_E = " << ref_E << " eV\n"
+			<< "  ref_q = " << ref_q << " e\n"
+			<< "  ref_m = " << ref_m/MASS_U << " u\n"
+			<< "  x = " << val << "\n";
+
+    ibsimu.message( 1 ) << "  Outputting to \'" << filename << "\'\n";
+
+    std::ofstream ofile( filename.c_str() );
+    if( !ofile.good() )
+	throw( Error( ERROR_LOCATION, "couldn\'t open file \'" + filename + "\'" ) );
+
+    // Scan through particle trajectory points and build data
+    std::vector<ParticleCyl> tdata;
+    std::vector<ParticlePCyl> intsc;
+    std::vector<double> Icum;
+    Icum.push_back( 0.0 );
+    double Isum = 0.0;
+    for( size_t a = 0; a < _particles.size(); a++ ) {
+	size_t N = _particles[a]->traj_size();
+	if( N < 2 )
+	    continue;
+	ParticlePCyl x1 = _particles[a]->traj(0);
+	for( size_t b = 1; b < N; b++ ) {
+	    ParticlePCyl x2 = _particles[a]->traj(b);
+	    intsc.clear();
+	    size_t nintsc;
+	    if( b == 1 )
+		nintsc = ParticlePCyl::trajectory_intersections_at_plane( intsc, 0, val, x1, x2, -1 );
+	    else if( b == N-1 )
+		nintsc = ParticlePCyl::trajectory_intersections_at_plane( intsc, 0, val, x1, x2, +1 );
+	    else
+		nintsc = ParticlePCyl::trajectory_intersections_at_plane( intsc, 0, val, x1, x2, 0 );
+	    for( size_t c = 0; c < nintsc; c++ ) {
+		Isum += _particles[a]->IQ();
+		Icum.push_back( Icum.back()+_particles[a]->IQ() );
+		tdata.push_back( ParticleCyl( _particles[a]->IQ(), _particles[a]->q(),
+					      _particles[a]->m(), intsc[c] ) );
+	    }
+	    
+	    x1 = x2;
+	}
+    }
+
+    // Write header
+    time_t tt = time(NULL);
+    char *timebuf = ctime( &tt );
+    ofile << "Beam data from IBSimu, " << timebuf; // contains newline
+    ofile << "Total beam: " << Isum << " A\n";
+    ofile << std::setw(17) << ref_p*p_to_gevc  << " !REFERENCE MOMENTUM [GeV/c]\n";
+    ofile << std::setw(17) << 0.0              << " !REFERENCE PHASE [rad]\n";
+    ofile << std::setw(17) << 0.0              << " !FREQUENCY [Hz]\n";
+    ofile << std::setw(17) << ref_m*m_to_gevc2 << " !REFERENCE MASS [GeV/c2]\n";
+    ofile << std::setw(17) << ref_q            << " !REFERENCE CHARGE STATE\n";
+    ofile << std::setw(17) << Np               << " !NUMBER OF PARTICLES\n";
+
+    for( uint32_t a = 0; a < Np; a++ ) {	
+
+	// Find gap where x is between Icum[b] and Icum[b+1]
+	double s = Isum*a/(Np-1); // From 0 to Isum
+	uint32_t b = bisect_cumulative_array( Icum, s );
+
+	// Randomize azimuthal angle and phase
+	double ang = -M_PI + 2.0*M_PI*rand() / RAND_MAX;
+	double phi = -M_PI + 2.0*M_PI*rand() / RAND_MAX;
+	double r = tdata[b][3];
+	double rp = tdata[b][4]/tdata[b][2];
+	double ap = r*tdata[b][5]/tdata[b][2];
+	double sint = sin( ang );
+	double cost = cos( ang );
+	double x = r*cost;
+	double xp = rp*cost - ap*sint;
+	double y = r*sint;
+	double yp = rp*sint + ap*cost;
+	double pq = tdata[b].q();
+	double pm = tdata[b].m();
+	double dpp = (pm*tdata[b][2]-ref_p)/ref_p;
+	double q = pq/CHARGE_E;
+	double m = pm*m_to_gevc2;
+
+	ofile << std::setw(17) << a << " ";                                              // index
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << x << " ";   // x
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << xp << " ";  // x'
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << y << " ";   // y
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << yp << " ";  // y'
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << phi << " "; // phase
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << dpp << " "; // dp/p
+	ofile << std::setw(17) << 0 << " ";                                              // flag
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << q << " ";   // q
+	ofile << std::setw(17) << std::scientific << std::setprecision(9) << m << " ";   // m
+	ofile << "\n";
+    }
+
+    ibsimu.message( 1 ) << "  number of trajectories input = " << tdata.size() << "\n";
+    ibsimu.message( 1 ) << "  number of trajectories ouput = " << Np << "\n";
+    ibsimu.message( 1 ) << "  total current = " << Isum << " A\n";
+}
+
+
 void ParticleDataBaseCylImp::save( std::ostream &os ) const
 {
     ParticleDataBasePPImp<ParticlePCyl>::save( os );
@@ -2188,7 +2326,7 @@ ParticleP3D ParticleDataBase3DImp::free_plane_mirror( const ParticleP3D &p, uint
 }
 
 
-void ParticleDataBase3DImp::export_path_manager_data( std::string filename, 
+void ParticleDataBase3DImp::export_path_manager_data( const std::string &filename, 
 						      double ref_E, double ref_q, double ref_m, 
 						      Vec3D c, Vec3D o, Vec3D p ) const
 {

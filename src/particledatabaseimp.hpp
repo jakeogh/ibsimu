@@ -824,6 +824,8 @@ class ParticleDataBaseCylImp : public ParticleDataBasePPImp<ParticlePCyl> {
     void add_tdens_from_segment( MeshScalarField &tdens, double IQ,
 				 ParticlePCyl &x1, ParticlePCyl &x2 ) const;
 
+    static uint32_t bisect_cumulative_array( const std::vector<double> &cum, double x );
+
 public:
 
     ParticleDataBaseCylImp( ParticleDataBase *pdb, const Geometry &geom );
@@ -858,6 +860,10 @@ public:
     void add_2d_gaussian_beam_with_emittance( uint32_t N, double I, double q, double m,
 					      double a, double b, double e,
 					      double Ex, double x0 );
+
+    void export_path_manager_data( const std::string &filename, 
+				   double ref_E, double ref_q, double ref_m, 
+				   double val, uint32_t Np ) const;
 
     void save( std::ostream &os ) const;
 
@@ -933,7 +939,7 @@ public:
 				     Vec3D c, Vec3D o, Vec3D p,
 				     const std::vector<trajectory_diagnostic_e> &diagnostics ) const;
 
-    void export_path_manager_data( std::string filename, 
+    void export_path_manager_data( const std::string &filename, 
 				   double ref_E, double ref_q, double ref_m, 
 				   Vec3D c, Vec3D o, Vec3D p ) const;    
 

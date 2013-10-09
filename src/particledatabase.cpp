@@ -524,6 +524,14 @@ void ParticleDataBaseCyl::trajectories_at_plane( std::vector<ParticleCyl> &tdata
 }
 
 
+void ParticleDataBaseCyl::export_path_manager_data( const std::string &filename, 
+						    double ref_E, double ref_q, double ref_m, 
+						    double val, uint32_t Np ) const
+{
+    _imp->export_path_manager_data( filename, ref_E, ref_q, ref_m, val, Np );
+}
+
+
 void ParticleDataBaseCyl::add_particle( double IQ, double q, double m, const ParticlePCyl &x )
 {
     _imp->add_particle( IQ, q, m, x );
@@ -768,7 +776,7 @@ void ParticleDataBase3D::trajectories_at_free_plane( TrajectoryDiagnosticData &t
 }
 
 
-void ParticleDataBase3D::export_path_manager_data( std::string filename, 
+void ParticleDataBase3D::export_path_manager_data( const std::string &filename, 
 						   double ref_E, double ref_q, double ref_m, 
 						   const Vec3D &c, const Vec3D &o, const Vec3D &p ) const
 {
