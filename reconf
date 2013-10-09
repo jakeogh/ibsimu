@@ -1,14 +1,33 @@
-#!/bin/sh
+#!/bin/bash
+
+platform='unknown'
+unamestr=$(uname)
+case $unamestr in 
+linux*)
+   platform='linux'
+   ;;
+Linux*)
+   platform='linux'
+   ;;
+darwin*)
+   platform='mac'
+   ;;
+Darwin*)
+   platform='mac'
+   ;;
+esac
 
 # Make sure ChangeLog exists
 touch ChangeLog
 
 # use git hooks from distribution
-#rm -Rf .git/hooks
-#ln -sfT ../git_hooks .git/hooks
 cd .git
 rm -Rf hooks
-ln -sfT ../git_hooks hooks
+if [ "$platform" == 'mac' ]; then
+    ln -sf ../git_hooks hooks
+else
+    ln -sfT ../git_hooks hooks
+fi
 cd ..
 
 # Update git hash ID
@@ -23,7 +42,11 @@ rm -f ltconfig.h ltmain.sh libtool
 rm -f aclocal.m4
 rm -f missing install-sh
 
-libtoolize
+if [ "$platform" == 'mac' ]; then
+    glibtoolize
+else
+    libtoolize
+fi
 # aclocal might need additional directories on msys: "-I /share/aclocal"
 aclocal -I m4
 autoconf
