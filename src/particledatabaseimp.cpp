@@ -1752,7 +1752,7 @@ void ParticleDataBase3DImp::add_3d_KV_beam_with_emittance( uint32_t N, double I,
 
 	// Check if inside sphere
 	double radius2 = rrmaj1*rrmaj1 + rrmin1*rrmin1 + rrmaj2*rrmaj2 + rrmin2*rrmin2;
-	if( radius2 > 1.0 )
+	if( radius2 == 0.0 || radius2 > 1.0 )
 	    continue;
 
 	// Project to surface
