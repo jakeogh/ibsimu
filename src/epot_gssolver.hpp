@@ -139,7 +139,7 @@ public:
 
     /*! \brief Sets maximum iteration count.
      *
-     *  Defaults to 10000.
+     *  Defaults to 100000.
      */
     void set_imax( uint32_t imax );
 

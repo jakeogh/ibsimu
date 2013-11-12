@@ -53,7 +53,7 @@
 
 
 EpotGSSolver::EpotGSSolver( Geometry &geom )
-    : EpotSolver( geom ), _epot(NULL), _rhs(NULL), _iter(0), _imax(10000), 
+    : EpotSolver( geom ), _epot(NULL), _rhs(NULL), _iter(0), _imax(100000), 
       _eps(1.0e-4), _step(0.0), _err(0.0), _w(1.66),
       _local_Ulim(0.0), _local_imax(1.0), _local_eps(1.0e-6)
 {
@@ -1063,7 +1063,7 @@ void EpotGSSolver::prepare_local_gnewton_settings( void )
 		_local_Ulim = _Ei[a];
 	}
 	// Limit calculation to 10 times maximum energy
-	_local_Ulim = 10.0*_local_Ulim; 
+	_local_Ulim = 10.0*_local_Ulim;
 	ibsimu.message( 1 ) << "Limiting plasma calculation to U < " << _local_Ulim << " V\n";
     }
 }
