@@ -227,6 +227,7 @@ void EpotBiCGSTABSolver::bicgstab( const Matrix &mat, const Vector &rhs, Vector 
 
     uint32_t i = 0; // Local iteration counter
     while( _iter < _imax ) {
+
 	rho_1 = dot_prod( rtilde, r );
 	if( rho_1 == 0 )
 	    break;
@@ -240,6 +241,8 @@ void EpotBiCGSTABSolver::bicgstab( const Matrix &mat, const Vector &rhs, Vector 
 	v = mat * phat;
 	alpha = rho_1 / dot_prod( rtilde, v );
 	s = r - alpha * v;
+	i++;
+	_iter++;
 	_res = norm2(s)/norm_rhs;
 	_err = errscale*_res;
 	if( _err < _eps ) {
@@ -260,8 +263,6 @@ void EpotBiCGSTABSolver::bicgstab( const Matrix &mat, const Vector &rhs, Vector 
 	if( comp_isnan(_res) || omega == 0 )
 	    throw( Error( ERROR_LOCATION, "convergence failure" ) );
 
-	i++;
-	_iter++;
 	if( ibsimu.get_message_threshold(MSG_VERBOSE) && ibsimu.output_is_cout() ) {
 	    std::stringstream ss;
 	    ss << "  " << std::setw(5) << i << " " << std::scientific << std::setw(20) << _err;
@@ -273,6 +274,7 @@ void EpotBiCGSTABSolver::bicgstab( const Matrix &mat, const Vector &rhs, Vector 
 	    _callback();
 	}
     }
+
     // Force print last
     if( ibsimu.get_message_threshold(MSG_VERBOSE) && ibsimu.output_is_cout() ) {
 	std::stringstream ss;
@@ -296,10 +298,10 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 
     if( linear() ) {
 
-	ibsimu.message( 1 ) << "Using BiCGSTAB-" << _pc->typestring() << " solver("
-			    << " imax = " << _imax
+	ibsimu.message( 1 ) << "Using BiCGSTAB-" << _pc->typestring() << " solver ("
+			    << "imax = " << _imax
 			    << ", eps = " << _eps
-			    << " )\n";
+			    << ")\n";
 	ibsimu.flush();
 	    
 	// Fetch matrix form of problem
@@ -336,12 +338,12 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 	if( _gnewton ) {
 
 	    ibsimu.message( 1 ) << "Using Globally convergent Newton-Raphson BiCGSTAB-" 
-				<< _pc->typestring() << " solver("
-				<< " imax = " << _imax
+				<< _pc->typestring() << " solver ("
+				<< "imax = " << _imax
 				<< ", eps = " << _eps
 				<< ", newton_imax = " << _newton_imax
 				<< ", newton_eps = " << _newton_eps
-				<< " )\n";
+				<< ")\n";
 	    ibsimu.message( 1 ) << std::setw(5)  << "Round" << " " 
 				<< std::setw(8)  << "Iter" << " " 
 				<< std::setw(14) << "Step size" << " " 
@@ -409,11 +411,11 @@ void EpotBiCGSTABSolver::subsolve( MeshScalarField &epot, const MeshScalarField 
 
 	} else {
 
-	    ibsimu.message( 1 ) << "Using Newton-Raphson BiCGSTAB-" << _pc->typestring() << " solver("
-				<< " imax = " << _imax
+	    ibsimu.message( 1 ) << "Using Newton-Raphson BiCGSTAB-" << _pc->typestring() << " solver ("
+				<< "imax = " << _imax
 				<< ", eps = " << _eps
 				<< ", newton_imax = " << _newton_imax
-				<< " )\n";
+				<< ")\n";
 	    ibsimu.message( 1 ) << std::setw(5)  << "Round" << " " 
 				<< std::setw(8)  << "Iter" << " " 
 				<< std::setw(14) << "Step size" << " " 
