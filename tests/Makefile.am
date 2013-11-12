@@ -1,47 +1,6 @@
-beam2d_SOURCES = beam2d.cpp
-beam3d_SOURCES = beam3d.cpp
-beamcyl_SOURCES = beamcyl.cpp
-ccolmatrix_SOURCES = ccolmatrix.cpp
-colormap_SOURCES = colormap.cpp
-crowmatrix_SOURCES = crowmatrix.cpp
-efield_extrpl_SOURCES = efield_extrpl.cpp
-efield_SOURCES = efield.cpp
-efieldtest_2d_SOURCES = efieldtest_2d.cpp
-energy_SOURCES = energy.cpp
-emittance3d_SOURCES = emittance3d.cpp
-emittanceconv_SOURCES = emittanceconv.cpp
-emittancedef2d_SOURCES = emittancedef2d.cpp
-emittancedef3d_SOURCES = emittancedef3d.cpp
-emittancedefcyl_SOURCES = emittancedefcyl.cpp
-export_path_manager_SOURCES = export_path_manager.cpp
-fielddiagplot_SOURCES = fielddiagplot.cpp
-fieldgraph_SOURCES = fieldgraph.cpp
-fileplot_SOURCES = fileplot.cpp
-fonts_SOURCES = fonts.cpp
-frame_extend_range_SOURCES = frame_extend_range.cpp
-frame_increase_margin_SOURCES = frame_increase_margin.cpp
-frame_SOURCES = frame.cpp
-geometry_SOURCES = geometry.cpp
-gs_solver_SOURCES = gs_solver.cpp
-gtkplotter_SOURCES = gtkplotter.cpp
-hbio_SOURCES = hbio.cpp
-histogram_SOURCES = histogram.cpp
-label_SOURCES = label.cpp
-lu_test_SOURCES = lu_test.cpp
-matrixconv_SOURCES = matrixconv.cpp
-matrixsolver_SOURCES = matrixsolver.cpp
-matvec3dtest_SOURCES = matvec3dtest.cpp
-mesh_SOURCES = mesh.cpp
-mgsolver3d_sphere_SOURCES = mgsolver3d_sphere.cpp
-mgsolver2d_coax_SOURCES = mgsolver2d_coax.cpp
-mgsolver1d_dirichlet_SOURCES = mgsolver1d_dirichlet.cpp
-mgsolver1d_neumann_SOURCES = mgsolver1d_neumann.cpp
-mvector_SOURCES = mvector.cpp
 nsimp_plasmacyl_SOURCES = nsimp_plasmacyl.cpp
 nsimp_plasma2d_SOURCES = nsimp_plasma2d.cpp
 nsimp_plasma3d_SOURCES = nsimp_plasma3d.cpp
-palette_SOURCES = palette.cpp
-particle_callback_SOURCES = particle_callback.cpp
 particles_bfield2d_SOURCES = particles_bfield2d.cpp
 particles_bfieldcyl_SOURCES = particles_bfieldcyl.cpp
 particles_cyl2_SOURCES = particles_cyl2.cpp
@@ -49,139 +8,36 @@ particles_cyl_SOURCES = particles_cyl.cpp
 particles_diagnostic_SOURCES = particles_diagnostic.cpp
 particles_edip_SOURCES = particles_edip.cpp
 particles_mirror_SOURCES = particles_mirror.cpp
-particles_nofield_SOURCES = particles_nofield.cpp
 particles_relativistic_SOURCES = particles_relativistic.cpp
 particles_trajectory_SOURCES = particles_trajectory.cpp
 plasma2d_SOURCES = plasma2d.cpp
 plasma3d_SOURCES = plasma3d.cpp
 plasmacyl_SOURCES = plasmacyl.cpp
-qrandom_SOURCES = qrandom.cpp
-quadrupole_SOURCES = quadrupole.cpp
-ruler_inv_SOURCES = ruler_inv.cpp
-ruler_SOURCES = ruler.cpp
-ruler_tic_bbox_test_SOURCES = ruler_tic_bbox_test.cpp
-scharge_out_of_range_SOURCES = scharge_out_of_range.cpp
-sclfield_SOURCES = sclfield.cpp
-secondary_electron2d_SOURCES = secondary_electron2d.cpp
-secondary_electron3d_SOURCES = secondary_electron3d.cpp
-solver1d_edge_SOURCES = solver1d_edge.cpp
-solver1d_neumann_SOURCES = solver1d_neumann.cpp
 solver1d_scharge_SOURCES = solver1d_scharge.cpp
 solver2d_coax_SOURCES = solver2d_coax.cpp
-solver2d_cylindrical_beam_SOURCES = solver2d_cylindrical_beam.cpp
 solver3d_sphere_SOURCES = solver3d_sphere.cpp
-solvercyl_beam_SOURCES = solvercyl_beam.cpp
 solvercyl_coax_SOURCES = solvercyl_coax.cpp
-surface_inside_SOURCES = surface_inside.cpp
-stl_SOURCES = stl.cpp
-trajdiaghisto_SOURCES = trajdiaghisto.cpp
-transformation_SOURCES = transformation.cpp
-vecfield_filedef_SOURCES = vecfield_filedef.cpp
-vecfield_rotate_SOURCES = vecfield_rotate.cpp
-vecfield_SOURCES = vecfield.cpp
-vlasov2d_SOURCES = vlasov2d.cpp
-vlasovcyl_SOURCES = vlasovcyl.cpp
-
-if UMFPACK
-umfpack_solver_SOURCES = umfpack_solver.cpp
-endif
-
-if CSG
-csgobjectsolid_SOURCES = csgobjectsolid.cpp
-endif
 
 check_PROGRAMS = \
-beam2d \
-beam3d \
-beamcyl \
-ccolmatrix \
-colormap \
-crowmatrix \
-efield \
-efield_extrpl \
-efieldtest_2d \
-energy \
-emittance3d \
-emittanceconv \
-emittancedef2d \
-emittancedef3d \
-emittancedefcyl \
-export_path_manager \
-fielddiagplot \
-fieldgraph \
-fileplot \
-fonts \
-frame \
-frame_extend_range \
-frame_increase_margin \
-geometry \
-gs_solver \
-gtkplotter \
-hbio \
-histogram \
-label \
-lu_test \
-matrixconv \
-matrixsolver \
-matvec3dtest \
-mesh \
-mgsolver3d_sphere \
-mgsolver2d_coax \
-mgsolver1d_dirichlet \
-mgsolver1d_neumann \
-mvector \
 nsimp_plasmacyl \
 nsimp_plasma2d \
 nsimp_plasma3d \
-palette \
-particle_callback \
 particles_bfield2d \
 particles_bfieldcyl \
-particles_cyl \
 particles_cyl2 \
+particles_cyl \
 particles_diagnostic \
 particles_edip \
 particles_mirror \
-particles_nofield \
 particles_relativistic \
 particles_trajectory \
 plasma2d \
 plasma3d \
 plasmacyl \
-qrandom \
-quadrupole \
-ruler \
-ruler_inv \
-ruler_tic_bbox_test \
-scharge_out_of_range \
-sclfield \
-secondary_electron2d \
-secondary_electron3d \
-solver1d_edge \
-solver1d_neumann \
 solver1d_scharge \
 solver2d_coax \
-solver2d_cylindrical_beam \
 solver3d_sphere \
-solvercyl_beam \
-solvercyl_coax \
-surface_inside \
-stl \
-trajdiaghisto \
-transformation \
-vecfield \
-vecfield_filedef \
-vecfield_rotate \
-vlasov2d \
-vlasovcyl
-
-if UMFPACK
-check_PROGRAMS += umfpack_solver
-endif
-
-if CSG
-check_PROGRAMS += csgobjectsolid 
-endif
+solvercyl_coax
 
 TESTS = $(check_PROGRAMS)
 
@@ -204,21 +60,9 @@ AM_LDFLAGS += `pkg-config --libs csg`
 endif
 
 EXTRA_DIST = \
-beam2d.gpl \
-beamcyl.gpl \
-efield_extrpl.gpl \
-efield.gpl \
-matrixsolver.hb \
-particles_cyl.gpl \
-solver1d_edge.gpl \
-solver1d_neumann.gpl \
 solver1d_scharge.gpl \
 solver2d_coax.gpl \
-solver2d_cylindrical_beam.gpl \
-solvercyl_beam.gpl \
-solvercyl_coax.gpl \
-vecfield_filedef.in
+solvercyl_coax.gpl
 
-CLEANFILES = *~ *.png *.eps *.svg *.pdf *.ps *.dat *_vout.txt beam3d.path libibsimutest.la \
-export_path_manager1.txt export_path_manager2.txt 
+CLEANFILES = *~ *.png *.eps *.svg *.pdf *.ps *.dat *_vout.txt beam3d.path libibsimutest.la
 
