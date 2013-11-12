@@ -230,11 +230,11 @@ void EpotUMFPACKSolver::subsolve( MeshScalarField &epot, const MeshScalarField &
 	_newton_step = 0.0;
 	if( _gnewton ) {
 
-	    ibsimu.message(1) << "Using Globally convergent Newton-Raphson UMFPACK solver("
-			      << ", newton_imax = " << _newton_imax
+	    ibsimu.message(1) << "Using Globally convergent Newton-Raphson UMFPACK solver ("
+			      << "newton_imax = " << _newton_imax
 			      << ", newton_r_eps = " << _newton_r_eps
 			      << ", newton_step_eps = " << _newton_step_eps
-			      << " )\n";
+			      << ")\n";
 	    ibsimu.message(1) << std::setw(5)  << "Round" << " " 
 			      << std::setw(14) << "Step size" << " " 
 			      << std::setw(14) << "Step fac" << " " 
@@ -286,10 +286,10 @@ void EpotUMFPACKSolver::subsolve( MeshScalarField &epot, const MeshScalarField &
 	} else {
 
 	    ibsimu.message(1) << "Using Newton-Raphson UMFPACK solver("
-			      << ", newton_imax = " << _newton_imax
+			      << "newton_imax = " << _newton_imax
 			      << ", newton_r_eps = " << _newton_r_eps
 			      << ", newton_step_eps = " << _newton_step_eps
-			      << " )\n";
+			      << ")\n";
 	    ibsimu.message(1) << std::setw(5)  << "Round" << " " 
 			      << std::setw(14) << "Step size" << " " 
 			      << std::setw(14) << "Residual" << "\n";
