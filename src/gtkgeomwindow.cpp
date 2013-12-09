@@ -434,7 +434,11 @@ std::string GTKGeomWindow::track_text( double x, double y )
     else if( (smesh & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_DIRICHLET )
 	ss << "dirichlet\n";
 
-    ss << "solid = " << _geom.inside( loc ) << "\n";
+    if( _geom.have_solid_data() )
+	ss << "solid = " << _geom.inside( loc ) << "\n";
+    else
+	ss << "solid data unavailable\n";
+
     if( _epot )
 	ss << "epot = " << (*_epot)( loc ) << " V\n";
     if( _efield ) {

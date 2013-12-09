@@ -318,6 +318,17 @@ Bound Geometry::get_boundary( uint32_t n ) const
 }
 
 
+bool Geometry::have_solid_data( void ) const
+{
+    for( ssize_t a = _sdata.size()-1; a >= 0 ; a-- ) {
+	if( !_sdata[a] )
+	    return( false );
+    }
+
+    return( true );
+}
+
+
 uint32_t Geometry::inside( const Vec3D &x ) const
 {
     for( ssize_t a = _sdata.size()-1; a >= 0 ; a-- ) {

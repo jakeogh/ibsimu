@@ -283,7 +283,7 @@ public:
 
     /*! \brief Constructor for loading geometry from a stream \a is.
      */
-    Geometry( std::istream &is );
+    explicit Geometry( std::istream &is );
 
     /*! \brief Destructor for geometry.
      */
@@ -340,6 +340,12 @@ public:
     /*! \brief Returns a vector of boundary conditions.
      */
     std::vector<Bound> get_boundaries() const;
+
+    /*! \brief Returns true if full solid data available.
+     *
+     *  Returns false if any defined solid does not include solid data.
+     */
+    bool have_solid_data( void ) const;
 
     /*! \brief Return if point is inside solids.
      *
