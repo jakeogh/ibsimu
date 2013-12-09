@@ -2,7 +2,7 @@
  *  \brief %Particle iterator
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas, Tobin Jones. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -188,7 +188,7 @@ public:
 	coldata.clear();
 
 	// Construct trajectory representation
-	TrajectoryRep1D traj[PP::dim()];
+	TrajectoryRep1D *traj = new TrajectoryRep1D[PP::dim()];
 	for( size_t a = 0; a < PP::dim(); a++ ) {
 	    traj[a].construct( x2[0]-x1[0], 
 			       x1[2*a+1], x1[2*a+2], 
@@ -260,6 +260,8 @@ public:
 
 	// Sort intersections in increasing time order
 	sort( coldata.begin(), coldata.end() );
+
+	delete[] traj;
 
 	DEBUG_DEC_INDENT();
 	DEBUG_MESSAGE( "Coldata built\n" );
