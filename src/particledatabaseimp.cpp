@@ -2,7 +2,7 @@
  *  \brief Particle database implementation
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -1340,9 +1340,8 @@ void ParticleDataBase3DImp::add_cylindrical_beam_with_velocity( uint32_t N, doub
     dir1.normalize();
     dir2.normalize();
     dir3.normalize();
-    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] ) {
+    if( comp_isnan( dir1[0] ) || comp_isnan( dir2[0] ) || comp_isnan( dir3[0] ) )
 	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
-    }
 
     // Prepare particle
     ParticleP3D x;
@@ -1418,9 +1417,9 @@ void ParticleDataBase3DImp::add_cylindrical_beam_with_energy( uint32_t N, double
     dir1.normalize();
     dir2.normalize();
     dir3.normalize();
-    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] )
+    if( comp_isnan( dir1[0] ) || comp_isnan( dir2[0] ) || comp_isnan( dir3[0] ) )
 	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
-
+	
     // Prepare particle
     ParticleP3D x;
     x[0] = 0.0;
@@ -1497,7 +1496,7 @@ void ParticleDataBase3DImp::add_cylindrical_beam_with_total_energy( uint32_t N, 
     dir1.normalize();
     dir2.normalize();
     dir3.normalize();
-    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] )
+    if( comp_isnan( dir1[0] ) || comp_isnan( dir2[0] ) || comp_isnan( dir3[0] ) )
 	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
 
     // Prepare particle
@@ -1574,9 +1573,8 @@ void ParticleDataBase3DImp::add_rectangular_beam_with_velocity( uint32_t N, doub
     dir1.normalize();
     dir2.normalize();
     dir3.normalize();
-    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] ) {
+    if( comp_isnan( dir1[0] ) || comp_isnan( dir2[0] ) || comp_isnan( dir3[0] ) )
 	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
-    }
 
     // Prepare particle
     ParticleP3D x;
@@ -1652,9 +1650,8 @@ void ParticleDataBase3DImp::add_rectangular_beam_with_energy( uint32_t N, double
     dir1.normalize();
     dir2.normalize();
     dir3.normalize();
-    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] ) {
+    if( comp_isnan( dir1[0] ) || comp_isnan( dir2[0] ) || comp_isnan( dir3[0] ) )
 	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
-    }
 
     // Prepare particle
     ParticleP3D x;
@@ -1714,7 +1711,7 @@ void ParticleDataBase3DImp::add_3d_KV_beam_with_emittance( uint32_t N, double I,
     dir1.normalize();
     dir2.normalize();
     dir3.normalize();
-    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] )
+    if( comp_isnan( dir1[0] ) || comp_isnan( dir2[0] ) || comp_isnan( dir3[0] ) )
 	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
 
     QRandom qrng( 4 );
@@ -1811,7 +1808,7 @@ void ParticleDataBase3DImp::add_3d_waterbag_beam_with_emittance( uint32_t N, dou
     dir1.normalize();
     dir2.normalize();
     dir3.normalize();
-    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] )
+    if( comp_isnan( dir1[0] ) || comp_isnan( dir2[0] ) || comp_isnan( dir3[0] ) )
 	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
 
     QRandom qrng( 4 );
@@ -1898,7 +1895,7 @@ void ParticleDataBase3DImp::add_3d_gaussian_beam_with_emittance( uint32_t N, dou
     dir1.normalize();
     dir2.normalize();
     dir3.normalize();
-    if( dir1[0] != dir1[0] || dir2[0] != dir2[0] || dir3[0] != dir3[0] )
+    if( comp_isnan( dir1[0] ) || comp_isnan( dir2[0] ) || comp_isnan( dir3[0] ) )
 	throw( Error( ERROR_LOCATION, "invalid direction vectors" ) );
 
     QRandom qrng( 4 );
