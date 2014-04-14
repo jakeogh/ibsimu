@@ -55,7 +55,7 @@
 EpotGSSolver::EpotGSSolver( Geometry &geom )
     : EpotSolver( geom ), _epot(NULL), _rhs(NULL), _iter(0), _imax(100000), 
       _eps(1.0e-4), _step(0.0), _err(0.0), _w(1.66),
-      _local_Ulim(0.0), _local_imax(1.0), _local_eps(1.0e-6)
+      _local_Ulim_fac(10.0), _local_Ulim(0.0), _local_imax(1), _local_eps(1.0e-6)
 {
     
 }
@@ -107,6 +107,14 @@ void EpotGSSolver::set_imax( uint32_t imax )
 void EpotGSSolver::set_w( double w )
 {
     _w = w;
+}
+
+
+void EpotGSSolver::set_plasma_solver_parameters( double Ulim_fac, uint32_t imax, double eps )
+{
+    _local_Ulim_fac = Ulim_fac;
+    _local_imax = imax;
+    _local_eps = eps;
 }
 
 
@@ -1053,8 +1061,8 @@ double EpotGSSolver::error_scale( void )
 void EpotGSSolver::prepare_local_gnewton_settings( void )
 {
     if( _plasma == PLASMA_PEXP ) {
-	// Limit calculation to 10 times electron temp from plasma potential
-	_local_Ulim = _Up - 10.0*_Te;
+	// Limit calculation to X times electron temp from plasma potential
+	_local_Ulim = _Up - _local_Ulim_fac*_Te;
 	ibsimu.message( 1 ) << "Limiting plasma calculation to U > " << _local_Ulim << " V\n";
     } else if( _plasma == PLASMA_NSIMP ) {
 	_local_Ulim = 0.0;
@@ -1063,7 +1071,7 @@ void EpotGSSolver::prepare_local_gnewton_settings( void )
 		_local_Ulim = _Ei[a];
 	}
 	// Limit calculation to 10 times maximum energy
-	_local_Ulim = 10.0*_local_Ulim;
+	_local_Ulim = _local_Ulim_fac*_local_Ulim;
 	ibsimu.message( 1 ) << "Limiting plasma calculation to U < " << _local_Ulim << " V\n";
     }
 }

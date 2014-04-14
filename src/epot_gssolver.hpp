@@ -60,6 +60,7 @@ class EpotGSSolver : public EpotSolver {
     double           _step;           /*!< \brief Potential change norm. */
     double           _err;            /*!< \brief Error estimate. */
     double           _w;              /*!< \brief Relaxation coefficient. */
+    double           _local_Ulim_fac; /*!< \brief Factor to calculate potential limit. */
     double           _local_Ulim;     /*!< \brief Potential limit for plasma calculation in local solver. */
     uint32_t         _local_imax;     /*!< \brief Maximum iterations for plasma calculation in local solver. */
     double           _local_eps;      /*!< \brief Convergence limit for plasma calculation in local solver. */
@@ -148,6 +149,17 @@ public:
      *  Defaults to 1.66.
      */
     void set_w( double w );
+
+    /*! \brief Set node wise plasma solver parameters
+     *
+     *  The \a Ulim_fac gives the potential limit within which the
+     *  nonlinear solver is used in multiples of \a Te or maximum
+     *  compensating particle energy from the plasma potential
+     *  (defaults to 10). The \a imax gives the maximum number of
+     *  iterations done at each node (defaults to 1) and eps gives the
+     *  convergence criterion (default to 1.0e-6 volts).
+     */
+    void set_plasma_solver_parameters( double Ulim_fac, uint32_t imax, double eps );
 
     /*! \brief Get potential change norm.
      *
