@@ -1,8 +1,8 @@
-/*! \file colormap.cpp
- *  \brief %Colormap graph for plotting
+/*! \file meshcolormap.cpp
+ *  \brief Mesh based colormap graph for plotting
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,13 +45,13 @@
 #include <iomanip>
 #include <iostream>
 #include "compmath.hpp"
-#include "colormap.hpp"
+#include "meshcolormap.hpp"
 
 
 //#define DEBUG_COLORMAP 1
 
 
-Colormap::Colormap()
+MeshColormap::MeshColormap()
     : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), 
       _zmin(0.0), _zmax(0.0), _n(0), _m(0), _intrp(NULL), _zscale_prepared(false)
 {
@@ -59,7 +59,7 @@ Colormap::Colormap()
 }
 
 
-Colormap::Colormap( const double datarange[4], size_t n, size_t m, 
+MeshColormap::MeshColormap( const double datarange[4], size_t n, size_t m, 
 		    const std::vector<double> &data )
     : _interpolation(INTERPOLATION_BILINEAR), _zscale(ZSCALE_LINEAR), 
       _zmin(0.0), _zmax(0.0), _n(0), _m(0), _intrp(NULL), _zscale_prepared(false)
@@ -68,7 +68,7 @@ Colormap::Colormap( const double datarange[4], size_t n, size_t m,
 }
 
 
-Colormap::Colormap( const Colormap &colormap )
+MeshColormap::MeshColormap( const MeshColormap &colormap )
     : _palette(colormap._palette), _interpolation(colormap._interpolation),
       _zscale(colormap._zscale), _zmin(colormap._zmin), _zmax(colormap._zmax),
       _n(colormap._n), _m(colormap._m), _f(colormap._f), _intrp(NULL), 
@@ -83,14 +83,14 @@ Colormap::Colormap( const Colormap &colormap )
 }
 
 
-Colormap::~Colormap()
+MeshColormap::~MeshColormap()
 {
     if( _intrp )
 	delete _intrp;
 }
 
 
-void Colormap::clear_data( void ) 
+void MeshColormap::clear_data( void ) 
 {
     _n = 0;
     _m = 0;
@@ -101,11 +101,11 @@ void Colormap::clear_data( void )
 }
 
 
-void Colormap::set_data( const double datarange[4], size_t n, size_t m, 
+void MeshColormap::set_data( const double datarange[4], size_t n, size_t m, 
 			 const std::vector<double> &data )
 {
 #ifdef DEBUG_COLORMAP
-    std::cout << "Colormap::set_data()\n";
+    std::cout << "MeshColormap::set_data()\n";
 #endif
 
     _n = n;
@@ -149,33 +149,33 @@ void Colormap::set_data( const double datarange[4], size_t n, size_t m,
 }
 
 
-interpolation_e Colormap::get_interpolation( void ) const
+interpolation_e MeshColormap::get_interpolation( void ) const
 {
     return( _interpolation );
 }
 
 
-void Colormap::set_interpolation( interpolation_e interpolation )
+void MeshColormap::set_interpolation( interpolation_e interpolation )
 {
     _interpolation = interpolation;
     prepare_data_interpolation();
 }
 
 
-zscale_e Colormap::get_zscale( void ) const
+zscale_e MeshColormap::get_zscale( void ) const
 {
     return( _zscale );
 }
 
 
-void Colormap::set_zscale( zscale_e zscale )
+void MeshColormap::set_zscale( zscale_e zscale )
 {
     _zscale = zscale;
     _zscale_prepared = false;
 }
 
 
-void Colormap::prepare_zscaling( void )
+void MeshColormap::prepare_zscaling( void )
 {
     // Error if either end is at zero with LOG scaling
     if( _zscale == ZSCALE_LOG && _zmin <= 0.0 && _zmax >= 0.0 )
@@ -218,7 +218,7 @@ void Colormap::prepare_zscaling( void )
 
 
 
-double Colormap::zscale_inv( double val )
+double MeshColormap::zscale_inv( double val )
 {
     if( !_zscale_prepared )
 	prepare_zscaling();
@@ -248,7 +248,7 @@ double Colormap::zscale_inv( double val )
 }
 
 
-double Colormap::zscale( double val )
+double MeshColormap::zscale( double val )
 {
     if( !_zscale_prepared )
 	prepare_zscaling();
@@ -283,7 +283,7 @@ double Colormap::zscale( double val )
 }
 
 
-void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmapper *cm, int plim[4] )
+void MeshColormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmapper *cm, int plim[4] )
 {
     unsigned char *buf = cairo_image_surface_get_data( surface );
 
@@ -339,10 +339,10 @@ void Colormap::plot_to_image_surface( cairo_surface_t *surface, const Coordmappe
 }
 
 
-void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
+void MeshColormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4] )
 {
 #ifdef DEBUG_COLORMAP
-    std::cout << "Colormap::plot()\n";
+    std::cout << "MeshColormap::plot()\n";
 #endif
 
     // If colormap empty, do nothing
@@ -441,13 +441,13 @@ void Colormap::plot( cairo_t *cairo, const Coordmapper *cm, const double range[4
 }
 
 
-void Colormap::plot_sample( cairo_t *cairo, double x, double y, double width, double height )
+void MeshColormap::plot_sample( cairo_t *cairo, double x, double y, double width, double height )
 {
 
 }
 
 
-void Colormap::get_bbox( double bbox[4] )
+void MeshColormap::get_bbox( double bbox[4] )
 {
     bbox[0] = _datarange[0];
     bbox[1] = _datarange[1];
@@ -456,20 +456,20 @@ void Colormap::get_bbox( double bbox[4] )
 }
 
 
-void Colormap::set_palette( const Palette &palette )
+void MeshColormap::set_palette( const Palette &palette )
 {
     _palette = palette;
 }
 
 
-void Colormap::get_zrange( double &min, double &max ) const
+void MeshColormap::get_zrange( double &min, double &max ) const
 {
     min = _zmin;
     max = _zmax;
 }
 
 
-void Colormap::set_zrange( double min, double max )
+void MeshColormap::set_zrange( double min, double max )
 {
     if( min < max ) {
 	_zmin = min;
@@ -482,7 +482,7 @@ void Colormap::set_zrange( double min, double max )
 }
 
 
-void Colormap::prepare_data_interpolation( void )
+void MeshColormap::prepare_data_interpolation( void )
 {
     // Free old interpolation
     if( _intrp )
@@ -505,7 +505,7 @@ void Colormap::prepare_data_interpolation( void )
 }
 
 
-double Colormap::get_value( double x, double y ) const
+double MeshColormap::get_value( double x, double y ) const
 {	    
     // Calculate relative point in data
     double t = (x-_datarange[0])/(_datarange[2]-_datarange[0]);

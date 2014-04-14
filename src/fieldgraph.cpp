@@ -2,7 +2,7 @@
  *  \brief %Graph for plotting fields
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -113,7 +113,7 @@ void FieldGraph::set_field( field_type_e field_type, const ScalarField *field )
     }
     Palette p( pentry );
     set_palette( p );
-    Colormap::set_zrange( _zmin, _zmax );
+    MeshColormap::set_zrange( _zmin, _zmax );
 }
 
 
@@ -206,7 +206,7 @@ void FieldGraph::set_field( field_type_e field_type, const VectorField *field )
     pentry.push_back( Palette::Entry( Vec3D(0,0,0),  1.00 ) );
     Palette p( pentry );
     set_palette( p );
-    Colormap::set_zrange( _zmin, _zmax );
+    MeshColormap::set_zrange( _zmin, _zmax );
 }
 */
 
@@ -221,7 +221,7 @@ void FieldGraph::set_zrange( double zmin, double zmax )
     _zmin = zmin;
     _zmax = zmax;
 
-    Colormap::set_zrange( _zmin, _zmax );
+    MeshColormap::set_zrange( _zmin, _zmax );
 }
 
 
@@ -461,7 +461,7 @@ void FieldGraph::plot( cairo_t *cairo, const Coordmapper *cm, const double range
     _olevel = _level;
 
     if( _field_type != FIELD_NONE && _enabled )
-	Colormap::plot( cairo, cm, range );
+	MeshColormap::plot( cairo, cm, range );
 }
 
 

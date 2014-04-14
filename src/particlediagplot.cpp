@@ -2,7 +2,7 @@
  *  \brief %Particle diagnostic plot
  */
 
-/* Copyright (c) 2005-2011,2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2013-2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -465,7 +465,7 @@ void ParticleDiagPlot::build_plot( void )
 	}
 	palette.normalize();
 
-	_colormap = new Colormap( range, histo2d->n(), histo2d->m(), histo2d->get_data() );
+	_colormap = new MeshColormap( range, histo2d->n(), histo2d->m(), histo2d->get_data() );
 	_colormap->set_palette( palette );
 	_colormap->set_interpolation( _interpolation );
 	_frame.add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _colormap );

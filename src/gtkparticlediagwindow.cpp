@@ -2,7 +2,7 @@
  *  \brief %Particle diagnostic window.
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,6 +45,7 @@
 #include "gtkparticlediagwindow.hpp"
 #include "gtkparticlediagexportdialog.hpp"
 #include "histogram.hpp"
+#include "meshcolormap.hpp"
 
 
 GTKParticleDiagWindow::GTKParticleDiagWindow( GTKPlotter &plotter, const ParticleDataBase &pdb, 
@@ -431,12 +432,12 @@ std::string GTKParticleDiagWindow::track_text( double x, double y )
 	if( (diagx == DIAG_X || diagx == DIAG_Y || diagx == DIAG_R || diagx == DIAG_Z) && 
 	    (diagy == DIAG_X || diagy == DIAG_Y || diagy == DIAG_R || diagy == DIAG_Z) ) {
 	    // Profile plot
-	    const Colormap *cmap = _plot.get_colormap();
+	    const MeshColormap *cmap = _plot.get_colormap();
 	    double val = cmap->get_value( x, y );
 	    ss << "J = " << val << " A/m2\n";
 	} else {
 	    // Emittance plot
-	    const Colormap *cmap = _plot.get_colormap();
+	    const MeshColormap *cmap = _plot.get_colormap();
 	    double val = cmap->get_value( x, y );
 	    ss << "J = " << val << " A/(m rad)\n";
 	}

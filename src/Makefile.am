@@ -12,7 +12,6 @@ callback.hpp \
 ccolmatrix.cpp \
 ccolmatrix.hpp \
 cfifo.hpp \
-colormap.cpp \
 colormap.hpp \
 compmath.cpp \
 compmath.hpp \
@@ -140,6 +139,8 @@ matrix.cpp \
 matrix.hpp \
 mesh.cpp \
 mesh.hpp \
+meshcolormap.cpp \
+meshcolormap.hpp \
 meshgraph.cpp \
 meshgraph.hpp \
 meshscalarfield.cpp \
@@ -304,6 +305,7 @@ lineclip.hpp \
 mat3d.hpp \
 matrix.hpp \
 mesh.hpp \
+meshcolormap.hpp \
 meshgraph.hpp \
 meshscalarfield.hpp \
 meshvectorfield.hpp \

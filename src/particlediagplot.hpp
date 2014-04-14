@@ -2,7 +2,7 @@
  *  \brief %Particle diagnostic plot
  */
 
-/* Copyright (c) 2005-2011,2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2013-2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -52,7 +52,7 @@
 #include "trajectorydiagnostics.hpp"
 
 #include "xygraph.hpp"
-#include "colormap.hpp"
+#include "meshcolormap.hpp"
 
 
 
@@ -109,7 +109,7 @@ class ParticleDiagPlot {
     XYGraph                   *_ellipse;
     bool                       _ellipse_enable;
 
-    Colormap                  *_colormap;
+    MeshColormap              *_colormap;
     std::vector<double>        _zdata;
 
     size_t                     _histogram_n;
@@ -286,7 +286,7 @@ public:
 
     /*! \brief Get a pointer to histogram in the plot.
      */
-    const Colormap *get_colormap( void ) const {
+    const MeshColormap *get_colormap( void ) const {
 	return( _colormap );
     }
 

@@ -2,7 +2,7 @@
  *  \brief %Graph for plotting fields
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -46,7 +46,7 @@
 
 #include <vector>
 #include "graph3d.hpp"
-#include "colormap.hpp"
+#include "meshcolormap.hpp"
 #include "geometry.hpp"
 #include "field.hpp"
 #include "types.hpp"
@@ -56,7 +56,7 @@
  *
  *  Implementation of %Graph3D. Used in Frame type plots.
  */
-class FieldGraph : public Graph3D, public Colormap {
+class FieldGraph : public Graph3D, public MeshColormap {
 
     const Geometry         &_geom;            /*!< \brief Geometry. */
     const Field            *_field;           /*!< \brief Field to be plotted. */
