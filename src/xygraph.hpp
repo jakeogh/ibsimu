@@ -2,7 +2,7 @@
  *  \brief XY-graph
  */
 
-/* Copyright (c) 2005-2011,2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2013,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -51,16 +51,20 @@
 #include "coordmapper.hpp"
 
 
+/*! \brief XYGraph line style
+ */
 enum line_style_e {
-    XYGRAPH_LINE_DISABLE = 0,
-    XYGRAPH_LINE_SOLID
+    XYGRAPH_LINE_DISABLE = 0,   /*!< \brief Disable line plotting */
+    XYGRAPH_LINE_SOLID          /*!< \brief Regular line between data points */
 };
 
 
+/*! \brief XYGraph point style
+ */
 enum point_style_e {
-    XYGRAPH_POINT_DISABLE = 0,
-    XYGRAPH_POINT_CIRCLE,
-    XYGRAPH_POINT_BOX
+    XYGRAPH_POINT_DISABLE = 0,   /*!< \brief Disable data point plotting */
+    XYGRAPH_POINT_CIRCLE,        /*!< \brief Draw a circle */
+    XYGRAPH_POINT_BOX            /*!< \brief Draw a box */
 };
 
 
