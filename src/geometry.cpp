@@ -2,7 +2,7 @@
  *  \brief %Geometry definition.
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -2006,7 +2006,7 @@ uint32_t Geometry::surface_cell_face_add_vertex( VTriangleSurfaceSolid &solid,
 						 const int32_t i[3], const int32_t vb[3], 
 						 double dx, double dy ) const
 {
-    double u[3] = { i[0], i[1], i[2] };
+    double u[3] = { (double)i[0], (double)i[1], (double)i[2] };
     u[vb[0]] += dx;
     u[vb[1]] += dy;
 
