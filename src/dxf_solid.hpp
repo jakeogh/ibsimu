@@ -2,7 +2,7 @@
  *  \brief %Solid definition using MyDXF
  */
 
-/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -83,6 +83,15 @@ public:
      *  unity.
      */
     DXFSolid( MyDXFFile *dxffile, const std::string &layername );
+
+    /*! \brief Constructor for making a solid from entities in a
+     *  MyDXFEntities object \a ent.
+     *
+     *  Entities from \a ent are copied to DXFSolid object. The
+     *  entities are from \a dxffile. An internal copy of the entities
+     *  object is made. The transformations are initialized to unity.
+     */
+    DXFSolid( MyDXFFile *dxffile, MyDXFEntities *ent );
 
     /*! \brief Constructor for loading solid data from stream \a is.
      */

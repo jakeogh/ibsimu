@@ -2,7 +2,7 @@
  *  \brief %Solid definition using MyDXF
  */
 
-/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -90,6 +90,36 @@ DXFSolid::DXFSolid( MyDXFFile *dxffile, const std::string &layername )
 			<< _entities->size() << " entities\n";
 
     delete layer;
+    delete loop;
+}
+
+
+DXFSolid::DXFSolid( MyDXFFile *dxffile, MyDXFEntities *ent )
+    : _func(&unity)
+{
+    if( ent->size() == 0 ) {
+	throw( Error( ERROR_LOCATION, "No entities" ) );
+    }
+
+    MyDXFEntitySelection *all = _entities->selection_all();
+    MyDXFEntitySelection *loop = ent->selection_path_loop( all );
+    if( loop->size() == 0 ) {
+	delete all;
+	delete loop;
+	throw( Error( ERROR_LOCATION, "No loops defined by entities" ) );
+    }
+
+    _entities = new MyDXFEntities( dxffile, ent, loop );
+    _selection = _entities->selection_all();
+
+    if( (int)all->size()-(int)loop->size() > 0 )
+	ibsimu.message( 1 ) << "  removed " 
+			    << (int)all->size()-(int)loop->size() 
+			    << " entities\n";
+    ibsimu.message( 1 ) << "  solid defined using " 
+			<< _entities->size() << " entities\n";
+
+    delete all;
     delete loop;
 }
 
