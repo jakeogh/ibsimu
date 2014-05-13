@@ -2,7 +2,7 @@
  *  \brief DXF insert entity
  */
 
-/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -216,25 +216,35 @@ void MyDXFInsert::get_bbox( Vec3D &min, Vec3D &max,
 
 void MyDXFInsert::scale( class MyDXFFile *dxf, double s )
 {
-    // Fetch block data
-    MyDXFBlocks *blocks = dxf->get_blocks();
-    MyDXFBlock *b = blocks->get_by_name( _block_name );
-    if( !b )
-	return;
+    _scale *= s;
 
-    b->scale( dxf, s );
+    // Fetch block data
+    //MyDXFBlocks *blocks = dxf->get_blocks();
+    //MyDXFBlock *b = blocks->get_by_name( _block_name );
+    //if( !b )
+    //return;
+    //
+    //b->scale( dxf, s );
 }
 
 
 void MyDXFInsert::translate( class MyDXFFile *dxf, const Vec3D &dx )
 {
-    // Fetch block data
-    MyDXFBlocks *blocks = dxf->get_blocks();
-    MyDXFBlock *b = blocks->get_by_name( _block_name );
-    if( !b )
-	return;
+    _p += dx;
 
-    b->translate( dxf, dx );
+    // Fetch block data
+    //MyDXFBlocks *blocks = dxf->get_blocks();
+    //MyDXFBlock *b = blocks->get_by_name( _block_name );
+    //if( !b )
+    //return;
+    //
+    //b->translate( dxf, dx );
+}
+
+
+void MyDXFInsert::rotate_z( class MyDXFFile *dxf, double a )
+{
+    _rotation += a;
 }
 
 

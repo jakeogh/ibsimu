@@ -2,7 +2,7 @@
  *  \brief DXF circle entity
  */
 
-/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -284,6 +284,13 @@ void MyDXFCircle::scale( class MyDXFFile *dxf, double s )
 void MyDXFCircle::translate( class MyDXFFile *dxf, const Vec3D &dx )
 {
     _pc += dx;
+}
+
+
+void MyDXFCircle::rotate_z( class MyDXFFile *dxf, double a )
+{
+    Transformation t = Transformation::rotation_z( a );
+    _pc = t.transform_point( _pc );
 }
 
 

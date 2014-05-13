@@ -2,7 +2,7 @@
  *  \brief DXF arc entity
  */
 
-/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -280,6 +280,16 @@ void MyDXFArc::scale( class MyDXFFile *dxf, double s )
 void MyDXFArc::translate( class MyDXFFile *dxf, const Vec3D &dx )
 {
     _pc += dx;
+}
+
+
+void MyDXFArc::rotate_z( class MyDXFFile *dxf, double a )
+{
+    Transformation t = Transformation::rotation_z( a );
+    Vec3D s = t.transform_point( start() );
+    Vec3D e = t.transform_point( end() );
+    Vec3D c = t.transform_point( center() );
+    set_center_and_ends( c, s, e );
 }
 
 

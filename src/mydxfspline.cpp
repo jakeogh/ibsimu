@@ -2,7 +2,7 @@
  *  \brief DXF spline entity
  */
 
-/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -742,6 +742,18 @@ void MyDXFSpline::translate( class MyDXFFile *dxf, const Vec3D &dx )
 	_fit[a] += dx;
     for( uint32_t a = 0; a < _polyline.size(); a++ )
 	_polyline[a] += dx;
+}
+
+
+void MyDXFSpline::rotate_z( class MyDXFFile *dxf, double a )
+{
+    Transformation t = Transformation::rotation_z( a );
+
+    // Transform control and fit points
+    for( uint32_t a = 0; a < _cont.size(); a++ )
+	_cont[a] = t.transform_point( _cont[a] );
+    for( uint32_t a = 0; a < _fit.size(); a++ )
+	_fit[a] = t.transform_point( _fit[a] );
 }
 
 

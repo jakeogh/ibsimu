@@ -2,7 +2,7 @@
  *  \brief DXF lwpolyline entity
  */
 
-/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -179,6 +179,14 @@ void MyDXFLWPolyline::translate( class MyDXFFile *dxf, const Vec3D &dx  )
 {
     for( uint32_t a = 0; a < _p.size(); a++ )
 	_p[a] += dx;
+}
+
+
+void MyDXFLWPolyline::rotate_z( class MyDXFFile *dxf, double a )
+{
+    Transformation t = Transformation::rotation_z( a );
+    for( uint32_t a = 0; a < _p.size(); a++ )
+	_p[a] = t.transform_point( _p[a] );
 }
 
 

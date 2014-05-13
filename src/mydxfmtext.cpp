@@ -2,7 +2,7 @@
  *  \brief DXF mtext entity
  */
 
-/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -333,6 +333,17 @@ void MyDXFMText::scale( class MyDXFFile *dxf, double s )
 void MyDXFMText::translate( class MyDXFFile *dxf, const Vec3D &dx )
 {
     _p += dx;
+}
+
+
+void MyDXFMText::rotate_z( class MyDXFFile *dxf, double a )
+{
+    Transformation t = Transformation::rotation_z( a );
+    _p = t.transform_point( _p );
+
+    _rotation += a;
+    // Enforce between 0 and 2 pi
+    _rotation = _rotation - 2.0*M_PI*floor( _rotation/(2.0*M_PI) );
 }
 
 

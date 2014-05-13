@@ -2,7 +2,7 @@
  *  \brief DXF arc entity
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -204,6 +204,12 @@ public:
     /*! \brief Translate entity by \a dx.
      */
     virtual void translate( class MyDXFFile *dxf, const Vec3D &dx );
+
+    /*! \brief Rotate entity around origin
+     *
+     *  Rotate for \a a radians.
+     */
+    virtual void rotate_z( class MyDXFFile *dxf, double a );
 
     /*! \brief Print debugging information to stream \a os.
      */

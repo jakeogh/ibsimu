@@ -2,7 +2,7 @@
  *  \brief DXF Entities
  */
 
-/* Copyright (c) 2010-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2011,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -127,6 +127,12 @@ public:
     /*! \brief Translate entity by \a dx.
      */
     virtual void translate( class MyDXFFile *dxf, const Vec3D &dx ) = 0;
+
+    /*! \brief Rotate entity around origin
+     *
+     *  Rotate for \a a radians.
+     */
+    virtual void rotate_z( class MyDXFFile *dxf, double a ) = 0;
 
     /*! \brief Set layer.
      */
@@ -399,26 +405,21 @@ public:
     void get_bbox( const MyDXFEntitySelection *selection, Vec3D &min, Vec3D &max, 
 		   const class MyDXFFile *dxf, const Transformation *t ) const;
 
-
-
-    /*
-    void translate( MyDXFEntitySelection *selection, double dx, double dy, double dz );
-    void rotate_x( MyDXFEntitySelection *selection, double y, double z, double ang );
-    void rotate_y( MyDXFEntitySelection *selection, double x, double z, double ang );
-    void rotate_z( MyDXFEntitySelection *selection, double x, double y, double ang );
-    */
-
     /*! \brief Scale selected entities by factor s.
      *
      *  Selection can be a NULL pointer to scale all entities.
      */
     void scale( MyDXFEntitySelection *selection, class MyDXFFile *dxf, double s );
 
-    /*! \brief Translate selected entities by  \a dx.
+    /*! \brief Translate selected entities by \a dx.
      */
     void translate( MyDXFEntitySelection *selection, class MyDXFFile *dxf, const Vec3D &dx );
 
-
+    /*! \brief Rotate selected entities around origin.
+     *
+     *  Rotate for \a a radians.
+     */
+    void rotate_z( MyDXFEntitySelection *selection, double a );
 
     /*! \brief Remove selected entities.
      *
