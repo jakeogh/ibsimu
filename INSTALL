@@ -23,7 +23,7 @@ The releases are available as .tar.gz archives. Just extract the
 archive with 
 
 tvkalvas@PHYS78 ~/src
-$ tar zxvf ibsimu-1.0.5b.tar.gz
+$ tar zxvf ibsimu-1.0.5new_solver.tar.gz
 
 and start the configuration and compilation process.
 
@@ -232,9 +232,8 @@ building 3D geometries.
 For windows you can get most of these libraries and the dependencies
 of GTK+ bundled in one package at http://www.gtk.org/ in
 "Download". Download the newest stable release "all-in-one bundle". At
-the time of writing (16 Sep 2013) the newest version was 2.22, which
-is not compatible with IBSimu. IBSimu needs version 3.X. If that is
-available, uncompress the package contents into a temporary location
+the time of writing (21 May 2014) the newest version was 3.6.4.
+Uncompress the package contents into a temporary location
 and copy the contents into C:\MSYS\1.0\ in such a way that the
 contents of the bin directory in the gtk package will go into
 C:\MSYS\1.0\bin, lib into C:\MSYS\1.0\lib, et cetera. This needs to be
@@ -256,7 +255,7 @@ Threads should be included in the distribution by default.
 
 The GNU Scientific Library can be fetched from
 http://www.gnu.org/software/gsl/. Go to the download section and
-choose the most recent package (gsl-1.14.tar.gz at the time of
+choose the most recent package (gsl-1.16.tar.gz at the time of
 writing). Save the archive into /home/username/src (I like to keep my
 files in order and therefore I put sources into a subdirectory
 src). The GSL will have to be compiled in the MSYS/MinGW
@@ -267,29 +266,29 @@ tvkalvas@PHYS78 ~
 $ cd src
 
 tvkalvas@PHYS78 ~/src
-$ tar zxvf gsl-1.14.tar.gz
+$ tar zxvf gsl-1.16.tar.gz
 
-The GSL will be uncompressed into a directory gsl-1.14. go into the
+The GSL will be uncompressed into a directory gsl-1.16. go into the
 directory with cd and run the configure script indicating the desired
 installation location:
 
 tvkalvas@PHYS78 ~/src
-$ cd gsl-1.14
+$ cd gsl-1.16
 
-tvkalvas@PHYS78 ~/src/gsl-1.14
+tvkalvas@PHYS78 ~/src/gsl-1.16
 $ ./configure --prefix=/home/tvkalvas
 
 If everything goes well the configure script shouldn't complain about
 anything and it should be ready to compile the GSL. Compilation,
 checks and installation follow:
 
-tvkalvas@PHYS78 ~/src/gsl-1.14
+tvkalvas@PHYS78 ~/src/gsl-1.16
 $ make
 
-tvkalvas@PHYS78 ~/src/gsl-1.14
+tvkalvas@PHYS78 ~/src/gsl-1.16
 $ make check
 
-tvkalvas@PHYS78 ~/src/gsl-1.14
+tvkalvas@PHYS78 ~/src/gsl-1.16
 $ make install
 
 This is everything you have to have to be able to start compiling
