@@ -80,8 +80,11 @@ GTKGeom3DWindow::GTKGeom3DWindow( GTKPlotter &plotter,
     g_signal_connect( G_OBJECT(_darea), "configure_event",
 		      G_CALLBACK(darea_configure_signal), 
 		      (gpointer)this );
-    g_signal_connect( G_OBJECT(_darea), "expose_event",
-		      G_CALLBACK(darea_expose_signal), 
+    //g_signal_connect( G_OBJECT(_darea), "expose_event",
+    //G_CALLBACK(darea_expose_signal), 
+    //(gpointer)this );
+    g_signal_connect( G_OBJECT(_darea), "draw",
+		      G_CALLBACK(darea_draw_signal), 
 		      (gpointer)this );
 
     gtk_widget_show_all( _window );
@@ -118,8 +121,7 @@ void GTKGeom3DWindow::init_window( void )
     g_signal_connect( G_OBJECT(_window), "delete_event",
 		      G_CALLBACK(window_delete_signal), 
 		      (gpointer)this );
-    GtkWidget *vbox;
-    vbox = gtk_vbox_new( FALSE, 0 );
+    GtkWidget *vbox = gtk_box_new( GTK_ORIENTATION_VERTICAL, 0 );
 
     // Menu bar
     _menubar = gtk_menu_bar_new();
@@ -130,7 +132,7 @@ void GTKGeom3DWindow::init_window( void )
     gtk_menu_shell_append( GTK_MENU_SHELL(_menu_file), item_quit );
     GtkWidget *item_file = gtk_menu_item_new_with_mnemonic( "_File" );
     gtk_menu_item_set_submenu( GTK_MENU_ITEM(item_file), _menu_file );
-    gtk_menu_bar_append( GTK_MENU_BAR(_menubar), item_file );
+    gtk_container_add( GTK_CONTAINER(_menubar), item_file );
     g_signal_connect( G_OBJECT(item_quit), "activate",
 		      G_CALLBACK(menuitem_quit_signal),
 		      (gpointer)this );
@@ -154,16 +156,12 @@ void GTKGeom3DWindow::init_window( void )
     // Tool bar
     _toolbar = gtk_toolbar_new();
     gtk_toolbar_set_style( GTK_TOOLBAR(_toolbar), GTK_TOOLBAR_ICONS );
-    gtk_toolbar_set_orientation( GTK_TOOLBAR(_toolbar), GTK_ORIENTATION_HORIZONTAL );
-    
 
     // Creating "Hardcopy" button
     GdkPixbuf *pixbuf = gdk_pixbuf_new_from_inline( -1, icon_hardcopy_inline, FALSE, NULL );
     GtkWidget *icon = gtk_image_new_from_pixbuf( pixbuf );
     GtkToolItem *toolitem = gtk_tool_button_new( icon, "Hardcopy" );
-#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Hardcopy" );
-#endif
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "clicked",
 		      G_CALLBACK(menuitem_hardcopy_signal),
@@ -178,9 +176,7 @@ void GTKGeom3DWindow::init_window( void )
     icon = gtk_image_new_from_pixbuf( pixbuf );
     _radioitem = toolitem = gtk_radio_tool_button_new( NULL );
     gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Zoom in" );
-#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Zoom in" );
-#endif
     gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toggle_tool_button_set_active( GTK_TOGGLE_TOOL_BUTTON(toolitem), FALSE );
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
@@ -193,9 +189,7 @@ void GTKGeom3DWindow::init_window( void )
     icon = gtk_image_new_from_pixbuf( pixbuf );
     toolitem = gtk_radio_tool_button_new_from_widget( GTK_RADIO_TOOL_BUTTON(_radioitem) );
     gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Zoom out" );
-#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Zoom out" );
-#endif
     gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toggle_tool_button_set_active( GTK_TOGGLE_TOOL_BUTTON(toolitem), FALSE );
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
@@ -207,9 +201,7 @@ void GTKGeom3DWindow::init_window( void )
     pixbuf = gdk_pixbuf_new_from_inline( -1, icon_zoom_fit_inline, FALSE, NULL );
     icon = gtk_image_new_from_pixbuf( pixbuf );
     toolitem = gtk_tool_button_new( icon, "Zoom fit" );
-#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Zoom fit" );
-#endif
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "clicked",
 		      G_CALLBACK(menuitem_zoom_fit_signal),
@@ -220,9 +212,7 @@ void GTKGeom3DWindow::init_window( void )
     icon = gtk_image_new_from_pixbuf( pixbuf );
     toolitem = gtk_radio_tool_button_new_from_widget( GTK_RADIO_TOOL_BUTTON(_radioitem) );
     gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Move" );
-#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Move" );
-#endif
     gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toggle_tool_button_set_active( GTK_TOGGLE_TOOL_BUTTON(toolitem), TRUE );
     _tool = TOOL_MOVE;
@@ -240,9 +230,7 @@ void GTKGeom3DWindow::init_window( void )
     icon = gtk_image_new_from_pixbuf( pixbuf );
     toolitem = gtk_radio_tool_button_new_from_widget( GTK_RADIO_TOOL_BUTTON(_radioitem) );
     gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Track" );
-#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Track plot" );
-#endif
     gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "toggled",
@@ -257,9 +245,7 @@ void GTKGeom3DWindow::init_window( void )
     pixbuf = gdk_pixbuf_new_from_inline( -1, icon_geom2d_inline, FALSE, NULL );
     icon = gtk_image_new_from_pixbuf( pixbuf );
     toolitem = gtk_tool_button_new( icon, "2D geometry view" );
-#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "2D geometry view" );
-#endif
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "clicked",
 		      G_CALLBACK(menuitem_geom2d_signal),
@@ -332,7 +318,7 @@ void GTKGeom3DWindow::configure( void )
 }
 
 
-void GTKGeom3DWindow::expose( void )
+void GTKGeom3DWindow::draw( cairo_t *cairo )
 {
     _geom3dplot.draw( _renderer );
 }
@@ -423,7 +409,6 @@ void GTKGeom3DWindow::zoom_in( double x, double y )
 void GTKGeom3DWindow::zoom_window( int action, double x, double y )
 {
     if( action == 0 ) {
-	//std::cout << "Zoom window start\n";
 	_oldx = _endx = (int)floor(x+0.5);
 	_oldy = _endy = (int)floor(y+0.5);
     } else if( action == 1 ) {
@@ -538,54 +523,54 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 						     GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
 						     GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
 						     NULL );
-    GtkWidget *vbox = GTK_DIALOG(dialog)->vbox;
+    gtk_window_set_resizable( GTK_WINDOW(dialog), FALSE );
+    GtkWidget *mainbox = gtk_dialog_get_content_area( GTK_DIALOG(dialog) );
     GtkWidget *notebook = gtk_notebook_new();
 
     // ****************************************************************************
+    // Misc tab
 
-    GtkWidget *vbox2 = gtk_vbox_new( FALSE, 0 );
+    GtkWidget *grid = gtk_grid_new();
+    gtk_grid_set_column_homogeneous( GTK_GRID(grid), TRUE );
+    gtk_widget_set_hexpand( grid, TRUE );
 
     GtkWidget *label = gtk_label_new( "Trajectory division" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, 0, 1, 1 );
     GtkWidget *spinbutton_pdiv = gtk_spin_button_new_with_range( 0, 1000000, 1.0 );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     gtk_spin_button_set_value( GTK_SPIN_BUTTON(spinbutton_pdiv), _geom3dplot.get_particle_div() );
-    GtkWidget *hbox = gtk_hbox_new( TRUE, 30 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), spinbutton_pdiv, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), spinbutton_pdiv, 1, 0, 1, 1 );
 
     label = gtk_label_new( "Trajectory offset" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, 1, 1, 1 );
     GtkWidget *spinbutton_poffset = gtk_spin_button_new_with_range( 0, 1000000, 1.0 );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     gtk_spin_button_set_value( GTK_SPIN_BUTTON(spinbutton_poffset), _geom3dplot.get_particle_offset() );
-    hbox = gtk_hbox_new( TRUE, 30 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), spinbutton_poffset, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), spinbutton_poffset, 1, 1, 1, 1 );
 
     label = gtk_label_new( "BBox" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, 2, 1, 1 );
     GtkWidget *button_bbox = gtk_check_button_new_with_label( "on/off" );
     gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(button_bbox), _geom3dplot.get_bbox() );
-    hbox = gtk_hbox_new( TRUE, 30 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), button_bbox, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), button_bbox, 1, 2, 1, 1 );
 
     // Notebook page
     label = gtk_label_new( "Misc" );
-    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox2, label );
+    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), grid, label );
 
     // ****************************************************************************
+    // Cut levels tab
 
-    vbox2 = gtk_vbox_new( FALSE, 0 );
+    grid = gtk_grid_new();
+    gtk_grid_set_column_homogeneous( GTK_GRID(grid), TRUE );
+    gtk_widget_set_hexpand( grid, TRUE );    
 
     // Cut levels
     GtkWidget *spinbutton[6];
     for( int a = 0; a < 6; a++ ) {
-	hbox = gtk_hbox_new( TRUE, 30 );
 	if( a == 0 ) {
 	    label = gtk_label_new( "Cut level xmin" );
 	    spinbutton[a] = gtk_spin_button_new_with_range( 0, _geom.size(0)-1, 1.0 );
@@ -607,41 +592,44 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 	}
 	gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON(spinbutton[a]), _geom3dplot.get_clevel( a ) );
-	gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-	gtk_box_pack_start( GTK_BOX(hbox), spinbutton[a], FALSE, TRUE, 0 );
-	gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+	gtk_grid_attach( GTK_GRID(grid), label, 0, a, 1, 1 );
+	gtk_grid_attach( GTK_GRID(grid), spinbutton[a], 1, a, 1, 1 );
     }
 
     // Notebook page
     label = gtk_label_new( "Cut levels" );
-    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox2, label );
+    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), grid, label );
 
     // ****************************************************************************
+    // Solid plotting tab
 
-    vbox2 = gtk_vbox_new( FALSE, 0 );
+    grid = gtk_grid_new();
+    gtk_grid_set_column_homogeneous( GTK_GRID(grid), TRUE );
+    gtk_widget_set_hexpand( grid, TRUE );
 
     // Cut levels
     GtkWidget *solid_enable_check_button[_geom.number_of_solids()];
     for( uint32_t a = 0; a < _geom.number_of_solids(); a++ ) {
-	hbox = gtk_hbox_new( TRUE, 30 );
 	std::string ss = "Solid " + to_string(a);
 	label = gtk_label_new( ss.c_str() );
 	solid_enable_check_button[a] = gtk_check_button_new_with_label( "on/off" );
 	gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
 	bool en = _geom3dplot.get_solid_plot( a+7 );
 	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(solid_enable_check_button[a]), en );
-	gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-	gtk_box_pack_start( GTK_BOX(hbox), solid_enable_check_button[a], FALSE, TRUE, 0 );
-	gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+	gtk_grid_attach( GTK_GRID(grid), label, 0, a, 1, 1 );
+	gtk_grid_attach( GTK_GRID(grid), solid_enable_check_button[a], 1, a, 1, 1 );
     }
 
     // Notebook page
     label = gtk_label_new( "Solid plotting" );
-    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox2, label );
+    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), grid, label );
 
     // ****************************************************************************
+    // Surface data
 
-    vbox2 = gtk_vbox_new( FALSE, 0 );
+    grid = gtk_grid_new();
+    gtk_grid_set_column_homogeneous( GTK_GRID(grid), TRUE );
+    gtk_widget_set_hexpand( grid, TRUE );
 
     char st[128];
     double range_min, range_max;
@@ -649,42 +637,36 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 
     label = gtk_label_new( "Range min" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, 0, 1, 1 );
     GtkWidget *range_min_entry = gtk_entry_new();
     snprintf( st, 128, "%g", range_min );
     gtk_entry_set_text( GTK_ENTRY(range_min_entry), st );
-    hbox = gtk_hbox_new( TRUE, 30 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), range_min_entry, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), range_min_entry, 1, 0, 1, 1 );
 
     label = gtk_label_new( "Range max" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, 1, 1, 1 );
     GtkWidget *range_max_entry = gtk_entry_new();
     snprintf( st, 128, "%g", range_max );
     gtk_entry_set_text( GTK_ENTRY(range_max_entry), st );
-    hbox = gtk_hbox_new( TRUE, 30 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), range_max_entry, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), range_max_entry, 1, 1, 1, 1 );
 
     label = gtk_label_new( "Surface data plotting" );
     GtkWidget *sdata_enable_check_button = gtk_check_button_new_with_label( "on/off" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, 2, 1, 1 );
     bool en = _geom3dplot.get_surface_triangle_data_plot();
     gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(sdata_enable_check_button), en );
-    hbox = gtk_hbox_new( TRUE, 30 );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), sdata_enable_check_button, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), sdata_enable_check_button, 1, 2, 1, 1 );
 
     // Notebook page
     label = gtk_label_new( "Surface data" );
-    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox2, label );
+    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), grid, label );
 
     // ****************************************************************************
 
     // Pack notebook
-    gtk_box_pack_start( GTK_BOX(vbox), notebook, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(mainbox), notebook, FALSE, TRUE, 0 );
 
     gtk_widget_show_all( dialog );
     if( gtk_dialog_run( GTK_DIALOG(dialog) ) == GTK_RESPONSE_ACCEPT ) {
@@ -749,12 +731,12 @@ gboolean GTKGeom3DWindow::darea_configure_signal( GtkWidget *widget,
 }
 
 
-gboolean GTKGeom3DWindow::darea_expose_signal( GtkWidget *widget, 
-					       GdkEventExpose *event, 
-					       gpointer object )
+gboolean GTKGeom3DWindow::darea_draw_signal( GtkWidget *widget, 
+					     cairo_t *cairo,
+					     gpointer object )
 {
     GTKGeom3DWindow *window = (GTKGeom3DWindow *)object;
-    window->expose();
+    window->draw( cairo );
     return( FALSE );
 }
 

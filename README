@@ -3,7 +3,7 @@
 
 
 Ion Beam Simulator (IBSimu) library is made by Taneli Kalvas
-<taneli.kalvas@jyu.fi>. All source code copyright (c) 2004-2011 Taneli
+<taneli.kalvas@jyu.fi>. All source code copyright (c) 2004-2013 Taneli
 Kalvas and The Regents of the University of California, through
 Lawrence Berkeley National Laboratory (subject to receipt of any
 required approvals from the U.S. Dept. of Energy). All rights
@@ -70,7 +70,7 @@ modern gcc compilers in linux/unix and Microsoft Windows
 environments. If the dependencies are available and correctly
 installed, it should be pretty straightforward to compile the library
 using GNU autotools build system. See the file INSTALL for details or
-the IBSimu website for even more detailed description of installation.
+the IBSimu website for more detailed description of installation.
 
 
 
@@ -98,4 +98,4 @@ C++ version of the code with me.
 
 
 
--- Taneli Kalvas <taneli.kalvas@jyu.fi>, 26 Sep 2011
+-- Taneli Kalvas <taneli.kalvas@jyu.fi>, 15 Sep 2013

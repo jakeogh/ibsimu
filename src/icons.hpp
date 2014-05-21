@@ -2,7 +2,7 @@
  *  \brief Icons
  */
 
-/* Copyright (c) 2005-2010,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2010,2012-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -44,7 +44,8 @@
 #define ICONS_HPP 1
 
 
-#include <gdk/gdk.h>
+//#include <gdk/gdk.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
 
 
 // Toolbar icons

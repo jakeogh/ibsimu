@@ -2,7 +2,7 @@
  *  \brief %Geometry view window for 3d
  */
 
-/* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -96,7 +96,8 @@ class GTKGeom3DWindow : public GTKWindow {
     void darea_leave( GdkEventCrossing *event );
     void darea_button( GdkEventButton *event );
 
-    void expose( void );
+    void draw( cairo_t *cairo );
+    //void expose( void );
     void configure( void );
     void delete_window( void );
 
@@ -123,9 +124,14 @@ class GTKGeom3DWindow : public GTKWindow {
     static gboolean darea_configure_signal( GtkWidget *widget, 
 					    GdkEventConfigure *event, 
 					    gpointer object );
+    static gboolean darea_draw_signal( GtkWidget *widget, 
+				       cairo_t *cairo,
+				       gpointer object );
+    /*
     static gboolean darea_expose_signal( GtkWidget *widget, 
 					 GdkEventExpose *event, 
 					 gpointer object );
+    */
     static gboolean darea_button_signal( GtkWidget *widget, 
 					 GdkEventButton *event,
 					 gpointer object );

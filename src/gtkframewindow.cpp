@@ -2,7 +2,7 @@
  *  \brief Window for GTK plots with frames
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -41,6 +41,7 @@
  */
 
 #include <limits>
+#include <gdk-pixbuf/gdk-pixbuf.h>
 #include "gtkframewindow.hpp"
 #include "gtkhardcopy.hpp"
 #include "gtkpreferences.hpp"
@@ -59,15 +60,13 @@
 GTKFrameWindow::GTKFrameWindow( class GTKPlotter &plotter )
     : _width(640), _height(480), _cairo(NULL), _surface(NULL), _plotter(plotter)
 {
-    //std::cout << "GTKFrameWindow constructor\n";
-
     // Window
     _window = gtk_window_new( GTK_WINDOW_TOPLEVEL );
     g_signal_connect( G_OBJECT(_window), "delete_event",
 		      G_CALLBACK(window_delete_signal), 
 		      (gpointer)this );
     GtkWidget *vbox;
-    vbox = gtk_vbox_new( FALSE, 0 );
+    vbox = gtk_box_new( GTK_ORIENTATION_VERTICAL, 0 );
 
     // Menu bar
     _menubar = gtk_menu_bar_new();
@@ -78,7 +77,7 @@ GTKFrameWindow::GTKFrameWindow( class GTKPlotter &plotter )
     gtk_menu_shell_append( GTK_MENU_SHELL(_menu_file), item_quit );
     GtkWidget *item_file = gtk_menu_item_new_with_mnemonic( "_File" );
     gtk_menu_item_set_submenu( GTK_MENU_ITEM(item_file), _menu_file );
-    gtk_menu_bar_append( GTK_MENU_BAR(_menubar), item_file );
+    gtk_container_add( GTK_CONTAINER(_menubar), item_file );
     g_signal_connect( G_OBJECT(item_quit), "activate",
 		      G_CALLBACK(menuitem_quit_signal),
 		      (gpointer)this );
@@ -103,16 +102,12 @@ GTKFrameWindow::GTKFrameWindow( class GTKPlotter &plotter )
     // Tool bar
     _toolbar = gtk_toolbar_new();
     gtk_toolbar_set_style( GTK_TOOLBAR(_toolbar), GTK_TOOLBAR_ICONS );
-    gtk_toolbar_set_orientation( GTK_TOOLBAR(_toolbar), GTK_ORIENTATION_HORIZONTAL );
-    
 
     // Creating "Hardcopy" button
     GdkPixbuf *pixbuf = gdk_pixbuf_new_from_inline( -1, icon_hardcopy_inline, FALSE, NULL );
     GtkWidget *icon = gtk_image_new_from_pixbuf( pixbuf );
     GtkToolItem *toolitem = gtk_tool_button_new( icon, "Hardcopy" );
-#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Hardcopy" );
-#endif
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "clicked",
 		      G_CALLBACK(menuitem_hardcopy_signal),
@@ -127,9 +122,7 @@ GTKFrameWindow::GTKFrameWindow( class GTKPlotter &plotter )
     icon = gtk_image_new_from_pixbuf( pixbuf );
     _radioitem = toolitem = gtk_radio_tool_button_new( NULL );
     gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Zoom in" );
-#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Zoom in" );
-#endif
     gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toggle_tool_button_set_active( GTK_TOGGLE_TOOL_BUTTON(toolitem), TRUE );
     _tool = TOOL_ZOOM_IN;
@@ -143,9 +136,7 @@ GTKFrameWindow::GTKFrameWindow( class GTKPlotter &plotter )
     icon = gtk_image_new_from_pixbuf( pixbuf );
     toolitem = gtk_radio_tool_button_new_from_widget( GTK_RADIO_TOOL_BUTTON(_radioitem) );
     gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Zoom out" );
-#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Zoom out" );
-#endif
     gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "toggled",
@@ -157,11 +148,7 @@ GTKFrameWindow::GTKFrameWindow( class GTKPlotter &plotter )
     icon = gtk_image_new_from_pixbuf( pixbuf );
     //toolitem = gtk_radio_tool_button_new_from_widget( GTK_RADIO_TOOL_BUTTON(radioitem) );
     toolitem = gtk_tool_button_new( icon, "Zoom fit" );
-#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Zoom fit" );
-#endif
-    //gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Zoom fit" );
-    //gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "clicked",
 		      G_CALLBACK(menuitem_zoom_fit_signal),
@@ -172,9 +159,7 @@ GTKFrameWindow::GTKFrameWindow( class GTKPlotter &plotter )
     icon = gtk_image_new_from_pixbuf( pixbuf );
     toolitem = gtk_radio_tool_button_new_from_widget( GTK_RADIO_TOOL_BUTTON(_radioitem) );
     gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Move" );
-#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Move" );
-#endif
     gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "toggled",
@@ -190,9 +175,7 @@ GTKFrameWindow::GTKFrameWindow( class GTKPlotter &plotter )
     icon = gtk_image_new_from_pixbuf( pixbuf );
     toolitem = gtk_radio_tool_button_new_from_widget( GTK_RADIO_TOOL_BUTTON(_radioitem) );
     gtk_tool_button_set_label( GTK_TOOL_BUTTON(toolitem), "Track" );
-#if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text( GTK_WIDGET(toolitem), "Track plot" );
-#endif
     gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON(toolitem), icon );
     gtk_toolbar_insert( GTK_TOOLBAR(_toolbar), toolitem, -1 );
     g_signal_connect( G_OBJECT(toolitem), "toggled",
@@ -223,8 +206,8 @@ GTKFrameWindow::GTKFrameWindow( class GTKPlotter &plotter )
     g_signal_connect( G_OBJECT(_darea), "configure_event",
 		      G_CALLBACK(darea_configure_signal), 
 		      (gpointer)this );
-    g_signal_connect( G_OBJECT(_darea), "expose_event",
-		      G_CALLBACK(darea_expose_signal), 
+    g_signal_connect( G_OBJECT(_darea), "draw",
+		      G_CALLBACK(darea_draw_signal), 
 		      (gpointer)this );
     g_signal_connect( G_OBJECT(_darea), "button_press_event",
 		      G_CALLBACK(darea_button_signal),
@@ -259,7 +242,6 @@ GTKFrameWindow::~GTKFrameWindow()
 void GTKFrameWindow::show( void )
 {
     gtk_widget_show_all( _window );
-    //
 }
 
 
@@ -277,8 +259,8 @@ void GTKFrameWindow::frame_draw( void )
 void GTKFrameWindow::configure( void )
 {
     //std::cout << "Configure\n";
-    _width = _darea->allocation.width;
-    _height = _darea->allocation.height;
+    _width = gtk_widget_get_allocated_width( _darea );
+    _height = gtk_widget_get_allocated_height( _darea );
 
     if( _cairo ) {
 	cairo_destroy( _cairo );
@@ -292,18 +274,23 @@ void GTKFrameWindow::configure( void )
 }
 
 
-void GTKFrameWindow::expose( int x, int y, int width, int height )
+void GTKFrameWindow::draw( cairo_t *cairo )
 {
-    //std::cout << "Expose\n";
-    cairo_t *cairo;
-    cairo = gdk_cairo_create( _darea->window );
     cairo_set_source_surface( cairo, _surface, 0, 0 );
     cairo_pattern_set_filter( cairo_get_source(cairo), CAIRO_FILTER_FAST );
-    cairo_rectangle( cairo, x, y, width, height );
-    cairo_clip( cairo );
     cairo_scale( cairo, 50, 50 );
     cairo_translate( cairo, 0, 0 );
     cairo_paint( cairo );
+}
+
+
+void GTKFrameWindow::expose( int x, int y, int width, int height )
+{
+    cairo_t *cairo;
+    cairo = gdk_cairo_create( gtk_widget_get_window( _darea ) );
+    cairo_rectangle( cairo, x, y, width, height );
+    cairo_clip( cairo );
+    draw( cairo );
     cairo_destroy( cairo );
 }
 
@@ -323,13 +310,10 @@ void GTKFrameWindow::read_preferences( GtkWidget *notebook, void *pdata )
 
 void GTKFrameWindow::zoom_fit( void )
 {
-    //std::cout << "Zoom fit\n";
     double min = -std::numeric_limits<double>::infinity();
     double max = std::numeric_limits<double>::infinity();
     _frame.set_ranges( PLOT_AXIS_X1, min, max );
     _frame.set_ranges( PLOT_AXIS_Y1, min, max );
-    //_frame.ruler_autorange_enable( PLOT_AXIS_X1, false, false );
-    //_frame.ruler_autorange_enable( PLOT_AXIS_Y1, false, false );
 
     // Redraw and enforce expose
     frame_draw();
@@ -360,7 +344,6 @@ void GTKFrameWindow::track( int action, double x, double y )
 	// Create track window
         _trackwindow = gtk_window_new( GTK_WINDOW_TOPLEVEL );
         gtk_window_set_title( GTK_WINDOW(_trackwindow), "Track" );
-        gtk_window_set_policy( GTK_WINDOW(_trackwindow), TRUE, TRUE, FALSE );
 
         _tracklabel = gtk_label_new( "" );
         gtk_misc_set_alignment( GTK_MISC(_tracklabel), 0.0, 0.0 );
@@ -376,34 +359,28 @@ void GTKFrameWindow::track( int action, double x, double y )
 
     if( action == 1 || action == 0 ) {
 	// Erase old track crosshair
-	expose( _end[0], 0, 1, _height );
-	expose( 0, _end[1], _width, 1 );
+	expose( _end[0]-1, 0, 3, _height );
+	expose( 0, _end[1]-1, _width, 3 );
     }
 
     if( action == 2 || action == 1 ) {
 	// Draw new track crosshair
-	GdkPoint  p[2];
-	GdkColor  color;
-	GdkGC    *gc;
 	_end[0] = (int)floor(x+0.5);
 	_end[1] = (int)floor(y+0.5);
-	color.red = color.green = color.blue = 0;
-	gc = gdk_gc_new( _darea->window );
-	gdk_gc_set_rgb_fg_color( gc, &color );
+	cairo_t *cairo = gdk_cairo_create( gtk_widget_get_window( _darea ) );
 	if( y >= margin[3] && y <= _height-margin[1] ) {
-	    p[0].x = (int)floor(margin[0]+0.5);
-	    p[0].y = _end[1];
-	    p[1].x = _width-(int)floor(margin[2]+0.5);
-	    p[1].y = _end[1];
-	    gdk_draw_lines( _darea->window, gc, p, 2 );
+	    cairo_move_to( cairo, (int)floor(margin[0]+0.5), _end[1] );
+	    cairo_line_to( cairo, _width-(int)floor(margin[2]+0.5), _end[1] );
 	}
 	if( x >= margin[0] && x <= _width-margin[2] ) {
-	    p[0].x = _end[0];
-	    p[0].y = (int)floor(margin[3]+0.5);
-	    p[1].x = _end[0];
-	    p[1].y = _height-(int)floor(margin[1]+0.5);
-	    gdk_draw_lines( _darea->window, gc, p, 2 );
+	    cairo_move_to( cairo, _end[0], (int)floor(margin[3]+0.5) );
+	    cairo_line_to( cairo, _end[0], _height-(int)floor(margin[1]+0.5) );
 	}
+	cairo_set_source_rgb( cairo, 0, 0, 0 );
+	//cairo_set_antialias( cairo, CAIRO_ANTIALIAS_NONE );
+	cairo_set_line_width( cairo, 1.0 );
+	cairo_stroke( cairo );
+	cairo_destroy( cairo );
 	
 	_track_px = x;
 	_track_py = y;
@@ -418,11 +395,9 @@ void GTKFrameWindow::track( int action, double x, double y )
 void GTKFrameWindow::move( int action, double x, double y )
 {
     if( action == 0 ) {
-	//std::cout << "Move start\n";
 	_start[0] = (int)floor(x+0.5);
 	_start[1] = (int)floor(y+0.5);
     } else {
-	//std::cout << "Move end\n";
 	double corners[4];
 	int dx[2] = {(int)floor(x+0.5) - _start[0], 
 		     (int)floor(y+0.5) - _start[1]};
@@ -453,8 +428,6 @@ void GTKFrameWindow::move( int action, double x, double y )
 
 void GTKFrameWindow::zoom_out( double x, double y )
 {
-    //std::cout << "Zoom out\n";
-
     double edge[4];
     _frame.get_frame_edges( edge );
     double plotw = edge[2] - edge[0];
@@ -490,26 +463,17 @@ void GTKFrameWindow::zoom_out( double x, double y )
 
 void GTKFrameWindow::zoom_in( double x, double y )
 {
-    //std::cout << "Zoom in\n";
     double edge[4];
     _frame.get_frame_edges( edge );
     double plotw = edge[2] - edge[0];
     double ploth = edge[1] - edge[3];
-    //std::cout << "plotw = " << plotw << "\n";
-    //std::cout << "ploth = " << ploth << "\n";
     double offsx = (x-edge[0]) / plotw;
     double offsy = (y-edge[3]) / ploth;
-    //std::cout << "offsx = " << offsx << "\n";
-    //std::cout << "offsy = " << offsy << "\n";
     double corners[4];
     corners[0] = x - 0.5*plotw*offsx;
     corners[2] = x + 0.5*plotw*(1.0-offsx);
     corners[1] = y - 0.5*ploth*offsy;
     corners[3] = y + 0.5*ploth*(1.0-offsy);
-    //std::cout << "corners[0] = " << corners[0] << "\n";
-    //std::cout << "corners[1] = " << corners[1] << "\n";
-    //std::cout << "corners[2] = " << corners[2] << "\n";
-    //std::cout << "corners[3] = " << corners[3] << "\n";
 	
     // X1 and Y1 axes
     double range[4];
@@ -518,10 +482,6 @@ void GTKFrameWindow::zoom_in( double x, double y )
     cm.inv_transform( &range[2], &corners[2] );
     _frame.set_ranges( PLOT_AXIS_X1, range[0], range[2] );
     _frame.set_ranges( PLOT_AXIS_Y1, range[1], range[3] );
-    //std::cout << "range[0] = " << range[0] << "\n";
-    //std::cout << "range[1] = " << range[1] << "\n";
-    //std::cout << "range[2] = " << range[2] << "\n";
-    //std::cout << "range[3] = " << range[3] << "\n";
 
     // X2 and Y2 axes
     cm = _frame.get_coordmapper( PLOT_AXIS_X2, PLOT_AXIS_Y2 );
@@ -529,10 +489,6 @@ void GTKFrameWindow::zoom_in( double x, double y )
     cm.inv_transform( &range[2], &corners[2] );
     _frame.set_ranges( PLOT_AXIS_X2, range[0], range[2] );
     _frame.set_ranges( PLOT_AXIS_Y2, range[1], range[3] );
-    //std::cout << "range[0] = " << range[0] << "\n";
-    //std::cout << "range[1] = " << range[1] << "\n";
-    //std::cout << "range[2] = " << range[2] << "\n";
-    //std::cout << "range[3] = " << range[3] << "\n";
 
     // Redraw and enforce expose
     frame_draw();
@@ -543,45 +499,36 @@ void GTKFrameWindow::zoom_in( double x, double y )
 void GTKFrameWindow::zoom_window( int action, double x, double y )
 {
     if( action == 0 ) {
-	//std::cout << "Zoom window start\n";
 	_start[0] = _end[0] = (int)floor(x+0.5);
 	_start[1] = _end[1] = (int)floor(y+0.5);
     } else if( action == 1 ) {
-	//std::cout << "Zoom window modify\n";
 	// Erase old zoom box
 	int x0, y0, width, height;
 	x0 = _start[0] < _end[0] ? _start[0] : _end[0];
 	y0 = _start[1] < _end[1] ? _start[1] : _end[1];
 	width = abs( _start[0] - _end[0] );
 	height = abs( _start[1] - _end[1] );
-	expose( x0, y0, 1, height+1 );
-	expose( x0, y0, width+1, 1 );
-	expose( x0+width, y0, 1, height+1 );
-	expose( x0, y0+height, width+1, 1 );
-
-	// Draw new zoom box
-	GdkPoint  p[5];
-	GdkColor  color;
-	GdkGC    *gc;
 	_end[0] = (int)floor(x+0.5);
 	_end[1] = (int)floor(y+0.5);
-	color.red = color.green = color.blue = 0;
-	gc = gdk_gc_new( _darea->window );
-	gdk_gc_set_rgb_fg_color( gc, &color );
-	p[0].x = _start[0];
-	p[0].y = _start[1];
-	p[1].x = _end[0];
-	p[1].y = _start[1];
-	p[2].x = _end[0];
-	p[2].y = _end[1];
-	p[3].x = _start[0];
-	p[3].y = _end[1];
-	p[4].x = _start[0];
-	p[4].y = _start[1];
-	gdk_draw_lines( _darea->window, gc, p, 5 );
+	expose( x0-1, y0-1, 3, height+3 );
+	expose( x0-1, y0-1, width+3, 3 );
+	expose( x0+width-1, y0-1, 3, height+3 );
+	expose( x0-1, y0+height-1, width+3, 3 );
+
+	// Draw new zoom box
+	cairo_t *cairo = gdk_cairo_create( gtk_widget_get_window( _darea ) );
+	cairo_move_to( cairo, _start[0], _start[1] );
+	cairo_line_to( cairo, _end[0], _start[1] );
+	cairo_line_to( cairo, _end[0], _end[1] );
+	cairo_line_to( cairo, _start[0], _end[1] );
+	cairo_line_to( cairo, _start[0], _start[1] );
+	cairo_set_source_rgb( cairo, 0, 0, 0 );
+	//cairo_set_antialias( cairo, CAIRO_ANTIALIAS_NONE );
+	cairo_set_line_width( cairo, 1.0 );
+	cairo_stroke( cairo );
+	cairo_destroy( cairo );
 
     } else {
-	//std::cout << "Zoom window end\n";
 	double corners[4];
 	double range[4];
 	corners[0] = _start[0] < _end[0] ? _start[0] : _end[0];
@@ -634,7 +581,10 @@ void GTKFrameWindow::darea_motion( GdkEventMotion *event )
 
     int x, y;
     GdkModifierType state;
-    gdk_window_get_pointer( event->window, &x, &y, &state );
+    GdkDisplay *display = gdk_display_get_default();
+    GdkDeviceManager *devicemanager = gdk_display_get_device_manager( display );
+    GdkDevice *device = gdk_device_manager_get_client_pointer( devicemanager );
+    gdk_window_get_device_position( event->window, device, &x, &y, &state );
 }
 
 
@@ -689,7 +639,6 @@ void GTKFrameWindow::delete_window( void )
 
 void GTKFrameWindow::menuitem_preferences( GtkMenuItem *menuitem )
 {
-    //std::cout << "menu preferences\n";
     GTKPreferences preferences( this, _window, &_frame );
     preferences.run();
 }
@@ -697,37 +646,28 @@ void GTKFrameWindow::menuitem_preferences( GtkMenuItem *menuitem )
 
 void GTKFrameWindow::menuitem_tool_change( GtkToolButton *button )
 {
-    //std::cout << "GTKFrameWindow: ";
-
     int tool;
     const char *label = gtk_tool_button_get_label( button );
     if( !strcmp( label, "Zoom in" ) ) {
-	//std::cout << "TOOL_ZOOM_IN ";
 	tool = TOOL_ZOOM_IN;
     } else if( !strcmp( label, "Zoom out" ) ) {
-	//std::cout << "TOOL_ZOOM_OUT ";
 	tool = TOOL_ZOOM_OUT;
     } else if( !strcmp( label, "Move" ) ) {
-	//std::cout << "TOOL_MOVE ";
 	tool = TOOL_MOVE;
     } else if( !strcmp( label, "Track" ) ) {
-	//std::cout << "TOOL_TRACK ";
 	tool = TOOL_TRACK;
     } else {
-	//std::cout << "TOOL_UNKNOWN\n";
 	tool = TOOL_UNKNOWN;
 	return;
     }
 
     if( !gtk_toggle_tool_button_get_active( GTK_TOGGLE_TOOL_BUTTON(button) ) ) {
 	// Disable tool
-	//std::cout << "disable\n";
 	if( tool == TOOL_TRACK )
 	    track( 4, 0, 0 );
 	_tool = TOOL_UNKNOWN;
     } else {
 	// Enable tool
-	//std::cout << "enable\n";
 	_tool = tool;
 	if( tool == TOOL_TRACK )
 	    track( 3, 0, 0 );
@@ -749,9 +689,6 @@ void GTKFrameWindow::hardcopy( void )
 
     GTKHardcopy hardcopy( _window, &hcframe, _width, _height );
     hardcopy.run();
-
-    // Reset frame settings
-    //_frame.set_geometry( _width, _height, 0, 0 );
 }
 
 
@@ -797,13 +734,12 @@ gboolean GTKFrameWindow::darea_configure_signal( GtkWidget *widget,
 }
 
 
-gboolean GTKFrameWindow::darea_expose_signal( GtkWidget *widget, 
-					      GdkEventExpose *event, 
-					      gpointer object )
+gboolean GTKFrameWindow::darea_draw_signal( GtkWidget *widget, 
+					    cairo_t *cairo,
+					    gpointer object )
 {
     GTKFrameWindow *window = (GTKFrameWindow *)object;
-    window->expose( event->area.x, event->area.y, 
-		     event->area.width, event->area.height );
+    window->draw( cairo );
     return( FALSE );
 }
 

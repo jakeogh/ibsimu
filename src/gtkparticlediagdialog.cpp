@@ -2,7 +2,7 @@
  *  \brief Dialog for constructing particle diagnostic windows
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -240,30 +240,37 @@ void GTKParticleDiagDialog::run( void )
 						     GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
 						     GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
 						     NULL );
-    GtkWidget *vbox = GTK_DIALOG(dialog)->vbox;
+    gtk_window_set_resizable( GTK_WINDOW(dialog), FALSE );
+    GtkWidget *mainbox = gtk_dialog_get_content_area( GTK_DIALOG(dialog) );
 
     // ****************************************************************************
+    // Dialog built in two columns
 
-    GtkWidget *hbox = gtk_hbox_new( TRUE, 30 );
-    GtkWidget *vbox2 = gtk_vbox_new( FALSE, 0 );
+    GtkWidget *grid = gtk_grid_new();
+    gtk_grid_set_column_homogeneous( GTK_GRID(grid), TRUE );
+    gtk_widget_set_hexpand( grid, TRUE );
+    uint32_t yl1 = 0;
+    uint32_t yl2 = 0;
+
+    // ****************************************************************************
 
     // Label for plane
     GtkWidget *label = gtk_label_new( "" );
     gtk_label_set_markup( GTK_LABEL(label), "<span weight=\"bold\">Plane</span>" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox2), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl1, 1, 1 );
+    yl1++;
 
     // Radio buttons for selecting plane
-    GtkWidget *alignment = gtk_alignment_new( 0, 0, 0, 0 );
-    gtk_alignment_set_padding( GTK_ALIGNMENT(alignment), 0, 0, 15, 0 );
-    GtkWidget *vbox3 = gtk_vbox_new( FALSE, 0 );
     _radio_plane_x = gtk_radio_button_new_with_label_from_widget( NULL,
 								  "X-axis" );
     if( _plane == 0 ) gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_plane_x), TRUE );
     else  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_plane_x), FALSE );
     g_signal_connect( _radio_plane_x, "toggled",
 		      G_CALLBACK(plane_toggled), (gpointer)this );
-    gtk_box_pack_start( GTK_BOX(vbox3), _radio_plane_x, FALSE, TRUE, 0 );
+    gtk_widget_set_margin_left( _radio_plane_x, 15 );
+    gtk_grid_attach( GTK_GRID(grid), _radio_plane_x, 0, yl1, 1, 1 );
+    yl1++;
 
     if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_3D )
 	_radio_plane_y = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_plane_x),
@@ -275,7 +282,9 @@ void GTKParticleDiagDialog::run( void )
     else  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_plane_y), FALSE );
     g_signal_connect( _radio_plane_y, "toggled",
 		      G_CALLBACK(plane_toggled), (gpointer)this );
-    gtk_box_pack_start( GTK_BOX(vbox3), _radio_plane_y, FALSE, TRUE, 0 );
+    gtk_widget_set_margin_left( _radio_plane_y, 15 );
+    gtk_grid_attach( GTK_GRID(grid), _radio_plane_y, 0, yl1, 1, 1 );
+    yl1++;
 
     if( _geom->geom_mode() == MODE_3D ) {
 	_radio_plane_z = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_plane_x),
@@ -284,140 +293,146 @@ void GTKParticleDiagDialog::run( void )
 	else  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_plane_z), FALSE );
 	g_signal_connect( _radio_plane_z, "toggled",
 			  G_CALLBACK(plane_toggled), (gpointer)this );
-	gtk_box_pack_start( GTK_BOX(vbox3), _radio_plane_z, FALSE, TRUE, 0 );
+	gtk_widget_set_margin_left( _radio_plane_z, 15 );
+	gtk_grid_attach( GTK_GRID(grid), _radio_plane_z, 0, yl1, 1, 1 );
+	yl1++;
     }
-
-    gtk_container_add( GTK_CONTAINER(alignment), vbox3 );
-    gtk_box_pack_start( GTK_BOX(vbox2), alignment, FALSE, TRUE, 0 );
-
-    gtk_box_pack_start( GTK_BOX(hbox), vbox2, FALSE, TRUE, 0 );
-
-    // ****************************************************************************
-
-    vbox2 = gtk_vbox_new( FALSE, 0 );
 
     // Label for level
     label = gtk_label_new( "" );
     gtk_label_set_markup( GTK_LABEL(label), "<span weight=\"bold\">Level</span>" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox2), label, FALSE, TRUE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 1, yl2, 1, 1 );
+    yl2++;
 
     // Level
-    alignment = gtk_alignment_new( 0, 0, 0, 0 );
-    gtk_alignment_set_padding( GTK_ALIGNMENT(alignment), 0, 0, 15, 0 );
-    GtkWidget *entry_level = gtk_entry_new_with_max_length( 30 );
+    GtkWidget *entry_level = gtk_entry_new();
+    gtk_entry_set_max_length( GTK_ENTRY(entry_level), 30 );
     char buf[128];
     snprintf( buf, 128, "%g", _val );
     gtk_entry_set_text( GTK_ENTRY(entry_level), buf );
-    gtk_container_add( GTK_CONTAINER(alignment), entry_level );
-    gtk_box_pack_start( GTK_BOX(vbox2), alignment, FALSE, TRUE, 0 );
+    gtk_widget_set_margin_left( entry_level, 15 );
+    gtk_grid_attach( GTK_GRID(grid), entry_level, 1, yl2, 1, 1 );
 
-    gtk_box_pack_start( GTK_BOX(hbox), vbox2, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    // ****************************************************************************
+    
+    // Separator
+    GtkWidget *separator = gtk_separator_new( GTK_ORIENTATION_HORIZONTAL );
+    gtk_widget_set_margin_left( separator, 5 );
+    gtk_widget_set_margin_right( separator, 5 );
+    gtk_widget_set_margin_top( separator, 5 );
+    gtk_widget_set_margin_bottom( separator, 5 );
+    gtk_grid_attach( GTK_GRID(grid), separator, 0, yl1, 2, 1 );
+    yl1++;
 
     // ****************************************************************************
 
-    // Separator
-    GtkWidget *separator = gtk_hseparator_new();
-    gtk_box_pack_start( GTK_BOX(vbox), separator, FALSE, TRUE, 0 );
-
-    // Label for plot
+    // Label for Plot 2D
     label = gtk_label_new( "" );
     gtk_label_set_markup( GTK_LABEL(label), "<span weight=\"bold\">Plot 2D</span>" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), label, FALSE, TRUE, 0 );
-
-    // Columns for radio buttons
-    hbox = gtk_hbox_new( TRUE, 30 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl1, 2, 1 );
+    yl1++;
+    yl2 = yl1;
 
     // Radio buttons for plot type
-    alignment = gtk_alignment_new( 0, 0, 0, 0 );
-    gtk_alignment_set_padding( GTK_ALIGNMENT(alignment), 0, 0, 15, 0 );
-    vbox2 = gtk_vbox_new( FALSE, 0 );
     _radio_emit_xx = gtk_radio_button_new_with_label_from_widget( NULL,
 								  "Emittance x-x\'" );
+    gtk_widget_set_margin_left( _radio_emit_xx, 15 );
     if( _plane != 0 )
 	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_xx), TRUE );
-    gtk_box_pack_start( GTK_BOX(vbox2), _radio_emit_xx, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), _radio_emit_xx, 0, yl1, 1, 1 );
+    yl1++;
     if( _geom->geom_mode() == MODE_CYL ) {
 	_radio_emit_yy = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 								      "Emittance r-r\'" );
+	    gtk_widget_set_margin_left( _radio_emit_yy, 15 );
 	if( _plane == 0 )
 	    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_yy), TRUE );
-	gtk_box_pack_start( GTK_BOX(vbox2), _radio_emit_yy, FALSE, TRUE, 0 );
+	gtk_grid_attach( GTK_GRID(grid), _radio_emit_yy, 0, yl1, 1, 1 );
+	yl1++;
 	_radio_emit_zz = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 								      "Emittance z-z\' (conv)" );
+	gtk_widget_set_margin_left( _radio_emit_zz, 15 );
 	g_signal_connect( _radio_emit_zz, "toggled",
 			  G_CALLBACK(conversion_toggled), (gpointer)this );
-	gtk_box_pack_start( GTK_BOX(vbox2), _radio_emit_zz, FALSE, TRUE, 0 );
+	gtk_grid_attach( GTK_GRID(grid), _radio_emit_zz, 0, yl1, 1, 1 );
+	yl1++;
     } else {
 	_radio_emit_yy = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 								      "Emittance y-y\'" );
+	gtk_widget_set_margin_left( _radio_emit_yy, 15 );
 	if( _plane == 0 )
 	    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_yy), TRUE );
-	gtk_box_pack_start( GTK_BOX(vbox2), _radio_emit_yy, FALSE, TRUE, 0 );
+	gtk_grid_attach( GTK_GRID(grid), _radio_emit_yy, 0, yl1, 1, 1 );
+	yl1++;
     }
     if( _geom->geom_mode() == MODE_3D ) {
 	_radio_emit_zz = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 								      "Emittance z-z\'" );
-	gtk_box_pack_start( GTK_BOX(vbox2), _radio_emit_zz, FALSE, TRUE, 0 );
+	gtk_widget_set_margin_left( _radio_emit_zz, 15 );
+	gtk_grid_attach( GTK_GRID(grid), _radio_emit_zz, 0, yl1, 1, 1 );
+	yl1++;
     }
     if( _geom->geom_mode() == MODE_3D ) {
-	_radio_prof_yz = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
-								      "Profile y-z" );
-	gtk_box_pack_start( GTK_BOX(vbox2), _radio_prof_yz, FALSE, TRUE, 0 );
-	_radio_prof_xz = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
-								      "Profile x-z" );
-	gtk_box_pack_start( GTK_BOX(vbox2), _radio_prof_xz, FALSE, TRUE, 0 );
 	_radio_prof_xy = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 								      "Profile x-y" );
-	gtk_box_pack_start( GTK_BOX(vbox2), _radio_prof_xy, FALSE, TRUE, 0 );
+	gtk_widget_set_margin_left( _radio_prof_xy, 15 );
+	gtk_grid_attach( GTK_GRID(grid), _radio_prof_xy, 0, yl1, 1, 1 );
+	yl1++;
+	_radio_prof_xz = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
+								      "Profile x-z" );
+	gtk_widget_set_margin_left( _radio_prof_xz, 15 );
+	gtk_grid_attach( GTK_GRID(grid), _radio_prof_xz, 0, yl1, 1, 1 );
+	yl1++;
+	_radio_prof_yz = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
+								      "Profile y-z" );
+	gtk_widget_set_margin_left( _radio_prof_yz, 15 );
+	gtk_grid_attach( GTK_GRID(grid), _radio_prof_yz, 0, yl1, 1, 1 );
+	yl1++;
     }
-    gtk_container_add( GTK_CONTAINER(alignment), vbox2 );
-    gtk_box_pack_start( GTK_BOX(hbox), alignment, FALSE, TRUE, 0 );
 
     // Radio buttons for 2d plot style
-    alignment = gtk_alignment_new( 0, 0, 0, 0 );
-    gtk_alignment_set_padding( GTK_ALIGNMENT(alignment), 0, 0, 15, 0 );
-    vbox2 = gtk_vbox_new( FALSE, 0 );
     _radio_plot_scatter = gtk_radio_button_new_with_label_from_widget( NULL,
 								       "Scatter" );
-    gtk_box_pack_start( GTK_BOX(vbox2), _radio_plot_scatter, FALSE, TRUE, 0 );
+    gtk_widget_set_margin_left( _radio_plot_scatter, 15 );
+    gtk_grid_attach( GTK_GRID(grid), _radio_plot_scatter, 1, yl2, 1, 1 );
+    yl2++;
     _radio_plot_colormap = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_plot_scatter),
 									"Colormap" );
-    gtk_box_pack_start( GTK_BOX(vbox2), _radio_plot_colormap, FALSE, TRUE, 0 );
-    gtk_container_add( GTK_CONTAINER(alignment), vbox2 );
-    gtk_box_pack_start( GTK_BOX(hbox), alignment, FALSE, TRUE, 0 );
-
-    // End
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    gtk_widget_set_margin_left( _radio_plot_colormap, 15 );
+    gtk_grid_attach( GTK_GRID(grid), _radio_plot_colormap, 1, yl2, 1, 1 );
+    yl2++;
 
     // ****************************************************************************
 
     // Separator
-    separator = gtk_hseparator_new();
-    gtk_box_pack_start( GTK_BOX(vbox), separator, FALSE, TRUE, 0 );
+    separator = gtk_separator_new( GTK_ORIENTATION_HORIZONTAL );
+    gtk_widget_set_margin_left( separator, 5 );
+    gtk_widget_set_margin_right( separator, 5 );
+    gtk_widget_set_margin_top( separator, 5 );
+    gtk_widget_set_margin_bottom( separator, 5 );
+    gtk_grid_attach( GTK_GRID(grid), separator, 0, yl1, 2, 1 );
+    yl1++;
 
-    // Label for plot
+    // ****************************************************************************
+
+    // Label for Plot 1D
     label = gtk_label_new( "" );
     gtk_label_set_markup( GTK_LABEL(label), "<span weight=\"bold\">Plot 1D</span>" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox), label, FALSE, TRUE, 0 );
-
-    // Columns for radio buttons
-    hbox = gtk_hbox_new( TRUE, 30 );
-
-    // First column
-    alignment = gtk_alignment_new( 0, 0, 0, 0 );
-    gtk_alignment_set_padding( GTK_ALIGNMENT(alignment), 0, 0, 15, 0 );
-    vbox2 = gtk_vbox_new( FALSE, 0 );
+    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl1, 2, 1 );
+    yl1++;
+    yl2 = yl1;
 
     // x
     _radio_prof_x = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 								 "Profile x" );
     g_signal_connect( _radio_prof_x, "toggled",
 		      G_CALLBACK(plot1d_toggled), (gpointer)this );
-    gtk_box_pack_start( GTK_BOX(vbox2), _radio_prof_x, FALSE, TRUE, 0 );
+    gtk_widget_set_margin_left( _radio_prof_x, 15 );
+    gtk_grid_attach( GTK_GRID(grid), _radio_prof_x, 0, yl1, 1, 1 );
+    yl1++;
 
     // y
     if( _geom->geom_mode() == MODE_CYL )
@@ -428,7 +443,9 @@ void GTKParticleDiagDialog::run( void )
 								     "Profile y" );
     g_signal_connect( _radio_prof_y, "toggled",
 		      G_CALLBACK(plot1d_toggled), (gpointer)this );
-    gtk_box_pack_start( GTK_BOX(vbox2), _radio_prof_y, FALSE, TRUE, 0 );
+    gtk_widget_set_margin_left( _radio_prof_y, 15 );
+    gtk_grid_attach( GTK_GRID(grid), _radio_prof_y, 0, yl1, 1, 1 );
+    yl1++;
 
     // z
     if( _geom->geom_mode() == MODE_3D ) {
@@ -436,38 +453,33 @@ void GTKParticleDiagDialog::run( void )
 								 "Profile z" );
 	g_signal_connect( _radio_prof_z, "toggled",
 			  G_CALLBACK(plot1d_toggled), (gpointer)this );
-	gtk_box_pack_start( GTK_BOX(vbox2), _radio_prof_z, FALSE, TRUE, 0 );
+	gtk_widget_set_margin_left( _radio_prof_z, 15 );
+	gtk_grid_attach( GTK_GRID(grid), _radio_prof_z, 0, yl1, 1, 1 );
+	yl1++;
     }
 
     // energy
     _radio_energy = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 								 "Energy" );
-    //g_signal_connect( _radio_energy, "toggled",
-    //G_CALLBACK(plot1d_toggled), (gpointer)this );
-    gtk_box_pack_start( GTK_BOX(vbox2), _radio_energy, FALSE, TRUE, 0 );
-
-    gtk_container_add( GTK_CONTAINER(alignment), vbox2 );
-    gtk_box_pack_start( GTK_BOX(hbox), alignment, FALSE, TRUE, 0 );
+    gtk_widget_set_margin_left( _radio_energy, 15 );
+    gtk_grid_attach( GTK_GRID(grid), _radio_energy, 0, yl1, 1, 1 );
+    yl1++;
 
     // charge
     _radio_charge = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 								 "Charge" );
-    //g_signal_connect( _radio_charge, "toggled",
-    //G_CALLBACK(plot1d_toggled), (gpointer)this );
-    gtk_box_pack_start( GTK_BOX(vbox2), _radio_charge, FALSE, TRUE, 0 );
-
-
-    // Second column
-    alignment = gtk_alignment_new( 0, 0, 0, 0 );
-    gtk_alignment_set_padding( GTK_ALIGNMENT(alignment), 0, 0, 15, 0 );
-    vbox2 = gtk_vbox_new( FALSE, 0 );
+    gtk_widget_set_margin_left( _radio_charge, 15 );
+    gtk_grid_attach( GTK_GRID(grid), _radio_charge, 0, yl1, 1, 1 );
+    yl1++;
 
     // x'
     _radio_prof_xp = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 								 "Profile x'" );
     g_signal_connect( _radio_prof_xp, "toggled",
 		      G_CALLBACK(plot1d_toggled), (gpointer)this );
-    gtk_box_pack_start( GTK_BOX(vbox2), _radio_prof_xp, FALSE, TRUE, 0 );
+    gtk_widget_set_margin_left( _radio_prof_xp, 15 );
+    gtk_grid_attach( GTK_GRID(grid), _radio_prof_xp, 1, yl2, 1, 1 );
+    yl2++;
 
     // y'
     if( _geom->geom_mode() == MODE_CYL )
@@ -478,7 +490,9 @@ void GTKParticleDiagDialog::run( void )
 								     "Profile y'" );
     g_signal_connect( _radio_prof_yp, "toggled",
 		      G_CALLBACK(plot1d_toggled), (gpointer)this );
-    gtk_box_pack_start( GTK_BOX(vbox2), _radio_prof_yp, FALSE, TRUE, 0 );
+    gtk_widget_set_margin_left( _radio_prof_yp, 15 );
+    gtk_grid_attach( GTK_GRID(grid), _radio_prof_yp, 1, yl2, 1, 1 );
+    yl2++;
 
     // z'
     if( _geom->geom_mode() == MODE_3D ) {
@@ -486,28 +500,44 @@ void GTKParticleDiagDialog::run( void )
 								 "Profile z'" );
 	g_signal_connect( _radio_prof_zp, "toggled",
 			  G_CALLBACK(plot1d_toggled), (gpointer)this );
-	gtk_box_pack_start( GTK_BOX(vbox2), _radio_prof_zp, FALSE, TRUE, 0 );
+	gtk_widget_set_margin_left( _radio_prof_zp, 15 );
+	gtk_grid_attach( GTK_GRID(grid), _radio_prof_zp, 1, yl2, 1, 1 );
+	yl2++;
     }
 
     // q/m
     _radio_qm = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 							     "Q/M" );
-    //g_signal_connect( _radio_qm, "toggled",
-    //G_CALLBACK(plot1d_toggled), (gpointer)this );
-    gtk_box_pack_start( GTK_BOX(vbox2), _radio_qm, FALSE, TRUE, 0 );
+    gtk_widget_set_margin_left( _radio_qm, 15 );
+    gtk_grid_attach( GTK_GRID(grid), _radio_qm, 1, yl2, 1, 1 );
+    yl2++;
 
     // mass
     _radio_mass = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 							       "Mass" );
-    //g_signal_connect( _radio_mass, "toggled",
-    //G_CALLBACK(plot1d_toggled), (gpointer)this );
-    gtk_box_pack_start( GTK_BOX(vbox2), _radio_mass, FALSE, TRUE, 0 );
+    gtk_widget_set_margin_left( _radio_mass, 15 );
+    gtk_grid_attach( GTK_GRID(grid), _radio_mass, 1, yl2, 1, 1 );
+    yl2++;
 
-    gtk_container_add( GTK_CONTAINER(alignment), vbox2 );
-    gtk_box_pack_start( GTK_BOX(hbox), alignment, FALSE, TRUE, 0 );
+    // ****************************************************************************
 
-    // End
-    gtk_box_pack_start( GTK_BOX(vbox), hbox, FALSE, TRUE, 0 );
+    if( yl2 > yl1 )
+	yl1 = yl2;
+    else
+	yl2 = yl1;
+
+    // Separator
+    separator = gtk_separator_new( GTK_ORIENTATION_HORIZONTAL );
+    gtk_widget_set_margin_left( separator, 5 );
+    gtk_widget_set_margin_right( separator, 5 );
+    gtk_widget_set_margin_top( separator, 5 );
+    gtk_widget_set_margin_bottom( separator, 5 );
+    gtk_grid_attach( GTK_GRID(grid), separator, 0, yl1, 2, 1 );
+    yl1++;
+
+    // ****************************************************************************
+
+    gtk_box_pack_start( GTK_BOX(mainbox), grid, TRUE, TRUE, 0 );
 
     // ****************************************************************************
 

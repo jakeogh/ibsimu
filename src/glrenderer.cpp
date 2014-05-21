@@ -119,16 +119,31 @@ void GLRenderer::enable_view_settings( void )
     T = _view.transpose();
     glLoadMatrixd( &T[0] );
 
-    float l[4] = { _light_location[0], _light_location[1], _light_location[2], 0.0 };
+    float l[4] = { (float)_light_location[0], 
+		   (float)_light_location[1], 
+		   (float)_light_location[2], 
+		   0.0 };
     glLightfv( GL_LIGHT0, GL_POSITION, l );
-    float c1[4] = { _light_ambient_color[0], _light_ambient_color[1], _light_ambient_color[2], 1.0 };
+    float c1[4] = { (float)_light_ambient_color[0], 
+		    (float)_light_ambient_color[1], 
+		    (float)_light_ambient_color[2], 
+		    1.0 };
     glLightfv( GL_LIGHT0, GL_AMBIENT, c1 );
-    float c2[4] = { _light_diffuse_color[0], _light_diffuse_color[1], _light_diffuse_color[2], 1.0 };
+    float c2[4] = { (float)_light_diffuse_color[0], 
+		    (float)_light_diffuse_color[1], 
+		    (float)_light_diffuse_color[2], 
+		    1.0 };
     glLightfv( GL_LIGHT0, GL_DIFFUSE, c2 );
 
-    float c3[4] = { _material_ambient_color[0], _material_ambient_color[1], _material_ambient_color[2], 1.0 };
+    float c3[4] = { (float)_material_ambient_color[0], 
+		    (float)_material_ambient_color[1], 
+		    (float)_material_ambient_color[2], 
+		    1.0 };
     glMaterialfv( GL_FRONT, GL_AMBIENT, c3 );
-    float c4[4] = { _material_diffuse_color[0], _material_diffuse_color[1], _material_diffuse_color[2], 1.0 };
+    float c4[4] = { (float)_material_diffuse_color[0], 
+		    (float)_material_diffuse_color[1], 
+		    (float)_material_diffuse_color[2], 
+		    1.0 };
     glMaterialfv( GL_FRONT, GL_DIFFUSE, c4 );
 
     T = _model.transpose();
@@ -139,7 +154,10 @@ void GLRenderer::enable_view_settings( void )
 void GLRenderer::set_material_diffuse_color( Vec3D color )
 {
     _material_diffuse_color = color;
-    float c4[4] = { _material_diffuse_color[0], _material_diffuse_color[1], _material_diffuse_color[2], 1.0 };
+    float c4[4] = { (float)_material_diffuse_color[0],
+		    (float)_material_diffuse_color[1],
+		    (float)_material_diffuse_color[2],
+		    1.0 };
     glMaterialfv( GL_FRONT, GL_DIFFUSE, c4 );
 }
 
@@ -147,7 +165,10 @@ void GLRenderer::set_material_diffuse_color( Vec3D color )
 void GLRenderer::set_material_ambient_color( Vec3D color )
 {
     _material_ambient_color = color;
-    float c3[4] = { _material_ambient_color[0], _material_ambient_color[1], _material_ambient_color[2], 1.0 };
+    float c3[4] = { (float)_material_ambient_color[0],
+		    (float)_material_ambient_color[1],
+		    (float)_material_ambient_color[2],
+		    1.0 };
     glMaterialfv( GL_FRONT, GL_AMBIENT, c3 );
 }
 
@@ -194,21 +215,39 @@ void GLRenderer::shaded_triangle( const Vec3D &x0, const Vec3D &c0,
     glBegin( GL_TRIANGLES );
     glNormal3dv( &n[0] );
 
-    float a0[4] = { 0.2*c0[0], 0.2*c0[1], 0.2*c0[2], 1.0 };
+    float a0[4] = { (float)(0.2*c0[0]),
+		    (float)(0.2*c0[1]),
+		    (float)(0.2*c0[2]),
+		    1.0 };
     glMaterialfv( GL_FRONT, GL_AMBIENT, a0 );
-    float d0[4] = { 0.8*c0[0], 0.8*c0[1], 0.8*c0[2], 1.0 };
+    float d0[4] = { (float)(0.8*c0[0]),
+		    (float)(0.8*c0[1]),
+		    (float)(0.8*c0[2]),
+		    1.0 };
     glMaterialfv( GL_FRONT, GL_DIFFUSE, d0 );
     glVertex3dv( &x0[0] );
 
-    float a1[4] = { 0.2*c1[0], 0.2*c1[1], 0.2*c1[2], 1.0 };
+    float a1[4] = { (float)(0.2*c1[0]),
+		    (float)(0.2*c1[1]),
+		    (float)(0.2*c1[2]),
+		    1.0 };
     glMaterialfv( GL_FRONT, GL_AMBIENT, a1 );
-    float d1[4] = { 0.8*c1[0], 0.8*c1[1], 0.8*c1[2], 1.0 };
+    float d1[4] = { (float)(0.8*c1[0]),
+		    (float)(0.8*c1[1]),
+		    (float)(0.8*c1[2]),
+		    1.0 };
     glMaterialfv( GL_FRONT, GL_DIFFUSE, d1 );
     glVertex3dv( &x1[0] );
 
-    float a2[4] = { 0.2*c2[0], 0.2*c2[1], 0.2*c2[2], 1.0 };
+    float a2[4] = { (float)(0.2*c2[0]),
+		    (float)(0.2*c2[1]),
+		    (float)(0.2*c2[2]),
+		    1.0 };
     glMaterialfv( GL_FRONT, GL_AMBIENT, a2 );
-    float d2[4] = { 0.8*c2[0], 0.8*c2[1], 0.8*c2[2], 1.0 };
+    float d2[4] = { (float)(0.8*c2[0]),
+		    (float)(0.8*c2[1]),
+		    (float)(0.8*c2[2]),
+		    1.0 };
     glMaterialfv( GL_FRONT, GL_DIFFUSE, d2 );
     glVertex3dv( &x2[0] );
 

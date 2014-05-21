@@ -2,7 +2,7 @@
  *  \brief Preferences for plot windows
  */
 
-/* Copyright (c) 2005-2009,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012-2013 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -66,26 +66,30 @@ void GTKPreferences::run( void )
 						     GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
 						     GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
 						     NULL );
-    GtkWidget *vbox = GTK_DIALOG(dialog)->vbox;
+    gtk_window_set_resizable( GTK_WINDOW(dialog), FALSE );
+    GtkWidget *mainbox = gtk_dialog_get_content_area( GTK_DIALOG(dialog) );
 
     // ****************************************************************************
 
-    GtkWidget *vbox2 = gtk_vbox_new( FALSE, 0 );
+    GtkWidget *grid = gtk_grid_new();
+    gtk_grid_set_column_homogeneous( GTK_GRID(grid), TRUE );
+    gtk_widget_set_hexpand( grid, TRUE );
+    uint32_t yl = 0;
+
+    // ****************************************************************************
 
     // Fontsize
-    GtkWidget *hbox = gtk_hbox_new( TRUE, 30 );
     GtkWidget *label = gtk_label_new( "Fontsize" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     GtkWidget *fontsize_entry = gtk_entry_new();
     char s[128];
     snprintf( s, 128, "%g", _frame->get_font_size() );
     gtk_entry_set_text( GTK_ENTRY(fontsize_entry), s );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), fontsize_entry, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), fontsize_entry, 1, yl, 1, 1 );
+    yl++;
 
     // Range xmin
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Range xmin" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     GtkWidget *rxmin_entry = gtk_entry_new();
@@ -93,56 +97,57 @@ void GTKPreferences::run( void )
     _frame->get_ranges( PLOT_AXIS_X1, min, max );
     snprintf( s, 128, "%g", min );
     gtk_entry_set_text( GTK_ENTRY(rxmin_entry), s );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), rxmin_entry, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
-    
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), rxmin_entry, 1, yl, 1, 1 );
+    yl++;
+
     // Range xmax
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Range xmax" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     GtkWidget *rxmax_entry = gtk_entry_new();
     _frame->get_ranges( PLOT_AXIS_X1, min, max );
     snprintf( s, 128, "%g", max );
     gtk_entry_set_text( GTK_ENTRY(rxmax_entry), s );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), rxmax_entry, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), rxmax_entry, 1, yl, 1, 1 );
+    yl++;
 
     // Range ymin
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Range ymin" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     GtkWidget *rymin_entry = gtk_entry_new();
     _frame->get_ranges( PLOT_AXIS_Y1, min, max );
     snprintf( s, 128, "%g", min );
     gtk_entry_set_text( GTK_ENTRY(rymin_entry), s );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), rymin_entry, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), rymin_entry, 1, yl, 1, 1 );
+    yl++;
     
     // Range ymax
-    hbox = gtk_hbox_new( TRUE, 30 );
     label = gtk_label_new( "Range ymax" );
     gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
     GtkWidget *rymax_entry = gtk_entry_new();
     _frame->get_ranges( PLOT_AXIS_Y1, min, max );
     snprintf( s, 128, "%g", max );
     gtk_entry_set_text( GTK_ENTRY(rymax_entry), s );
-    gtk_box_pack_start( GTK_BOX(hbox), label, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(hbox), rymax_entry, FALSE, TRUE, 0 );
-    gtk_box_pack_start( GTK_BOX(vbox2), hbox, FALSE, TRUE, 0 );
+    gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
+    gtk_grid_attach( GTK_GRID(grid), rymax_entry, 1, yl, 1, 1 );
+    yl++;
 
     // Notebook, page 1
     label = gtk_label_new( "Frame" );
     GtkWidget *notebook = gtk_notebook_new();
-    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), vbox2, label );
+    gtk_notebook_append_page( GTK_NOTEBOOK(notebook), grid, label );
 
     // Notebook, additional pages
     void *pdata = _gtkwindow->build_preferences( notebook );
 
+    // ****************************************************************************
+
     // Pack notebook
-    gtk_box_pack_start( GTK_BOX(vbox), notebook, FALSE, TRUE, 0 );
+    gtk_box_pack_start( GTK_BOX(mainbox), notebook, FALSE, TRUE, 0 );
+
+    // ****************************************************************************
 
     gtk_widget_show_all( dialog );
     if( gtk_dialog_run( GTK_DIALOG(dialog) ) == GTK_RESPONSE_ACCEPT ) {

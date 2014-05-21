@@ -77,50 +77,12 @@ geomplotter.cpp \
 geomplotter.hpp \
 graph.hpp \
 graph3d.hpp \
-gtkfielddiagdialog.cpp \
-gtkfielddiagdialog.hpp \
-gtkfielddiagexportdialog.cpp \
-gtkfielddiagexportdialog.hpp \
-gtkfielddiagwindow.cpp \
-gtkfielddiagwindow.hpp \
-gtkframewindow.cpp \
-gtkframewindow.hpp \
-gtkgeom3dwindow.cpp \
-gtkgeom3dwindow.hpp \
-gtkgeomwindow.cpp \
-gtkgeomwindow.hpp \
-gtkhardcopy.cpp \
-gtkhardcopy.hpp \
-gtkparticlediagdialog.cpp \
-gtkparticlediagdialog.hpp \
-gtkparticlediagexportdialog.cpp \
-gtkparticlediagexportdialog.hpp \
-gtkparticlediagwindow.cpp \
-gtkparticlediagwindow.hpp \
-gtkplotter.cpp \
-gtkplotter.hpp \
-gtkpreferences.cpp \
-gtkpreferences.hpp \
-gtkwindow.cpp \
-gtkwindow.hpp \
 hbio.cpp \
 hbio.hpp \
 histogram.cpp \
 histogram.hpp \
 ibsimu.cpp \
 ibsimu.hpp \
-icon_field_diag.hpp \
-icon_geom2d.hpp \
-icon_geom3d.hpp \
-icon_hardcopy.hpp \
-icon_move.hpp \
-icon_particle_diag.hpp \
-icon_track.hpp \
-icon_zoom_fit.hpp \
-icon_zoom_in.hpp \
-icon_zoom_out.hpp \
-icons.cpp \
-icons.hpp \
 ilu0_precond.cpp \
 ilu0_precond.hpp \
 ilu1_precond.cpp \
@@ -214,8 +176,6 @@ scharge.hpp \
 scheduler.hpp \
 solid.cpp \
 solid.hpp \
-softwarerenderer.cpp \
-softwarerenderer.hpp \
 solidgraph.cpp \
 solidgraph.hpp \
 solver.hpp \
@@ -290,9 +250,6 @@ geomplot.hpp \
 geomplotter.hpp \
 graph.hpp \
 graph3d.hpp \
-gtkfielddiagexportdialog.hpp \
-gtkplotter.hpp \
-gtkwindow.hpp \
 hbio.hpp \
 histogram.hpp \
 ibsimu.hpp \
@@ -358,6 +315,53 @@ vec4d.hpp \
 vectorfield.hpp \
 vtriangle.hpp \
 xygraph.hpp
+
+if GTK3
+libibsimu_1_0_5new_solver_la_SOURCES += \
+gtkfielddiagdialog.cpp \
+gtkfielddiagdialog.hpp \
+gtkfielddiagexportdialog.cpp \
+gtkfielddiagexportdialog.hpp \
+gtkfielddiagwindow.cpp \
+gtkfielddiagwindow.hpp \
+gtkframewindow.cpp \
+gtkframewindow.hpp \
+gtkgeom3dwindow.cpp \
+gtkgeom3dwindow.hpp \
+gtkgeomwindow.cpp \
+gtkgeomwindow.hpp \
+gtkhardcopy.cpp \
+gtkhardcopy.hpp \
+gtkparticlediagdialog.cpp \
+gtkparticlediagdialog.hpp \
+gtkparticlediagexportdialog.cpp \
+gtkparticlediagexportdialog.hpp \
+gtkparticlediagwindow.cpp \
+gtkparticlediagwindow.hpp \
+gtkplotter.cpp \
+gtkplotter.hpp \
+gtkpreferences.cpp \
+gtkpreferences.hpp \
+gtkwindow.cpp \
+gtkwindow.hpp \
+icon_field_diag.hpp \
+icon_geom2d.hpp \
+icon_geom3d.hpp \
+icon_hardcopy.hpp \
+icon_move.hpp \
+icon_particle_diag.hpp \
+icon_track.hpp \
+icon_zoom_fit.hpp \
+icon_zoom_in.hpp \
+icon_zoom_out.hpp \
+icons.cpp \
+icons.hpp \
+softwarerenderer.cpp \
+softwarerenderer.hpp
+libibsimu_1_0_5new_solver_la_include_HEADERS += \
+gtkplotter.hpp \
+gtkwindow.hpp
+endif
 
 if OPENGL
 libibsimu_1_0_5new_solver_la_SOURCES += glrenderer.cpp glrenderer.hpp
