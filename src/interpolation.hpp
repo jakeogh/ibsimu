@@ -2,7 +2,7 @@
  *  \brief Two dimensional interpolation
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -64,7 +64,8 @@ protected:
     /*! \brief Constructor.
      *
      *  Makes an independent object for interpolation of data. An
-     *  internal copy of \a f is created.
+     *  internal copy of \a f is created. Data mesh is assumed to be
+     *  accessed with indexing \a i+j*n.
      */
     Interpolation2D( size_t n, size_t m, const std::vector<double> &f );
 
@@ -97,6 +98,10 @@ class ClosestInterpolation2D : public Interpolation2D
 public:
 
     /*! \brief Constructor.
+     *
+     *  Makes an independent object for interpolation of data. An
+     *  internal copy of \a f is created. Data mesh is assumed to be
+     *  accessed with indexing \a i+j*n.
      */
     ClosestInterpolation2D( size_t n, size_t m, const std::vector<double> &f );
 
@@ -121,6 +126,10 @@ class BiLinearInterpolation2D : public Interpolation2D
 public:
 
     /*! \brief Constructor.
+     *
+     *  Makes an independent object for interpolation of data. An
+     *  internal copy of \a f is created. Data mesh is assumed to be
+     *  accessed with indexing \a i+j*n.
      */
     BiLinearInterpolation2D( size_t n, size_t m, const std::vector<double> &f );
 
@@ -167,6 +176,10 @@ class BiCubicInterpolation2D : public Interpolation2D
 public:
 
     /*! \brief Constructor.
+     *
+     *  Makes an independent object for interpolation of data. An
+     *  internal copy of \a f is created. Data mesh is assumed to be
+     *  accessed with indexing \a i+j*n.
      */
     BiCubicInterpolation2D( size_t n, size_t m, const std::vector<double> &f );
 
