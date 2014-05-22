@@ -20,8 +20,7 @@
 #include "geomplotter.hpp"
 #include "geometry.hpp"
 #include "meshvectorfield.hpp"
-#include "bicgstab_solver.hpp"
-#include "epot_problem.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "epot_efield.hpp"
 #include "particles.hpp"
 #include "error.hpp"
@@ -81,29 +80,25 @@ void test( int argc, char **argv )
     geom.build_mesh();
     //g.debug_print();
 
-    EpotProblem p;
-    p.construct( geom );
-
-    ScalarField epot( geom );
-    ScalarField scharge( geom );
+    EpotField epot( geom );
+    MeshScalarField scharge( geom );
     MeshVectorField bfield;
 
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
+    EpotBiCGSTABSolver solver( geom );
+    solver.solve( epot, scharge );
 
-    EpotEfield efield( geom, epot );
+    EpotEfield efield( epot );
     field_extrpl_e efldextrpl[6] = { FIELD_MIRROR, FIELD_MIRROR, 
 				     FIELD_MIRROR, FIELD_MIRROR, 
 				     FIELD_MIRROR, FIELD_MIRROR };
     efield.set_extrapolation( efldextrpl );
 
-    ParticleDataBase2D pdb;
+    ParticleDataBase2D pdb( geom );
     pdb.set_thread_count( 1 );
     bool pmirror[6] = { true, false, false, false, false, false };
     pdb.set_mirror( pmirror );
     pdb.add_particle( 0.0, 1.0, 1.0, ParticleP2D( 0.0, 0.0, 0.0, -0.04, 1e5 ) );
-    pdb.iterate_trajectories( scharge, efield, bfield, geom );
+    pdb.iterate_trajectories( scharge, efield, bfield );
     //pdb.debug_print();
 
     // Check particle trajectory points

@@ -11,9 +11,8 @@
 #include "geomplotter.hpp"
 #include "geometry.hpp"
 #include "meshvectorfield.hpp"
-#include "bicgstab_solver.hpp"
-#include "epot_problem.hpp"
 #include "epot_efield.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "particles.hpp"
 #include "particledatabase.hpp"
 #include "error.hpp"
@@ -32,23 +31,19 @@ void test( int argc, char **argv )
     geom.set_boundary( 4, Bound(BOUND_NEUMANN,      0.0) );
     geom.build_mesh();
 
-    EpotProblem p;
-    p.construct( geom );
-
-    ScalarField epot( geom );
+    EpotField epot( geom );
     MeshVectorField bfield;
-    ScalarField scharge( geom );
+    MeshScalarField scharge( geom );
 
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
+    EpotBiCGSTABSolver solver( geom );
+    solver.solve( epot, scharge );
 
-    EpotEfield efield( geom, epot );
+    EpotEfield efield( epot );
 
-    ParticleDataBase2D pdb;
+    ParticleDataBase2D pdb( geom );
     pdb.set_thread_count( 1 );
     pdb.add_particle( 0.0, 1.0, 1.0, ParticleP2D( 0, 0.01, 0.0, 0.0, 1e5 ) );
-    pdb.iterate_trajectories( scharge, efield, bfield, geom );
+    pdb.iterate_trajectories( scharge, efield, bfield );
     //pdb.debug_print();
 
     std::vector<trajectory_diagnostic_e> diagnostics;

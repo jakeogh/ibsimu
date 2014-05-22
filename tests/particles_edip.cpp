@@ -29,18 +29,20 @@
 
 #include <fstream>
 #include <iomanip>
-#include "gtkplotter.hpp"
 #include "geometry.hpp"
-#include "bicgstab_solver.hpp"
-#include "epot_problem.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "func_solid.hpp"
 #include "meshvectorfield.hpp"
 #include "epot_efield.hpp"
 #include "particles.hpp"
 #include "error.hpp"
 #include "ibsimu.hpp"
-
 #include "geomplotter.hpp"
+#include "config.h"
+
+#ifdef GTK3
+#include "gtkplotter.hpp"
+#endif
 
 
 using namespace std;
@@ -84,27 +86,23 @@ void test( int argc, char **argv )
     geom.build_mesh();
     //geom.debug_print();
 
-    EpotProblem p;
-    p.construct( geom );
+    EpotField epot( geom );
+    MeshScalarField scharge( geom );
 
-    ScalarField epot( geom );
-    ScalarField scharge( geom );
+    EpotBiCGSTABSolver solver( geom );
+    solver.solve( epot, scharge );
 
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
-
-    EpotEfield efield( geom, epot );
+    EpotEfield efield( epot );
     MeshVectorField bfield;
 
-    ParticleDataBase2D pdb;
+    ParticleDataBase2D pdb( geom );
     //pdb.set_accuracy( 1.0e-8, 1.0e-8 );
     pdb.set_thread_count( 1 );
     pdb.set_max_steps( 100 );
 
     // Add 20-Ne, q=6+
     pdb.add_particle( 0.0, 6.0, 19.9924, ParticleP2D( 0, 0.05, 0.0, 0.0, vy ) );
-    pdb.iterate_trajectories( scharge, efield, bfield, geom );
+    pdb.iterate_trajectories( scharge, efield, bfield );
     //pdb.debug_print();
 
     /*
@@ -160,15 +158,17 @@ void test( int argc, char **argv )
     geomplotter.set_particle_database( &pdb );
     geomplotter.plot_png( "particles_edip.png" );
 
-    /*
-    GTKPlotter plotter( argc, argv );
-    plotter.set_geometry( &g );
-    plotter.set_scharge( &scharge );
-    plotter.set_epot( &epot );
-    plotter.set_particledatabase( &pdb );
-    plotter.new_geometry_plot_window();
-    plotter.run();
-    */
+#ifdef GTK3
+    if( false ) {
+	GTKPlotter plotter( &argc, &argv );
+	plotter.set_geometry( &geom );
+	plotter.set_scharge( &scharge );
+	plotter.set_epot( &epot );
+	plotter.set_particledatabase( &pdb );
+	plotter.new_geometry_plot_window();
+	plotter.run();
+    }
+#endif
 }
 
 

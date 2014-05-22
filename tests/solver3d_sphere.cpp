@@ -16,8 +16,12 @@
 #include "epot_efield.hpp"
 #include "error.hpp"
 #include "ibsimu.hpp"
+#include "config.h"
 
+#ifdef GTK3
 #include "gtkplotter.hpp"
+#endif
+
 
 using namespace std;
 
@@ -273,12 +277,16 @@ void test_simu( int argc, char **argv )
 	      << maxerrl[2] << ")\n";
     */
 
-    GTKPlotter plotter( &argc, &argv );
-    plotter.set_geometry( &g );
-    plotter.set_scharge( &scharge );
-    plotter.set_epot( &epot );
-    plotter.new_geometry_plot_window();
-    plotter.run();
+#ifdef GTK3
+    if( false ) {
+	GTKPlotter plotter( &argc, &argv );
+	plotter.set_geometry( &g );
+	plotter.set_scharge( &scharge );
+	plotter.set_epot( &epot );
+	plotter.new_geometry_plot_window();
+	plotter.run();
+    }
+#endif
 
     if( err ) {
 	std::cout << "Error: solved potential differs from theory\n";

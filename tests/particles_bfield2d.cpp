@@ -10,9 +10,8 @@
 #include <iomanip>
 #include "geomplotter.hpp"
 #include "geometry.hpp"
-#include "bicgstab_solver.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "meshvectorfield.hpp"
-#include "epot_problem.hpp"
 #include "epot_efield.hpp"
 #include "particles.hpp"
 #include "error.hpp"
@@ -32,17 +31,13 @@ void test( int argc, char **argv )
     geom.build_mesh();
     //g.debug_print();
 
-    EpotProblem p;
-    p.construct( geom );
+    EpotField epot( geom );
+    MeshScalarField scharge( geom );
 
-    ScalarField epot( geom );
-    ScalarField scharge( geom );
-
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
+    EpotBiCGSTABSolver solver( geom );
+    solver.solve( epot, scharge );
     
-    EpotEfield efield( geom, epot );
+    EpotEfield efield( epot );
 
     // Make magnetic field
     bool fout[3] = {false,false,true};
@@ -52,11 +47,11 @@ void test( int argc, char **argv )
     bfield.set( 0, 1, Vec3D(0,0,1) );
     bfield.set( 1, 1, Vec3D(0,0,1) );
 
-    ParticleDataBase2D pdb;
+    ParticleDataBase2D pdb( geom );
     pdb.set_thread_count( 1 );
     pdb.set_max_steps( 100 );
     pdb.add_particle( 0.0, 1.0, 1.0, ParticleP2D( 0, -0.020728544449, 0.0, 0.0, 2e6 ) );
-    pdb.iterate_trajectories( scharge, efield, bfield, geom );
+    pdb.iterate_trajectories( scharge, efield, bfield );
     //pdb.debug_print();
 
     // Check particle trajectory points

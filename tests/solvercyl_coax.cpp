@@ -16,7 +16,11 @@
 #include "func_solid.hpp"
 #include "epot_efield.hpp"
 #include "error.hpp"
+#include "config.h"
+
+#ifdef GTK3
 #include "gtkplotter.hpp"
+#endif
 
 
 using namespace std;
@@ -102,6 +106,7 @@ void test( int argc, char **argv )
     }
     ostr.close();
 
+#ifdef GTK3
     if( false ) {
 	GTKPlotter plotter( &argc, &argv );
 	plotter.set_geometry( &geom );
@@ -110,6 +115,7 @@ void test( int argc, char **argv )
 	plotter.new_geometry_plot_window();
 	plotter.run();
     }
+#endif
 
     if( maxerr > 0.002 ) {
 	std::cout << "Maximum error = " << maxerr << "\n";

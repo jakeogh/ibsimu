@@ -60,9 +60,7 @@ AM_LDFLAGS += `pkg-config --libs csg`
 endif
 
 EXTRA_DIST = \
-solver1d_scharge.gpl \
-solver2d_coax.gpl \
-solvercyl_coax.gpl
+solver2d_coax.gpl
 
 CLEANFILES = *~ *.png *.eps *.svg *.pdf *.ps *.dat *_vout.txt beam3d.path libibsimutest.la
 

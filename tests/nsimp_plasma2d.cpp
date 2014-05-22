@@ -23,9 +23,12 @@
 #include "ibsimu.hpp"
 #include "error.hpp"
 #include "particlediagplotter.hpp"
-#include "gtkplotter.hpp"
 #include "geomplotter.hpp"
+#include "config.h"
 
+#ifdef GTK3
+#include "gtkplotter.hpp"
+#endif
 
 using namespace std;
 
@@ -64,9 +67,10 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, +6.0e3) );
     geom.build_mesh();
 
-    EpotMGSolver solver( geom );
-    solver.set_mgcycmax( 10 );
-    solver.set_levels( 4 );
+    EpotBiCGSTABSolver solver( geom );
+    //EpotMGSolver solver( geom );
+    //solver.set_mgcycmax( 10 );
+    //solver.set_levels( 4 );
     //EpotGSSolver solver( geom );
     //EpotUMFPACKSolver solver( geom );
     InitialPlasma initp( AXIS_X, 0.0006 );
@@ -81,7 +85,7 @@ void test( int argc, char **argv )
 				     FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE };
     efield.set_extrapolation( efldextrpl );
 
-    ParticleDataBase2D pdb;
+    ParticleDataBase2D pdb( geom );
     bool pmirror[6] = { false, false, true, false, false, false };
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
@@ -132,23 +136,10 @@ void test( int argc, char **argv )
 				     5.0, 0.0, 0.5, 
 				     -0.001, 0.0, 
 				     -0.001, 0.005 );
-	pdb.iterate_trajectories( scharge, efield, bfield, geom );
-
-	if( false ) {
-	    MeshScalarField tdens( geom );
-	    pdb.build_trajectory_density_field( tdens );
-	    GTKPlotter plotter( &argc, &argv );
-	    plotter.set_geometry( &geom );
-	    plotter.set_epot( &epot );
-	    plotter.set_efield( &efield );
-	    plotter.set_trajdens( &tdens );
-	    plotter.set_scharge( &scharge );
-	    plotter.set_particledatabase( &pdb );
-	    plotter.new_geometry_plot_window();
-	    plotter.run();
-	}
+	pdb.iterate_trajectories( scharge, efield, bfield );
     }
 
+#ifdef GTK3
     if( false ) {
 	MeshScalarField tdens( geom );
 	pdb.build_trajectory_density_field( tdens );
@@ -162,6 +153,7 @@ void test( int argc, char **argv )
 	plotter.new_geometry_plot_window();
 	plotter.run();
     }
+#endif
 
     GeomPlotter gplotter( geom );
     gplotter.set_size( 1024, 768 );

@@ -23,8 +23,12 @@
 #include "ibsimu.hpp"
 #include "error.hpp"
 #include "particlediagplotter.hpp"
-#include "gtkplotter.hpp"
 #include "geomplotter.hpp"
+#include "config.h"
+
+#ifdef GTK3
+#include "gtkplotter.hpp"
+#endif
 
 
 using namespace std;
@@ -83,12 +87,12 @@ void test( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET, +6.0e3) );
     geom.build_mesh();
 
-    EpotMGSolver solver( geom );
-    solver.set_levels( 3 );
+    //EpotMGSolver solver( geom );
+    //solver.set_levels( 3 );
     //EpotGSSolver solver( geom );
     //solver.set_w( 1.93 );
     //EpotUMFPACKSolver solver( geom );
-    //EpotBiCGSTABSolver solver( geom );
+    EpotBiCGSTABSolver solver( geom );
     //solver.set_newton_imax( 1 );
     InitialPlasma initp( AXIS_X, 0.0006 );
     solver.set_nsimp_initial_plasma( &initp );
@@ -102,7 +106,7 @@ void test( int argc, char **argv )
 				     FIELD_MIRROR, FIELD_EXTRAPOLATE };
     efield.set_extrapolation( efldextrpl );
 
-    ParticleDataBase3D pdb;
+    ParticleDataBase3D pdb( geom );
     bool pmirror[6] = { false, false, true, false, true, false };
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
@@ -156,24 +160,11 @@ void test( int argc, char **argv )
                                               Vec3D(-1e-3,0,0),
                                               Vec3D(0,1,0),
                                               Vec3D(0,0,1), 0.005 );
-	pdb.iterate_trajectories( scharge, efield, bfield, geom );
-
-	if( true ) {
-	    MeshScalarField tdens( geom );
-	    pdb.build_trajectory_density_field( tdens );
-	    GTKPlotter plotter( &argc, &argv );
-	    plotter.set_geometry( &geom );
-	    plotter.set_epot( &epot );
-	    plotter.set_efield( &efield );
-	    plotter.set_trajdens( &tdens );
-	    plotter.set_scharge( &scharge );
-	    plotter.set_particledatabase( &pdb );
-	    plotter.new_geometry_plot_window();
-	    plotter.run();
-	}
+	pdb.iterate_trajectories( scharge, efield, bfield );
     }
 
-    if( true ) {
+#ifdef GTK3
+    if( false ) {
 	MeshScalarField tdens( geom );
 	pdb.build_trajectory_density_field( tdens );
 	GTKPlotter plotter( &argc, &argv );
@@ -186,8 +177,9 @@ void test( int argc, char **argv )
 	plotter.new_geometry_plot_window();
 	plotter.run();
     }
+#endif
 
-    GeomPlotter gplotter( &geom );
+    GeomPlotter gplotter( geom );
     gplotter.set_size( 1024, 768 );
     gplotter.set_epot( &epot );
     std::vector<double> eqlines;

@@ -22,9 +22,12 @@
 #include "ibsimu.hpp"
 #include "error.hpp"
 #include "particlediagplotter.hpp"
-#include "gtkplotter.hpp"
 #include "geomplotter.hpp"
+#include "config.h"
 
+#ifdef GTK3
+#include "gtkplotter.hpp"
+#endif
 
 using namespace std;
 
@@ -82,7 +85,7 @@ void test( int argc, char **argv )
 				     FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE };
     efield.set_extrapolation( efldextrpl );
 
-    ParticleDataBase3D pdb;
+    ParticleDataBase3D pdb( geom );
     bool pmirror[6] = { false, false, true, false, true, false };
     pdb.set_mirror( pmirror );
     pdb.set_polyint( true );
@@ -111,7 +114,7 @@ void test( int argc, char **argv )
 					      Vec3D(0,0,0),
 					      Vec3D(0,1,0),
 					      Vec3D(0,0,1), 0.001 );
-	pdb.iterate_trajectories( scharge, efield, bfield, geom );
+	pdb.iterate_trajectories( scharge, efield, bfield );
 
 	ParticleDiagPlotter pplotter( geom, pdb, AXIS_X, 0.0119, PARTICLE_DIAG_PLOT_SCATTER,
 				      DIAG_Y, DIAG_YP );
@@ -120,6 +123,7 @@ void test( int argc, char **argv )
 
     }
 
+#ifdef GTK3
     if( false ) {
 	MeshScalarField tdens( geom );
 	pdb.build_trajectory_density_field( tdens );
@@ -133,6 +137,7 @@ void test( int argc, char **argv )
 	plotter.new_geometry_plot_window();
 	plotter.run();
     }
+#endif
 
     ofstream ofconv( "plasma3d_conv.dat" );
     conv.print_history( ofconv );

@@ -23,8 +23,7 @@
 #include "geomplotter.hpp"
 #include "geometry.hpp"
 #include "meshvectorfield.hpp"
-#include "bicgstab_solver.hpp"
-#include "epot_problem.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "epot_efield.hpp"
 #include "particles.hpp"
 #include "particledatabase.hpp"
@@ -49,28 +48,23 @@ double wfunc( double y, double vy, double z, double vz )
 
 void test( int argc, char **argv )
 {
-    Geometry g( MODE_CYL, Int3D(11,11,1), Vec3D(-0.05,0.0,0.0), 0.01 );
-    g.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
-    g.set_boundary( 2, Bound(BOUND_DIRICHLET,    0.0) );
-    g.set_boundary( 3, Bound(BOUND_NEUMANN,      0.0) );
-    g.set_boundary( 4, Bound(BOUND_DIRICHLET,    0.0) );
-    g.build_mesh();
-    //g.debug_print();
+    Geometry geom( MODE_CYL, Int3D(11,11,1), Vec3D(-0.05,0.0,0.0), 0.01 );
+    geom.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
+    geom.set_boundary( 2, Bound(BOUND_DIRICHLET,    0.0) );
+    geom.set_boundary( 3, Bound(BOUND_NEUMANN,      0.0) );
+    geom.set_boundary( 4, Bound(BOUND_DIRICHLET,    0.0) );
+    geom.build_mesh();
 
-    EpotProblem p;
-    p.construct( g );
+    EpotField epot( geom );
+    MeshScalarField scharge( geom );
 
-    ScalarField epot( g );
-    ScalarField scharge( g );
+    EpotBiCGSTABSolver solver( geom );
+    solver.solve( epot, scharge );
 
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
-
-    EpotEfield efield( g, epot );
+    EpotEfield efield( epot );
     MeshVectorField bfield;
 
-    ParticleDataBaseCyl pdb;
+    ParticleDataBaseCyl pdb( geom );
     pdb.set_accuracy( 1.0e-6, 1.0e-6 ); // Extremely sensitive on error requirement
     pdb.set_thread_count( 1 );
     pdb.set_max_steps( 100 );
@@ -82,7 +76,7 @@ void test( int argc, char **argv )
     double vr = vrfunc( y0, vy, z0, vz );
     double w = wfunc( y0, vy, z0, vz );
     pdb.add_particle( 0.0, 1.0, 1.0, ParticlePCyl( 0, 0.0, 0.0, r0, vr, w ) );
-    pdb.iterate_trajectories( scharge, efield, bfield, g );
+    pdb.iterate_trajectories( scharge, efield, bfield );
     //pdb.debug_print();
 
     ParticleCyl &part = pdb.particle(0);

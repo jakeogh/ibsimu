@@ -10,17 +10,20 @@
 #include <iomanip>
 #include "geomplotter.hpp"
 #include "geometry.hpp"
-#include "bicgstab_solver.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "meshvectorfield.hpp"
-#include "epot_problem.hpp"
 #include "epot_efield.hpp"
 #include "func_solid.hpp"
-#include "gtkplotter.hpp"
 #include "geomplotter.hpp"
 #include "particles.hpp"
 #include "error.hpp"
 #include "ibsimu.hpp"
 #include "ibsimutest.hpp"
+#include "config.h"
+
+#ifdef GTK3
+#include "gtkplotter.hpp"
+#endif
 
 
 using namespace std;
@@ -38,17 +41,13 @@ void test1( int argc, char **argv )
     geom.build_mesh();
     //g.debug_print();
 
-    EpotProblem p;
-    p.construct( geom );
+    EpotField epot( geom );
+    MeshScalarField scharge( geom );
 
-    ScalarField epot( geom );
-    ScalarField scharge( geom );
-
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
+    EpotBiCGSTABSolver solver( geom );
+    solver.solve( epot, scharge );
     
-    EpotEfield efield( geom, epot );
+    EpotEfield efield( epot );
 
     double v = 1.5e8;
     double gamma = 1.0/sqrt(1.0-v*v/SPEED_C2);
@@ -69,12 +68,12 @@ void test1( int argc, char **argv )
     bfield.set( 0, 1, -Vec3D(0,0,B) );
     bfield.set( 1, 1, -Vec3D(0,0,B) );
 
-    ParticleDataBase2D pdb;
+    ParticleDataBase2D pdb( geom );
     pdb.set_thread_count( 1 );
     pdb.set_relativistic( true );
     pdb.set_max_steps( 100 );
     pdb.add_particle( 0.0, Q, M, ParticleP2D( 0, r, 0.0, 0.0, v ) );
-    pdb.iterate_trajectories( scharge, efield, bfield, geom );
+    pdb.iterate_trajectories( scharge, efield, bfield );
     //pdb.debug_print( std::cout );
 
     TrajectoryDiagnosticData tdata;
@@ -168,25 +167,21 @@ void test2( int argc, char **argv )
     geom.set_boundary( 8, Bound(BOUND_DIRICHLET,  500.0e3) );
     geom.build_mesh();
 
-    EpotProblem p;
-    p.construct( geom );
+    EpotField epot( geom );
+    MeshScalarField scharge( geom );
 
-    ScalarField epot( geom );
-    ScalarField scharge( geom );
+    EpotBiCGSTABSolver solver( geom );
 
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-
-    EpotEfield efield( geom, epot );
+    EpotEfield efield( epot );
     MeshVectorField bfield;
-    ParticleDataBase3D pdb;
+    ParticleDataBase3D pdb( geom );
     pdb.set_relativistic( true );
     pdb.set_thread_count( 4 );
     bool pmirror[6] = { false, false, false, false, false, false };
     pdb.set_mirror( pmirror );
     for( size_t a = 0; a < 4; a++ ) {
 
-        p.solve( epot, scharge );
+        solver.solve( epot, scharge );
 
         pdb.clear();
         pdb.add_cylindrical_beam_with_energy( 4000, 50.0e3, Q, M, 
@@ -195,9 +190,10 @@ void test2( int argc, char **argv )
                                               Vec3D(0,1,0), // dir1
                                               Vec3D(0,0,1), // dir2
                                               0.005 );      // radius
-        pdb.iterate_trajectories( scharge, efield, bfield, geom );
+        pdb.iterate_trajectories( scharge, efield, bfield );
     }
 
+#ifdef GTK3
     if( false ) {
         GTKPlotter plotter( &argc, &argv );
         plotter.set_geometry( &geom );
@@ -207,6 +203,8 @@ void test2( int argc, char **argv )
         plotter.new_geometry_plot_window();
         plotter.run();
     }
+#endif
+
     GeomPlotter gplotter( geom );
     gplotter.set_scharge( &scharge );
     gplotter.set_epot( &epot );
@@ -227,8 +225,13 @@ void test2( int argc, char **argv )
 	Ek += tdata(a,0);
     Ek = Ek/tdata.traj_size();
     //std::cout << "Ek = " << Ek << "\n";
-    if( fabs(Ek-500e3) > 50.0 )
+    if( fabs(Ek-500e3) > 50.0 ) {
+	ofstream of( "particles_relativistic_out.txt" );
+	for( uint32_t a = 0; a < tdata.traj_size(); a++ )
+	    of << tdata(a,0) << "\n";
+	of.close();
 	throw( ErrorTest( ERROR_LOCATION, "incorrect particle energy" ) );
+    }
 }
 
 

@@ -26,15 +26,17 @@
 #include "geomplotter.hpp"
 #include "geometry.hpp"
 #include "meshvectorfield.hpp"
-#include "bicgstab_solver.hpp"
-#include "epot_problem.hpp"
+#include "epot_bicgstabsolver.hpp"
 #include "epot_efield.hpp"
 #include "particles.hpp"
-#include "gtkplotter.hpp"
 #include "particledatabase.hpp"
 #include "error.hpp"
 #include "ibsimu.hpp"
+#include "config.h"
 
+#ifdef GTK3
+#include "gtkplotter.hpp"
+#endif
 
 using namespace std;
 
@@ -68,25 +70,21 @@ void test( int argc, char **argv )
     geom.set_boundary( 4, Bound(BOUND_NEUMANN,      0.0) );
     geom.build_mesh();
 
-    EpotProblem p;
-    p.construct( geom );
-
-    ScalarField epot( geom );
+    EpotField epot( geom );
     MeshVectorField bfield;
-    ScalarField scharge( geom );
+    MeshScalarField scharge( geom );
 
-    BiCGSTABSolver solver;
-    p.set_solver( solver );
-    p.solve( epot, scharge );
+    EpotBiCGSTABSolver solver( geom );
+    solver.solve( epot, scharge );
 
-    EpotEfield efield( geom, epot );
+    EpotEfield efield( epot );
 
-    ParticleDataBase2D pdb;
+    ParticleDataBase2D pdb( geom );
     pdb.set_thread_count( 1 );
     pdb.add_particle( 1.0, 1.0, 1.0, ParticleP2D( 0, 0.0,  0.0, 0.0,  1e5 ) );
     pdb.add_particle( 1.0, 1.0, 1.0, ParticleP2D( 0, 0.0,  1e5, 0.0,  0.0 ) );
     pdb.add_particle( 1.0, 1.0, 1.0, ParticleP2D( 0, 0.0,  0.0, 0.0, -1e5 ) );
-    pdb.iterate_trajectories( scharge, efield, bfield, geom );
+    pdb.iterate_trajectories( scharge, efield, bfield );
 
     // Check particle trajectory points
     check_particle( pdb.particle(0),  0.0,  1e5 );
@@ -98,15 +96,17 @@ void test( int argc, char **argv )
     geomplotter.set_particle_database( &pdb );
     geomplotter.plot_png( "particles_trajectory.png" );
 
-    /*
-    GTKPlotter plotter( argc, argv );
-    plotter.set_geometry( &geom );
-    plotter.set_epot( &epot );
-    plotter.set_scharge( &scharge );
-    plotter.set_particledatabase( &pdb );
-    plotter.new_geometry_plot_window();
-    plotter.run();
-    */
+#ifdef GTK3
+    if( false ) {
+	GTKPlotter plotter( &argc, &argv );
+	plotter.set_geometry( &geom );
+	plotter.set_epot( &epot );
+	plotter.set_scharge( &scharge );
+	plotter.set_particledatabase( &pdb );
+	plotter.new_geometry_plot_window();
+	plotter.run();
+    }
+#endif
 }
 
 
