@@ -280,7 +280,7 @@ public:
     /*! \brief Set the interpolation type to polynomial(true) or linear(false).
      *
      *  \deprecated This function is deprecated. It can still be used
-     *  to set polynomial or linear interpolation.
+     *  to set polynomial or linear interpolation. Please use set_trajectory_interpolation().
      */
     void set_polyint( bool polyint );
     
@@ -289,7 +289,8 @@ public:
      *  \deprecated This function is deprecated. It can still be used
      *  to get the interpolation type for polynomial(true) or
      *  linear(false) interpolation. If interpolation type is
-     *  something else, the function will return false.
+     *  something else, the function will return false. Please use
+     *  get_trajectory_interpolation().
      */
     bool get_polyint( void ) const;
     
