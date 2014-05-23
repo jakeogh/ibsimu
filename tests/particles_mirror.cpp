@@ -33,10 +33,26 @@ using namespace std;
 const double ax = -9.64853082148e11;
 double maxerr = 0.0;
 bool err = false;
+bool err_energy = false;
 
 
-void check_particle( Particle2D &p, double x0, double vx, double y0, double vy )
+void check_particle( Particle2D &p, double x0, double vx, double y0, double vy, EpotField &epot )
 {
+    // Check energy conservation
+    double Eref = 0.0;
+    for( uint32_t b = 0; b < p.traj_size(); b++ ) {
+	double Ek = 0.5*MASS_U*( p.traj(b)(2)*p.traj(b)(2) + 
+				 p.traj(b)(4)*p.traj(b)(4) );
+	double Ep = CHARGE_E*epot( Vec3D(p.traj(b)(1), p.traj(b)(3), 0.0) );
+	if( b == 0 )
+	    Eref = Ek + Ep;
+	else if( fabs( (Ek + Ep - Eref)/Eref ) > 1.0e-4 ) {
+	    err_energy = true;
+	}
+	//std::cout << "fabs((Ek+Ep-Eref)/Eref) = " << fabs( (Ek + Ep - Eref)/Eref ) << "\n";
+    }
+
+    // Check trajectory
     for( uint32_t b = 0; b < p.traj_size(); b++ ) {
 	double t = p.traj(b)(0);
 	//std::cout << t << "\n";
@@ -88,7 +104,7 @@ void test( int argc, char **argv )
     solver.solve( epot, scharge );
 
     EpotEfield efield( epot );
-    field_extrpl_e efldextrpl[6] = { FIELD_MIRROR, FIELD_MIRROR, 
+    field_extrpl_e efldextrpl[6] = { FIELD_ANTIMIRROR, FIELD_MIRROR, 
 				     FIELD_MIRROR, FIELD_MIRROR, 
 				     FIELD_MIRROR, FIELD_MIRROR };
     efield.set_extrapolation( efldextrpl );
@@ -97,22 +113,26 @@ void test( int argc, char **argv )
     pdb.set_thread_count( 1 );
     bool pmirror[6] = { true, false, false, false, false, false };
     pdb.set_mirror( pmirror );
+    pdb.set_accuracy( 1.0e-6, 1.0e-6 );
+    pdb.set_trajectory_interpolation( TRAJECTORY_INTERPOLATION_POLYNOMIAL );
     pdb.add_particle( 0.0, 1.0, 1.0, ParticleP2D( 0.0, 0.0, 0.0, -0.04, 1e5 ) );
     pdb.iterate_trajectories( scharge, efield, bfield );
-    //pdb.debug_print();
+    //pdb.debug_print( cout );
 
     // Check particle trajectory points
-    check_particle( pdb.particle(0), 0.0, 0.0, -0.04, 1e5 );
+    check_particle( pdb.particle(0), 0.0, 0.0, -0.04, 1e5, epot );
 
     GeomPlotter geomplotter( geom );
     geomplotter.set_epot( &epot );
     geomplotter.set_particle_database( &pdb );
     geomplotter.plot_png( "particles_mirror.png" );
 
-    if( err ) {
-	std::cout << "Error: trajectory differs from theory before mirroring\n";
+    if( err )
+	std::cout << "Error: trajectory differs from theory\n";
+    if( err_energy )
+	std::cout << "Error: energy not conserved\n";
+    if( err || err_energy )
 	exit( 1 );
-    }
 }
 
 
