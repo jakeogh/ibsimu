@@ -43,6 +43,7 @@
 #include "particles.hpp"
 #include "constants.hpp"
 #include "trajectory.hpp"
+#include "compmath.hpp"
 #include "mat3d.hpp"
 #include <iostream>
 #include <iomanip>
@@ -53,6 +54,8 @@
 
 int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void *data )
 {
+    //std::cout << x[0] << " " << x[2] << "\n";
+
     Vec3D E, B, xc( x[0], x[2], 0.0 );
     ParticleIteratorData *pidata = (ParticleIteratorData *)data;
 
@@ -68,6 +71,9 @@ int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void 
 	E = (*pidata->_efield)( xc );
     if( pidata->_bfield )
 	B = (*pidata->_bfield)( xc );
+
+    if( comp_isnan(E[0]) || comp_isnan(E[1]) )
+	return( IBSIMU_DERIV_ERROR );
 
     /* Positions: dx/dt = vx, dy/dt = vy */
     dxdt[0] = x[1];
@@ -148,6 +154,9 @@ int ParticlePCyl::get_derivatives( double t, const double *x, double *dxdt, void
 	}
     }
 
+    if( comp_isnan(E[0]) || comp_isnan(E[1]) )
+	return( IBSIMU_DERIV_ERROR );
+
     /* Positions: dx/dt = vx, dr/dt = vr */
     dxdt[0] = x[1];
     dxdt[2] = x[3];
@@ -221,6 +230,9 @@ int ParticleP3D::get_derivatives( double t, const double *x, double *dxdt, void 
 	    B *= factor;
 	}
     }
+
+    if( comp_isnan(E[0]) || comp_isnan(E[1]) || comp_isnan(E[2]) )
+	return( IBSIMU_DERIV_ERROR );
 
     /* Positions: dx/dt = vx, dy/dt = vy, dz/dt = vz */
     dxdt[0] = x[1];

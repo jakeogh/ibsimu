@@ -797,8 +797,8 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 		R[0] = std::numeric_limits<double>::quiet_NaN();
 		break;
 	    } else if( X[0] < _geom->origo(0)-_geom->size(0)*_geom->h() ) {
-		// Outside double the simulation box: return zero
-		R[0] = 0.0;
+		// Outside double the simulation box: return NaN
+		R[0] = std::numeric_limits<double>::quiet_NaN();
 		break;
 	    } else if( _extrpl[0] == FIELD_MIRROR ) {
 		X[0] = 2.0*_geom->origo(0) - X[0];
@@ -814,8 +814,8 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 		R[0] = std::numeric_limits<double>::quiet_NaN();
 		break;
 	    } else if( X[0] > _geom->origo(0)+2.0*_geom->size(0)*_geom->h() ) {
-		// Outside double the simulation box: return zero
-		R[0] = 0.0;
+		// Outside double the simulation box: return NaN
+		R[0] = std::numeric_limits<double>::quiet_NaN();
 		break;
 	    } else if( _extrpl[1] == FIELD_MIRROR ) {
 		X[0] = 2.0*_geom->max(0) - X[0];
@@ -851,7 +851,9 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 		    R[1] = std::numeric_limits<double>::quiet_NaN();
 		    break;
 		} else if( X[a] < _geom->origo(a)-_geom->size(a)*_geom->h() ) {
-		    // Outside double the simulation box: return zero
+		    // Outside double the simulation box: return NaN
+		    R[0] = std::numeric_limits<double>::quiet_NaN();
+		    R[1] = std::numeric_limits<double>::quiet_NaN();
 		    break;
 		} else if( _extrpl[2*a] == FIELD_MIRROR ) {
 		    X[a] = 2.0*_geom->origo(a) - X[a];
@@ -867,7 +869,9 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 		    R[1] = std::numeric_limits<double>::quiet_NaN();
 		    break;
 		} else if( X[a] > _geom->origo(a)+2.0*_geom->size(a)*_geom->h() ) {
-		    // Outside double the simulation box: return zero
+		    // Outside double the simulation box: return NaN
+		    R[0] = std::numeric_limits<double>::quiet_NaN();
+		    R[1] = std::numeric_limits<double>::quiet_NaN();
 		    break;
 		} else if( _extrpl[2*a+1] == FIELD_MIRROR ) {
 		    X[a] = 2.0*_geom->max(a) - X[a];
@@ -942,7 +946,10 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 		    R[2] = std::numeric_limits<double>::quiet_NaN();
 		    break;
 		} else if( X[a] < _geom->origo(a)-_geom->size(a)*_geom->h() ) {
-		    // Outside double the simulation box: return zero
+		    // Outside double the simulation box: return NaN
+		    R[0] = std::numeric_limits<double>::quiet_NaN();
+		    R[1] = std::numeric_limits<double>::quiet_NaN();
+		    R[2] = std::numeric_limits<double>::quiet_NaN();
 		    break;
 		} else if( _extrpl[2*a] == FIELD_MIRROR ) {
 		    X[a] = 2.0*_geom->origo(a) - X[a];
@@ -959,7 +966,10 @@ const Vec3D EpotEfield::operator()( const Vec3D &x ) const
 		    R[2] = std::numeric_limits<double>::quiet_NaN();
 		    break;
 		} else if( X[a] > _geom->origo(a)+2.0*_geom->size(a)*_geom->h() ) {
-		    // Outside double the simulation box: return zero
+		    // Outside double the simulation box: return NaN
+		    R[0] = std::numeric_limits<double>::quiet_NaN();
+		    R[1] = std::numeric_limits<double>::quiet_NaN();
+		    R[2] = std::numeric_limits<double>::quiet_NaN();
 		    break;
 		} else if( _extrpl[2*a+1] == FIELD_MIRROR ) {
 		    X[a] = 2.0*_geom->max(a) - X[a];

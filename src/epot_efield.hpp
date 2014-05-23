@@ -121,7 +121,7 @@ public:
      *  to get physical results.
      *
      *  Very far (double the size of the simulation box) the field
-     *  evaluator will always return zero.
+     *  evaluator will always return NaN.
      */
     void set_extrapolation( field_extrpl_e extrpl[6] );
 
