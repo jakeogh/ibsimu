@@ -33,6 +33,8 @@ using namespace std;
 // B*r=p/q=gamma*m0*v/q
 void test1( int argc, char **argv )
 {
+    ibsimu.message(1) << "------------ Test1 ------------\n";
+
     Geometry geom( MODE_2D, Int3D(11,11,1), Vec3D(-0.05,-0.05,0.0), 0.01 );
     geom.set_boundary( 1, Bound(BOUND_DIRICHLET,    0.0) );
     geom.set_boundary( 2, Bound(BOUND_DIRICHLET,    0.0) );
@@ -145,6 +147,8 @@ bool electrode2_func( double x, double y, double z )
 // 3D: accelerate electrons to 500 keV, check final energy
 void test2( int argc, char **argv )
 {
+    ibsimu.message(1) << "------------ Test2 ------------\n";
+
     double Q = -1.0;
     //double q = Q*CHARGE_E;
     double M = 1.0/1822.88;
@@ -182,6 +186,7 @@ void test2( int argc, char **argv )
     for( size_t a = 0; a < 4; a++ ) {
 
         solver.solve( epot, scharge );
+	efield.recalculate();
 
         pdb.clear();
         pdb.add_cylindrical_beam_with_energy( 4000, 50.0e3, Q, M, 
@@ -224,7 +229,6 @@ void test2( int argc, char **argv )
     for( uint32_t a = 0; a < tdata.traj_size(); a++ )
 	Ek += tdata(a,0);
     Ek = Ek/tdata.traj_size();
-    //std::cout << "Ek = " << Ek << "\n";
     if( fabs(Ek-500e3) > 50.0 ) {
 	ofstream of( "particles_relativistic_out.txt" );
 	for( uint32_t a = 0; a < tdata.traj_size(); a++ )

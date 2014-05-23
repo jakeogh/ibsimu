@@ -117,7 +117,7 @@ void test( int argc, char **argv )
     }
 #endif
 
-    if( maxerr > 0.002 ) {
+    if( maxerr > 0.0022 ) {
 	std::cout << "Maximum error = " << maxerr << "\n";
 	std::cout << " at (" 
 		  << loci << ", " 
