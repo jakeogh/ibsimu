@@ -2,7 +2,7 @@
  *  \brief Electric potential base electric field.
  */
 
-/* Copyright (c) 2005-2011,2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2013,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -243,18 +243,9 @@ void EpotEfield::precalc_1d( void )
 	}
     }
 
-    // If ANTIMIRROR extrapolation, force E-field interpolation to
-    // zero when approaching boundary, otherwise extrapolate from last
-    // two nodes.
-    if( _extrpl[0] == FIELD_ANTIMIRROR )
-	_F[0][0] = -_F[0][1];
-    else
-	_F[0][0] = 2.0*_F[0][1]-_F[0][2];
-
-    if( _extrpl[1] == FIELD_ANTIMIRROR )
-	_F[0][n-1] = -_F[0][n-2];
-    else
-	_F[0][n-1] = 2.0*_F[0][n-2]-_F[0][n-3];
+    // Extrapolate boundary from last two nodes.
+    _F[0][0] = 2.0*_F[0][1]-_F[0][2];
+    _F[0][n-1] = 2.0*_F[0][n-2]-_F[0][n-3];
 }
 
 
@@ -333,18 +324,9 @@ void EpotEfield::precalc_2d( void )
 	    }
 	}
 	
-	// If ANTIMIRROR extrapolation, force E-field interpolation to
-	// zero when approaching boundary, otherwise extrapolate from last
-	// two nodes.
-	if( _extrpl[0] == FIELD_ANTIMIRROR )
-	    _F[0][0+j*n] = -_F[0][1+j*n];
-	else
-	    _F[0][0+j*n] = 2.0*_F[0][1+j*n]-_F[0][2+j*n];
-	
-	if( _extrpl[1] == FIELD_ANTIMIRROR )
-	    _F[0][n-1+j*n] = -_F[0][n-2+j*n];
-	else
-	    _F[0][n-1+j*n] = 2.0*_F[0][n-2+j*n]-_F[0][n-3+j*n];
+	// Extrapolate boundary from last two nodes.
+	_F[0][0+j*n] = 2.0*_F[0][1+j*n]-_F[0][2+j*n];
+	_F[0][n-1+j*n] = 2.0*_F[0][n-2+j*n]-_F[0][n-3+j*n];
     }
 
     // Do Ey-field
@@ -413,18 +395,9 @@ void EpotEfield::precalc_2d( void )
 	    }
 	}
 
-	// If ANTIMIRROR extrapolation, force E-field interpolation to
-	// zero when approaching boundary, otherwise extrapolate from last
-	// two nodes.
-	if( _extrpl[2] == FIELD_ANTIMIRROR )
-	    _F[1][i] = -_F[1][i+_epot.size(0)];
-	else
-	    _F[1][i] = 2.0*_F[1][i+_epot.size(0)]-_F[1][i+2*_epot.size(0)];
-	
-	if( _extrpl[3] == FIELD_ANTIMIRROR )
-	    _F[1][i+(m-1)*_epot.size(0)] = -_F[1][i+(m-2)*_epot.size(0)];
-	else
-	    _F[1][i+(m-1)*_epot.size(0)] = 2.0*_F[1][i+(m-2)*_epot.size(0)]-_F[1][i+(m-3)*_epot.size(0)];
+	// Extrapolate boundary from last two nodes.
+	_F[1][i] = 2.0*_F[1][i+_epot.size(0)]-_F[1][i+2*_epot.size(0)];
+	_F[1][i+(m-1)*_epot.size(0)] = 2.0*_F[1][i+(m-2)*_epot.size(0)]-_F[1][i+(m-3)*_epot.size(0)];
     }
 }
 
@@ -509,18 +482,9 @@ void EpotEfield::precalc_3d( void )
 		}
 	    }
 
-	    // If ANTIMIRROR extrapolation, force E-field interpolation to
-	    // zero when approaching boundary, otherwise extrapolate from last
-	    // two nodes.
-	    if( _extrpl[0] == FIELD_ANTIMIRROR )
-		_F[0][0+(j+k*_epot.size(1))*n] = -_F[0][1+(j+k*_epot.size(1))*n];
-	    else
-		_F[0][0+(j+k*_epot.size(1))*n] = 2.0*_F[0][1+(j+k*_epot.size(1))*n]-_F[0][2+(j+k*_epot.size(1))*n];
-	    
-	    if( _extrpl[1] == FIELD_ANTIMIRROR )
-		_F[0][n-1+(j+k*_epot.size(1))*n] = -_F[0][n-2+(j+k*_epot.size(1))*n];
-	    else
-		_F[0][n-1+(j+k*_epot.size(1))*n] = 2.0*_F[0][n-2+(j+k*_epot.size(1))*n]-_F[0][n-3+(j+k*_epot.size(1))*n];
+	    // Extrapolate boundary from last two nodes.
+	    _F[0][0+(j+k*_epot.size(1))*n] = 2.0*_F[0][1+(j+k*_epot.size(1))*n]-_F[0][2+(j+k*_epot.size(1))*n];
+	    _F[0][n-1+(j+k*_epot.size(1))*n] = 2.0*_F[0][n-2+(j+k*_epot.size(1))*n]-_F[0][n-3+(j+k*_epot.size(1))*n];
 
 	}
     }
@@ -593,18 +557,9 @@ void EpotEfield::precalc_3d( void )
 		}
 	    }
 
-	    // If ANTIMIRROR extrapolation, force E-field interpolation to
-	    // zero when approaching boundary, otherwise extrapolate from last
-	    // two nodes.
-	    if( _extrpl[2] == FIELD_ANTIMIRROR )
-		_F[1][i+(k*m)*_epot.size(0)] = -_F[1][i+(1+k*m)*_epot.size(0)];
-	    else
-		_F[1][i+(k*m)*_epot.size(0)] = 2.0*_F[1][i+(1+k*m)*_epot.size(0)]-_F[1][i+(2+k*m)*_epot.size(0)];
-	    
-	    if( _extrpl[3] == FIELD_ANTIMIRROR )
-		_F[1][i+(m-1+k*m)*_epot.size(0)] = -_F[1][i+(m-2+k*m)*_epot.size(0)];
-	    else
-		_F[1][i+(m-1+k*m)*_epot.size(0)] = 2.0*_F[1][i+(m-2+k*m)*_epot.size(0)]-_F[1][i+(m-3+k*m)*_epot.size(0)];
+	    // Extrapolate boundary from last two nodes.
+	    _F[1][i+(k*m)*_epot.size(0)] = 2.0*_F[1][i+(1+k*m)*_epot.size(0)]-_F[1][i+(2+k*m)*_epot.size(0)];
+	    _F[1][i+(m-1+k*m)*_epot.size(0)] = 2.0*_F[1][i+(m-2+k*m)*_epot.size(0)]-_F[1][i+(m-3+k*m)*_epot.size(0)];
 	}
     }
 
@@ -675,21 +630,11 @@ void EpotEfield::precalc_3d( void )
 		}
 	    }
 
-	    // If ANTIMIRROR extrapolation, force E-field interpolation to
-	    // zero when approaching boundary, otherwise extrapolate from last
-	    // two nodes.
-	    if( _extrpl[4] == FIELD_ANTIMIRROR )
-		_F[2][i+j*_epot.size(0)] = -_F[2][i+(j+_epot.size(1))*_epot.size(0)];
-	    else
-		_F[2][i+j*_epot.size(0)] = 2.0*_F[2][i+(j+_epot.size(1))*_epot.size(0)]-
-		    _F[2][i+(j+2*_epot.size(1))*_epot.size(0)];
-	    
-	    if( _extrpl[5] == FIELD_ANTIMIRROR )
-		_F[2][i+(j+(o-1)*_epot.size(1))*_epot.size(0)] = -_F[2][i+(j+(o-2)*_epot.size(1))*_epot.size(0)];
-	    else
-		_F[2][i+(j+(o-1)*_epot.size(1))*_epot.size(0)] = 2.0*_F[2][i+(j+(o-2)*_epot.size(1))*_epot.size(0)]-
-		    _F[2][i+(j+(o-3)*_epot.size(1))*_epot.size(0)];
-
+	    // Extrapolate boundary from last two nodes.
+	    _F[2][i+j*_epot.size(0)] = 2.0*_F[2][i+(j+_epot.size(1))*_epot.size(0)]-
+		_F[2][i+(j+2*_epot.size(1))*_epot.size(0)];
+	    _F[2][i+(j+(o-1)*_epot.size(1))*_epot.size(0)] = 2.0*_F[2][i+(j+(o-2)*_epot.size(1))*_epot.size(0)]-
+		_F[2][i+(j+(o-3)*_epot.size(1))*_epot.size(0)];
 	}
     }
 }
