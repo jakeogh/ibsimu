@@ -2,7 +2,7 @@
  *  \brief %Particle and particle point objects
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,6 +45,7 @@
 #include "trajectory.hpp"
 #include "compmath.hpp"
 #include "mat3d.hpp"
+#include "ibsimu.hpp"
 #include <iostream>
 #include <iomanip>
 
@@ -52,9 +53,20 @@
 //#define DEBUG_PARTICLE_DERIVATIVES 1
 
 
+#ifdef DEBUG_PARTICLE_DERIVATIVES
+#define DEBUG_MESSAGE(x) ibsimu.message(MSG_DEBUG_GENERAL,1) << x
+#define DEBUG_INC_INDENT() ibsimu.inc_indent()
+#define DEBUG_DEC_INDENT() ibsimu.dec_indent()
+#else
+#define DEBUG_MESSAGE(x) do {} while(0)
+#define DEBUG_INC_INDENT() do {} while(0)
+#define DEBUG_DEC_INDENT() do {} while(0)
+#endif
+
+
 int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void *data )
 {
-    //std::cout << x[0] << " " << x[2] << "\n";
+    DEBUG_MESSAGE( "get_derivatives: " + to_string(x[0]) + " " + to_string(x[2]) + "\n" );
 
     Vec3D E, B, xc( x[0], x[2], 0.0 );
     ParticleIteratorData *pidata = (ParticleIteratorData *)data;
@@ -72,8 +84,10 @@ int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void 
     if( pidata->_bfield )
 	B = (*pidata->_bfield)( xc );
 
-    if( comp_isnan(E[0]) || comp_isnan(E[1]) )
+    if( comp_isnan(E[0]) || comp_isnan(E[1]) ) {
+	DEBUG_MESSAGE( "return NaN\n" );
 	return( IBSIMU_DERIV_ERROR );
+    }
 
     /* Positions: dx/dt = vx, dy/dt = vy */
     dxdt[0] = x[1];
@@ -97,6 +111,8 @@ int ParticleP2D::get_derivatives( double t, const double *x, double *dxdt, void 
 	dxdt[3] = pidata->_qm * (E[1] - x[1]*B[2]);
     }
 	
+    DEBUG_MESSAGE( "return dxdt = " + to_string(dxdt[0]) + " " + to_string(dxdt[1]) + " " + 
+		   to_string(dxdt[2]) + " " + to_string(dxdt[3]) + " " + "\n" );
     return( GSL_SUCCESS );
 }
 
