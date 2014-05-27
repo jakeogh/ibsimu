@@ -36,52 +36,63 @@ bool err = false;
 bool err_energy = false;
 
 
-void check_particle( Particle2D &p, double x0, double vx, double y0, double vy, EpotField &epot )
+void check_particle( Particle2D &p, double x0, double vx0, double y0, double vy0, EpotField &epot )
 {
     // Check energy conservation
     double Eref = 0.0;
+    //std::cout << "Checking energy conservation\n";
     for( uint32_t b = 0; b < p.traj_size(); b++ ) {
 	double Ek = 0.5*MASS_U*( p.traj(b)(2)*p.traj(b)(2) + 
 				 p.traj(b)(4)*p.traj(b)(4) );
 	double Ep = CHARGE_E*epot( Vec3D(p.traj(b)(1), p.traj(b)(3), 0.0) );
 	if( b == 0 )
 	    Eref = Ek + Ep;
-	else if( fabs( (Ek + Ep - Eref)/Eref ) > 1.0e-4 ) {
+	else if( fabs( (Ek + Ep - Eref)/Eref ) > 4.0e-4 ) {
 	    err_energy = true;
 	}
-	//std::cout << "fabs((Ek+Ep-Eref)/Eref) = " << fabs( (Ek + Ep - Eref)/Eref ) << "\n";
+	//std::cout << "x = " << p.traj(b)(1) << "\tfabs((Ek+Ep-Eref)/Eref) = " << fabs( (Ek + Ep - Eref)/Eref ) << "\n";
     }
 
     // Check trajectory
+    //std::cout << "\nChecking trajectory\n";
     for( uint32_t b = 0; b < p.traj_size(); b++ ) {
 	double t = p.traj(b)(0);
-	//std::cout << t << "\n";
 	if( t < 3.21935897726e-7 - 0.1e-7 ) {
-	    double x = x0 + vx * t + 0.5*ax*t*t;
-	    double y = y0 + vy * t;
-	    //std::cout << x << "\t" << y << "\t" << p.traj(b)(1) << "\t" << p.traj(b)(3) << "\n";
+	    double x = x0 + vx0 * t + 0.5*ax*t*t;
+	    //double vx = vx0 + ax*t;
+	    double y = y0 + vy0 * t;
+	    //std::cout << x << "\t" << p.traj(b)(1) << "\t"
+	    //<< y << "\t" << p.traj(b)(3) << "\t"
+	    //<< vx << "\t" << p.traj(b)(2) << "\n";
 	    double xerr = fabs( p.traj(b)(1) - x );
 	    double yerr = fabs( p.traj(b)(3) - y );
+	    //double vxerr = fabs( p.traj(b)(2) - vx );
 	    if( xerr > 5e-5 || yerr > 5e-5 )
 		err = true;
 	    //std::cout << "xerr = " << xerr << "\n";
 	    //std::cout << "yerr = " << yerr << "\n";
+	    //std::cout << "vxerr = " << vxerr << "\n";
 	} else if( t > 3.21935897726e-7 + 0.1e-7 ) {
 	    double t2 = 3.21935897726e-7;
-	    double new_x0 = x0 + vx * t2 + 0.5*ax*t2*t2;
-	    double new_y0 = y0 + vy * t2;
-	    double new_vx = -vx - ax*t2;
+	    double new_x0 = x0 + vx0 * t2 + 0.5*ax*t2*t2;
+	    double new_y0 = y0 + vy0 * t2;
+	    double new_vx0 = -vx0 - ax*t2;
 	    t = t - t2;
-	    double x = new_x0 + new_vx * t + 0.5*ax*t*t;
-	    double y = new_y0 + vy * t;
+	    double x = new_x0 + new_vx0 * t + 0.5*ax*t*t;
+	    //double vx = new_vx0 + ax*t;
+	    double y = new_y0 + vy0 * t;
 	    double xerr = fabs( p.traj(b)(1) - x );
 	    double yerr = fabs( p.traj(b)(3) - y );
-	    //std::cout << x << "\t" << y << "\t" << p.traj(b)(1) << "\t" << p.traj(b)(3) << "\n";
+	    //double vxerr = fabs( p.traj(b)(2) - vx );
+	    //std::cout << x << "\t" << p.traj(b)(1) << "\t"
+	    //<< y << "\t" << p.traj(b)(3) << "\t"
+	    //<< vx << "\t" << p.traj(b)(2) << "\n";
 	    if( xerr > 5e-5 || yerr > 5e-5 ) 
 		err = true;
 	    //std::cout << "xerr = " << xerr << "\n";
 	    //std::cout << "yerr = " << yerr << "\n";
-	}	    
+	    //std::cout << "vxerr = " << vxerr << "\n";
+	}
     }
 }
 
@@ -113,7 +124,10 @@ void test( int argc, char **argv )
     pdb.set_thread_count( 1 );
     bool pmirror[6] = { true, false, false, false, false, false };
     pdb.set_mirror( pmirror );
-    pdb.set_accuracy( 1.0e-6, 1.0e-6 );
+    pdb.set_accuracy( 1.0e-6, 1.0e-6 ); // 1.0e-6: 4e-4 error in energy
+                                        // 1.0e-7: 1e-5 error in energy
+                                        // 1.0e-8: 8e-7 error in energy
+    pdb.set_save_all_points( true );
     pdb.set_trajectory_interpolation( TRAJECTORY_INTERPOLATION_POLYNOMIAL );
     pdb.add_particle( 0.0, 1.0, 1.0, ParticleP2D( 0.0, 0.0, 0.0, -0.04, 1e5 ) );
     pdb.iterate_trajectories( scharge, efield, bfield );
