@@ -2,7 +2,7 @@
  *  \brief Electric potential base electric field.
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -111,14 +111,22 @@ public:
      *  extrapolation of the last three electric potential values for
      *  calculation of electric field (FIELD_EXTRAPOLATE) or it can
      *  return the mirror of the electric field across the mesh
-     *  boundary like f(x)=f(-x) (FIELD_MIRROR), or it can return the
-     *  mirror of the electric field across the mesh boundary like
-     *  f_x(x,y,z)=-f_x(-x,y,z) (FIELD_ANTIMIRROR), or it can return
-     *  a zero electric field outside the mesh.
+     *  boundary like E_x(x)=E_x(-x) (FIELD_MIRROR), or it can return
+     *  the mirror of the electric field across the mesh boundary like
+     *  E_x(x,y,z)=-E_x(-x,y,z) (FIELD_ANTIMIRROR), or it can return a
+     *  zero electric field outside the mesh (FIELD_ZERO) or NaN,
+     *  which prevents the use of field evaluations in particle
+     *  iterator (FIELD_NAN).
      *
-     *  The use of FIELD_ANTIMIRROR in case of symmetric cases, where
-     *  beam is traversing next to the geometry boundary, is necessary
-     *  to get physical results.
+     *  For simulation of symmetric cases, where electric potential is
+     *  symmetric across the boundary like phi(x)=phi(-x) the E-field
+     *  can be evaluated like with FIELD_ANTIMIRROR setting, but
+     *  additionally the E-field is forced to be zero at the
+     *  boundary. This extrapolation behaviour is selected with
+     *  FIELD_SYMMETRIC_POTENTIAL. This gives second order correct
+     *  electric field next to the boundary, which is essential to get
+     *  physical results in cases where beam propagates next the the
+     *  boundary.
      *
      *  Very far (double the size of the simulation box) the field
      *  evaluator will always return NaN.

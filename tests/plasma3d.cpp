@@ -81,8 +81,8 @@ void test( int argc, char **argv )
     MeshVectorField bfield;
     EpotEfield efield( epot );
     field_extrpl_e efldextrpl[6] = { FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE, 
-				     FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE,
-				     FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE };
+				     FIELD_SYMMETRIC_POTENTIAL, FIELD_EXTRAPOLATE,
+				     FIELD_SYMMETRIC_POTENTIAL, FIELD_EXTRAPOLATE };
     efield.set_extrapolation( efldextrpl );
 
     ParticleDataBase3D pdb( geom );

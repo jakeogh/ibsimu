@@ -2,7 +2,7 @@
  *  \brief Base types
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -69,18 +69,21 @@ enum geom_mode_e {
  *  This parameter is used to control the behaviour of the field
  *  evaluators outside the defined area. The field value can be
  *  extrapolated from the closest defined points (\a
- *  FIELD_EXTRAPOLATE), the field can be mirrored as f(x) = f(-x) (\a
- *  FIELD_MIRROR) anti-mirrored as f_x(x,y,z) = -f_x(-x,y,z) (\a
+ *  FIELD_EXTRAPOLATE), the field can be mirrored as F(x) = F(-x) (\a
+ *  FIELD_MIRROR) anti-mirrored as F_x(x,y,z) = -F_x(-x,y,z) (\a
  *  FIELD_ANTIMIRROR), the field evaluator can simply return zero (\a
  *  FIELD_ZERO) or the field evaluator can return not-a-number, NaN
- *  (\a FIELD_NAN ).
+ *  (\a FIELD_NAN ). FIELD_SYMMETRIC_POTENTIAL is a special
+ *  extrapolation mode for use in EpotEfield.
  */
 enum field_extrpl_e {
-    FIELD_EXTRAPOLATE = 0,  /*!< \brief Extrapolate field outside boundary */
-    FIELD_MIRROR,           /*!< \brief Mirror field on boundary like f(x) = f(-x) */
-    FIELD_ANTIMIRROR,       /*!< \brief Mirror field on boundary like f(x) = -f(-x) */
-    FIELD_ZERO,             /*!< \brief Return zero outside boundary */
-    FIELD_NAN               /*!< \brief Return not-a-number outside boundary */
+    FIELD_EXTRAPOLATE = 0,     /*!< \brief Extrapolate field outside boundary */
+    FIELD_MIRROR,              /*!< \brief Mirror field on boundary like f(x) = f(-x) */
+    FIELD_ANTIMIRROR,          /*!< \brief Mirror field on boundary like f(x) = -f(-x) */
+    FIELD_SYMMETRIC_POTENTIAL, /*!< \brief Mirror field on boundary like f(x) = -f(-x) 
+				*  and enforce zero field at the boundary. */
+    FIELD_ZERO,                /*!< \brief Return zero outside boundary */
+    FIELD_NAN                  /*!< \brief Return not-a-number outside boundary */
 };
 
 

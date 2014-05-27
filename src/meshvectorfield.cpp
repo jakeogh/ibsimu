@@ -2,7 +2,7 @@
  *  \brief %Mesh based vector fields
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -370,6 +370,18 @@ MeshVectorField::~MeshVectorField()
     for( size_t i = 0; i < 3; i++ ) {
 	if( _F[i] != NULL )
 	    delete [] _F[i];
+    }
+}
+
+
+void MeshVectorField::set_extrapolation( const field_extrpl_e extrpl[6] ) 
+{
+    for( size_t i = 0; i < 6; i++ ) {
+	if( extrpl[i] != FIELD_EXTRAPOLATE && extrpl[i] != FIELD_MIRROR && 
+	    extrpl[i] != FIELD_ANTIMIRROR && extrpl[i] != FIELD_ZERO && 
+	    extrpl[i] != FIELD_NAN )
+	    throw( ErrorUnimplemented( ERROR_LOCATION, "extrapolation type unimplemented" ) );
+	_extrpl[i] = extrpl[i];
     }
 }
 

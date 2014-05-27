@@ -212,9 +212,7 @@ public:
      *  Very far (double the size of the mesh volume) the field
      *  evaluator will always return zero.
      */
-    void set_extrapolation( const field_extrpl_e extrpl[6] ) {
-	memcpy( _extrpl, extrpl, 6*sizeof(field_extrpl_e) );
-    }
+    void set_extrapolation( const field_extrpl_e extrpl[6] );
 
     /*! \brief Set transformation to unity.
      */

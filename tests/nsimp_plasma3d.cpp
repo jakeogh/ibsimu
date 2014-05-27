@@ -63,15 +63,7 @@ bool initial_plasma( double x, double y, double z )
 
 void test( int argc, char **argv )
 {
-    //Geometry geom( MODE_3D, Int3D(151,101,101), Vec3D(-0.001,0,0), 2.0e-4 );
-    //Geometry geom( MODE_3D, Int3D(101,67,67), Vec3D(-0.001,0,0), 3.0e-4 );
-
-    // -890 V, x=3mm
-    //Geometry geom( MODE_3D, Int3D(101,133,133), Vec3D(-0.001,-1.98e-2,-1.98e-2), 3.0e-4 );
-
-   // -889 V, x=3mm
     Geometry geom( MODE_3D, Int3D(61,81,81), Vec3D(-0.001,-2.0e-2,-2.0e-2), 5.0e-4 );
-
 
     Solid *s1 = new FuncSolid( solid1 );
     geom.set_solid( 7, s1 );
@@ -102,8 +94,8 @@ void test( int argc, char **argv )
     MeshVectorField bfield;
     EpotEfield efield( epot );
     field_extrpl_e efldextrpl[6] = { FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE, 
-				     FIELD_MIRROR, FIELD_EXTRAPOLATE,
-				     FIELD_MIRROR, FIELD_EXTRAPOLATE };
+				     FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE,
+				     FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE };
     efield.set_extrapolation( efldextrpl );
 
     ParticleDataBase3D pdb( geom );

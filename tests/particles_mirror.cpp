@@ -115,9 +115,9 @@ void test( int argc, char **argv )
     solver.solve( epot, scharge );
 
     EpotEfield efield( epot );
-    field_extrpl_e efldextrpl[6] = { FIELD_ANTIMIRROR, FIELD_MIRROR, 
-				     FIELD_MIRROR, FIELD_MIRROR, 
-				     FIELD_MIRROR, FIELD_MIRROR };
+    field_extrpl_e efldextrpl[6] = { FIELD_ANTIMIRROR, FIELD_EXTRAPOLATE, 
+				     FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE, 
+				     FIELD_EXTRAPOLATE, FIELD_EXTRAPOLATE };
     efield.set_extrapolation( efldextrpl );
 
     ParticleDataBase2D pdb( geom );
