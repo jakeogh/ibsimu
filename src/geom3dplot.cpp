@@ -520,7 +520,7 @@ int32_t Geom3DPlot::case2d( const int i[3], const int vb[3] )
 
 void Geom3DPlot::cplane_add_vertex( int32_t p, const int32_t i[3], const int32_t vb[3], double dx, double dy )
 {
-    double u[3] = { i[0], i[1], i[2] };
+    double u[3] = { (double)i[0], (double)i[1], (double)i[2] };
     u[vb[0]] += dx;
     u[vb[1]] += dy;
 
