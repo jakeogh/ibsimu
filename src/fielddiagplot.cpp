@@ -2,7 +2,7 @@
  *  \brief %Field diagnostic plotter.
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,7 +47,7 @@
 
 FieldDiagPlot::FieldDiagPlot( Frame &frame, const Geometry &geom )
     : _frame(&frame), _geom(&geom), _epot(NULL), _scharge(NULL), 
-      _efield(NULL), _bfield(NULL), _N(100)
+      _trajdens(NULL), _efield(NULL), _bfield(NULL), _N(100)
 {
     _diag[0] = FIELD_EPOT;
     _diag[1] = FIELD_NONE;
@@ -153,6 +153,14 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 	    }
 	    break;
 
+	case FIELD_TRAJDENS:
+	    if( _trajdens == NULL )
+		throw( Error( ERROR_LOCATION, "trajectory density undefined" ) );
+	    for( size_t b = 0; b < _N; b++ ) {
+		fielddata[a].push_back( (*_trajdens)( Vec3D(coord[0][b],coord[1][b],coord[2][b]) ) );
+	    }
+	    break;
+
 	case FIELD_BFIELD:
 	    if( _bfield == NULL )
 		throw( Error( ERROR_LOCATION, "bfield undefined" ) );
@@ -190,8 +198,11 @@ void FieldDiagPlot::build_data( std::vector<double> coord[4],
 	    break;
 
 	case FIELD_NONE:
-	default:
 	    // Nothing to do
+	    break;
+
+	default:
+	    throw( Error( ERROR_LOCATION, "undefined request" ) );
 	    break;
 
 
@@ -229,6 +240,10 @@ std::string FieldDiagPlot::diagnostic_label( field_diag_type_e diag ) const
 	
     case FIELD_SCHARGE:
 	return( "\\rho  (C/m^3)" );
+	break;
+
+    case FIELD_TRAJDENS:
+	return( "\\rho_t  (1/m^3)" );
 	break;
 	
     case FIELD_BFIELD:

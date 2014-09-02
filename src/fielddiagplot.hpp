@@ -2,7 +2,7 @@
  *  \brief %Field diagnostic plotter.
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -91,6 +91,7 @@ class FieldDiagPlot {
     const Geometry     *_geom;
     const ScalarField  *_epot;
     const ScalarField  *_scharge;
+    const ScalarField  *_trajdens;
     const VectorField  *_efield;
     const VectorField  *_bfield;
 
@@ -134,6 +135,12 @@ public:
      */
     void set_scharge( const ScalarField *scharge ) {
 	_scharge = scharge;
+    }
+
+    /*! \brief Add pointer to trajectory density map.
+     */
+    void set_trajdens( const ScalarField *trajdens ) {
+	_trajdens = trajdens;
     }
 
     /*! \brief Add pointer to magnetic field.
