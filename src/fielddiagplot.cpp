@@ -243,7 +243,7 @@ std::string FieldDiagPlot::diagnostic_label( field_diag_type_e diag ) const
 	break;
 
     case FIELD_TRAJDENS:
-	return( "\\rho_t  (1/m^3)" );
+	return( "J  (A/m^2)" );
 	break;
 	
     case FIELD_BFIELD:
