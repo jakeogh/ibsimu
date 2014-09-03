@@ -2,7 +2,7 @@
  *  \brief %Particle databases
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -443,7 +443,15 @@ public:
 
     /*! \brief Build trajectory density field.
      *
-     *  The scalar field \a tdens can differ from geometry.
+     *  This method builds a current density map (A/m2) from the
+     *  particles. It is similar to space charge map, but the particle
+     *  velocities do not affect the value, only the trajectory
+     *  density and the current carried by the trajectories.
+     *
+     *  For historical reasons this function is called
+     *  build_trajectory_density_field() even though it produces a
+     *  current density map. The scalar field \a tdens mesh can differ
+     *  from geometry mesh.
      */
     void build_trajectory_density_field( MeshScalarField &tdens ) const;
 
