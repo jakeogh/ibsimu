@@ -2,7 +2,7 @@
  *  \brief %Histogram data handling for 1D and 2D
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -202,6 +202,40 @@ void Histogram1D::accumulate_closest( double x, double weight )
 
     if( i < (int32_t)_n && i >= 0 )
 	_data[i] += weight;
+}
+
+
+void Histogram1D::accumulate_closest( const std::vector<double> &xdata )
+{
+    uint32_t N = xdata.size();
+    for( uint32_t a = 0; a < N; a++ )
+	accumulate_closest( xdata[a], 1.0 );
+}
+
+
+void Histogram1D::accumulate_closest( const std::vector<double> &xdata,
+				      const std::vector<double> &wdata )
+{
+    uint32_t N = xdata.size() < wdata.size() ? xdata.size() : wdata.size();
+    for( uint32_t a = 0; a < N; a++ )
+	accumulate_closest( xdata[a], wdata[a] );
+}
+
+
+void Histogram1D::accumulate_linear( const std::vector<double> &xdata )
+{
+    uint32_t N = xdata.size();
+    for( uint32_t a = 0; a < N; a++ )
+	accumulate_linear( xdata[a], 1.0 );
+}
+
+
+void Histogram1D::accumulate_linear( const std::vector<double> &xdata,
+				     const std::vector<double> &wdata )
+{
+    uint32_t N = xdata.size() < wdata.size() ? xdata.size() : wdata.size();
+    for( uint32_t a = 0; a < N; a++ )
+	accumulate_linear( xdata[a], wdata[a] );
 }
 
 

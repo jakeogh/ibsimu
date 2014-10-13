@@ -2,7 +2,7 @@
  *  \brief %Histogram data handling for 1D and 2D
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -123,9 +123,28 @@ public:
 	_data[i] += weight;
     }
 
+    /*! \brief Accumulate unity weight on bin \a i.
+     *
+     *  Not a safe function. Input not checked.
+     */
+    void accumulate( uint32_t i ) {
+	_data[i] += 1.0;
+    }
+
     /*! \brief Accumulate \a weight to closest bin to \a x.
      */
-    void accumulate_closest( double x, double weight );
+    void accumulate_closest( double x, double weight = 1.0 );
+
+    /*! \brief Accumulate data \a xdata with unity weights to bins closest
+     *  to each data point.
+     */
+    void accumulate_closest( const std::vector<double> &xdata );
+
+    /*! \brief Accumulate data \a xdata with weights \a wdata to bins
+     *  closest to each data point.
+     */
+    void accumulate_closest( const std::vector<double> &xdata,
+			     const std::vector<double> &wdata );
 
     /*! \brief Accumulate \a weight on bins around \a x linearly.
      *
@@ -136,7 +155,18 @@ public:
      *  This is a safe function. Accumulation outside histogram range
      *  is discarded.
      */
-    void accumulate_linear( double x, double weight );
+    void accumulate_linear( double x, double weight = 1.0 );
+
+    /*! \brief Accumulate data \a xdata with unity weights linearly to
+     *  closest bins.
+     */
+    void accumulate_linear( const std::vector<double> &xdata );
+
+    /*! \brief Accumulate data \a xdata with weights \a wdata linearly
+     *  to closest bins.
+     */
+    void accumulate_linear( const std::vector<double> &xdata,
+			    const std::vector<double> &wdata );
 
     /*! \brief Convert histogram to density.
      *
