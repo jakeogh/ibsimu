@@ -2,7 +2,7 @@
  *  \brief %Vector field using multiple meshes.
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -153,6 +153,31 @@ void MultiMeshVectorField::reset( geom_mode_e geom_mode, const bool fout[3], Int
     _field[0]->reset( geom_mode, fout, size, origo, h );
 }
 
+
+void MultiMeshVectorField::add_mesh( const MeshVectorField &field )
+{
+    // Check geometry type
+    if( field.geom_mode() != _field[0]->geom_mode() )
+	throw( Error( ERROR_LOCATION, "incompatible geometries in fields" ) );
+
+    // Check defined field components
+    bool fout0[3];
+    _field[0]->get_defined_components( fout0 );
+    bool fout[3];
+    field.get_defined_components( fout );
+    for( uint32_t a = 0; a < 3; a++ ) {
+	if( fout[a] != fout0[a] )
+	    throw( Error( ERROR_LOCATION, "incompatible field components in fields" ) );
+    }
+
+    _field.push_back( new MeshVectorField( field ) );
+    
+    // Set NaN extrapolation setting
+    field_extrpl_e extrpl[6] = { FIELD_NAN, FIELD_NAN, FIELD_NAN, 
+				 FIELD_NAN, FIELD_NAN, FIELD_NAN };
+    _field.back()->set_extrapolation( extrpl );
+}
+    
 
 void MultiMeshVectorField::add_mesh( Int3D size, Vec3D origo, double h )
 {

@@ -2,7 +2,7 @@
  *  \brief %Vector field using multiple meshes.
  */
 
-/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -85,7 +85,7 @@ public:
      *
      *  The field made with the default constructor sets geometry mode
      *  to MODE3D, mesh cell size \a h to 1, mesh size \a size to
-     *  (0,0,0) and origo \a origo to (0,0,0). The field evaluator
+     *  (0,0,0), origo \a origo to (0,0,0). The field evaluator
      *  returns always zero.
      */
     MultiMeshVectorField();
@@ -205,14 +205,25 @@ public:
     void reset( geom_mode_e geom_mode, const bool fout[3], Int3D size, 
 		Vec3D origo, double h );
 
-        
+      
+    /*! \brief Add a new mesh field to the multiple mesh vector field.
+     *
+     *  The new field, which is an internal copy of the field given as
+     *  a parameter to this function is appended to the list of
+     *  fields. The field defined last is checked first by the
+     *  evaluator when searching for field value at a point. The new
+     *  field has to have the same defined field components and same
+     *  geometry mode as the first field defined.
+     */  
+    void add_mesh( const MeshVectorField &field );
+
     /*! \brief Add a new mesh field to the multiple mesh vector field.
      *
      *  The new field is appended to the list of fields. The field
      *  defined last is checked first by the evaluator when searching
      *  for field value at a point. The new field has same defined
      *  field components and same geometry mode as the first field
-     *  definded. The \a size, \a origo and mesh step \a h can differ.
+     *  defined. The \a size, \a origo and mesh step \a h can differ.
      */
     void add_mesh( Int3D size, Vec3D origo, double h );
     
@@ -222,7 +233,7 @@ public:
      *  defined last is checked first by the evaluator when searching
      *  for field value at a point. The new field has same defined
      *  field components and same geometry mode as the first field
-     *  definded. The \a size, \a origo and mesh step \a h can differ.
+     *  defined. The \a size, \a origo and mesh step \a h can differ.
      */
     void add_mesh( double xscale, double fscale, const std::string &filename );
 
