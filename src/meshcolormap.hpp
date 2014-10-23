@@ -53,18 +53,33 @@
 #include "interpolation.hpp"
 
 
-
+/*! \brief Interpolation type enum.
+ *
+ *  The interpolation can be either 0th order (\a
+ *  INTERPOLATION_CLOSEST), 1st order (\a INTERPOLATION_BILINEAR) or
+ *  3rd order (\a INTERPOLATION_BICUBIC).
+ */
 enum interpolation_e {
-    INTERPOLATION_CLOSEST = 0,
-    INTERPOLATION_BILINEAR,
-    INTERPOLATION_BICUBIC
+    INTERPOLATION_CLOSEST = 0, /*!< \brief Closest point interpolation */
+    INTERPOLATION_BILINEAR,    /*!< \brief Bilinear interpolation */
+    INTERPOLATION_BICUBIC      /*!< \brief Bicubic interpolation */
 };
 
-
+/*! \brief Z-scale enum
+ *
+ *  The zscale can be either linear scale (\a ZSCALE_LINEAR),
+ *  logarithmic scale (\a ZSCALE_LOG) or relative logarithmic (\a
+ *  ZSCALE_RELLOG). The relative logarithmic scaling follows the
+ *  relation \f[ \frac{\log(0.001+x)-\log(0.001)}{\log(1.001)-\log(0.001)} \f],
+ *  where \a x is prescaled to range [0,1]. The z-ranges completely
+ *  contained on the negative side are inverted to positive and
+ *  z-ranges both on negative and positive sides are scaled separately
+ *  to provide magnification close to zero.
+ */
 enum zscale_e {
-    ZSCALE_LINEAR = 0,
-    ZSCALE_LOG,
-    ZSCALE_RELLOG
+    ZSCALE_LINEAR = 0, /*!< \brief Linear scale */
+    ZSCALE_LOG,        /*!< \brief Logarithmic scale */
+    ZSCALE_RELLOG      /*!< \brief Relative logarithmic scale */
 };
 
 
