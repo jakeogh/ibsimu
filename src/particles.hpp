@@ -745,11 +745,10 @@ public:
 
     /*! \brief Constructor for particle.
      *
-     *  Make new particle with 
      *  \param IQ Current or charge of the macroparticle (A/C).
-     *  \param q  charge state of microscopic particle (C).
-     *  \param m  mass of microscopic particle (kg).
-     *  \param x  particle coordinates (m and m/s).
+     *  \param q  Charge of microscopic particle (C).
+     *  \param m  Mass of microscopic particle (kg).
+     *  \param x  Particle coordinates (m, m/s, m, m/s, ...).
      */
     Particle( double IQ, double q, double m, const PP &x ) 
 	: ParticleBase(IQ,q,m), _x(x) {}
