@@ -2,7 +2,7 @@
  *  \brief %Mesh based vector fields
  */
 
-/* Copyright (c) 2005-2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -198,12 +198,26 @@ public:
      *  to the \a extrpl array. The interpolation function can use an
      *  extrapolation of the last two field values (\a
      *  FIELD_EXTRAPOLATE) or it can return the mirror of the field
-     *  across the mesh boundary like f(x) = f(-x) (\a FIELD_MIRROR),
-     *  it can return the mirror of the field across the mesh boundary
-     *  like f_x(x,y,z) = -f_x(-x,y,z) (\a FIELD_ANTIMIRROR), it can
-     *  return a zero field (\a FIELD_ZERO) or it can return a NaN (\a
-     *  FIELD_NAN) outside the mesh. The \a FIELD_EXTRAPOLATE is the
-     *  default behaviour.
+     *  across the boundary as if the boundary was a perfect magnetic
+     *  conductor, i.e. the field lines are perpendicular to the
+     *  boundary (\a FIELD_MIRROR). It can also return the mirror of
+     *  the field across the mesh boundary as if the boundary was a
+     *  magnetic insulator, i.e. the field lines are parallel to the
+     *  boundary (\a FIELD_ANTIMIRROR) or it can return a zero field
+     *  (\a FIELD_ZERO) NaN (\a FIELD_NAN) outside the mesh. The \a
+     *  FIELD_EXTRAPOLATE is the default behaviour.
+     *
+     *  The \a FIELD_MIRROR extrapolation mirrors the field for a boundary \a x=0 as
+     *
+     *      B_x(-x,y,z) =  B_x(x,y,z),
+     *      B_y(-x,y,z) = -B_y(x,y,z),
+     *      B_z(-x,y,z) = -B_z(x,y,z)
+     *
+     *  The \a FIELD_ANTIMIRROR extrapolation mirrors the field for a boundary \a x=0 as
+     *
+     *      B_x(-x,y,z) = -B_x(x,y,z),  
+     *      B_y(-x,y,z) =  B_y(x,y,z),  
+     *      B_z(-x,y,z) =  B_z(x,y,z)
      *
      *  The use of \a FIELD_MIRROR in case of symmetric cases, where
      *  beam is traversing next to the geometry boundary, is necessary
