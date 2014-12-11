@@ -244,23 +244,15 @@ public:
      */
     void scale( const Vec3D &sx );
 
-    /*! \brief Rotate solid around x-axis.
-     *
-     *  Rotate around x-axis for \a a radians.
+    /*! \brief Rotate field in coordinate system around y-axis for \a a radians.
      */
     void rotate_x( double a );
 
-    /*! \brief Rotate solid around y-axis.
-     *
-     *  Rotate around y-axis for \a a radians.
-     */
-    /*! \brief Rotate field in coordinate system around y-axis.
+    /*! \brief Rotate field in coordinate system around y-axis for \a a radians.
      */
     void rotate_y( double a );
 
-    /*! \brief Rotate solid around z-axis.
-     *
-     *  Rotate around z-axis for \a a radians.
+    /*! \brief Rotate field in coordinate system around y-axis for \a a radians.
      */
     void rotate_z( double a );
 

@@ -117,21 +117,21 @@ void MultiMeshVectorField::scale( double s )
 }
 
 
-void MultiMeshVectorField::rotate_x( int a )
+void MultiMeshVectorField::rotate_x( double a )
 {
     for( size_t i = 0; i < _field.size(); i++ )
 	_field[i]->rotate_x( a );
 }
 
 
-void MultiMeshVectorField::rotate_y( int a )
+void MultiMeshVectorField::rotate_y( double a )
 {
     for( size_t i = 0; i < _field.size(); i++ )
 	_field[i]->rotate_y( a );
 }
 
 
-void MultiMeshVectorField::rotate_z( int a )
+void MultiMeshVectorField::rotate_z( double a )
 {
     for( size_t i = 0; i < _field.size(); i++ )
 	_field[i]->rotate_z( a );

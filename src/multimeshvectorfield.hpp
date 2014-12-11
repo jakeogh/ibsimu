@@ -180,17 +180,17 @@ public:
      */
     void scale( double s );
 
-    /*! \brief Rotate field in coordinate system around x-axis.
+    /*! \brief Rotate field in coordinate system around x-axis for \a a radians.
      */
-    void rotate_x( int a );
+    void rotate_x( double a );
 
-    /*! \brief Rotate field in coordinate system around y-axis.
+    /*! \brief Rotate field in coordinate system around y-axis for \a a radians.
      */
-    void rotate_y( int a );
+    void rotate_y( double a );
 
-    /*! \brief Rotate field in coordinate system around z-axis.
+    /*! \brief Rotate field in coordinate system around z-axis for \a a radians.
      */
-    void rotate_z( int a );
+    void rotate_z( double a );
 
     /*! \brief Clears the field.
      */
