@@ -2,7 +2,7 @@
  *  \brief Axisymmetric magnetic field
  */
 
-/* Copyright (c) 2012-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012-2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -61,7 +61,8 @@ AxisymmetricVectorField::AxisymmetricVectorField( geom_mode_e geom_mode,
 
 AxisymmetricVectorField::AxisymmetricVectorField( geom_mode_e geom_mode, 
 						  double origo, double h,
-						  const std::vector<double> &Bz )
+						  const std::vector<double> &Bz,
+						  uint32_t order )
 {
     if( Bz.size() < 7 )
 	throw( Error( ERROR_LOCATION, "not enough nodes" ) );
@@ -73,6 +74,7 @@ AxisymmetricVectorField::AxisymmetricVectorField( geom_mode_e geom_mode,
     _origo = origo;
     _h = h;
     _Bz = Bz;
+    _order = order;
 }
 
 
@@ -184,8 +186,29 @@ const Vec3D AxisymmetricVectorField::eval_fdm( double z, double r ) const
     double r6 = r3*r3;
     get_fdm_derivatives( Bder, z );
 
-    double Bz = Bder[0] - r2*Bder[2]/4.0 + r4*Bder[4]/64.0 - r6*Bder[6]/2304.0;
-    double Br = -r*Bder[1]/2.0 + r3*Bder[3]/16.0 - r5*Bder[5]/384.0;
+    double Bz, Br;
+    if( _order == 0 ) {
+	Bz = Bder[0];
+	Br = 0.0;
+    } else if(_order == 1 ) {
+	Bz = Bder[0];
+	Br = -r*Bder[1]/2.0;
+    } else if(_order == 2 ) {
+	Bz = Bder[0] - r2*Bder[2]/4.0;
+	Br = -r*Bder[1]/2.0;
+    } else if(_order == 3 ) {
+	Bz = Bder[0] - r2*Bder[2]/4.0;
+	Br = -r*Bder[1]/2.0 + r3*Bder[3]/16.0;
+    } else if(_order == 4 ) {
+	Bz = Bder[0] - r2*Bder[2]/4.0 + r4*Bder[4]/64.0;
+	Br = -r*Bder[1]/2.0 + r3*Bder[3]/16.0;
+    } else if(_order == 5 ) {
+	Bz = Bder[0] - r2*Bder[2]/4.0 + r4*Bder[4]/64.0;
+	Br = -r*Bder[1]/2.0 + r3*Bder[3]/16.0 - r5*Bder[5]/384.0;
+    } else if(_order >= 6 ) {
+	Bz = Bder[0] - r2*Bder[2]/4.0 + r4*Bder[4]/64.0 - r6*Bder[6]/2304.0;
+	Br = -r*Bder[1]/2.0 + r3*Bder[3]/16.0 - r5*Bder[5]/384.0;
+    }
 
     return( Vec3D( Bz, Br, 0.0 ) );
 }

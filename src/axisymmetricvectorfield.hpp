@@ -2,7 +2,7 @@
  *  \brief Axisymmetric magnetic field
  */
 
-/* Copyright (c) 2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012,2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -72,6 +72,7 @@ class AxisymmetricVectorField : public VectorField {
     double              _origo;
     double              _h;
     std::vector<double> _Bz;
+    uint32_t            _order;
 
     void get_fdm_derivatives( double Bder[6], double z ) const;
 
@@ -112,14 +113,19 @@ public:
      *  The magnetic field is constructed using linear interpolation
      *  and finite difference derivatives up to 6th order for the Bz
      *  data on axis and the expansion of the field off-axis with
-     *  \f{eqnarray*} B_z(r,z) &=& B_z(0,z) - \frac{r^2}{4} B_z''(0,z) + \frac{r^4}{64} B_z^(iv)(0,z) - \frac{r^6}{2304} B_z^(vi)(0,z) \\
-                      B_r(r,z) &=& -\frac{r}{2} B_z'(0,z) + \frac{r^3}{16} - \frac{r^5}{384}, \f}
+     *  \f{eqnarray*} B_z(r,z) &=& B_z(0,z) - \frac{r^2}{4} B_z''(0,z) + \frac{r^4}{64} B_z^{(iv)}(0,z) - \frac{r^6}{2304} B_z^{(vi)}(0,z) \\
+                      B_r(r,z) &=& -\frac{r}{2} B_z'(0,z) + \frac{r^3}{16} B_z''' - \frac{r^5}{384} B_z^{(v)}, \f}
+     *
+     *  The order used in evaluation is defined by parameter
+     *  \a order, which defaults to the maximum allowed order of
+     *  6.
      *
      *  The magnetic field outside the defined z is extrapolated.
      */
     AxisymmetricVectorField( geom_mode_e geom_mode, 
 			     double origo, double h,
-			     const std::vector<double> &Bz );
+			     const std::vector<double> &Bz,
+			     uint32_t order = 6 );
 
     /*! \brief Copy constructor. 
      */
