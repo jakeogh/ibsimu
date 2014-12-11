@@ -66,6 +66,7 @@ class GTKParticleDiagDialog
 
     GtkWidget      *_radio_emit_xx;
     GtkWidget      *_radio_emit_yy;
+    GtkWidget      *_radio_emit_ra; // Only for cyl
     GtkWidget      *_radio_emit_zz; // Or converted emittance in case of cyl
 
     GtkWidget      *_radio_prof_yz;

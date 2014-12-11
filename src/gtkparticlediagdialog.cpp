@@ -49,7 +49,7 @@ GTKParticleDiagDialog::GTKParticleDiagDialog( GtkWidget *window, GTKPlotter &plo
 					      int plane, double val )
     : _window(window), _plotter(&plotter), _plane(plane), _val(val),
     _radio_plane_x(NULL), _radio_plane_y(NULL), _radio_plane_z(NULL),
-    _radio_emit_xx(NULL), _radio_emit_yy(NULL), _radio_emit_zz(NULL),
+      _radio_emit_xx(NULL), _radio_emit_yy(NULL), _radio_emit_ra(NULL), _radio_emit_zz(NULL),
     _radio_prof_yz(NULL), _radio_prof_xz(NULL), _radio_prof_xy(NULL),
     _radio_plot_scatter(NULL), _radio_plot_colormap(NULL),
     _radio_prof_x(NULL), _radio_prof_y(NULL), _radio_prof_z(NULL),
@@ -124,6 +124,7 @@ void GTKParticleDiagDialog::plane_activated( void )
 	gtk_widget_set_sensitive( _radio_prof_y, TRUE );
 	gtk_widget_set_sensitive( _radio_prof_yp, TRUE );
 	gtk_widget_set_sensitive( _radio_emit_yy, TRUE );
+	gtk_widget_set_sensitive( _radio_emit_ra, TRUE );
 
 	if( _geom->geom_mode() == MODE_CYL ) {
 	    // EmittanceConv
@@ -165,6 +166,10 @@ void GTKParticleDiagDialog::plane_activated( void )
 	    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_xx), TRUE );
 
 	if( _geom->geom_mode() == MODE_CYL ) {
+	    // r-a'
+	    gtk_widget_set_sensitive( _radio_emit_ra, FALSE );
+	    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_emit_ra) ) )
+		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_xx), TRUE );
 	    // EmittanceConv
 	    if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_emit_zz) ) )
 		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_xx), TRUE );
@@ -198,6 +203,7 @@ void GTKParticleDiagDialog::plane_activated( void )
 	gtk_widget_set_sensitive( _radio_prof_y, TRUE );
 	gtk_widget_set_sensitive( _radio_prof_yp, TRUE );
 	gtk_widget_set_sensitive( _radio_emit_yy, TRUE );
+	gtk_widget_set_sensitive( _radio_emit_ra, TRUE );
 
 	gtk_widget_set_sensitive( _radio_emit_zz, FALSE );
 	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_emit_zz) ) )
@@ -346,10 +352,15 @@ void GTKParticleDiagDialog::run( void )
     if( _geom->geom_mode() == MODE_CYL ) {
 	_radio_emit_yy = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 								      "Emittance r-r\'" );
-	    gtk_widget_set_margin_left( _radio_emit_yy, 15 );
+	gtk_widget_set_margin_left( _radio_emit_yy, 15 );
 	if( _plane == 0 )
 	    gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_radio_emit_yy), TRUE );
 	gtk_grid_attach( GTK_GRID(grid), _radio_emit_yy, 0, yl1, 1, 1 );
+	yl1++;
+	_radio_emit_ra = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
+								      "Emittance r-a\'" );
+	gtk_widget_set_margin_left( _radio_emit_ra, 15 );
+	gtk_grid_attach( GTK_GRID(grid), _radio_emit_ra, 0, yl1, 1, 1 );
 	yl1++;
 	_radio_emit_zz = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_radio_emit_xx),
 								      "Emittance z-z\' (conv)" );
@@ -582,6 +593,9 @@ void GTKParticleDiagDialog::run( void )
 		diagx = DIAG_Y;
 		diagy = DIAG_YP;
 	    }
+	} else if( _geom->geom_mode() == MODE_CYL && gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_emit_ra) ) ) {
+	    diagx = DIAG_R;
+	    diagy = DIAG_AP;
 	} else if( _radio_emit_zz &&
 		   gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(_radio_emit_zz) ) ) {
 	    if( _geom->geom_mode() == MODE_3D ) {

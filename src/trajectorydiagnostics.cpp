@@ -2,7 +2,7 @@
  *  \brief Trajectory diagnostics
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2014 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -80,7 +80,7 @@ void TrajectoryDiagnosticColumn::mirror( coordinate_axis_e axis, double level )
 	if( _diag == DIAG_Y || _diag == DIAG_R ) {
 	    for( size_t a = 0; a < size; a++ )
 		_data.push_back( 2*level-_data[a] );
-	} else if( _diag == DIAG_VY || _diag == DIAG_VR || _diag == DIAG_YP || _diag == DIAG_RP ) {
+	} else if( _diag == DIAG_VY || _diag == DIAG_VR || _diag == DIAG_YP || _diag == DIAG_RP || _diag == DIAG_AP ) {
 	    for( size_t a = 0; a < size; a++ )
 		_data.push_back( -_data[a] );
 	} else {

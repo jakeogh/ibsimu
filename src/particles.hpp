@@ -269,7 +269,7 @@ inline ParticleP2D operator*( double x, const ParticleP2D &pp )
 /*! \brief %Particle point class for cylindrical coordinates.
  *
  *  A collection of particle coordinates (t,x,vx,r,vr,w) to
- *  describe time, location and velocity in cylindrical coordinates.
+ *  describe time, location and velocity in cylindrical coordinates Here \f$ w = \frac{d\theta}{dt} \f$.
  */
 class ParticlePCyl : public ParticlePBase 
 {
