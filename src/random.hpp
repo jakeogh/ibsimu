@@ -245,9 +245,9 @@ public:
 /*! \brief %Random number generator for N dimensions.
  *
  *  This random number generator can produce random numbers in N
- *  independent dimensions. The RNG can be set to either return
- *  uniformly distributed numbers between 0 and 1 and numbers
- *  transformed by set transformations. The transformations can be set
+ *  independent dimensions. The RNG defaults to return uniformly
+ *  distributed numbers between 0 and 1. Other distributions can be
+ *  sampled by setting transformations. The transformations can be set
  *  independently for each dimension.
  *
  *  Random number generators should be mutex protected.

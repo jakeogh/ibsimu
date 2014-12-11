@@ -73,6 +73,14 @@ enum message_type_e {
 };
 
 
+/*! \brief Output type.
+ */
+enum rng_type_e {
+    RNG_SOBOL = 0,
+    RNG_MT
+};
+
+
 /*! \brief Main class for %IBSimu.
  *
  *  Used to store global settings. One instance of the class is
@@ -84,6 +92,7 @@ class IBSimu
 
     bool          _hello;
     uint32_t      _threadcount;
+    rng_type_e    _rng;
     
     struct nullstream: std::ostream {
 	struct nullbuf: std::streambuf {
@@ -192,6 +201,22 @@ public:
     /*! \brief Get the number of threads used for calculation.
      */
     uint32_t get_thread_count( void ) { return( _threadcount ); }
+
+
+
+    /*! \brief Set the random number generator to use.
+     *
+     *  The default rng type RNG_SOBOL is a quasi random number
+     *  generator based on use of Sobol sequence.  This setting
+     *  affects particle distribution definitions.
+     */
+    void set_rng_type( rng_type_e type );
+
+    /*! \brief Get the random number generator type.
+     */
+    rng_type_e get_rng_type( void ) { return( _rng ); }
+    
+
 
     /*! \brief Halt execution
      *

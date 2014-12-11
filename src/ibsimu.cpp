@@ -52,14 +52,14 @@
 
 
 IBSimu::IBSimu( const IBSimu &ibs )
-    : _t(0), _os(&_ns)
+    : _t(0), _rng(ibs._rng), _os(&_ns)
 {
 
 }
 
 
 IBSimu::IBSimu()
-    : _hello(false), _threadcount(1), _os(&std::cout), _indent(0)
+    : _hello(false), _threadcount(1), _rng(RNG_SOBOL), _os(&std::cout), _indent(0)
 {
     // Set message level thresholds to defaults
     for( int a = 0; a < MSG_COUNT; a++ )
@@ -274,6 +274,14 @@ void IBSimu::set_thread_count( uint32_t threadcount )
     if( threadcount <= 0 )
 	throw( Error( ERROR_LOCATION, "invalid parameter" ) );
     _threadcount = threadcount;
+}
+
+
+void IBSimu::set_rng_type( rng_type_e type ) 
+{
+    if( type != RNG_SOBOL && type != RNG_MT )
+	throw( Error( ERROR_LOCATION, "unknown rng type" ) );
+    _rng = type;
 }
 
 
