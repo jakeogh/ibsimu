@@ -114,10 +114,11 @@ void MyDXFCircle::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Trans
     } else {
 	// Not representable as circle
 
-	// Chop circle to 8 pieces
+	// Chop circle to N pieces
+	int N = 16;
 	Vec3D old;
-	for( int i = 0; i < 8; i++ ) {
-	    double a = i*2.0*M_PI/7.0;
+	for( int i = 0; i < N; i++ ) {
+	    double a = i*2.0*M_PI/(N-1.0);
 	    Vec3D x = t->transform_point( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
 
 	    // Add line to entities

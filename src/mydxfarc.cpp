@@ -115,14 +115,15 @@ void MyDXFArc::explode( MyDXFEntities *ent, class MyDXFFile *dxf, const Transfor
     } else {
 	// Not representable as arc
 
-	// Chop arc to 8 pieces
+	// Chop arc to N pieces
 	double adiff = _ang2-_ang1;
 	if( adiff < 0.0 )
 	    adiff = 2.0*M_PI + adiff;
 	
 	Vec3D old;
-	for( int i = 0; i < 8; i++ ) {
-	    double a = _ang1 + i*adiff/7.0;
+	int N = 16;
+	for( int i = 0; i < N; i++ ) {
+	    double a = _ang1 + i*adiff/(N-1.0);
 	    if( a > 2.0*M_PI )
 		a -= 2.0*M_PI;
 	    Vec3D x = t->transform_point( Vec3D( _pc[0]+_r*cos(a), _pc[1]+_r*sin(a), _pc[2] ) );
