@@ -2,7 +2,7 @@
  *  \brief %Mesh based vector fields
  */
 
-/* Copyright (c) 2005-2014 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2015 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -194,7 +194,7 @@ MeshVectorField::MeshVectorField( geom_mode_e geom_mode, const bool fout[3], dou
     for( uint32_t b = 0; b < cdim; b++ ) {
 	if( fabs(data[b][1] - data[b][0]) != 0.0 ) {
 	    first_dir = b;
-	    h = xscale*fabs(data[b][1] - data[b][0]);
+	    h = fabs( xscale*(data[b][1] - data[b][0]) );
 	    break;
 	}
     }
@@ -707,6 +707,8 @@ MeshVectorField &MeshVectorField::operator+=( const MeshVectorField &f )
 {
     if( (Mesh)(*this) != (Mesh)f )
 	throw( Error( ERROR_LOCATION, "non-matching fields" ) );
+    if( _T != f._T )
+	throw( Error( ERROR_LOCATION, "non-matching transformations" ) );
     for( size_t i = 0; i < 3; i++ ) {
 	if( (_F[i] == NULL) != (f._F[i] == NULL) )
 	    throw( Error( ERROR_LOCATION, "non-matching fields" ) );

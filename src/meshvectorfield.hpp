@@ -2,7 +2,7 @@
  *  \brief %Mesh based vector fields
  */
 
-/* Copyright (c) 2005-2011,2014 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2014,2015 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -29,7 +29,7 @@
  * U.S.  Department of Energy.  As such, the U.S. Government has been
  * granted for itself and others acting on its behalf a paid-up,
  * nonexclusive, irrevocable, worldwide license in the Software to
-* reproduce, prepare derivative works, and perform publicly and
+ * reproduce, prepare derivative works, and perform publicly and
  * display publicly.  Beginning five (5) years after the date
  * permission to assert copyright is obtained from the U.S. Department
  * of Energy, and subject to any subsequent five (5) year renewals,
@@ -72,6 +72,13 @@
  *  the electric field in ParticleDataBase. This allows minimization
  *  of the memory use in the case where electric field needs high
  *  resolution, but magnetic field is relatively smooth.
+ *
+ *  The mesh based bector field can be rotated, scaled and
+ *  translated. This is implemented by storing the active
+ *  transformation in the %MeshVectorField. Each time the field value
+ *  is queried at a point, the coordinates are transformed to the
+ *  local coordinate system of the %MeshVectorField using the active
+ *  transformation.
  *  
  */
 class MeshVectorField : public VectorField, public Mesh {
@@ -290,6 +297,9 @@ public:
     MeshVectorField &operator=( const MeshVectorField &f );
 
     /*! \brief Accumulation operator.
+     *
+     *  This operator is only capable of accumulating fields with
+     *  matching meshes and tranformations.
      */
     MeshVectorField &operator+=( const MeshVectorField &f );
 
