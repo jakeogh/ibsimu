@@ -2,7 +2,7 @@
  *  \brief ASCII file reading tool.
  */
 
-/* Copyright (c) 2011 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2015 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -52,17 +52,18 @@
 /*! \brief Class for reading ASCII data files.
  *
  *  Reads ASCII data file formatted into \a N columns skipping empty
- *  lines and lines starting with '#' character. The number of columns
- *  may be given to read function, in which case it is checked to be
- *  correct or the number of columns may be determined from the start
- *  of the file. The number of columns must be fixed and may not
- *  change during the file. Data is stored into \a N double-type
- *  vectors, which can be read from the object after reading a
- *  datafile.
+ *  lines and lines starting with a comment character (assignable,
+ *  defaults to '#'). The number of columns may be given to read
+ *  function, in which case it is checked to be correct or the number
+ *  of columns may be determined from the start of the file. The
+ *  number of columns must be fixed and may not change during the
+ *  file. Data is stored into \a N double-type vectors, which can be
+ *  read from the object after reading a datafile.
  */
 class ReadAscii {
 
     std::string           _filename; /*!< \brief Name of read file. */
+    char                  _comment;  /*!< \brief Comment character. */
     uint32_t              _N;        /*!< \brief Number of columns. */
     std::vector<double> **_data;     /*!< \brief Column data vectors. */
 
@@ -95,6 +96,8 @@ public:
      *  columns.
      */
     void read( const std::string &filename, int columns = -1 );
+
+    void set_comment_character( char c );
 
     /*! \brief Clear data.
      */

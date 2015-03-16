@@ -2,7 +2,7 @@
  *  \brief ASCII file reading tool.
  */
 
-/* Copyright (c) 2011-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2012,2015 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -48,13 +48,13 @@
 
 
 ReadAscii::ReadAscii()
-    : _N(0), _data(NULL)
+    : _comment('#'), _N(0), _data(NULL)
 {
 }
 
 
 ReadAscii::ReadAscii( const std::string &filename, int columns )
-    : _N(0), _data(NULL)
+    : _comment('#'), _N(0), _data(NULL)
 {
     read( filename, columns );
 }
@@ -66,6 +66,11 @@ ReadAscii::~ReadAscii()
 }
 
 
+void ReadAscii::set_comment_character( char c )
+{
+    _comment = c;
+}
+
 
 void ReadAscii::read_data_line( const std::string &str, int linec )
 {
@@ -76,7 +81,7 @@ void ReadAscii::read_data_line( const std::string &str, int linec )
     while( isspace(*ptr) ) ptr++;
 
     // Check if comment
-    if( *ptr == '#' )
+    if( *ptr == _comment )
 	return;
 
     // Check if line contained only white space
@@ -113,6 +118,11 @@ void ReadAscii::read_data_line( const std::string &str, int linec )
 
 void ReadAscii::read( const std::string &filename, int columns )
 {
+    // Clear old data
+    for( uint32_t i = 0; i < _N; i++ )
+	delete _data[i];
+    delete _data;
+
     _filename = filename;
     std::ifstream fin( filename.c_str() );
     if( !fin.good() )
@@ -136,7 +146,7 @@ void ReadAscii::read( const std::string &filename, int columns )
 	    while( isspace(*ptr) ) ptr++;
 
 	    // Check if comment
-	    if( *ptr == '#' )
+	    if( *ptr == _comment )
 		continue;
 
 	    // Check if line contained only white space
@@ -145,9 +155,12 @@ void ReadAscii::read( const std::string &filename, int columns )
 
 	    break;
 	}
-	if( fin.eof() )
-	    throw( Error( ERROR_LOCATION, "unexpected end of file \'" 
-			  + filename + "\' on line " + to_string(linec) ) );
+	if( fin.eof() ) {
+	    // EOF before meaningful input, return empty file
+	    _N = 0;
+	    fin.close();
+	    return;
+	}
 	
 	// Count columns
 	columns = 0;
