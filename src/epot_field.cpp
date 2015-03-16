@@ -59,7 +59,13 @@ EpotField::EpotField( const EpotField &f )
 EpotField::EpotField( std::istream &s, const Geometry &geom )
     : MeshScalarField(s), _geom(&geom)
 {
-
+    // Check geometry compatibility
+    if( _geom_mode != geom.geom_mode() ||
+	_size != geom.size() || 
+	_origo != geom.origo() || 
+	_h != geom.h() ) {
+	throw( Error( ERROR_LOCATION, "incompatible Geometry object" ) );
+    }
 }
 
 
