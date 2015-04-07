@@ -2,7 +2,7 @@
  *  \brief %Error classes and handling
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012,2015 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -352,8 +352,14 @@ ErrorErrno::ErrorErrno( const ErrorLocation &loc )
     _error_str = "errno " + to_string(_ierrno);
 #else
     char buf[1024];
-    strerror_r( _ierrno, buf, 1024 );
-    _error_str = buf;
+#if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE
+    int ret = strerror_r( _ierrno, buf, 1024 );
+    if( !ret )
+	_error_str = buf;
+#else
+    char *ret = strerror_r( _ierrno, buf, 1024 );
+    _error_str = ret;
+#endif
 #endif
 }
 
