@@ -2,7 +2,7 @@
  *  \brief Full transformation for three dimensional homogenous space
  */
 
-/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012,2015 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -121,6 +121,10 @@ public:
      *  Throws an error if determinant is zero.
      */
     Transformation inverse( void ) const;
+
+    /*! \brief Non-equality test
+     */
+    bool operator!=( const Transformation &m ) const;
 
     /*! \brief Multiplication of tranformation matrix by scalar.
      */

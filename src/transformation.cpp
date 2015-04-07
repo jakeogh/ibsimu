@@ -2,7 +2,7 @@
  *  \brief Affine transformation
  */
 
-/* Copyright (c) 2010-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012,2015 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -179,6 +179,16 @@ Transformation Transformation::transpose( void ) const
 			x[2], x[6], x[10], x[14],
 			x[3], x[7], x[11], x[15] );
     return( ret );
+}
+
+
+bool Transformation::operator!=( const Transformation &m ) const
+{
+    for( size_t i = 0; i < 16; i++ ) {
+        if( x[i] != m[i] )
+	    return( true );
+    }
+    return( false );
 }
 
 
