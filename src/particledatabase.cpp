@@ -2,7 +2,7 @@
  *  \brief %Particle databases
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013,2015 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -273,6 +273,18 @@ void ParticleDataBase::clear_trajectories( void )
 void ParticleDataBase::clear_trajectory( size_t a )
 {
     _imp->clear_trajectory( a );
+}
+
+
+void ParticleDataBase::reset_trajectories( void )
+{
+    _imp->reset_trajectories();
+}
+
+
+void ParticleDataBase::reset_trajectory( size_t a )
+{
+    _imp->reset_trajectory( a );
 }
 
 

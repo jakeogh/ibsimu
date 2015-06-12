@@ -87,6 +87,12 @@ ParticleDataBaseImp::ParticleDataBaseImp( ParticleDataBase *pdb, std::istream &s
     _rhosum = read_double( s );
     _stat = ParticleStatistics( s );
     _iteration = read_int32( s );
+    _relativistic = false; // Should be loaded
+    _surface_collision = false; // Should be loaded
+    _bsup_cb = NULL;
+    _thand_cb = NULL;
+    _tend_cb = NULL;
+    _tsur_cb = NULL;
 }
 
 
@@ -99,7 +105,8 @@ ParticleDataBaseImp::ParticleDataBaseImp( const ParticleDataBaseImp &pdb )
       _thand_cb(pdb._thand_cb), _tend_cb(pdb._tend_cb), _tsur_cb(pdb._tsur_cb),
       _pdb(pdb._pdb)
 {
-
+    for( uint32_t a = 0; a < 6; a++ )
+	_mirror[a] = pdb._mirror[a];
 }
 
 
@@ -312,6 +319,8 @@ void ParticleDataBaseImp::save( std::ostream &os ) const
     write_double( os, _rhosum );
     _stat.save( os );
     write_int32( os, _iteration );
+    // relativistic missing
+    // surface collision missing
 }
 
 
@@ -331,6 +340,8 @@ void ParticleDataBaseImp::debug_print( std::ostream &os ) const
     os << _mirror[5] << ")\n";
     os << "rhosum = "      << _rhosum << "\n";
     os << "iteration = "   << _iteration << "\n";
+    os << "relativistic = "   << _relativistic << "\n";
+    os << "surface_collision = "   << _surface_collision << "\n";
 }
 
 

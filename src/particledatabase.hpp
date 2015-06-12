@@ -2,7 +2,7 @@
  *  \brief %Particle databases
  */
 
-/* Copyright (c) 2005-2014 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2015 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -468,17 +468,31 @@ public:
 
     /*! \brief Clears the particle trajectory database.
      *
-     *  The particle definitions are conserved, but existing
+     *  The particle properties are otherwise conserved, but existing
      *  trajectories are cleared.
      */
     void clear_trajectories( void );
 
     /*! \brief Clears particle \a a in the particle trajectory database.
      *
-     *  The particle definition is conserved, but existing trajectory
-     *  are cleared.
+     *  The particle properties are otherwise conserved, but existing
+     *  trajectory are cleared.
      */
     void clear_trajectory( size_t a );
+
+    /*! \brief Clears the particle trajectory database and set particles to initial coordinates
+     *
+     *  The particles are reset with initial coordinates and trajectories are cleared.
+     *  Sets particle status for all particles as PARTICLE_OK.
+     */
+    void reset_trajectories( void );
+
+    /*! \brief Clears the particle trajectory and set the particle to initial coordinates
+     *
+     *  The particle \a a is resetted with initial coordinates and trajectory is cleared.
+     *  Sets particle status as PARTICLE_OK.
+     */
+    void reset_trajectory( size_t a );
 
 /* ************************************** *
  * Particle definition                    *

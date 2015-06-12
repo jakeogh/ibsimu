@@ -2,7 +2,7 @@
  *  \brief Particle database implementation
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013,2015 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -171,6 +171,10 @@ public:
     virtual void clear_trajectories( void ) = 0;
 
     virtual void clear_trajectory( size_t a ) = 0;
+
+    virtual void reset_trajectories( void ) = 0;
+
+    virtual void reset_trajectory( size_t a ) = 0;
 
     virtual void reserve( size_t size ) = 0;
 
@@ -602,6 +606,17 @@ public:
 	if( a >= _particles.size() )
 	    throw( ErrorRange( ERROR_LOCATION, a, _particles.size() ) );	    
 	_particles[a]->clear_trajectory();
+    }
+
+    virtual void reset_trajectories( void ) {
+	for( uint32_t a = 0; a < _particles.size(); a++ )
+	    _particles[a]->reset_trajectory();
+    }
+
+    virtual void reset_trajectory( size_t a ) {
+	if( a >= _particles.size() )
+	    throw( ErrorRange( ERROR_LOCATION, a, _particles.size() ) );	    
+	_particles[a]->reset_trajectory();
     }
 
     virtual void reserve( size_t size ) { 

@@ -2,7 +2,7 @@
  *  \brief %Particle and particle point objects
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012,2015 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -824,6 +824,18 @@ public:
     /*! \brief Clears the particle trajectory.
      */
     void clear_trajectory( void ) { _trajectory.clear(); }
+
+    /*! \brief Resets the particle trajectory.
+     *
+     *  Resets the particle coordinates to the start of the
+     *  trajectory, clears the trajectory and sets particle status as
+     *  PARTICLE_OK.
+     */
+    void reset_trajectory( void ) { 
+	_status = PARTICLE_OK;
+	_x = _trajectory[0];
+	_trajectory.clear(); 
+    }
 
     /*! \brief Saves data to stream.
      */
