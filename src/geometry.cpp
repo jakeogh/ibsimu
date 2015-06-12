@@ -2352,6 +2352,21 @@ uint32_t Geometry::surface_inside_solid_number( int32_t i, int32_t j,int32_t k )
 }
 
 
+Vec3D Geometry::surface_triangle_normal( int32_t a ) const
+{
+    const VTriangle &tri = _surface.triangle(a);
+    const Vec3D &v1 = _surface.vertex(tri[0]);
+    const Vec3D &v2 = _surface.vertex(tri[1]);
+    const Vec3D &v3 = _surface.vertex(tri[2]);
+
+    Vec3D e1 = v2-v1;
+    Vec3D e2 = v3-v1;
+    Vec3D e3 =  cross(e2,e1);
+    e3.normalize();
+    return( e3 );
+}
+
+
 int32_t Geometry::surface_trianglec( int32_t i, int32_t j, int32_t k ) const
 {
     uint8_t cn = mc_case( i, j, k );

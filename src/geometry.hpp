@@ -535,13 +535,17 @@ public:
 	return( _surface.vertex(a) );
     }
 
+    /*! \brief Return normal of surface triangle \a a.
+     */
+    Vec3D surface_triangle_normal( int32_t a ) const;
+
     /*! \brief Return reference to surface triangle \a a.
      */
     const VTriangle &surface_triangle( int32_t a ) const {
 	return( _surface.triangle(a) );
     }
 
-    /*! \brief Return index of surface triangle at mesh cube \a (i,j,k).
+    /*! \brief Return index of first surface triangle at mesh cube \a (i,j,k).
      */
     uint32_t surface_triangle_ptr( int32_t i, int32_t j, int32_t k ) const {
 	return( _triptr[(k*(_size[1]-1) + j)*(_size[0]-1) + i] );
