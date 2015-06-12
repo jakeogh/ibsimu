@@ -114,8 +114,8 @@ public:
      *  and finite difference derivatives up to 6th order for the Bz
      *  data on axis and the expansion of the field off-axis with
      *  \f{eqnarray*} B_z(r,z) &=& B_z(0,z) - \frac{r^2}{4} B_z''(0,z) + \frac{r^4}{64} B_z^{(iv)}(0,z) - \frac{r^6}{2304} B_z^{(vi)}(0,z) \\
-                      B_r(r,z) &=& -\frac{r}{2} B_z'(0,z) + \frac{r^3}{16} B_z''' - \frac{r^5}{384} B_z^{(v)}, \f}
-     *
+                      B_r(r,z) &=& -\frac{r}{2} B_z'(0,z) + \frac{r^3}{16} B_z''' - \frac{r^5}{384} B_z^{(v)}, 
+     *  \f}
      *  The order used in evaluation is defined by parameter
      *  \a order, which defaults to the maximum allowed order of
      *  6.
