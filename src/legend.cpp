@@ -2,7 +2,7 @@
  *  \brief Plot legends
  */
 
-/* Copyright (c) 2005-2009,2011-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2011-2013,2015 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -305,10 +305,10 @@ void ColormapLegend::plot( cairo_t *cairo, double x, double y )
     build_legend( x, y );
 
     // Draw colormap palette sample
-    int plim[4] = { floor(x+_ticlen_out+0.5),
-		    floor(y-_height+0.5),
-		    floor(x+_ticlen_out+_width),
-		    floor(y) };
+    int plim[4] = { (int)floor(x+_ticlen_out+0.5),
+		    (int)floor(y-_height+0.5),
+		    (int)floor(x+_ticlen_out+_width),
+		    (int)floor(y) };
     plot_colomap_palette( cairo, plim );
 
     // Draw box and tics

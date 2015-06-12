@@ -2,7 +2,7 @@
  *  \brief Mesh based colormap graph for plotting
  */
 
-/* Copyright (c) 2005-2012,2014 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012,2014,2015 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -320,7 +320,7 @@ void MeshColormap::plot_to_image_surface( cairo_surface_t *surface, const Coordm
 	for( int i = plim[0]; i <= plim[2]; i++ ) {
 
 	    // Transform to logical coordinates
-	    double x[2] = { i, j };
+	    double x[2] = { (double)i, (double)j };
 	    cm->inv_transform( x[0], x[1] );
 	    double val = zscale( get_value( x[0], x[1] ) );
 	    if( comp_isinf( val ) || comp_isnan( val ) )
