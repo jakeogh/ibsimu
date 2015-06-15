@@ -1,20 +1,7 @@
 		BUGS
 		====
 
-Level changing spinbutton takes two steps after change of view
-direction and at first step when done on mouse. This is a because gtk
-interprets mouse being hold down as long as callback loop is
-running. Drawing has to be moved to some other place. Idle callback 
-or completely another thread?
- - 8 Sep 2009
-
-Cylindrical symmetry particle iterator hangs in some loop with large
-number of particles. Fills all of memory. Probably particle close to
-the axis causes problems. Even no fields \phi=const. causes the problem.
- - Possibly fixed 6 Oct 2009
-
-Opening an empty field from file -> check streams
-
-Diagnostics using free_plane at an arbitrary angle will give incorrect
-output when mirroring is done.
- - 5 Sep 2013
+Particles pass through solid surface in plasma3d test if polynomial
+trajectory interpolation is used. May need major revision in collision
+detection algorithm.
+  - Taneli Kalvas, Jun 15 2015

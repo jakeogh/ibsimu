@@ -88,7 +88,7 @@ void test( int argc, char **argv )
     ParticleDataBase3D pdb( geom );
     bool pmirror[6] = { false, false, true, false, true, false };
     pdb.set_mirror( pmirror );
-    pdb.set_polyint( true );
+    pdb.set_polyint( false );
     pdb.set_surface_collision( true );
 
     Emittance emit;

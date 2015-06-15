@@ -48,7 +48,7 @@ ibsimutest.hpp
 
 AM_CPPFLAGS = $(CPPFLAGS) -Wall -g -I$(top_srcdir)/src
 AM_LDFLAGS = $(LIBS) -L$(top_srcdir)/src @rdynamic_flag@
-LDADD = $(top_builddir)/src/libibsimu-1.0.5new_solver.la libibsimutest.la -lm
+LDADD = $(top_builddir)/src/libibsimu-1.0.6.la libibsimutest.la -lm
 
 if UMFPACK
 AM_CPPFLAGS += `pkg-config --cflags umfpack`
@@ -62,5 +62,5 @@ endif
 EXTRA_DIST = \
 solver2d_coax.gpl
 
-CLEANFILES = *~ *.png *.eps *.svg *.pdf *.ps *.dat *_vout.txt beam3d.path libibsimutest.la
+CLEANFILES = *~ *.png *.eps *.svg *.pdf *.ps *.dat *_vout.txt plasmacyl_emit1.txt beam3d.path libibsimutest.la
 

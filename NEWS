@@ -1,6 +1,19 @@
 		NEWS
 		====
 
+IBSimu 1.0.6                     				12 Jun 2015
+---------------------------------------------------------------------------
+
+- Huge amount of changes, this list probably misses a lot
+- Problem class removed. Problem data in Solver and Geometry
+- Solid edge smoothing changed from virtual potential method to
+  uneven finite difference step size
+- Surface triangulation for 3D
+- 3D plotter
+- Relativistic particle iterator
+- STL input
+- Bug fixes
+
 IBSimu 1.0.5                     				26 Sep 2011
 ---------------------------------------------------------------------------
 
