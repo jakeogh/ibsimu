@@ -67,7 +67,7 @@ DXFSolid::DXFSolid( MyDXFFile *dxffile, const std::string &layername )
 	for( size_t a = 0; a < layers->size(); a++ ) {
 	    MyDXFTableEntry *entry = layers->get_entry( a );
 	    MyDXFTableEntryLayer *layer = dynamic_cast<MyDXFTableEntryLayer *>( entry );
-	    se << "a: \'" << layer->name() << "\'\n";
+	    se << a << ": \'" << layer->name() << "\'\n";
 	}
 
 	throw( Error( ERROR_LOCATION, se.str() ) );
