@@ -1,4 +1,4 @@
-AC_INIT([libibsimu-1.0.6], [1.0.6], [taneli.kalvas@jyu.fi])
+AC_INIT([libibsimu-1.0.6dev], [1.0.6dev], [taneli.kalvas@jyu.fi])
 AC_CANONICAL_HOST
 #AM_CONFIG_HEADER(src/config.h)
 AC_CONFIG_HEADERS(src/config.h)
@@ -296,7 +296,7 @@ dnl ---------------------------------
 dnl Output
 dnl ---------------------------------
 
-AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile doc/Doxyfile doc/Doxyfile_web ibsimu-1.0.6.pc])
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile doc/Makefile doc/Doxyfile doc/Doxyfile_web ibsimu-1.0.6dev.pc])
 AC_OUTPUT
 
 echo ""

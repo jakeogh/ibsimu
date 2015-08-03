@@ -1,11 +1,11 @@
-lib_LTLIBRARIES = libibsimu-1.0.6.la
+lib_LTLIBRARIES = libibsimu-1.0.6dev.la
 
-libibsimu_1_0_6_la_LDFLAGS = -version-info 0:1:0
+libibsimu_1_0_6dev_la_LDFLAGS = -version-info 0:1:0
 
 AM_LDFLAGS = -Wall @rdynamic_flag@ @lt_enable_auto_import@
 AM_CPPFLAGS = -Wall
 
-libibsimu_1_0_6_la_SOURCES = \
+libibsimu_1_0_6dev_la_SOURCES = \
 axisymmetricvectorfield.cpp \
 axisymmetricvectorfield.hpp \
 callback.hpp \
@@ -209,8 +209,8 @@ vtriangle.hpp \
 xygraph.cpp \
 xygraph.hpp
 
-libibsimu_1_0_6_la_includedir=$(includedir)/ibsimu-1.0.6
-libibsimu_1_0_6_la_include_HEADERS = \
+libibsimu_1_0_6dev_la_includedir=$(includedir)/ibsimu-1.0.6dev
+libibsimu_1_0_6dev_la_include_HEADERS = \
 axisymmetricvectorfield.hpp \
 callback.hpp \
 ccolmatrix.hpp \
@@ -317,7 +317,7 @@ vtriangle.hpp \
 xygraph.hpp
 
 if GTK3
-libibsimu_1_0_6_la_SOURCES += \
+libibsimu_1_0_6dev_la_SOURCES += \
 gtkfielddiagdialog.cpp \
 gtkfielddiagdialog.hpp \
 gtkfielddiagexportdialog.cpp \
@@ -358,23 +358,23 @@ icons.cpp \
 icons.hpp \
 softwarerenderer.cpp \
 softwarerenderer.hpp
-libibsimu_1_0_6_la_include_HEADERS += \
+libibsimu_1_0_6dev_la_include_HEADERS += \
 gtkplotter.hpp \
 gtkwindow.hpp
 endif
 
 if OPENGL
-libibsimu_1_0_6_la_SOURCES += glrenderer.cpp glrenderer.hpp
+libibsimu_1_0_6dev_la_SOURCES += glrenderer.cpp glrenderer.hpp
 endif
 
 if UMFPACK
-libibsimu_1_0_6_la_SOURCES += epot_umfpacksolver.cpp epot_umfpacksolver.hpp 
-libibsimu_1_0_6_la_include_HEADERS += epot_umfpacksolver.hpp 
+libibsimu_1_0_6dev_la_SOURCES += epot_umfpacksolver.cpp epot_umfpacksolver.hpp 
+libibsimu_1_0_6dev_la_include_HEADERS += epot_umfpacksolver.hpp 
 endif
 
 if CSG
-libibsimu_1_0_6_la_SOURCES += csgobject_solid.cpp csgobject_solid.hpp
-libibsimu_1_0_6_la_include_HEADERS += csgobject_solid.hpp
+libibsimu_1_0_6dev_la_SOURCES += csgobject_solid.cpp csgobject_solid.hpp
+libibsimu_1_0_6dev_la_include_HEADERS += csgobject_solid.hpp
 endif
 
 EXTRA_DIST = \
