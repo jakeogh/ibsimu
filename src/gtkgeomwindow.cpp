@@ -655,22 +655,22 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     // Second grid row
     _prefdata->field_E_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->field_none_radio), 
 									    "|E|" );
-    if( !_epot )
+    if( !_efield )
 	gtk_widget_set_sensitive( _prefdata->field_E_radio, false );
     gtk_grid_attach( GTK_GRID(grid), _prefdata->field_E_radio, 0, yl, 1, 1 );
     _prefdata->field_Ex_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->field_none_radio), 
 									     "Ex" );
-    if( !_epot )
+    if( !_efield )
 	gtk_widget_set_sensitive( _prefdata->field_Ex_radio, false );
     gtk_grid_attach( GTK_GRID(grid), _prefdata->field_Ex_radio, 1, yl, 1, 1 );
     _prefdata->field_Ey_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->field_none_radio), 
 									     "Ey" );
-    if( !_epot )
+    if( !_efield )
 	gtk_widget_set_sensitive( _prefdata->field_Ey_radio, false );
     gtk_grid_attach( GTK_GRID(grid), _prefdata->field_Ey_radio, 2, yl, 1, 1 );
     _prefdata->field_Ez_radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(_prefdata->field_none_radio), 
 									     "Ez" );
-    if( !_epot )
+    if( !_efield )
 	gtk_widget_set_sensitive( _prefdata->field_Ez_radio, false );
     gtk_grid_attach( GTK_GRID(grid), _prefdata->field_Ez_radio, 3, yl, 1, 1 );
     yl++;
