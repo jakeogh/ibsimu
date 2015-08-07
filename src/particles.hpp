@@ -833,8 +833,10 @@ public:
      */
     void reset_trajectory( void ) { 
 	_status = PARTICLE_OK;
-	_x = _trajectory[0];
-	_trajectory.clear(); 
+	if( _trajectory.size() != 0 ) {
+	    _x = _trajectory[0];
+	    _trajectory.clear(); 
+	}
     }
 
     /*! \brief Saves data to stream.
