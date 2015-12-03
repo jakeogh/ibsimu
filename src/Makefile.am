@@ -157,6 +157,7 @@ particles.cpp \
 particles.hpp \
 particlestatistics.cpp \
 particlestatistics.hpp \
+particlestepper.hpp \
 plotter.cpp \
 plotter.hpp \
 polysolver.cpp \
@@ -289,6 +290,7 @@ particlegraph.hpp \
 particleiterator.hpp \
 particles.hpp \
 particlestatistics.hpp \
+particlestepper.hpp \
 plotter.hpp \
 polysolver.hpp \
 precond.hpp \

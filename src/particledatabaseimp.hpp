@@ -50,6 +50,7 @@
 #include "file.hpp"
 #include "particles.hpp"
 #include "particleiterator.hpp"
+#include "particlestepper.hpp"
 #include "trajectorydiagnostics.hpp"
 
 
@@ -755,10 +756,28 @@ public:
 	ibsimu.dec_indent();
     }
 
+
     virtual void step_particles( MeshScalarField &scharge, const VectorField &efield, 
 				 const VectorField &bfield, double dt ) {
 
-	throw( ErrorUnimplemented( ERROR_LOCATION ) );
+	Timer t;
+	ibsimu.message( 1 ) << "Stepping particles\n";
+	ibsimu.inc_indent();
+
+	// Go through particles
+	ParticleStepper<PP> ps( dt, _trajdiv, _mirror, &scharge, 
+			    &efield, &bfield, &_geom );
+	for( uint32_t a = 0; a < _particles.size(); a++ ) {
+	    if( (*_particles[a])[0] == 0 )
+		ps.initialize( _particles[a], a );
+	    ps.step( _particles[a], a );
+	}
+
+	scharge_finalize_step_pic( scharge );
+
+	t.stop();
+	ibsimu.message( 1 ) << "time used = " << t << "\n";
+	ibsimu.dec_indent();
     }
 
 

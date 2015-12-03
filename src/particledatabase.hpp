@@ -525,8 +525,8 @@ public:
     /*! \brief Step particles forward by time step dt.
      *
      *  The particles defined in particle database \a pdb are stepped
-     *  forward one time step in electric field \a efield and geometry
-     *  \a geom.
+     *  forward one time step \a dt through electric field \a efield and
+     *  magnetic field \a bfield in geometry \a geom.
      */
     void step_particles( MeshScalarField &scharge, const VectorField &efield, 
 			 const VectorField &bfield, double dt );

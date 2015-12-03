@@ -107,4 +107,17 @@ void scharge_add_from_trajectory_linear( MeshScalarField &scharge, pthread_mutex
 void scharge_add_from_trajectory_linear( MeshScalarField &scharge, pthread_mutex_t *mutex, 
 					 double I, int dir, const CFiFo<ParticlePCyl,4> &cdpast, const int i[3] );
 
+
+
+
+
+
+
+
+
+
+void scharge_finalize_step_pic( MeshScalarField &scharge );
+void scharge_add_step_pic( MeshScalarField &scharge, double Q, const Vec3D &x );
+
+
 #endif

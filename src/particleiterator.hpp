@@ -1281,7 +1281,7 @@ public:
 	// Reset trajectory and save first trajectory point.
 	_traj.clear();
 	save_trajectory_point( x );
-	_pidata._qm = particle->qm();	
+	_pidata._qm = particle->qm();
 	_xi = x;
 	if( _scharge_dep == SCHARGE_DEPOSITION_LINEAR ) {
 	    _cdpast.clear();

@@ -649,3 +649,62 @@ void scharge_add_from_trajectory_linear( MeshScalarField &scharge, pthread_mutex
 
 
 
+void scharge_finalize_step_pic( MeshScalarField &scharge )
+{
+    // Convert charge map to space charge density map
+    scharge /= (scharge.h()*scharge.h()*scharge.h());
+
+    // Correct boundaries
+    for( uint32_t i = 0; i < scharge.size(0); i++ ) {
+	for( uint32_t j = 0; j < scharge.size(1); j++ ) {
+	    scharge( i, j, 0 ) *= 2.0;
+	    scharge( i, j, scharge.size(2)-1 ) *= 2.0;
+	}
+    }
+    for( uint32_t i = 0; i < scharge.size(0); i++ ) {
+	for( uint32_t k = 0; k < scharge.size(2); k++ ) {
+	    scharge( i, 0, k ) *= 2.0;
+	    scharge( i, scharge.size(1)-1, k ) *= 2.0;
+	}
+    }	
+    for( uint32_t j = 0; j < scharge.size(1); j++ ) {
+	for( uint32_t k = 0; k < scharge.size(2); k++ ) {
+	    scharge( 0, j, k ) *= 2.0;
+	    scharge( scharge.size(0)-1, j, k ) *= 2.0;
+	}
+    }
+}
+
+
+void scharge_add_step_pic( MeshScalarField &scharge, double Q, const Vec3D &x )
+{
+    int i[3];
+    double t[3];
+
+    for( size_t a = 0; a < 3; a++ ) {
+	i[a] = (int32_t)floor( ( x[a]-scharge.origo(a) ) * scharge.div_h() );
+	t[a] = ( x[a]-(i[a]*scharge.h()+scharge.origo(a)) ) * scharge.div_h();
+
+	// Add charge to boundaries when over simulation area
+	if( i[a] < 0 ) {
+	    i[a] = 0;
+	    t[a] = 0.0;
+	} else if( i[a] >= (int32_t)scharge.size(a)-1 ) {
+	    i[a] = scharge.size(a)-2;
+	    t[a] = 1.0;
+	}
+    }
+
+    int p = scharge.size(0)*scharge.size(1)*i[2] + scharge.size(0)*i[1] + i[0];
+
+    scharge( p )                   += (1.0-t[0])*(1.0-t[1])*(1.0-t[2])*Q;
+    scharge( p+scharge.size(0) )   += (1.0-t[0])*t[1]*(1.0-t[2])*Q;
+    scharge( p+1 )                 += t[0]*(1.0-t[1])*(1.0-t[2])*Q;
+    scharge( p+1+scharge.size(0) ) += t[0]*t[1]*(1.0-t[2])*Q;
+
+    p += scharge.size(0)*scharge.size(1);
+    scharge( p )                   += (1.0-t[0])*(1.0-t[1])*t[2]*Q;
+    scharge( p+scharge.size(0) )   += (1.0-t[0])*t[1]*t[2]*Q;
+    scharge( p+1 )                 += t[0]*(1.0-t[1])*t[2]*Q;
+    scharge( p+1+scharge.size(0) ) += t[0]*t[1]*t[2]*Q;
+}
