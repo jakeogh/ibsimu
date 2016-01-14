@@ -44,6 +44,7 @@
 #include "config.h"
 #include <iostream>
 #include <iomanip>
+
 #include "error.hpp"
 #include "ibsimu.hpp"
 
@@ -348,17 +349,18 @@ ErrorDim::ErrorDim( const ErrorLocation &loc, const std::string &str )
 ErrorErrno::ErrorErrno( const ErrorLocation &loc )
     : Error(loc), _ierrno(errno) 
 {
-#if defined(WIN32) || defined(__MINGW32__)
+#if defined(WIN32) || defined(__MINGW32__) || !defined(HAVE_STRERROR_R)
     _error_str = "errno " + to_string(_ierrno);
 #else
     char buf[1024];
-#if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE
+#ifdef STRERROR_R_CHAR_P
+    char *ret = strerror_r( _ierrno, buf, 1024 );
+    _error_str = ret;
+#else
     int ret = strerror_r( _ierrno, buf, 1024 );
     if( !ret )
 	_error_str = buf;
-#else
-    char *ret = strerror_r( _ierrno, buf, 1024 );
-    _error_str = ret;
+
 #endif
 #endif
 }
