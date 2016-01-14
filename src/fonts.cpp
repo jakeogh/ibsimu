@@ -378,9 +378,10 @@ int FontLib::get_font_matrix( cairo_t *cairo, cairo_matrix_t *matrix, cairo_matr
     cairo_matrix_t matrix1;
     cairo_matrix_t matrix2;
     FcMatrix *fcmatrix2 = NULL;
-    FcResult result = FcResultMatch;
-  
-    result = FcPatternGetMatrix( fcpattern(), "matrix", 0, &fcmatrix2 );
+    //FcResult result = FcResultMatch;
+    //result = FcPatternGetMatrix( fcpattern(), "matrix", 0, &fcmatrix2 );
+
+    FcPatternGetMatrix( fcpattern(), "matrix", 0, &fcmatrix2 );
     if( fcmatrix2 != NULL ) {
 	/* positive slanting goes to wrong direction -> xy and yx terms
 	 * are inverted. Is my fontconfig wrong or is this really supposed
