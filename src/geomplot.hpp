@@ -127,6 +127,8 @@ public:
      */
     void disable_cache( void );
 
+    /*! \brief Set electric potential.
+     */
     void set_epot( const EpotField *epot );
 
     /*! \brief Set a vector of manual equipotential lines.
@@ -230,8 +232,10 @@ public:
      *
      *  Set \a particle_div to zero for no plotting, one for plotting
      *  every particle, two for plotting every second particle, three
-     *  for plotting every third particle, etc. Defaults to
-     *  11. Plotter skips the first \a particle_offset particles.
+     *  for plotting every third particle, etc. Defaults to 11.
+     *  %Plotter skips the first \a particle_offset particles.
+     *
+     *  This function controls plotting of particle trajectories.
      */
     void set_particle_div( uint32_t particle_div, uint32_t particle_offset = 0 );
 
