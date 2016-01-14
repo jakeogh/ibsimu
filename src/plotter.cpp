@@ -71,6 +71,13 @@ void Plotter::set_ranges( double xmin, double ymin, double xmax, double ymax )
 }
 
 
+void Plotter::get_ranges( double &xmin, double &ymin, double &xmax, double &ymax )
+{
+    _frame.get_ranges( PLOT_AXIS_X1, xmin, xmax );
+    _frame.get_ranges( PLOT_AXIS_Y1, ymin, ymax );
+}
+
+
 /* *******************************************************************************
  * PNG
  * ******************************************************************************* */

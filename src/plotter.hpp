@@ -111,6 +111,10 @@ public:
      */
     void set_ranges( double xmin, double ymin, double xmax, double ymax );
 
+    /*! \brief Get ranges of last plot in x- and y-directions.
+     */
+    void get_ranges( double &xmin, double &ymin, double &xmax, double &ymax );
+
 #ifdef CAIRO_HAS_PNG_FUNCTIONS
     /*! \brief Make a plot to a PNG-file.
      *
