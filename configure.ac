@@ -4,6 +4,7 @@ AC_CANONICAL_HOST
 AC_CONFIG_HEADERS(src/config.h)
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE
+AC_LANG(C++)
 
 dnl AC_USE_SYSTEM_EXTENSIONS
 
@@ -291,6 +292,11 @@ AC_CHECK_HEADERS([sys/time.h])
 AC_HEADER_TIME
 AC_CHECK_FUNCS([gettimeofday])
 AC_CHECK_FUNCS([clock_gettime])
+
+dnl -------------
+dnl strerror_r
+
+AC_FUNC_STRERROR_R
 
 dnl ---------------------------------
 dnl Output
