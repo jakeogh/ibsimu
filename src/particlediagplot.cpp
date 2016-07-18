@@ -330,7 +330,8 @@ void ParticleDiagPlot::export_data( const std::string &filename )
     } else {
 	fstr << "# ";
 	fstr << std::setw(11) << trajectory_diagnostic_string_with_unit[_diagx];
-	fstr << std::setw(14) << trajectory_diagnostic_string_with_unit[_diagy];
+	if( _diagy != DIAG_NONE )
+	    fstr << std::setw(14) << trajectory_diagnostic_string_with_unit[_diagy];
 	if( _type == PARTICLE_DIAG_PLOT_HISTO2D ) {
 	    if( (_diagx == DIAG_X && _diagy == DIAG_XP) ||
 		(_diagx == DIAG_Y && _diagy == DIAG_YP) ||
@@ -358,10 +359,11 @@ void ParticleDiagPlot::export_data( const std::string &filename )
     // Write data
     if( _type == PARTICLE_DIAG_PLOT_SCATTER ) {
 	size_t N = _tdata->traj_size();
+	size_t M = _tdata->diag_size();
 	for( size_t a = 0; a < N; a++ ) {
-	    fstr << std::setw(13) << (*_tdata)(a,0) << " ";
-	    fstr << std::setw(13) << (*_tdata)(a,1) << " ";
-	    fstr << std::setw(13) << (*_tdata)(a,2) << "\n";
+	    for( size_t b = 0; b < M; b++ )
+		fstr << std::setw(13) << (*_tdata)(a,b) << " ";
+	    fstr << "\n";
 	}
     } else if( _type == PARTICLE_DIAG_PLOT_HISTO1D ) {
 	Histogram1D *histo1d = dynamic_cast<Histogram1D *>( _histo );
