@@ -160,13 +160,17 @@ void EpotSolver::set_nsimp_plasma( double rhop, double Ep,
     _rhoi.clear();
     _Ei.clear();
 
-    _rhoi.push_back( fabs(rhop) ); // Ensure correct sign of charge density
+    if( rhop < 0 )
+	ibsimu.message( MSG_WARNING, 1 ) << "Warning: negative fast species charge density\n";
+    _rhoi.push_back( rhop );
     _Ei.push_back( Ep );
 
     if(  rhoi.size() != Ei.size() )
 	throw( Error( ERROR_LOCATION, "different size rhoi and Ep vectors" ) );
     for( size_t a = 0; a < rhoi.size(); a++ ) {
-	_rhoi.push_back( fabs(rhoi[a]) ); // Ensure correct sign of charge density
+	if( rhoi[a] < 0 )
+	    ibsimu.message( MSG_WARNING, 1 ) << "Warning: negative thermal species " << a << " charge density\n";
+	_rhoi.push_back( rhoi[a] );
 	_Ei.push_back( Ei[a] );
     }
 
