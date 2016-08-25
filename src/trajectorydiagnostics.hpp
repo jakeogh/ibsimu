@@ -2,7 +2,7 @@
  *  \brief Trajectory diagnostics
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012,2016 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -290,6 +290,14 @@ public:
      */
     Emittance( size_t xsize, size_t xpsize, const double range[4],
 	       const std::vector<double> &I );
+
+    /*! \brief Return current of beam trajectories used to calculate the emittance.
+     *
+     *  The current is only defined in some cases. If emittance
+     *  constructure Emittance( x, xp ) is used, this functions
+     *  returns the number of trajectories.
+     */
+    double current( void ) const { return( _Isum ); }
 
     /*! \brief Return average position (center location) of emittance distribution.
      */
