@@ -3,7 +3,7 @@
 
 
 Ion Beam Simulator is a library written in C++ and is compilable by
-modern gcc compilers in linux/unix and Microsoft Windows
+modern gcc compilers in Linux/Unix and Microsoft Windows
 environments. If the dependencies are available and correctly
 installed, it should be pretty straightforward to compile the library
 using GNU autotools build system.
@@ -23,7 +23,7 @@ The releases are available as .tar.gz archives. Just extract the
 archive with 
 
 tvkalvas@PHYS78 ~/src
-$ tar zxvf ibsimu-1.0.5new_solver.tar.gz
+$ tar zxvf ibsimu-1.0.6.tar.gz
 
 and start the configuration and compilation process.
 
@@ -32,14 +32,9 @@ available through the source repository accessible with source code
 management tool git. For the first time, you can fetch the code with:
 
 tvkalvas@PHYS78 ~/src
-$ git clone git://git.code.sf.net/p/ibsimu/code
+$ git clone git://ibsimu.git.sourceforge.net/gitroot/ibsimu/ibsimu
 
-This will create the directory "code", which contains the code and
-it's code repository. The directory name doesn't make sense, so change
-that to ibsimu:
-
-tvkalvas@PHYS78 ~/src
-$ mv code ibsimu
+Move into the directory containing the ibsimu code
 
 tvkalvas@PHYS78 ~/src
 $ cd ibsimu
@@ -78,18 +73,7 @@ git. The hash number is shown by ibsimu in the verbose printout along
 with the version number and the date of last modification. For
 example:
 
-Ion Beam Simulator 1.0.5dev (4b805c4, Fri Oct 7 16:00:31 2011 +0300)
-
-Currently (from summer 2012 onwards) there are big changes going on
-with IBSimu and most of the development is being done on a different
-branch called "new_solver".  After cloning the repository you can
-change to the new_solver branch with
-
-tvkalvas@PHYS78 ~/src/ibsimu
-$ git checkout new_solver
-
-After the next release (version 1.0.6) the new_solver branch will
-merge with master branch again.
+Ion Beam Simulator 1.0.6dev (6fa86a3, Mon Jul 18 10:56:59 2016 +0300)
 
 A web interface for ibsimu git repository is available at
 
@@ -110,9 +94,12 @@ can use the software in many different ways and modify it if you need
 to. In this document I assume that you have nearly no experience in
 programming or use of libraries and therefore I will go through each
 part of the installation of the necessary tools, dependencies and
-IBSimu itself in a step-by-step fashion.  Tools
+IBSimu itself in a step-by-step fashion.  
 
-In modern linux systems the software is bundled in packages that can
+Tools
+-----
+
+In modern Linux systems the software is bundled in packages that can
 be installed by using graphical package manager systems. They are very
 simple to use. The only thing you need to know is a list of tools
 needed. You will need the following software:
@@ -130,11 +117,11 @@ pkg-config: A metainformation system for querying installed libraries.
 An editor: You can do it with notepad, but you are not going to like
 it. Install a decent programmers editor. I use GNU emacs.
 
-For most of the linux systems all of this software is already
-installed by default. For windows the recipe is also quite simple, but
+For most of the Linux systems all of this software is already
+installed by default. For Windows the recipe is also quite simple, but
 the installation process will be hand made. Because IBSimu is
-developed under linux, it uses the GNU autoconf system for
-compilation. Therefore you have to have to have a unix-like
+developed under Linux, it uses the GNU autoconf system for
+compilation. Therefore you have to have to have a Unix-like
 environment in windows for running the automatic configuration and
 compilation. The system I recommend to use with IBSimu in Windows is
 the MSYS/MinGW, which are available at http://www.mingw.org/. I do not
@@ -149,7 +136,7 @@ directory C:\MSYS\1.0\. Enter "C:\MinGW\" when the post-install
 process asks for the location of MinGW.
 
 If the installation was successful you should have a "MSYS" icon on
-your desktop. Launching this will open a terminal with a unix-like
+your desktop. Launching this will open a terminal with a Unix-like
 command prompt with the tab-operated filename completition and all the
 goodies. When you start the MSYS terminal for the first time, it will
 create a home directory for you at C:\MSYS\1.0\home\username. Inside
@@ -173,10 +160,14 @@ fi
 
 export PATH="${HOME}/bin:${HOME}/lib:${PATH}"
 export LDFLAGS="-L${HOME}/lib"
-export CFLAGS="-I${HOME}/include"
+export CFLAGS="-I${HOME}/include -O2 -march=native"
 export CXXFLAGS="${CFLAGS}"
 export PKG_CONFIG_PATH="${HOME}/lib/pkgconfig"
 export LD_LIBRARY_PATH="${HOME}/lib"
+
+Please not that here I set the compiler optimization options "-O2" and
+"-march=native". These will make the code much faster than what it would
+be without them.
 
 Now restart your MSYS terminal and you should be ready to compile and
 install programs in MSYS. The MSYS terminal should give you a typical
@@ -196,7 +187,7 @@ Dependencies
 
 In addition to the tools you will also need some libraries that
 provide the background functionality for graphics, mathematics and
-some other background features in IBSimu. In linux you just use the
+some other background features in IBSimu. In Linux you just use the
 package manager again and install the software. You need development
 (often packages named *-dev) packages for:
 
@@ -211,7 +202,7 @@ libpng: PNG graphics file format library.
 zlib: Data compression library.
 
 POSIX threads: Multithreading library standard. Several
-implementations exist. Y our linux should already have an
+implementations exist. Y our Linux should already have an
 implementation.
 
 GNU Scientific Library: Mathematics library.
@@ -229,20 +220,22 @@ UMFPACK/Suitesparse: Matrix factorization/solver library.
 CSG: Constructive solid geometry library by the author. One way for
 building 3D geometries.
 
-For windows you can get most of these libraries and the dependencies
+For Windows you can get most of these libraries and the dependencies
 of GTK+ bundled in one package at http://www.gtk.org/ in
 "Download". Download the newest stable release "all-in-one bundle". At
 the time of writing (21 May 2014) the newest version was 3.6.4.
-Uncompress the package contents into a temporary location
-and copy the contents into C:\MSYS\1.0\ in such a way that the
-contents of the bin directory in the gtk package will go into
-C:\MSYS\1.0\bin, lib into C:\MSYS\1.0\lib, et cetera. This needs to be
-done as the Administrator.
+Uncompress the package contents into a temporary location and copy the
+contents into C:\MSYS\1.0\ in such a way that the contents of the bin
+directory in the gtk package will go into C:\MSYS\1.0\bin, lib into
+C:\MSYS\1.0\lib, et cetera. This needs to be done as the
+Administrator. The GTK+ in Windows seems to be now distributed through
+a system called MSYS2 Installer. Please see the website for
+installation instructions.
 
 The only libraries which are not in the bundle are the POSIX threads
 and the GNU Scientific Library and the other optional dependencies.
 
-For POSIX Threads you can find a windows implementation at
+For POSIX Threads you can find a Windows implementation at
 http://sourceware.org/pthreads-win32/. Download the most recent
 self-extracting release and uncompress it to a temporary location. At
 the time of writing this is pthreads-w32-2-8-0-release.exe. From
@@ -304,15 +297,15 @@ Compilation
 The compilation of IBSimu is pretty much similar to compilation of
 GSL. You should download the most recent version of IBSimu into your
 src directory, which is then uncompressed and configured. This has to
-be done manually also in linux:
+be done manually also in Linux:
 
 tvkalvas@PHYS78 ~/src
-$ tar zxvf libibsimu-1.0.5.tar.gz
+$ tar zxvf libibsimu-1.0.6.tar.gz
 
 tvkalvas@PHYS78 ~/src
-$ cd libibsimu-1.0.5
+$ cd libibsimu-1.0.6
 
-tvkalvas@PHYS78 ~/src/libibsimu-1.0.5
+tvkalvas@PHYS78 ~/src/libibsimu-1.0.6
 $ ./configure --prefix=/home/tvkalvas
 
 The configuration script works mostly automatically, but it also has
@@ -323,17 +316,17 @@ solver (requires SuiteSparse) and --without-csg to compile without CSG
 solids (requires Constructive Solid Geometry library). The
 requirements for these three options are automatically detected. You
 can also do --disable-sigsegv_stack to disable stack printing on
-segmentation faults, etc. This is necessary on non-x86
+segmentation faults, etc. This is necessary for example on non-x86
 computers. After successful configuration you can compile, run the
 checks and install:
 
-tvkalvas@PHYS78 ~/src/libibsimu-1.0.5
+tvkalvas@PHYS78 ~/src/libibsimu-1.0.6
 $ make
 
-tvkalvas@PHYS78 ~/src/libibsimu-1.0.5
+tvkalvas@PHYS78 ~/src/libibsimu-1.0.6
 $ make check
 
-tvkalvas@PHYS78 ~/src/libibsimu-1.0.5
+tvkalvas@PHYS78 ~/src/libibsimu-1.0.6
 $ make install
 
 That finishes the installation.
@@ -346,7 +339,7 @@ As a first test for the library, a quick test of using the library
 should be done. You should make a new directory for your simulations
 and a directory for this first test within:
 
-tvkalvas@PHYS78 ~/src/libibsimu-1.0.5
+tvkalvas@PHYS78 ~/src/libibsimu-1.0.6
 $ cd
 
 tvkalvas@PHYS78 ~
@@ -379,4 +372,4 @@ Please read more instructions from the tutorial.
 
 
 
--- Taneli Kalvas <taneli.kalvas@jyu.fi>, 15 Sep 2013
+-- Taneli Kalvas <taneli.kalvas@jyu.fi>, 25 Aug 2016
