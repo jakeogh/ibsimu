@@ -389,8 +389,8 @@ public:
     /*! \brief Enable plasma model for positive ion extraction problem.
      *
      *  Enable plasma model with background electron charge density of
-     *  \a rhoe and electron temperature \a Te. The plasma potential
-     *  is set to \a Up.
+     *  \a rhoe and electron temperature \a Te. The plasma potential is set to
+     *  \a Up.
      *
      *  The boundary condition for the plasma should be
      *  BOUND_NEUMANN with gradient of zero V/m.
@@ -416,6 +416,10 @@ public:
      *  protons and \a Ep, the energy of protons at zero
      *  potential. Vectors \a rhoi and \a Ei are used to set the space
      *  charge densities and thermal energies of the trapped ions.
+     *
+     *  For a typical negative ion extraction case the compensating
+     *  charges are positive (rhoi>0). This function allows also
+     *  negative compensating species to be simulated with rhoi<0 and Ei<0.
      *
      *  The boundary condition for the plasma should be
      *  BOUND_DIRICHLET with zero volts.
