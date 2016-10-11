@@ -120,29 +120,10 @@ AS_IF([test "x$with_opengl" != "xno"],
 )
 AM_CONDITIONAL([OPENGL], [test x$USEOPENGL = xyes])
 
-dnl UMFPACK
-dnl Check by default, can be disabled
-dnl ---------------------------------
-AC_ARG_WITH([umfpack],
-  [AS_HELP_STRING([--with-umfpack],
-                  [enable support for umfpack solver @<:@default=check@:>@])],
-                  [],
-                  [with_umfpack=check])
-AS_IF([test "x$with_umfpack" != "xno"],
-      [PKG_CHECK_MODULES([UMFPACK], [umfpack], [], [echo "Disabling functionality"])
-       if $PKG_CONFIG --exists umfpack ; then
-         USEUMFPACK="yes"
-         AC_DEFINE([UMFPACK], [1], [Define to 1 if UMFPACK solver is to be compiled.])
-         LIBS="$LIBS $UMFPACK_LIBS"
-         CPPFLAGS="$CPPFLAGS $UMFPACK_CFLAGS"
-         AC_SUBST(UMFPACK_COND,[umfpack])
-       elif test "x$with_umfpack" != "xcheck" ; then
-         AC_MSG_ERROR([--with-umfpack was given, but pkgconfig check for umfpack library failed])
-       else
-         AC_SUBST(UMFPACK_COND,"")
-       fi]
-)
-AM_CONDITIONAL([UMFPACK], [test x$USEUMFPACK = xyes])
+
+CHECK_UMFPACK()
+AM_CONDITIONAL([UMFPACK], [test "x$USEUMFPACK" = "xyes"])
+
 
 dnl CSG
 dnl Check by default, can be disabled
