@@ -2,7 +2,7 @@
  *  \brief Stereolithography CAD file handling
  */
 
-/* Copyright (c) 2011-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2012,2016 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -318,8 +318,14 @@ STLFile::STLFile( const std::string &filename,
 
     // Convert to vertex triangle data
     build_vtriangle_data();
-    _solid.check_data();
     _tri.clear();
+
+    // Report
+    ibsimu.message(1) << "vertexc = " << _solid.vertexc() << "\n";
+    ibsimu.message(1) << "trianglec = " << _solid.trianglec() << "\n";
+
+    // Check
+    _solid.check_data();
 
     ibsimu.dec_indent();
 }
