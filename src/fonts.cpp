@@ -2,7 +2,7 @@
  *  \brief %Font handling
  */
 
-/* Copyright (c) 2005-2009,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012,2016 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -191,7 +191,7 @@ void Font::load( FontLib &fontlib )
 
     /* Create request pattern */
 #ifdef CAIROPLOT_FONTS_DEBUG
-    std::cout << "Loading " << _family;
+    std::cout << "  loading " << _family;
 #endif
     preq = FcPatternCreate();
     FcPatternAddString( preq, FC_FAMILY, (FcChar8 *)_family.c_str() );
@@ -447,6 +447,16 @@ int FontLib::process_substr( cairo_t *cairo, const std::string &str, cairo_text_
     int matrix_modified;
     int len = str.length();
     double dx, dy;
+
+#ifdef CAIROPLOT_FONTS_DEBUG
+    std::cout << "\nprocess_substring()\n";
+    std::cout << "  str = \'" << str << "\'\n";
+    std::cout << "  len = " << len << "\n";
+    std::cout << "  str = ";
+    for( int a = 0; a < len; a++ )
+	std::cout << (int)str[a] << " ";
+    std::cout << "\n";
+#endif
   
     // Get font face
     cairo_set_font_face( cairo, font_face() );
@@ -462,7 +472,7 @@ int FontLib::process_substr( cairo_t *cairo, const std::string &str, cairo_text_
 	throw( Error( ERROR_LOCATION, "couldn\'t convert character from utf-8 to ucs-4" ) );
     
 #ifdef CAIROPLOT_FONTS_DEBUG
-    std::cout << "\nPrinting " << c << "\n";
+    std::cout << "  c = " << c << "\n";
 #endif
 
     cairo_glyph_t gindex;
@@ -473,14 +483,14 @@ int FontLib::process_substr( cairo_t *cairo, const std::string &str, cairo_text_
 	    cairo_set_font_matrix( cairo, &orig_matrix );
 
 #ifdef CAIROPLOT_FONTS_DEBUG
-	std::cout << "  Failed\n";
+	std::cout << "  printing failed\n";
 #endif
 
 	return( 0 );
     }
     
 #ifdef CAIROPLOT_FONTS_DEBUG
-    std::cout << "  Success\n";
+    std::cout << "  printing succeeded\n";
 #endif
 
     if( FT_Load_Glyph( face, gindex.index, FT_LOAD_DEFAULT ) )
@@ -526,6 +536,11 @@ void FontLib::process( cairo_t *cairo, const std::string &str, cairo_text_extent
     std::string::const_iterator it = str.begin();
     double x0 = x;
     double y0 = y;
+
+#ifdef CAIROPLOT_FONTS_DEBUG
+    std::cout << "\nprocess()\n";
+    std::cout << "  str = \'" << str << "\'\n";
+#endif
 
     // Process the string
     while( it != str.end() ) {
