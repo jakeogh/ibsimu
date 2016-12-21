@@ -2,7 +2,7 @@
  *  \brief %Particle diagnostic window.
  */
 
-/* Copyright (c) 2005-2012,2014 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012,2014,2016 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -42,10 +42,12 @@
 
 #include <sstream>
 #include <limits>
+#include <locale>
 #include "gtkparticlediagwindow.hpp"
 #include "gtkparticlediagexportdialog.hpp"
 #include "histogram.hpp"
 #include "meshcolormap.hpp"
+#include "fonts.hpp"
 
 
 GTKParticleDiagWindow::GTKParticleDiagWindow( GTKPlotter &plotter, const ParticleDataBase &pdb, 
@@ -403,7 +405,9 @@ void GTKParticleDiagWindow::menuitem_export_signal( GtkToolButton *button,
 
 std::string GTKParticleDiagWindow::track_text( double x, double y )
 {
-    std::stringstream ss;
+    std::wstringstream ss;
+    std::locale mylocale("");
+    ss.imbue( mylocale );
 
     particle_diag_plot_type_e type;
     trajectory_diagnostic_e diagx, diagy;
@@ -445,8 +449,7 @@ std::string GTKParticleDiagWindow::track_text( double x, double y )
 	}
     }
 
-    
-    return( ss.str() );
+    return( wstring_to_utf8( ss.str() ) );
 }
 
 

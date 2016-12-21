@@ -2,7 +2,7 @@
  *  \brief %Geometry view window
  */
 
-/* Copyright (c) 2005-2009, 2011-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009, 2011-2013, 2016 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -48,6 +48,7 @@
 #include "epot_efield.hpp"
 #include "icons.hpp"
 #include "ibsimu.hpp"
+#include "fonts.hpp"
 
 
 #define TOOL_UNKNOWN  -1
@@ -396,7 +397,9 @@ std::string GTKGeomWindow::track_text( double x, double y )
 {
     double xc[3];
     int    i[3];
-    std::stringstream ss;
+    std::wstringstream ss;
+    std::locale mylocale("");
+    ss.imbue( mylocale );
 
     xc[_geomplot.vb(0)] = x;
     xc[_geomplot.vb(1)] = y;
@@ -418,8 +421,8 @@ std::string GTKGeomWindow::track_text( double x, double y )
        << "k = " << i[2] << "\n";
 
     // Mesh id for debugging
-    ss << "solid mesh = 0x" << std::hex << std::setfill('0') << std::setw(8)
-       << smesh << std::dec << std::setfill(' ') << ", ";
+    ss << "solid mesh = 0x" << std::hex << std::setfill(L'0') << std::setw(8)
+       << smesh << std::dec << std::setfill(L' ') << ", ";
     if( (smesh & SMESH_NODE_ID_MASK) == SMESH_NODE_ID_NEAR_SOLID ) {
 	ss << "near solid: ";
 	uint32_t ind = smesh & SMESH_NEAR_SOLID_INDEX_MASK;
@@ -467,7 +470,7 @@ std::string GTKGeomWindow::track_text( double x, double y )
     if( _tdens )
 	ss << "trajdens = " << (*_tdens)( loc ) << " A/m2\n";
 
-    return( ss.str() );
+    return( wstring_to_utf8( ss.str() ) );
 }
 
 
@@ -1011,7 +1014,7 @@ void GTKGeomWindow::spinbutton( GtkSpinButton *spinbutton )
 
     int level = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON(_spinbutton) );
 
-    std::stringstream ss;
+    std::wstringstream ss;
     std::locale mylocale("");
     ss.imbue( mylocale );
     switch( _geomplot.get_view() ) {
@@ -1038,7 +1041,8 @@ void GTKGeomWindow::spinbutton( GtkSpinButton *spinbutton )
 	break;
     }
     gtk_statusbar_pop( GTK_STATUSBAR(_statusbar), 0 );
-    gtk_statusbar_push( GTK_STATUSBAR(_statusbar), 0, ss.str().c_str() );
+    std::string s8 = wstring_to_utf8( ss.str() );
+    gtk_statusbar_push( GTK_STATUSBAR(_statusbar), 0, s8.c_str() );
 
     // Update view
     _geomplot.set_view( _geomplot.get_view(), level );

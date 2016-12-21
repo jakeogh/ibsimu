@@ -2,7 +2,7 @@
  *  \brief %Particle diagnostic plot
  */
 
-/* Copyright (c) 2005-2011,2013-2014 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2013-2014,2016 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -42,9 +42,10 @@
 
 #include <limits>
 #include <fstream>
+#include <locale>
 #include "particlediagplot.hpp"
 #include "ibsimu.hpp"
-#include <locale>
+#include "fonts.hpp"
 
 
 ParticleDiagPlot::ParticleDiagPlot( Frame &frame, const Geometry &geom, const ParticleDataBase &pdb, 
@@ -525,7 +526,7 @@ void ParticleDiagPlot::build_plot( void )
 	_frame.add_graph( PLOT_AXIS_X1, PLOT_AXIS_Y1, _ellipse );
 
 	// Add emittance numbers to title
-	std::stringstream ss;
+	std::wstringstream ss;
 	std::locale mylocale("");
 	ss.imbue( mylocale );
 	ss << "Emittance plot at " << coordinate_axis_string[_axis] << " = " << _level << " m\n"
@@ -533,7 +534,7 @@ void ParticleDiagPlot::build_plot( void )
 	   << "\\beta  = "    << _emit->beta()    << " m/rad, "
 	   << "\\gamma  = "   << _emit->gamma()   << " rad/m, "
 	   << "\\epsilon  = " << _emit->epsilon() << " m\\cdot rad";
-	_frame.set_title( ss.str().c_str() );
+	_frame.set_title( wstring_to_utf8( ss.str() ) );
 
     } else if( (_type == PARTICLE_DIAG_PLOT_HISTO1D && 
 		(_diagx == DIAG_X || _diagx == DIAG_Y ||
@@ -543,9 +544,11 @@ void ParticleDiagPlot::build_plot( void )
 		(_diagx == DIAG_X && _diagy == DIAG_Z)) ) {
 
 	// Make title for profile
-	std::stringstream ss;
+	std::wstringstream ss;
+	std::locale mylocale("");
+	ss.imbue( mylocale );
 	ss << "Profile plot at " << coordinate_axis_string[_axis] << " = " << _level << " m";
-	_frame.set_title( ss.str().c_str() );
+	_frame.set_title( wstring_to_utf8( ss.str() ) );
 
     } else {
 

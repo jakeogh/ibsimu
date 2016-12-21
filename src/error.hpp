@@ -67,6 +67,17 @@ inline std::string to_string( const T& t )
 }
 
 
+/*! \brief Function for converting a type to string.
+ */
+template <class T>
+inline std::wstring to_wstring( const T& t )
+{
+    std::wstringstream ss;
+    ss << t;
+    return( ss.str() );
+}
+
+
 /*! \brief Macro for setting error location when throwing errors.
  */
 #define ERROR_LOCATION ErrorLocation( __FILE__, __LINE__, __func__ )

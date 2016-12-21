@@ -175,5 +175,10 @@ public:
 extern FontLib fontlib;
 
 
+/*! \brief Convert wide string to utf8.
+ */
+std::string wstring_to_utf8( const std::wstring &in );
+
+
 #endif
 

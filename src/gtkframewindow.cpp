@@ -2,7 +2,7 @@
  *  \brief Window for GTK plots with frames
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013,2016 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -46,6 +46,7 @@
 #include "gtkhardcopy.hpp"
 #include "gtkpreferences.hpp"
 #include "icons.hpp"
+#include "fonts.hpp"
 
 
 
@@ -574,10 +575,13 @@ void GTKFrameWindow::darea_motion( GdkEventMotion *event )
     double cx = event->x;
     double cy = event->y;
     cm.inv_transform( cx, cy );
-    std::stringstream ss;
+    std::wstringstream ss;
+    std::locale mylocale("");
+    ss.imbue( mylocale );
     ss << "("<< cx << ", " << cy << ")";
     gtk_statusbar_pop( GTK_STATUSBAR(_statusbar), 0 );
-    gtk_statusbar_push( GTK_STATUSBAR(_statusbar), 0, ss.str().c_str() );
+    std::string s8 = wstring_to_utf8( ss.str() );
+    gtk_statusbar_push( GTK_STATUSBAR(_statusbar), 0, s8.c_str() );
 
     int x, y;
     GdkModifierType state;

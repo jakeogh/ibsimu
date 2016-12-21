@@ -57,7 +57,40 @@ FontLib fontlib;
 //#define CAIROPLOT_FONTS_DEBUG 1
 
 
-/*! \brief Returns length of the next utf8 character on string.
+std::string wstring_to_utf8( const std::wstring &in )
+{
+    std::string out;
+
+    for( unsigned int a = 0; a < in.length(); a++ ) {
+	
+	unsigned long c = in[a];
+	if( c < 0x0080 ) {
+	    // 1 byte utf8 representation
+	    out.append( 1, (char)c );
+	} else if( c < 0x0800 ) {
+	    // 2 byte utf8 representation
+	    out.append( 1, (char)(0xC0 | ((c>>6) & 0x1F)) );
+	    out.append( 1, (char)(0x80 | (c & 0x3F)) );
+	} else if( c < 0x10000 ) {
+	    // 3 byte utf8 representation
+	    out.append( 1, (char)(0xE0 | ((c>>12) & 0x0F)) );
+	    out.append( 1, (char)(0x80 | ((c>>6) & 0x3F)) );
+	    out.append( 1, (char)(0x80 | (c & 0x3F)) );
+	} else {
+	    // 4 byte utf8 representation
+	    out.append( 1, (char)(0xF0 | ((c>>18) & 0x07)) );
+	    out.append( 1, (char)(0x80 | ((c>>12) & 0x3F)) );
+	    out.append( 1, (char)(0x80 | ((c>>6) & 0x3F)) );
+	    out.append( 1, (char)(0x80 | (c & 0x3F)) );
+
+	}
+    }
+
+    return( out );
+}
+
+
+/*! \brief Returns length of utf8 character.
  */
 int utf8_get_length( unsigned char c )
 {
@@ -76,6 +109,8 @@ int utf8_get_length( unsigned char c )
 }
 
 
+/*! \brief Returns next utf8 character from string pointed to by iterator.
+ */
 std::string utf8_next_character( std::string::const_iterator it )
 {
     std::string character;

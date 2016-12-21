@@ -2,7 +2,7 @@
  *  \brief Field diagnostic window
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012,2016 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -44,6 +44,7 @@
 #include <limits>
 #include "gtkfielddiagwindow.hpp"
 #include "gtkfielddiagexportdialog.hpp"
+#include "fonts.hpp"
 
 
 GTKFieldDiagWindow::GTKFieldDiagWindow( GTKPlotter &plotter, const Geometry &geom, size_t N, 
@@ -135,7 +136,9 @@ void GTKFieldDiagWindow::read_preferences( GtkWidget *notebook, void *pdata )
 
 std::string GTKFieldDiagWindow::track_text( double x, double y )
 {
-    std::stringstream ss;
+    std::wstringstream ss;
+    std::locale mylocale("");
+    ss.imbue( mylocale );
 
     // Calculate relative track location on x-axis
     double xmin, xmax;
@@ -224,6 +227,6 @@ std::string GTKFieldDiagWindow::track_text( double x, double y )
 	};
     }
     
-    return( ss.str() );
+    return( wstring_to_utf8( ss.str() ) );
 }
 

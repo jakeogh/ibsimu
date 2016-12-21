@@ -2,7 +2,7 @@
  *  \brief Three dimensional vectors.
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012,2016 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -264,6 +264,7 @@ public:
     /*! \brief Outputting to stream.
      */
     friend std::ostream &operator<<( std::ostream &os, const Vec3D &vec );
+    friend std::basic_ostream<wchar_t> &operator<<( std::basic_ostream<wchar_t> &os, const Vec3D &vec );
 };
 
 
@@ -292,9 +293,24 @@ inline Vec3D operator*( double x, const Vec3D &vec )
 
 inline std::ostream &operator<<( std::ostream &os, const Vec3D &vec ) 
 {
-    os << std::setw(12) << to_string(vec[0]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(vec[1]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(vec[2]).substr(0,12);
+    os << std::setw(12) << vec[0] << " " 
+       << std::setw(12) << vec[1] << " "
+       << std::setw(12) << vec[2];
+    //os << std::setw(12) << to_string(vec[0]).substr(0,12) << " ";
+    //os << std::setw(12) << to_string(vec[1]).substr(0,12) << " ";
+    //os << std::setw(12) << to_string(vec[2]).substr(0,12);
+    return( os );
+}
+
+
+inline std::basic_ostream<wchar_t> &operator<<( std::basic_ostream<wchar_t> &os, const Vec3D &vec )
+{
+    os << std::setw(12) << vec[0] << " " 
+       << std::setw(12) << vec[1] << " "
+       << std::setw(12) << vec[2];
+    //os << std::setw(12) << to_wstring(vec[0]).substr(0,12) << " ";
+    //os << std::setw(12) << to_wstring(vec[1]).substr(0,12) << " ";
+    //os << std::setw(12) << to_wstring(vec[2]).substr(0,12);
     return( os );
 }
 
@@ -375,7 +391,8 @@ public:
 
     friend Vec3D operator*( double x, const Int3D &i );
     friend Int3D operator*( int x, const Int3D &i );
-    friend std::ostream &operator<<( std::ostream &os, const Vec3D &vec );
+    friend std::ostream &operator<<( std::ostream &os, const Int3D &vec );
+    friend std::basic_ostream<wchar_t> &operator<<( std::basic_ostream<wchar_t> &os, const Int3D &vec );
 };
 
 
@@ -401,9 +418,24 @@ inline Int3D operator*( int x, const Int3D &i )
 
 inline std::ostream &operator<<( std::ostream &os, const Int3D &vec ) 
 {
-    os << std::setw(12) << to_string(vec[0]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(vec[1]).substr(0,12) << " ";
-    os << std::setw(12) << to_string(vec[2]).substr(0,12);
+    os << std::setw(12) << vec[0] << " " 
+       << std::setw(12) << vec[1] << " "
+       << std::setw(12) << vec[2];
+    //os << std::setw(12) << to_string(vec[0]).substr(0,12) << " ";
+    //os << std::setw(12) << to_string(vec[1]).substr(0,12) << " ";
+    //os << std::setw(12) << to_string(vec[2]).substr(0,12);
+    return( os );
+}
+
+
+inline std::basic_ostream<wchar_t> &operator<<( std::basic_ostream<wchar_t> &os, const Int3D &vec ) 
+{
+    os << std::setw(12) << vec[0] << " " 
+       << std::setw(12) << vec[1] << " "
+       << std::setw(12) << vec[2];
+    //os << std::setw(12) << to_wstring(vec[0]).substr(0,12) << " ";
+    //os << std::setw(12) << to_wstring(vec[1]).substr(0,12) << " ";
+    //os << std::setw(12) << to_wstring(vec[2]).substr(0,12);
     return( os );
 }
 
