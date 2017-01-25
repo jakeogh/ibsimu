@@ -2,7 +2,7 @@
  *  \brief %Geometry plotting
  */
 
-/* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012,2017 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -326,7 +326,12 @@ public:
 	vb[1] = _vb[1];
 	vb[2] = _vb[2];
     }
-    
+
+    /*! \brief Get a reference to the frame
+     */
+    Frame &frame( void ) {
+	return( *_frame );
+    }
 };
 
 

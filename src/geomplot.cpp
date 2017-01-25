@@ -1,5 +1,5 @@
 /*! \file geomplot.cpp
- *  \brief Geometry plotting
+ *  \brief %Geometry plotting
  */
 
 /* Copyright (c) 2005-2012 Taneli Kalvas. All rights reserved.
