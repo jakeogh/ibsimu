@@ -50,10 +50,6 @@ AM_CPPFLAGS = $(CPPFLAGS) -Wall -g -I$(top_srcdir)/src
 AM_LDFLAGS = $(LIBS) -L$(top_srcdir)/src @rdynamic_flag@
 LDADD = $(top_builddir)/src/libibsimu-1.0.6dev.la libibsimutest.la -lm
 
-if UMFPACK
-AM_CPPFLAGS += `pkg-config --cflags umfpack`
-AM_LDFLAGS += `pkg-config --libs umfpack`
-endif
 if CSG
 AM_CPPFLAGS += `pkg-config --cflags csg`
 AM_LDFLAGS += `pkg-config --libs csg`
