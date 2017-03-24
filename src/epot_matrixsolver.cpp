@@ -2,7 +2,7 @@
  *  \brief Matrix solver for electric potential problem
  */
 
-/* Copyright (c) 2011,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012,2017 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -157,7 +157,7 @@ void EpotMatrixSolver::set_link( uint32_t a, uint32_t b, double val )
 }
 
 
-void EpotMatrixSolver::add_vacuum_node( uint32_t i, uint32_t j, uint32_t k )
+void EpotMatrixSolver::add_vacuum_node( uint32_t i, uint32_t j, uint32_t k, const Vec3D &x )
 {
     uint32_t a = _n2d(i,j,k) & N2D_INDEX_MASK;
 
@@ -192,18 +192,28 @@ void EpotMatrixSolver::add_vacuum_node( uint32_t i, uint32_t j, uint32_t k )
         break;
     }
 
-    if( _plasma == PLASMA_PEXP ) {
-	double p = (*_sol)(a);
-	double rhst, drhst;
-	pexp_newton( rhst, drhst, p );
-	(*_fd_vec)(a) += rhst;
-	(*_d_vec)(a) = drhst;
-    } else if( _plasma == PLASMA_NSIMP ) {
-	double p = (*_sol)(a);
-        double rhst, drhst;
-        nsimp_newton( rhst, drhst, p );
-	(*_fd_vec)(a) += rhst;
-	(*_d_vec)(a) = drhst;
+    if( _plasma != PLASMA_NONE ) {
+
+	bool inplasma = true;
+	if( _plasma_calc_func )
+	    // Test if within plasma calculation region
+	    inplasma = (*_plasma_calc_func)(x);
+
+	if( !inplasma ) {
+	    ; // No plasma calculation
+	} else if( _plasma == PLASMA_PEXP ) {
+	    double p = (*_sol)(a);
+	    double rhst, drhst;
+	    pexp_newton( rhst, drhst, p );
+	    (*_fd_vec)(a) += rhst;
+	    (*_d_vec)(a) = drhst;
+	} else if( _plasma == PLASMA_NSIMP ) {
+	    double p = (*_sol)(a);
+	    double rhst, drhst;
+	    nsimp_newton( rhst, drhst, p );
+	    (*_fd_vec)(a) += rhst;
+	    (*_d_vec)(a) = drhst;
+	}
     }
 
     (*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
@@ -521,19 +531,30 @@ void EpotMatrixSolver::add_near_solid_node( uint32_t i, uint32_t j, uint32_t k, 
 	break;
     }
 
-    if( _plasma == PLASMA_PEXP ) {
-	double p = (*_sol)(a);
-	double rhst, drhst;
-	pexp_newton( rhst, drhst, p );
-	(*_fd_vec)(a) += rhst;
-	(*_d_vec)(a) = drhst;
-    } else if( _plasma == PLASMA_NSIMP ) {
-	double p = (*_sol)(a);
-        double rhst, drhst;
-        nsimp_newton( rhst, drhst, p );
-	(*_fd_vec)(a) += rhst;
-	(*_d_vec)(a) = drhst;
+    if( _plasma != PLASMA_NONE ) {
+
+	bool inplasma = true;
+	if( _plasma_calc_func )
+	    // Test if within plasma calculation region
+	    inplasma = (*_plasma_calc_func)(x);
+
+	if( !inplasma ) {
+	    ; // No plasma calculation
+	} else if( _plasma == PLASMA_PEXP ) {
+	    double p = (*_sol)(a);
+	    double rhst, drhst;
+	    pexp_newton( rhst, drhst, p );
+	    (*_fd_vec)(a) += rhst;
+	    (*_d_vec)(a) = drhst;
+	} else if( _plasma == PLASMA_NSIMP ) {
+	    double p = (*_sol)(a);
+	    double rhst, drhst;
+	    nsimp_newton( rhst, drhst, p );
+	    (*_fd_vec)(a) += rhst;
+	    (*_d_vec)(a) = drhst;
+	}
     }
+
     (*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 }
 
@@ -692,18 +713,28 @@ void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, con
         break;
     }
 
-    if( _plasma == PLASMA_PEXP ) {
-	double p = (*_sol)(a);
-	double rhst, drhst;
-	pexp_newton( rhst, drhst, p );
-	(*_fd_vec)(a) += rhst;
-	(*_d_vec)(a) = drhst;
-    } else if( _plasma == PLASMA_NSIMP ) {
-	double p = (*_sol)(a);
-        double rhst, drhst;
-        nsimp_newton( rhst, drhst, p );
-	(*_fd_vec)(a) += rhst;
-	(*_d_vec)(a) = drhst;
+    if( _plasma != PLASMA_NONE ) {
+
+	bool inplasma = true;
+	if( _plasma_calc_func )
+	    // Test if within plasma calculation region
+	    inplasma = (*_plasma_calc_func)(x);
+
+	if( !inplasma ) {
+	    ; // No plasma calculation
+	} else if( _plasma == PLASMA_PEXP ) {
+	    double p = (*_sol)(a);
+	    double rhst, drhst;
+	    pexp_newton( rhst, drhst, p );
+	    (*_fd_vec)(a) += rhst;
+	    (*_d_vec)(a) = drhst;
+	} else if( _plasma == PLASMA_NSIMP ) {
+	    double p = (*_sol)(a);
+	    double rhst, drhst;
+	    nsimp_newton( rhst, drhst, p );
+	    (*_fd_vec)(a) += rhst;
+	    (*_d_vec)(a) = drhst;
+	}
     }
 
     (*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
@@ -812,7 +843,7 @@ void EpotMatrixSolver::build_mat_vec( void )
 		    continue;
 		} else if( node_id == SMESH_NODE_ID_PURE_VACUUM ) {
 		    //ibsimu.message( 1 ) << "Vacuum\n";
-		    add_vacuum_node( i, j, k );
+		    add_vacuum_node( i, j, k, x );
 		} else if( node_id == SMESH_NODE_ID_NEAR_SOLID ) {
 		    //ibsimu.message( 1 ) << "Near solid\n";
 		    add_near_solid_node( i, j, k, x );

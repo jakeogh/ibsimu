@@ -2,7 +2,7 @@
  *  \brief Poisson equation problem for solving electric potential.
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013,2017 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -58,7 +58,7 @@ EpotSolver::EpotSolver( Geometry &geom )
     : _geom(geom), _plasma(PLASMA_NONE), 
       _rhoe(0.0), _Te(0.0), _Up(0.0), 
       _force_pot(0.0), _force_pot_func(0), _force_pot_func2(0), 
-      _init_plasma_func(0)
+      _init_plasma_func(0), _plasma_calc_func(0)
 {
 
 }
@@ -70,7 +70,8 @@ EpotSolver::EpotSolver( const EpotSolver &epsolver, Geometry &geom )
       _rhoi(epsolver._rhoi), _Ei(epsolver._Ei), 
       _force_pot(epsolver._force_pot), _force_pot_func(epsolver._force_pot_func),
       _force_pot_func2(epsolver._force_pot_func2),
-      _init_plasma_func(epsolver._init_plasma_func)
+      _init_plasma_func(epsolver._init_plasma_func),
+      _plasma_calc_func(epsolver._plasma_calc_func)
 {
 
 }
@@ -100,6 +101,7 @@ void EpotSolver::set_parameters( const EpotSolver &epsolver )
     _force_pot_func = epsolver._force_pot_func;
     _force_pot_func2 = epsolver._force_pot_func2;
     _init_plasma_func = epsolver._init_plasma_func;
+    _plasma_calc_func = epsolver._plasma_calc_func;
 }
 
 
@@ -125,6 +127,13 @@ void EpotSolver::set_initial_plasma( double Up,
     if( !init_plasma_func )
 	throw( Error( ERROR_LOCATION, "NULL initial plasma function" ) );
     _init_plasma_func = init_plasma_func;
+    reset_problem();
+}
+
+
+void EpotSolver::set_plasma_calc_region( CallbackFunctorB_V *plasma_calc_func )
+{
+    _plasma_calc_func = plasma_calc_func;
     reset_problem();
 }
 

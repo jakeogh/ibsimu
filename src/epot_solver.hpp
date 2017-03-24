@@ -2,7 +2,7 @@
  *  \brief Poisson equation problem for solving electric potential.
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013,2017 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -225,6 +225,7 @@ protected:
     CallbackFunctorB_V *_force_pot_func;   /*!< \brief Force region potential function. */
     CallbackFunctorD_V *_force_pot_func2;  /*!< \brief Force region potential function. */
     CallbackFunctorB_V *_init_plasma_func; /*!< \brief Initial plasma region function. */
+    CallbackFunctorB_V *_plasma_calc_func; /*!< \brief Definition of plasma calculation region. */
 
     double              _plA;              /*!< \brief Plasma parameter.
 				            *   For positive ion extraction: rho_th * h^2 / epsilon_0,
@@ -385,6 +386,19 @@ public:
      */
     void set_initial_plasma( double Up, 
 			     CallbackFunctorB_V *init_plasma_func );
+
+    /*! \brief Define plasma calculation region.
+     *
+     *  By default the plasma compensation function takes place in the
+     *  whole geometry. With this function one can define a functor \a
+     *  plasma_calc_func, which is called for all calculation nodes
+     *  during Poisson solve. The function should return true if
+     *  plasma calculation is enabled at that point and false if
+     *  not.
+     *
+     *  Implemented only in matrix solvers.
+     */
+    void set_plasma_calc_region( CallbackFunctorB_V *plasma_calc_func );
 
     /*! \brief Enable plasma model for positive ion extraction problem.
      *
