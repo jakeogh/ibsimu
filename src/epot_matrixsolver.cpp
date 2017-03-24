@@ -192,7 +192,7 @@ void EpotMatrixSolver::add_vacuum_node( uint32_t i, uint32_t j, uint32_t k, cons
         break;
     }
 
-    if( _plasma != PLASMA_NONE ) {
+    if( _plasma == PLASMA_PEXP || _plasma == PLASMA_NSIMP ) {
 
 	bool inplasma = true;
 	if( _plasma_calc_func )
@@ -200,7 +200,7 @@ void EpotMatrixSolver::add_vacuum_node( uint32_t i, uint32_t j, uint32_t k, cons
 	    inplasma = (*_plasma_calc_func)(x);
 
 	if( !inplasma ) {
-	    ; // No plasma calculation
+	    (*_d_vec)(a) = 0; // No plasma calculation
 	} else if( _plasma == PLASMA_PEXP ) {
 	    double p = (*_sol)(a);
 	    double rhst, drhst;
@@ -531,7 +531,7 @@ void EpotMatrixSolver::add_near_solid_node( uint32_t i, uint32_t j, uint32_t k, 
 	break;
     }
 
-    if( _plasma != PLASMA_NONE ) {
+    if( _plasma == PLASMA_PEXP || _plasma == PLASMA_NSIMP ) {
 
 	bool inplasma = true;
 	if( _plasma_calc_func )
@@ -539,7 +539,7 @@ void EpotMatrixSolver::add_near_solid_node( uint32_t i, uint32_t j, uint32_t k, 
 	    inplasma = (*_plasma_calc_func)(x);
 
 	if( !inplasma ) {
-	    ; // No plasma calculation
+	    (*_d_vec)(a) = 0; // No plasma calculation
 	} else if( _plasma == PLASMA_PEXP ) {
 	    double p = (*_sol)(a);
 	    double rhst, drhst;
@@ -713,7 +713,7 @@ void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, con
         break;
     }
 
-    if( _plasma != PLASMA_NONE ) {
+    if( _plasma == PLASMA_PEXP || _plasma == PLASMA_NSIMP ) {
 
 	bool inplasma = true;
 	if( _plasma_calc_func )
@@ -721,7 +721,7 @@ void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, con
 	    inplasma = (*_plasma_calc_func)(x);
 
 	if( !inplasma ) {
-	    ; // No plasma calculation
+	    (*_d_vec)(a) = 0; // No plasma calculation
 	} else if( _plasma == PLASMA_PEXP ) {
 	    double p = (*_sol)(a);
 	    double rhst, drhst;
@@ -904,7 +904,7 @@ void EpotMatrixSolver::get_resjac( const CRowMatrix **J, const Vector **R, const
 
 bool EpotMatrixSolver::linear( void ) const
 {
-    if( _plasma == PLASMA_NONE || _plasma == PLASMA_INITIAL )
+    if( _plasma == PLASMA_NONE || _plasma == PLASMA_PEXP_INITIAL || _plasma == PLASMA_NSIMP_INITIAL )
         return( true );
     else
         return( false );
