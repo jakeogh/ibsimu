@@ -664,6 +664,8 @@ public:
 	// Check geometry mode
 	if( _geom.geom_mode() != PP::geom_mode() )
 	    throw( Error( ERROR_LOCATION, "Differing geometry modes" ) );
+	if( _geom != scharge )
+	    throw( Error( ERROR_LOCATION, "Space charge mesh differs from geometry" ) );
 
 	// Clear space charge
 	scharge.clear();
