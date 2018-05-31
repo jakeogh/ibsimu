@@ -2,7 +2,7 @@
  *  \brief %Particle iterator
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas, Tobin Jones. All rights reserved.
+/* Copyright (c) 2005-2013,2018 Taneli Kalvas, Tobin Jones. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -1341,10 +1341,15 @@ public:
 	    
 	    // Check step count number and step size validity
 	    if( nstp >= _maxsteps )
-		break;
-	    if( x2[0] == x[0] )
-		throw( Error( ERROR_LOCATION, "too small step size" ) );
-
+	        break;
+	    if( x2[0] == x[0] ) {
+	        // Print failed trajectory
+		ibsimu.message( 1 ) << "Particle calculation failed. Coordinates:\n";
+		for( size_t a = 0; a < _traj.size(); a++ )
+		    ibsimu.message( 1 ) << a << " " << _traj[a] << "\n";
+	        throw( Error( ERROR_LOCATION, "too small step size calculating particle " + to_string(pi) ) );
+	    }
+	    
 	    // Increase step count.
 	    nstp++;
 
