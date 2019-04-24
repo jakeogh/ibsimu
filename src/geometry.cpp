@@ -2,7 +2,7 @@
  *  \brief %Geometry definition.
  */
 
-/* Copyright (c) 2005-2014 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2014,2019 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -45,6 +45,7 @@
 #include <fstream>
 #include <math.h>
 #include <string.h>
+#include <limits>
 #include "stlfile.hpp"
 #include "geometry.hpp"
 #include "func_solid.hpp"
@@ -58,6 +59,7 @@
 
 //#define DEBUG_BRACKET_SURFACE 1
 //#define MC_DEBUG 1
+#define DEBUG_SURFACE_TRIANGLE_NORMAL 1
 
 
 Bound::Bound( bound_e type, double value ) 
@@ -2349,6 +2351,83 @@ uint32_t Geometry::surface_inside_solid_number( int32_t i, int32_t j,int32_t k )
 	return( node & SMESH_BOUNDARY_NUMBER_MASK );
     node = _smesh[ptr+_size[0]+1];
     return( node & SMESH_BOUNDARY_NUMBER_MASK );
+}
+
+
+Vec3D Geometry::surface_triangle_normal( const Vec3D &x ) const
+{
+    const double eps = 1e-6;
+
+    // Calculate mesh cell indices i which encloses x and
+    // Parametric position s.
+    int32_t i[3];
+    double s[3];
+    for( int32_t k = 0; k < 3; k++ ) {
+	i[k] = floor((x[k] - _origo[k])*_div_h);
+	s[k] = x[k] - (_origo[k] + i[k]*_h);
+    }
+
+    // Test cel i and neighbouring cells if close to edge.
+    // Start with dir 0, which is cell i, dir 1 is i-1 and dir
+    // 2 is i+1. Same for all 3 coordinate directions
+    for( int32_t k = 0; k < 3; k++ ) {
+	for( int32_t dir = 0; dir < 3; dir++ ) {
+
+	    if( dir == 0 && k != 0 ) {
+		continue;
+	    } else if( dir == 1 ) {
+		if( s[k] > eps || i[k] == 0 )
+		    continue;
+		i[k] -= 1;
+	    } else if( dir == 2 ) {
+		if( s[k] < 1-eps || i[k] >= _size[k]-3 )
+		    continue;
+		i[k] += 1;
+	    }
+
+	    // Get pointer and count of triangles in the cell
+	    uint32_t a = surface_triangle_ptr( i[0], i[1], i[2] );
+	    uint32_t c = surface_trianglec( i[0], i[1], i[2] );
+
+	    // Go through the triangles to find the correct one
+	    for( uint32_t p = 0; p < c; p++ ) {
+		const VTriangle &tri = surface_triangle(a+p);
+		const Vec3D &v1 = _surface.vertex(tri[0]);
+		const Vec3D &v2 = _surface.vertex(tri[1]);
+		const Vec3D &v3 = _surface.vertex(tri[2]);
+	
+		Vec3D e1 = v2-v1;
+		Vec3D e2 = v3-v1;
+		Vec3D r = x-v1;
+		Vec3D e3 = cross(e2,e1);
+		e3.normalize();
+
+		double dot11 = e1*e1;
+		double dot12 = e1*e2;
+		double dot1r = e1*r;
+		double dot22 = e2*e2;
+		double dot2r = e2*r;
+		double dot3r = e3*r;
+
+		double invdet = 1.0/(dot11*dot22 - dot12*dot12);
+		double v = (dot22*dot1r - dot12*dot2r) * invdet;
+		double w = (dot11*dot2r - dot12*dot1r) * invdet;
+
+		// Check if point x is within triangle, allowing eps tolerance
+		if( v >= -eps && v <= 1+eps && w >= -eps && w <= 1+eps &&
+		    v+w <= 1+eps && fabs(dot3r) < eps*_h ) {
+		    // Return normal of the triangle
+		    return( e3 );
+		}
+	    }
+
+	    if( dir == 1 ) i[k] += 1;
+	    else if( dir == 2 ) i[k] -= 1;
+	}    
+    }
+
+    // No triangle found at x, return NaN vector
+    return( Vec3D(std::numeric_limits<double>::quiet_NaN()) );
 }
 
 
