@@ -112,10 +112,12 @@ void VTriangleSurface::clear( void )
 
 uint32_t VTriangleSurface::add_vertex( const Vec3D &x )
 {
-    // Search for vertex matching to x
+    /* Search for vertex matching to x, allow equal to matching
+     * epsilon to allow the use of zero as vertex_matching_eps.
+    */
     uint32_t v;
     for( v = 0; v < _vertex.size(); v++ )
-	if( ssqr(x-_vertex[v]) < _vertex_matching_eps )
+	if( ssqr(x-_vertex[v]) <= _vertex_matching_eps )
 	    return( v ); // Vertex found
 
     // New vertex needed
@@ -376,6 +378,36 @@ void VTriangleSurfaceSolid::get_bbox( Vec3D &min, Vec3D &max ) const
 }
 
 
+void VTriangleSurfaceSolid::remove_duplicate_triangles( void )
+{
+    int removed = 0;
+
+    /* Check all pairs
+     */
+    for( uint32_t a = 0; a < _triangle.size(); a++ ) {
+	const VTriangle &tria = _triangle[a];
+	int a1 = tria[0];
+	int a2 = tria[1];
+	int a3 = tria[2];
+	for( uint32_t b = a+1; b < _triangle.size(); b++ ) {
+	    const VTriangle &trib = _triangle[b];
+	    int b1 = trib[0];
+	    int b2 = trib[1];
+	    int b3 = trib[2];
+	    if( a1 == b1 && a2 == b2 && a3 == b3 ) {
+		// Duplicate found, remove triangle b
+		removed++;
+		_triangle.erase(_triangle.begin()+b);
+	    }
+	}
+    }
+
+    if( removed ) {
+	ibsimu.message(1) << "Removed " << removed << " duplicate triangles\n";
+    }
+}
+
+
 void VTriangleSurfaceSolid::check_data( void ) const
 {
     for( uint32_t a = 0; a < _triangle.size(); a++ ) {
@@ -408,17 +440,35 @@ void VTriangleSurfaceSolid::check_data( void ) const
 				      to_string(a) + " and " + to_string(c) ) );
 		    } else if( f1 == e2 && f2 == e1 ) {
 			// Correct orientation
-			if( found == true )
+			if( found == true ) {
+			    const VTriangle &trin = _triangle[neighbour];
 			    throw( Error( ERROR_LOCATION, "Double neighbours (" + to_string(neighbour) +
 					  " and " + to_string(c) + ") found for triangle " +
-					  to_string(a) ) );
+					  to_string(a) + ".\n" + 
+					  "Triangle " + to_string(a) + ": " + to_string(tri[0]) + ", " + to_string(tri[1]) + ", " + to_string(tri[2]) + ":\n" +
+					  "  " + to_string(_vertex[tri[0]]-_offset) + "\n" +
+					  "  " + to_string(_vertex[tri[1]]-_offset) + "\n" +
+					  "  " + to_string(_vertex[tri[2]]-_offset) + "\n" +
+					  "Triangle " + to_string(neighbour) + ": " + to_string(trin[0]) + ", " + to_string(trin[1]) + ", " + to_string(trin[2]) + ":\n" +
+					  "  " + to_string(_vertex[trin[0]]-_offset) + "\n" +
+					  "  " + to_string(_vertex[trin[1]]-_offset) + "\n" +
+					  "  " + to_string(_vertex[trin[2]]-_offset) + "\n" +
+					  "Triangle " + to_string(c) + ": " + to_string(tric[0]) + ", " + to_string(tric[1]) + ", " + to_string(tric[2]) + ":\n" +
+					  "  " + to_string(_vertex[tric[0]]-_offset) + "\n" +
+					  "  " + to_string(_vertex[tric[1]]-_offset) + "\n" +
+					  "  " + to_string(_vertex[tric[2]]-_offset) ) );
+			}
 			found = true;
 			neighbour = c;
 		    }
 		}
 	    }
 	    if( !found ) {
-		throw( Error( ERROR_LOCATION, "Triangle " + to_string(a) + " neighbour not found" ) );
+		throw( Error( ERROR_LOCATION, "Triangle " + to_string(a) + " neighbour not found."
+			      "Triangle " + to_string(a) + ": " + to_string(tri[0]) + ", " + to_string(tri[1]) + ", " + to_string(tri[2]) + ":\n" +
+			      "  " + to_string(_vertex[tri[0]]-_offset) + "\n" +
+			      "  " + to_string(_vertex[tri[1]]-_offset) + "\n" +
+			      "  " + to_string(_vertex[tri[2]]-_offset) + "\n" ) );
 	    }
 	}
     }
