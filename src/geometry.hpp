@@ -2,7 +2,7 @@
  *  \brief %Geometry definition
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013,2019 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -534,6 +534,12 @@ public:
     const Vec3D &surface_vertex( int32_t a ) const {
 	return( _surface.vertex(a) );
     }
+
+    /*! \brief Return normal of surface triangle near point x.
+     *
+     *  Uses surface triangulation, returns NaN if surface not found.
+     */
+    Vec3D surface_triangle_normal( const Vec3D &x ) const;
 
     /*! \brief Return normal of surface triangle \a a.
      */

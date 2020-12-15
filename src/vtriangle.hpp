@@ -2,7 +2,7 @@
  *  \brief Vertex-based triangle representation
  */
 
-/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013,2017 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -279,6 +279,10 @@ public:
      *  this function.
      */
     void get_bbox( Vec3D &min, Vec3D &max ) const;
+    
+    /*! \brief Remove duplicate triangles.
+     */
+    void remove_duplicate_triangles( void );
 
     /*! \brief Check data.
      *
