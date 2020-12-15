@@ -610,7 +610,7 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
     // Cut levels
     GtkWidget *solid_enable_check_button[_geom.number_of_solids()];
     for( uint32_t a = 0; a < _geom.number_of_solids(); a++ ) {
-	std::string ss = "Solid " + to_string(a);
+	std::string ss = "Solid " + to_string(a+7);
 	label = gtk_label_new( ss.c_str() );
 	solid_enable_check_button[a] = gtk_check_button_new_with_label( "on/off" );
 	gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
