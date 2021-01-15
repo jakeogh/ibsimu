@@ -2,7 +2,7 @@
  *  \brief Multigrid solver for electric potential problem
  */
 
-/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013,2021 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -65,6 +65,7 @@ class EpotMGSubSolver : public EpotSolver {
     virtual void reset_problem( void ) {}
     virtual void subsolve( MeshScalarField &epot, const MeshScalarField &scharge ) {}
 
+    double solve_shield_potential( double epf, double cof, double rhs, double p ) const;
     double solve_nsimp_potential( double epf, double cof, double rhs, double p ) const;
     double solve_pexp_potential( double epf, double cof, double rhs, double p ) const;
 

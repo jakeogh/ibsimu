@@ -2,7 +2,7 @@
  *  \brief Multigrid solver for electric potential problem
  */
 
-/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013,2021 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -1533,6 +1533,9 @@ void EpotMGSolver::prepare_local_gnewton_settings( void )
 	// Limit calculation to 10 times maximum energy
 	_local_Ulim = 10.0*_local_Ulim; 
 	ibsimu.message( 1 ) << "Limiting plasma calculation to U < " << _local_Ulim << " V\n";
+    } else if( _plasma == PLASMA_SHIELD ) {
+	_local_Ulim = fabs(_Up)+fabs(10.0*_Te);
+	ibsimu.message( 1 ) << "Limiting plasma calculation to |U| < " << fabs(_local_Ulim) << " V\n";
     }
 }
 

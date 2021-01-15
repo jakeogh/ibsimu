@@ -2,7 +2,7 @@
  *  \brief Multigrid solver for electric potential problem
  */
 
-/* Copyright (c) 2011-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011-2013,2021 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -195,6 +195,39 @@ void EpotMGSubSolver::postprocess( void )
 }
 
 
+double EpotMGSubSolver::solve_shield_potential( double epf, double cof, double rhs, double p ) const
+{
+    // If potential large enough, no plasma calculation needed
+    if( p > _Ulim )
+	return( p + (epf - cof*p - rhs) / cof );
+
+    // Globally convergent Newton-Raphson solution for node potential
+    double rhst, drhst; 
+    shield_newton( rhst, drhst, p );
+    double F = epf - cof*p - rhs - rhst;
+    double Fnew, pnew;
+    for( uint32_t q = 0; q < _imax; q++ ) {
+	double deltap = F / ( cof + rhs*drhst );
+	double fac = 1.0;
+	while( fac >= FMIN ) {
+	    pnew = p + fac*deltap;
+	    shield_newton( rhst, drhst, pnew );
+	    Fnew = epf - cof*pnew - rhs*rhst;
+	    if( fabs(Fnew) < fabs(F) )
+		break;
+	    fac *= 0.5;
+	}
+	if( fac < FMIN || p == pnew )
+	    break;
+	F = Fnew;
+	p = pnew;
+	if( fabs(deltap) < _eps )
+	    break;
+    }
+    return( p );
+}
+
+
 double EpotMGSubSolver::solve_nsimp_potential( double epf, double cof, double rhs, double p ) const
 {
     // If potential large enough, no plasma calculation needed
@@ -305,6 +338,8 @@ double EpotMGSubSolver::gs_process_near_solid_1d( const uint8_t *nearsolid_ptr,
 	return( solve_pexp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(a) ) );
@@ -320,6 +355,9 @@ double EpotMGSubSolver::gs_process_pure_vacuum_1d( uint32_t a ) const
     } else if( _plasma == PLASMA_NSIMP ) {
 	double epf = (*_epot)(a+1) + (*_epot)(a-1);
 	return( solve_nsimp_potential( epf, 2.0, (*_rhs)(a), (*_epot)(a) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double epf = (*_epot)(a+1) + (*_epot)(a-1);
+	return( solve_shield_potential( epf, 2.0, (*_rhs)(a), (*_epot)(a) ) );
     }
 
     return( (1.0/2.0) * ( (*_epot)(a+1) + (*_epot)(a-1) - (*_rhs)(a) ) );
@@ -338,6 +376,8 @@ double EpotMGSubSolver::gs_process_neumann_1d( uint32_t a, uint8_t bindex ) cons
 	return( solve_pexp_potential( epf, 2.0, (*_rhs)(a), (*_epot)(a) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, 2.0, (*_rhs)(a), (*_epot)(a) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, 2.0, (*_rhs)(a), (*_epot)(a) ) );
     }
 
     // (2*phi_i+1 - 2*phi_i) = -h^2*rho/eps + 2*h*f_N
@@ -477,6 +517,11 @@ double EpotMGSubSolver::defect_near_solid_1d( const uint8_t *nearsolid_ptr, uint
 	double rhst, drhst;
 	nsimp_newton( rhst, drhst, p );
 	return( epf - cof*p - (*_rhs)(a) - rhst );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double p = (*_epot)(a);
+	double rhst, drhst;
+	shield_newton( rhst, drhst, p );
+	return( epf - cof*p - (*_rhs)(a)*rhst );
     }
 
     return( epf - cof*(*_epot)(a) - (*_rhs)(a) );
@@ -496,6 +541,11 @@ double EpotMGSubSolver::defect_pure_vacuum_1d( uint32_t a ) const
 	double rhst, drhst;
 	nsimp_newton( rhst, drhst, p );
 	return( (*_epot)(a+1) + (*_epot)(a-1) - 2.0*p - (*_rhs)(a) - rhst );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double p = (*_epot)(a);
+	double rhst, drhst;
+	shield_newton( rhst, drhst, p );
+	return( (*_epot)(a+1) + (*_epot)(a-1) - 2.0*p - (*_rhs)(a)*rhst );
     }
 
     return( (*_epot)(a+1) + (*_epot)(a-1) - 2.0*(*_epot)(a) - (*_rhs)(a) );
@@ -520,6 +570,11 @@ double EpotMGSubSolver::defect_neumann_1d( uint32_t a, uint8_t bindex ) const
 	double rhst, drhst;
 	nsimp_newton( rhst, drhst, p );
 	return( epf - 2.0*p - (*_rhs)(a) - rhst );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double p = (*_epot)(a);
+	double rhst, drhst;
+	shield_newton( rhst, drhst, p );
+	return( epf - 2.0*p - (*_rhs)(a)*rhst );
     }
 
     // (2*phi_i+1 - 2*phi_i) = -h^2*rho/eps + 2*h*f_N
@@ -622,6 +677,8 @@ double EpotMGSubSolver::gs_process_near_solid_2d( const uint8_t *nearsolid_ptr,
 	return( solve_pexp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(a) ) );
@@ -638,6 +695,10 @@ double EpotMGSubSolver::gs_process_pure_vacuum_2d( uint32_t a, uint32_t dj ) con
 	double epf = (*_epot)(a+1) + (*_epot)(a-1)
 	    + (*_epot)(a+dj) + (*_epot)(a-dj);
 	return( solve_nsimp_potential( epf, 4.0, (*_rhs)(a), (*_epot)(a) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double epf = (*_epot)(a+1) + (*_epot)(a-1)
+	    + (*_epot)(a+dj) + (*_epot)(a-dj);
+	return( solve_shield_potential( epf, 4.0, (*_rhs)(a), (*_epot)(a) ) );
     }
 
     return( (1.0/4.0) * ( (*_epot)(a+1) + (*_epot)(a-1) +
@@ -676,6 +737,8 @@ double EpotMGSubSolver::gs_process_neumann_2d( uint32_t a, uint32_t dj, uint8_t 
 	return( solve_pexp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(a) ) );
@@ -856,6 +919,11 @@ double EpotMGSubSolver::defect_near_solid_2d( const uint8_t *nearsolid_ptr,
 	double rhst, drhst;
 	nsimp_newton( rhst, drhst, p );
 	return( epf - cof*p - (*_rhs)(a) - rhst );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double p = (*_epot)(a);
+	double rhst, drhst;
+	shield_newton( rhst, drhst, p );
+	return( epf - cof*p - (*_rhs)(a)*rhst );
     }
 
     return( epf - cof*(*_epot)(a) - (*_rhs)(a) );
@@ -877,6 +945,12 @@ double EpotMGSubSolver::defect_pure_vacuum_2d( uint32_t a, uint32_t dj ) const
 	nsimp_newton( rhst, drhst, p );
 	return( (*_epot)(a+1) + (*_epot)(a-1) + (*_epot)(a+dj) 
 		+ (*_epot)(a-dj) - 4.0*p - (*_rhs)(a) - rhst );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double p = (*_epot)(a);
+	double rhst, drhst;
+	shield_newton( rhst, drhst, p );
+	return( (*_epot)(a+1) + (*_epot)(a-1) + (*_epot)(a+dj) 
+		+ (*_epot)(a-dj) - 4.0*p - (*_rhs)(a)*rhst );
     }
 
     return( (*_epot)(a+1) + (*_epot)(a-1) +
@@ -921,6 +995,11 @@ double EpotMGSubSolver::defect_neumann_2d( uint32_t a, uint32_t dj, uint8_t bind
 	double rhst, drhst;
 	nsimp_newton( rhst, drhst, p );
 	return( epf - cof*p - (*_rhs)(a) - rhst );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double p = (*_epot)(a);
+	double rhst, drhst;
+	shield_newton( rhst, drhst, p );
+	return( epf - cof*p - (*_rhs)(a)*rhst );
     }
 
     return( epf - cof*(*_epot)(a) - (*_rhs)(a) );
@@ -1028,6 +1107,8 @@ double EpotMGSubSolver::gs_process_near_solid_cyl( const uint8_t *nearsolid_ptr,
 	return( solve_pexp_potential( epf, cof, (*_rhs)(i,j), (*_epot)(i,j) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, cof, (*_rhs)(i,j), (*_epot)(i,j) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, cof, (*_rhs)(i,j), (*_epot)(i,j) ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(i,j) ) );
@@ -1046,6 +1127,11 @@ double EpotMGSubSolver::gs_process_pure_vacuum_cyl( uint32_t i, uint32_t j ) con
 	    + (1.0+0.5/j)*(*_epot)(i,j+1)
 	    + (1.0-0.5/j)*(*_epot)(i,j-1);
 	return( solve_nsimp_potential( epf, 4.0, (*_rhs)(i,j), (*_epot)(i,j) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double epf = (*_epot)(i+1,j) + (*_epot)(i-1,j)
+	    + (1.0+0.5/j)*(*_epot)(i,j+1)
+	    + (1.0-0.5/j)*(*_epot)(i,j-1);
+	return( solve_shield_potential( epf, 4.0, (*_rhs)(i,j), (*_epot)(i,j) ) );
     }
  
     return( (1.0/4.0) * ( (*_epot)(i+1,j) + (*_epot)(i-1,j)
@@ -1087,6 +1173,8 @@ double EpotMGSubSolver::gs_process_neumann_cyl( uint32_t i, uint32_t j, uint8_t 
 	return( solve_pexp_potential( epf, cof, (*_rhs)(i,j), (*_epot)(i,j) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, cof, (*_rhs)(i,j), (*_epot)(i,j) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, cof, (*_rhs)(i,j), (*_epot)(i,j) ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(i,j) ) );
@@ -1268,6 +1356,11 @@ double EpotMGSubSolver::defect_near_solid_cyl( const uint8_t *nearsolid_ptr,
 	double rhst, drhst;
 	nsimp_newton( rhst, drhst, p );
 	return( epf - cof*p - (*_rhs)(i,j) - rhst );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double p = (*_epot)(i,j);
+	double rhst, drhst;
+	nsimp_newton( rhst, drhst, p );
+	return( epf - cof*p - (*_rhs)(i,j)*rhst );
     }
 
     return( epf - cof*(*_epot)(i,j) - (*_rhs)(i,j) );
@@ -1291,6 +1384,13 @@ double EpotMGSubSolver::defect_pure_vacuum_cyl( uint32_t i, uint32_t j ) const
 	return( (*_epot)(i+1,j) + (*_epot)(i-1,j) 
 		+ (1.0+0.5/j)*(*_epot)(i,j+1) + (1.0-0.5/j)*(*_epot)(i,j-1) 
 		- 4.0*p - (*_rhs)(i,j) - rhst );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double p = (*_epot)(i,j);
+	double rhst, drhst;
+	shield_newton( rhst, drhst, p );
+	return( (*_epot)(i+1,j) + (*_epot)(i-1,j) 
+		+ (1.0+0.5/j)*(*_epot)(i,j+1) + (1.0-0.5/j)*(*_epot)(i,j-1) 
+		- 4.0*p - (*_rhs)(i,j)*rhst );
     }
  
     return( (*_epot)(i+1,j) + (*_epot)(i-1,j)
@@ -1337,6 +1437,11 @@ double EpotMGSubSolver::defect_neumann_cyl( uint32_t i, uint32_t j, uint8_t bind
 	double rhst, drhst;
 	nsimp_newton( rhst, drhst, p );
 	return( epf - cof*p - (*_rhs)(i,j) - rhst );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double p = (*_epot)(i,j);
+	double rhst, drhst;
+	shield_newton( rhst, drhst, p );
+	return( epf - cof*p - (*_rhs)(i,j)*rhst );
     }
 
     return( epf - cof*(*_epot)(i,j) - (*_rhs)(i,j) );
@@ -1468,6 +1573,8 @@ double EpotMGSubSolver::gs_process_near_solid_3d( const uint8_t *nearsolid_ptr,
 	return( solve_pexp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(a) ) );
@@ -1486,6 +1593,11 @@ double EpotMGSubSolver::gs_process_pure_vacuum_3d( uint32_t a, uint32_t dj, uint
 	    + (*_epot)(a+dj) + (*_epot)(a-dj) 
 	    + (*_epot)(a+dk) + (*_epot)(a-dk);
 	return( solve_nsimp_potential( epf, 6.0, (*_rhs)(a), (*_epot)(a) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double epf = (*_epot)(a+1) + (*_epot)(a-1) 
+	    + (*_epot)(a+dj) + (*_epot)(a-dj) 
+	    + (*_epot)(a+dk) + (*_epot)(a-dk);
+	return( solve_shield_potential( epf, 6.0, (*_rhs)(a), (*_epot)(a) ) );
     }
 
     return( (1.0/6.0) * ( (*_epot)(a+1) + (*_epot)(a-1) + 
@@ -1536,6 +1648,8 @@ double EpotMGSubSolver::gs_process_neumann_3d( uint32_t a, uint32_t dj, uint32_t
 	return( solve_pexp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(a) ) );
@@ -1749,6 +1863,11 @@ double EpotMGSubSolver::defect_near_solid_3d( const uint8_t *nearsolid_ptr,
 	double rhst, drhst;
 	nsimp_newton( rhst, drhst, p );
 	return( epf - cof*p - (*_rhs)(a) - rhst );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double p = (*_epot)(a);
+	double rhst, drhst;
+	shield_newton( rhst, drhst, p );
+	return( epf - cof*p - (*_rhs)(a)*rhst );
     }
 
     return( epf - cof*(*_epot)(a) - (*_rhs)(a) );
@@ -1774,6 +1893,14 @@ double EpotMGSubSolver::defect_pure_vacuum_3d( uint32_t a, uint32_t dj, uint32_t
 		+ (*_epot)(a+dj) + (*_epot)(a-dj) 
 		+ (*_epot)(a+dk) + (*_epot)(a-dk) 
 		- 6.0*p - (*_rhs)(a) - rhst );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double p = (*_epot)(a);
+	double rhst, drhst;
+	shield_newton( rhst, drhst, p );
+	return( (*_epot)(a+1) + (*_epot)(a-1) 
+		+ (*_epot)(a+dj) + (*_epot)(a-dj) 
+		+ (*_epot)(a+dk) + (*_epot)(a-dk) 
+		- 6.0*p - (*_rhs)(a)*rhst );
     }
 
     return( (*_epot)(a+1) + (*_epot)(a-1) 
@@ -1832,6 +1959,11 @@ double EpotMGSubSolver::defect_neumann_3d( uint32_t a, uint32_t dj,
 	double rhst, drhst;
 	nsimp_newton( rhst, drhst, p );
 	return( epf - cof*p - (*_rhs)(a) - rhst );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double p = (*_epot)(a);
+	double rhst, drhst;
+	shield_newton( rhst, drhst, p );
+	return( epf - cof*p - (*_rhs)(a)*rhst );
     }
 
     return( epf - cof*(*_epot)(a) - (*_rhs)(a) );

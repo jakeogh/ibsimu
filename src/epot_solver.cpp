@@ -2,7 +2,7 @@
  *  \brief Poisson equation problem for solving electric potential.
  */
 
-/* Copyright (c) 2005-2013,2017 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013,2017,2021 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -187,6 +187,24 @@ void EpotSolver::set_nsimp_plasma( double rhop, double Ep,
 }
 
 
+void EpotSolver::set_shield_plasma( double Tm, double Um )
+{
+    _init_plasma_func = NULL;
+    _plasma     = PLASMA_SHIELD;
+    _Te        = Tm;
+    _Up        = Um;
+    reset_problem();
+}
+
+
+void EpotSolver::shield_newton( double &rhs, double &drhs, double epot ) const
+{
+    double K = tanh(_plA*epot - _plB);
+    rhs  = 0.5*(1.0+K);
+    drhs = 0.5*_plA*(1.0-K*K);
+}
+
+
 void EpotSolver::pexp_newton( double &rhs, double &drhs, double epot ) const
 {
     rhs  = _plA*exp( _plB*epot - _plC );
@@ -250,7 +268,11 @@ void EpotSolver::preprocess( MeshScalarField &epot )
 	    _plD.push_back( -_rhoi[i]*_geom.h()*_geom.h()/EPSILON0 );
 	    _plE.push_back( -1.0/_Ei[i] );
 	}
+    } else if( _plasma == PLASMA_SHIELD ) {
+	_plA = 1.0/_Te;
+	_plB = _Up/_Te;
     }
+
 
     // Set forced vacuum nodes and dirichlet nodes to correct
     // potential. Mark fixed vacuum nodes with a tag.
@@ -421,6 +443,7 @@ bool EpotSolver::linear( void ) const
 	break;
     case PLASMA_PEXP:
     case PLASMA_NSIMP:
+    case PLASMA_SHIELD:
 	return( false );
 	break;
     }

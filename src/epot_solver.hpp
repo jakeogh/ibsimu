@@ -2,7 +2,7 @@
  *  \brief Poisson equation problem for solving electric potential.
  */
 
-/* Copyright (c) 2005-2013,2017 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013,2017,2021 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -114,6 +114,8 @@ public:
  *  extraction the PLASMA_NSIMP_INITIAL is used for the first iteration
  *  and PLASMA_NSIMP thereafter. PLASMA_INITIAL is a macro, which
  *  equals to PLASMA_PEXP_INITIAL. It exists for backward compatibility.
+ *  PLASMA_SHIELD is a plasma model implementing a shielding factor for
+ *  space charge inside plasma.
  *
  */
 enum plasma_mode_e {
@@ -121,7 +123,8 @@ enum plasma_mode_e {
     PLASMA_PEXP_INITIAL,
     PLASMA_NSIMP_INITIAL,
     PLASMA_PEXP, 
-    PLASMA_NSIMP
+    PLASMA_NSIMP,
+    PLASMA_SHIELD
 };
 
 
@@ -229,10 +232,12 @@ protected:
 
     double              _plA;              /*!< \brief Plasma parameter.
 				            *   For positive ion extraction: rho_th * h^2 / epsilon_0,
-				            *   for negative ion extraction: rho_f * h^2 / epsilon_0 */
+				            *   for negative ion extraction: rho_f * h^2 / epsilon_0 
+					    *   for shield1: 1/Tm */
     double              _plB;              /*!< \brief Plasma parameter.
 					    *   For positive ion extraction: 1/Te,
-					    *   for negative ion extraction: E_f,i */
+					    *   for negative ion extraction: E_f,i 
+					    *   for shield1: phi_m/Tm */
     double              _plC;              /*!< \brief Plasma parameter for positive ion extraction. 
 					    *    Up/Te */
 
@@ -241,6 +246,14 @@ protected:
     std::vector<double> _plE;              /*!< \brief Plasma parameter for negative ion extraction. 
 					    *    1/Ti */
     
+
+    /*! \brief Return non-linear right-hand-side and it's derivative
+        for vacuum node in shielding model plasma.
+     *
+     *  Returns the non-linear part of the right-hand-side and it's
+     *  derivative.
+     */
+    void shield_newton( double &rhs, double &drhs, double epot ) const;
 
     /*! \brief Return non-linear right-hand-side and it's derivative
         for vacuum node in positive ion plasma.
@@ -440,6 +453,21 @@ public:
      */
     void set_nsimp_plasma( double rhop, double Ep, 
 			   std::vector<double> rhoi, std::vector<double> Ei );
+
+    /*! \brief Enable shielding plasma model.
+     *
+     *  The Tm is the temperature of the compensating particles, Um is
+     *  the potential on the surface where shielding factor is 1/2. If
+     *  Tm is negative, the compensation is suitable for positive ion
+     *  extraction and with positive Tm it is suitable for negative
+     *  ion extraction.
+     *
+     *  The shielding function
+     *  \f[ S=\frac{1}{2} \cdot \left[ 1 + \tanh\left( \frac{\phi-\phi_M}{T_M} \right)\right]
+     *  multiplies the charge density from ray tracing to produce the 
+     *  compensating effect of the plasma.
+     */
+    void set_shield_plasma( double Tm, double Um );
 
     /*! \brief Solve the problem.
      *

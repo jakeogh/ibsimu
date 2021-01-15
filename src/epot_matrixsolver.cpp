@@ -2,7 +2,7 @@
  *  \brief Matrix solver for electric potential problem
  */
 
-/* Copyright (c) 2011,2012,2017 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012,2017,2021 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -192,7 +192,7 @@ void EpotMatrixSolver::add_vacuum_node( uint32_t i, uint32_t j, uint32_t k, cons
         break;
     }
 
-    if( _plasma == PLASMA_PEXP || _plasma == PLASMA_NSIMP ) {
+    if( _plasma == PLASMA_PEXP || _plasma == PLASMA_NSIMP || _plasma == PLASMA_SHIELD ) {
 
 	bool inplasma = true;
 	if( _plasma_calc_func )
@@ -213,10 +213,19 @@ void EpotMatrixSolver::add_vacuum_node( uint32_t i, uint32_t j, uint32_t k, cons
 	    nsimp_newton( rhst, drhst, p );
 	    (*_fd_vec)(a) += rhst;
 	    (*_d_vec)(a) = drhst;
+	} else if( _plasma == PLASMA_SHIELD ) {
+	    double p = (*_sol)(a);
+	    double rhst, drhst;
+	    shield_newton( rhst, drhst, p );
+	    double R = -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+	    (*_fd_vec)(a) += R*rhst;
+	    (*_d_vec)(a) = R*drhst;
 	}
     }
 
-    (*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+    // Right hand side
+    if( _plasma != PLASMA_SHIELD )
+	(*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 }
 
 
@@ -531,7 +540,7 @@ void EpotMatrixSolver::add_near_solid_node( uint32_t i, uint32_t j, uint32_t k, 
 	break;
     }
 
-    if( _plasma == PLASMA_PEXP || _plasma == PLASMA_NSIMP ) {
+    if( _plasma == PLASMA_PEXP || _plasma == PLASMA_NSIMP || _plasma == PLASMA_SHIELD ) {
 
 	bool inplasma = true;
 	if( _plasma_calc_func )
@@ -552,10 +561,19 @@ void EpotMatrixSolver::add_near_solid_node( uint32_t i, uint32_t j, uint32_t k, 
 	    nsimp_newton( rhst, drhst, p );
 	    (*_fd_vec)(a) += rhst;
 	    (*_d_vec)(a) = drhst;
+	} else if( _plasma == PLASMA_SHIELD ) {
+	    double p = (*_sol)(a);
+	    double rhst, drhst;
+	    shield_newton( rhst, drhst, p );
+	    double R = -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+	    (*_fd_vec)(a) += R*rhst;
+	    (*_d_vec)(a) = R*drhst;
 	}
     }
 
-    (*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+    // Right hand side
+    if( _plasma != PLASMA_SHIELD )
+	(*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 }
 
 
@@ -713,7 +731,7 @@ void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, con
         break;
     }
 
-    if( _plasma == PLASMA_PEXP || _plasma == PLASMA_NSIMP ) {
+    if( _plasma == PLASMA_PEXP || _plasma == PLASMA_NSIMP || _plasma == PLASMA_SHIELD ) {
 
 	bool inplasma = true;
 	if( _plasma_calc_func )
@@ -734,10 +752,19 @@ void EpotMatrixSolver::add_neumann_node( uint32_t i, uint32_t j, uint32_t k, con
 	    nsimp_newton( rhst, drhst, p );
 	    (*_fd_vec)(a) += rhst;
 	    (*_d_vec)(a) = drhst;
+	} else if( _plasma == PLASMA_SHIELD ) {
+	    double p = (*_sol)(a);
+	    double rhst, drhst;
+	    shield_newton( rhst, drhst, p );
+	    double R = -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+	    (*_fd_vec)(a) += R*rhst;
+	    (*_d_vec)(a) = R*drhst;
 	}
     }
 
-    (*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
+    // Right hand side
+    if( _plasma != PLASMA_SHIELD )
+	(*_fd_vec)(a) += -(*_scharge)(i,j,k)*_geom.h()*_geom.h()/EPSILON0;
 }
 
 
@@ -902,6 +929,7 @@ void EpotMatrixSolver::get_resjac( const CRowMatrix **J, const Vector **R, const
 }
 
 
+/*
 bool EpotMatrixSolver::linear( void ) const
 {
     if( _plasma == PLASMA_NONE || _plasma == PLASMA_PEXP_INITIAL || _plasma == PLASMA_NSIMP_INITIAL )
@@ -909,6 +937,7 @@ bool EpotMatrixSolver::linear( void ) const
     else
         return( false );
 }
+*/
 
 
 void EpotMatrixSolver::debug_print( std::ostream &os ) const
