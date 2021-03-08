@@ -46,6 +46,7 @@
 
 #include <vector>
 #include <limits>
+#include "error.hpp"
 #include "histogram.hpp"
 #include "types.hpp"
 
@@ -184,27 +185,38 @@ public:
     /*! \brief Return \a i:th diagnostic type.
      */
     const TrajectoryDiagnosticColumn &operator()( size_t i ) const {
-	return( _column[i] );
+        if(i >= _column.size())
+            throw( ErrorRange( ERROR_LOCATION, i, _column.size() ) );
+	    return( _column[i] );
     }
 
     /*! \brief Return \a i:th diagnostic column.
      */
     TrajectoryDiagnosticColumn &operator()( size_t i ) {
-	return( _column[i] );
+        if(i >= _column.size())
+            throw( ErrorRange( ERROR_LOCATION, i, _column.size() ) );
+
+    	return( _column[i] );
     }
 
     /*! \brief Return const reference to \a j:th trajectory data in \a
      *  i:th diagnostic column.
      */
     const double &operator()( size_t j, size_t i ) const {
-	return( _column[i](j) );
+        if(i >= _column.size())
+            throw( ErrorRange( ERROR_LOCATION, i, _column.size() ) );
+
+    	return( _column[i](j) );
     }
 
     /*! \brief Return reference to \a j:th trajectory data in \a i:th
      *  diagnostic column.
      */
     double &operator()( size_t j, size_t i ) {
-	return( _column[i](j) );
+        if(i >= _column.size())
+            throw( ErrorRange( ERROR_LOCATION, i, _column.size() ) );
+
+    	return( _column[i](j) );
     }
 
     /*! \brief Add data point to \a i:th diagnostic column.
