@@ -2,7 +2,7 @@
  *  \brief Trajectory diagnostics
  */
 
-/* Copyright (c) 2005-2012,2016 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012,2016,2021 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -185,17 +185,16 @@ public:
     /*! \brief Return \a i:th diagnostic type.
      */
     const TrajectoryDiagnosticColumn &operator()( size_t i ) const {
-        if(i >= _column.size())
+        if( i >= _column.size() )
             throw( ErrorRange( ERROR_LOCATION, i, _column.size() ) );
-	    return( _column[i] );
+	return( _column[i] );
     }
 
     /*! \brief Return \a i:th diagnostic column.
      */
     TrajectoryDiagnosticColumn &operator()( size_t i ) {
-        if(i >= _column.size())
+        if( i >= _column.size() )
             throw( ErrorRange( ERROR_LOCATION, i, _column.size() ) );
-
     	return( _column[i] );
     }
 
@@ -203,9 +202,8 @@ public:
      *  i:th diagnostic column.
      */
     const double &operator()( size_t j, size_t i ) const {
-        if(i >= _column.size())
+        if( i >= _column.size() )
             throw( ErrorRange( ERROR_LOCATION, i, _column.size() ) );
-
     	return( _column[i](j) );
     }
 
@@ -213,9 +211,8 @@ public:
      *  diagnostic column.
      */
     double &operator()( size_t j, size_t i ) {
-        if(i >= _column.size())
+        if( i >= _column.size() )
             throw( ErrorRange( ERROR_LOCATION, i, _column.size() ) );
-
     	return( _column[i](j) );
     }
 
