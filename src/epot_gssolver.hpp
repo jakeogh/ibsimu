@@ -65,6 +65,7 @@ class EpotGSSolver : public EpotSolver {
     uint32_t         _local_imax;     /*!< \brief Maximum iterations for plasma calculation in local solver. */
     double           _local_eps;      /*!< \brief Convergence limit for plasma calculation in local solver. */
     
+    double solve_shield_potential( double epf, double cof, double rhs, double p ) const;
     double solve_pexp_potential( double epf, double cof, double rhs, double p ) const;
     double solve_nsimp_potential( double epf, double cof, double rhs, double p ) const;
     void prepare_local_gnewton_settings( void );

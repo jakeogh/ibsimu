@@ -118,6 +118,39 @@ void EpotGSSolver::set_plasma_solver_parameters( double Ulim_fac, uint32_t imax,
 }
 
 
+double EpotGSSolver::solve_shield_potential( double epf, double cof, double rhs, double p ) const
+{
+    // If potential large enough, no plasma calculation needed
+    if( fabs(p) > _local_Ulim )
+	return( p + (epf - cof*p - rhs) / cof );
+
+    // Globally convergent Newton-Raphson solution for node potential
+    double rhst, drhst; 
+    shield_newton( rhst, drhst, p );
+    double F = epf - cof*p - rhs*rhst;
+    double Fnew, pnew;
+    for( uint32_t q = 0; q < _local_imax; q++ ) {
+	double deltap = F / ( cof + rhs*drhst );
+	double fac = 1.0;
+	while( fac >= FMIN ) {
+	    pnew = p + fac*deltap;
+	    shield_newton( rhst, drhst, pnew );
+	    Fnew = epf - cof*pnew - rhs*rhst;
+	    if( fabs(Fnew) < fabs(F) )
+		break;
+	    fac *= 0.5;
+	}
+	if( fac < FMIN || p == pnew )
+	    break;
+	F = Fnew;
+	p = pnew;
+	if( fabs(deltap) < _local_eps )
+	    break;
+    }
+    return( p );
+}
+
+
 double EpotGSSolver::solve_nsimp_potential( double epf, double cof, double rhs, double p ) const
 {
     // If potential large enough, no plasma calculation needed
@@ -279,6 +312,8 @@ double EpotGSSolver::gs_process_near_solid_3d( const uint8_t *nearsolid_ptr, uin
 	return( solve_pexp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(a) ) );
@@ -297,6 +332,11 @@ double EpotGSSolver::gs_process_pure_vacuum_3d( uint32_t a, uint32_t dj, uint32_
 	    + (*_epot)(a+dj) + (*_epot)(a-dj) 
 	    + (*_epot)(a+dk) + (*_epot)(a-dk);
 	return( solve_nsimp_potential( epf, 6.0, (*_rhs)(a), (*_epot)(a) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double epf = (*_epot)(a+1) + (*_epot)(a-1) 
+	    + (*_epot)(a+dj) + (*_epot)(a-dj) 
+	    + (*_epot)(a+dk) + (*_epot)(a-dk);
+	return( solve_shield_potential( epf, 6.0, (*_rhs)(a), (*_epot)(a) ) );
     }
 
     return( (1.0/6.0) * ( (*_epot)(a+1)  + (*_epot)(a-1) +
@@ -348,6 +388,8 @@ double EpotGSSolver::gs_process_neumann_3d( uint32_t a, uint32_t dj, uint32_t dk
 	return( solve_pexp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(a) ) );
@@ -473,6 +515,8 @@ double EpotGSSolver::gs_process_near_solid_cyl( const uint8_t *nearsolid_ptr,
 	return( solve_pexp_potential( epf, cof, (*_rhs)(i,j), (*_epot)(i,j) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, cof, (*_rhs)(i,j), (*_epot)(i,j) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, cof, (*_rhs)(i,j), (*_epot)(i,j) ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(i,j) ) );
@@ -491,6 +535,11 @@ double EpotGSSolver::gs_process_pure_vacuum_cyl( uint32_t i, uint32_t j ) const
 	    + (1.0+0.5/j)*(*_epot)(i,j+1) 
 	    + (1.0-0.5/j)*(*_epot)(i,j-1);
 	return( solve_nsimp_potential( epf, 4.0, (*_rhs)(i,j), (*_epot)(i,j) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double epf = (*_epot)(i+1,j) + (*_epot)(i-1,j) 
+	    + (1.0+0.5/j)*(*_epot)(i,j+1) 
+	    + (1.0-0.5/j)*(*_epot)(i,j-1);
+	return( solve_shield_potential( epf, 4.0, (*_rhs)(i,j), (*_epot)(i,j) ) );
     }
  
     return( 0.25 * ( (*_epot)(i+1,j) + (*_epot)(i-1,j)
@@ -532,6 +581,8 @@ double EpotGSSolver::gs_process_neumann_cyl( uint32_t i, uint32_t j, uint8_t bin
 	return( solve_pexp_potential( epf, cof, (*_rhs)(i,j), (*_epot)(i,j) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, cof, (*_rhs)(i,j), (*_epot)(i,j) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, cof, (*_rhs)(i,j), (*_epot)(i,j) ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(i,j) ) );
@@ -654,6 +705,8 @@ double EpotGSSolver::gs_process_near_solid_2d( const uint8_t *nearsolid_ptr,
 	return( solve_pexp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(a) ) );
@@ -670,6 +723,10 @@ double EpotGSSolver::gs_process_pure_vacuum_2d( uint32_t a, uint32_t dj ) const
 	double epf = (*_epot)(a+1) + (*_epot)(a-1) 
 	    + (*_epot)(a+dj) + (*_epot)(a-dj);
 	return( solve_nsimp_potential( epf, 4.0, (*_rhs)(a), (*_epot)(a) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double epf = (*_epot)(a+1) + (*_epot)(a-1) 
+	    + (*_epot)(a+dj) + (*_epot)(a-dj);
+	return( solve_shield_potential( epf, 4.0, (*_rhs)(a), (*_epot)(a) ) );
     }
 
     return( 0.25 * ( (*_epot)(a+1) + (*_epot)(a-1) +
@@ -708,6 +765,8 @@ double EpotGSSolver::gs_process_neumann_2d( uint32_t a, uint32_t dj, uint8_t bin
 	return( solve_pexp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, cof, (*_rhs)(a), (*_epot)(a) ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(a) ) );
@@ -801,6 +860,8 @@ double EpotGSSolver::gs_process_near_solid_1d( const uint8_t *nearsolid_ptr,
 	return( solve_pexp_potential( epf, cof, (*_rhs)(i), (*_epot)(i) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, cof, (*_rhs)(i), (*_epot)(i) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, cof, (*_rhs)(i), (*_epot)(i) ) );
     }
 
     return( (1.0/cof) * ( epf - (*_rhs)(i) ) );
@@ -815,6 +876,9 @@ double EpotGSSolver::gs_process_pure_vacuum_1d( uint32_t i ) const
     } else if( _plasma == PLASMA_NSIMP ) {
 	double epf = (*_epot)(i+1) + (*_epot)(i-1);
 	return( solve_nsimp_potential( epf, 2.0, (*_rhs)(i), (*_epot)(i) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	double epf = (*_epot)(i+1) + (*_epot)(i-1);
+	return( solve_shield_potential( epf, 2.0, (*_rhs)(i), (*_epot)(i) ) );
     }
 
     return( 0.5 * ( (*_epot)(i+1) + (*_epot)(i-1) - (*_rhs)(i) ) );
@@ -833,6 +897,8 @@ double EpotGSSolver::gs_process_neumann_1d( uint32_t i, uint8_t bindex ) const
 	return( solve_pexp_potential( epf, 2.0, (*_rhs)(i), (*_epot)(i) ) );
     } else if( _plasma == PLASMA_NSIMP ) {
 	return( solve_nsimp_potential( epf, 2.0, (*_rhs)(i), (*_epot)(i) ) );
+    } else if( _plasma == PLASMA_SHIELD ) {
+	return( solve_shield_potential( epf, 2.0, (*_rhs)(i), (*_epot)(i) ) );
     }
 
     // (2*phi_i+1 - 2*phi_i) = -h^2*rho/eps + 2*h*f_N
@@ -1073,6 +1139,9 @@ void EpotGSSolver::prepare_local_gnewton_settings( void )
 	// Limit calculation to 10 times maximum energy
 	_local_Ulim = _local_Ulim_fac*_local_Ulim;
 	ibsimu.message( 1 ) << "Limiting plasma calculation to U < " << _local_Ulim << " V\n";
+    } else if( _plasma == PLASMA_SHIELD ) {
+	_local_Ulim = fabs(_Up)+fabs(_local_Ulim_fac*_Te);
+	ibsimu.message( 1 ) << "Limiting plasma calculation to |U| < " << fabs(_local_Ulim) << " V\n";
     }
 }
 

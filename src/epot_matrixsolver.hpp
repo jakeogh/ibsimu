@@ -2,7 +2,7 @@
  *  \brief Matrix solver for electric potential problem
  */
 
-/* Copyright (c) 2011,2012,2017 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2011,2012,2017,2021 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -134,7 +134,7 @@ protected:
 
     /*! \brief Return true if problem is linear.
      */
-    bool linear( void ) const;
+    //bool linear( void ) const;
 
     /*! \brief Load initial solution vector from electric potential.
      */
