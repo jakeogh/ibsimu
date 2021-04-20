@@ -2,7 +2,7 @@
  *  \brief Particle database implementation
  */
 
-/* Copyright (c) 2005-2015 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2015,2021 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -2103,6 +2103,7 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
     }
 
     // Scan through particle trajectory points
+    uint32_t pcount = 0;
     double Isum = 0.0;
     for( size_t a = 0; a < _particles.size(); a++ ) {
 	size_t N = _particles[a]->traj_size();
@@ -2128,6 +2129,7 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
 	    
 	    if( K[0] >= 0.0 && K[0] < 1.0 ) {
 		// Crossing found between x1 and x2, accumulate total current
+		pcount++;
 		Isum += _particles[a]->IQ();
 
 		// Position and velocity in xyz coordinates
@@ -2230,7 +2232,7 @@ void ParticleDataBase3DImp::trajectories_at_free_plane( TrajectoryDiagnosticData
 	}
     }
 
-    ibsimu.message( 1 ) << "  number of trajectories = " << tdata.traj_size() << "\n";
+    ibsimu.message( 1 ) << "  number of trajectories = " << pcount << "\n";
     ibsimu.message( 1 ) << "  total current = " << Isum << " A\n";
 }
 
