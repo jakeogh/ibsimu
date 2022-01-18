@@ -2,7 +2,7 @@
  *  \brief OpenGL 3D renderer
  */
 
-/* Copyright (c) 2012,2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012,2013,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -78,7 +78,7 @@ public:
     virtual ~GLRenderer();
 
     virtual void start_rendering( void );
-    virtual void end_rendering( void );
+    virtual void end_rendering( cairo_t *cairo );
 
     virtual void set_material_diffuse_color( Vec3D color );
     virtual void set_material_ambient_color( Vec3D color );

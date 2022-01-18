@@ -2,7 +2,7 @@
  *  \brief %Particle diagnostic window.
  */
 
-/* Copyright (c) 2005-2012,2014,2016 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2012,2014,2016,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -128,7 +128,8 @@ void GTKParticleDiagWindow::build_preferences_2d( GtkWidget *notebook )
 
     // Plot type
     GtkWidget *label = gtk_label_new( "Plot type" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     _prefdata->plot_scatter_radio = gtk_radio_button_new_with_label_from_widget( NULL,
 										 "Scatter" );
@@ -154,7 +155,8 @@ void GTKParticleDiagWindow::build_preferences_2d( GtkWidget *notebook )
 
     // Histogram size
     label = gtk_label_new( "Bin count x" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkAdjustment *histo_n_adj = gtk_adjustment_new( _plot.get_histogram_n(), 0, 1000, 1, 10, 0 );
     _prefdata->histo_n_spin = gtk_spin_button_new( histo_n_adj, 1, 0 );
@@ -163,7 +165,8 @@ void GTKParticleDiagWindow::build_preferences_2d( GtkWidget *notebook )
 
     // Histogram size
     label = gtk_label_new( "Bin count y" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkAdjustment *histo_m_adj = gtk_adjustment_new( _plot.get_histogram_m(), 0, 1000, 1, 10, 0 );
     _prefdata->histo_m_spin = gtk_spin_button_new( histo_m_adj, 1, 0 );
@@ -175,7 +178,8 @@ void GTKParticleDiagWindow::build_preferences_2d( GtkWidget *notebook )
     // Histogram accumulation type
     histogram_accumulation_e accu = _plot.get_histogram_accumulation();
     label = gtk_label_new( "Histogram accumulation" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     _prefdata->histo_acc_closest_radio = gtk_radio_button_new_with_label_from_widget( NULL,
 										      "Closest" );
@@ -193,7 +197,8 @@ void GTKParticleDiagWindow::build_preferences_2d( GtkWidget *notebook )
     // Colormap interpolation style
     interpolation_e interpolation =  _plot.get_colormap_interpolation();
     label = gtk_label_new( "Colormap interpolation" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     _prefdata->int_closest_radio = gtk_radio_button_new_with_label_from_widget( NULL,
 										"Closest" );
@@ -222,7 +227,8 @@ void GTKParticleDiagWindow::build_preferences_2d( GtkWidget *notebook )
 
     // Dot size
     label = gtk_label_new( "Dot size" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkAdjustment *dot_size_adj = gtk_adjustment_new( _plot.get_dot_size(), 0.1, 10.0, 0.1, 1, 0 );
     _prefdata->dot_size_spin = gtk_spin_button_new( dot_size_adj, 0.1, 1 );
@@ -231,7 +237,8 @@ void GTKParticleDiagWindow::build_preferences_2d( GtkWidget *notebook )
 
     // Ellipse fit
     label = gtk_label_new( "Emittance ellipse fit" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     _prefdata->ellipse_check = gtk_check_button_new_with_label( "on/off" );
     gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->ellipse_check), _plot.get_emittance_ellipse() );
@@ -260,7 +267,8 @@ void GTKParticleDiagWindow::build_preferences_1d( GtkWidget *notebook )
     // ****************************************************************************
 
     GtkWidget *label = gtk_label_new( "Bin count" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkAdjustment *histo_n_adj = gtk_adjustment_new( _plot.get_histogram_n(), 0, 1000, 1, 10, 0 );
     _prefdata->histo_n_spin = gtk_spin_button_new( histo_n_adj, 1, 0 );
@@ -270,7 +278,8 @@ void GTKParticleDiagWindow::build_preferences_1d( GtkWidget *notebook )
     // Histogram accumulation type
     histogram_accumulation_e accu = _plot.get_histogram_accumulation();
     label = gtk_label_new( "Histogram accumulation" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     _prefdata->histo_acc_closest_radio = gtk_radio_button_new_with_label_from_widget( 
 	NULL, "Closest" );
@@ -288,7 +297,8 @@ void GTKParticleDiagWindow::build_preferences_1d( GtkWidget *notebook )
     // Plot presentation style
     bool histo_style =  _plot.get_histogram_style();
     label = gtk_label_new( "Plot style" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     _prefdata->style_histo_radio = gtk_radio_button_new_with_label_from_widget( 
 	NULL, "Histogram" );

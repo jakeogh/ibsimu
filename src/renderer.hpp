@@ -2,7 +2,7 @@
  *  \brief 3D renderer base class
  */
 
-/* Copyright (c) 2012,2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012,2013,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -89,7 +89,7 @@ public:
 
 
     virtual void start_rendering( void ) = 0;
-    virtual void end_rendering( void ) = 0;
+    virtual void end_rendering( cairo_t *cairo ) = 0;
 
 
     virtual void disable_lighting( void ) = 0;

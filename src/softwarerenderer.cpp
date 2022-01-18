@@ -2,7 +2,7 @@
  *  \brief Software 3D renderer
  */
 
-/* Copyright (c) 2012,2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012,2013,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -346,14 +346,12 @@ void SoftwareRenderer::start_rendering( void )
 }
 
 
-void SoftwareRenderer::end_rendering( void )
+void SoftwareRenderer::end_rendering( cairo_t *cairo )
 {
     cairo_surface_mark_dirty( _surface );
 
     if( _darea ) {
 	// Copy image surface to window
-	cairo_t *cairo;
-	cairo = gdk_cairo_create( gtk_widget_get_window( _darea ) );
 	cairo_set_source_surface( cairo, _surface, 0, 0 );
 	cairo_pattern_set_filter( cairo_get_source(cairo), CAIRO_FILTER_FAST );
 	cairo_rectangle( cairo, 0, 0, _width, _height );
@@ -361,7 +359,6 @@ void SoftwareRenderer::end_rendering( void )
 	cairo_scale( cairo, 50, 50 );
 	cairo_translate( cairo, 0, 0 );
 	cairo_paint( cairo );
-	cairo_destroy( cairo );
 
 	// Free image surface
 	if( _surface )

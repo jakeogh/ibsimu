@@ -2,7 +2,7 @@
  *  \brief Dialog window for producing hard copies
  */
 
-/* Copyright (c) 2005-2009,2012-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012-2013,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -213,8 +213,8 @@ void GTKHardcopy::run( void )
     _dialog = gtk_file_chooser_dialog_new( "Make a hardcopy",
 					    GTK_WINDOW(_window),
 					    GTK_FILE_CHOOSER_ACTION_SAVE,
-					    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-					    GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+					    dgettext("gtk30","_Cancel"), GTK_RESPONSE_CANCEL,
+					    dgettext("gtk30","_Save"), GTK_RESPONSE_ACCEPT,
 					    NULL );
 #ifdef HAVE_GETCWD
     size_t size = 1024;
@@ -571,11 +571,17 @@ void GTKHardcopy::write_png_frame( cairo_surface_t *surface, const char *filenam
 
 void GTKHardcopy::write_png_geom3dplot( cairo_surface_t *surface, const char *filename )
 {
+    cairo_t *cairo = cairo_create( surface );
+    if( cairo_status( cairo ) )
+	throw( Error( ERROR_LOCATION, "error creating cairo" ) );
+    
     SoftwareRenderer r( surface );
-    _geom3dplot->draw( &r );
+    _geom3dplot->draw( cairo, &r );
 
     // Write png as is
     cairo_surface_write_to_png( surface, filename );
+
+    cairo_destroy( cairo );
 }
 
 

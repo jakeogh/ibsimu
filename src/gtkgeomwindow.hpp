@@ -2,7 +2,7 @@
  *  \brief %Geometry view window
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013, 2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -107,10 +107,6 @@ class GTKGeomWindow : public GTKFrameWindow {
     const VectorField       *_bfield;
     const ParticleDataBase  *_pdb;
 
-    int                      _tool;
-    int                      _start[2];
-    int                      _end[2];
-
     GtkWidget               *_spinbutton;
     GtkWidget               *_combobox;
 
@@ -129,6 +125,7 @@ class GTKGeomWindow : public GTKFrameWindow {
     void menuitem_tool_change( GtkToolButton *button );
     void field_diag( int action, double x, double y );
     void particle_diag( int action, double x, double y );
+    void draw2( cairo_t *cairo );
     void darea_motion2( GdkEventMotion *event );
     void darea_button2( GdkEventButton *event );
     void field_activate( void );
@@ -141,6 +138,9 @@ class GTKGeomWindow : public GTKFrameWindow {
     static void menuitem_tool_change_signal( GtkToolButton *button,
 					     gpointer object );
     static void menuitem_geom3d_signal( GtkToolButton *button,
+					gpointer object );
+    static gboolean darea_draw_signal2( GtkWidget *widget, 
+					cairo_t *cairo,
 					gpointer object );
     static gboolean darea_motion_signal2( GtkWidget *widget, 
 					  GdkEventMotion *event,

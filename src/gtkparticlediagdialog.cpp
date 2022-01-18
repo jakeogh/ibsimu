@@ -2,7 +2,7 @@
  *  \brief Dialog for constructing particle diagnostic windows
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -243,8 +243,8 @@ void GTKParticleDiagDialog::run( void )
 						     GTK_WINDOW(_window),
 						     (GtkDialogFlags)(GTK_DIALOG_MODAL | 
 								      GTK_DIALOG_DESTROY_WITH_PARENT), 
-						     GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
-						     GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
+						     dgettext("gtk30","_Ok"), GTK_RESPONSE_ACCEPT,
+						     dgettext("gtk30","_Cancel"), GTK_RESPONSE_REJECT,
 						     NULL );
     gtk_window_set_resizable( GTK_WINDOW(dialog), FALSE );
     GtkWidget *mainbox = gtk_dialog_get_content_area( GTK_DIALOG(dialog) );
@@ -263,7 +263,8 @@ void GTKParticleDiagDialog::run( void )
     // Label for plane
     GtkWidget *label = gtk_label_new( "" );
     gtk_label_set_markup( GTK_LABEL(label), "<span weight=\"bold\">Plane</span>" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl1, 1, 1 );
     yl1++;
 
@@ -307,7 +308,8 @@ void GTKParticleDiagDialog::run( void )
     // Label for level
     label = gtk_label_new( "" );
     gtk_label_set_markup( GTK_LABEL(label), "<span weight=\"bold\">Level</span>" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 1, yl2, 1, 1 );
     yl2++;
 
@@ -336,7 +338,8 @@ void GTKParticleDiagDialog::run( void )
     // Label for Plot 2D
     label = gtk_label_new( "" );
     gtk_label_set_markup( GTK_LABEL(label), "<span weight=\"bold\">Plot 2D</span>" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl1, 2, 1 );
     yl1++;
     yl2 = yl1;
@@ -431,7 +434,8 @@ void GTKParticleDiagDialog::run( void )
     // Label for Plot 1D
     label = gtk_label_new( "" );
     gtk_label_set_markup( GTK_LABEL(label), "<span weight=\"bold\">Plot 1D</span>" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl1, 2, 1 );
     yl1++;
     yl2 = yl1;

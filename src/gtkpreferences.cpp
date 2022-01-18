@@ -2,7 +2,7 @@
  *  \brief Preferences for plot windows
  */
 
-/* Copyright (c) 2005-2009,2012-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012-2013,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -63,8 +63,8 @@ void GTKPreferences::run( void )
 						     GTK_WINDOW(_window),
 						     (GtkDialogFlags)(GTK_DIALOG_MODAL | 
 								      GTK_DIALOG_DESTROY_WITH_PARENT), 
-						     GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
-						     GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
+						     dgettext("gtk30","_Ok"), GTK_RESPONSE_ACCEPT,
+						     dgettext("gtk30","_Cancel"), GTK_RESPONSE_REJECT,
 						     NULL );
     gtk_window_set_resizable( GTK_WINDOW(dialog), FALSE );
     GtkWidget *mainbox = gtk_dialog_get_content_area( GTK_DIALOG(dialog) );
@@ -80,7 +80,8 @@ void GTKPreferences::run( void )
 
     // Fontsize
     GtkWidget *label = gtk_label_new( "Fontsize" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     GtkWidget *fontsize_entry = gtk_entry_new();
     char s[128];
     snprintf( s, 128, "%g", _frame->get_font_size() );
@@ -91,7 +92,8 @@ void GTKPreferences::run( void )
 
     // Range xmin
     label = gtk_label_new( "Range xmin" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     GtkWidget *rxmin_entry = gtk_entry_new();
     double min, max;
     _frame->get_ranges( PLOT_AXIS_X1, min, max );
@@ -103,7 +105,8 @@ void GTKPreferences::run( void )
 
     // Range xmax
     label = gtk_label_new( "Range xmax" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     GtkWidget *rxmax_entry = gtk_entry_new();
     _frame->get_ranges( PLOT_AXIS_X1, min, max );
     snprintf( s, 128, "%g", max );
@@ -114,7 +117,8 @@ void GTKPreferences::run( void )
 
     // Range ymin
     label = gtk_label_new( "Range ymin" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     GtkWidget *rymin_entry = gtk_entry_new();
     _frame->get_ranges( PLOT_AXIS_Y1, min, max );
     snprintf( s, 128, "%g", min );
@@ -125,7 +129,8 @@ void GTKPreferences::run( void )
     
     // Range ymax
     label = gtk_label_new( "Range ymax" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     GtkWidget *rymax_entry = gtk_entry_new();
     _frame->get_ranges( PLOT_AXIS_Y1, min, max );
     snprintf( s, 128, "%g", max );

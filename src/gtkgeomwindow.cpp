@@ -2,7 +2,7 @@
  *  \brief %Geometry view window
  */
 
-/* Copyright (c) 2005-2009, 2011-2013, 2016 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009, 2011-2013, 2016, 2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -66,7 +66,7 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       &plotter,
 			      const ParticleDataBase *pdb )
   : GTKFrameWindow(plotter), _geomplot(_frame,geom), 
     _geom(geom), _epot(epot), _efield(efield), _scharge(scharge), _tdens(tdens), 
-    _bfield(bfield), _pdb(pdb), _tool(TOOL_UNKNOWN), _prefdata(NULL)
+    _bfield(bfield), _pdb(pdb), _prefdata(NULL)
 {
     //std::cout << "GTKGeomWindow constructor\n";
 
@@ -183,6 +183,9 @@ GTKGeomWindow::GTKGeomWindow( class GTKPlotter       &plotter,
                       (gpointer)this );
 
     // Drawing area signals
+    g_signal_connect( G_OBJECT(_darea), "draw",
+		      G_CALLBACK(darea_draw_signal2), 
+		      (gpointer)this );
     g_signal_connect( G_OBJECT(_darea), "button_press_event",
 		      G_CALLBACK(darea_button_signal2),
 		      (gpointer)this );
@@ -213,22 +216,20 @@ void GTKGeomWindow::field_diag( int action, double x, double y )
 	y0 = _start[1] < _end[1] ? _start[1] : _end[1];
 	width = abs( _start[0] - _end[0] );
 	height = abs( _start[1] - _end[1] );
-	expose( x0-1, y0-1, width+3, height+3 );
+	gtk_widget_queue_draw_area( _darea, x0-1, y0-1, width+3, height+3 );
     }
 
     if( action == 1 ) {
 	// Draw new line
 	_end[0] = (int)floor(x+0.5);
 	_end[1] = (int)floor(y+0.5);
-	cairo_t *cairo = gdk_cairo_create( gtk_widget_get_window( _darea ) );
-	cairo_move_to( cairo, _start[0], _start[1] );
-	cairo_line_to( cairo, _end[0], _end[1] );
-	cairo_set_source_rgb( cairo, 0, 0, 0 );
-	cairo_set_line_width( cairo, 1.0 );
-	cairo_stroke( cairo );
-	cairo_destroy( cairo );
+	_draw_action = 1;
+	gtk_widget_queue_draw( _darea );
 
     } else if( action == 2 ) {
+	_draw_action = 0;
+	gtk_widget_queue_draw( _darea );
+	
 	// Done, start field diagnostics dialog
 	Coordmapper cm = _frame.get_coordmapper( PLOT_AXIS_X1, PLOT_AXIS_Y1 );
 	double x1[2] = {(double)_start[0], (double)_start[1]};
@@ -264,9 +265,9 @@ void GTKGeomWindow::particle_diag( int action, double x, double y )
 	width = abs( _start[0] - _end[0] );
 	height = abs( _start[1] - _end[1] );
 	if( width > height )
-	    expose( x0-1, _start[1]-1, width+3, 3 );
+	    gtk_widget_queue_draw_area( _darea, x0-1, _start[1]-1, width+3, 3 );
 	else
-	    expose( _start[0]-1, y0-1, 3, height+3 );
+	    gtk_widget_queue_draw_area( _darea, _start[0]-1, y0-1, 3, height+3 );
     }
 
     if( action == 1 ) {
@@ -277,18 +278,8 @@ void GTKGeomWindow::particle_diag( int action, double x, double y )
 	y0 = _start[1] < _end[1] ? _start[1] : _end[1];
 	width = abs( _start[0] - _end[0] );
 	height = abs( _start[1] - _end[1] );
-	cairo_t *cairo = gdk_cairo_create( gtk_widget_get_window( _darea ) );
-	if( width > height ) {
-	    cairo_move_to( cairo, _start[0], _start[1] );
-	    cairo_line_to( cairo, _end[0], _start[1] );
-	} else {
-	    cairo_move_to( cairo, _start[0], _start[1] );
-	    cairo_line_to( cairo, _start[0], _end[1] );
-	}
-	cairo_set_source_rgb( cairo, 0, 0, 0 );
-	cairo_set_line_width( cairo, 1.0 );
-	cairo_stroke( cairo );
-	cairo_destroy( cairo );
+	_draw_action = 1;
+	gtk_widget_queue_draw( _darea );
     }
 
     if( action == 2 ) {
@@ -304,6 +295,9 @@ void GTKGeomWindow::particle_diag( int action, double x, double y )
 	    return;
 	}
 
+	_draw_action = 0;
+	gtk_widget_queue_draw( _darea );
+	
 	// Done, start particle diagnostics dialog
 	int crd;
 	double val;
@@ -323,6 +317,31 @@ void GTKGeomWindow::particle_diag( int action, double x, double y )
 }
 
 
+void GTKGeomWindow::draw2( cairo_t *cairo )
+{
+    if( _tool == TOOL_PARTICLE_DIAG && _draw_action == 1 ) {
+	int width = abs( _start[0] - _end[0] );
+	int height = abs( _start[1] - _end[1] );
+    	if( width > height ) {
+	    cairo_move_to( cairo, _start[0], _start[1] );
+	    cairo_line_to( cairo, _end[0], _start[1] );
+	} else {
+	    cairo_move_to( cairo, _start[0], _start[1] );
+	    cairo_line_to( cairo, _start[0], _end[1] );
+	}
+	cairo_set_source_rgb( cairo, 0, 0, 0 );
+	cairo_set_line_width( cairo, 1.0 );
+	cairo_stroke( cairo );
+    } else if( _tool == TOOL_FIELD_DIAG && _draw_action == 1 ) {
+	cairo_move_to( cairo, _start[0], _start[1] );
+	cairo_line_to( cairo, _end[0], _end[1] );
+	cairo_set_source_rgb( cairo, 0, 0, 0 );
+	cairo_set_line_width( cairo, 1.0 );
+	cairo_stroke( cairo );
+    }
+}
+
+    
 void GTKGeomWindow::darea_motion2( GdkEventMotion *event )
 {
     if( _tool == TOOL_PARTICLE_DIAG && (event->state & GDK_BUTTON1_MASK) ) {
@@ -344,6 +363,16 @@ void GTKGeomWindow::darea_button2( GdkEventButton *event )
     } else if( _tool == TOOL_FIELD_DIAG && event->type == GDK_BUTTON_RELEASE && event->button == 1 ) {
 	field_diag( 2, event->x, event->y );
     }
+}
+
+
+gboolean GTKGeomWindow::darea_draw_signal2( GtkWidget *widget, 
+					    cairo_t *cairo,
+					    gpointer object )
+{
+    GTKGeomWindow *plotter = (GTKGeomWindow *)object;
+    plotter->draw2( cairo );
+    return( FALSE );
 }
 
 
@@ -548,7 +577,8 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
 
     // Manual eqlines
     GtkWidget *label = gtk_label_new( "Manual eqlines" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     _prefdata->manual_eqlines_entry = gtk_entry_new();
     std::vector<double> eqlines_manual = _geomplot.get_eqlines_manual();
     std::string s;
@@ -566,7 +596,8 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
 
     // Automatic eqlines
     label = gtk_label_new( "Automatic eqlines" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     size_t eqlines_auto = _geomplot.get_eqlines_auto();
     GtkAdjustment *automatic_eqlines_adj = gtk_adjustment_new( eqlines_auto, 0, 1000, 1, 10, 0 );
     _prefdata->automatic_eqlines_spin = gtk_spin_button_new( automatic_eqlines_adj, 1, 0 );
@@ -576,7 +607,8 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
 
     // Particle division
     label = gtk_label_new( "Trajectory division" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     size_t particle_div = _geomplot.get_particle_div();
     GtkAdjustment *particle_div_adj = gtk_adjustment_new( particle_div, 0, 1000000, 1, 10, 0 );
     _prefdata->particle_div_spin = gtk_spin_button_new( particle_div_adj, 1, 0 );
@@ -586,7 +618,8 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
 
     // Particle division, offset
     label = gtk_label_new( "Trajectory offset" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     size_t particle_offset = _geomplot.get_particle_offset();
     GtkAdjustment *particle_offset_adj = gtk_adjustment_new( particle_offset, 0, 1000000, 1, 10, 0 );
     _prefdata->particle_offset_spin = gtk_spin_button_new( particle_offset_adj, 1, 0 );
@@ -596,7 +629,8 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
 
     // QM discretation
     label = gtk_label_new( "Q/M discretation" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     _prefdata->qmdiscretation_check = gtk_check_button_new_with_label( "on/off" );
     bool qm_discretation = _geomplot.get_qm_discretation();
     gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->qmdiscretation_check), qm_discretation );
@@ -606,7 +640,8 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
 
     // Mesh
     label = gtk_label_new( "Mesh" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     _prefdata->meshen_check = gtk_check_button_new_with_label( "on/off" );
     bool mesh = _geomplot.get_mesh();
     gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(_prefdata->meshen_check), mesh );
@@ -630,7 +665,8 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
 
     // Field selection
     label = gtk_label_new( "Field selection" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0.0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 4, 1 );
     yl++;
 
@@ -770,7 +806,8 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     // Zscaling
     zscale_e zscale = _geomplot.fieldgraph()->get_zscale();
     label = gtk_label_new( "Zscale" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0.0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 2, 1 );
 
     _prefdata->zscale_lin_radio = gtk_radio_button_new_with_label_from_widget( NULL, 
@@ -796,7 +833,8 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     // Interpolation type
     interpolation_e interp = _geomplot.fieldgraph()->get_interpolation();    
     label = gtk_label_new( "Interpolation" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0.0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 2, 1 );
 
     _prefdata->int_closest_radio = gtk_radio_button_new_with_label_from_widget( NULL, 
@@ -825,7 +863,8 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
 
     // Range zmin
     label = gtk_label_new( "Range zmin" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 2, 1 );
     _prefdata->zmin_entry = gtk_entry_new();
     //s = to_string( zmin );
@@ -838,7 +877,8 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
 
     // Range zmax
     label = gtk_label_new( "Range zmax" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 2, 1 );
     _prefdata->zmax_entry = gtk_entry_new();
     //s = to_string( zmax );
@@ -851,7 +891,8 @@ void *GTKGeomWindow::build_preferences( GtkWidget *notebook )
     // Palette steps
     int steps = _geomplot.fieldgraph()->palette().get_steps();
     label = gtk_label_new( "Palette steps" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 2, 1 );
     _prefdata->palette_steps_entry = gtk_entry_new();
     snprintf( st, 128, "%d", steps );

@@ -2,7 +2,7 @@
  *  \brief Window for GTK plots with frames
  */
 
-/* Copyright (c) 2005-2013,2016 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013,2016,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -259,7 +259,6 @@ void GTKFrameWindow::frame_draw( void )
 
 void GTKFrameWindow::configure( void )
 {
-    //std::cout << "Configure\n";
     _width = gtk_widget_get_allocated_width( _darea );
     _height = gtk_widget_get_allocated_height( _darea );
 
@@ -277,22 +276,41 @@ void GTKFrameWindow::configure( void )
 
 void GTKFrameWindow::draw( cairo_t *cairo )
 {
+    cairo_save( cairo );
     cairo_set_source_surface( cairo, _surface, 0, 0 );
     cairo_pattern_set_filter( cairo_get_source(cairo), CAIRO_FILTER_FAST );
     cairo_scale( cairo, 50, 50 );
     cairo_translate( cairo, 0, 0 );
     cairo_paint( cairo );
-}
+    cairo_restore( cairo );
 
+    if( _tool == TOOL_TRACK && _draw_action == 1 ) {
+	double margin[4];
+	_frame.get_margins( margin );
 
-void GTKFrameWindow::expose( int x, int y, int width, int height )
-{
-    cairo_t *cairo;
-    cairo = gdk_cairo_create( gtk_widget_get_window( _darea ) );
-    cairo_rectangle( cairo, x, y, width, height );
-    cairo_clip( cairo );
-    draw( cairo );
-    cairo_destroy( cairo );
+    	if( _end[1] >= margin[3] && _end[1] <= _height-margin[1] ) {
+	    cairo_move_to( cairo, (int)floor(margin[0]+0.5), _end[1] );
+	    cairo_line_to( cairo, _width-(int)floor(margin[2]+0.5), _end[1] );
+	}
+	if( _end[0] >= margin[0] && _end[0] <= _width-margin[2] ) {
+	    cairo_move_to( cairo, _end[0], (int)floor(margin[3]+0.5) );
+	    cairo_line_to( cairo, _end[0], _height-(int)floor(margin[1]+0.5) );
+	}
+	cairo_set_source_rgb( cairo, 0, 0, 0 );
+	//cairo_set_antialias( cairo, CAIRO_ANTIALIAS_NONE );
+	cairo_set_line_width( cairo, 1.0 );
+	cairo_stroke( cairo );
+    } else if( _tool == TOOL_ZOOM_IN && _draw_action == 1 ) {
+	cairo_move_to( cairo, _start[0], _start[1] );
+	cairo_line_to( cairo, _end[0], _start[1] );
+	cairo_line_to( cairo, _end[0], _end[1] );
+	cairo_line_to( cairo, _start[0], _end[1] );
+	cairo_line_to( cairo, _start[0], _start[1] );
+	cairo_set_source_rgb( cairo, 0, 0, 0 );
+	//cairo_set_antialias( cairo, CAIRO_ANTIALIAS_NONE );
+	cairo_set_line_width( cairo, 1.0 );
+	cairo_stroke( cairo );
+    }
 }
 
 
@@ -318,7 +336,7 @@ void GTKFrameWindow::zoom_fit( void )
 
     // Redraw and enforce expose
     frame_draw();
-    expose( 0, 0, _width, _height );
+    gtk_widget_queue_draw( _darea );
 }
 
 
@@ -332,9 +350,6 @@ std::string GTKFrameWindow::track_text( double x, double y )
 // action: 0 for leave, 1 for motion, 2 for enter, 3 for create, 4 for delete
 void GTKFrameWindow::track( int action, double x, double y )
 {
-    double margin[4];
-    _frame.get_margins( margin );
-
     if( action == 4 ) {
 	// Delete track window
 	if( _trackwindow ) {
@@ -347,7 +362,9 @@ void GTKFrameWindow::track( int action, double x, double y )
         gtk_window_set_title( GTK_WINDOW(_trackwindow), "Track" );
 
         _tracklabel = gtk_label_new( "" );
-        gtk_misc_set_alignment( GTK_MISC(_tracklabel), 0.0, 0.0 );
+        //gtk_misc_set_alignment( GTK_MISC(_tracklabel), 0.0, 0.0 );
+	gtk_label_set_xalign( GTK_LABEL(_tracklabel), 0 );
+	gtk_label_set_yalign( GTK_LABEL(_tracklabel), 0 );
         gtk_label_set_justify( GTK_LABEL(_tracklabel), GTK_JUSTIFY_LEFT );
         gtk_widget_set_size_request( _tracklabel, 400, 300 );
 
@@ -360,28 +377,17 @@ void GTKFrameWindow::track( int action, double x, double y )
 
     if( action == 1 || action == 0 ) {
 	// Erase old track crosshair
-	expose( _end[0]-1, 0, 3, _height );
-	expose( 0, _end[1]-1, _width, 3 );
+	_draw_action = 0;
+	gtk_widget_queue_draw_area( _darea, _end[0]-1, 0, 3, _height );
+	gtk_widget_queue_draw_area( _darea, 0, _end[1]-1, _width, 3 );
     }
 
     if( action == 2 || action == 1 ) {
 	// Draw new track crosshair
+	_draw_action = 1;
 	_end[0] = (int)floor(x+0.5);
 	_end[1] = (int)floor(y+0.5);
-	cairo_t *cairo = gdk_cairo_create( gtk_widget_get_window( _darea ) );
-	if( y >= margin[3] && y <= _height-margin[1] ) {
-	    cairo_move_to( cairo, (int)floor(margin[0]+0.5), _end[1] );
-	    cairo_line_to( cairo, _width-(int)floor(margin[2]+0.5), _end[1] );
-	}
-	if( x >= margin[0] && x <= _width-margin[2] ) {
-	    cairo_move_to( cairo, _end[0], (int)floor(margin[3]+0.5) );
-	    cairo_line_to( cairo, _end[0], _height-(int)floor(margin[1]+0.5) );
-	}
-	cairo_set_source_rgb( cairo, 0, 0, 0 );
-	//cairo_set_antialias( cairo, CAIRO_ANTIALIAS_NONE );
-	cairo_set_line_width( cairo, 1.0 );
-	cairo_stroke( cairo );
-	cairo_destroy( cairo );
+	gtk_widget_queue_draw( _darea );
 	
 	_track_px = x;
 	_track_py = y;
@@ -389,7 +395,7 @@ void GTKFrameWindow::track( int action, double x, double y )
 	cm.inv_transform( x, y );
 	std::string s = track_text( x, y );
 	gtk_label_set_text( GTK_LABEL(_tracklabel), s.c_str() );
-    }    
+    }
 }
 
 
@@ -421,7 +427,7 @@ void GTKFrameWindow::move( int action, double x, double y )
 
 	// Redraw and enforce expose
 	frame_draw();
-	expose( 0, 0, _width, _height );
+	gtk_widget_queue_draw( _darea );
     }
 
 }
@@ -458,7 +464,7 @@ void GTKFrameWindow::zoom_out( double x, double y )
 
     // Redraw and enforce expose
     frame_draw();
-    expose( 0, 0, _width, _height );
+    gtk_widget_queue_draw( _darea );
 }
 
 
@@ -493,7 +499,7 @@ void GTKFrameWindow::zoom_in( double x, double y )
 
     // Redraw and enforce expose
     frame_draw();
-    expose( 0, 0, _width, _height );
+    gtk_widget_queue_draw( _darea );
 }
 
 
@@ -511,23 +517,14 @@ void GTKFrameWindow::zoom_window( int action, double x, double y )
 	height = abs( _start[1] - _end[1] );
 	_end[0] = (int)floor(x+0.5);
 	_end[1] = (int)floor(y+0.5);
-	expose( x0-1, y0-1, 3, height+3 );
-	expose( x0-1, y0-1, width+3, 3 );
-	expose( x0+width-1, y0-1, 3, height+3 );
-	expose( x0-1, y0+height-1, width+3, 3 );
+	gtk_widget_queue_draw_area( _darea, x0-1, y0-1, 3, height+3 );
+	gtk_widget_queue_draw_area( _darea, x0-1, y0-1, width+3, 3 );
+	gtk_widget_queue_draw_area( _darea, x0+width-1, y0-1, 3, height+3 );
+	gtk_widget_queue_draw_area( _darea, x0-1, y0+height-1, width+3, 3 );
 
 	// Draw new zoom box
-	cairo_t *cairo = gdk_cairo_create( gtk_widget_get_window( _darea ) );
-	cairo_move_to( cairo, _start[0], _start[1] );
-	cairo_line_to( cairo, _end[0], _start[1] );
-	cairo_line_to( cairo, _end[0], _end[1] );
-	cairo_line_to( cairo, _start[0], _end[1] );
-	cairo_line_to( cairo, _start[0], _start[1] );
-	cairo_set_source_rgb( cairo, 0, 0, 0 );
-	//cairo_set_antialias( cairo, CAIRO_ANTIALIAS_NONE );
-	cairo_set_line_width( cairo, 1.0 );
-	cairo_stroke( cairo );
-	cairo_destroy( cairo );
+	_draw_action = 1;
+	gtk_widget_queue_draw( _darea );
 
     } else {
 	double corners[4];
@@ -552,8 +549,9 @@ void GTKFrameWindow::zoom_window( int action, double x, double y )
 	_frame.set_ranges( PLOT_AXIS_Y2, range[1], range[3] );
 
 	// Redraw and enforce expose
+	_draw_action = 0;
 	frame_draw();
-	expose( 0, 0, _width, _height );
+	gtk_widget_queue_draw( _darea );
     }
 }
 
@@ -583,12 +581,15 @@ void GTKFrameWindow::darea_motion( GdkEventMotion *event )
     std::string s8 = wstring_to_utf8( ss.str() );
     gtk_statusbar_push( GTK_STATUSBAR(_statusbar), 0, s8.c_str() );
 
+    /*
+    // Doesn't do anything?
     int x, y;
     GdkModifierType state;
     GdkDisplay *display = gdk_display_get_default();
     GdkDeviceManager *devicemanager = gdk_display_get_device_manager( display );
     GdkDevice *device = gdk_device_manager_get_client_pointer( devicemanager );
     gdk_window_get_device_position( event->window, device, &x, &y, &state );
+    */
 }
 
 
@@ -683,7 +684,7 @@ void GTKFrameWindow::draw_and_expose( void )
 {
     // Redraw and enforce expose
     frame_draw();
-    expose( 0, 0, _width, _height );
+    gtk_widget_queue_draw( _darea );
 }
 
 

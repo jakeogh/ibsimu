@@ -2,7 +2,7 @@
  *  \brief %Geometry view window for 3d
  */
 
-/* Copyright (c) 2012-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012-2013,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -320,7 +320,7 @@ void GTKGeom3DWindow::configure( void )
 
 void GTKGeom3DWindow::draw( cairo_t *cairo )
 {
-    _geom3dplot.draw( _renderer );
+    _geom3dplot.draw( cairo, _renderer );
 }
 
 
@@ -520,8 +520,8 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 						     GTK_WINDOW(_window),
 						     (GtkDialogFlags)(GTK_DIALOG_MODAL | 
 								      GTK_DIALOG_DESTROY_WITH_PARENT), 
-						     GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
-						     GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
+						     dgettext("gtk30","_OK"), GTK_RESPONSE_ACCEPT,
+						     dgettext("gtk30","_Cancel"), GTK_RESPONSE_REJECT,
 						     NULL );
     gtk_window_set_resizable( GTK_WINDOW(dialog), FALSE );
     GtkWidget *mainbox = gtk_dialog_get_content_area( GTK_DIALOG(dialog) );
@@ -535,23 +535,28 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
     gtk_widget_set_hexpand( grid, TRUE );
 
     GtkWidget *label = gtk_label_new( "Trajectory division" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, 0, 1, 1 );
     GtkWidget *spinbutton_pdiv = gtk_spin_button_new_with_range( 0, 1000000, 1.0 );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_spin_button_set_value( GTK_SPIN_BUTTON(spinbutton_pdiv), _geom3dplot.get_particle_div() );
     gtk_grid_attach( GTK_GRID(grid), spinbutton_pdiv, 1, 0, 1, 1 );
 
     label = gtk_label_new( "Trajectory offset" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, 1, 1, 1 );
     GtkWidget *spinbutton_poffset = gtk_spin_button_new_with_range( 0, 1000000, 1.0 );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_spin_button_set_value( GTK_SPIN_BUTTON(spinbutton_poffset), _geom3dplot.get_particle_offset() );
     gtk_grid_attach( GTK_GRID(grid), spinbutton_poffset, 1, 1, 1, 1 );
 
     label = gtk_label_new( "BBox" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, 2, 1, 1 );
     GtkWidget *button_bbox = gtk_check_button_new_with_label( "on/off" );
     gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(button_bbox), _geom3dplot.get_bbox() );
@@ -590,7 +595,8 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 	    label = gtk_label_new( "Cut level zmax" );
 	    spinbutton[a] = gtk_spin_button_new_with_range( 0, _geom.size(2)-1, 1.0 );
 	}
-	gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+	gtk_label_set_xalign( GTK_LABEL(label), 0 );
+	gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON(spinbutton[a]), _geom3dplot.get_clevel( a ) );
 	gtk_grid_attach( GTK_GRID(grid), label, 0, a, 1, 1 );
 	gtk_grid_attach( GTK_GRID(grid), spinbutton[a], 1, a, 1, 1 );
@@ -613,7 +619,8 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 	std::string ss = "Solid " + to_string(a+7);
 	label = gtk_label_new( ss.c_str() );
 	solid_enable_check_button[a] = gtk_check_button_new_with_label( "on/off" );
-	gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+	gtk_label_set_xalign( GTK_LABEL(label), 0 );
+	gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
 	bool en = _geom3dplot.get_solid_plot( a+7 );
 	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(solid_enable_check_button[a]), en );
 	gtk_grid_attach( GTK_GRID(grid), label, 0, a, 1, 1 );
@@ -636,7 +643,8 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
     _geom3dplot.get_surface_triangle_color_range( range_min, range_max );
 
     label = gtk_label_new( "Range min" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, 0, 1, 1 );
     GtkWidget *range_min_entry = gtk_entry_new();
     snprintf( st, 128, "%g", range_min );
@@ -644,7 +652,8 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
     gtk_grid_attach( GTK_GRID(grid), range_min_entry, 1, 0, 1, 1 );
 
     label = gtk_label_new( "Range max" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, 1, 1, 1 );
     GtkWidget *range_max_entry = gtk_entry_new();
     snprintf( st, 128, "%g", range_max );
@@ -653,7 +662,8 @@ void GTKGeom3DWindow::menuitem_preferences( GtkMenuItem *menuitem )
 
     label = gtk_label_new( "Surface data plotting" );
     GtkWidget *sdata_enable_check_button = gtk_check_button_new_with_label( "on/off" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, 2, 1, 1 );
     bool en = _geom3dplot.get_surface_triangle_data_plot();
     gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(sdata_enable_check_button), en );

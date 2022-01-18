@@ -2,7 +2,7 @@
  *  \brief %Geometry 3d plotter
  */
 
-/* Copyright (c) 2012,2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012,2013,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -47,6 +47,7 @@
 
 #include <stdint.h>
 #include <vector>
+#include <cairo.h>
 #include "geometry.hpp"
 #include "particledatabase.hpp"
 #include "transformation.hpp"
@@ -247,7 +248,7 @@ public:
 
     /*! \brief Draw 3D geometry using renderer \a r.
      */
-    void draw( class Renderer *r );
+    void draw( cairo_t *cairo, class Renderer *r );
 };
 
 

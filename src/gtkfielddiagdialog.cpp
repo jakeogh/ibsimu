@@ -2,7 +2,7 @@
  *  \brief Dialog for constructing field diagnostic windows
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -73,8 +73,8 @@ void GTKFieldDiagDialog::run( void )
                                                      GTK_WINDOW(_window),
                                                      (GtkDialogFlags)(GTK_DIALOG_MODAL | 
 								      GTK_DIALOG_DESTROY_WITH_PARENT), 
-                                                     GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
-                                                     GTK_STOCK_CANCEL, GTK_RESPONSE_REJECT,
+                                                     dgettext("gtk30","_OK"), GTK_RESPONSE_ACCEPT,
+                                                     dgettext("gtk30","_Cancel"), GTK_RESPONSE_REJECT,
                                                      NULL );
     gtk_window_set_resizable( GTK_WINDOW(dialog), FALSE );
     GtkWidget *mainbox = gtk_dialog_get_content_area( GTK_DIALOG(dialog) );
@@ -86,21 +86,24 @@ void GTKFieldDiagDialog::run( void )
     // Labels
     GtkWidget *label = gtk_label_new( "" );
     gtk_label_set_markup( GTK_LABEL(label), "<span weight=\"bold\">Start</span>" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, 0, 2, 1 );
     label = gtk_label_new( "" );
     gtk_label_set_markup( GTK_LABEL(label), "<span weight=\"bold\">End</span>" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 2, 0, 2, 1 );
 
     // x1
     label = gtk_label_new( "x1" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, 1, 1, 1 );
     GtkWidget *entry_x1 = gtk_entry_new();
     gtk_entry_set_max_length( GTK_ENTRY(entry_x1), 30 );
-    gtk_widget_set_margin_left( entry_x1, 5 );
-    gtk_widget_set_margin_right( entry_x1, 5 );
+    gtk_widget_set_margin_start( entry_x1, 5 );
+    gtk_widget_set_margin_end( entry_x1, 5 );
     char s[128];
     snprintf( s, 128, "%g", _x1[0] );
     gtk_entry_set_text( GTK_ENTRY(entry_x1), s );
@@ -108,11 +111,12 @@ void GTKFieldDiagDialog::run( void )
 
     // x2
     label = gtk_label_new( "x2" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 2, 1, 1, 1 );
     GtkWidget *entry_x2 = gtk_entry_new();
     gtk_entry_set_max_length( GTK_ENTRY(entry_x2), 30 );
-    gtk_widget_set_margin_left( entry_x2, 5 );
+    gtk_widget_set_margin_start( entry_x2, 5 );
     snprintf( s, 128, "%g", _x2[0] );
     gtk_entry_set_text( GTK_ENTRY(entry_x2), s );
     gtk_grid_attach( GTK_GRID(grid), entry_x2, 3, 1, 1, 1 );
@@ -122,12 +126,13 @@ void GTKFieldDiagDialog::run( void )
 	label = gtk_label_new( "r1" );
     else
 	label = gtk_label_new( "y1" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, 2, 1, 1 );
     GtkWidget *entry_y1 = gtk_entry_new();
     gtk_entry_set_max_length( GTK_ENTRY(entry_y1), 30 );
-    gtk_widget_set_margin_left( entry_y1, 5 );
-    gtk_widget_set_margin_right( entry_y1, 5 );
+    gtk_widget_set_margin_start( entry_y1, 5 );
+    gtk_widget_set_margin_end( entry_y1, 5 );
     snprintf( s, 128, "%g", _x1[1] );
     gtk_entry_set_text( GTK_ENTRY(entry_y1), s );
     gtk_grid_attach( GTK_GRID(grid), entry_y1, 1, 2, 1, 1 );
@@ -137,23 +142,25 @@ void GTKFieldDiagDialog::run( void )
 	label = gtk_label_new( "r2" );
     else
 	label = gtk_label_new( "y2" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 2, 2, 1, 1 );
     GtkWidget *entry_y2 = gtk_entry_new();
     gtk_entry_set_max_length( GTK_ENTRY(entry_y2), 30 );
-    gtk_widget_set_margin_left( entry_y2, 5 );
+    gtk_widget_set_margin_start( entry_y2, 5 );
     snprintf( s, 128, "%g", _x2[1] );
     gtk_entry_set_text( GTK_ENTRY(entry_y2), s );
     gtk_grid_attach( GTK_GRID(grid), entry_y2, 3, 2, 1, 1 );
 
     // z1
     label = gtk_label_new( "z1" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, 3, 1, 1 );
     GtkWidget *entry_z1 = gtk_entry_new();
     gtk_entry_set_max_length( GTK_ENTRY(entry_z1), 30 );
-    gtk_widget_set_margin_left( entry_z1, 5 );
-    gtk_widget_set_margin_right( entry_z1, 5 );
+    gtk_widget_set_margin_start( entry_z1, 5 );
+    gtk_widget_set_margin_end( entry_z1, 5 );
     if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
 	gtk_widget_set_sensitive( entry_z1, FALSE );
     snprintf( s, 128, "%g", _x1[2] );
@@ -162,11 +169,12 @@ void GTKFieldDiagDialog::run( void )
 
     // z2
     label = gtk_label_new( "z2" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 2, 3, 1, 1 );
     GtkWidget *entry_z2 = gtk_entry_new();
     gtk_entry_set_max_length( GTK_ENTRY(entry_z2), 30 );
-    gtk_widget_set_margin_left( entry_z2, 5 );
+    gtk_widget_set_margin_start( entry_z2, 5 );
     if( _geom->geom_mode() == MODE_2D || _geom->geom_mode() == MODE_CYL )
 	gtk_widget_set_sensitive( entry_z2, FALSE );
     snprintf( s, 128, "%g", _x2[2] );
@@ -175,7 +183,8 @@ void GTKFieldDiagDialog::run( void )
 
     // N
     label = gtk_label_new( "Samples" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, 4, 2, 1 );
     GtkAdjustment *n_adj = gtk_adjustment_new( 100, 0, 10000, 10, 100, 0 );
     GtkWidget *n_spin = gtk_spin_button_new( n_adj, 10, 0 );
@@ -195,8 +204,8 @@ void GTKFieldDiagDialog::run( void )
 
     // Separator
     GtkWidget *separator = gtk_separator_new( GTK_ORIENTATION_HORIZONTAL );
-    gtk_widget_set_margin_left( separator, 5 );
-    gtk_widget_set_margin_right( separator, 5 );
+    gtk_widget_set_margin_start( separator, 5 );
+    gtk_widget_set_margin_end( separator, 5 );
     gtk_widget_set_margin_top( separator, 5 );
     gtk_widget_set_margin_bottom( separator, 5 );
     gtk_grid_attach( GTK_GRID(grid), separator, 0, yl, 3, 1 );
@@ -206,16 +215,19 @@ void GTKFieldDiagDialog::run( void )
     // Axis selection titles
 
     label = gtk_label_new( "Axis x1" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 1, yl, 1, 1 );
     label = gtk_label_new( "Axis x2" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 2, yl, 1, 1 );
     yl++;
 
     // Distance
     label = gtk_label_new( "Distance" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_axis1_dist = gtk_radio_button_new_from_widget( NULL );
     GtkWidget *radio_axis2_dist = gtk_radio_button_new_from_widget( NULL );
@@ -225,7 +237,8 @@ void GTKFieldDiagDialog::run( void )
 
     // X
     label = gtk_label_new( "X" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_axis1_x = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis1_dist) );
     GtkWidget *radio_axis2_x = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis2_dist) );
@@ -238,7 +251,8 @@ void GTKFieldDiagDialog::run( void )
 	label = gtk_label_new( "R" );
     else
 	label = gtk_label_new( "Y" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_axis1_y = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis1_dist) );
     GtkWidget *radio_axis2_y = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis2_dist) );
@@ -248,7 +262,8 @@ void GTKFieldDiagDialog::run( void )
 
     // Z
     label = gtk_label_new( "Z" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_axis1_z = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis1_dist) );
     GtkWidget *radio_axis2_z = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis2_dist) );
@@ -262,7 +277,8 @@ void GTKFieldDiagDialog::run( void )
 
     // None
     label = gtk_label_new( "None" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_axis1_none = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis1_dist) );
     GtkWidget *radio_axis2_none = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_axis2_dist) );
@@ -274,8 +290,8 @@ void GTKFieldDiagDialog::run( void )
 
     // Separator
     separator = gtk_separator_new( GTK_ORIENTATION_HORIZONTAL );
-    gtk_widget_set_margin_left( separator, 5 );
-    gtk_widget_set_margin_right( separator, 5 );
+    gtk_widget_set_margin_start( separator, 5 );
+    gtk_widget_set_margin_end( separator, 5 );
     gtk_widget_set_margin_top( separator, 5 );
     gtk_widget_set_margin_bottom( separator, 5 );
     gtk_grid_attach( GTK_GRID(grid), separator, 0, yl, 3, 1 );
@@ -285,19 +301,22 @@ void GTKFieldDiagDialog::run( void )
 
     // Field selection titles
     label = gtk_label_new( "Graph 1" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    gtk_widget_set_margin_left( label, 5 );
-    gtk_widget_set_margin_right( label, 5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
+    gtk_widget_set_margin_start( label, 5 );
+    gtk_widget_set_margin_end( label, 5 );
     gtk_grid_attach( GTK_GRID(grid), label, 1, yl, 1, 1 );
     label = gtk_label_new( "Graph 2" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
-    gtk_widget_set_margin_left( label, 5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
+    gtk_widget_set_margin_start( label, 5 );
     gtk_grid_attach( GTK_GRID(grid), label, 2, yl, 1, 1 );
     yl++;
 
     // Epot
     label = gtk_label_new( "Electric potential" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_epot = gtk_radio_button_new_from_widget( NULL );
     GtkWidget *radio_g2_epot = gtk_radio_button_new_from_widget( NULL );
@@ -311,7 +330,8 @@ void GTKFieldDiagDialog::run( void )
 
     // E
     label = gtk_label_new( "|E|" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_e = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_e = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
@@ -325,7 +345,8 @@ void GTKFieldDiagDialog::run( void )
     
     // Ex
     label = gtk_label_new( "Ex" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_ex = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_ex = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
@@ -342,7 +363,8 @@ void GTKFieldDiagDialog::run( void )
 	label = gtk_label_new( "Er" );
     else
 	label = gtk_label_new( "Ey" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_ey = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_ey = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
@@ -356,7 +378,8 @@ void GTKFieldDiagDialog::run( void )
 
     // Ez
     label = gtk_label_new( "Ez" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_ez = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_ez = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
@@ -371,7 +394,8 @@ void GTKFieldDiagDialog::run( void )
     
     // Space charge
     label = gtk_label_new( "Space charge" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_scharge = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_scharge = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
@@ -400,7 +424,8 @@ void GTKFieldDiagDialog::run( void )
 
     // B
     label = gtk_label_new( "|B|" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_b = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     if( !_plotter->get_bfield() )
@@ -414,7 +439,8 @@ void GTKFieldDiagDialog::run( void )
 
     // Bx
     label = gtk_label_new( "Bx" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_bx = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     if( !bfield_fout[0] )
@@ -431,7 +457,8 @@ void GTKFieldDiagDialog::run( void )
 	label = gtk_label_new( "Br" );
     else
 	label = gtk_label_new( "By" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_by = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     if( !bfield_fout[1] )
@@ -448,7 +475,8 @@ void GTKFieldDiagDialog::run( void )
 	label = gtk_label_new( "Btheta" );
     else
 	label = gtk_label_new( "Bz" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_bz = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     if( !bfield_fout[2] )
@@ -462,7 +490,8 @@ void GTKFieldDiagDialog::run( void )
 
     // None
     label = gtk_label_new( "None" );
-    gtk_misc_set_alignment( GTK_MISC(label), 0, 0.5 );
+    gtk_label_set_xalign( GTK_LABEL(label), 0 );
+    gtk_label_set_yalign( GTK_LABEL(label), 0.5 );
     gtk_grid_attach( GTK_GRID(grid), label, 0, yl, 1, 1 );
     GtkWidget *radio_g1_none = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g1_epot) );
     GtkWidget *radio_g2_none = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON(radio_g2_epot) );
@@ -479,8 +508,8 @@ void GTKFieldDiagDialog::run( void )
 
     // Separator
     separator = gtk_separator_new( GTK_ORIENTATION_HORIZONTAL );
-    gtk_widget_set_margin_left( separator, 5 );
-    gtk_widget_set_margin_right( separator, 5 );
+    gtk_widget_set_margin_start( separator, 5 );
+    gtk_widget_set_margin_end( separator, 5 );
     gtk_widget_set_margin_top( separator, 5 );
     gtk_widget_set_margin_bottom( separator, 5 );
     gtk_grid_attach( GTK_GRID(grid), separator, 0, yl, 3, 1 );

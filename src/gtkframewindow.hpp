@@ -2,7 +2,7 @@
  *  \brief Window for GTK plots with frames
  */
 
-/* Copyright (c) 2005-2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -68,10 +68,6 @@ class GTKFrameWindow : public GTKWindow {
 
     cairo_t          *_cairo;
     cairo_surface_t  *_surface;
-
-    int               _start[2];
-    int               _end[2];
-    int               _tool;
 
     void hardcopy( void );
     void move( int action, double x, double y );
@@ -144,6 +140,10 @@ protected:
     double            _track_px; // Track x coordinate in pixels
     double            _track_py; // Track y coordinate in pixels
 
+    int               _start[2];     /*!< \brief Tool specific coordinates. */
+    int               _end[2];       /*!< \brief Tool specific coordinates. */
+    int               _tool;         /*!< \brief Selected tool. */
+    int               _draw_action;  /*!< \brief Flag for toll specific draw actions. */
 
     GTKFrameWindow( GTKPlotter &plotter );
 
@@ -157,7 +157,7 @@ protected:
     virtual std::string track_text( double x, double y );
 
     void draw( cairo_t *cairo );
-    void expose( int x, int y, int width, int height );
+    //void expose( int x, int y, int width, int height );
 
 public:
 

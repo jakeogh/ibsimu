@@ -2,7 +2,7 @@
  *  \brief OpenGL 3D renderer
  */
 
-/* Copyright (c) 2012,2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012,2013,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -98,7 +98,7 @@ void GLRenderer::start_rendering( void )
 }
 
 
-void GLRenderer::end_rendering( void )
+void GLRenderer::end_rendering( cairo_t *cairo )
 {
     // Finish draw and close OpenGL context
     if( gdk_gl_drawable_is_double_buffered( _gldrawable) )

@@ -2,7 +2,7 @@
  *  \brief Dialog for exporting field diagnostic data.
  */
 
-/* Copyright (c) 2005-2011,2013 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2011,2013,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -67,8 +67,8 @@ void GTKParticleDiagExportDialog::run( void )
    GtkWidget *dialog = gtk_file_chooser_dialog_new( "Export particle data",
 						    GTK_WINDOW(_window),
 						    GTK_FILE_CHOOSER_ACTION_SAVE,
-						    GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-						    GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+						    dgettext("gtk30","_Cancel"), GTK_RESPONSE_CANCEL,
+						    dgettext("gtk30","_Save"), GTK_RESPONSE_ACCEPT,
 						    NULL );
 
 #ifdef HAVE_GETCWD
