@@ -2,7 +2,7 @@
  *  \brief Harwell Boeing sparse matrix file handling
  */
 
-/* Copyright (c) 2005-2009,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -266,7 +266,7 @@ void HBIO::read( const std::string filename )
 	if( (pos = buf2.find_last_not_of( ' ' )) != std::string::npos )
 	    buf2 = buf2.substr( 0, pos+1 );
 	key = buf2;
-    } catch( std::out_of_range ) {
+    } catch( const std::out_of_range & ) {
 	key = "";
     }
 

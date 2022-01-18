@@ -2,7 +2,7 @@
  *  \brief Particle database implementation
  */
 
-/* Copyright (c) 2005-2013,2015 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2013,2015,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -628,7 +628,7 @@ public:
 	_scheduler.lock_mutex();
 	try {
 	    _particles.push_back( new Particle<PP>( pp ) );
-	} catch( std::bad_alloc ) {
+	} catch( const std::bad_alloc & ) {
 	    throw( ErrorNoMem( ERROR_LOCATION, "Out of memory adding particle" ) );
 	}
 	_scheduler.unlock_mutex();

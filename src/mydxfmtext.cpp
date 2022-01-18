@@ -2,7 +2,7 @@
  *  \brief DXF mtext entity
  */
 
-/* Copyright (c) 2010-2012,2014 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010-2012,2014,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -271,8 +271,8 @@ void MyDXFMText::plot( const class MyDXFFile *dxf, cairo_t *cairo,
 	x = Vec3D(-max[0],0,0);
 	break;
     default:
-    if( dxf->wlevel() >= 2 )
-	std::cout << "Warning: unknown attachment point in MText\n";	
+	if( dxf->wlevel() >= 2 )
+	    std::cout << "Warning: unknown attachment point in MText\n";	
 	break;
     }
 

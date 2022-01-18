@@ -2,7 +2,7 @@
  *  \brief %Particle iterator
  */
 
-/* Copyright (c) 2005-2013,2018 Taneli Kalvas, Tobin Jones. All rights reserved.
+/* Copyright (c) 2005-2013,2018,2022 Taneli Kalvas, Tobin Jones. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -323,7 +323,7 @@ template <class PP> class ParticleIterator {
 
 	try {
 	    _traj.push_back( x );
-	} catch( std::bad_alloc ) {
+	} catch( const std::bad_alloc & ) {
 	    throw( ErrorNoMem( ERROR_LOCATION, "Out of memory saving trajectory" ) );
 	}
     }
@@ -826,7 +826,7 @@ template <class PP> class ParticleIterator {
 		ColData<PP>::build_coldata_poly( _coldata, *_pidata._geom, x1, x2 );
 	    else
 		ColData<PP>::build_coldata_linear( _coldata, *_pidata._geom, x1, x2 );
-	} catch( std::bad_alloc ) {
+	} catch( const std::bad_alloc & ) {
 	    throw( ErrorNoMem( ERROR_LOCATION, "out of memory building collision data" ) );
 	}
     }
