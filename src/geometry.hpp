@@ -380,8 +380,8 @@ public:
 
     /*! \brief Find surface outward normal at location \a x.
      *
-     *  Returns zero vector on failure.
-     *  Uses solid data.
+     *  Returns zero vector on failure.  Uses solid data. The location
+     *  \a x should be within 1 mesh unit of a surface.
      */
     Vec3D surface_normal( const Vec3D &x ) const;
 

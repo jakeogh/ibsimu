@@ -359,8 +359,25 @@ uint32_t Geometry::inside( const Vec3D &x ) const
 
 bool Geometry::inside( uint32_t n, const Vec3D &x ) const
 {
-    if( n <= 6 || n > _n+6 )
-	throw( Error( ERROR_LOCATION, "illegal solid number n=" + to_string(n) ) );
+    if( n == 0 || n > _n+6 )
+	 throw( Error( ERROR_LOCATION, "illegal solid number n=" + to_string(n) ) );
+    else if( n <= 6 ) {
+	double eps = 1.0e-6*h();
+	if( n == 6 && x[2] > _max[2]+eps )
+	    return( true );
+	else if( n == 5 && x[2] < _origo[2]-eps )
+	    return( true );
+	else if( n == 4 && x[1] > _max[1]+eps )
+	    return( true );
+	else if( n == 3 && x[1] < _origo[1]-eps )
+	    return( true );
+	else if( n == 2 && x[0] > _max[0]+eps )
+	    return( true );
+	else if( n == 1 && x[0] < _origo[0]-eps )
+	    return( true );
+	else
+	    return( false );
+    }
 
     return( _sdata[n-7]->inside( x ) );
 }
