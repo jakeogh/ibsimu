@@ -273,7 +273,7 @@ public:
 
     /*! \brief Set surface collision model to be used.
      *
-     *  Defaults to false, which enabled the inside-test for collisions,
+     *  Defaults to false, which enables the inside-test for collisions.
      */
     void set_surface_collision( bool surface_collision );
 
@@ -513,7 +513,7 @@ public:
      *  in geometry \a geom. Space charge density field \a scharge is set
      *  from the particle trajectories.
      *
-     *  The meshes of the geometry , the space charge field and the
+     *  The meshes of the geometry, the space charge field and the
      *  electric field have to be equal. The magnetic field mesh can
      *  be selected independently. This allows minimization of the
      *  memory use in the case where electric field needs high

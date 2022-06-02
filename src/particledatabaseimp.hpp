@@ -766,6 +766,9 @@ public:
 	ibsimu.message( 1 ) << "Stepping particles\n";
 	ibsimu.inc_indent();
 
+	// Clear space charge
+	scharge.clear();
+	
 	// Go through particles
 	ParticleStepper<PP> ps( dt, _trajdiv, _mirror, &scharge, 
 			    &efield, &bfield, &_geom );
@@ -775,6 +778,7 @@ public:
 	    ps.step( _particles[a], a );
 	}
 
+	// Finalize charge
 	scharge_finalize_step_pic( scharge );
 
 	t.stop();
