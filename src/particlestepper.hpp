@@ -2,7 +2,7 @@
  *  \brief %Particle stepper using Boris leap-frog
  */
 
-/* Copyright (c) 2015 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2015,2022 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -134,6 +134,17 @@ public:
 	    Vec3D vplus = vminus + cross(vprime,s);
 	    Vec3D v = vplus + 0.5*particle->qm()*E*_dt;
 	    x += v*_dt;
+
+	    for( int a = 0; a < 3; a++ ) {
+		if( _mirror[2*a] && x[a] < _geom->origo(a) ) {
+		    x[a] = 2.0*_geom->origo(a) - x[a];
+		    v[a] *= -1;
+		}
+		if( _mirror[2*a+1] && x[a] > _geom->max(a) ) {
+		    x[a] = 2.0*_geom->max(a) - x[a];
+		    v[a] *= -1;
+		}
+	    }
 
 	    (*particle)[0] += _dt; // Advance time, time follows position, not velocity
 	    (*particle)[1] = x[0];
