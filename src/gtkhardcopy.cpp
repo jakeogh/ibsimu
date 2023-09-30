@@ -2,7 +2,7 @@
  *  \brief Dialog window for producing hard copies
  */
 
-/* Copyright (c) 2005-2009,2012-2013,2022 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012-2013,2022,2023 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -41,6 +41,7 @@
  */
 
 
+#include <libintl.h>
 #include "config.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

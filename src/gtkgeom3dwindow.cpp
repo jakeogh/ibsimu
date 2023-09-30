@@ -2,7 +2,7 @@
  *  \brief %Geometry view window for 3d
  */
 
-/* Copyright (c) 2012-2013,2022 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2012-2013,2022,2023 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -41,6 +41,7 @@
  */
 
 
+#include <libintl.h>
 #include <cairo.h>
 #include "config.h"
 

@@ -2,7 +2,7 @@
  *  \brief Preferences for plot windows
  */
 
-/* Copyright (c) 2005-2009,2012-2013,2022 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2005-2009,2012-2013,2022,2023 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -40,6 +40,7 @@
  * permit others to do so.
  */
 
+#include <libintl.h>
 #include "gtkpreferences.hpp"
 #include "gtkframewindow.hpp"
 
