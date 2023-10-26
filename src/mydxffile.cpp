@@ -2,7 +2,7 @@
  *  \brief DXF file.
  */
 
-/* Copyright (c) 2010,2012 Taneli Kalvas. All rights reserved.
+/* Copyright (c) 2010,2012,2023 Taneli Kalvas. All rights reserved.
  *
  * You can redistribute this software and/or modify it under the terms
  * of the GNU General Public License as published by the Free Software
@@ -173,6 +173,8 @@ void MyDXFFile::read( const std::string &filename )
 		}
 	    }
 	}
+	if( group_get_code() == 0 && group_get_string() == "EOF" )
+	    break;
     }
 
     // Close file
