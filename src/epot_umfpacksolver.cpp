@@ -156,6 +156,7 @@ void EpotUMFPACKSolver::umfpack_decompose( const CColMatrix &mat )
 {
     int   status;
     void *symbolic;
+    double Info[UMFPACK_INFO];
 
     // Free old decomposition
     if( _numeric )
@@ -164,15 +165,33 @@ void EpotUMFPACKSolver::umfpack_decompose( const CColMatrix &mat )
 
     status = umfpack_di_symbolic( mat.columns(), mat.rows(), 
 				  &mat.ptr(0), &mat.row(0), &mat.val(0), 
-				  &symbolic, (double *)NULL, (double *)NULL );
+				  &symbolic, (double *)NULL, Info );
     if( status != UMFPACK_OK )
 	umfpack_error( "umfpack_di_symbolic", status );
 
+    // Log memory estimate from symbolic analysis
+    double unit = Info[UMFPACK_SIZE_OF_UNIT];
+    double peak_units = Info[UMFPACK_PEAK_MEMORY_ESTIMATE];
+    double numeric_units = Info[UMFPACK_NUMERIC_SIZE_ESTIMATE];
+    double peak_mb = peak_units * unit / (1024.0 * 1024.0);
+    double peak_gb = peak_mb / 1024.0;
+    double numeric_mb = numeric_units * unit / (1024.0 * 1024.0);
+    double numeric_gb = numeric_mb / 1024.0;
+    ibsimu.message(1) << "UMFPACK memory estimate: peak="
+		      << peak_mb << " MB (" << peak_gb << " GB)"
+		      << ", numeric=" << numeric_mb << " MB (" << numeric_gb << " GB)\n";
+    ibsimu.flush();
+
     status = umfpack_di_numeric( &mat.ptr(0), &mat.row(0), &mat.val(0), 
 				 symbolic, &_numeric, (double *)NULL, 
-				 (double *)NULL );
-    if( status != UMFPACK_OK )
+				 Info );
+    if( status != UMFPACK_OK ) {
+	ibsimu.message(1) << "UMFPACK numeric factorization FAILED (estimated "
+			  << peak_gb << " GB peak)\n";
+	ibsimu.flush();
+	umfpack_di_free_symbolic( &symbolic );
 	umfpack_error( "umfpack_di_numeric", status );
+    }
 
     // Free symbolic data
     umfpack_di_free_symbolic( &symbolic );
