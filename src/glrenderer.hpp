@@ -45,34 +45,32 @@
 #define GLRENDERER_HPP 1
 
 
-#include <gtk/gtkgl.h>
+#include <gtk/gtk.h>
+#include <GL/gl.h>
 #include "renderer.hpp"
-#include "error.hpp"
 
 
-/*! \brief OpenGL 3D renderer.
+// Opaque GLX types to avoid X11 header pollution (Colormap typedef conflict)
+typedef struct __GLXcontextRec *GLXContext;
+
+
+/*! \brief OpenGL 3D renderer using GLX compatibility profile.
  */
 class GLRenderer : public Renderer {
 
     GtkWidget      *_darea;
-    GdkGLContext   *_glcontext;
-    GdkGLDrawable  *_gldrawable;
+    void           *_xdisplay;    // Display*
+    GLXContext      _glx_context;
+    unsigned long   _xwindow;     // Window (XID)
+    bool            _gl_ready;
 
     Vec3D            _material_diffuse_color;
     Vec3D            _material_ambient_color;
     Vec3D            _color;
 
+    void init_gl( void );
+
 public:
-
-    /*! \brief Class for OpenGL initialization error.
-     */
-    class ErrorGLInit : public Error {	
-    public:
-
-	/*! \brief Error constructor.
-	 */
-	ErrorGLInit() {}
-    };
 
     GLRenderer( GtkWidget *darea );
     virtual ~GLRenderer();

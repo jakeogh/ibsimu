@@ -42,47 +42,170 @@
 
 
 #include <GL/gl.h>
+#include <GL/glx.h>
+#include <gdk/gdkx.h>
 #include "glrenderer.hpp"
 #include "ibsimu.hpp"
+
+// Cast helpers for opaque types stored in header
+#define XDISPLAY  ((Display *)_xdisplay)
+#define XWINDOW   ((Window)_xwindow)
 
 
 GLRenderer::GLRenderer( GtkWidget *darea )
     : _darea(darea),
+      _xdisplay(NULL),
+      _glx_context(NULL),
+      _xwindow(0),
+      _gl_ready(false),
       _material_diffuse_color(0.8,0.0,0.0), 
       _material_ambient_color(0.2,0.0,0.0),
       _color(0.0,0.0,0.0)
 {
-    GdkGLConfigMode mode = (GdkGLConfigMode)( GDK_GL_MODE_RGBA |
-					      GDK_GL_MODE_DEPTH |
-					      GDK_GL_MODE_DOUBLE );
-    GdkGLConfig *gl_config = gdk_gl_config_new_by_mode( mode );
-    if( !gl_config )
-        throw( ErrorGLInit() );
-
-    if( !gtk_widget_set_gl_capability( darea, gl_config, NULL, TRUE,
-				       GDK_GL_RGBA_TYPE ) )
-        throw( ErrorGLInit() );
-
-    ibsimu.message( 1 ) << "Using GLRenderer\n";
+    ibsimu.message( 1 ) << "Using GLRenderer (GLX compat)\n";
     ibsimu.flush();
 }
 
 
 GLRenderer::~GLRenderer()
 {
+    if( _glx_context ) {
+	glXMakeCurrent( XDISPLAY, None, NULL );
+	glXDestroyContext( XDISPLAY, _glx_context );
+    }
+}
 
+
+#ifndef GLX_CONTEXT_MAJOR_VERSION_ARB
+#define GLX_CONTEXT_MAJOR_VERSION_ARB      0x2091
+#define GLX_CONTEXT_MINOR_VERSION_ARB      0x2092
+#define GLX_CONTEXT_PROFILE_MASK_ARB       0x9126
+#define GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+#endif
+
+typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
+
+void GLRenderer::init_gl( void )
+{
+    GdkWindow *gdk_win = gtk_widget_get_window( _darea );
+    if( !gdk_win )
+	return;
+
+    _xdisplay = (void *)gdk_x11_display_get_xdisplay( gdk_display_get_default() );
+    _xwindow = (unsigned long)gdk_x11_window_get_xid( gdk_win );
+    Display *dpy = XDISPLAY;
+    Window xwin = XWINDOW;
+    int screen = DefaultScreen( dpy );
+
+    // Get visual of existing window
+    XWindowAttributes xwa;
+    XGetWindowAttributes( dpy, xwin, &xwa );
+    VisualID target_vid = XVisualIDFromVisual( xwa.visual );
+
+    // Find FBConfig matching window visual with depth buffer
+    int fb_attribs[] = {
+	GLX_RENDER_TYPE, GLX_RGBA_BIT,
+	GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+	GLX_DOUBLEBUFFER, True,
+	GLX_DEPTH_SIZE, 16,
+	None
+    };
+    int nfb = 0;
+    GLXFBConfig *fbcs = glXChooseFBConfig( dpy, screen, fb_attribs, &nfb );
+    GLXFBConfig matching_fbc = NULL;
+
+    if( fbcs ) {
+	for( int i = 0; i < nfb; i++ ) {
+	    XVisualInfo *vi = glXGetVisualFromFBConfig( dpy, fbcs[i] );
+	    if( vi && vi->visualid == target_vid ) {
+		matching_fbc = fbcs[i];
+		XFree( vi );
+		break;
+	    }
+	    if( vi ) XFree( vi );
+	}
+
+	// Fallback: if no depth-capable FBConfig matches, try without depth
+	if( !matching_fbc ) {
+	    int fb_attribs2[] = {
+		GLX_RENDER_TYPE, GLX_RGBA_BIT,
+		GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+		GLX_DOUBLEBUFFER, True,
+		None
+	    };
+	    int nfb2 = 0;
+	    GLXFBConfig *fbcs2 = glXChooseFBConfig( dpy, screen, fb_attribs2, &nfb2 );
+	    if( fbcs2 ) {
+		for( int i = 0; i < nfb2; i++ ) {
+		    XVisualInfo *vi = glXGetVisualFromFBConfig( dpy, fbcs2[i] );
+		    if( vi && vi->visualid == target_vid ) {
+			matching_fbc = fbcs2[i];
+			XFree( vi );
+			break;
+		    }
+		    if( vi ) XFree( vi );
+		}
+		XFree( fbcs2 );
+	    }
+	}
+	XFree( fbcs );
+    }
+
+    // Try glXCreateContextAttribsARB for explicit compat profile
+    glXCreateContextAttribsARBProc glXCreateContextAttribsARB =
+	(glXCreateContextAttribsARBProc)glXGetProcAddressARB(
+	    (const GLubyte *)"glXCreateContextAttribsARB" );
+
+    if( matching_fbc && glXCreateContextAttribsARB ) {
+	int ctx_attribs[] = {
+	    GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
+	    GLX_CONTEXT_MINOR_VERSION_ARB, 0,
+	    GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+	    None
+	};
+	_glx_context = glXCreateContextAttribsARB( dpy, matching_fbc,
+						   NULL, True, ctx_attribs );
+    }
+
+    // Fallback: old-style glXCreateContext (compat by default)
+    if( !_glx_context ) {
+	XVisualInfo tmpl;
+	tmpl.visualid = target_vid;
+	int nitems;
+	XVisualInfo *vi = XGetVisualInfo( dpy, VisualIDMask, &tmpl, &nitems );
+	if( vi ) {
+	    _glx_context = glXCreateContext( dpy, vi, NULL, True );
+	    XFree( vi );
+	}
+    }
+
+    if( !_glx_context ) {
+	ibsimu.message( 1 ) << "Failed to create GLX context\n";
+	ibsimu.flush();
+	return;
+    }
+
+    glXMakeCurrent( dpy, xwin, _glx_context );
+
+    const char *version = (const char *)glGetString( GL_VERSION );
+    const char *renderer = (const char *)glGetString( GL_RENDERER );
+    ibsimu.message( 1 ) << "GLX context: " << (version ? version : "NULL")
+			 << " renderer=" << (renderer ? renderer : "NULL") << "\n";
+    ibsimu.flush();
+
+    _gl_ready = true;
 }
 
 
 void GLRenderer::start_rendering( void )
 {
-    // Initialize OpenGL context
-    _glcontext = gtk_widget_get_gl_context( _darea );
-    _gldrawable = gtk_widget_get_gl_drawable( _darea );
-    if( !gdk_gl_drawable_gl_begin( _gldrawable, _glcontext ) )
-	g_assert_not_reached();
+    if( !_gl_ready )
+	init_gl();
+    if( !_gl_ready )
+	return;
 
-    // Set OpenGL viewport
+    glXMakeCurrent( XDISPLAY, XWINDOW, _glx_context );
+
     GtkAllocation alloc;
     gtk_widget_get_allocation( _darea, &alloc );
     glViewport( 0, 0, alloc.width, alloc.height );
@@ -100,12 +223,9 @@ void GLRenderer::start_rendering( void )
 
 void GLRenderer::end_rendering( cairo_t *cairo )
 {
-    // Finish draw and close OpenGL context
-    if( gdk_gl_drawable_is_double_buffered( _gldrawable) )
-        gdk_gl_drawable_swap_buffers( _gldrawable ); 
-    else
-        glFlush();
-    gdk_gl_drawable_gl_end( _gldrawable );
+    if( !_gl_ready )
+	return;
+    glXSwapBuffers( XDISPLAY, XWINDOW );
 }
 
 

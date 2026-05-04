@@ -96,19 +96,11 @@ void GTKGeom3DWindow::init_renderer( void )
 {
 #ifdef OPENGL
     if( _plotter.opengl() ) {
-	try {
-	    // Try initializing OpenGL renderer
-	    _renderer = new GLRenderer( _darea );
-	} catch( GLRenderer::ErrorGLInit e ) {
-	    // Fallback to software renderer
-	    _renderer = new SoftwareRenderer( _darea );
-	}
+	_renderer = new GLRenderer( _darea );
     } else {
-	// No GdkGLExt initialized
 	_renderer = new SoftwareRenderer( _darea );
     }
 #else
-    // Only software renderer available
     _renderer = new SoftwareRenderer( _darea );
 #endif
 }
@@ -279,6 +271,9 @@ void GTKGeom3DWindow::init_window( void )
 		      (gpointer)this );
     g_signal_connect( G_OBJECT(_darea), "button_release_event",
 		      G_CALLBACK(darea_button_signal),
+		      (gpointer)this );
+    g_signal_connect( G_OBJECT(_darea), "scroll_event",
+		      G_CALLBACK(darea_scroll_signal),
 		      (gpointer)this );
     g_signal_connect( G_OBJECT(_darea), "motion_notify_event",
 		      G_CALLBACK(darea_motion_signal),
@@ -789,6 +784,19 @@ gboolean GTKGeom3DWindow::darea_button_signal( GtkWidget *widget,
     GTKGeom3DWindow *window = (GTKGeom3DWindow *)object;
     window->darea_button( event );
     return( FALSE );
+}
+
+
+gboolean GTKGeom3DWindow::darea_scroll_signal( GtkWidget *widget,
+					       GdkEventScroll *event,
+					       gpointer object )
+{
+    GTKGeom3DWindow *window = (GTKGeom3DWindow *)object;
+    if( event->direction == GDK_SCROLL_UP )
+	window->zoom_in( event->x, event->y );
+    else if( event->direction == GDK_SCROLL_DOWN )
+	window->zoom_out( event->x, event->y );
+    return( TRUE );
 }
 
 

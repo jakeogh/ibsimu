@@ -43,10 +43,6 @@
 
 #include "config.h"
 
-#ifdef OPENGL
-#include <gtk/gtkgl.h>
-#endif
-
 #include "gtkplotter.hpp"
 #include "gtkgeomwindow.hpp"
 #include "gtkgeom3dwindow.hpp"
@@ -74,10 +70,6 @@ GTKPlotter::GTKPlotter( int *argc, char ***argv )
 
 #ifdef OPENGL
 	_opengl = true;
-	// Initialize OpenGL
-	if( gtk_gl_init_check( argc, argv ) == FALSE ||
-	    gdk_gl_query_extension() == FALSE )
-	    _opengl = false;
 #endif
     }
 }

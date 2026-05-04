@@ -96,7 +96,7 @@ AS_IF([test "x$with_gtk3" != "xno"],
 )
 AM_CONDITIONAL([GTK3], [test x$USEGTK3 = xyes])
 
-dnl OpenGL/GtkGLExt
+dnl OpenGL (using GLX, requires libGL and X11)
 dnl Check by default, can be disabled
 dnl ---------------------------------
 AC_ARG_WITH([opengl],
@@ -105,15 +105,14 @@ AC_ARG_WITH([opengl],
                   [],
                   [with_opengl=check])
 AS_IF([test "x$with_opengl" != "xno"],
-      [PKG_CHECK_MODULES([GTKGLEXT], [gtkglext-3.0], [], [echo "Using software rendering"])
-       if $PKG_CONFIG --exists gtkglext-3.0 ; then
+      [AC_CHECK_LIB([GL], [glXCreateContext], [have_gl=yes], [have_gl=no])
+       if test "x$have_gl" = "xyes" ; then
          USEOPENGL="yes"
-         AC_DEFINE([OPENGL], [1], [Define to 1 if GtkGLExt/OpenGL dependent code is to be compiled.])
-         LIBS="$LIBS $GTKGLEXT_LIBS"
-         CPPFLAGS="$CPPFLAGS $GTKGLEXT_CFLAGS"
-         AC_SUBST(OPENGL_COND,[gtkglext-3.0])
+         AC_DEFINE([OPENGL], [1], [Define to 1 if OpenGL dependent code is to be compiled.])
+         LIBS="$LIBS -lGL"
+         AC_SUBST(OPENGL_COND,"")
        elif test "x$with_opengl" != "xcheck" ; then
-         AC_MSG_ERROR([--with-opengl was given, but pkgconfig check for gtkglext-3.0 library failed])
+         AC_MSG_ERROR([--with-opengl was given, but libGL was not found])
        else
          AC_SUBST(OPENGL_COND,"")
        fi]

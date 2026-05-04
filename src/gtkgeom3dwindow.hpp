@@ -135,6 +135,9 @@ class GTKGeom3DWindow : public GTKWindow {
     static gboolean darea_button_signal( GtkWidget *widget, 
 					 GdkEventButton *event,
 					 gpointer object );
+    static gboolean darea_scroll_signal( GtkWidget *widget,
+					 GdkEventScroll *event,
+					 gpointer object );
     static gboolean darea_motion_signal( GtkWidget *widget, 
 					 GdkEventMotion *event,
 					 gpointer object );
